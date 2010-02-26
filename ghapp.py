@@ -45,7 +45,8 @@ class Greeting(db.Model):
 
 class RecentPage(webapp.RequestHandler):
     def get(self):
-        self.response.out.write('<html><body>')
+        self.response.out.write("""<html><body>
+<p>Recent saves:</p>""")
 
         proofs = db.GqlQuery("SELECT * FROM Proof ORDER BY date DESC LIMIT 10")
 
@@ -130,9 +131,19 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        self.response.out.write("""<title>Ghilbert main</title>
+        self.response.out.write("""<title>Ghilbert web app</title>
 <body>
-<h1>Ghilbert main</h1>""")
+<h1>Ghilbert web app</h1>
+
+<p>This is an early prototype of a web app for developing
+<a href="http://sites.google.com/a/ghilbert.org/ghilbert/">Ghilbert</a>
+proofs.</p>
+
+<p>See above link for basic documentation. Source code for this site
+is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
+
+<p><a href="/recent">Recent saves</a></p>
+""")
         user = users.get_current_user()
         if user:
             self.response.out.write('<p>Logged in as ' + user.nickname() + '\n')
