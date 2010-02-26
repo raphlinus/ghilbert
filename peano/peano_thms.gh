@@ -1,0 +1,842 @@
+# Building up theorems of peano arithmetic.
+
+# until param is working...
+import (COMBINED combined.ghi () "")
+
+#import (PROP prop.ghi () "")
+#import (PEANO peano_ax.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (num A B C D A' B' C')
+var (num x y z x' y')
+
+# Pure predicate calculus
+
+thm (mpg ()
+  (hyp1 (-> (A. x ph) ps)
+   hyp2 ph)
+  ps
+  hyp2 x gen hyp1 ax-mp
+)
+
+thm (19.3 ((ph x))
+  ()
+  (<-> (A. x ph) ph)
+  x ph ax-4 ph x alnfi impbii
+)
+
+# aka 19.7
+thm (alnex () ()
+  (<-> (A. x (-. ph)) (-. (E. x ph)))
+  x ph df-ex con2bii
+)
+
+thm (19.9 ((ph x))
+  ()
+  (<-> (E. x ph) ph)
+
+  x (-. ph) 19.3
+  x ph alnex bitr3i con4bii bicomi
+)
+
+thm (19.15 () ()
+  (-> (A. x (<-> ph ps)) (<-> (A. x ph) (A. x ps)))
+
+  ph ps bi1 x gen
+  x (<-> ph ps) (-> ph ps) ax-alim ax-mp
+  x ph ps ax-alim syl
+
+    ph ps bi2 x gen
+    x (<-> ph ps) (-> ps ph) ax-alim ax-mp
+    x ps ph ax-alim syl
+  impbid
+)
+
+thm (19.15i ()
+  (hyp (A. x (<-> ph ps)))
+  (<-> (A. x ph) (A. x ps))
+  hyp x ph ps 19.15 ax-mp)
+
+thm (albii ()
+  (hyp (<-> ph ps))
+  (<-> (A. x ph) (A. x ps))
+  hyp x gen 19.15i)
+
+thm (19.20i ()
+  (hyp (-> ph ps))
+  (-> (A. x ph) (A. x ps))
+  hyp x gen x ph ps ax-alim ax-mp)
+
+thm (19.21 ((ph x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> ph (A. x ps)))
+
+  x ph ps ax-alim ph x alnfi syl5
+    (-> ph (A. x ps)) x alnfi
+      x ps ax-4
+      ph imim2i
+      x 19.20i
+    syl
+  impbii
+)
+
+thm (19.21ai ((ph x))
+  (hyp (-> ph ps))
+  (-> ph (A. x ps))
+  ph x alnfi hyp x 19.20i syl
+)
+
+thm (19.22 () ()
+  (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
+
+  ph ps con34b x albii
+    x (-. ps) (-. ph) ax-alim sylbi con3d
+    x ph df-ex x ps df-ex imbi12i sylibr
+)
+
+thm (19.22i ()
+  (hyp (-> ph ps))
+  (-> (E. x ph) (E. x ps))
+  hyp x gen x ph ps 19.22 ax-mp)
+
+thm (19.22d ((ph x))
+  (hyp (-> ph (-> ps ch)))
+  (-> ph (-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.22 syl
+)
+
+thm (19.18 () ()
+  (-> (A. x (<-> ph ps)) (<-> (E. x ph) (E. x ps)))
+  ph ps bi1 x 19.20i x ph ps 19.22 syl
+    ph ps bi2 x 19.20i x ps ph 19.22 syl
+  impbid
+)
+
+thm (exbii ()
+  (hyp (<-> ph ps))
+  (<-> (E. x ph) (E. x ps))
+  x ph ps 19.18 hyp mpg
+)
+
+thm (exbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.18 syl
+)
+
+thm (19.32 ((ph x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ ph (A. x ps)))
+
+  x (-. ph) ps 19.21
+    ph ps df-or x albii
+      ph (A. x ps) df-or
+  3bitr4i
+)
+
+thm (19.31 ((ps x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ (A. x ph) ps))
+
+  x ps ph 19.32
+  ph ps orcom x albii
+  (A. x ph) ps orcom
+  3bitr4i
+)
+
+thm (19.23 ((ps x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> (E. x ph) ps))
+
+  ph ps imor x albii
+  x (-. ph) ps 19.31 bitri
+  x ph alnex ps orbi1i bitri
+  (E. x ph) ps imor bitr4i
+)
+
+thm (19.23ai ((ps x))
+  (hyp (-> ph ps))
+  (-> (E. x ph) ps)
+  hyp x 19.22i
+  x ps 19.9 sylib
+)
+
+thm (19.41 ((ps x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ (E. x ph) ps))
+  x (/\ ph ps) df-ex
+    x (-. ph) (-. ps) 19.31
+      ph ps ianor x albii
+        (E. x ph) ps ianor x ph alnex (-. ps) orbi1i bitr4i
+    3bitr4i con2bii
+  bitr4i
+)
+
+# Predicate calculus with equality
+
+thm (tyex ((A x)) ()
+  (E. x (= x A))
+  x A ax-tyex
+  x (= x A) df-ex mpbir
+)
+
+thm (vtocle ((A x) (ph x))
+  (hyp (-> (= x A) ph))
+  ph
+
+  x A tyex hyp x 19.23ai ax-mp
+)
+
+thm (eqid () ()
+  (= A A)
+  x A A ax-eqtr anidms vtocle
+)
+
+thm (eqcom () ()
+  (<-> (= A B) (= B A))
+  A eqid A B A ax-eqtr mpan2
+    B eqid B A B ax-eqtr mpan2
+  impbii
+)
+
+thm (eqcomi ()
+  (hyp (= A B))
+  (= B A)
+  hyp A B eqcom mpbi)
+
+thm (eqcomd ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= B A))
+  hyp A B eqcom sylib)
+
+thm (eqcoms ()
+  (hyp (-> (= A B) ph))
+  (-> (= B A) ph)
+  B A eqcom hyp sylbi
+)
+
+thm (eqeq1 () ()
+  (-> (= A B) (<-> (= A C) (= B C)))
+  A B C ax-eqtr ex
+    B A C ax-eqtr ex eqcoms
+  impbid
+)
+
+thm (eqeq2 () ()
+  (-> (= A B) (<-> (= C A) (= C B)))
+  A B C eqeq1
+    A C eqcom B C eqcom bibi12i
+  sylib
+)
+
+thm (eqeq1i ()
+  (hyp (= A B))
+  (<-> (= A C) (= B C))
+  hyp A B C eqeq1 ax-mp)
+
+thm (eqeq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (= A C) (= B C)))
+  hyp A B C eqeq1 syl)
+
+thm (eqeq2i ()
+  (hyp (= A B))
+  (<-> (= C A) (= C B))
+  hyp A B C eqeq2 ax-mp)
+
+thm (eqeq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (= C A) (= C B)))
+  hyp A B C eqeq2 syl)
+
+thm (eqeq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (<-> (= A C) (= B D))
+  hyp1 A B C eqeq1 ax-mp hyp2 C D B eqeq2 ax-mp bitri
+)
+
+thm (eqeq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (<-> (= A C) (= B D)))
+  hyp1 C eqeq1d
+  hyp2 B eqeq2d bitrd
+)
+
+thm (eqtr3 ()
+  (hyp1 (= A B)
+   hyp2 (= A C))
+  (= B C)
+  hyp1 hyp2 A B C ax-eqtr mp2an
+)
+
+thm (eqtr ()
+  (hyp1 (= A B)
+   hyp2 (= B C))
+  (= A C)
+  hyp1 eqcomi hyp2 eqtr3
+)
+
+thm (eqtr4 ()
+  (hyp1 (= A B)
+   hyp2 (= C B))
+  (= A C)
+  hyp1 hyp2 eqcomi eqtr
+)
+
+thm (eqtrd ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= B C)))
+  (-> ph (= A C))
+  hyp1 hyp2 A eqeq2d mpbid
+)
+
+thm (syl5eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C A))
+  (-> ph (= C B))
+  hyp2 ph a1i hyp1 eqtrd
+)
+
+thm (syl5eqr ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= A C))
+  (-> ph (= C B))
+  hyp2 eqcomi ph a1i hyp1 eqtrd
+)
+
+thm (syl6eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= B C))
+  (-> ph (= A C))
+  hyp1 hyp2 ph a1i eqtrd
+)
+
+thm (syl6eqr ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C B))
+  (-> ph (= A C))
+  hyp1 hyp2 eqcomi ph a1i eqtrd
+)
+
+thm (3eqtr4g ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C A)
+   hyp3 (= D B))
+  (-> ph (= C D))
+  hyp1 hyp2 syl5eq hyp3 syl6eqr
+)
+
+thm (vtocl ((A x) (ps x))
+  (hyp1 (-> (= x A) (<-> ph ps))
+   hyp2 ph)
+  ps
+
+  hyp2 hyp1 mpbii vtocle
+)
+
+thm (ceqsal ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (A. x (-> (= x A) ph)) ps)
+
+  hyp pm5.74i x albii
+  x (= x A) ps 19.23 bitri
+  x A tyex ps a1bi bitr4i
+)
+
+thm (substex ((ph x y) (ps y) (ch x) (A y))
+  (hyp (-> (/\ ph (/\ (= y A) ps)) ch))
+  (-> (/\ ph (E. x ps)) (E. y ch))
+
+  hyp ex y 19.21ai
+    y (/\ (= y A) ps) ch 19.22
+  y (= y A) ps 19.41 y A tyex mpbiran syl5ibr syl
+  x 19.21ai 
+  x ps (E. y ch) 19.23 sylib imp
+)
+
+# Peano arithmetic
+
+thm (addeq1 () ()
+  (-> (= A B) (= (+ A C) (+ B C)))
+  C eqid A B C C addeq12 mpan2)
+
+thm (addeq2 () ()
+  (-> (= A B) (= (+ C A) (+ C B)))
+  C eqid C C A B addeq12 mpan)
+
+thm (addeq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (+ A C) (+ B D))
+  hyp1 hyp2 A B C D addeq12 mp2an
+)
+
+thm (addeq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= (+ A C) (+ B C)))
+  hyp C eqid A B C C addeq12 mpan2 syl
+)
+
+thm (addeq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (+ A C) (+ B D)))
+  hyp1 hyp2 jca A B C D addeq12 syl
+)
+
+thm (addeq1i ()
+  (hyp (= A B))
+  (= (+ A C) (+ B C))
+  hyp C eqid A B C C addeq12 mp2an
+)
+
+thm (addeq2i ()
+  (hyp (= A B))
+  (= (+ C A) (+ C B))
+  C eqid hyp C C A B addeq12 mp2an
+)
+
+thm (muleq1 () ()
+  (-> (= A B) (= (* A C) (* B C)))
+  C eqid A B C C muleq12 mpan2)
+
+thm (muleq2 () ()
+  (-> (= A B) (= (* C A) (* C B)))
+  C eqid C C A B muleq12 mpan)
+
+thm (muleq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (* A C) (* B D))
+  hyp1 hyp2 A B C D muleq12 mp2an
+)
+
+thm (muleq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= (* A C) (* B C)))
+  hyp C eqid A B C C muleq12 mpan2 syl
+)
+
+thm (muleq1i ()
+  (hyp (= A B))
+  (= (* A C) (* B C))
+  hyp C eqid A B C C muleq12 mp2an
+)
+
+thm (suceqd ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= (S A) (S B)))
+  hyp A B pa_ax2 sylib)
+
+thm (finds ((A x) (ps x) (ch x) (th x) (ta x) (ph y))
+  (hyp1 (-> (= x (0)) (<-> ph ps))
+   hyp2 (-> (= x y) (<-> ph ch))
+   hyp3 (-> (= x (S y)) (<-> ph th))
+   hyp4 (-> (= x A) (<-> ph ta))
+   hyp5 ps
+   hyp6 (-> ch th))
+  ta
+
+  hyp4
+    hyp5 hyp1 mpbiri x gen
+      hyp6
+        hyp2 ceqsal
+          hyp3 ceqsal
+      3imtr4i y gen
+    x ph y pa_ind mp2an
+    x ph ax-4 ax-mp
+  vtocl
+)
+
+thm (pa_ax3r () ()
+  (= (+ (0) A) A)
+
+  x (0) (0) addeq2 (= x (0)) id eqeq12d
+    x y (0) addeq2 (= x y) id eqeq12d
+      x (S y) (0) addeq2 (= x (S y)) id eqeq12d
+        x A (0) addeq2 (= x A) id eqeq12d
+          (0) pa_ax3
+            (+ (0) y) y pa_ax2
+              (0) y pa_ax4 (S y) eqeq1i
+            bitr4i biimpi
+  finds
+)
+
+thm (pa_ax4r () ()
+  (= (+ (S A) B) (S (+ A B)))
+
+  x (0) (S A) addeq2 x (0) A addeq2 suceqd eqeq12d
+    x y (S A) addeq2 x y A addeq2 suceqd eqeq12d
+      x (S y) (S A) addeq2 x (S y) A addeq2 suceqd eqeq12d
+        x B (S A) addeq2 x B A addeq2 suceqd eqeq12d
+
+          (S A) pa_ax3 A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr4
+
+            (+ (S A) y) (S (+ A y)) pa_ax2 biimpi
+              A y pa_ax4 (+ A (S y)) (S (+ A y)) pa_ax2 mpbi
+            syl6eqr
+              (S A) y pa_ax4
+             syl5eq
+
+  finds
+)
+
+thm (addcom () ()
+  (= (+ A B) (+ B A))
+
+  x (0) B addeq1 x (0) B addeq2 eqeq12d
+    x y B addeq1 x y B addeq2 eqeq12d
+      x (S y) B addeq1 x (S y) B addeq2 eqeq12d
+        x A B addeq1 x A B addeq2 eqeq12d
+
+          B pa_ax3r B pa_ax3 eqtr4
+
+            (+ y B) (+ B y) pa_ax2 biimpi
+            y B pa_ax4r syl5eq
+            B y pa_ax4 syl6eqr
+
+  finds
+)
+
+thm (addass () ()
+  (= (+ (+ A B) C) (+ A (+ B C)))
+
+  x (0) B addeq1 C addeq1d x (0) (+ B C) addeq1 eqeq12d
+    x y B addeq1 C addeq1d x y (+ B C) addeq1 eqeq12d
+      x (S y) B addeq1 C addeq1d x (S y) (+ B C) addeq1 eqeq12d
+        x A B addeq1 C addeq1d x A (+ B C) addeq1 eqeq12d
+
+          B pa_ax3r C addeq1i (+ B C) pa_ax3r eqtr4
+
+            (+ (+ y B) C) (+ y (+ B C)) pa_ax2 biimpi
+              y B pa_ax4r C addeq1i
+              (+ y B) C pa_ax4r eqtr
+                y (+ B C) pa_ax4r
+            3eqtr4g
+  finds
+)
+
+thm (pa_ax5r () ()
+  (= (* (0) A) (0))
+
+  x (0) (0) muleq2 (0) eqeq1d
+    x y (0) muleq2 (0) eqeq1d
+      x (S y) (0) muleq2 (0) eqeq1d
+        x A (0) muleq2 (0) eqeq1d
+          (0) pa_ax5
+            (0) y pa_ax6
+            (* (0) y) pa_ax3 eqtr (0) eqeq1i biimpri
+  finds
+)
+
+thm (pa_ax6r () ()
+  (= (* (S A) B) (+ (* A B) B))
+
+  x (0) (S A) muleq2 x (0) A muleq2 (= x (0)) id addeq12d eqeq12d
+    x y (S A) muleq2 x y A muleq2 (= x y) id addeq12d eqeq12d
+      x (S y) (S A) muleq2 x (S y) A muleq2 (= x (S y)) id addeq12d eqeq12d
+        x B (S A) muleq2 x B A muleq2 (= x B) id addeq12d eqeq12d
+          (S A) pa_ax5 A pa_ax5 (0) addeq1i (0) pa_ax3 eqtr eqtr4
+
+            (* (S A) y) (+ (* A y) y) (S A) addeq1
+            (S A) y pa_ax6 syl5eq
+            (+ (* A y) y) A pa_ax4 syl6eq
+              (* A y) y A addass y A addcom (* A y) addeq2i eqtr
+              (* A y) A y addass eqtr4
+              (+ (+ (* A y) y) A) (+ (+ (* A y) A) y) pa_ax2 mpbi
+            syl6eq
+              A y pa_ax6 (S y) addeq1i
+              (+ (* A y) A) y pa_ax4 eqtr
+            syl6eqr
+  finds
+)
+
+thm (mulcom () ()
+  (= (* A B) (* B A))
+
+  x (0) B muleq1 x (0) B muleq2 eqeq12d
+    x y B muleq1 x y B muleq2 eqeq12d
+      x (S y) B muleq1 x (S y) B muleq2 eqeq12d
+        x A B muleq1 x A B muleq2 eqeq12d
+
+          B pa_ax5r B pa_ax5 eqtr4
+
+            (* y B) (* B y) B addeq1
+            y B pa_ax6r syl5eq
+            B y pa_ax6 syl6eqr
+  finds
+)
+
+thm (add23 () ()
+  (= (+ (+ A B) C) (+ (+ A C) B)) 
+  A B C addass
+  B C addcom A addeq2i eqtr
+  A C B addass eqtr4
+)
+
+thm (add4 () ()
+  (= (+ (+ A B) (+ C D)) (+ (+ A C) (+ B D)))
+  (+ A B) C D addass 
+  A B C add23 D addeq1i eqtr3
+  (+ A C) B D addass eqtr
+)
+
+thm (distr () ()
+  (= (* A (+ B C)) (+ (* A B) (* A C)))
+
+  x (0) (+ B C) muleq1 x (0) B muleq1 x (0) C muleq1 addeq12d eqeq12d
+    x y (+ B C) muleq1 x y B muleq1 x y C muleq1 addeq12d eqeq12d
+      x (S y) (+ B C) muleq1 x (S y) B muleq1 x (S y) C muleq1 addeq12d eqeq12d
+        x A (+ B C) muleq1 x A B muleq1 x A C muleq1 addeq12d eqeq12d
+
+          (+ B C) pa_ax5r B pa_ax5r C pa_ax5r addeq12i (0) pa_ax3 eqtr eqtr4
+
+            (* y (+ B C)) (+ (* y B) (* y C)) (+ B C) addeq1
+            y (+ B C) pa_ax6r syl5eq
+              y B pa_ax6r y C pa_ax6r addeq12i
+              (* y B) B (* y C) C add4 eqtr
+            syl6eqr
+  finds
+)
+
+thm (mulass () ()
+  (= (* (* A B) C) (* A (* B C)))
+
+  x (0) B muleq1 C muleq1d x (0) (* B C) muleq1 eqeq12d
+    x y B muleq1 C muleq1d x y (* B C) muleq1 eqeq12d
+      x (S y) B muleq1 C muleq1d x (S y) (* B C) muleq1 eqeq12d
+        x A B muleq1 C muleq1d x A (* B C) muleq1 eqeq12d
+
+          B pa_ax5r C muleq1i C pa_ax5r eqtr (* B C) pa_ax5r eqtr4
+
+            (* (* y B) C) (* y (* B C)) (* B C) addeq1
+              y B pa_ax6r C muleq1i
+              C (+ (* y B) B) mulcom C (* y B) B distr eqtr3 eqtr
+              C (* y B) mulcom C B mulcom addeq12i eqtr
+            syl5eq
+            y (* B C) pa_ax6r syl6eqr
+  finds
+)
+
+thm (addcan () ()
+  (<-> (= (+ B A) (+ C A)) (= B C))
+  x (0) B addeq2 x (0) C addeq2 eqeq12d (= B C) bibi1d
+    x y B addeq2 x y C addeq2 eqeq12d (= B C) bibi1d
+      x (S y) B addeq2 x (S y) C addeq2 eqeq12d (= B C) bibi1d
+        x A B addeq2 x A C addeq2 eqeq12d (= B C) bibi1d
+
+          B pa_ax3 C pa_ax3 eqeq12i
+
+            B y pa_ax4 C y pa_ax4 eqeq12i
+            (+ B y) (+ C y) pa_ax2 bitr4i (= B C) bibi1i biimpri
+  finds
+)
+
+thm (leeq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (<= A C) (<= B C)))
+  hyp
+    A B x addeq1 C eqeq1d x exbid
+      A C x df-le B C x df-le bibi12i
+    sylibr
+  syl
+)
+
+thm (leeq1i ()
+  (hyp (= A B))
+  (<-> (<= A C) (<= B C))
+  hyp (= A B) id C leeq1d ax-mp
+)
+
+thm (leeq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (<= C A) (<= C B)))
+  hyp
+    A B (+ C x) eqeq2 x exbid 
+      C A x df-le C B x df-le bibi12i
+    sylibr
+  syl
+)
+
+thm (leeq2i ()
+  (hyp (= A B))
+  (<-> (<= C A) (<= C B))
+  hyp (= A B) id C leeq2d ax-mp
+)
+
+thm (letr () ()
+  (-> (/\ (<= A B) (<= B C)) (<= A C))
+
+  z (+ x y) A addeq2
+  A x y addass syl6eqr (= (+ A x) B) adantr
+  (+ A x) B y addeq1 (= z (+ x y)) adantl eqtrd
+  C eqeq1d biimprd
+  imp ancoms x substex ex y 19.23ai com12 imp
+    A B x df-le
+    B C y df-le anbi12i
+    A C z df-le imbi12i
+  mpbir
+)
+
+thm (addge01t () ()
+  (<= A (+ A B))
+  x B tyex x B A addeq2 x 19.22i ax-mp
+  A (+ A B) x df-le mpbir
+)
+
+thm (leid () ()
+  (<= A A)
+  A (0) addge01t
+  A pa_ax3 A leeq2i mpbi
+)
+
+thm (leadd1 () ()
+  (<-> (<= A B) (<= (+ A C) (+ B C)))
+  (+ A x) C B addcan
+  A x C add23 (+ B C) eqeq1i bitr3i
+  x exbii
+    A B x df-le
+      (+ A C) (+ B C) x df-le
+  3bitr4i
+)
+
+thm (a1suc () ()
+  (= (S A) (+ A (1)))
+  df-1 A addeq2i
+  A (0) pa_ax4 eqtr
+  A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr eqcomi
+)
+
+thm (0ne1 () ()
+  (-. (= (0) (1)))
+  (0) pa_ax1
+  df-1 (0) eqeq2i mtbir
+)
+
+thm (1nle0 () ()
+  (-. (<= (1) (0)))
+  x pa_ax1 (0) (S x) eqcom mtbi
+  x a1suc x (1) addcom eqtr (0) eqeq1i mtbi
+  x gen x (= (+ (1) x) (0)) alnex mpbi
+  (1) (0) x df-le mtbir
+)
+
+thm (lefoo ((A z)) ()
+  (\/ (= A (0)) (E. z (= (+ (1) z) A)))
+  x (0) (0) eqeq1 x (0) (+ (1) z) eqeq2 z exbid orbi12d
+    x y (0) eqeq1 x y (+ (1) z) eqeq2 z exbid orbi12d
+      x (S y) (0) eqeq1 x (S y) (+ (1) z) eqeq2 z exbid orbi12d
+        x A (0) eqeq1 x A (+ (1) z) eqeq2 z exbid orbi12d
+
+  # invariant: x = 0 \/ E. z 1 + z = x
+  (0) eqid (E. z (= (+ (1) z) (0))) orci
+
+  z y tyex
+    z y (1) addeq2
+    y a1suc y (1) addcom eqtr syl6eqr
+    z 19.22i
+  ax-mp (= (S y) (0)) olci
+  (\/ (= y (0)) (E. z (= (+ (1) z) y))) a1i
+  finds
+)
+
+thm (lefoo3 () ()
+  (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B)))
+  A B x df-le
+    x y lefoo
+      x (0) A addeq2
+      A pa_ax3 syl6eq B eqeq1d biimpd com12
+        (+ (1) y) x A addeq2 A (1) y addass syl5eq
+        B eqeq1d biimprd com12
+        y 19.22d
+        (+ A (1)) B y df-le syl6ibr
+      orim12d
+    mpi
+  x 19.23ai sylbi
+    A leid (= A B) id A leeq2d mpbii
+      A (1) addge01t A (+ A (1)) B letr mpan
+    jaoi
+  impbii
+)
+
+thm (lenlttlem () ()
+  (-. (<= (+ A (1)) A))
+  1nle0 (1) (0) A leadd1 mtbi
+  (1) A addcom (+ (0) A) leeq1i mtbi
+  A pa_ax3r (+ A (1)) leeq2i mtbi
+)
+
+thm (nnltp1let () ()
+  (<-> (< A B) (<= (+ A (1)) B))
+  A B df-lt
+  A B lefoo3 (-. (= A B)) anbi1i bitri
+    A lenlttlem
+    (= A B) id (+ A (1)) leeq2d mtbii
+    con2i pm4.71i
+
+      (<= (+ A (1)) B) (= A B) pm5.61
+      (<= (+ A (1)) B) (= A B) orcom (-. (= A B)) anbi1i bitr3i
+    bitri
+  bitr4i
+)
+
+thm (addge02t () ()
+  (<= A (+ B A))
+  A B addge01t A B addcom A leeq2i mpbi
+)
+
+thm (nn0nlt0 () ()
+  (-. (< A (0)))
+    1nle0 (1) A addge02t
+    (1) (+ A (1)) (0) letr mpan
+  mto
+  A (0) nnltp1let mtbir
+)
+
+thm (lteq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (< C A) (< C B)))
+  hyp C leeq2d
+  hyp C eqeq2d notbid anbi12d
+    C A df-lt
+      C B df-lt
+  3bitr4g
+)
+
+thm (lteq2i ()
+  (hyp (= A B))
+  (<-> (< C A) (< C B))
+  hyp (= A B) id C lteq2d ax-mp
+)
+
+thm (lenltt () ()
+  (<-> (<= A B) (-. (< B A)))
+  (= x (0)) id B leeq1d (= x (0)) id B lteq2d notbid bibi12d
+    (= x y) id B leeq1d (= x y) id B lteq2d notbid bibi12d
+      (= x (S y)) id B leeq1d (= x (S y)) id B lteq2d notbid bibi12d
+        (= x A) id B leeq1d (= x A) id B lteq2d notbid bibi12d
+
+  # base case
+  (0) B addge02t
+    B pa_ax3 (0) leeq2i
+  mpbi
+  B nn0nlt0 2th
+
+  # induction step
+  (<= y B) (-. (< B y)) (-. (= y B)) anbi1
+    y B nnltp1let y B df-lt bitr3i
+      B (+ y (1)) nnltp1let
+      B y (1) leadd1 bitr4i
+      B y lefoo3 bitri
+      B y nnltp1let (= B y) orbi2i bitr4i
+        B y eqcom (< B y) orbi1i
+        (= y B) (< B y) orcom bitri
+      bitri notbii
+      (< B y) (= y B) ioran bitri
+    bibi12i
+  sylibr
+    y a1suc B leeq1i y a1suc B lteq2i notbii bibi12i
+  sylibr
+  finds
+)

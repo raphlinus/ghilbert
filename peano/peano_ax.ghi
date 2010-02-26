@@ -1,0 +1,106 @@
+# Experimental interface for Peano arithmetic
+
+# We conjecture the following properties about this interface, with at
+# this point only a moderate amount of confidence:
+#
+# * It encapsulates PA soundly and completely.
+# * It is possible to interpret in a set.mm universe.
+# * It is reasonably useful.
+#
+# There are two extensions that may improve usefulness: classes and
+# ax-11. The latter would enable a substitution operator with all the
+# expected properties. However, it makes the syntactic interpretation
+# in set.mm problematic.
+
+param (PROP prop.ghi () "")
+
+kind (num)
+
+tvar (wff ph ps ch)
+tvar (num A B C D)
+var (num x y z)
+
+term (wff (A. x ph))
+term (wff (= A B))
+
+# roughly equivalent to ax-17
+stmt (alnfi ((ph x))
+  ()
+  (-> ph (A. x ph)))
+
+stmt (gen ()
+  (ph)
+  (A. x ph))
+
+# roughly Margaris A5, but without the subst
+stmt (ax-4 () ()
+  (-> (A. x ph) ph))
+
+# Margaris A4
+stmt (ax-alim () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+
+# Similar to ax-8, but for num's instead of var's.
+stmt (ax-eqtr () ()
+  (-> (/\ (= A B) (= A C)) (= B C)))
+
+# Similar to ax-9, but expanded to num's instead of var's.
+stmt (ax-tyex ((A x)) ()
+  (-. (A. x (-. (= x A)))))
+
+
+# Properties of numbers: Peano axioms
+
+term (num (0))
+term (num (S A))
+term (num (+ A B))
+term (num (* A B))
+
+# Equality axiom for addition
+stmt (addeq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
+
+# Equality axiom for multiplication
+stmt (muleq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
+
+stmt (pa_ax1 () () (-. (= (0) (S A))))
+
+# Note that the biconditional captures equality properties of S as
+# well as the traditional Peano axiom 2.
+stmt (pa_ax2 () ()
+  (<-> (= A B) (= (S A) (S B))))
+stmt (pa_ax3 () ()
+  (= (+ A (0)) A))
+stmt (pa_ax4 () ()
+  (= (+ A (S B)) (S (+ A B))))
+stmt (pa_ax5 () ()
+  (= (* A (0)) (0)))
+stmt (pa_ax6 () ()
+  (= (* A (S B)) (+ (* A B) A)))
+
+stmt (pa_ind ((ph y)) ()
+  (-> (/\ (A. x (-> (= x (0)) ph))
+          (A. y (-> (A. x (-> (= x y) ph))
+                    (A. x (-> (= x (S y)) ph)))))
+      (A. x ph)))
+
+
+# Definition of exists - could be done through def instead of axiom here.
+term (wff (E. x ph))
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+# Exists-unique is handy for iota def, but could be expanded there
+term (wff (E! x ph))
+stmt (df-eu ((ph y)) ()
+  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
+
+# iota is a draft at this point.
+
+term (num (iota x ph))
+
+stmt (ax-iota ((ph y)) ()
+  (-> (E! x ph)
+    (E. y (/\ (= y (iota x ph))
+      (E. x (/\ (= x y) ph))))))
+

@@ -1,0 +1,213 @@
+# test suite for Ghilbert verifier
+
+# low level syntactic stuff
+!append test.gh
+)
+!reject test.gh Unbalanced parenthesis
+!append test.gh
+()
+!reject test.gh List-valued command
+!append test.gh
+(kind wff)
+!reject test.gh List-valued command
+
+# Empty proof file is valid, if not very interesting
+!append test.gh
+!save
+!accept test.gh
+
+!append test.ghi
+!save
+!accept test.gh
+
+!append test.gh
+import (TEST test.ghi () "")
+!save
+!accept test.gh
+
+!append test.ghi
+kind
+!reject test.gh kind cmd with no args
+
+!append test.ghi
+kind foo
+!reject test.gh kinds must be in list
+
+!append test.ghi
+kind ()
+!reject test.gh reject zero kinds
+
+!append test.ghi
+kind (bar baz)
+!reject test.gh reject more than one kind
+
+!append test.ghi
+(kind wff)
+!reject test.gh List-valued command in interface
+
+!append test.ghi
+kind (wff)
+kind (nat)
+tvar (wff ph ps)
+tvar (nat A B)
+var (nat x y)
+term (wff (= A B))
+term (wff (-> ph ps))
+term (wff (A. x ph))
+term (nat (0))
+!save
+!accept test.gh
+
+!append test.ghi
+kind (wff)
+!reject test.gh Redefinition of kind
+
+!append test.ghi
+stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
+!save
+!accept test.gh
+
+# thm stuff
+
+!append test.gh
+tvar (wff ph ps)
+var (nat x y)
+tvar (nat A B)
+!save
+!accept test.gh
+
+# simple theorem that should check
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!accept test.gh
+
+!append test.gh
+thm (19.21ai ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Redefinition of thm label
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp 19.21ai)
+!reject test.gh Not enough mand hyps
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x ph 19.21ai)
+!reject test.gh Too many mand hyps
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. ph ps)) hyp ph 19.21ai)
+!reject test.gh Mand hyp has wrong kind
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. A ps)) hyp A 19.21ai)
+!reject test.gh Mand hyp has right kind, but tvar instead of binding var
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. A ps)) hyp (0) 19.21ai)
+!reject test.gh Mand hyp has right kind, but term instead of binding var
+
+!append test.gh
+thm (19.21ai2 () (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Missing free var condition
+
+# This one might be too strict
+!append test.gh
+thm (19.21ai2 ((ph x y)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Spurious free var condition
+
+!append test.gh
+thm (19.21ai2 (()) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Malformed free var clause
+
+!append test.gh
+thm (19.21ai2 (ph) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Malformed free var clause
+
+!append test.gh
+thm (19.21ai2 (((ph) x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Malformed free var clause
+
+!append test.gh
+thm (19.21ai2 ((ph (x))) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Malformed free var clause
+
+# This one might be too strict
+!append test.gh
+thm (19.21ai2 ((x ph)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Wrong order in free var clause
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Arity error in hyp
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps ph)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Arity error in hyp
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph A)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Kind error in hyp
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp ph) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Unification error in hyp
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (A. x ph)) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Unification error in hyp
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) x 19.21ai)
+!reject test.gh Stack underflow
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp hyp x 19.21ai)
+!reject test.gh Too many terms on stack
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai x)
+!reject test.gh Leftover mand hyp on stack
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ph)) hyp x 19.21ai)
+!reject test.gh Stack doesn't match concl
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph baz)) (-> ph (A. x baz)) hyp x 19.21ai)
+!reject test.gh Variable in hyp doesn't exist
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps) hyp2 baz) (-> ph (A. x ps)) hyp x 19.21ai)
+!reject test.gh Variable in hyp doesn't exist
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) (hyp x 19.21ai))
+!reject test.gh Extra parens around proof - poorly formed
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)))
+!reject test.gh Missing parts of thm
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)))
+!reject test.gh Missing parts of thm
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) ((->) ph ps))
+!reject test.gh Malformed term in proof step
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) (() ph ps))
+!reject test.gh Malformed term in proof step
+
+!append test.gh
+thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) ())
+!reject test.gh Malformed term in proof step
+
+!append test.gh
+thm (ax-7_2 () () (-> (A. x (A. y ph)) (A. y (A. x ph))) x y ph ax-7)
+!accept test.gh
+
+!append test.gh
+thm (ax-7_2 () () (-> (A. x (A. x ph)) (A. x (A. x ph))) x x ph ax-7)
+!reject test.gh Binding variables not distinct
