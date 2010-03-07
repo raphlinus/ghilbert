@@ -7,8 +7,8 @@ import (COMBINED combined.ghi () "")
 #import (PEANO peano_ax.ghi (PROP) "")
 
 tvar (wff ph ps ch th ta)
-tvar (num A B C D A' B' C')
-var (num x y z x' y')
+tvar (nat A B C D A' B' C')
+var (nat x y z x' y')
 
 # Pure predicate calculus
 
@@ -29,6 +29,17 @@ thm (19.3 ((ph x))
 thm (alnex () ()
   (<-> (A. x (-. ph)) (-. (E. x ph)))
   x ph df-ex con2bii
+)
+
+thm (19.8a () ()
+  (-> ph (E. x ph))
+  x (-. ph) ax-4 con2i
+  x ph df-ex sylibr
+)
+
+thm (19.2 () ()
+  (-> (A. x ph) (E. x ph))
+  x ph ax-4 ph x 19.8a syl
 )
 
 thm (19.9 ((ph x))
@@ -61,6 +72,13 @@ thm (albii ()
   (hyp (<-> ph ps))
   (<-> (A. x ph) (A. x ps))
   hyp x gen 19.15i)
+
+# aka 19.6
+thm (alex () ()
+  (<-> (A. x ph) (-. (E. x (-. ph))))
+  ph notnot x albii
+  x (-. ph) df-ex con2bii bitri
+)
 
 thm (19.20i ()
   (hyp (-> ph ps))
@@ -122,6 +140,19 @@ thm (exbid ((ph x))
   (hyp (-> ph (<-> ps ch)))
   (-> ph (<-> (E. x ps) (E. x ch)))
   hyp x 19.21ai x ps ch 19.18 syl
+)
+
+thm (19.29 () ()
+  (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps)))
+  x ph (-. ps) ax-alim
+    x ps alnex
+  syl6ib
+  con3i
+    (A. x ph) (E. x ps) df-an
+      x (-> ph (-. ps)) alex con2bii
+  3imtr4i
+    ph ps df-an x exbii
+  sylibr
 )
 
 thm (19.32 ((ph x))
@@ -849,4 +880,25 @@ thm (axlttri () ()
       (< B A) (= A B) orcom notbii
     bitr3i
   bitri
+)
+
+# substitution thms
+
+thm (dfsbcq () ()
+  (-> (= A B) (<-> ([/] A x ph) ([/] B x ph)))
+  A B y eqeq2 (E. x (/\ (= x y) ph)) anbi1d y exbid
+  A x ph y df-subst B x ph y df-subst bibi12i sylibr
+)
+
+thm (a4sbc () ()
+  (-> (A. x ph) ([/] A x ph))
+
+  x y tyex x ph (= x y) 19.29 mpan2
+  ph (= x y) ancom x exbii sylib
+  y 19.21ai
+    y A tyex (A. x ph) a1i
+  jca
+  y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
+  (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
+  A x ph y df-subst sylibr
 )

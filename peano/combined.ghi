@@ -1,8 +1,25 @@
-# This is all the interfaces combined, because we don't have param working
-# yet.
+# Copyright 2010 Google Inc. and Norm Megill
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Adapted mechanically from set.mm
-# todo: proper attribution
+# This file contains all the interfaces used for Peano arithmetic
+# concatenated together. As soon as the implementations have param
+# working correctly, then this file will be re-split into component
+# parts.
+
+# The first part introduces propositional calculus, and is
+# mechanically adapted from Metamath's set.mm. That file was released
+# under public domain.
 
 kind (wff)
 tvar (wff ph)
@@ -3444,7 +3461,10 @@ stmt (nic-luk2 () () (-> (-> (-. ph) ph) ph))
 #      Hoffman, 18-Nov-2007.)
 stmt (nic-luk3 () () (-> ph (-> (-. ph) ps)))
 
-# Experimental interface for Peano arithmetic
+# The second part is an axiom set for Peano arithmetic, including both
+# first order predicate calculus, the Peano axioms themselves, a naive
+# set theory (with iota) that is conservative with respect to the proof
+# strength of Peano arithmetic, and a stack of useful definitions.
 
 # We conjecture the following properties about this interface, with at
 # this point only a moderate amount of confidence:
@@ -3460,11 +3480,11 @@ stmt (nic-luk3 () () (-> ph (-> (-. ph) ps)))
 
 param (PROP prop.ghi () "")
 
-kind (num)
+kind (nat)
 
 #tvar (wff ph ps ch)
-tvar (num A B C D)
-var (num x y z)
+tvar (nat A B C D)
+var (nat x y z)
 
 term (wff (A. x ph))
 term (wff (= A B))
@@ -3486,21 +3506,21 @@ stmt (ax-4 () ()
 stmt (ax-alim () ()
   (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
 
-# Similar to ax-8, but for num's instead of var's.
+# Similar to ax-8, but for nat's instead of var's.
 stmt (ax-eqtr () ()
   (-> (/\ (= A B) (= A C)) (= B C)))
 
-# Similar to ax-9, but expanded to num's instead of var's.
+# Similar to ax-9, but expanded to nat's instead of var's.
 stmt (ax-tyex ((A x)) ()
   (-. (A. x (-. (= x A)))))
 
 
-# Properties of numbers: Peano axioms
+# Properties of natbers: Peano axioms
 
-term (num (0))
-term (num (S A))
-term (num (+ A B))
-term (num (* A B))
+term (nat (0))
+term (nat (S A))
+term (nat (+ A B))
+term (nat (* A B))
 
 # Equality axiom for addition
 stmt (addeq12 () ()
@@ -3545,20 +3565,65 @@ term (wff (< A B))
 stmt (df-lt () ()
   (<-> (< A B) (/\ (<= A B) (-. (= A B)))))
 
-term (num (1))
+term (nat (1))
 stmt (df-1 () () (= (1) (S (0))))
+
+term (wff ([/] A x ph))
+stmt (df-subst () ()
+  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
 
 # Exists-unique is handy for iota def, but could be expanded there
 term (wff (E! x ph))
 stmt (df-eu ((ph y)) ()
   (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
 
-# iota is a draft at this point.
+# Naive set theory
 
-term (num (iota x ph))
+kind (set)
+var (set S T)
+term (set ({|} x ph))
+term (wff (e. A S))
 
-stmt (ax-iota ((ph y)) ()
-  (-> (E! x ph)
-    (E. y (/\ (= y (iota x ph))
-      (E. x (/\ (= x y) ph))))))
+# This axiom introduces both the element relationship and class
+# abstraction. Thus, it is similar to df-clel and df-clab in
+# set.mm. It is conservative with respect to the strength of Peano
+# axioms, but improves the expressive power greatly. In addition, in
+# interpretations from Z2, HOL, or ZFC, we'd expect this to be
+# represented by a set of numbers.
 
+stmt (ax-elab () ()
+  (<-> (e. A ({|} x ph)) ([/] A x ph)))
+
+# Naive set theory definitions
+
+# This definition is similar to set.mm's df-cleq. A separate term is
+# needed from =, because otherwise kinds wouldn't match.
+term (wff (=_ S T))
+stmt (df-seq () () (<-> (=_ S T) (A. x (<-> (e. x S) (e. x T)))))
+
+term (set ({/}))
+stmt (df-emptyset () () (=_ ({/}) ({|} x (-. (= x x)))))
+
+term (set ({} A))
+stmt (df-sn () () (=_ ({} A) ({|} x (= x A))))
+
+term (set (u. S T))
+stmt (df-un () () (=_ (u. S T) ({|} x (\/ (e. x S) (e. x T)))))
+
+term (set (i^i S T))
+stmt (df-in () () (=_ (i^i S T) ({|} x (/\ (e. x S) (e. x T)))))
+
+term (wff (C_ S T))
+stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+
+term (wff (C. S T))
+stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))
+
+# Iota
+
+# Again, this introduction of iota is conservative, in that all instances
+# could be mechanically removed, at the cost of making expressions uglier.
+
+term (nat (iota S))
+stmt (ax-iota () () (= (iota ({} A)) A))
+stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))

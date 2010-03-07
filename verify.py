@@ -423,6 +423,8 @@ class ImportCtx:
 	    self.verify.add_term(termname, kind, argkinds, freemap)
 	    self.term_map[local_termname] = termname
 	elif cmd == 'stmt':
+            if len(arg) != 4:
+                raise VerifyError('stmt needs exactly 4 arguments')
 	    (local_label, fv, local_hyps, local_stmt) = arg
 	    label = self.prefix + local_label
 	    stmt = map_syms(local_stmt, self.term_map)

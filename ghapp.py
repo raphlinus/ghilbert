@@ -21,6 +21,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 
+from django.utils import simplejson
+
 # Only supports strings and lists now.
 def json_dumps(obj):
     if type(obj) in (str, unicode):
@@ -124,6 +126,7 @@ import os
 
 class PrintEnvironmentHandler(webapp.RequestHandler):
     def get(self, arg):
+        self.response.out.write(simplejson.dumps([1, 2]) + "\n")
         if arg is not None:
             print 'arg = ' + arg + '<br />\n'
         for name in os.environ.keys():
@@ -136,7 +139,7 @@ class MainPage(webapp.RequestHandler):
 <h1>Ghilbert web app</h1>
 
 <p>This is an early prototype of a web app for developing
-<a href="http://sites.google.com/a/ghilbert.org/ghilbert/">Ghilbert</a>
+<a href="http://sites.ghilbert.org/">Ghilbert</a>
 proofs.</p>
 
 <p>See above link for basic documentation. Source code for this site
