@@ -104,6 +104,13 @@ thm (19.21ai ((ph x))
   ph x alnfi hyp x 19.20i syl
 )
 
+thm (19.5 () ()
+  (<-> (A. x (A. y ph)) (A. y (A. x ph)))
+  x (A. y ph) ax-4 y ph ax-4 syl x 19.21ai y 19.21ai
+    y (A. x ph) ax-4 x ph ax-4 syl y 19.21ai x 19.21ai
+  impbii
+)
+
 thm (19.22 () ()
   (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
 
@@ -901,4 +908,52 @@ thm (a4sbc () ()
   y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
   (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
   A x ph y df-subst sylibr
+)
+
+# probably garbage
+thm (sbcfoo ((A x y) (ph y)) ()
+  (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph)))) (E. x (/\ (= x A) ph)))
+
+  y A x eqeq2 ph anbi1d
+  x exbid
+  pm5.32i y exbii
+  y (= y A) (E. x (/\ (= x A) ph)) 19.41 bitri
+  y A tyex mpbiran
+)
+
+thm (ceqsex ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (E. x (/\ (= x A) ph)) ps)
+
+  hyp pm5.32i x exbii
+  x (= x A) ps 19.41 bitri
+  x A tyex mpbiran
+)
+
+thm (sbc5 ((A x)) ()
+  (<-> ([/] A x ph) (E. x (/\ (= x A) ph)))
+
+  A x ph y df-subst
+    y A x eqeq2 ph anbi1d
+    x exbid
+    ceqsex
+  bitri
+)
+
+thm (sbcco ((ph y) (A y)) ()
+  (<-> ([/] A y ([/] y x ph)) ([/] A x ph))
+
+  A y ([/] y x ph) sbc5
+    y x ph sbc5
+      (= y A) anbi2i y exbii
+    bitri
+  A x ph y df-subst bitr4i
+)
+
+thm (sbcie ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> ([/] A x ph) ps)
+
+  A x ph sbc5
+  hyp ceqsex bitri
 )
