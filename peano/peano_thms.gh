@@ -9,8 +9,15 @@ import (COMBINED combined.ghi () "")
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C')
 var (nat x y z x' y')
+tvar (set S T)
 
 # Pure predicate calculus
+
+thm (a4i ()
+  (hyp (A. x ph))
+  ph
+  hyp x ph ax-4 ax-mp
+)
 
 thm (mpg ()
   (hyp1 (-> (A. x ph) ps)
@@ -910,17 +917,6 @@ thm (a4sbc () ()
   A x ph y df-subst sylibr
 )
 
-# probably garbage
-thm (sbcfoo ((A x y) (ph y)) ()
-  (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph)))) (E. x (/\ (= x A) ph)))
-
-  y A x eqeq2 ph anbi1d
-  x exbid
-  pm5.32i y exbii
-  y (= y A) (E. x (/\ (= x A) ph)) 19.41 bitri
-  y A tyex mpbiran
-)
-
 thm (ceqsex ((ps x) (A x))
   (hyp (-> (= x A) (<-> ph ps)))
   (<-> (E. x (/\ (= x A) ph)) ps)
@@ -956,4 +952,87 @@ thm (sbcie ((A x) (ps x))
 
   A x ph sbc5
   hyp ceqsex bitri
+)
+
+thm (cla4g ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (-> (A. x ph) ps)
+  x ph A a4sbc hyp sbcie sylib
+)
+
+thm (sbcbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> ([/] A x ps) ([/] A x ch)))
+
+  hyp (= x y) anbi2d x exbid
+  (= y A) anbi2d y exbid
+    A x ps y df-subst
+      A x ch y df-subst
+  3bitr4g
+)
+
+thm (sbcbii ()
+  (hyp (<-> ph ps))
+  (<-> ([/] A x ph) ([/] A x ps))
+  (0) eqid
+    hyp (= (0) (0)) a1i A x sbcbid
+  ax-mp
+)
+
+thm (rwffi ((ps x) (ph y))
+  (hyp (-> (= x y) (<-> ph ps)))
+  (rwff x ph)
+  hyp sbcie x y sbcbii
+  hyp x y eqcom ph ps bicom imbi12i mpbi sbcie bitri
+
+  x y x ph sbcco
+  bitr3i x gen
+  x ph df-rwff mpbir
+)
+
+# Some naive set theory
+
+thm (eqri ()
+  (hyp (<-> (e. x S) (e. x T)))
+  (=_ S T)
+  hyp x gen S T x df-seq mpbir
+)
+
+thm (eleq2 () ()
+  (-> (=_ S T) (<-> (e. A S) (e. A T)))
+  S T x df-seq
+    x A S ax-eleq1 x A T ax-eleq1 bibi12d
+  cla4g sylbi
+)
+
+thm (eleq2i ()
+  (hyp (=_ S T))
+  (<-> (e. A S) (e. A T))
+  hyp S T A eleq2 ax-mp
+)
+
+thm (abid ()
+  (hyp (rwff x ph))
+  (<-> (e. x ({|} x ph)) ph)
+  x x ph ax-elab
+    hyp x ph df-rwff mpbi a4i
+  bitr4i
+)
+
+thm (dfss2 ((S x) (T x)) ()
+  (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
+
+  S T df-ss
+    (e. x S) (e. x T) pm4.71 (e. x S) (/\ (e. x S) (e. x T)) bicom bitri
+
+      # note: next three lines are elin
+      S T x df-in
+      x eleq2i
+      x y S ax-eleq1 x y T ax-eleq1 anbi12d rwffi abid bitri
+
+      (e. x S) bibi1i
+    bitr4i x albii
+    (i^i S T) S x df-seq bitr4i
+
+  bitr4i
 )

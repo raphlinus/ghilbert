@@ -3572,6 +3572,12 @@ term (wff ([/] A x ph) (x A))
 stmt (df-subst () ()
   (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
 
+# A theory of "relatively well formed". If we had ax-11, it would be true
+# everywhere.
+term (wff (rwff x ph))
+stmt (df-rwff () ()
+  (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph)))))
+
 # Exists-unique is handy for iota def, but could be expanded there
 term (wff (E! x ph))
 stmt (df-eu ((ph y)) ()
@@ -3580,7 +3586,7 @@ stmt (df-eu ((ph y)) ()
 # Naive set theory
 
 kind (set)
-var (set S T)
+tvar (set S T)
 term (set ({|} x ph))
 term (wff (e. A S))
 
@@ -3593,6 +3599,9 @@ term (wff (e. A S))
 
 stmt (ax-elab () ()
   (<-> (e. A ({|} x ph)) ([/] A x ph)))
+
+stmt (ax-eleq1 () ()
+  (-> (= A B) (<-> (e. A S) (e. B S))))
 
 # Naive set theory definitions
 
@@ -3614,7 +3623,8 @@ term (set (i^i S T))
 stmt (df-in () () (=_ (i^i S T) ({|} x (/\ (e. x S) (e. x T)))))
 
 term (wff (C_ S T))
-stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+#stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+stmt (df-ss () () (<-> (C_ S T) (=_ (i^i S T) S)))
 
 term (wff (C. S T))
 stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))

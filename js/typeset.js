@@ -151,6 +151,10 @@ GH.typeset = function(sexp) {
 	return GH.typesetpostfix(sexp, 9999, '\u2032');
     } else if (sexp[0] == '=') {
 	return GH.typesetinfix(sexp, 'n', 1050, '=');
+    } else if (sexp[0] == '=_') {
+	// Note: at present, this isn't distinguished visually in any way
+        // from '='. We should probably do something, like subtle color.
+	return GH.typesetinfix(sexp, 'n', 1050, '=');
     } else if (sexp[0] == '<=') {
 	return GH.typesetinfix(sexp, 'n', 1050, '\u2264');
     } else if (sexp[0] == '<') {
@@ -179,6 +183,14 @@ GH.typeset = function(sexp) {
 	return GH.typesetclab(sexp);
     } else if (sexp[0] == 'e.') {
 	return GH.typesetinfix(sexp, 'n', 1050, '\u2208');
+    } else if (sexp[0] == 'C_') {
+	return GH.typesetinfix(sexp, 'n', 1050, '\u2286');
+    } else if (sexp[0] == 'C.') {
+	return GH.typesetinfix(sexp, 'n', 1050, '\u2282');
+    } else if (sexp[0] == 'i^i') {
+	return GH.typesetinfix(sexp, 'n', 3500, '\u2229');
+    } else if (sexp[0] == 'u.') {
+	return GH.typesetinfix(sexp, 'n', 3500, '\u222a');
     } else {
 	var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
 	for (var i = 1; i < sexp.length; i++) {
