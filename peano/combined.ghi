@@ -3477,6 +3477,8 @@ stmt (nic-luk3 () () (-> ph (-> (-. ph) ps)))
 # ax-11. The latter would enable a substitution operator with all the
 # expected properties. However, it makes the syntactic interpretation
 # in set.mm problematic.
+#
+# (We did add classes, but we're holding off on ax-11. TODO: fix this up.)
 
 param (PROP prop.ghi () "")
 
@@ -3515,7 +3517,20 @@ stmt (ax-tyex ((A x)) ()
   (-. (A. x (-. (= x A)))))
 
 
-# Properties of natbers: Peano axioms
+# Definition of exists - could be done through def instead of axiom here.
+term (wff (E. x ph))
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+# Exists-unique is handy for iota def, but could be expanded there
+term (wff (E! x ph))
+stmt (df-eu ((ph y)) ()
+  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
+
+term (wff ([/] A x ph) (x A))
+stmt (df-subst () ()
+  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
+
+# Properties of numbers: Peano axioms
 
 term (nat (0))
 term (nat (S A))
@@ -3552,10 +3567,6 @@ stmt (pa_ind ((ph y)) ()
       (A. x ph)))
 
 
-# Definition of exists - could be done through def instead of axiom here.
-term (wff (E. x ph))
-stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
-
 # Definition of less than or equal to.
 term (wff (<= A B))
 stmt (df-le ((A x) (B x)) ()
@@ -3568,20 +3579,24 @@ stmt (df-lt () ()
 term (nat (1))
 stmt (df-1 () () (= (1) (S (0))))
 
-term (wff ([/] A x ph) (x A))
-stmt (df-subst () ()
-  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
+# Ordered pairs, using a suitable construction in natural numbers.
+term (nat (<,> A B))
+stmt (df-op () ()
+  (= (<,> A B) (+ (* (+ A B) (+ A B)) B)))
+
 
 # A theory of "relatively well formed". If we had ax-11, it would be true
 # everywhere.
+
+# There's a lot more to be said about this. Among other things, a
+# pretty strong case can be made that the A. x isn't really
+# needed. It's more than a little analogous to the "ph -> A. x ph"
+# that set.mm uses to indicate that x is not free in ph. In any case,
+# it seems to work as is.
+
 term (wff (rwff x ph))
 stmt (df-rwff () ()
   (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph)))))
-
-# Exists-unique is handy for iota def, but could be expanded there
-term (wff (E! x ph))
-stmt (df-eu ((ph y)) ()
-  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
 
 # Naive set theory
 
@@ -3631,9 +3646,26 @@ stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))
 
 # Iota
 
-# Again, this introduction of iota is conservative, in that all instances
-# could be mechanically removed, at the cost of making expressions uglier.
+# As with the introduction of sets, this introduction of iota is
+# conservative, in that all instances could be mechanically removed,
+# at the cost of making expressions uglier.
 
 term (nat (iota S))
 stmt (ax-iota () () (= (iota ({} A)) A))
 stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))
+
+# Minimum of a set
+
+term (nat (min S))
+stmt (df-min ((S x y)) ()
+  (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))))
+
+# Division and modulo
+
+term (nat (div A B))
+stmt (df-div ((A x y) (B x y)) ()
+  (= (div A B) (min ({|} x (E. y (= (+ (* B x) y) A))))))
+
+term (nat (mod A B))
+stmt (df-mod () ()
+  (= (mod A B) (iota ({|} x (= (+ (* B (div A B)) x) A)))))

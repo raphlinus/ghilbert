@@ -1,4 +1,16 @@
-// <license>
+// Copyright 2010 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Laying out mathematics into typeset form.
 
@@ -164,6 +176,19 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == '<->') {
 	return GH.typesetinfix(sexp, 'n', 100, '\u2194');
     } else if (sexp[0] == '-.') {
+	if (typeof sexp[1] != 'string') {
+	    if (sexp[1][0] == '=') {
+		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
+	    } else if (sexp[1][0] == '=_') {
+		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
+	    } else if (sexp[1][0] == 'e.') {
+		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2209');
+	    } else if (sexp[1][0] == 'C_') {
+		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2288');
+	    } else if (sexp[1][0] == 'C.') {
+		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2284');
+	    }
+	}
 	return GH.typesetunary(sexp, 1000, '\u00ac');  // TODO: 2000?
     } else if (sexp[0] == '/\\') {
 	return GH.typesetinfix(sexp, 'r', 400, '\u2227');

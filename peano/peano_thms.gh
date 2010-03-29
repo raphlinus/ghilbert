@@ -364,6 +364,15 @@ thm (syl6eqr ()
   hyp1 hyp2 eqcomi ph a1i eqtrd
 )
 
+thm (sylan9eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ps (= B C)))
+  (-> (/\ ph ps) (= A C))
+  hyp1 ps adantr
+    hyp2 ph adantl
+  eqtrd
+)
+
 thm (3eqtr4g ()
   (hyp1 (-> ph (= A B))
    hyp2 (= C A)
@@ -678,6 +687,12 @@ thm (addcan () ()
   finds
 )
 
+thm (addcan2 () ()
+  (<-> (= (+ A B) (+ A C)) (= B C))
+  A B addcom A C addcom eqeq12i
+    B A C addcan bitri
+)
+
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= A C) (<= B C)))
@@ -896,6 +911,33 @@ thm (axlttri () ()
   bitri
 )
 
+thm (ltadd1 () ()
+  (<-> (< A B) (< (+ A C) (+ B C)))
+  A B C leadd1
+    A C B addcan bicomi notbii
+  anbi12i
+
+    A B df-lt
+      (+ A C) (+ B C) df-lt
+  3bitr4i
+)
+
+thm (lemul2 () ()
+  (-> (<= A B) (<= (* C A) (* C B)))
+
+  A B x df-le
+    (0) eqid
+      y (* C x) (* C A) addeq2
+        (+ A x) B C muleq2
+        C A x distr syl5eqr
+      sylan9eq
+      (= (0) (0)) adantl x substex
+    mpan
+  sylbi
+    (* C A) (* C B) y df-le
+  sylibr
+)
+
 # substitution thms
 
 thm (dfsbcq () ()
@@ -1019,20 +1061,99 @@ thm (abid ()
   bitr4i
 )
 
+thm (elab ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (e. A ({|} x ph)) ps)
+  A x ph ax-elab
+  hyp sbcie bitri
+)
+
+thm (elab2 ((A x) (ps x))
+  (hyp1 (-> (= x A) (<-> ph ps))
+   hyp2 (=_ S ({|} x ph)))
+  (<-> (e. A S) ps)
+  hyp2 A eleq2i hyp1 elab bitri
+)
+
+thm (elin () ()
+  (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T)))
+
+  x A S ax-eleq1 x A T ax-eleq1 anbi12d
+    S T x df-in
+  elab2
+)
+
 thm (dfss2 ((S x) (T x)) ()
   (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
 
   S T df-ss
     (e. x S) (e. x T) pm4.71 (e. x S) (/\ (e. x S) (e. x T)) bicom bitri
 
-      # note: next three lines are elin
-      S T x df-in
-      x eleq2i
-      x y S ax-eleq1 x y T ax-eleq1 anbi12d rwffi abid bitri
-
+      x S T elin
       (e. x S) bibi1i
     bitr4i x albii
     (i^i S T) S x df-seq bitr4i
 
   bitr4i
 )
+
+thm (noel () ()
+  (-. (e. A ({/})))
+
+  A eqid
+    (= x A) id (= x A) id eqeq12d notbid
+      x df-emptyset
+    elab2
+  con2bii mpbi
+)
+
+thm (elsnc () ()
+  (<-> (e. A ({} B)) (= A B))
+  x A B eqeq1
+    B x df-sn
+  elab2
+)
+
+thm (snid () ()
+  (e. A ({} A))
+  A eqid
+    A A elsnc
+  mpbir
+)
+
+# Proofs in progress:
+
+# thm stmt (opth () ()
+#    (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
+# ?)
+
+
+# thm (iotacl () ()
+#   (-> (E! x (e. x S)) (e. (iota S) S))
+# ?)
+
+# Would it be cleaner to write (-> (-. (=_ S ({/})))) for the antecedent?
+# thm (mincl ((S x)) ()
+#   (-> (E. x (e. x S)) (e. (min S) S))
+# ?)
+
+# thm (modlt () ()
+#   (-> (< 0 B) (< (mod A B) B))
+# ?)
+
+# thm (modid () ()
+#   (-> (< A B) (= (mod A B) A))
+# ?)
+
+# thm (modcyc () ()
+#   (-> (< 0 B) (= (mod (+ A (* B C)) B) (mod A B)))
+# ?)
+
+# thm (modadd () ()
+#   (-> (/\ (< 0 D) (= (mod A D) (mod B D)))
+#    (= (mod (+ A C) D) (mod (+ B C) D)))
+# ?)
+
+# thm (divcan4 () ()
+#   (-> (< 0 B) (= (div (* A B) B) A))
+# ?)
