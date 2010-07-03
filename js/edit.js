@@ -13,12 +13,16 @@ GH.abs = function(x) {
 };
 
 GH.cursormin = function(c1, c2) {
-    if (c1[0] == c2[0]) return c1[1] < c2[1] ? c1 : c2;
+    if (c1[0] === c2[0]) {
+        return c1[1] < c2[1] ? c1 : c2;
+    }
     return c1[0] < c2[0] ? c1 : c2;
 };
 
 GH.cursormax = function(c1, c2) {
-    if (c1[0] == c2[0]) return c1[1] > c2[1] ? c1 : c2;
+    if (c1[0] === c2[0]) {
+        return c1[1] > c2[1] ? c1 : c2;
+    }
     return c1[0] > c2[0] ? c1 : c2;
 };
 
@@ -42,30 +46,32 @@ GH.CanvasEdit = function(canvas, inputlayer) {
 
     this.undostack = [];
 
-    this.imtrans = {};
     // todo: use slightly different logic for identifier->symbols, these
     // fire too easily as substrings
-    this.imtrans['et'] = '\u03b7';
-    this.imtrans['th'] = '\u03b8';
-    this.imtrans['ta'] = '\u03c4';
-    this.imtrans['ph'] = '\u03c6';
-    this.imtrans['ch'] = '\u03c7';
-    this.imtrans['ps'] = '\u03c8';
+    this.imtrans = {
+      'et':    '\u03b7',
+      'th':    '\u03b8',
+      'ta':    '\u03c4',
+      'ph':    '\u03c6',
+      'ch':    '\u03c7',
+      'ps':    '\u03c8',
 
-    this.imtrans['-.'] = '\u00ac';
-    this.imtrans['->'] = '\u2192';
-    this.imtrans['<->'] = '\u2194';
-    this.imtrans['A.'] = '\u2200';
-    this.imtrans['E.'] = '\u2203';
-    this.imtrans['{/}'] = '\u2205';
-    this.imtrans['e.'] = '\u2208';
-    this.imtrans['x.'] = '\u2219';
-    this.imtrans['/\\'] = '\u2227';
-    this.imtrans['\\/'] = '\u2228';
-    this.imtrans['i^i'] = '\u2229';
-    this.imtrans['u.'] = '\u222a';
-    this.imtrans['C.'] = '\u2282';
-    this.imtrans['C_'] = '\u2286';
+      '-.':    '\u00ac',
+      '->':    '\u2192',
+      '<->':   '\u2194',
+      'A.':    '\u2200',
+      'E.':    '\u2203',
+      '{/}':   '\u2205',
+      'e.':    '\u2208',
+      'x.':    '\u2219',
+      '/\\':   '\u2227',
+      '\\/':   '\u2228',
+      'i^i':   '\u2229',
+      'u.':    '\u222a',
+      'C.':    '\u2282',
+      'C_':    '\u2286'
+    };
+
     this.imtranslongest = 3;
 
     this.imbuf = null;
@@ -103,6 +109,7 @@ GH.CanvasEdit.prototype.draw = function() {
     var ctx = this.canvasctx();
     var x = 4;
     var y = this.linespace;
+    var x0, x1;
     // So this is a funny story: on FF, subpixel text rendering happens
     // if you fillRect white, but not if you clearRect. Bizarre.
     ctx.fillStyle = "white";
@@ -111,19 +118,19 @@ GH.CanvasEdit.prototype.draw = function() {
     for (var i = 0; i < this.text.length; i++) {
 	var line = this.text[i];
 	var cursor = this.cursor;
-	if (this.selectionpt != null) {
+	if (this.selectionpt !== null) {
 	    var cmin = GH.cursormin(this.selectionpt, cursor);
 	    var cmax = GH.cursormax(this.selectionpt, cursor);
 	    if (i >= cmin[0] && i <= cmax[0]) {
-		if (i == cmin[0]) {
-		    var x0 = x + ctx.measureText(line.substr(0, cmin[1])).width;
+		if (i === cmin[0]) {
+		    x0 = x + ctx.measureText(line.substr(0, cmin[1])).width;
 		} else {
-		    var x0 = x;
+		    x0 = x;
 		}
-		if (i == cmax[0]) {
-		    var x1 = x + ctx.measureText(line.substr(0, cmax[1])).width;
+		if (i === cmax[0]) {
+		    x1 = x + ctx.measureText(line.substr(0, cmax[1])).width;
 		} else {
-		    var x1 = this.canvas.width;
+		    x1 = this.canvas.width;
 		}
 		ctx.fillStyle = '#b4d5fe';
 		ctx.fillRect(x0, y - this.linespace + 3, x1 - x0, this.linespace);
@@ -131,7 +138,7 @@ GH.CanvasEdit.prototype.draw = function() {
 	    }
 	}
 	ctx.fillText(line, x, y);
-	if (this.cursorvisible && i == cursor[0] && this.selectionempty()) {
+	if (this.cursorvisible && i === cursor[0] && this.selectionempty()) {
 	    var string_width = ctx.measureText(line.substr(0, cursor[1])).width;
 	    ctx.strokeStyle = "black";
 	    ctx.beginPath();
@@ -144,26 +151,26 @@ GH.CanvasEdit.prototype.draw = function() {
 };
 
 GH.CanvasEdit.prototype.handler = function(evt, data) {
-    if (evt == 'textinput') {
+    if (evt === 'textinput') {
 	return this.handle_textinput(data);
-    } else if (evt == 'keydown') {
+    } else if (evt === 'keydown') {
 	return this.handle_keydown(data);
-    } else if (evt == 'cut') {
+    } else if (evt === 'cut') {
 	this.imbuf = null;  // should be for copy too?
 	this.addundo('Cut');
 	this.deleteselection();
 	this.dirty();
 	return true;
-    } else if (evt == 'paste') {
+    } else if (evt === 'paste') {
 	this.imbuf = null;
 	this.addundo('Paste');
 	this.inserttext(data);
 	return true;
-    } else if (evt == 'undo') {
+    } else if (evt === 'undo') {
 	this.imbuf = null;
 	this.undo();
 	return true;
-    } else if (evt == 'focus') {
+    } else if (evt === 'focus') {
 	this.cursorvisible = data;
 	this.dirty();
 	return true;
@@ -171,16 +178,18 @@ GH.CanvasEdit.prototype.handler = function(evt, data) {
 };
 
 GH.CanvasEdit.prototype.selectionempty = function() {
-    return this.selectionpt == null || (this.selectionpt[0] == this.cursor[0] &&
-					this.selectionpt[1] == this.cursor[1]);
-}
+    return (this.selectionpt === null || 
+	    (this.selectionpt[0] === this.cursor[0] &&
+	     this.selectionpt[1] === this.cursor[1]));
+};
 
 GH.CanvasEdit.prototype.selectiontext = function() {
-    if (this.selectionpt == null)
+    if (this.selectionpt === null) {
 	return null;
+    }
     var cmin = GH.cursormin(this.selectionpt, this.cursor);
     var cmax = GH.cursormax(this.selectionpt, this.cursor);
-    if (cmin[0] == cmax[0]) {
+    if (cmin[0] === cmax[0]) {
 	return this.text[cmin[0]].substring(cmin[1], cmax[1]);
     }
     var result = [this.text[cmin[0]].substring(cmin[1])];
@@ -218,7 +227,7 @@ GH.CanvasEdit.prototype.xtopos = function(x, lineno) {
 };
 
 GH.CanvasEdit.prototype.deleteselection = function() {
-    if (this.selectionpt == null) {
+    if (this.selectionpt === null) {
 	return;
     }
     var cmin = GH.cursormin(this.selectionpt, this.cursor);
@@ -244,10 +253,10 @@ GH.CanvasEdit.prototype.handle_keydown = function(evt) {
     var text = this.text[lineno];
     var updown = false;
     var newcursor = null;
-    if (evt.keyCode == 8) {
+    if (evt.keyCode === 8) {
 	this.addundo('Backspace');
 	this.imbuf = null;
-	if (this.selectionpt == null) {
+	if (this.selectionpt === null) {
 	    if (pos) {
 		this.selectionpt = [lineno, pos - 1];
 	    } else if (lineno) {
@@ -255,46 +264,46 @@ GH.CanvasEdit.prototype.handle_keydown = function(evt) {
 	    }
 	}
 	this.deleteselection();
-    } else if (evt.keyCode == 13) {
+    } else if (evt.keyCode === 13) {
 	this.deleteselection();
 	this.imbuf = null;
 	this.inserttext('\n');
-    } else if (evt.keyCode == 37) {
+    } else if (evt.keyCode === 37) {
 	if (pos) {
 	    newcursor = [lineno, pos - 1];
 	} else if (lineno) {
 	    newcursor = [lineno - 1, this.text[lineno - 1].length];
 	}
-    } else if (evt.keyCode == 39) {
+    } else if (evt.keyCode === 39) {
 	if (pos < text.length) {
 	    newcursor = [lineno, pos + 1];
 	} else if (lineno < this.text.length - 1) {
 	    newcursor = [lineno + 1, 0];
 	}
-    } else if (evt.keyCode == 38 || evt.keyCode == 40) {
+    } else if (evt.keyCode === 38 || evt.keyCode === 40) {
 	updown = true;
-	if (evt.keyCode == 38 && lineno == 0) {
+	if (evt.keyCode === 38 && lineno === 0) {
 	    newcursor = [0, 0];
-	} else if (evt.keyCode == 40 && lineno == this.text.length - 1) {
+	} else if (evt.keyCode === 40 && lineno === this.text.length - 1) {
 	    newcursor = [lineno, text.length];
 	} else {
-	    lineno += evt.keyCode == 38 ? -1 : 1;
+	    lineno += evt.keyCode === 38 ? -1 : 1;
 	    newcursor = [lineno, this.xtopos(this.cursorx, lineno)];
 	}
-    } else if (evt.keyCode == 65 && evt.ctrlKey) {
+    } else if (evt.keyCode === 65 && evt.ctrlKey) {
 	newcursor = [lineno, 0];
-    } else if (evt.keyCode == 69 && evt.ctrlKey) {
+    } else if (evt.keyCode === 69 && evt.ctrlKey) {
 	newcursor = [lineno, text.length];
-    } else if (evt.keyCode == 83 && evt.ctrlKey) {
+    } else if (evt.keyCode === 83 && evt.ctrlKey) {
 	this.save();
 	return true;
     } else {
 	return false;
     }
-    if (newcursor != null) {
+    if (newcursor !== null) {
 	this.imbuf = null;
 	if (evt.shiftKey) {
-	    if (this.selectionpt == null) {
+	    if (this.selectionpt === null) {
 		this.selectionpt = this.cursor;
 	    }
 	    this.cursor = newcursor;
@@ -303,7 +312,6 @@ GH.CanvasEdit.prototype.handle_keydown = function(evt) {
 	    if (updown) {
 		this.selectionpt = null;
 		this.cursor = newcursor;
-		this.dirty();
 	    } else {
 		this.setcursor(newcursor);
 	    }
@@ -319,7 +327,7 @@ GH.CanvasEdit.prototype.inserttext = function(data) {
     var pos = this.cursor[1];
     var text = this.text[lineno];
     var spl = data.split('\n');
-    if (spl.length == 1) {
+    if (spl.length === 1) {
 	this.text[lineno] = text.substr(0, pos) + data + text.substr(pos);
 	this.setcursor([lineno, pos + data.length]);
     } else {
@@ -335,13 +343,15 @@ GH.CanvasEdit.prototype.inserttext = function(data) {
 
 GH.CanvasEdit.prototype.handle_textinput = function(data) {
     this.addundo('Insert text');
-    if (this.imbuf == null) {
+    if (this.imbuf === null) {
 	this.imbuf = '';
     }
     this.imbuf += data;
+    // Note, this functionality doesn't work at all at present since direct.js
+    // sets this.imtrans to {}.
     for (var i = GH.min(this.imbuf.length, this.imtranslongest); i >= 1; i--) {
 	var seq = this.imbuf.substr(-i);
-	if (seq in this.imtrans) {
+	if (this.imtrans.hasOwnProperty(seq)) {
 	    var lineno = this.cursor[0];
 	    var pos = this.cursor[1];
 	    var line = this.text[lineno];
@@ -367,7 +377,7 @@ GH.CanvasEdit.init = function() {
     canvas.focus();
     text.dirty();
     return text;
-}
+};
 
 function myalert(s) {
     document.getElementById('status').firstChild.nodeValue = s;
