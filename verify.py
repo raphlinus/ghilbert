@@ -201,8 +201,8 @@ class VerifyCtx:
     # This routine returns True if and only if var occurs _explicitly_ free
     # in fvvars.
     # If fvvars is not None, it is a dictionary. In that case, the domain of
-    # fvvars consists of term variables in the variable space of the theorem
-    # being proved.
+    # fvvars consists of some term variables in the variable space of the
+    # theorem being proved.
     #  - If fvvars[A] >= 0, the constraint context for the theorem being proven
     #    guarantees that binding variable var does not occur free in A.
     #  - If fvvars[A] == 0, the constraint mentioned above has not been
@@ -221,9 +221,7 @@ class VerifyCtx:
         def checker(v, var=var, fvvars=fvvars, syms=self.syms):
             if v == var:
                 return True  # only stop scan if var explicitly free.
-            if fvvars == None:
-                return False
-            if syms[v][0] == 'var':
+            if fvvars == None or syms[v][0] == 'var':
                 return False
             try:
                 val = fvvars[v]

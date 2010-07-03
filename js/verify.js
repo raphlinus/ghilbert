@@ -205,10 +205,8 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
 	    }
 	    var n = inverse[v];
 	    // is there a method for this?
-	    for (var m = 0; m < fm.length; m++) {
-	        if (n === fm[m]) {
-		    throw 'Free variable map clause contains ' + v + ' more than once.';
-	        }
+	    if (fm.indexOf(n) >= 0) {
+	        throw 'Free variable map clause contains ' + v + ' more than once.';
 	    }
 	    fm.push(n);
 	}
@@ -286,15 +284,9 @@ GH.VerifyCtx.prototype.allvars = function(exp) {
     return fv;
 };
 
-GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
+GH.VerifyCtx.prototype.free_scan = function(v, term, accum) {
     if (typeof term === 'string') {
-        if (v === term) {
-	    return true;
-	}
-	if (fvvars === null || this.syms[term][0] === 'var') {
-	    return false;
-	}
-	return !fvvars.hasOwnProperty(term);
+        return accum(term);
     } else {
 	var freemap = this.terms[term[0]][2];
 	var subterms = term.slice(1);
@@ -312,7 +304,7 @@ GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
 	}
 	for (i = 0; i < subterms.length; i++) {
 	    if (subterms[i] !== null &&
-		this.free_in(v, subterms[i], fvvars)) {
+		this.free_scan(v, subterms[i], accum)) {
 		return true;
 	    }
 	}
@@ -320,39 +312,57 @@ GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
     }
 };
 
+GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
+    var syms = this.syms;
+    function test(vv) {
+        if (vv === v) {
+	    return true;
+	}
+        if (fvvars === null || syms[vv][0] === 'var') {
+	    return false;
+	}
+	return !fvvars.hasOwnProperty(vv);
+    }
+    return this.free_scan(v, term, test);
+};
+
 // Find the set of all variables X occurring in exp, for which
 // if binding variable v occurs free in X, v occurs free in exp.
 // Add such variables to varset.
 // (term is known to be well-formed when this routine is called.)
 GH.VerifyCtx.prototype.freeset = function(v, exp, varset) {
-    if (typeof exp === 'string') {
-        if (v !== exp && this.syms[exp][0] === 'var') {
-	    return;
+    var syms = this.syms;
+    function test(vv) {
+        if (vv === v || syms[vv][0] !== 'var') {
+	    varset[vv] = 0;
 	}
-	varset[exp] = 0;
-	return;
+	return false;
     }
-    var term = this.terms[exp[0]];
-    var freemap = term[2];
-    // make a copy with all the term expression arguments
-    var subexps = exp.slice(1);
-    for (var i = 0; i < freemap.length; i++) {
-        var fm = freemap[i];
-	if (fm === null || v !== exp[i + 1]) {
-	    continue;
-	}
-	for (var j = 0; j < subexps.length; j++) {
-	    if (fm.indexOf(j) < 0) {
-	        subexps[j] = null;
-	    }
-	}
-    }
-    for (i = 0; i < subexps.length; i++) {
-        if (subexps[i] !== null) {
-	    this.freeset(v, subexps[i], varset);
-	}
-    }
+    return this.free_scan(v, exp, test);
 };
+
+GH.VerifyCtx.prototype.check_free_in = function(v, exp, varset) {
+    var syms = this.syms;
+    function test(vv) {
+        if (vv === v) {
+	    return true; // only return true if vv explicitly free
+        }
+	if (varset === null || syms[vv][0] === 'var') {
+	    return false;
+	}
+	if (!varset.hasOwnProperty(vv)) {
+	    varset[vv] = null;
+	    return false;
+	}
+	if (varset[vv] === 0) {
+	    varset[vv] = 1;
+	}
+	return false;
+    }
+    return this.free_scan(v, exp, test);
+};
+
+
 
 // Check well-formedness of exp, and return its kind. Add variables
 // encountered while scanning exp to array varlist and object varmap
@@ -721,6 +731,25 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     }
     var num_hypvars = varlist.length;
     if (dkind !== null) {
+        var j;
+        // Check that the defined term does not have more than one binding variable argument of a given kind.
+        var fmap = defterm[2];
+	var ak = defterm[1];
+        for (j = 1; j < fmap.length; j++) {
+	    if (fmap[j] === null) {
+	        continue; // skip term variable formal arguments
+	    }
+	    for (i = 0; i < j; i++) {
+	        if (fmap[i] === null) {
+		    continue;
+	        }
+		if (ak[i] === ak[j]) {
+		    throw ('Formal binding variable arguments ' + dsig[i+1] +
+			   ' and ' + dsig[j+1] + ' of defined term ' + 
+			   dsig[0] + ' have the same kind.');
+		}
+	    }
+	}
         // temporarily add the new term to this.terms while we parse the
         // conclusion
         this.terms[dsig[0]] = defterm;
@@ -749,6 +778,30 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     }
     if (proofctx.stack.length !== 1) {
 	throw 'Stack must have one term at end of proof';
+    }
+    var missing = '';
+    var extra = '';
+    var v, nfis, A, val;
+    for (v in proofctx.fvvarmap) {
+      if (proofctx.fvvarmap.hasOwnProperty(v)) {
+	nfis = proofctx.fvvarmap[v];
+	for (A in nfis) {
+	  if (nfis.hasOwnProperty(A)) {
+	      val = nfis[A];
+	      if (val === null) {
+		  missing = missing + " (" + A + " " + v + ")";
+	      } else if (val === 0) {
+		  extra = extra + " (" + A + " " + v + ")";
+	      }
+	  }
+	}
+      }
+    }
+    if (missing !== '') {
+        throw 'Missing free variable constraint context pairs: ' + missing;
+    }
+    if (extra !== '') {
+        throw 'Extra free variable constraint context pairs: ' + extra;
     }
     return;
 };
@@ -850,7 +903,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
 };
 
 GH.VerifyCtx.prototype.free_in_proof = function(v, term, proofctx) {
-    return this.free_in(v, term, proofctx.fvvarmap[v] || null);
+    return this.check_free_in(v, term, proofctx.fvvarmap[v] || null);
 };
 
 GH.VerifyCtx.prototype.match = function(templ, exp, env) {
