@@ -1,0 +1,878 @@
+# Some theorems and definitions of propositional logic
+
+import (PROP_MIN prop_min.ghi () "")
+
+tvar (wff ph ps ch th ta)
+
+thm (dummylink () (1 ph 2 ps) ph
+     1)
+
+thm (a1i () (1 ph) (-> ps ph)
+     1 ph ps ax-1 ax-mp)
+
+thm (a2i () (1 (-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch))
+     1 ph ps ch ax-2 ax-mp)
+
+thm (syl () (1 (-> ph ps) 2 (-> ps ch)) (-> ph ch)
+     1 2 ph a1i a2i ax-mp)
+
+thm (com12 () (1 (-> ph (-> ps ch))) (-> ps (-> ph ch))
+     ps ph ax-1 1 a2i syl)
+
+thm (a1d () (1 (-> ph ps)) (-> ph (-> ch ps))
+     1 ch a1i com12)
+
+thm (a2d () (1 (-> ph (-> ps (-> ch th)))) (-> ph (-> (-> ps ch) (-> ps th)))
+     1 ps ch th ax-2 syl)
+
+thm (himp1i () (1 (-> (-> ph ps) ch)) (-> ps ch)
+     ps ph ax-1 1 syl)
+
+thm (imim2 () () (-> (-> ph ps) (-> (-> ch ph) (-> ch ps)))
+     ch ph ps ax-2 himp1i)
+
+# a.k.a. sylt
+thm (imim1 () () (-> (-> ph ps) (-> (-> ps ch) (-> ph ch)))
+     ps ch ph imim2 com12)
+
+thm (imim1i () (1 (-> ph ps)) (-> (-> ps ch) (-> ph ch))
+     1 ph ps ch imim1 ax-mp)
+
+thm (imim2i () (1 (-> ph ps)) (-> (-> ch ph) (-> ch ps))
+     1 ch a1i a2i)
+
+# a.k.a. 'bridge'
+thm (imim12i () (1 (-> ph ps) 2 (-> ch th)) (-> (-> ps ch) (-> ph th))
+     2 ps imim2i 1 th imim1i syl)
+
+thm (imim3i () (1 (-> ph (-> ps ch))) (-> (-> th ph) (-> (-> th ps) (-> th ch)))
+     1 th imim2i a2d)
+
+thm (3syl () (1 (-> ph ps) 2 (-> ps ch) 3 (-> ch th)) (-> ph th)
+     1 2 3 syl syl)
+
+thm (syl5 () (1 (-> ph (-> ps ch)) 2 (-> th ps)) (-> ph (-> th ch))
+     2 1 com12 syl com12)
+
+thm (syl6 () (1 (-> ph (-> ps ch)) 2 (-> ch th)) (-> ph (-> ps th))
+     1 2 ps imim2i syl)
+
+thm (syl7 () (1 (-> ph (-> ps (-> ch th))) 2 (-> ta ch))
+      (-> ph (-> ps (-> ta th)))
+     1 2 th imim1i syl6)
+
+thm (syl8 () (1 (-> ph (-> ps (-> ch th))) 2 (-> th ta))
+             (-> ph (-> ps (-> ch ta)))
+     1 2 ch imim2i syl6)
+
+thm (imim2d () (1 (-> ph (-> ps ch))) (-> ph (-> (-> th ps) (-> th ch)))
+     1 th a1i com12 a2d)
+
+thm (mpd () (1 (-> ph ps) 2 (-> ph (-> ps ch))) (-> ph ch)
+     1 2 a2i ax-mp)
+
+thm (syld () (1 (-> ph (-> ps ch)) 2 (-> ph (-> ch th))) (-> ph (-> ps th))
+     1 2 ps imim2d mpd)
+
+thm (imim1d () (1 (-> ph (-> ps ch))) (-> ph (-> (-> ch th) (-> ps th)))
+     1 ps ch th imim1 syl)
+
+thm (imim12d () (1 (-> ph (-> ps ch)) 2 (-> ph (-> th ta)))
+        (-> ph (-> (-> ch th) (-> ps ta)))
+     2 ch imim2d 1 ta imim1d syld)
+
+# aka com12t
+thm (pm2.04 () () (-> (-> ph (-> ps ch)) (-> ps (-> ph ch)))
+     ph ps ch ax-2 ps ph ax-1 syl5)
+
+thm (pm2.83 () () (-> (-> ph (-> ps ch)) (-> (-> ph (-> ch th)) 
+                                             (-> ph (-> ps th))))
+     ps ch th imim1 ph imim3i)
+
+thm (com23 () (1 (-> ph (-> ps (-> ch th)))) (-> ph (-> ch (-> ps th)))
+     1 ps ch th pm2.04 syl)
+
+thm (com13 () (1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ps (-> ph th)))
+     1 com23 com12 com23)
+
+thm (com3l () (1 (-> ph (-> ps (-> ch th)))) (-> ps (-> ch (-> ph th)))
+     1 com12 com23)
+
+thm (com3r () (1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ph (-> ps th)))
+     1 com23 com12)
+
+thm (com34 () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> ph (-> ps (-> th (-> ch ta))))
+     1 ch th ta pm2.04 syl6)
+
+thm (com24 () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> ph (-> th (-> ch (-> ps ta))))
+    1 com23 com34 com23)
+
+thm (com14 () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> th (-> ps (-> ch (-> ph ta))))
+    1 com3l com34 com3r)
+
+thm (com4l () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> ps (-> ch (-> th (-> ph ta))))
+     1 com3l com34)
+
+thm (com4t () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> ch (-> th (-> ph (-> ps ta))))
+     1 com4l com4l)
+
+thm (com4r () (1 (-> ph (-> ps (-> ch (-> th ta)))))
+                 (-> th (-> ph (-> ps (-> ch ta))))
+     1 com4l com4t)
+
+thm (a1dd () (1 (-> ph (-> ps ch))) (-> ph (-> ps (-> th ch)))
+     1 th a1i com3l)
+
+thm (mp2 () (1 ph 2 ps 3 (-> ph (-> ps ch))) ch
+     2 1 3 ax-mp ax-mp)
+
+thm (mpi () (1 ps 2 (-> ph (-> ps ch))) (-> ph ch)
+     1 2 com12 ax-mp)
+
+thm (mpii () (1 ch 2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th))
+     1 2 com3r ax-mp)
+
+thm (mpdd () (1 (-> ph (-> ps ch)) 2 (-> ph (-> ps (-> ch th))))
+             (-> ph (-> ps th))
+     1 2 a2d mpd)
+
+thm (mpid () (1 (-> ph ch) 2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th))
+     1 ps a1d 2 mpdd)
+
+thm (mpdi () (1 (-> ps ch) 2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th))
+     1 ph a1i 2 mpdd)
+
+thm (mpcom () (1 (-> ps ph) 2 (-> ph (-> ps ch))) (-> ps ch)
+     1 2 com12 mpd)
+
+thm (syldd () (1 (-> ph (-> ps (-> ch th))) 2 (-> ph (-> ps (-> th ta))))
+                 (-> ph (-> ps (-> ch ta)))
+     2 1 ch th ta imim1 syl6 mpdd)
+
+thm (sylcom () (1 (-> ph (-> ps ch)) 2 (-> ps (-> ch th))) (-> ph (-> ps th))
+     1 2 ph a1i mpdd)
+
+# Hmm, this is the kind of thing where it's easier to just use syl5 com12
+# rather than introduce a new name syl5com ...  There should be a proof
+# complexity metric that reflects that.
+thm (syl5com () (1 (-> ph (-> ps ch)) 2 (-> th ps)) (-> th (-> ph ch))
+     1 2 syl5 com12)
+
+thm (syl6com () (1 (-> ph (-> ps ch)) 2 (-> ch th)) (-> ps (-> ph th))
+     1 2 syl6 com12)
+
+thm (syli () (1 (-> ps (-> ph ch)) 2 (-> ch (-> ph th))) (-> ps (-> ph th))
+     1 com12 2 com12 syld com12)
+
+thm (syl5d () (1 (-> ph (-> ps (-> ch th))) 2 (-> ph (-> ta ch)))
+         (-> ph (-> ps (-> ta th)))
+     2 ps a1d 1 syldd)
+
+thm (syl6d () (1 (-> ph (-> ps (-> ch th))) 2 (-> ph (-> th ta)))
+         (-> ph (-> ps (-> ch ta)))
+     1 2 ps a1d syldd)
+
+thm (syl9 () (1 (-> ph (-> ps ch)) 2 (-> th (-> ch ta)))
+      (-> ph (-> th (-> ps ta)))
+     2 ph a1i 1 syl5d)
+
+thm (syl9r () (1 (-> ph (-> ps ch)) 2 (-> th (-> ch ta)))
+          (-> th (-> ph (-> ps ta)))
+     1 2 syl9 com12)
+
+thm (id () () (-> ph ph)
+     ph ps ax-1 ph (-> ps ph) ax-1 mpd)
+
+# Directly from the axioms
+thm (id1 () () (-> ph ph)
+     ph ps ax-1 ph (-> ps ph) ax-1 ph (-> ps ph) ph ax-2 ax-mp ax-mp)
+
+thm (idd () () (-> ph (-> ps ps)) ps id ph a1i)
+
+thm (pm2.27 () () (-> ph (-> (-> ph ps) ps))
+     (-> ph ps) id com12)
+
+thm (hid () (1 (-> (-> ph ph) ps)) ps
+     ph id 1 ax-mp)
+
+thm (pm2.43 () () (-> (-> ph (-> ph ps)) (-> ph ps))
+     ph ph ps ax-2 com12 hid)
+
+# a.k.a. impsimpi
+thm (pm2.43i () (1 (-> ph (-> ph ps))) (-> ph ps)
+     1 a2i hid)
+
+thm (pm2.43d () (1 (-> ph (-> ps (-> ps ch)))) (-> ph (-> ps ch))
+     1 ps ch pm2.43 syl)
+
+thm (pm2.43a () (1 (-> ps (-> ph (-> ps ch)))) (-> ps (-> ph ch))
+     1 com23 pm2.43i)
+
+thm (pm2.43b () (1 (-> ps (-> ph (-> ps ch)))) (-> ph (-> ps ch))
+     1 pm2.43a com12)
+
+thm (sylc () (1 (-> ph (-> ps ch)) 2 (-> th ph) 3 (-> th ps)) (-> th ch)
+     3 2 1 syl mpd)
+
+thm (himp1 () () (-> (-> (-> ph ps) ch) (-> ps ch))
+     ps ph ax-1 ch imim1i)
+
+# Converse of ax-2
+thm (pm2.86 () () (-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch)))
+     ph ps (-> ph ch) himp1 com23)
+
+thm (pm2.86i () (1 (-> (-> ph ps) (-> ph ch))) (-> ph (-> ps ch))
+     1 himp1i com12)
+
+thm (pm2.86d () (1 (-> ph (-> (-> ps ch) (-> ps th))))
+     (-> ph (-> ps (-> ch th)))
+     1 ps ch th pm2.86 syl)
+
+thm (loolin () () (-> (-> (-> ph ps) (-> ps ph)) (-> ps ph))
+     ph ps (-> ps ph) himp1 pm2.43d)
+
+thm (loowoz () () (-> (-> (-> ph ps) (-> ph ch)) (-> (-> ps ph) (-> ps ch)))
+     ph ps ch pm2.86 com23 a2d)
+
+# Yeah, negation!
+
+thm (a3i () (1 (-> (-. ph) (-. ps))) (-> ps ph)
+     1 ph ps ax-3 ax-mp)
+
+thm (con4i () (1 (-> (-. ph) (-. ps))) (-> ps ph)
+     1 a3i)
+
+# a.k.a. a3d
+thm (con4d () (1 (-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps))
+     1 ps ch ax-3 syl)
+
+thm (a3d () (1 (-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps))
+     1 con4d)
+
+# a.k.a. a1n
+thm (pm2.21 () () (-> (-. ph) (-> ph ps))
+     ps ph ax-3 himp1i)
+
+thm (pm2.21i () (1 (-. ph)) (-> ph ps)
+     1 (-. ps) a1i a3i)
+
+thm (pm2.21d () (1 (-> ph (-. ps))) (-> ph (-> ps ch))
+     1 ps ch pm2.21 syl)
+
+thm (pm2.24 () () (-> ph (-> (-. ph) ps))
+     ph ps pm2.21 com12)
+
+thm (pm2.24i () (1 ph) (-> (-. ph) ps)
+     1 ph ps pm2.24 ax-mp)
+
+thm (pm2.24d () (1 (-> ph ps)) (-> ph (-> (-. ps) ch))
+     1 ps ch pm2.24 syl)
+
+thm (pm2.24ii () (1 ph 2 (-. ph)) ps
+     1 2 ps pm2.21i ax-mp)
+
+thm (himp2i () (1 (-> (-> ph ps) ch)) (-> (-. ph) ch)
+     ph ps pm2.21 1 syl)
+
+thm (himp2 () () (-> (-> (-> ph ps) ch) (-> (-. ph) ch))
+     ph ps pm2.21 ch imim1i)
+
+thm (a3dup () () (-> (-> (-. (-. ph)) (-. (-. ps))) (-> ph ps))
+     (-. ph) (-. ps) ax-3 ps ph ax-3 syl)
+
+thm (dn () () (-> (-. (-. ph)) ph)
+     (-> ps ps) ph a3dup himp1i com12 hid)
+
+thm (dnr () () (-> ph (-. (-. ph)))
+     (-. ph) dn a3i)
+
+thm (dni () (1 (-. (-. ph))) ph
+     1 ph dn ax-mp)
+
+thm (dnri () (1 ph) (-. (-. ph))
+     1 ph dnr ax-mp)
+
+thm (dnd () (1 (-> ph (-. (-. ps)))) (-> ph ps)
+     1 ps dn syl)
+
+thm (dnrd () (1 (-> ph ps)) (-> ph (-. (-. ps)))
+     1 ps dnr syl)
+
+thm (con1 () () (-> (-> (-. ph) ps) (-> (-. ps) ph))
+     ps dnr (-. ph) imim2i ph (-. ps) ax-3 syl)
+
+thm (con2 () () (-> (-> ph (-. ps)) (-> ps (-. ph)))
+     ph dn (-. ps) imim1i (-. ph) ps ax-3 syl)
+
+thm (con3 () () (-> (-> ph ps) (-> (-. ps) (-. ph)))
+     ph dn ps imim1i (-. ph) ps con1 syl)
+
+thm (con1i () (1 (-> (-. ph) ps)) (-> (-. ps) ph)
+     1 ph ps con1 ax-mp)
+
+thm (con2i () (1 (-> ph (-. ps))) (-> ps (-. ph))
+     1 ph ps con2 ax-mp)
+
+thm (con3i () (1 (-> ph ps)) (-> (-. ps) (-. ph))
+     1 ph ps con3 ax-mp)
+
+# a.k.a. con1d
+thm (con1d () (1 (-> ph (-> (-. ps) ch))) (-> ph (-> (-. ch) ps))
+     1 ps ch con1 syl)
+
+thm (con2d () (1 (-> ph (-> ps (-. ch)))) (-> ph (-> ch (-. ps)))
+     1 ps ch con2 syl)
+
+thm (con3d () (1 (-> ph (-> ps ch))) (-> ph (-> (-. ch) (-. ps)))
+     1 ps ch con3 syl)
+
+thm (nimp1 () () (-> (-. (-> ph ps)) ph)
+     ph ps pm2.21 con1i)
+
+thm (nimp2 () () (-> (-. (-> ph ps)) (-. ps))
+     ps ph ax-1 con3i)
+
+# aka mth8
+thm (nimp () () (-> ph (-> (-. ps) (-. (-> ph ps))))
+     ph ps pm2.27 con3d)
+
+# a.k.a. npipip
+# metamath seems to have a fairly short but tricky proof of pm2.18 that
+# doesn't detour through dn, nimp, con1, et. al.; but we need those
+# anyway and pm2.18 is proven more straightforwardly once we have nimp.
+thm (pm2.18 () () (-> (-> (-. ph) ph) ph)
+     (-. ph) ph nimp pm2.43i a3i)
+
+thm (pm2.18_mm () () (-> (-> (-. ph) ph) ph)
+     ph (-. (-> (-. ph) ph)) pm2.21 a2i a3d pm2.43i)
+
+thm (nimp1i () (1 (-. (-> ph ps))) ph
+     1 ph ps nimp1 ax-mp)
+
+thm (nimp2i () (1 (-. (-> ph ps))) (-. ps)
+     1 ph ps nimp2 ax-mp)
+
+thm (nimpi () (1 ph 2 (-. ps)) (-. (-> ph ps))
+     2 1 ph ps nimp ax-mp ax-mp)
+
+thm (nimpd () (1 (-> ph ps) 2 (-> ph (-. ch))) (-> ph (-. (-> ps ch)))
+     2 1 ps ch nimp syl mpd)
+
+# a.k.a. pm3.26im
+thm (preand1 () () (-> (-. (-> ph (-. ps))) ph)
+     ph (-. ps) nimp1)
+
+thm (preand2 () () (-> (-. (-> ph (-. ps))) ps)
+     ph (-. ps) nimp2 ps dn syl)
+
+# a.k.a. pm3.2im
+thm (preand () () (-> ph (-> ps (-. (-> ph (-. ps)))))
+     ph (-. ps) nimp ps dnr syl5)
+
+thm (preand1i () (1 (-. (-> ph (-. ps)))) ph
+     1 ph ps preand1 ax-mp)
+
+thm (preand2i () (1 (-. (-> ph (-. ps)))) ps
+     1 ph ps preand2 ax-mp)
+
+thm (preandi () (1 ph 2 ps) (-. (-> ph (-. ps)))
+     2 1 ph ps preand ax-mp ax-mp)
+
+thm (jc () (1 (-> ph ps) 2 (-> ph ch)) (-> ph (-. (-> ps (-. ch))))
+     2 1 ps ch preand syl mpd)
+
+defthm (df-and wff (/\ ph ps) () ()
+          (-. (-> (-> (/\ ph ps) (-. (-> ph (-. ps))))
+                  (-. (-> (-. (-> ph (-. ps))) (/\ ph ps)))))
+     (-. (-> ph (-. ps))) id
+     (-. (-> ph (-. ps))) id
+     preandi)
+
+thm (df-and-1 () () (-> (/\ ph ps) (-. (-> ph (-. ps))))
+     ph ps df-and preand1i)
+
+thm (df-and-2 () () (-> (-. (-> ph (-. ps))) (/\ ph ps))
+     ph ps df-and preand2i)
+
+thm (df-and-1i () (1 (/\ ph ps)) (-. (-> ph (-. ps)))
+     1 ph ps df-and-1 ax-mp)
+
+thm (df-and-2i () (1 (-. (-> ph (-. ps)))) (/\ ph ps)
+     1 ph ps df-and-2 ax-mp)
+
+thm (df-and-1d () (1 (-> ph (/\ ps ch))) (-> ph (-. (-> ps (-. ch))))
+     1 ps ch df-and-1 syl)
+
+thm (df-and-2d () (1 (-> ph (-. (-> ps (-. ch))))) (-> ph (/\ ps ch))
+     1 ps ch df-and-2 syl)
+
+thm (and1 () () (-> (/\ ph ps) ph)
+     ph ps df-and-1 ph ps preand1 syl)
+
+thm (and2 () () (-> (/\ ph ps) ps)
+     ph ps df-and-1 ph ps preand2 syl)
+
+thm (and () () (-> ph (-> ps (/\ ph ps)))
+     ph ps preand ph ps df-and-2 syl6)
+
+thm (and1i () (1 (/\ ph ps)) ph
+     1 ph ps and1 ax-mp)
+
+thm (and2i () (1 (/\ ph ps)) ps
+     1 ph ps and2 ax-mp)
+
+thm (andi () (1 ph 2 ps) (/\ ph ps)
+     2 1 ph ps and ax-mp ax-mp)
+
+thm (and1d () (1 (-> ph (/\ ps ch))) (-> ph ps)
+     1 ps ch and1 syl)
+
+thm (and2d () (1 (-> ph (/\ ps ch))) (-> ph ch)
+     1 ps ch and2 syl)
+
+thm (andd () (1 (-> ph ps) 2 (-> ph ch)) (-> ph (/\ ps ch))
+     2 1 ps ch and syl mpd)
+
+defthm (def-bi wff (<-> ph ps) () ()
+     (/\ (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
+         (-> (/\ (-> ph ps) (-> ps ph)) (<-> ph ps)))
+
+    (/\ (-> ph ps) (-> ps ph)) id
+    (/\ (-> ph ps) (-> ps ph)) id
+    andi)
+
+thm (def-bi-1 () () (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
+     ph ps def-bi and1i)
+
+thm (def-bi-2 () () (-> (/\ (-> ph ps) (-> ps ph)) (<-> ph ps))
+     ph ps def-bi and2i)
+
+thm (peirce () () (-> (-> (-> ph ps) ph) ph)
+     ph ps ph himp2 ph pm2.18 syl)
+
+thm (looinv () () (-> (-> (-> ph ps) ps) (-> (-> ps ph) ph))
+     (-> ph ps) ps ph imim1 ph ps peirce syl6)
+
+thm (notnot2 () () (-> (-. (-. ph)) ph)
+     ph dn)
+
+thm (notnotri () (1 (-. (-. ph))) ph
+     1 dni)
+
+thm (notnot1 () () (-> ph (-. (-. ph)))
+     ph dnr)
+
+thm (notnoti () (1 ph) (-. (-. ph))
+     1 dnri)
+
+thm (pm2.01 () () (-> (-> ph (-. ph)) (-. ph))
+     ph id
+     ph id
+     jc con2i)
+
+thm (pm2.01d () (1 (-> ph (-> ps (-. ps)))) (-> ph (-. ps))
+     1 ps pm2.01 syl)
+
+thm (pm2.5 () () (-> (-. (-> ph ps)) (-> (-. ph) ps))
+     ph ps nimp1 ps pm2.24d)
+
+thm (pm2.51 () () (-> (-. (-> ph ps)) (-> ph (-. ps)))
+     ph ps nimp2 ph a1d)
+
+thm (pm2.52 () () (-> (-. (-> ph ps)) (-> (-. ph) (-. ps)))
+     ph ps nimp2 (-. ph) a1d)
+
+thm (pm2.521 () () (-> (-. (-> ph ps)) (-> ps ph))
+     ph ps nimp1 ps a1d)
+
+thm (mto () (1 (-. ps) 2 (-> ph ps)) (-. ph)
+     1 2 con3i ax-mp)
+
+thm (mtoi () (1 (-. ch) 2 (-> ph (-> ps ch))) (-> ph (-. ps))
+     1 2 con3d mpi)
+
+thm (mtod () (1 (-> ph (-. ch)) 2 (-> ph (-> ps ch))) (-> ph (-. ps))
+     1 2 con3d mpd)
+
+thm (mt2 () (1 ps 2 (-> ph (-. ps))) (-. ph)
+     1 dnri 2 mto)
+
+thm (mt2i () (1 ch 2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps))
+     1 dnri 2 mtoi)
+
+thm (mt2d () (1 (-> ph ch) 2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps))
+     1 dnrd 2 mtod)
+
+thm (mt3 () (1 (-. ps) 2 (-> (-. ph) ps)) ph
+     1 2 con1i ax-mp)
+
+thm (mt3i () (1 (-. ch) 2 (-> ph (-> (-. ps) ch))) (-> ph ps)
+     1 2 con1d mpi)
+
+thm (mt3d () (1 (-> ph (-. ch)) 2 (-> ph (-> (-. ps) ch))) (-> ph ps)
+     1 2 con1d mpd)
+
+thm (mt4d () (1 (-> ph ps) 2 (-> ph (-> (-. ch) (-. ps)))) (-> ph ch)
+     1 2 a3d mpd)
+
+thm (nsyl () (1 (-> ph (-. ps)) 2 (-> ch ps)) (-> ph (-. ch))
+     1 2 con3i syl)
+
+thm (nsyld () (1 (-> ph (-> ps (-. ch))) 2 (-> ph (-> ta ch)))
+      (-> ph (-> ps (-. ta)))
+     1 2 con3d syld)
+
+thm (nsyl2 () (1 (-> ph (-. ps)) 2 (-> (-. ch) ps)) (-> ph ch)
+     1 2 con1i syl)
+
+thm (nsyl3 () (1 (-> ph (-. ps)) 2 (-> ch ps)) (-> ch (-. ph))
+     2 1 con2i syl)
+
+thm (nsyl4 () (1 (-> ph ps) 2 (-> (-. ph) ch)) (-> (-. ch) ps)
+     2 con1i 1 syl)
+
+thm (nsyl4t () () (-> (-> ph ps) (-> (-> (-. ph) ch) (-> (-. ch) ps)))
+     ph ch con1 (-. ch) ph ps imim1 syl com12)
+
+thm (nsyli () (1 (-> ph (-> ps ch)) 2 (-> th (-. ch))) (-> ph (-> th (-. ps)))
+     1 con3d 2 syl5)
+
+thm (pm3.2im () () (-> ph (-> ps (-. (-> ph (-. ps)))))
+     ph ps preand)
+
+thm (mth8 () () (-> ph (-> (-. ps) (-. (-> ph ps))))
+     ph ps nimp)
+
+# a.k.a cases
+thm (pm2.61 () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps))
+     ph ps ps nsyl4t ps pm2.18 syl6)
+
+thm (cases () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps))
+     ph ps pm2.61)
+
+thm (casesi () (1 (-> ph ps) 2 (-> (-. ph) ps)) ps
+     2 1 ph ps cases ax-mp ax-mp)
+
+thm (pm2.61i () (1 (-> ph ps) 2 (-> (-. ph) ps)) ps
+     1 2 casesi)
+
+thm (casesd () (1 (-> ph (-> ps ch)) 2 (-> ph (-> (-. ps) ch))) (-> ph ch)
+     2 1 ps ch cases syl mpd)
+
+thm (pm2.61d () (1 (-> ph (-> ps ch)) 2 (-> ph (-> (-. ps) ch))) (-> ph ch)
+     1 2 casesd)
+
+thm (pm2.61d1 () (1 (-> ph (-> ps ch)) 2 (-> (-. ps) ch)) (-> ph ch)
+     1 2 ph a1i casesd)
+
+thm (pm2.61d2 () (1 (-> ph (-> (-. ps) ch)) 2 (-> ps ch)) (-> ph ch)
+     2 ph a1i 1 casesd)
+
+thm (pm2.18i () (1 (-> (-. ph) ph)) ph
+     1 ph pm2.18 ax-mp)
+
+thm (pm2.61ii () (1 (-> (-. ph) (-> (-. ps) ch)) 2 (-> ph ch) 3 (-> ps ch)) ch
+     3 con3i 2 con3i 1 syl mpd pm2.18i)
+
+thm (pm2.61nii () (1 (-> ph (-> ps ch)) 2 (-> (-. ph) ch) 3 (-> (-. ps) ch))
+       ch
+     3 con1i 2 con1i 1 syl mpd pm2.18i)
+
+thm (pm2.61iii () (1 (-> (-. ph) (-> (-. ps) (-> (-. ch) th)))
+                  2 (-> ph th) 3 (-> ps th) 4 (-> ch th)) th
+     4 con3i 3 con3i 2 con3i 1 syl mpd mpd pm2.18i)
+
+thm (pm2.6 () () (-> (-> (-. ph) ps) (-> (-> ph ps) ps))
+     ph ps pm2.61 com12)
+
+thm (pm2.65 () () (-> (-> ph ps) (-> (-> ph (-. ps)) (-. ph)))
+     ph ps (-. ph) imim1 ph ps con2 syl5 ph pm2.01 syl6)
+
+thm (pm2.65i () (1 (-> ph ps) 2 (-> ph (-. ps))) (-. ph)
+     2 1 ph ps pm2.65 ax-mp ax-mp)
+
+thm (pm2.65d () (1 (-> ph (-> ps ch)) 2 (-> ph (-> ps (-. ch))))
+      (-> ph (-. ps))
+    2 1 ps ch pm2.65 syl mpd)
+
+thm (ja () (1 (-> (-. ph) ch) 2 (-> ps ch)) (-> (-> ph ps) ch)
+     1 con1i 2 con3i nimpd a3i)
+
+thm (pm3.26im () () (-> (-. (-> ph (-. ps))) ph)
+     ph ps preand1)
+
+thm (pm3.27im () () (-> (-. (-> ph (-. ps))) ps)
+     ph ps preand2)
+
+thm (impt () () (-> (-> ph (-> ps ch)) (-> (-. (-> ph (-. ps))) ch))
+     ph ps preand2 ch imim1i ph imim2i
+       ph ps preand1
+     syl5 pm2.43d)
+
+thm (syldx () (1 (-> ph (-> ps ch))) (-> (-> ch th) (-> ph (-> ps th)))
+     1 th imim1d a2i himp1i)
+
+thm (expt () () (-> (-> (-. (-> ph (-. ps))) ch) (-> ph (-> ps ch)))
+     ph ps preand ch syldx)
+
+thm (impi () (1 (-> ph (-> ps ch))) (-> (-. (-> ph (-. ps))) ch)
+     1 ph ps ch impt ax-mp)
+
+thm (expi () (1 (-> (-. (-> ph (-. ps))) ch)) (-> ph (-> ps ch))
+     1 ph ps ch expt ax-mp)
+
+thm (bijust () () (-. (-> (-> ph ph) (-. (-> ph ph))))
+     ph id
+     ph id
+     preandi)
+
+thm (df-bi () () 
+      (-. (-> (-> (<-> ph ps) 
+                  (-. (-> (-> ph ps) (-. (-> ps ph))))) 
+	      (-. (-> (-. (-> (-> ph ps) 
+                          (-. (-> ps ph))))
+                      (<-> ph ps)))))
+    ph ps def-bi-1 df-and-1d
+    (-> ph ps) (-> ps ph) df-and-2 ph ps def-bi-2 syl
+    preandi)
+
+thm (bi1 () () (-> (<-> ph ps) (-> ph ps))
+     ph ps def-bi-1 and1d)
+
+thm (bi2 () () (-> (<-> ph ps) (-> ps ph))
+     ph ps def-bi-1 and2d)
+
+thm (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps)))
+     (-> ph ps) (-> ps ph) and
+        ph ps def-bi-2
+      syl6)
+
+# a.k.a. bi1i?
+thm (biimpi () (1 (<-> ph ps)) (-> ph ps)
+     1 ph ps bi1 ax-mp)
+
+thm (biimpri () (1 (<-> ph ps)) (-> ps ph)
+     1 ph ps bi2 ax-mp)
+
+thm (biimpd () (1 (-> ph (<-> ps ch))) (-> ph (-> ps ch))
+     1 ps ch bi1 syl)
+
+thm (biimprd () (1 (-> ph (<-> ps ch))) (-> ph (-> ch ps))
+     1 ps ch bi2 syl)
+
+# Getting a bit decadent here... just use biimpd com12!
+thm (biimpcd () (1 (-> ph (<-> ps ch))) (-> ps (-> ph ch))
+     1 biimpd com12)
+
+thm (biimprcd () (1 (-> ph (<-> ps ch))) (-> ch (-> ph ps))
+     1 biimprd com12)
+
+thm (def-bi-1i () (1 (<-> ph ps)) (/\ (-> ph ps) (-> ps ph))
+     1 ph ps def-bi-1 ax-mp)
+
+thm (def-bi-2i () (1 (/\ (-> ph ps) (-> ps ph))) (<-> ph ps)
+     1 ph ps def-bi-2 ax-mp)
+
+# a.k.a. biconsi
+thm (impbii () (1 (-> ph ps) 2 (-> ps ph)) (<-> ph ps)
+     1 2 andi def-bi-2i)
+
+thm (def-bi' () () (<-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
+     ph ps def-bi def-bi-2i)
+
+thm (def-and' () () (<-> (/\ ph ps) (-. (-> ph (-. ps))))
+     ph ps df-and-1
+     ph ps df-and-2
+     impbii)
+
+thm (bitri () (1 (<-> ph ps) 2 (<-> ps ch)) (<-> ph ch)
+     1 biimpi 2 biimpi syl
+     2 biimpri 1 biimpri syl
+     impbii)
+
+thm (dfbi1 () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))
+     ph ps def-bi'
+       (-> ph ps) (-> ps ph) def-and'
+     bitri)
+
+thm (dfbi1gb () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))
+     # No way! See the notes at http://us.metamath.org/mpegif/dfbi1gb.html
+     ph ps dfbi1)
+
+thm (bi2.04 () () (<-> (-> ph (-> ps ch)) (-> ps (-> ph ch)))
+     ph ps ch pm2.04
+     ps ph ch pm2.04
+     impbii)
+
+thm (notnot () () (<-> ph (-. (-. ph)))
+     ph dnr
+     ph dn
+     impbii)
+
+thm (pm4.8 () () (<-> (-> ph (-. ph)) (-. ph))
+     ph pm2.01
+     (-. ph) ph ax-1
+     impbii)
+
+thm (pm4.81 () () (<-> (-> (-. ph) ph) ph)
+     ph pm2.18
+     ph (-. ph) ax-1
+     impbii)
+
+thm (con1b () () (<-> (-> (-. ph) ps) (-> (-. ps) ph))
+     ph ps con1
+     ps ph con1
+     impbii)
+
+thm (con2b () () (<-> (-> ph (-. ps)) (-> ps (-. ph)))
+     ph ps con2
+     ps ph con2
+     impbii)
+
+thm (con34b () () (<-> (-> ph ps) (-> (-. ps) (-. ph)))
+     ph ps con3
+     ps ph ax-3
+     impbii)
+
+thm (pm5.4 () () (<-> (-> ph (-> ph ps)) (-> ph ps))
+     ph ps pm2.43
+     (-> ph ps) ph ax-1
+     impbii)
+
+thm (imdi () () (<-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch)))
+     ph ps ch ax-2
+     ph ps ch pm2.86
+     impbii)
+
+thm (bicomi () (1 (<-> ph ps)) (<-> ps ph)
+     1 biimpri
+     1 biimpi
+     impbii)
+
+thm (pm5.41 () () (<-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch)))
+     ph ps ch imdi bicomi)
+
+thm (biid () () (<-> ph ph)
+     ph id
+     ph id
+     impbii)
+
+# Decadent...
+thm (biidd () () (-> ph (<-> ps ps))
+     ps biid ph a1i)
+
+thm (bitr2i () (1 (<-> ph ps) 2 (<-> ps ch)) (<-> ch ph)
+     1 2 bitri bicomi)
+
+thm (bitr3i () (1 (<-> ps ph) 2 (<-> ps ch)) (<-> ph ch)
+     1 bicomi 2 bitri)
+
+thm (bitr4i () (1 (<-> ph ps) 2 (<-> ch ps)) (<-> ph ch)
+     1 2 bicomi bitri)
+
+thm (3bitri () (1 (<-> ph ps) 2 (<-> ps ch) 3 (<-> ch th)) (<-> ph th)
+     1 2 3 bitri bitri)
+
+thm (3bitrri () (1 (<-> ph ps) 2 (<-> ps ch) 3 (<-> ch th)) (<-> th ph)
+     1 2 bitri 3 bitr2i)
+
+thm (3bitr2i () (1 (<-> ph ps) 2 (<-> ch ps) 3 (<-> ch th)) (<-> ph th)
+     1 2 bicomi 3 3bitri)
+
+thm (3bitr2ri () (1 (<-> ph ps) 2 (<-> ch ps) 3 (<-> ch th)) (<-> th ph)
+     1 2 3 3bitr2i bicomi)
+
+# This is getting boring...
+thm (3bitr3i () (1 (<-> ph ps) 2 (<-> ph ch) 3 (<-> ps th)) (<-> ch th)
+     2 bicomi 1 3 3bitri)
+
+thm (3bitr3ri () (1 (<-> ph ps) 2 (<-> ph ch) 3 (<-> ps th)) (<-> th ch)
+     1 2 3 3bitr3i bicomi)
+
+thm (3bitr4i () (1 (<-> ph ps) 2 (<-> ch ph) 3 (<-> th ps)) (<-> ch th)
+     2 1 3 bicomi 3bitri)
+
+thm (3bitr4ri () (1 (<-> ph ps) 2 (<-> ch ph) 3 (<-> th ps)) (<-> th ch)
+     1 2 3 3bitr4i bicomi)
+
+# Ok, some constructors
+
+thm (imbi2i () (1 (<-> ph ps)) (<-> (-> ch ph) (-> ch ps))
+     1 biimpi ch imim2i
+     1 biimpri ch imim2i
+     impbii)
+
+thm (imbi1i () (1 (<-> ph ps)) (<-> (-> ph ch) (-> ps ch))
+     1 biimpri ch imim1i
+     1 biimpi ch imim1i
+     impbii)
+
+thm (notbii () (1 (<-> ph ps)) (<-> (-. ph) (-. ps))
+     1 biimpri con3i
+     1 biimpi con3i
+     impbii)
+
+thm (imbi12i () (1 (<-> ph ps) 2 (<-> ch th)) (<-> (-> ph ch) (-> ps th))
+     1 ch imbi1i
+     2 ps imbi2i
+     bitri)
+
+thm (mpbi () (1 ph 2 (<-> ph ps)) ps
+     1 2 biimpi ax-mp)
+
+thm (mpbir () (1 ps 2 (<-> ph ps)) ph
+     1 2 biimpri ax-mp)
+
+thm (mtbi () (1 (-. ph) 2 (<-> ph ps)) (-. ps)
+     1 2 notbii mpbi)
+
+thm (mtbir () (1 (-. ps) 2 (<-> ph ps)) (-. ph)
+     1 2 notbii mpbir)
+
+thm (mpbii () (1 ps 2 (-> ph (<-> ps ch))) (-> ph ch)
+     1 2 biimpd mpi)
+
+thm (mpbiri () (1 ch 2 (-> ph (<-> ps ch))) (-> ph ps)
+     1 2 biimprd mpi)
+
+thm (mpbid () (1 (-> ph ps) 2 (-> ph (<-> ps ch))) (-> ph ch)
+     1 2 biimpd mpd)
+
+thm (mpbird () (1 (-> ph ch) 2 (-> ph (<-> ps ch))) (-> ph ps)
+     1 2 biimprd mpd)
+
+thm (a1bi () (1 ph) (<-> ps (-> ph ps))
+     ps ph ax-1
+     1 ph ps pm2.27 ax-mp
+     impbii)
+
+thm (sylib () (1 (-> ph ps) 2 (<-> ps ch)) (-> ph ch)
+     1 2 biimpi syl)
+
+thm (sylbi () (1 (<-> ph ps) 2 (-> ps ch)) (-> ph ch)
+     1 biimpi 2 syl)
+
+thm (sylibr () (1 (-> ph ps) 2 (<-> ch ps)) (-> ph ch)
+     1 2 biimpri syl)
+
+thm (sylbir () (1 (<-> ps ph) 2 (-> ps ch)) (-> ph ch)
+     1 biimpri 2 syl)
+
+thm (sylibd () (1 (-> ph (-> ps ch)) 2 (-> ph (<-> ch th))) (-> ph (-> ps th))
+     1 2 biimpd syld)
+
+thm (sylbid () (1 (-> ph (<-> ps ch)) 2 (-> ph (-> ch th))) (-> ph (-> ps th))
+     1 biimpd 2 syld)
+
+thm (sylibrd () (1 (-> ph (-> ps ch)) 2 (-> ph (<-> th ch))) (-> ph (-> ps th))
+     1 2 biimprd syld)
+
+thm (sylbird () (1 (-> ph (<-> ch ps)) 2 (-> ph (-> ch th))) (-> ph (-> ps th))
+     1 biimprd 2 syld)
+
+export (PROP prop.ghi (PROP_MIN) "")

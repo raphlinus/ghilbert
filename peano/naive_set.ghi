@@ -1,0 +1,80 @@
+# Naive set theory
+
+param (PROP prop.ghi () "")
+param (PEANO_MIN peano_min.ghi (PROP) "")
+param (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
+
+kind (set)
+
+tvar (wff ph ps ch)
+tvar (num A B C D)
+var (num x y z)
+tvar (set S T)
+
+term (set ({|} x ph))
+term (wff (e. A S))
+
+# This axiom introduces both the element relationship and class
+# abstraction. Thus, it is similar to df-clel and df-clab in
+# set.mm. It is conservative with respect to the strength of Peano
+# axioms, but improves the expressive power greatly. In addition, in
+# interpretations from Z2, HOL, or ZFC, we'd expect this to be
+# represented by a set of numbers.
+
+stmt (ax-elab () ()
+  (<-> (e. A ({|} x ph)) ([/] A x ph)))
+
+stmt (ax-eleq1 () ()
+  (-> (= A B) (<-> (e. A S) (e. B S))))
+
+# Naive set theory definitions
+
+# This definition is similar to set.mm's df-cleq. A separate term is
+# needed from =, because otherwise kinds wouldn't match.
+term (wff (=_ S T))
+stmt (df-seq () () (<-> (=_ S T) (A. x (<-> (e. x S) (e. x T)))))
+
+term (set ({/}))
+stmt (df-emptyset () () (=_ ({/}) ({|} x (-. (= x x)))))
+
+term (set ({} A))
+stmt (df-sn () () (=_ ({} A) ({|} x (= x A))))
+
+term (set (u. S T))
+stmt (df-un () () (=_ (u. S T) ({|} x (\/ (e. x S) (e. x T)))))
+
+term (set (i^i S T))
+stmt (df-in () () (=_ (i^i S T) ({|} x (/\ (e. x S) (e. x T)))))
+
+term (wff (C_ S T))
+#stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+stmt (df-ss () () (<-> (C_ S T) (=_ (i^i S T) S)))
+
+term (wff (C. S T))
+stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))
+
+# Iota
+
+# As with the introduction of sets, this introduction of iota is
+# conservative, in that all instances could be mechanically removed,
+# at the cost of making expressions uglier.
+
+term (num (iota S))
+stmt (ax-iota () () (= (iota ({} A)) A))
+stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))
+
+# Minimum of a set
+
+term (num (min S))
+stmt (df-min ((S x y)) ()
+  (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))))
+
+# Division and modulo
+
+term (num (div A B))
+stmt (df-div ((A x y) (B x y)) ()
+  (= (div A B) (min ({|} x (E. y (= (+ (* B x) y) A))))))
+
+term (num (mod A B))
+stmt (df-mod () ()
+  (= (mod A B) (iota ({|} x (= (+ (* B (div A B)) x) A)))))

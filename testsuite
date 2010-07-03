@@ -211,3 +211,46 @@ thm (ax-7_2 () () (-> (A. x (A. y ph)) (A. y (A. x ph))) x y ph ax-7)
 !append test.gh
 thm (ax-7_2 () () (-> (A. x (A. x ph)) (A. x (A. x ph))) x x ph ax-7)
 !reject test.gh Binding variables not distinct
+
+!append test.ghi
+term (nat (+ A B))
+stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
+term (wff (-. ph))
+stmt (id () () (-> ph ph))
+stmt (preandi () (ph ps) (-. (-> ph (-. ps))))
+!save
+!accept test.gh
+
+!append test.gh
+thm (bleep () () (-> (A. x (A. (+ x y) ph)) (A. (+ x y) ph))
+     x (A. (+ x y) ph) ax-4)
+!reject test.gh Term expression substituted for term binding var argument
+
+!append test.gh
+thm (bleep2 () () (-> (A. x (A. B ph)) (A. B ph))
+     x (A. B ph) ax-4)
+!reject test.gh Term variable substituted for term binding var argument
+
+!append test.gh
+thm (bleep3 () () (-> ph ph)
+     ph A alnfi)
+!reject test.gh Term variable substituted for mandatory binding variable
+
+!append test.gh
+thm (bleep4 () () (-> ph ph)
+     ph (+ x y) alnfi)
+!reject test.gh Term expression substituted for mandatory binding variable
+
+!append test.gh
+defthm (df-an wff (/\ ph ps) () ()
+          (-. (-> (-> (/\ ph ps) (-. (-> ph (-. ps))))
+                  (-. (-> (-. (-> ph (-. ps))) (/\ ph ps)))))
+        (-. (-> ph (-. ps))) id
+        (-. (-> ph (-. ps))) id
+        preandi)
+!accept test.gh
+
+!append test.gh
+defthm (df-true wff (true) () () (true)
+        ph id)
+!reject test.gh Definition dummy is not binding variable                                       

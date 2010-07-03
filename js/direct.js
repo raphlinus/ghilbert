@@ -16,27 +16,27 @@ GH.splitrange = function(str) {
     var result = [];
     var beg = 0;
     for (var i = 0; i < str.length; i++) {
-	c = str.charAt(i);
-	if (c == ' ') {
-	    if (i != beg) {
+	var c = str.charAt(i);
+	if (c === ' ') {
+	    if (i !== beg) {
 		result.push({tok: str.substring(beg, i), beg: beg, end: i});
 	    }
 	    beg = i + 1;
-	} else if (c == '(' || c == ')') {
-	    if (i != beg) {
+	} else if (c === "(" || c === ")") {
+	    if (i !== beg) {
 		result.push({tok: str.substring(beg, i), beg: beg, end: i});
 	    }
 	    result.push({tok: str.substring(i, i+1), beg: i, end: i+1});
 	    beg = i + 1;
-	} else if (c == '#') {
-	    if (i != beg) {
+	} else if (c === '#') {
+	    if (i !== beg) {
 		result.push({tok: str.substring(beg, i), beg: beg, end: i});
 	    }
 	    beg = str.length;
 	    break;
 	}
     }
-    if (beg != str.length) {
+    if (beg !== str.length) {
 	result.push({tok: str.substring(beg), beg: beg, end: str.length});
     }
     return result;
@@ -44,27 +44,43 @@ GH.splitrange = function(str) {
 
 GH.Direct.prototype.update = function() {
     this.stack.text = [];
-    thmctx = new GH.DirectThm(this.vg);
+    var thmctx = new GH.DirectThm(this.vg);
     var status = null;
-    for (var i = 0; i < this.text.text.length && status == null; i++) {
+    var i, loc;
+    for (i = 0; i < this.text.text.length && status === null; i++) {
 	var spl = GH.splitrange(this.text.text[i]);
 	for (var j = 0; j < spl.length; j++) {
 	    status = thmctx.tok(spl[j].tok);
 	    if (status) {
-		var loc = spl[j].tok + ' ' + spl[j].beg + ':' + spl[j].end;
+		loc = spl[j].tok + ' ' + spl[j].beg + ':' + spl[j].end;
 		break;
 	    }
 	}
     }
-    //this.stack.text.push('state: ' + thmctx.state);
-    //this.stack.text.push('ss: ' + GH.sexp_to_string(thmctx.sexpstack));
-    //if (thmctx.stmt != null) {
-        //this.stack.text.push('stmt: ' + GH.sexp_to_string(thmctx.stmt));
-    //}
+    var stext = this.stack.text;
+
+    //stext.push('state: ' + thmctx.state);
+    //stext.push('ss: ' + GH.sexp_to_string(thmctx.sexpstack));
+    if (thmctx.hyps !== null) {
+        for (i = 0; i < thmctx.hyps.length; i += 2) {
+	    stext.push(thmctx.hyps[i] + ' : ' + 
+		       GH.sexptounicode(thmctx.hyps[i+1]));
+	}
+    }
+    if (thmctx.concl !== null) {
+        stext.push('WTS: ' + GH.sexptounicode(thmctx.concl));
+    }
     if (thmctx.proofctx) {
 	var pstack = thmctx.proofctx.stack;
-	for (var i = 0; i < pstack.length; i++) {
-	    this.stack.text.push(GH.sexptounicode(pstack[i]));
+	for (i = 0; i < pstack.length; i++) {
+	    stext.push(GH.sexptounicode(pstack[i]));
+	}
+	pstack = thmctx.proofctx.mandstack;
+	if (pstack.length > 0) {
+	    stext.push('#####');
+	    for (i = 0; i < pstack.length; i++) {
+	        stext.push(GH.sexptounicode(pstack[i][1]));
+	    }
 	}
     }
     if (status) {
@@ -80,68 +96,75 @@ GH.DirectThm = function(vg) {
     this.hypmap = {};
     this.state = 0;
     this.proofctx = null;
+    this.fv = null;
+    this.hyps = null;
+    this.concl = null;
 };
 
 GH.DirectThm.prototype.tok = function(tok) {
     var state = this.state;
     var thestep = null;
-    if (state == 0) {
-	if (tok == 'thm') {
+    var i, pc;
+    if (state === 0) {
+	if (tok === 'thm') {
 	    this.state = 1;
 	} else {
 	    return 'expected thm';
 	}
-    } else if (state == 1) {
-	if (tok == '(') {
+    } else if (state === 1) {
+	if (tok === '(') {
 	    this.state = 2;
 	} else {
 	    return 'expected (';
 	}
-    } else if (state == 2) {
-	if (tok == '(' || tok == ')') {
+    } else if (state === 2) {
+	if (tok === '(' || tok === ')') {
 	    return 'expected thm name';
 	} else {
 	    this.thmname = tok;
+	    if (this.vg.syms.hasOwnProperty(tok)) {
+	        return "A symbol of name '" + tok + "' already exists.";
+	    }
 	    this.state = 3;
 	}
-    } else if (state == 3) {
-	if (tok == '(') {
+    } else if (state === 3) {
+	if (tok === '(') {
 	    this.sexpstack.push([]);
 	    this.state = 5;
 	} else {
 	    return "expected ( to open dv's";
 	}
-    } else if (state == 4) {
-	if (tok == '(') {
+    } else if (state === 4) {
+	if (tok === '(') {
 	    this.sexpstack.push([]);
 	    this.state = 7;
 	} else {
 	    return "expected ( to open hyps";
 	}
-    } else if (state == 6) {
-	if (tok == '(') {
+    } else if (state === 6) {
+	if (tok === '(') {
 	    this.sexpstack.push([]);
 	    this.state = 9;
-	} else if (tok == ')') {
+	} else if (tok === ')') {
 	    return 'expected proof stmt';
 	} else {
 	    thestep = tok;
 	    this.state = 8;
 	}
-    } else if (state == 8) {
-	if (tok == '(') {
+    } else if (state === 8) {
+	if (tok === '(') {
 	    this.sexpstack.push([]);
 	    this.state = 9;
-	} else if (tok == ')') {
+	} else if (tok === ')') {
 	    this.state = 10;
 	} else {
 	    thestep = tok;
 	}
-    } else if (state == 5 || state == 7 || state == 9) {
-	if (tok == '(') {
+    } else if (state === 5 || state === 7 || state === 9) {
+	if (tok === '(') {
 	    this.sexpstack.push([]);
-	} else if (tok == ')') {
-	    if (this.sexpstack.length == 1) {
+	} else if (tok === ')') {
+	    if (this.sexpstack.length === 1) {
 		thestep = this.sexpstack.pop();
 		this.state -= 1;
 	    } else {
@@ -151,26 +174,69 @@ GH.DirectThm.prototype.tok = function(tok) {
 	} else {
 	    this.sexpstack[this.sexpstack.length - 1].push(tok);
 	}
-    } else if (state == 10) {
+    } else if (state === 10) {
 	return 'extra junk after proof';
     }
     state = this.state;
-    if (state == 4) {
+    if (state === 4) {
 	// thestep has dv list
-	var fvvarmap = {};
-	// todo: nyi
-	this.proofctx = new GH.ProofCtx(fvvarmap);
-    } else if (state == 6) {
-	for (var i = 0; i < thestep.length; i += 2) {
-	    this.hypmap[thestep[i]] = thestep[i + 1];
+        this.fv = thestep;
+	this.proofctx = new GH.ProofCtx();
+	this.proofctx.varlist = [];
+	this.proofctx.varmap = {};
+    } else if (state === 6) {
+        if (thestep.length & 1) {
+	    return 'Odd length hypothesis list';
 	}
-    } else if (state == 8 && this.stmt == null) {
-	this.stmt = thestep || 'null';
-    } else if (thestep != null && state == 8) {
+	for (i = 0; i < thestep.length; i += 2) {
+	    var hypname = thestep[i];
+	    if (typeof hypname !== 'string') {
+	        return 'Hyp label must be string';
+	    }
+	    if (this.hypmap.hasOwnProperty(hypname)) {
+	        return 'Repeated hypothesis label ' + hypname;
+	    }
+	    var hyp = thestep[i + 1];
+	    try {
+	        this.vg.kind_of(hyp, this.proofctx.varlist, 
+				this.proofctx.varmap, false, this.vg.syms);
+	    } catch (e1) {
+	        return "!" + e1;
+	    }
+	    this.hypmap[hypname] = hyp;
+	    this.hyps = thestep;
+	    //log ('hypothesis: ' + hypname + ' ' + GH.sexp_to_string(hyp));
+	}
+	this.proofctx.num_hypvars = this.proofctx.varlist.length;
+    } else if (state === 8 && this.concl === null) {
+        pc = this.proofctx;
+	try {
+	    this.vg.kind_of(thestep, pc.varlist, 
+			    pc.varmap, false, this.vg.syms);
+	    pc.num_nondummies = pc.varlist.length;
+	    pc.fvvarmap = this.vg.fvmap_build(this.fv, pc.varlist, pc.varmap);
+	} catch (e2) {
+	    return "! " + e2;
+	}
+        this.concl = thestep || 'null';
+    } else if (thestep !== null && state === 8) {
 	try {
 	    this.vg.check_proof_step(this.hypmap, thestep, this.proofctx);
-	} catch (e) {
-	    return e;
+	} catch (e3) {
+	    return "! " + e3;
+	}
+    } else if (state === 10) {
+        pc = this.proofctx;
+        if (pc.mandstack.length !== 0) {
+	    return '\n\nExtra mand hyps on stack at end of proof';
+	}
+	if (pc.stack.length !== 1) {
+	    return '\n\nStack must have one term at end of proof';
+	}
+	if (!GH.sexp_equals(pc.stack[0], this.concl)) {
+	    return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
+		   '\nWanted:\n ' + GH.sexp_to_string(this.concl));
 	}
     }
+    return null;
 };
