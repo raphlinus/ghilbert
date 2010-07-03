@@ -158,8 +158,7 @@ class VerifyCtx:
             for subexp in exp[1:]:
                 self.allvars_rec(subexp, fv)
 
-    # fvvars is the dictionary or set or list of term variables in which
-    # var is assumed not to occur free (from free variable constraint contexts)
+    # FIXME: now only used by verify_test.py...
     def free_in(self, var, term, fvvars):
         if type(term) == str:
             if var == term:
@@ -167,7 +166,7 @@ class VerifyCtx:
             tvar = self.syms[term]
             if tvar[0] == 'var' or fvvars == None:
                 return False
-            return not term in fvvars
+            return term not in fvvars
 
         freemap = self.terms[term[0]][2]
         # In the following loop, v is the 0-based term argument
@@ -189,6 +188,69 @@ class VerifyCtx:
         while po2 <= subterms:
             if (po2 & subterms) != 0:
                 if self.free_in(var, term[v], fvvars):
+                    return True
+            v = v + 1
+            po2 = (po2 << 1)
+        return False
+
+    # Check if binding variable var occurs free in term.
+    # This routine returns True if and only if var occurs _explicitly_ free
+    # in fvvars.
+    # If fvvars is not None, it is a dictionary. In that case, the domain of
+    # fvvars consists of term variables in the variable space of the theorem
+    # being proved.
+    #  - If fvvars[A] >= 0, the constraint context for the theorem being proven
+    #    guarantees that binding variable var does not occur free in A.
+    #  - If fvvars[A] == 0, the constraint mentioned above has not been
+    #    required by the proof yet.
+    #  - If fvvars[A] > 0, the constraint mentioned above has been required
+    #    by the proof.
+    #  - If fvvars[A] is None, the proof has required that var not occur free
+    #    in A, but no such constraint was provied by the theorem's constraint
+    #    context.
+    #  - If A is not in fvvars, then the theorem's constraint context does not
+    #    contain the pair (A var), but that pair has not yet been required by
+    #    the proof either.
+    # This routine updates fvvars to maintain the above conditions.
+    # If fvvars is None, check for explicit freeness of var in term.
+    def check_free_in(self, var, term, fvvars):
+        if type(term) == str:
+            if var == term:
+                return True
+            tvar = self.syms[term]
+            if tvar[0] == 'var' or fvvars == None:
+                return False
+            try:
+                val = fvvars[term]
+            except KeyError:
+                fvvars[term] = None
+                return False
+            if val is None:
+                return False
+            if val == 0:
+                fvvars[term] = 1
+            return False
+
+        freemap = self.terms[term[0]][2]
+        # In the following loop, v is the 0-based term argument
+        # index for each binding variable argument of the term, while
+        # m is the corresponding bitmap of 0-based term argument indices
+        # in which that binding variable argument might occur free.
+        # If var is used as a binding variable argument of term, restrict
+        # the subterms in which var might occur free accordingly.
+        nargs = len(freemap)
+        subterms = (1 << nargs) - 1  # bitmap of all argument positions
+        for v in xrange(nargs):
+            m = freemap[v]
+            if m < 0:
+                continue  # skip non-binding variables
+            if term[v + 1] == var:
+                subterms = subterms & m
+        po2 = 1
+        v = 1
+        while po2 <= subterms:
+            if (po2 & subterms) != 0:
+                if self.check_free_in(var, term[v], fvvars):
                     return True
             v = v + 1
             po2 = (po2 << 1)
@@ -539,6 +601,21 @@ class VerifyCtx:
         if len(proofctx.stack) != 1:
             raise VerifyError('stack must have one term at end of proof',
                               label, proofctx.stack)
+        extra = ''
+        missing = ''
+        for v in fvmap:
+            for A, val in fvmap[v].iteritems():
+                if val == 0:
+                    extra = extra + (' (%s %s)' % (A, v))
+                elif val is None:
+                    missing = missing + (' (%s %s)' % (A, v))
+
+        if missing != '':
+            raise VerifyError('Missing free variable constraint pairs:%s' %
+                              missing)
+        if extra != '':
+            raise VerifyError('Extra free variable constraint pairs:%s' %
+                              extra)
 
         # The caller checks the conclusion differently depending on whether
         # this is a thm or a defthm.
@@ -599,8 +676,9 @@ class VerifyCtx:
                 for clause in fv:
                     tvar = clause[0]
                     for var in clause[1:]:
-                        if self.free_in_proof(env[var], env[tvar], proofctx):
-                            raise VerifyError('expected ' + env[var] + ' not free in ' + sexp_to_string(env[tvar]))
+                        if self.check_free_in_proof(env[var], env[tvar],
+                                                    proofctx):
+                            raise VerifyError('Free variable constraint violation: Variable %s occurs explicitly free in %s' % (env[var], env[tvar]))
                 #print 'env:', env, 'syms:', syms, 'invmap:', invmap
                 result = self.apply_subst(concl, env)
                 proofctx.stack[sp:] = [result]
@@ -664,9 +742,9 @@ class VerifyCtx:
             if vv[0] != 'var':
                 raise VerifyError("Definition dummy '" + v +
                                   "' is not a binding variable")
-            if self.free_in(v, remnant, None):
+            if self.check_free_in(v, remnant, None):
                 raise VerifyError("Definition dummy '" + v +
-                                  "' occurs free in definiens")
+                                  "' occurs explicitly free in definiens")
 
         if i != len(dsig) - 1:
             raise VerifyError(
@@ -687,12 +765,12 @@ class VerifyCtx:
                     bmap = bmap | (1 << j)
             freemap[i] = bmap
 
-    def free_in_proof(self, var, term, proofctx):
+    def check_free_in_proof(self, var, term, proofctx):
         # Note that if var is a proof dummy variable, then
         # proofctx.fvvarmap.get(var, None) is just None and
-        # free_in() will return False unless var occurs _explicitly_ free in
-        # term.
-        return self.free_in(var, term, proofctx.fvvarmap.get(var, None))
+        # check_free_in() will return False unless var occurs _explicitly_
+        # free in term.
+        self.check_free_in(var, term, proofctx.fvvarmap.get(var, None))
 
     # match templ, which is an expression in the variable space of the
     # assertion being applied, against exp, an expression in the variable

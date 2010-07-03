@@ -501,7 +501,7 @@ thm (exalpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps)))
 # Peano arithmetic
 
 defthm (df-1 num (1) () () (= (1) (S (0)))
-	(S (0)) eqid)
+        (S (0)) eqid)
 
 thm (addeq1 () ()
   (-> (= A B) (= (+ A C) (+ B C)))
@@ -517,8 +517,8 @@ thm (df-le-just ((A x) (B x) (A y) (B y)) ()
 
 # Definition of less than or equal to.
 defthm (df-le wff (<= A B) ((A x) (B x)) ()
-	(<-> (<= A B) (E. x (= (+ A x) B)))
-	# WTS (<-> (E. y (= (+ A y) B)) (E. x (= (+ A x) B)))
+        (<-> (<= A B) (E. x (= (+ A x) B)))
+        # WTS (<-> (E. y (= (+ A y) B)) (E. x (= (+ A x) B)))
         y A B x df-le-just)
 
 defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
@@ -588,7 +588,7 @@ thm (suceqd ()
   (-> ph (= (S A) (S B)))
   hyp A B pa_ax2 sylib)
 
-thm (finds ((A x) (ps x) (ch x) (th x) (ta x) (ph y))
+thm (finds ((A x) (ch x) (th x) (ta x) (ph y))
   (hyp1 (-> (= x (0)) (<-> ph ps))
    hyp2 (-> (= x y) (<-> ph ch))
    hyp3 (-> (= x (S y)) (<-> ph th))
@@ -604,7 +604,7 @@ thm (finds ((A x) (ps x) (ch x) (th x) (ta x) (ph y))
           hyp3 ceqsal
       3imtr4i y gen
     x ph y pa_ind mp2an
-    x ph ax-4 ax-mp
+    a4i
   vtocl
 )
 
@@ -1058,7 +1058,7 @@ defthm (df-subst wff ([/] A x ph) ((A z) (ph z)) ()
          y A x ph z df-subst-just)
 
 defthm (df-rwff wff (rwff x ph) () ()
-	(<-> (rwff x ph) (A. x (<-> ph ([/] x x ph))))
+        (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph))))
       (A. x (<-> ph ([/] x x ph))) biid)
 
 thm (dfsbcq () ()
@@ -1154,7 +1154,7 @@ thm (rwffi ((ps x) (ph y))
 )
 
 defthm (df-eu wff (E! x ph) ((ph y)) ()
-	  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
+          (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
        z y x eqeq2 ph bibi2d x 19.21ai 19.15d exalpha)
 
 export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
@@ -1166,7 +1166,7 @@ import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
 tvar (set S T)
 
 
-thm (eqri ()
+thm (eqri ((S x) (T x))
   (hyp (<-> (e. x S) (e. x T)))
   (=_ S T)
   hyp x gen S T x df-seq mpbir
@@ -1215,6 +1215,10 @@ thm (elin () ()
   elab2
 )
 
+# Problem: this theorem verified, but is not true, without
+# constraints (S x) (T x). Consider S = {x + 1}, T = {x + 2}.
+# The problem was that df-seq lacked these constraints, but needs them.
+# Fixed.
 thm (dfss2 ((S x) (T x)) ()
   (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
 
