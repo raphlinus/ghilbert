@@ -158,15 +158,9 @@ class VerifyCtx:
             for subexp in exp[1:]:
                 self.allvars_rec(subexp, fv)
 
-    # FIXME: now only used by verify_test.py...
-    def free_in(self, var, term, fvvars):
+    def free_scan(self, var, term, accum):
         if type(term) == str:
-            if var == term:
-                return True
-            tvar = self.syms[term]
-            if tvar[0] == 'var' or fvvars == None:
-                return False
-            return term not in fvvars
+            return accum(term)
 
         freemap = self.terms[term[0]][2]
         # In the following loop, v is the 0-based term argument
@@ -187,11 +181,21 @@ class VerifyCtx:
         v = 1
         while po2 <= subterms:
             if (po2 & subterms) != 0:
-                if self.free_in(var, term[v], fvvars):
+                if self.free_scan(var, term[v], accum):
                     return True
             v = v + 1
             po2 = (po2 << 1)
         return False
+
+
+    def free_in(self, var, term, fvvars):
+        return self.free_scan(var, term,
+            lambda v :
+               (True if v == var or
+                        (fvvars != None and
+                         self.syms[v][0] == 'tvar' and
+                         v not in fvvars)
+                     else False))
 
     # Check if binding variable var occurs free in term.
     # This routine returns True if and only if var occurs _explicitly_ free
@@ -214,79 +218,36 @@ class VerifyCtx:
     # This routine updates fvvars to maintain the above conditions.
     # If fvvars is None, check for explicit freeness of var in term.
     def check_free_in(self, var, term, fvvars):
-        if type(term) == str:
-            if var == term:
-                return True
-            tvar = self.syms[term]
-            if tvar[0] == 'var' or fvvars == None:
+        def checker(v, var=var, fvvars=fvvars, syms=self.syms):
+            if v == var:
+                return True  # only stop scan if var explicitly free.
+            if fvvars == None:
+                return False
+            if syms[v][0] == 'var':
                 return False
             try:
-                val = fvvars[term]
+                val = fvvars[v]
             except KeyError:
-                fvvars[term] = None
-                return False
-            if val is None:
+                fvvars[v] = None
                 return False
             if val == 0:
-                fvvars[term] = 1
+                fvvars[v] = 1
             return False
-
-        freemap = self.terms[term[0]][2]
-        # In the following loop, v is the 0-based term argument
-        # index for each binding variable argument of the term, while
-        # m is the corresponding bitmap of 0-based term argument indices
-        # in which that binding variable argument might occur free.
-        # If var is used as a binding variable argument of term, restrict
-        # the subterms in which var might occur free accordingly.
-        nargs = len(freemap)
-        subterms = (1 << nargs) - 1  # bitmap of all argument positions
-        for v in xrange(nargs):
-            m = freemap[v]
-            if m < 0:
-                continue  # skip non-binding variables
-            if term[v + 1] == var:
-                subterms = subterms & m
-        po2 = 1
-        v = 1
-        while po2 <= subterms:
-            if (po2 & subterms) != 0:
-                if self.check_free_in(var, term[v], fvvars):
-                    return True
-            v = v + 1
-            po2 = (po2 << 1)
-        return False
+        return self.free_scan(var, term, checker)
 
     def freelist(self, bvar, exp, l):
         """ Append to l the list of variables occurring in exp for which
             binding variable bvar might occur free in exp if it occurs
             free in one of the variables of the list.
         """
-        if isinstance(exp, str):
-            if bvar != exp:
-                vv = self.syms[exp]
-                if vv[0] == 'var':
-                    return # different binding variables are assumed distinct
-            if exp not in l:
-                l.append(exp)
-            return
-        t = self.terms[exp[0]]
-        freemap = t[2]
-        nargs = len(freemap)
-        subterms = (1 << nargs) - 1  # bitmap of all argument positions
-        for v in xrange(nargs):
-            m = freemap[v]
-            if m < 0:
-                continue
-            if exp[v + 1] == bvar:
-                subterms = subterms & m
-        po2 = 1
-        v = 1
-        while po2 <= subterms:
-            if (po2 & subterms) != 0:
-                self.freelist(bvar, exp[v], l)
-            v = v + 1
-            po2 = po2 << 1
-        
+        def checker(v, bvar=bvar, l=l, syms=self.syms):
+            if v != bvar and syms[v][0] == 'var':
+                return False # different binding variables are distinct
+            if v not in l:
+                l.append(v)
+            return False
+        return self.free_scan(bvar, exp, checker)
+
 
     def kind_of(self, exp, syms = None, check_bv_expr = None):
         """ Check that exp is a well-formed expression, and return its kind """
