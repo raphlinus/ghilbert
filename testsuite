@@ -216,7 +216,9 @@ thm (ax-7_2 () () (-> (A. x (A. x ph)) (A. x (A. x ph))) x x ph ax-7)
 term (nat (+ A B))
 stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
 term (wff (-. ph))
+term (wff (<-> ph ps))
 stmt (id () () (-> ph ph))
+stmt (biid () () (<-> ph ph))
 stmt (preandi () (ph ps) (-. (-> ph (-. ps))))
 !save
 !accept test.gh
@@ -253,4 +255,10 @@ defthm (df-an wff (/\ ph ps) () ()
 !append test.gh
 defthm (df-true wff (true) () () (true)
         ph id)
-!reject test.gh Definition dummy is not binding variable                                       
+!reject test.gh Definition dummy is not binding variable
+
+!append test.gh
+defthm (df-eqvar wff (=var x y) () () (<-> (=var x y) (= x y))
+  (= x y) biid
+)
+!reject test.gh Defined term has two binding variable arguments of the same kind

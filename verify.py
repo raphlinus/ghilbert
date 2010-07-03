@@ -500,6 +500,21 @@ class VerifyCtx:
         if dkind is not None:
             t = term_common(dkind, dsig, None,
                             self.kinds, self.terms, self.syms)
+            # Check that the term does not have two formal binding variable
+            # arguments of the same kind.  Such arguments could be substituted
+            # with the same actual binding variable argument, yet the
+            # definition statement cannot say anything about the definition
+            # in that case as its proof assumes all binding variables are
+            # distinct. A bit ugly.
+            tk, ak, fm = t
+            for j in xrange(1, len(fm)):
+                if fm[j] < 0:
+                    continue    # not a binding variable
+                for i in xrange(j):
+                    if fm[i] < 0:
+                        continue
+                    if ak[i] == ak[j]:
+                        raise VerifyError('Formal binding arguments %s and %s of defined term %s have the same kind.' % (dsig[i+1], dsig[j+1], dsig[0]))
             # Temporarily add the definition to self.terms when parsing the
             # conclusion. term_common checked that the term doesn't exist yet.
             self.terms[dsig[0]] = t
