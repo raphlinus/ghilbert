@@ -63,12 +63,12 @@ GH.Direct.prototype.update = function() {
     //stext.push('ss: ' + GH.sexp_to_string(thmctx.sexpstack));
     if (thmctx.hyps !== null) {
         for (i = 0; i < thmctx.hyps.length; i += 2) {
-	    stext.push(thmctx.hyps[i] + ' : ' + 
-		       GH.sexptounicode(thmctx.hyps[i+1]));
+	    stext.push(GH.sexptounicode(thmctx.hyps[i+1]) + 
+					'      # ' + thmctx.hyps[i]);
 	}
     }
     if (thmctx.concl !== null) {
-        stext.push('WTS: ' + GH.sexptounicode(thmctx.concl));
+        stext.push(GH.sexptounicode(thmctx.concl) + '      # WTS');
     }
     if (thmctx.proofctx) {
 	var pstack = thmctx.proofctx.stack;
@@ -77,9 +77,8 @@ GH.Direct.prototype.update = function() {
 	}
 	pstack = thmctx.proofctx.mandstack;
 	if (pstack.length > 0) {
-	    stext.push('#####');
 	    for (i = 0; i < pstack.length; i++) {
-	        stext.push(GH.sexptounicode(pstack[i][1]));
+	        stext.push(GH.sexptounicode(pstack[i][1]) + '      # W' + i);
 	    }
 	}
     }
