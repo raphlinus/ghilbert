@@ -117,15 +117,18 @@ GH.typesetbinder = function(term, prec, op) {
     return GH.combineslugs(slugs, prec);
 };
 
-GH.typesetsubst = function(term) {
+GH.typesetsubst = function(term, prec) {
     var open_slug = GH.stringslug('[');
     var A_slug = GH.typeset(term[1]);
     var slash_slug = GH.stringslug('/');
     var x_slug = GH.typeset(term[2]);
     var close_slug = GH.stringslug(']');
     var ph_slug = GH.typeset(term[3]);
-    slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, ph_slug];
-    return GH.combineslugs(slugs, ph_slug.prec);
+    sp_slug = GH.spaceslug(1 + ph_slug.prsp);
+    slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, 
+	     sp_slug, ph_slug];
+    return GH.combineslugs(slugs, prec);
+				    
 };
 
 GH.typesetclab = function(term) {
@@ -203,7 +206,7 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == 'E*') {
 	return GH.typesetbinder(sexp, 40, '\u2203*');
     } else if (sexp[0] == '[/]') {
-	return GH.typesetsubst(sexp);
+        return GH.typesetsubst(sexp, 40);
     } else if (sexp[0] == '{|}') {
 	return GH.typesetclab(sexp);
     } else if (sexp[0] == 'e.') {

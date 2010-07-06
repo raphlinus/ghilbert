@@ -15,6 +15,8 @@
 # This is the main AppEngine content handler for serving Ghilbert.
 
 import cgi
+import urllib
+import logging
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -58,7 +60,8 @@ class RecentPage(webapp.RequestHandler):
             else:
                 self.response.out.write('An anonymous person wrote ')
             self.response.out.write('<a href="/edit/%s">%s</a>:<br />' %
-                                    (proof.name, proof.name))
+                                    (urllib.quote(proof.name),
+                                     cgi.escape(proof.name)))
             content = cgi.escape(proof.content)
             newcontent = []
             for line in content.rstrip().split('\n'):
@@ -73,18 +76,26 @@ class SaveHandler(webapp.RequestHandler):
 
         if users.get_current_user():
             proof.author = users.get_current_user()
-
-        proof.name = self.request.get('name')
+        # Note, the following line gets the un-url-encoded name.
+        name = self.request.get('name')
+        # logging.info('Saving "%s"\n', name)
+        proof.name = name
         proof.content = self.request.get('content')
         proof.put()
         self.response.out.write('save ok')
 
 class EditPage(webapp.RequestHandler):
     def get(self, name):
+        if name == '':
+            name = 'new%20theorem'
+        # name here is URL-encoded, we want to display the unencoded version
+        # as text, and avoid the possibility of injection attack.
+        name = urllib.unquote(name);
         self.response.out.write("""<title>Ghilbert</title>
 
 <body>
-<h1>Ghilbert - editing %s</h1>
+<a href="/">Home</a> <a href="/recent">Recent</a>
+<h1>Ghilbert - editing <em id="thmname"></em></h1>
 
 <script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/sandbox.js" type="text/javascript"></script>
@@ -101,16 +112,19 @@ class EditPage(webapp.RequestHandler):
 <div id="output">(output goes here)</div>
 
 <script type="text/javascript">
-url = '../peano/peano_thms.gh';
-uc = new GH.XhrUrlCtx('../', url);
+
+name = %s;
+GH.Direct.replace_thmname(name);
+
+url = '/peano/peano_thms.gh';
+uc = new GH.XhrUrlCtx('/', url);
 v = new GH.VerifyCtx(uc, run);
 run(uc, url, v);
 
 var mainpanel = GH.CanvasEdit.init();
 var direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 direct.vg = v;
-""" % name);
-        self.response.out.write('name = %s;\n' % `name`)
+""" % `name`);
         q = Proof.all()
         q.filter('name =', name)
         q.order('-date')

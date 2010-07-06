@@ -42,6 +42,15 @@ GH.splitrange = function(str) {
     return result;
 };
 
+GH.Direct.replace_thmname = function (newname) {
+    var elem = document.getElementById('thmname');
+    while (elem.firstChild) {
+      elem.removeChild(elem.firstChild);
+    }
+    elem.appendChild(document.createTextNode(newname));
+    name = newname; // replace global 'name'.
+};
+
 GH.Direct.prototype.update = function() {
     this.stack.text = [];
     var thmctx = new GH.DirectThm(this.vg);
@@ -124,6 +133,8 @@ GH.DirectThm.prototype.tok = function(tok) {
 	    if (this.vg.syms.hasOwnProperty(tok)) {
 	        return "A symbol of name '" + tok + "' already exists.";
 	    }
+	    // Is this the best place to do this?
+	    GH.Direct.replace_thmname(tok);
 	    this.state = 3;
 	}
     } else if (state === 3) {
