@@ -83,18 +83,21 @@ def read_sexp(scanner):
             return tok
 
 class UrlCtx:
-    def __init__(self, repobase, basefn):
+    def __init__(self, repobase, basefn, instream):
         self.repobase = repobase
         self.base = os.path.split(basefn)[0]
+        self.instream = instream
     def resolve(self, url):
         # need to be careful about security if used on malicious inputs
         if url.startswith('file://'):
             fn = url[7:]
         elif url.startswith('/'):
             fn = os.path.join(self.repobase, url[1:])
+        elif url == '-':
+            return self.instream
         else:
             fn = os.path.join(self.base, url)
-        return file(fn)
+        return open(fn,'r')
 
 class ProofCtx:
     def __init__(self, label, fvvarmap):
@@ -297,7 +300,7 @@ class VerifyCtx:
                                   child_kind)
         return self.kinds[term[0]]
 
-    def do_cmd(self, cmd, arg):
+    def do_cmd(self, cmd, arg, out):
         """ Command processing for Verify (proof file) context """
         if cmd == 'thm':
             # thm (LABEL ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
@@ -305,7 +308,7 @@ class VerifyCtx:
             if len(arg) < 5:
                 raise VerifyError('Expected at least 5 args to thm')
             (label, fv, hyps, conc) = arg[:4]
-            print 'thm', label
+            out.write('thm %s\n' % label)
             proof = arg[4:]
             try:
                 proofctx = self.check_proof(label, fv, hyps, conc, proof)
@@ -316,10 +319,10 @@ class VerifyCtx:
                 msg = 'error in thm ' + label + ': '
                 if self.fail_continue:
                     msg = msg + x.why
-                print msg
+                out.write(msg)
                 if x.stack != None:
                     for i in xrange(len(x.stack)):
-                        print 'P' + str(i) + ': ' + sexp_to_string(x.stack[i])
+                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]))
                 if not self.fail_continue:
                     raise x
                 self.countError()
@@ -333,16 +336,16 @@ class VerifyCtx:
             if len(arg) < 7:
                 raise VerifyError('Expected at least 7 arguments to defthm')
             (label, dkind, dsig, fv, hyps, conc) = arg[:6]
-            print 'defthm', label
+            out.write('defthm %s\n' % label)
             proof = arg[6:]
             try:
                 proofctx = self.check_proof(label, fv, hyps, conc, proof,
                                             dkind, dsig)
             except VerifyError, x:
-                print 'Error in defthm ' + label + ': ' + x.why
+                out.write('Error in defthm ' + label + ': ' + x.why)
                 if x.stack != None:
                     for i in xrange(len(x.stack)):
-                        print 'P' + str(i) + ': ' + sexp_to_string(x.stack[i])
+                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]))
                 raise x
 
             # Check that:
@@ -391,7 +394,7 @@ class VerifyCtx:
             if result[0] == None:
                 raise VerifyError("The term '" + dsig[0] +
                    "' being defined does not occur in the defthm conclusion.")
-            # print 'New term ' + dsig[0], t
+            # out.write('New term ' + dsig[0], t)
             self.terms[dsig[0]] = t
             self.add_assertion('thm', label, fv, hyps[1::2], conc, self.syms)
             return
@@ -437,13 +440,13 @@ class VerifyCtx:
                     raise SyntaxError("Non-atom provided as interface parameter.")
 
             if cmd == 'import':
-                print 'Importing ' + ifname
+                out.write('Importing ' + ifname)
                 ctx = ImportCtx(ifname, self, prefix, params)
             else:
-                print 'Exporting ' + ifname
+                out.write('Exporting ' + ifname)
                 ctx = ExportCtx(ifname, self, prefix, params)
                 
-            if not self.run(self.urlctx, url, ctx):
+            if not self.run(self.urlctx, url, ctx, out):
                 raise VerifyError (cmd + " of interface %s, URL %s" %
                                    (ifname, url))
                 
@@ -465,7 +468,7 @@ class VerifyCtx:
         else:
             msg = "Unknown command '" + cmd + "' in verify context."
             if self.fail_continue:
-                print msg
+                out.write(msg)
             else:
                 raise VerifyError(msg)
 
@@ -1080,7 +1083,7 @@ class ImportCtx(InterfaceCtx):
                                          kind, binding_var))
         return newterm
 
-    def do_cmd(self, cmd, arg):
+    def do_cmd(self, cmd, arg, out):
         """ Command processing for import context """
         if cmd == 'kind':
             kprefixed = self.kind_cmd_common(arg)
@@ -1113,7 +1116,7 @@ class ImportCtx(InterfaceCtx):
             # interfaces in the import context, we only have to check
             # the stmt label as prefixed for the verify context.
             label = self.prefix + local_label
-            # print 'label=', label, ' self.terms=', self.terms
+            # out.write('label=', label, ' self.terms=', self.terms)
             used_vars = {}
             stmt = self.map_syms(local_stmt, self.terms, used_vars)
             hyps = [self.map_syms(hyp, self.terms, used_vars) for hyp in local_hyps]
@@ -1143,10 +1146,10 @@ class ImportCtx(InterfaceCtx):
             # after earlier uses of the two separate kinds, and means that
             # kind comparisons throughout the verifier need to be
             # careful to recognize the equivalence.
-            print 'interface kindbind: TODO!'
+            out.write('interface kindbind: TODO!')
         else:
-            print '*** Warning: unrecognized command ' + cmd + \
-                  ' seen in import context. ***'
+            out.write('*** Warning: unrecognized command ' + cmd + \
+                  ' seen in import context. ***')
 
 class ExportCtx(InterfaceCtx):
     def __init__(self, name, verify, prefix, params):
@@ -1199,7 +1202,7 @@ class ExportCtx(InterfaceCtx):
         return True
         
 
-    def do_cmd(self, cmd, arg):
+    def do_cmd(self, cmd, arg, out):
         """ ExportCtx command processing """
         if cmd == 'kind':
             kprefixed = self.kind_cmd_common(arg)
@@ -1368,7 +1371,7 @@ class ExportCtx(InterfaceCtx):
             print '*** Warning: unrecognized command ' + cmd + \
                   ' seen in export context. ***'
 
-def run(urlctx, url, ctx):
+def run(urlctx, url, ctx, out):
     s = Scanner(urlctx.resolve(url))
     try:
         while 1:
@@ -1376,13 +1379,13 @@ def run(urlctx, url, ctx):
             if cmd is None:
                 return True
             if type(cmd) != str:
-                raise SyntaxError('cmd must be atom')
+                raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
             arg = read_sexp(s)
-            ctx.do_cmd(cmd, arg)
+            ctx.do_cmd(cmd, arg, out)
     except VerifyError, x:
-        print 'Verify error at %s:%d:\n%s' % (url, s.lineno, x.why)
+        out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
     except SyntaxError, x:
-        print 'Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x))
+        out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
     ctx.countError()
     return False
 
@@ -1403,10 +1406,13 @@ if __name__ == '__main__':
         i = i + 1
         
     fn = sys.argv[i]
-    urlctx = UrlCtx('', fn)
+    urlctx = UrlCtx('', fn, sys.stdin)
     ctx = VerifyCtx(urlctx, run, fail_continue)
-    url = 'file://' + fn
-    ctx.run(urlctx, url, ctx)
+    if fn == '-':
+        url = fn
+    else :
+        url = 'file://' + fn        
+    ctx.run(urlctx, url, ctx, sys.stdout)
     if ctx.error_count != 0:
         print 'Number of errors: %d' % ctx.error_count
         sys.exit(1)

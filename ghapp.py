@@ -17,6 +17,9 @@
 import cgi
 import urllib
 import logging
+import StringIO
+
+import verify
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -36,12 +39,40 @@ def json_dumps(obj):
     else:
         return 'null'
 
+# Return a stream over all proofs in the repository, including the base peano set.
+# The proofs are ordered by number.  Optionally, you may provide one proof to be replaced.
+# TODO: this probably doesn't have to all be in memory at once.
+# TODO: this also shouldn't query the entire DB and sort.
+def get_all_proofs(replacing=None, below=None):
+    pipe = StringIO.StringIO()
+    for line in open('peano/peano_thms.gh', 'r'):
+        pipe.write(str(line))
+
+    q = Proof.all()
+    q.order('number')
+    written = (replacing is None)
+    for proof in q:
+        if below is not None and proof.number >= below:
+            break    
+        if not written and proof.number > replacing.number:
+            pipe.write(str(replacing.content))
+            written = True
+        if replacing is None or proof.name != replacing.name:
+            pipe.write("# number %s\n" % str(proof.number))
+            if proof.content is None:
+                pipe.write("# proof.content is None")
+            else:
+                pipe.write(str(proof.content))
+    pipe.seek(0)
+    return pipe
+
 class Proof(db.Model):
     author = db.UserProperty()
     name = db.StringProperty()
     content = db.TextProperty()
-    date = db.DateTimeProperty(auto_now_add=True)
-
+    date = db.DateTimeProperty(auto_now=True)
+    number = db.FloatProperty()
+    
 class Greeting(db.Model):
     author = db.UserProperty()
     content = db.StringProperty(multiline=True)
@@ -62,7 +93,11 @@ class RecentPage(webapp.RequestHandler):
             self.response.out.write('<a href="/edit/%s">%s</a>:<br />' %
                                     (urllib.quote(proof.name),
                                      cgi.escape(proof.name)))
-            content = cgi.escape(proof.content)
+            if (proof.content is None):
+                content = ""
+            else:
+                content = cgi.escape(proof.content)
+        
             newcontent = []
             for line in content.rstrip().split('\n'):
                 sline = line.lstrip()
@@ -72,17 +107,30 @@ class RecentPage(webapp.RequestHandler):
 
 class SaveHandler(webapp.RequestHandler):
     def post(self):
-        proof = Proof()
+        # Note, the following line gets the un-url-encoded name.
+        name = self.request.get('name')
+        proof = Proof.get_or_insert(name)
+        proof.name = name
+        proof.content = self.request.get('content')
+        proof.number = float(self.request.get('number'))
 
         if users.get_current_user():
             proof.author = users.get_current_user()
-        # Note, the following line gets the un-url-encoded name.
-        name = self.request.get('name')
-        # logging.info('Saving "%s"\n', name)
-        proof.name = name
-        proof.content = self.request.get('content')
-        proof.put()
-        self.response.out.write('save ok')
+
+
+        self.response.out.write("Verifying:\n")
+        pipe = get_all_proofs(replacing=proof)
+        url = '-'
+        urlctx = verify.UrlCtx('','peano/peano_thms.gh', pipe)
+        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        ctx.run(urlctx, url, ctx,self.response.out)
+        # Accept or reject
+        if ctx.error_count > 0:
+            self.response.out.write("\nCannot save; %d errors\n" % ctx.error_count)
+        else:
+            proof.put()
+            self.response.out.write("\nsave ok\n")
+
 
 class EditPage(webapp.RequestHandler):
     def get(self, name):
@@ -91,7 +139,23 @@ class EditPage(webapp.RequestHandler):
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
         name = urllib.unquote(name);
+        q = Proof.all()
+        q.filter('name =', name)
+        q.order('-date')
+        proof = q.get()
+        if proof and proof.number is not None:
+            number = float(proof.number)
+        else:
+            proofs = db.GqlQuery("SELECT * FROM Proof ORDER BY number DESC LIMIT 1")
+            last_proof = proofs.get()
+            if (last_proof and last_proof.number is not None):
+                number = float(last_proof.number + 1)
+            else:
+                number = float(1)
+
+
         self.response.out.write("""<title>Ghilbert</title>
+        
 
 <body>
 <a href="/">Home</a> <a href="/recent">Recent</a>
@@ -105,9 +169,9 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-
-<canvas id="canvas" width="640" height="480" tabindex="0"></canvas>
-<canvas id="stack" width="640" height="480" tabindex="0"></canvas>
+<label for="number">number: </label><input type="text" id="number" value="%f"/><br/>
+<canvas id="canvas" width="640" height="480" tabindex="0"></canvas><br/>
+<canvas id="stack" width="640" height="240" tabindex="0"></canvas>
 
 <div id="output">(output goes here)</div>
 
@@ -119,12 +183,21 @@ GH.Direct.replace_thmname(name);
 url = '/peano/peano_thms.gh';
 uc = new GH.XhrUrlCtx('/', url);
 v = new GH.VerifyCtx(uc, run);
-run(uc, url, v);
+run(uc, '/proofs_upto/%f', v);
 
 var mainpanel = GH.CanvasEdit.init();
-var direct = new GH.Direct(mainpanel, document.getElementById('stack'));
-direct.vg = v;
-""" % `name`);
+window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
+window.direct.vg = v;
+var number = document.getElementById('number');
+number.onchange = function() {
+    var url = '../peano/peano_thms.gh';
+    var uc = new GH.XhrUrlCtx('../', url);
+    var v = new GH.VerifyCtx(uc, run);
+    run(uc, '../proofs_upto/' + number.value, v);
+    window.direct.vg = v;
+    text.dirty();
+};
+""" % (number, `name`, number));
         q = Proof.all()
         q.filter('name =', name)
         q.order('-date')
@@ -145,6 +218,15 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
             print 'arg = ' + arg + '<br />\n'
         for name in os.environ.keys():
             self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
+
+class AllProofsPage(webapp.RequestHandler):
+    def get(self, number):
+        self.response.out.write(get_all_proofs(below=float(number)).getvalue())
+        
+class StaticPage(webapp.RequestHandler):
+    def get(self, filename):
+        for line in open('peano/%s' % filename):
+            self.response.out.write(line)
 
 class MainPage(webapp.RequestHandler):
     def get(self):
@@ -170,6 +252,8 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
                                       ('/recent', RecentPage),
+                                      ('/peano/(.*)', StaticPage),
+                                      ('/proofs_upto/(.*)', AllProofsPage),
                                       ('/edit/(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/save', SaveHandler)],
