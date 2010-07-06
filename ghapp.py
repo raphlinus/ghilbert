@@ -60,10 +60,10 @@ def get_all_proofs(replacing=None, below=None):
         if replacing is None or proof.name != replacing.name:
             pipe.write("# number %s\n" % str(proof.number))
             if proof.content is None:
-                pipe.write("# proof.content is None")
+                pipe.write("# proof.content is None\n")
             else:
                 pipe.write(str(proof.content))
-            pipe.write("\n")
+                pipe.write("\n")
     pipe.seek(0)
     return pipe
 
@@ -169,7 +169,7 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-<label for="number">number: </label><input type="text" id="number" value="%f"/><br/>
+<label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
 <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
 <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
 <canvas id="stack" width="640" height="240" tabindex="0"></canvas><br/>
