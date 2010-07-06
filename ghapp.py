@@ -60,9 +60,10 @@ def get_all_proofs(replacing=None, below=None):
         if replacing is None or proof.name != replacing.name:
             pipe.write("# number %s\n" % str(proof.number))
             if proof.content is None:
-                pipe.write("# proof.content is None")
+                pipe.write("# proof.content is None\n")
             else:
                 pipe.write(str(proof.content))
+                pipe.write("\n")
     pipe.seek(0)
     return pipe
 
@@ -169,7 +170,7 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-<label for="number">number: </label><input type="text" id="number" value="%f"/><br/>
+<label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
 <canvas id="canvas" width="640" height="480" tabindex="0"></canvas><br/>
 <canvas id="stack" width="640" height="240" tabindex="0"></canvas>
 
@@ -198,10 +199,6 @@ number.onchange = function() {
     text.dirty();
 };
 """ % (number, `name`, number));
-        q = Proof.all()
-        q.filter('name =', name)
-        q.order('-date')
-        proof = q.get()
         if proof:
             result = json_dumps(proof.content.split('\n'))
             self.response.out.write('mainpanel.text = %s;\n' % result)
