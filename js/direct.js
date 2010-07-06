@@ -6,10 +6,10 @@
 GH.Direct = function(text, stack) {
     var self = this;
     this.text = text;
-    this.text.imtrans = {};  // todo: hack
+    this.text.clearImtrans();  // todo: hack
     this.stack = new GH.CanvasEdit(stack);
     this.stack.cursorvisible = false;
-    text.listeners.push(function() { self.update(); });
+    this.text.addListener(function() { self.update(); });
 };
 
 GH.splitrange = function(str) {
@@ -56,8 +56,8 @@ GH.Direct.prototype.update = function() {
     var thmctx = new GH.DirectThm(this.vg);
     var status = null;
     var i, loc;
-    for (i = 0; i < this.text.text.length && status === null; i++) {
-	var spl = GH.splitrange(this.text.text[i]);
+    for (i = 0; i < this.text.numLines() && status === null; i++) {
+	var spl = GH.splitrange(this.text.getLine(i));
 	for (var j = 0; j < spl.length; j++) {
 	    status = thmctx.tok(spl[j].tok);
 	    if (status) {

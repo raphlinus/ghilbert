@@ -26,6 +26,30 @@ GH.cursormax = function(c1, c2) {
     return c1[0] > c2[0] ? c1 : c2;
 };
 
+GH.TextareaEdit = function(textarea) {
+    var self = this;
+    textarea.onkeyup = function() {
+        if (self.listener) self.listener();
+    };
+    this.clearImtrans = function() {
+        
+    };
+    this.numLines = function() {
+        return textarea.value.split('\n').length;
+    };
+    this.getLine = function(i) {
+        return textarea.value.split('\n')[i];
+    };
+    this.addListener = function(callback) {
+        this.listener = callback;        
+    };
+    this.setLines = function(text) {
+        textarea.value = text.join('\n');
+    };
+
+};
+
+
 // As it's written now, this class combines both model and view of the text.
 // It's probably a good idea to separate these out a bit.
 GH.CanvasEdit = function(canvas, inputlayer) {
@@ -46,6 +70,21 @@ GH.CanvasEdit = function(canvas, inputlayer) {
 
     this.undostack = [];
 
+    this.clearImtrans = function() {
+        this.imtrans = {};
+    };
+    this.numLines = function() {
+        return this.text.length;
+    };
+    this.getLine = function(i) {
+        return this.text[i];
+    };
+    this.addListener = function(callback) {
+        this.listeners.push(callback);
+    };
+    this.setLines = function(text) {
+        this.text = text;
+    };
     // todo: use slightly different logic for identifier->symbols, these
     // fire too easily as substrings
     this.imtrans = {
@@ -175,6 +214,7 @@ GH.CanvasEdit.prototype.handler = function(evt, data) {
 	this.dirty();
 	return true;
     }
+    return false;
 };
 
 GH.CanvasEdit.prototype.selectionempty = function() {
@@ -238,11 +278,11 @@ GH.CanvasEdit.prototype.deleteselection = function() {
     this.setcursor(cmin);
 };
 
-GH.CanvasEdit.prototype.save = function() {
+GH.save = function(content) {
     var req = new XMLHttpRequest();
     var text = ('name=' + encodeURIComponent(name) +
                 '&number=' + document.getElementById('number').value +
-		'&content=' + encodeURIComponent(this.text.join('\n')));
+		'&content=' + encodeURIComponent(content));
     req.onreadystatechange = function () {if (req.readyState == 4) {
                                               document.getElementById('output').innerHTML=req.responseText;}};
     req.open('POST', '/save', false);
@@ -299,7 +339,7 @@ GH.CanvasEdit.prototype.handle_keydown = function(evt) {
     } else if (evt.keyCode === 69 && evt.ctrlKey) {
 	newcursor = [lineno, text.length];
     } else if (evt.keyCode === 83 && evt.ctrlKey) {
-	this.save();
+	GH.save(this.text.join('\n'));
 	return true;
     } else {
 	return false;

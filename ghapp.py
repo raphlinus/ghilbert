@@ -63,6 +63,7 @@ def get_all_proofs(replacing=None, below=None):
                 pipe.write("# proof.content is None")
             else:
                 pipe.write(str(proof.content))
+            pipe.write("\n")
     pipe.seek(0)
     return pipe
 
@@ -97,7 +98,6 @@ class RecentPage(webapp.RequestHandler):
                 content = ""
             else:
                 content = cgi.escape(proof.content)
-        
             newcontent = []
             for line in content.rstrip().split('\n'):
                 sline = line.lstrip()
@@ -170,9 +170,9 @@ class EditPage(webapp.RequestHandler):
 
 <p>
 <label for="number">number: </label><input type="text" id="number" value="%f"/><br/>
-<canvas id="canvas" width="640" height="480" tabindex="0"></canvas><br/>
-<canvas id="stack" width="640" height="240" tabindex="0"></canvas>
-
+<textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
+<input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
+<canvas id="stack" width="640" height="240" tabindex="0"></canvas><br/>
 <div id="output">(output goes here)</div>
 
 <script type="text/javascript">
@@ -185,7 +185,8 @@ uc = new GH.XhrUrlCtx('/', url);
 v = new GH.VerifyCtx(uc, run);
 run(uc, '/proofs_upto/%f', v);
 
-var mainpanel = GH.CanvasEdit.init();
+var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
+//var mainpanel = GH.CanvasEdit.init();
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
 var number = document.getElementById('number');
@@ -198,14 +199,9 @@ number.onchange = function() {
     text.dirty();
 };
 """ % (number, `name`, number));
-        q = Proof.all()
-        q.filter('name =', name)
-        q.order('-date')
-        proof = q.get()
         if proof:
             result = json_dumps(proof.content.split('\n'))
-            self.response.out.write('mainpanel.text = %s;\n' % result)
-            self.response.out.write('mainpanel.dirty();\n');
+            self.response.out.write('mainpanel.setLines(%s);\n' % result)
         self.response.out.write('</script>\n')
 
 from google.appengine.ext import webapp
