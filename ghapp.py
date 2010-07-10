@@ -222,7 +222,13 @@ class AllProofsPage(webapp.RequestHandler):
         
 class StaticPage(webapp.RequestHandler):
     def get(self, filename):
-        for line in open('peano/%s' % filename):
+        try:
+            lines = open('peano/%s' % filename)
+        except IOError, x:
+            self.error(404)
+            return
+        self.response.headers.add_header('content-type', 'text/plain')
+        for line in lines:
             self.response.out.write(line)
 
 class MainPage(webapp.RequestHandler):
