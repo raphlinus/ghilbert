@@ -46,7 +46,9 @@ GH.TextareaEdit = function(textarea) {
     this.setLines = function(text) {
         textarea.value = text.join('\n');
     };
-
+    this.appendText = function(text) {
+	textarea.value += text;
+    }
 };
 
 
@@ -84,7 +86,13 @@ GH.CanvasEdit = function(canvas, inputlayer) {
     };
     this.setLines = function(text) {
         this.text = text;
+	this.dirty();
     };
+    this.appendText = function(text) {
+	this.text += text;
+	this.dirty();
+    }
+
     // todo: use slightly different logic for identifier->symbols, these
     // fire too easily as substrings
     this.imtrans = {

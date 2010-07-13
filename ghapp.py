@@ -154,7 +154,7 @@ class EditPage(webapp.RequestHandler):
                 number = float(1)
 
 
-        self.response.out.write("""<title>Ghilbert</title>
+        self.response.out.write("""<head><title>Ghilbert</title><style type="text/css"></style></head>
         
 
 <body>
@@ -166,15 +166,25 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/inputlayer.js" type="text/javascript"></script>
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
+<script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
+<div style="display:block;float:left">
 <label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
 <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
 <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
-<canvas id="stack" width="640" height="240" tabindex="0"></canvas><br/>
+<canvas id="stack" width="400" height="240" tabindex="0"></canvas><br/>
 <div id="output">(output goes here)</div>
-
+</div>
+<div width="400" height="800" style="display:block;float:right">
+  <button id="inferences">Inference</button>
+  <button id="deductions">Deduction</button>
+  <button id="unified">Unified</button>
+<br/>
+<table id="panel" border="1" style="border:1px solid;">
+</table>
+</div>
 <script type="text/javascript">
 
 name = %s;
@@ -198,6 +208,7 @@ number.onchange = function() {
     window.direct.vg = v;
     text.dirty();
 };
+var panel = new GH.Panel(window.direct.vg);
 """ % (number, `name`, number));
         if proof:
             result = json_dumps(proof.content.split('\n'))

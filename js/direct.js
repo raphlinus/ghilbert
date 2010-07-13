@@ -54,6 +54,7 @@ GH.Direct.replace_thmname = function (newname) {
 GH.Direct.prototype.update = function() {
     this.stack.text = [];
     var thmctx = new GH.DirectThm(this.vg);
+    this.thmctx = thmctx;
     var status = null;
     var i, loc;
     for (i = 0; i < this.text.numLines() && status === null; i++) {
