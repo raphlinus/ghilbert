@@ -841,7 +841,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
 	var mand = v[4];
 	var syms = v[5];
 
-	var result = this.match_inference(v, proofctx)
+	var result = this.match_inference(v, proofctx, proofctx.mandstack)
 	var sp = proofctx.stack.length - v[2].length;
 	proofctx.stack.splice(sp);
 	proofctx.stack.push(result);
@@ -849,20 +849,20 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
     }
 };
 
-GH.VerifyCtx.prototype.match_inference = function(v, proofctx) {
+GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
         var fv = v[1];
 	var hyps = v[2];
 	var concl = v[3];
 	var mand = v[4];
 	var syms = v[5];
-	if (mand.length !== proofctx.mandstack.length) {
-	    throw 'Expected ' + mand.length + ' mand hyps, got ' + proofctx.mandstack.length;
+	if (mand.length !== mandstack.length) {
+	    throw 'Expected ' + mand.length + ' mand hyps, got ' + mandstack.length;
 	}
 	var env = {};
 	var el;
 	for (var i = 0; i < mand.length; i++) {
 	    var mv = mand[i];
-	    el = proofctx.mandstack[i];
+	    el = mandstack[i];
 	    if (el[0][1] !== mv[1]) {
 	        throw ('Kind mismatch for ' + mv[2] + ': expected ' +
 		       mv[1] + ' found ' + el[0][1]);

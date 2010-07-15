@@ -97,8 +97,14 @@ GH.Panel = function(ctx) {
 		var proofctx = window.direct.thmctx.proofctx;
 		var result;
 		try {
-		    result = self.ctx.match_inference(sym, proofctx);
+                    var mandstack =  sym[4].map(function(mand) {
+                        return [mand, mand[2]]; // PICKUP
+                    });
+		    result = self.ctx.match_inference(sym, proofctx, mandstack);
 		} catch (e) {
+                    if (symName === 'gen') {
+                        alert("Rejecting gen based on " + e);
+                    }
 		    return;
 		}
 
