@@ -174,7 +174,8 @@ class EditPage(webapp.RequestHandler):
 <label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
 <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
 <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
-<canvas id="stack" width="400" height="240" tabindex="0"></canvas><br/>
+<canvas id="stack" width="640" height="240" tabindex="0"></canvas><br/>
+
 <div id="output">(output goes here)</div>
 </div>
 <div width="400" height="800" style="display:block;float:right">
@@ -232,7 +233,13 @@ class AllProofsPage(webapp.RequestHandler):
         
 class StaticPage(webapp.RequestHandler):
     def get(self, filename):
-        for line in open('peano/%s' % filename):
+        try:
+            lines = open('peano/%s' % filename)
+        except IOError, x:
+            self.error(404)
+            return
+        self.response.headers.add_header('content-type', 'text/plain')
+        for line in lines:
             self.response.out.write(line)
 
 class MainPage(webapp.RequestHandler):

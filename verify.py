@@ -106,7 +106,6 @@ class ProofCtx:
         self.mandstack = []
         self.fvvarmap = fvvarmap
         self.defterm = None
-        self.nondummies = None
 
 class VerifyCtx:
     def __init__(self, urlctx, run, fail_continue=False):
@@ -138,15 +137,9 @@ class VerifyCtx:
             raise VerifyError('Term ' + label + ' already defined')
         #print 'add_term ', label, (kind, argkinds, freemap)
         self.terms[label] = (kind, argkinds, freemap)
-    def add_assertion(self, kw, label, fv, hyps, concl, syms):
-        mand = self.allvars(concl)
-        for hyp in hyps:
-            for var in self.allvars(hyp):
-                if var in mand:
-                    mand.remove(var)
-        #for var in mand:
-        #    if not (syms.has_key(var) and syms[var][0] in ('var', 'tvar')):
-        #       raise VerifyError('Variable not defined: ' + var)
+    def add_assertion(self, kw, label, fv, hyps, concl, varlist,
+                      num_hypvars, num_nondummies, syms):
+        mand = varlist[num_hypvars:num_nondummies]
         self.add_sym(label, (kw, fv, hyps, concl, mand, syms))
 
     def allvars(self, exp):
@@ -250,21 +243,26 @@ class VerifyCtx:
         return self.free_scan(bvar, exp, checker)
 
 
-    def kind_of(self, exp, syms = None, check_bv_expr = None):
+    # Check well-formedness of the expression exp and return its kind.
+    # Add the variables found to varlist and varmap: the former is a list
+    # of items syms[v] for each variable v found, and varmap maps the names
+    # of found variables to their indices in varlist.
+    def kind_of(self, exp, varlist, varmap, syms, check_bv_expr = None):
         """ Check that exp is a well-formed expression, and return its kind """
-        # TODO: The 'syms' argument doesn't seem to be really needed.
-        if type(exp) == type('var'):
+        if isinstance(exp, basestring):
             try:
-                if syms == None:
-                    v = self.syms[exp]
-                else:
-                    v = syms[exp]
+                v = syms[exp]
             except KeyError:
                 raise VerifyError('Not a known variable: ' + exp)
             if v[0] not in ('var', 'tvar'):
                 raise VerifyError('Symbol not a variable: ' + exp)
             if check_bv_expr is not None and v[0] != 'var':
-                raise VerifyError('Expected a binding variable, but found a term variable: ' + exp + ' in ' + sexp_to_string(check_bv_expr))
+                raise VerifyError(
+                  'Expected a binding variable, but found a term variable: ' \
+                    + exp + ' in ' + sexp_to_string(check_bv_expr))
+            if not exp in varmap:
+                varmap[exp] = len(varlist)
+                varlist.append(v)
             return self.kinds[v[1]]
 
         # Else, exp is a list
@@ -273,7 +271,7 @@ class VerifyCtx:
                   + sexp_to_string(exp) + ' in ' + sexp_to_string(check_bv_expr))
         if len(exp) == 0:
             raise VerifyError("term can't be empty list")
-        if type(exp[0]) != type('var'):
+        if not isinstance(exp[0], basestring):
             raise VerifyError('term must be id, found ' +
                               sexp_to_string(exp[0]))
         try:
@@ -290,9 +288,8 @@ class VerifyCtx:
             check_bv_expr = None
             if term[2][i] >= 0:
                 check_bv_expr = exp
-            #print sexp_to_string(exp), i, term[2], check_bv_expr is not None
-            child_kind = self.kind_of(exp[i + 1], syms, check_bv_expr)
-            #print 'i= ', i, 'term= ', term
+            child_kind = self.kind_of(exp[i + 1], varlist, varmap,
+                                      syms, check_bv_expr)
             if child_kind != self.kinds[term[1][i]]:
                 #print self.kinds
                 raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
@@ -327,7 +324,9 @@ class VerifyCtx:
                     raise x
                 self.countError()
 
-            self.add_assertion('thm', label, fv, hyps[1::2], conc, self.syms)
+            self.add_assertion('thm', label, fv, hyps[1::2], conc,
+                               proofctx.varlist, proofctx.num_hypvars,
+                               proofctx.num_nondummies, self.syms)
             return
         if cmd == 'defthm':
             # defthm (LABEL KIND (DEFSYM VAR ...)
@@ -375,8 +374,8 @@ class VerifyCtx:
             #       variable, that is, it must not occur in the hypotheses or
             #       conclusion of the theorem.
             #     - All definition dummy variables in the definiens must be
-            #       binding variables, and must not occur free in the
-            #       definiens. [Investigate how necessary this is.]
+            #       binding variables, and must not occur explicitly free in
+            #       the definiens. [Investigate how necessary this is.]
             #     - Every actual argument variable of the term use must occur
             #       in the matched subexpression. [This could be omitted.]
             t = proofctx.defterm
@@ -385,7 +384,7 @@ class VerifyCtx:
 
             try:
                 self.def_conc_match(conc, remnant, dsig,
-                                    t, proofctx.nondummies, result)
+                                    t, proofctx, result)
             except VerifyError, x:
                 x.why = ('The defthm conclusion\n ' + sexp_to_string(conc) +
                          '\nfails to match remnant\n ' +
@@ -396,12 +395,14 @@ class VerifyCtx:
                    "' being defined does not occur in the defthm conclusion.")
             # out.write('New term ' + dsig[0], t)
             self.terms[dsig[0]] = t
-            self.add_assertion('thm', label, fv, hyps[1::2], conc, self.syms)
+            self.add_assertion('thm', label, fv, hyps[1::2], conc,
+                               proofctx.varlist, proofctx.num_hypvars,
+                               proofctx.num_nondummies, self.syms)
             return
         if cmd in ('var', 'tvar'):
             kind = self.get_kind(arg[0])
             for v in arg[1:]:
-                self.add_sym(v, (cmd, kind))
+                self.add_sym(v, (cmd, kind, v))
             return
         if cmd == 'kindbind':
             self.add_kind(arg[1], self.get_kind(arg[0]))
@@ -440,10 +441,10 @@ class VerifyCtx:
                     raise SyntaxError("Non-atom provided as interface parameter.")
 
             if cmd == 'import':
-                out.write('Importing ' + ifname)
+                out.write('Importing %s\n' % ifname)
                 ctx = ImportCtx(ifname, self, prefix, params)
             else:
-                out.write('Exporting ' + ifname)
+                out.write('Exporting %s\n' % ifname)
                 ctx = ExportCtx(ifname, self, prefix, params)
                 
             if not self.run(self.urlctx, url, ctx, out):
@@ -488,7 +489,6 @@ class VerifyCtx:
         if len(hyps) & 1:
             raise VerifyError('hyp list must have even length')
 
-        fvmap = {}
         # fvmap will map the names of binding variables occurring in the
         # hypotheses or conclusions to dictionaries (treated as sets)
         # indicating which term variables each binding variable may not
@@ -496,7 +496,9 @@ class VerifyCtx:
         # context (tvar bvar), then fvmap[bvar][tvar] is set to zero, simply
         # to add tvar into the domain of fvmap[bvar].
         # We could alternatively use a Python 2.4+ Set for each fvmap[bvar]...
-        vall = self.allvars(stmt)
+        fvmap = {}
+        vall = []
+        varmap = {}
 
         if dkind is not None:
             t = term_common(dkind, dsig, None,
@@ -516,50 +518,58 @@ class VerifyCtx:
                         continue
                     if ak[i] == ak[j]:
                         raise VerifyError('Formal binding arguments %s and %s of defined term %s have the same kind.' % (dsig[i+1], dsig[j+1], dsig[0]))
+
+        hypmap = {}
+        for i in range(0, len(hyps), 2):
+            if not isinstance(hyps[i], basestring):
+                raise VerifyError('hyp label must be string')
+            if hyps[i] in hypmap:
+                raise VerifyError('Repeated hypothesis label ' + hyps[1])
+            hypmap[hyps[i]] = hyps[i + 1]
+            self.kind_of(hyps[i + 1], vall, varmap, self.syms)
+        num_hypvars = len(vall)
+        if dkind is not None:
             # Temporarily add the definition to self.terms when parsing the
             # conclusion. term_common checked that the term doesn't exist yet.
             self.terms[dsig[0]] = t
-        self.kind_of(stmt)
+        self.kind_of(stmt, vall, varmap, self.syms)
         if dkind is not None:
             # The term being defined must not occur in the hypotheses or the
             # proof steps.
             del self.terms[dsig[0]]
-        hypmap = {}
-        for i in range(0, len(hyps), 2):
-            if type(hyps[i]) != type('label'):
-                raise VerifyError('hyp label must be string')
-            hypmap[hyps[i]] = hyps[i + 1]
-            self.allvars_rec(hyps[i + 1], vall)
-            self.kind_of(hyps[i + 1])
+        num_nondummies = len(vall)
         for var in vall:
-            if not var in self.syms:
-                raise VerifyError('variable not found: ' + var)
-            if self.syms[var][0] == 'var':
-                fvmap[var] = {}
+            if var[0] == 'var':
+                fvmap[var[2]] = {}
         for clause in fv:
-            if type(clause) != type([]) or len(clause) == 0:
+            if not isinstance(clause, list) or len(clause) == 0:
                 raise VerifyError('each fv clause must be list of vars')
             tvar = clause[0]
-            if type(tvar) != type('var'):
+            try:
+                vi = varmap[tvar]
+            except TypeError:
                 raise VerifyError('var in fv clause must be string')
-            if not (self.syms.has_key(tvar) and self.syms[tvar][0] == 'tvar'):
+            except KeyError:
+                raise VerifyError('"%s" is not a variable occurring in the hypotheses or conclusions.' % tvar)
+            if vall[vi][0] != 'tvar':
                 raise VerifyError('first var in fv clause must be tvar: ' + tvar)
-            if not tvar in vall:
-                raise VerifyError('spurious tvar in fv clause: ' + tvar)
             for var in clause[1:]:
-                if type(var) != type('var'):
+                try:
+                    vm = fvmap[var]
+                except TypeError:
                     raise VerifyError('var in fv clause must be string')
-                if not (self.syms.has_key(var) and self.syms[var][0] == 'var'):
-                    raise VerifyError('subsequent var in fv clause must be var: ' + var)
-                if not fvmap.has_key(var):
-                    raise VerifyError('spurious var in fv list: ' + var)
-                fvmap[var][tvar] = 0
-        #print 'hypmap =', hypmap
-        #print 'fvmap =', fvmap
+                except KeyError:
+                    raise VerifyError('subsequent var in fv clause must be a binding variable occurring in the hypotheses or conclusions: ' + var)
+                vm[tvar] = 0
+
         proofctx = ProofCtx(label, fvmap)
+        proofctx.varlist = vall
+        proofctx.varmap = varmap
+        proofctx.num_hypvars = num_hypvars
+        proofctx.num_nondummies = num_nondummies
+
         if dkind is not None:
             proofctx.defterm = t
-            proofctx.nondummies = vall
         for step in proof:
             #print 'step:', step
             if step == '?':
@@ -601,35 +611,39 @@ class VerifyCtx:
     # These are really methods of both the verify and proofctx objects, and
     # are here by tradition.
     def check_proof_step(self, hypmap, step, proofctx):
-        if type(step) == type([]):
-            kind = self.kind_of(step)
+        if isinstance(step, list):
+            kind = self.kind_of(step, proofctx.varlist,
+                                proofctx.varmap, self.syms)
             #print 'kind of ' + sexp_to_string(step) + ' = ' + kind
-            proofctx.mandstack.append((('tvar', kind), step))
+            proofctx.mandstack.append(('tvar', kind, step))
         elif hypmap.has_key(step):
             if len(proofctx.mandstack) != 0:
                 raise VerifyError('hyp expected no mand hyps, got %d' % len(proofctx.mandstack))
             proofctx.stack.append(hypmap[step])
         else:
-            if not self.syms.has_key(step):
+            try:
+                v = self.syms[step]
+            except KeyError:
                 raise VerifyError('unknown proof step: ' + step)
-            v = self.syms[step]
             if v[0] in ('var', 'tvar'):
-                proofctx.mandstack.append((v, step))
+                if not step in proofctx.varmap:
+                    proofctx.varmap[step] = len(proofctx.varlist)
+                    proofctx.varlist.append(v)
+                proofctx.mandstack.append(v)
             elif v[0] in ('stmt', 'thm'):
                 (fv, hyps, concl, mand, syms) = v[1:]
                 if len(mand) != len(proofctx.mandstack):
                     raise VerifyError('expected %d mand hyps, got %d' % (len(mand), len(proofctx.mandstack)))
                 env = {}
                 for i in range(len(mand)):
-                    var = mand[i]
-                    tkind = syms[var]
-                    # Each element on mandstack is a pair ((t, kind), expr)
+                    tkind = mand[i]
+                    # Each element on mandstack is a triple (t, kind, expr)
                     # where t is 'tvar' or 'var', kind is the epression's kind
                     # and expr is the actual value on the stack.
                     el = proofctx.mandstack[i]
-                    if el[0][1] != tkind[1]:
-                        raise VerifyError('kind mismatch for ' + var + ': expected ' + tkind[1] + ' got ' + el[0][1])
-                    self.match(var, el[1], env)
+                    if el[1] != tkind[1]: # is this ok given kindbind?
+                        raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + tkind[1] + ' got ' + el[1])
+                    self.match(tkind[2], el[2], env)
                 sp = len(proofctx.stack) - len(hyps)
                 if sp < 0:
                     raise VerifyError('stack underflow')
@@ -639,7 +653,7 @@ class VerifyCtx:
                 invmap = {}
                 for var, exp in env.iteritems():
                     if syms[var][0] == 'var':
-                        if type(exp) != type('var'):
+                        if not isinstance(exp, basestring):
                             raise VerifyError('expected binding variable for ' +
                                               var + ' but matched ' +
                                               sexp_to_string(exp))
@@ -662,12 +676,12 @@ class VerifyCtx:
                 proofctx.mandstack = []
                 #print 'stack:', proofctx.stack
 
-    def def_conc_match(self, conc, remnant, dsig, defterm, nondummies, result):
+    def def_conc_match(self, conc, remnant, dsig, defterm, proofctx, result):
         """ Check that the defthm conclusion <conc> properly matches the
             remnant expression <remnant> on the proof stack.
             <conc> and <remnant> are known to be well-formed at this point.
         """
-        if type(conc) == type('var'):
+        if isinstance(conc, basestring):
             if conc != remnant:
                 raise VerifyError('Conclusion variable ' + conc +
                                   ' vs. remnant ' + sexp_to_string(remnant))
@@ -678,7 +692,7 @@ class VerifyCtx:
             i = 1
             for arg in conc[1:]:
                 self.def_conc_match(arg, remnant[i], dsig,
-                                    defterm, nondummies, result)
+                                    defterm, proofctx, result)
                 i = i + 1
             return
 
@@ -712,10 +726,11 @@ class VerifyCtx:
                 i = i + 1  # Note, each v occurs only once in allv...
                 continue
 
-            if v in nondummies:
+            vi = proofctx.varmap[v]
+            if vi < proofctx.num_nondummies:
                 raise VerifyError("Definition dummy '" + v +
                                   "' is not a proof dummy.")
-            vv = self.syms[v]
+            vv = proofctx.varlist[vi]
             if vv[0] != 'var':
                 raise VerifyError("Definition dummy '" + v +
                                   "' is not a binding variable")
@@ -962,7 +977,7 @@ class InterfaceCtx:
                 raise SyntaxError('Variable names must be atoms.')
             if v in self.vars:
                 raise VerifyError('Variable ' + v + ' already defined')
-            self.vars[v] = (cmd, kind)
+            self.vars[v] = (cmd, kind, v)
 
     def param_cmd(self, arg):
         # param (IFACE IGNORED_URL (PARAM ...) PREFIX)
@@ -1033,12 +1048,13 @@ class ImportCtx(InterfaceCtx):
     def __init__(self, name, verify, prefix, params):
         InterfaceCtx.__init__(self, name, verify, prefix, params, 'import')
 
-    def map_syms(self, sexp, mapping, used_vars, kind=None, binding_var=False):
+    def map_syms(self, sexp, mapping, varlist, varmap,
+                 kind=None, binding_var=False):
         """ Apply mapping to term symbols in an expression 'sexp'
             Check that the expression is well-formed, satisfying kind and
             binding constraints. Collect the variables used in used_vars.
         """
-        if type(sexp) == type('var'):
+        if isinstance(sexp, basestring):
             try:
                 v = self.vars[sexp]
             except KeyError:
@@ -1051,7 +1067,9 @@ class ImportCtx(InterfaceCtx):
                 raise VerifyError(\
                     'Expected a binding variable, found term variable %s' %
                     sexp)
-            used_vars[sexp] = 0
+            if sexp not in varmap:
+                varmap[sexp] = len(varlist)
+                varlist.append(v)
             return sexp
 
         if len(sexp) < 1 or type(sexp[0]) != type ('name'):
@@ -1079,7 +1097,7 @@ class ImportCtx(InterfaceCtx):
             el = sexp[j + 1]
             argkind = t[1][j]
             binding_var = (j in t[2])
-            newterm.append(self.map_syms(el, mapping, used_vars,
+            newterm.append(self.map_syms(el, mapping, varlist, varmap,
                                          kind, binding_var))
         return newterm
 
@@ -1117,9 +1135,11 @@ class ImportCtx(InterfaceCtx):
             # the stmt label as prefixed for the verify context.
             label = self.prefix + local_label
             # out.write('label=', label, ' self.terms=', self.terms)
-            used_vars = {}
-            stmt = self.map_syms(local_stmt, self.terms, used_vars)
-            hyps = [self.map_syms(hyp, self.terms, used_vars) for hyp in local_hyps]
+            varlist = []
+            varmap = {}
+            hyps = [self.map_syms(hyp, self.terms, varlist, varmap) for hyp in local_hyps]
+            num_hypvars = len(varlist)
+            stmt = self.map_syms(local_stmt, self.terms, varlist, varmap)
             for clause in fv:
                 if type(clause) != type([]) or len(clause) < 2:
                     raise SyntaxError('Free variable contraint context clause must be a list of at least two variables')
@@ -1134,10 +1154,12 @@ class ImportCtx(InterfaceCtx):
                     if v[0] != want:
                         raise VerifyError('In free variable constraint context clause, the first variable must be a term variable and the remaining variables must be binding variables')
                     want = 'var'
-                    if vname not in used_vars:
+                    if vname not in varmap:
                         raise VerifyError('Variable %s in free variable constraint context does not occur in the hypotheses or conclusion of the statement %s' % (vname, local_label))
 
-            self.verify.add_assertion('stmt', label, fv, hyps, stmt, self.vars)
+            self.verify.add_assertion('stmt', label, fv, hyps, stmt,
+                                      varlist, num_hypvars, len(varlist),
+                                      self.vars)
         elif cmd == 'param':
             self.param_cmd(arg)
         elif cmd == 'kindbind':

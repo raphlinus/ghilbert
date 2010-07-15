@@ -80,8 +80,15 @@ GH.InputLayer.prototype.handle_keypress = function(evt) {
     if (evt.altKey) mods += 'A';
     if (evt.metaKey) mods += 'M';
     log('keypress keyCode = ' + evt.keyCode + ', keyIdentifier = ' + evt.keyIdentifier + ', ' + mods + ', which = ' + evt.which);
+    // Note, in Firefox 3.66, typing Ctrl-<A-Z> for some letter <A-Z> results
+    // in a keypress event with charCode in the range 97-122. For instance,
+    // Ctrl-C results in a keypress event with evt.charCode == 99, and Ctrl-J
+    // results in a keypress with evt.charCode == 106 (in particular, NOT 10).
+    // To avoid treating these control characters as non-control text input,
+    // we disregard keypress events when evt.ctrlKey is down; we prefer to handle
+    // control character input in the key_down handler.
     if (evt.charCode >= 32 && evt.charCode < 127 &&
-	!evt.altKey && !evt.metaKey) {
+	!evt.altKey && !evt.metaKey && !evt.ctrlKey) {
 	if (this.handler('textinput', String.fromCharCode(evt.charCode))) {
 	    evt.preventDefault();
 	}
