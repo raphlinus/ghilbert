@@ -835,12 +835,6 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
     } 
     // This test is now likely redundant...
     if (v[0] === 'stmt' || v[0] === 'thm') {
-        var fv = v[1];
-	var hyps = v[2];
-	var concl = v[3];
-	var mand = v[4];
-	var syms = v[5];
-
 	var result = this.match_inference(v, proofctx, proofctx.mandstack)
 	var sp = proofctx.stack.length - v[2].length;
 	proofctx.stack.splice(sp);

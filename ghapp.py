@@ -172,10 +172,9 @@ class EditPage(webapp.RequestHandler):
 <p>
 <div style="display:block;float:left">
   <label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
-  <textarea id="canvas" cols="60" rows="12" width="640" height="480" tabindex="0"></textarea><br/>
+  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
   <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
-  <canvas id="stack" width="640" height="240" tabindex="0"></canvas><br/>
-
+  <canvas id="stack" width="660" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
 <div id="output">(output goes here)</div>
 </div>
 <div width="400" height="800" style="display:block;float:left">
