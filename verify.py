@@ -36,12 +36,73 @@ def sexp_to_string_rec(buf, sexp):
             sp_string = ' '
         buf.fromstring(')')
 
+def iexp_to_string_rec(buf, iexp, varlist, term_hist):
+    if isinstance(iexp, list):
+        buf.fromstring('(')
+        buf.fromstring(term_hist[iexp[0]][0])
+        for el in iexp[1:]:
+            buf.fromstring(' ')
+            iexp_to_string_rec(buf, el, varlist, term_hist)
+        buf.fromstring(')')
+        return
+    buf.fromstring(varlist[iexp][2])
+
 class VerifyError(Exception):
-    def __init__(self, why, label = None, stack = None):
+    def __init__(self, why, label = None, proofctx = None):
         self.why = why
         self.label = label
-        self.stack = stack
+        self.proofctx = proofctx
         self.step = None
+
+class ScannerRec:
+    def __init__(self, instream, record=None):
+        self.instream = instream
+        self.line = ''
+        self.pos = 0
+        self.lineno = 0
+        self.record = record
+
+    def get_tok(self):
+        record = self.record
+        jx = self.pos
+        line = self.line
+        while True:
+            # Skip initial spaces. ASCII 0x20 is the only non-line-ending
+            # whitespace that we allow.
+            while jx != len(line) and line[jx] in ' \n':
+                jx += 1
+            if jx == len(line) or line[jx] == '#':
+                if record is not None:
+                    record += line[self.pos:]
+                self.pos = 0
+                self.line = ''
+                line = self.instream.readline()
+                self.lineno += 1
+                if line == '':
+                    self.record = record
+                    return None
+                jx = 0
+                continue
+            break
+        ix = jx
+        self.line = line
+        # Note, we disallow '\t' and other control characters except for
+        # '\n' or '\r'
+        # The first character is not in '# \n\r' by the above loop and
+        # the universal newline conversion done by readline().
+        while jx != len(line) and line[jx] not in '() \n#':
+            n = ord(line[jx])
+            if n < 32 or n >= 127:
+                raise SyntaxError('Illegal byte (ord=%d) in file\n' % n)
+            jx = jx + 1
+        if jx == ix:
+            # Must be '(' or ')'
+            jx += 1
+        if record is not None:
+            record += line[self.pos:jx]
+        self.pos = jx
+        self.record = record
+        return line[ix:jx]
 
 class Scanner:
     def __init__(self, instream):
@@ -83,82 +144,449 @@ def read_sexp(scanner):
             return tok
 
 class UrlCtx:
-    def __init__(self, repobase, basefn, instream):
-        self.repobase = repobase
-        self.base = os.path.split(basefn)[0]
+    def __init__(self, repobase, basefn, instream, restricted=False):
+        self.repobase = repobase              # base for absolute paths
+        if basefn[0] == '/':
+            basefn = os.path.join(repobase, basefn[1:])
+        self.base = os.path.split(basefn)[0]  # base for relative paths
         self.instream = instream
-    def resolve(self, url):
-        # need to be careful about security if used on malicious inputs
+        self.restricted = restricted # only one-component filename, no '/', '\'
+
+    def normalize(self, url):
+        #self.out.write('UrlCtx.resolve(%s)\n' % url)
+        #self.out.write('  base=%s, repobase=%s\n' % (self.base, self.repobase))
+        if self.restricted:
+            if '/' in url or '\\' in url or url == '.' or url == '..' \
+               or url == '-':
+                raise VerifyError(
+                    'Interface file url must be a simple one-component path.')
+        
+        if url == '-':
+            return url
         if url.startswith('file://'):
             fn = url[7:]
         elif url.startswith('/'):
             fn = os.path.join(self.repobase, url[1:])
-        elif url == '-':
-            return self.instream
         else:
             fn = os.path.join(self.base, url)
-        return open(fn,'r')
+        fn = os.path.realpath(fn)
+        #self.out.write('  fn=%s\n' % fn)
+        return fn
+
+    def resolve(self, url):
+        """ Return a stream corresponding to url within this context. """
+        # need to be careful about security if used on malicious inputs
+        fn = self.normalize(url)
+        if fn == '-':
+            return self.instream
+        try:
+            f = open(fn, 'r')
+        except IOError:
+            raise VerifyError("Cannot open '%s' (url '%s')" % (fn, url))
+        return f
 
 class ProofCtx:
-    def __init__(self, label, fvvarmap):
+    def __init__(self, label, ifv, ihyps, iconcl,
+                 varlist, varmap, num_hypvars, num_nondummies, fvvarmap):
         self.label = label
+        self.ifv = ifv
+        self.ihyps = ihyps
+        self.iconcl = iconcl
+        self.varlist = varlist
+        self.varmap = varmap
+        self.num_hypvars = num_hypvars
+        self.num_nondummies = num_nondummies
         self.stack = []
         self.mandstack = []
         self.fvvarmap = fvvarmap
         self.defterm = None
 
-class VerifyCtx:
-    def __init__(self, urlctx, run, fail_continue=False):
-        self.kinds = {}
+class GlobalCtx(object):
+    def __init__(self, cookie=None):
+        self.all_interfaces = {} # maps urls to GhilbertCtx's
+        self.interface_list = []
+        self.iface_in_progress = {}
+        self.cookie = cookie
+
+    def complete_context(self, ctx):
+        del self.iface_in_progress[ctx.fname]
+        self.all_interfaces[ctx.fname] = ctx
+        self.interface_list.append(ctx)
+
+
+# Map terms in an internal expression.
+def map_syms(iexp, termmap):
+    if not isinstance(iexp, list):
+        return iexp
+    return [termmap[iexp[0]]] + [map_syms(x, termmap) for x in iexp[1:]]
+
+def apply_subst(templ, env):
+    if not isinstance(templ, list):
+        return env[templ]
+    return [templ[0]] + [apply_subst(el, env) for el in templ[1:]]
+
+
+class UnifyError(Exception):
+    def __init__(self, e1, e2):
+        self.e1 = e1
+        self.e2 = e2
+
+# match templ, which is an internalized expression in the variable space
+# of the assertion being applied, against exp, an internalized expression
+# in the variable space of the current proof, updating list env, considered
+# as a mapping from the variable indices in the template space to
+# internalized expressions in the current proof
+def match(templ, exp, env):
+    if not isinstance(templ, list):
+        if env[templ] >= 0:
+            if exp != env[templ]:
+                # todo: more debug detail
+                raise UnifyError(templ, exp)
+        else:
+            # Note, we check elsewhere if a binding variable is matched
+            # against a non-binding-variable term.
+            env[templ] = exp
+        return
+
+    if not isinstance(exp, list):
+        raise UnifyError(templ, exp)
+    if templ[0] != exp[0]:
+        raise UnifyError(templ, exp)
+    for i in range(1, len(templ)):
+        match(templ[i], exp[i], env)
+
+def build_if(ctx, fn, url):
+    pif = InterfaceCtx(ctx.urlctx, ctx.run, ctx.global_ctx, fn,
+                       ctx.build_interface)
+    pif.out = ctx.out
+    pif.record = ctx.record
+    if not pif.run(ctx.urlctx, url, pif):
+        raise VerifyError ("Failed while loading interface '%s'" % url)
+    pif.complete()
+    return pif
+
+class GhilbertCtx(object):
+    def __init__(self, urlctx, run, global_ctx, fname,
+                 build_interface=build_if):
+        self.kinds = {}         # kind names to indices in kind_hist
+        self.kind_hist = []     # (prefixed_kind, ifindex, orig_kind)
+        self.kindbinds = []     # kind aliases introduced by this context
         self.terms = {}
+        self.term_hist = []
         self.syms = {}
-        self.interfaces = {}
+        self.iflist = []  #list of import/export/param interface names used
+        self.interfaces = {}  # maps used interface names to InterfaceCtx's
+        self.global_ctx = global_ctx
+        self.error_count = 0
         self.urlctx = urlctx
         self.run = run
-        self.error_count = 0
-        self.fail_continue = fail_continue
-    def countError(self):
+        self.fname = fname  # Absolute, normalized 'URL' for this context.
+        self.assertion_hist = []
+        self.level = 0
+        self.name = None
+        self.build_interface = build_interface
+        self.verbosity = 1
+        self.out = sys.stdout
+        self.record = None
+        global_ctx.iface_in_progress[fname] = self
+
+    def complete(self):
+        self.global_ctx.complete_context(self)
+
+    def count_error(self):
         self.error_count = self.error_count + 1
+
+    def get_kind(self, kname):
+        try:
+            return self.kinds[kname]
+        except KeyError:
+            raise VerifyError("Unknown kind '%s'" % kname)
+        except TypeError:
+            raise VerifyError("Expected kind name, found: %s" %
+                              sexp_to_string(kname))
+
+    def add_kind(self, kind, val):
+        if kind in self.kinds:
+            raise VerifyError("Kind '%s' already defined" % kind)
+        self.kinds[kind] = val
+
+    def kindbind_cmd(self, arg):
+        if not isinstance(arg, list) or len(arg) != 2 or \
+               not isinstance(arg[1], basestring):
+            raise SyntaxError("Expected 'kindbind (OLDKIND NEWKIND)'")
+        self.add_kind(arg[1], self.get_kind(arg[0]))
+        self.kindbinds.append(arg[1])
+        return
+
     def add_sym(self, label, val):
-        if self.syms.has_key(label):
+        if label in self.syms:
             raise VerifyError('Symbol ' + label + ' already defined')
         self.syms[label] = val
-    def add_kind(self, kind, val):
-        if self.kinds.has_key(kind):
-            raise VerifyError('Kind ' + kind + ' already defined')
-        self.kinds[kind] = val
-    def get_kind(self, kind):
-        try:
-            return self.kinds[kind]
-        except KeyError:
-            raise VerifyError('Kind not known: ' + kind)
-    def add_term(self, label, kind, argkinds, freemap):
-        if self.terms.has_key(label):
-            raise VerifyError('Term ' + label + ' already defined')
-        #print 'add_term ', label, (kind, argkinds, freemap)
-        self.terms[label] = (kind, argkinds, freemap)
-    def add_assertion(self, kw, label, fv, hyps, concl, varlist,
-                      num_hypvars, num_nondummies, syms):
-        mand = varlist[num_hypvars:num_nondummies]
-        self.add_sym(label, (kw, fv, hyps, concl, mand, syms))
 
-    def allvars(self, exp):
+    def add_assertion(self, kw, label, fv, hyps, concl, varlist,
+                      num_hypvars, num_nondummies):
+        self.add_sym(label, (kw, fv, hyps, concl,
+                             varlist, num_hypvars, num_nondummies))
+
+    # Check well-formedness of the expression exp and return its kind.
+    # Add the variables found to varlist and varmap: the former is a list
+    # of items syms[v] for each variable v found, and varmap maps the names
+    # of found variables to their indices in varlist.
+    # Return a tuple (kw, kindix, iexpr) where kw is 'term', 'var', or 'tvar',
+    # kindix is the kind (index) of the expression, and iexpr is the internal
+    # form of the expression.
+    # The internal form of a variable is just the variable's index in varlist.
+    # The internal form of a term is a list, with the term symbol replaced
+    # with the term index, and the term arguments converted to internal form.
+    def internalize(self, exp, varlist, varmap):
+        """ Check that exp is a well-formed expression, and return its kind """
+        if isinstance(exp, basestring):
+            try:
+                ix = varmap[exp] # this may fail
+                v = varlist[ix]  # this won't
+            except KeyError:
+                try:
+                    v = self.syms[exp]
+                except KeyError:
+                    raise VerifyError('Not a known variable: ' + exp)
+                # v is (kw, kindex, name, kname)
+                if v[0] not in ('var', 'tvar'):
+                    raise VerifyError('Symbol not a variable: ' + exp)
+                ix = len(varlist)
+                varmap[exp] = ix
+                varlist.append(v)
+            # ugh, packing & unpacking into tuples
+            return (v[0], v[1], ix)
+
+        # Else, exp is a list
+
+        if len(exp) == 0:
+            raise VerifyError("term can't be empty list")
+        if not isinstance(exp[0], basestring):
+            raise VerifyError('term must be id, found ' +
+                              sexp_to_string(exp[0]))
+        try:
+            termix = self.terms[exp[0]]
+        except KeyError:
+            raise VerifyError("term '%s' not known" % exp[0])
+        term = self.term_hist[termix]
+        # term is (termname, ifindex, termix_orig,
+        #          rkind, argkinds, freemap, sig [, defthm_label])
+        nargs = len(term[4])
+        if len(exp) - 1 != nargs:
+            print exp, term
+            raise VerifyError(
+                'Arity mismatch: %s has arity %d but was given %d arguments' %
+                (exp[0], nargs, len(exp) - 1))
+        result = [termix]
+        for i in range(nargs):
+            child = self.internalize(exp[i + 1], varlist, varmap)
+            if term[5][i] >= 0 and child[0] != 'var':
+                raise VerifyError('Expected a binding variable, but found: '
+                                  + sexp_to_string(exp))
+            if child[1] != term[4][i]:
+                raise VerifyError(
+                    'Kind mismatch: in %s, argument %d does not have kind %s' %
+                    (sexp_to_string(exp), i, self.kind_hist[term[4][i]][0]))
+            result.append(child[2])
+        # ugh, packing & unpacking into tuples
+        return ('term', term[3], result)
+
+    def fetch_interface(self, url):
+        fn = self.urlctx.normalize(url)
+        if fn in self.global_ctx.iface_in_progress:
+            raise VerifyError("Recursive fetch for interface file '%s'" % fn)
+
+        pif = self.global_ctx.all_interfaces.get(fn, None)
+        if pif != None:
+            if pif.name is not None:
+                raise VerifyError(
+                    'Attempt to import/export/param a proof-file context %s.'
+                    % fn)
+            return pif
+
+        # Note, build_interface is a variable attribute, not a member function,
+        # of self.
+        pif = self.build_interface(self, fn, url)
+
+        if pif.level >= self.level:
+            self.level = pif.level + 1
+        return pif
+
+    def iexp_to_string(self, iexp, varlist):
+        buf = array.array('c')
+        iexp_to_string_rec(buf, iexp, varlist, self.term_hist)
+        return buf.tostring()
+
+    def iexps_to_string(self, iexps, varlist):
+        buf = array.array('c')
+        space = ''
+        buf.fromstring('(')
+        for iexp in iexps:
+            buf.fromstring(space)
+            iexp_to_string_rec(buf, iexp, varlist, self.term_hist)
+            space = ' '
+        buf.fromstring(')')
+        return buf.tostring()
+
+    def iface_kinds(self, ictx, params, prefix, export=False):
+        ifindex = len(self.iflist)
+        nk = len(ictx.kind_hist)
+        kindmap = [-1]*nk
+        for ix in xrange(nk):
+            k = ictx.kind_hist[ix]
+            # k is (kindname_in_ictx, ifindex_in_ictx, kindix_orig)
+            kifindex = k[1]
+            if kifindex >= 0:
+                kmap = self.iflist[params[kifindex]][4]
+                kindmap[ix] = kmap[k[2]]
+                continue   # Don't add kinds not provided by ictx itself
+            kpref = prefix + k[0]
+            if export:
+                try:
+                    kix = self.kinds[kpref]
+                except KeyError:
+                    raise VerifyError("No kind '%s' exists in verify context."
+                                      % kpref)
+                kindmap[ix] = kix
+            else:
+                if kpref in self.kinds:
+                    raise VerifyError("A kind '%s' already exists." % kpref)
+                n = len(self.kind_hist)
+                self.kinds[kpref] = n
+                self.kind_hist.append((kpref, ifindex, ix))
+                kindmap[ix] = n
+
+        # Imported kindbinds
+        for kname in ictx.kindbinds:
+            kix = ictx.kinds[kname]
+            k = ictx.kind_hist[kix]
+            kpref = prefix + kname
+            ix = kindmap[kix]
+            if export:
+                try:
+                    ekix = self.kinds[kpref]
+                except KeyError:
+                    raise VerifyError("No kind '%s' exists in verify context."
+                                      % kpref)
+                if ekix != ix:
+                    raise VerifyError("Inconsistent kindbind for %s in export"
+                                      % kpref)
+            else:
+                if kpref in self.kinds:
+                    raise VerifyError("A kind '%s' already exists." % kpref)
+                self.kinds[kpref] = ix
+
+        return kindmap
+
+    def iface_terms(self, ictx, params, prefix, kindmap, export=False):
+        ifindex = len(self.iflist)
+        nt = len(ictx.term_hist)
+        termmap = [-1]*nt
+        for ix in xrange(nt):
+            t = ictx.term_hist[ix]
+            # t is (termname_in_ictx, ifindex_in_ictx, termix_orig,
+            #       rkind, argkinds, freemap, sig [, defterm_label])
+            # Note that rkind and the elements of argkinds are kind indices
+            # in ictx.kind_hist, and need to be translated.
+            # signature is the term signature in the originating interface
+            tifindex = t[1]
+            if tifindex >= 0:
+                tmap = self.iflist[params[tifindex]][5]
+                termmap[ix] = tmap[t[2]]
+                continue   # skip kinds not provided by ictx itself
+            vrkind = kindmap[t[3]]
+            vargkinds = [kindmap[ak] for ak in t[4]]
+            tpref = prefix + t[0]
+            if export:
+                try:
+                    vix = self.terms[tpref]
+                except KeyError:
+                    raise VerifyError("No term '%s' exists in verify context."
+                                      % tpref)
+                vtv = self.term_hist[vix]
+                if vtv[3] != vrkind or vtv[4] != vargkinds or vtv[5] != t[5]:
+                    raise VerifyError(
+                        "Exported term '%s' does not match '%s' in verify context" %
+                        (t[0], tpref))
+                termmap[ix] = vix
+            else:
+                if tpref in self.terms:
+                    raise VerifyError("A term '%s' already exists." % tpref)
+                tv = (tpref, ifindex, ix, vrkind, vargkinds, t[5], t[6])
+                n = len(self.term_hist)
+                self.terms[tpref] = n
+                self.term_hist.append(tv)
+                termmap[ix] = n
+
+        return termmap
+
+    def term_arg_string(self, rkind, sig, freemap):
+        rkname = self.kind_hist[rkind][0]
+        buf = array.array('c')
+        buf.fromstring("(")
+        buf.fromstring(rkname)
+        buf.fromstring(" (")
+        space = ''
+        for s in sig:
+            buf.fromstring(space)
+            buf.fromstring(s)
+            space = ' '
+        buf.fromstring(')')
+        for ix in xrange(len(freemap)):
+            bmap = freemap[ix]
+            if bmap <= 0:
+                continue    # skip non-binding and fully-bound arguments
+            bvar = sig[1 + ix]
+            buf.fromstring(" (")
+            buf.fromstring(bvar)
+            jx = 0
+            po2 = 1
+            while po2 <= bmap:
+                if (po2 & bmap) != 0:
+                    buf.fromstring(" ")
+                    buf.fromstring(sig[1 + jx])
+                jx += 1
+                po2 <<= 1
+            buf.fromstring(")")
+        buf.fromstring(")")
+        return buf.tostring()
+
+
+class VerifyCtx(GhilbertCtx):
+    def __init__(self, urlctx, run, global_ctx, fname,
+                 build_interface=build_if,
+                 fail_continue=False):
+        GhilbertCtx.__init__(self, urlctx, run, global_ctx, fname,
+                             build_interface)
+        self.fail_continue = fail_continue
+        self.ignore_exports = False
+
+    def add_term(self, label, t):
+        if label in self.terms:
+            raise VerifyError("Term '%s' already defined" % label)
+        self.terms[label] = t # (kind, argkinds, freemap, sig, ctx)
+    def allvars(self, iexp):
         fv = []
-        self.allvars_rec(exp, fv)
+        self.allvars_rec(iexp, fv)
         return fv
-    def allvars_rec(self, exp, fv):
-        if type(exp) == type('var'):
-            if not exp in fv:
-                fv.append(exp)
-        elif type(exp) == type([]):
-            for subexp in exp[1:]:
+    def allvars_rec(self, iexp, fv):
+        if isinstance(iexp, list):
+            for subexp in iexp[1:]:
                 self.allvars_rec(subexp, fv)
+            return
+        if not iexp in fv:
+            fv.append(iexp)
+        return
 
     def free_scan(self, var, term, accum):
-        if type(term) == str:
+        if not isinstance(term, list):
             return accum(term)
 
-        freemap = self.terms[term[0]][2]
+        t = self.term_hist[term[0]]
+        # t is (termname, ifindex, termix_orig,
+        #       rkind, argkinds, freemap, sig [, defterm_label])
+        freemap = t[5]
         # In the following loop, v is the 0-based term argument
         # index for each binding variable argument of the term, while
         # m is the corresponding bitmap of 0-based term argument indices
@@ -184,12 +612,12 @@ class VerifyCtx:
         return False
 
 
-    def free_in(self, var, term, fvvars):
+    def free_in(self, var, term, fvvars, varlist):
         return self.free_scan(var, term,
             lambda v :
                (True if v == var or
                         (fvvars != None and
-                         self.syms[v][0] == 'tvar' and
+                         varlist[v][0] == 'tvar' and
                          v not in fvvars)
                      else False))
 
@@ -197,8 +625,8 @@ class VerifyCtx:
     # This routine returns True if and only if var occurs _explicitly_ free
     # in fvvars.
     # If fvvars is not None, it is a dictionary. In that case, the domain of
-    # fvvars consists of some term variables in the variable space of the
-    # theorem being proved.
+    # fvvars consists of some term variable (indices) in the theorem being
+    # proved.
     #  - If fvvars[A] >= 0, the constraint context for the theorem being proven
     #    guarantees that binding variable var does not occur free in A.
     #  - If fvvars[A] == 0, the constraint mentioned above has not been
@@ -213,11 +641,11 @@ class VerifyCtx:
     #    the proof either.
     # This routine updates fvvars to maintain the above conditions.
     # If fvvars is None, check for explicit freeness of var in term.
-    def check_free_in(self, var, term, fvvars):
-        def checker(v, var=var, fvvars=fvvars, syms=self.syms):
+    def check_free_in(self, var, term, fvvars, varlist):
+        def checker(v, var=var, fvvars=fvvars, varlist=varlist):
             if v == var:
                 return True  # only stop scan if var explicitly free.
-            if fvvars == None or syms[v][0] == 'var':
+            if fvvars == None or varlist[v][0] == 'var':
                 return False
             try:
                 val = fvvars[v]
@@ -229,189 +657,297 @@ class VerifyCtx:
             return False
         return self.free_scan(var, term, checker)
 
-    def freelist(self, bvar, exp, l):
+    def freelist(self, bvar, exp, l, varlist):
         """ Append to l the list of variables occurring in exp for which
             binding variable bvar might occur free in exp if it occurs
             free in one of the variables of the list.
         """
-        def checker(v, bvar=bvar, l=l, syms=self.syms):
-            if v != bvar and syms[v][0] == 'var':
+        def checker(v, bvar=bvar, l=l, varlist=varlist):
+            if v != bvar and varlist[v][0] == 'var':
                 return False # different binding variables are distinct
             if v not in l:
                 l.append(v)
             return False
         return self.free_scan(bvar, exp, checker)
 
-
-    # Check well-formedness of the expression exp and return its kind.
-    # Add the variables found to varlist and varmap: the former is a list
-    # of items syms[v] for each variable v found, and varmap maps the names
-    # of found variables to their indices in varlist.
-    def kind_of(self, exp, varlist, varmap, syms, check_bv_expr = None):
-        """ Check that exp is a well-formed expression, and return its kind """
-        if isinstance(exp, basestring):
-            try:
-                v = syms[exp]
-            except KeyError:
-                raise VerifyError('Not a known variable: ' + exp)
-            if v[0] not in ('var', 'tvar'):
-                raise VerifyError('Symbol not a variable: ' + exp)
-            if check_bv_expr is not None and v[0] != 'var':
-                raise VerifyError(
-                  'Expected a binding variable, but found a term variable: ' \
-                    + exp + ' in ' + sexp_to_string(check_bv_expr))
-            if not exp in varmap:
-                varmap[exp] = len(varlist)
-                varlist.append(v)
-            return self.kinds[v[1]]
-
-        # Else, exp is a list
-        if check_bv_expr is not None:
-            raise VerifyError('Expected a binding variable, but found a list: '
-                  + sexp_to_string(exp) + ' in ' + sexp_to_string(check_bv_expr))
-        if len(exp) == 0:
-            raise VerifyError("term can't be empty list")
-        if not isinstance(exp[0], basestring):
-            raise VerifyError('term must be id, found ' +
-                              sexp_to_string(exp[0]))
+    def check_params(self, ictx, ifname, paramnames):
+        # Check that the parameter interfaces are all distinct(?) and all
+        # correspond to existing interfaces.
+        used = {}
+        params = []
         try:
-            term = self.terms[exp[0]]
+            for pn in paramnames:
+                if pn in used:
+                    raise VerifyError(
+                      "Interface %s passed more than once to import context." %
+                        pn)
+                used[pn] = 0
+                params.append(self.interfaces[pn])
         except KeyError:
-            raise VerifyError('term ' + exp[0] + ' not known')
-        # term is (kind, argkinds, freemap)
-        if len(exp) - 1 != len(term[1]):
-            print exp, term
-            raise VerifyError('arity mismatch: ' + exp[0] + ' has arity ' +
-                              str(len(term[1])) + ' but was given ' +
-                              str(len(exp) - 1) + ' arguments')
-        for i in range(len(exp) - 1):
-            check_bv_expr = None
-            if term[2][i] >= 0:
-                check_bv_expr = exp
-            child_kind = self.kind_of(exp[i + 1], varlist, varmap,
-                                      syms, check_bv_expr)
-            if child_kind != self.kinds[term[1][i]]:
-                #print self.kinds
-                raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
-                     ' wanted ' + self.kinds[term[1][i]] + ' found ' +
-                                  child_kind)
-        return self.kinds[term[0]]
+            raise VerifyError("Unknown interface %s" % pn)
+        except TypeError:
+            raise SyntaxError("Non-atom provided as interface parameter.")
 
-    def do_cmd(self, cmd, arg, out):
+        n = len(params)
+        if n != len(ictx.iflist):
+            self.out.write('len(ictx.iflist)=%d\n' % len(ictx.iflist))
+            for ifc in ictx.iflist:
+                self.out.write("... %r\n" % (ifc,))
+            raise VerifyError("Wrong number of parameters for interface '%s'" %
+                              ifname)
+        for ix in xrange(n):
+            ifaceloc = self.iflist[params[ix]]
+            ifaceimp = ictx.iflist[ix]
+            # Compare InterfaceCtx values for identity
+            if ifaceimp[1] is not ifaceloc[1]:
+                raise VerifyError("Parameter mismatch for interface '%s'" %
+                                  ifname)
+            # Check that ifaceimp was parametrized in ictx the same way
+            # that ifaceloc was parametrized in self.
+            impparams = ifaceimp[2]
+            locparams = ifaceloc[2]
+            for jx in xrange(len(impparams)):
+                if locparams[jx] != params[impparams[jx]]:
+                    raise VerifyError(
+                        "Parameter mismatch (%d, %d) for interface '%s'"
+                        % (ix, jx, ifname))
+        return params
+        
+
+    # import InterfaceCtx ictx with the specified name, parameters, and prefix
+    # paramnames is a list of the interface names of the parameter interfaces
+    # passed to ictx, all of which have been previously imported (or exported)
+    def gh_import(self, ictx, ifname, paramnames, prefix):
+
+        params = self.check_params(ictx, ifname, paramnames)
+
+        kindmap = self.iface_kinds(ictx, params, prefix)
+
+        termmap = self.iface_terms(ictx, params, prefix, kindmap)
+
+        if ictx.name is None:
+            allowable = ('stmt',)
+        else:
+            allowable = ('thm', 'defthm')
+        for label, val in ictx.syms.iteritems():
+            if not val[0] in allowable:
+                continue
+            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, record = val
+            labelpref = prefix + label
+            if labelpref in self.syms:
+                raise VerifyError(
+                    "Importing stmt '%s', a symbol of that name already exists"
+                    % labelpref)
+            # Now, translate the hypotheses and conclusion(s) by mapping
+            # the term indices. Also, map the kinds in varlist.
+            vhyps = [map_syms(hyp, termmap) for hyp in hyps]
+            vconcl = map_syms(concl, termmap)
+            vvarlist = [(v[0], kindmap[v[1]], v[2]) for v in varlist]
+            self.syms[labelpref] = ('stmt', fv, vhyps, vconcl,
+                                    vvarlist, num_hypvars, num_nondummies, record)
+
+        ifindex = len(self.iflist)
+        self.interfaces[ifname] = ifindex
+        self.iflist.append((ifname, ictx, params, prefix,
+                            kindmap, termmap, 'import'))
+
+    def gh_export(self, ictx, ifname, paramnames, prefix):
+
+        params = self.check_params(ictx, ifname, paramnames)
+        
+        kindmap = self.iface_kinds(ictx, params, prefix, True)
+
+        termmap = self.iface_terms(ictx, params, prefix, kindmap, True)
+
+        for label, val in ictx.syms.iteritems():
+            if val[0] != 'stmt':
+                continue
+            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, record = val
+            labelpref = prefix + label
+            try:
+                vstmt = self.syms[labelpref]
+            except KeyError:
+                raise VerifyError(
+                    "Exported stmt '%s' does not exist in verify context."
+                    % labelpref)
+            # Now, translate the hypotheses and conclusion(s) by mapping
+            # the term indices. Also, map the kinds in varlist.
+            vhyps = [map_syms(hyp, termmap) for hyp in hyps]
+            vconcl = map_syms(concl, termmap)
+            if vstmt[0] == 'var' or vstmt[0] == 'tvar':
+                raise VerifyError("Symbol '%s' exported as stmt is a variable in verify context." % labelpref)
+            if fv != vstmt[1]:
+                raise VerifyError("Free variable constraint context mismatch for exported stmt '%s'" % labelpref)
+            if vhyps != vstmt[2]:
+                raise VerifyError("Mismatch in hypotheses for exported stmt '%s'" % labelpref)
+            if vconcl != vstmt[3]:
+                raise VerifyError("Mismatch in conclusion for exported stmt '%s'" % labelpref)
+            # Note, num_nondummies must match vstmt[6] since the hypotheses
+            # and conclusions match.
+            for ix in xrange(num_nondummies):
+                v = varlist[ix]
+                vv = vstmt[4][ix]
+                if v[0] != vv[0] or kindmap[v[1]] != vv[1]:
+                    raise VerifyError("Mismatch in variable list for exported stmt '%s'" % labelpref)
+
+        ifindex = len(self.iflist)
+        self.interfaces[ifname] = ifindex
+        self.iflist.append((ifname, ictx, params, prefix,
+                            kindmap, termmap, 'export'))
+
+    def defthm_cmd(self, arg, record):
+        # defthm (LABEL KIND (DEFSYM VAR ...)
+        #           ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
+        #           STEP ...)
+        if len(arg) < 7:
+            raise VerifyError('Expected at least 7 arguments to defthm')
+        (label, dkind, dsig, fv, hyps, conc) = arg[:6]
+        if self.verbosity > 0:
+            self.out.write('defthm %s\n' % label)
+        proof = arg[6:]
+        try:
+            proofctx = self.check_proof(label, fv, hyps, conc, proof,
+                                        dkind, dsig)
+        except VerifyError, x:
+            self.out.write('Error in defthm %s: %s\n' % (label, x.why))
+            if x.proofctx != None:
+                stack = x.proofctx.stack
+                for i in xrange(len(stack)):
+                    self.out.write('P%d: %s\n' %
+                              (i, self.iexp_to_string(stack[i],
+                                                      x.proofctx.varlist)))
+            raise x
+
+        # Check that:
+        # - The conclusion matches the remnant expression on the proof
+        #   stack exactly, except for any uses of the new term
+        #   being defined.
+        # - The conclusion contains at least one use of the new term being
+        #   defined.
+        # - Every such occurrence of the new term being defined in the
+        #   conclusion is identical: the actual term arguments must be
+        #   exactly the formal argument variables specified in the
+        #   definition term signature. (In particular, more complicated
+        #   actual arguments that are term expressions are forbidden here.)
+        # - Every occurrence of the new term in the conclusion matches a
+        #   subexpression (its expansion or definiens) in the remnant
+        #   according to the following rules:
+        #     - The matched subexpression must be a term expression, not
+        #       just a variable. The subexpression's kind must agree with
+        #       the result kind specified for the new term.
+        #     - Every such matching subexpression is identical.
+        #       (Specifically, even definition dummy variables must be
+        #       identical in all the expansions.)
+        #     - Any variable in the matched subexpression that is not one
+        #       of the corresponding definition term's use's actual
+        #       arguments is called a definition dummy variable.  Each
+        #       definition dummy variable must also be a proof dummy
+        #       variable, that is, it must not occur in the hypotheses or
+        #       conclusion of the theorem.
+        #     - All definition dummy variables in the definiens must be
+        #       binding variables, and must not occur explicitly free in
+        #       the definiens. [Investigate how necessary this is.]
+        #     - Every actual argument variable of the term use must occur
+        #       in the matched subexpression. [This could be omitted.]
+        t = proofctx.defterm
+        freemap = t[2]
+        remnant = proofctx.stack[0]
+        result = [None]
+
+        termix = len(self.term_hist) - 1
+        idsig = [termix] + [proofctx.varmap[vn] for vn in dsig[1:]]
+        try:
+            self.def_conc_match(proofctx.iconcl, remnant, idsig,
+                                freemap, proofctx, result)
+        except VerifyError, x:
+            x.why = ('The defthm conclusion\n ' + sexp_to_string(conc) +
+                     '\nfails to match remnant\n ' +
+                     self.iexp_to_string(remnant, proofctx.varlist)
+                     + '\n*** ' + x.why)
+            raise
+        if result[0] == None:
+            raise VerifyError("The term '" + dsig[0] +
+               "' being defined does not occur in the defthm conclusion.")
+        self.add_sym(label,
+                     ('defthm', proofctx.ifv, proofctx.ihyps,
+                      proofctx.iconcl, proofctx.varlist,
+                      proofctx.num_hypvars, proofctx.num_nondummies, record))
+        self.assertion_hist.append(label)
+        # The term was already added to self.term_history in term_common
+        # in self.check_proof(). Add it back to self.terms, too.
+        self.terms[dsig[0]] = termix
+
+    def do_cmd(self, cmd, arg, record=None):
         """ Command processing for Verify (proof file) context """
+        out = self.out
         if cmd == 'thm':
             # thm (LABEL ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
             #        STEP ...)
             if len(arg) < 5:
                 raise VerifyError('Expected at least 5 args to thm')
             (label, fv, hyps, conc) = arg[:4]
-            out.write('thm %s\n' % label)
+            if self.verbosity > 0:
+                out.write('thm %s\n' % label)
             proof = arg[4:]
             try:
                 proofctx = self.check_proof(label, fv, hyps, conc, proof)
-                if proofctx.stack[0] != conc:
-                    raise VerifyError('\nwanted ' + sexp_to_string(conc), label,
-                                      proofctx.stack)
+                if proofctx.stack[0] != proofctx.iconcl:
+                    raise VerifyError(('\nConclusion mismatch. Wanted %s' %
+                                       sexp_to_string(conc)),
+                                      label, proofctx)
             except VerifyError, x:
-                msg = 'error in thm ' + label + ': '
+                msg = 'error in thm %s:\n' % label
                 if self.fail_continue:
                     msg = msg + x.why
                 out.write(msg)
-                if x.stack != None:
-                    for i in xrange(len(x.stack)):
-                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]))
+                if x.proofctx != None:
+                    stack = x.proofctx.stack
+                    for i in xrange(len(stack)):
+                        out.write('P%d: %s\n' %
+                                  (i, self.iexp_to_string(stack[i],
+                                                          x.proofctx.varlist)))
                 if not self.fail_continue:
                     raise x
-                self.countError()
+                self.count_error()
 
-            self.add_assertion('thm', label, fv, hyps[1::2], conc,
-                               proofctx.varlist, proofctx.num_hypvars,
-                               proofctx.num_nondummies, self.syms)
+            self.add_sym(label,
+                         ('thm', proofctx.ifv, proofctx.ihyps, proofctx.iconcl,
+                          proofctx.varlist,
+                          proofctx.num_hypvars, proofctx.num_nondummies, record))
+            self.assertion_hist.append(label)
             return
+
         if cmd == 'defthm':
-            # defthm (LABEL KIND (DEFSYM VAR ...)
-            #           ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
-            #           STEP ...)
-            if len(arg) < 7:
-                raise VerifyError('Expected at least 7 arguments to defthm')
-            (label, dkind, dsig, fv, hyps, conc) = arg[:6]
-            out.write('defthm %s\n' % label)
-            proof = arg[6:]
+            # self.defthm_cmd() plays games with temporarily adding
+            # the new term so that it can be used in the conclusion
+            # of the defthm (but not anywhere else). Make sure to clean
+            # this up if things go pear-shaped.
+            termix_orig = len(self.term_hist)
             try:
-                proofctx = self.check_proof(label, fv, hyps, conc, proof,
-                                            dkind, dsig)
-            except VerifyError, x:
-                out.write('Error in defthm ' + label + ': ' + x.why)
-                if x.stack != None:
-                    for i in xrange(len(x.stack)):
-                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]))
-                raise x
-
-            # Check that:
-            # - The conclusion matches the remnant expression on the proof
-            #   stack exactly, except for any uses of the new term
-            #   being defined.
-            # - The conclusion contains at least one use of the new term being
-            #   defined.
-            # - Every such occurrence of the new term being defined in the
-            #   conclusion is identical: the actual term arguments must be
-            #   exactly the formal argument variables specified in the
-            #   definition term signature. (In particular, more complicated
-            #   actual arguments that are term expressions are forbidden here.)
-            # - Every occurrence of the new term in the conclusion matches a
-            #   subexpression (its expansion or definiens) in the remnant
-            #   according to the following rules:
-            #     - The matched subexpression must be a term expression, not
-            #       just a variable. The subexpression's kind must agree with
-            #       the result kind specified for the new term.
-            #     - Every such matching subexpression is identical.
-            #       (Specifically, even definition dummy variables must be
-            #       identical in all the expansions.)
-            #     - Any variable in the matched subexpression that is not one
-            #       of the corresponding definition term's use's actual
-            #       arguments is called a definition dummy variable.  Each
-            #       definition dummy variable must also be a proof dummy
-            #       variable, that is, it must not occur in the hypotheses or
-            #       conclusion of the theorem.
-            #     - All definition dummy variables in the definiens must be
-            #       binding variables, and must not occur explicitly free in
-            #       the definiens. [Investigate how necessary this is.]
-            #     - Every actual argument variable of the term use must occur
-            #       in the matched subexpression. [This could be omitted.]
-            t = proofctx.defterm
-            remnant = proofctx.stack[0]
-            result = [None]
-
-            try:
-                self.def_conc_match(conc, remnant, dsig,
-                                    t, proofctx, result)
-            except VerifyError, x:
-                x.why = ('The defthm conclusion\n ' + sexp_to_string(conc) +
-                         '\nfails to match remnant\n ' +
-                         sexp_to_string(remnant) + '\n*** ' + x.why)
+                self.defthm_cmd(arg, record)
+            except:
+                if len(self.term_hist) > termix_orig:
+                    del self.term_hist[termix_orig:]
                 raise
-            if result[0] == None:
-                raise VerifyError("The term '" + dsig[0] +
-                   "' being defined does not occur in the defthm conclusion.")
-            # out.write('New term ' + dsig[0], t)
-            self.terms[dsig[0]] = t
-            self.add_assertion('thm', label, fv, hyps[1::2], conc,
-                               proofctx.varlist, proofctx.num_hypvars,
-                               proofctx.num_nondummies, self.syms)
             return
+
         if cmd in ('var', 'tvar'):
             kind = self.get_kind(arg[0])
             for v in arg[1:]:
-                self.add_sym(v, (cmd, kind, v))
+                # Save arg[0] too so we preserve the kind name in spite of
+                # kindbinds...
+                self.add_sym(v, (cmd, kind, v, arg[0]))
             return
         if cmd == 'kindbind':
-            self.add_kind(arg[1], self.get_kind(arg[0]))
+            self.kindbind_cmd(arg)
             return
         if cmd in ('import', 'export'):
             # import (IFACE URL (PARAMS) PREFIX)
             if type(arg) != type([]) or len(arg) != 4:
                 raise SyntaxError("Expected '" + cmd +
                                   " (IFACE URL (PARAM ...) PREFIX)'")
+            if cmd == 'export' and self.ignore_exports:
+                return
             ifname = arg[0]
             url = arg[1]
             paramnames = arg[2]
@@ -425,42 +961,19 @@ class VerifyCtx:
 
             if ifname in self.interfaces:
                 raise VerifyError("An interface named %s already exists." % ifname)
-            # Check that the parameter interfaces are all distinct and all
-            # correspond to existing interfaces.
-            inverse = {}
-            params = []
-            for pn in paramnames:
-                if pn in inverse:
-                    raise VerifyError("Interface %s passed more than once to import context." % pn)
-                inverse[pn] = 0
-                try:
-                    params.append(self.interfaces[pn])
-                except KeyError:
-                    raise VerifyError("Unknown interface %s" % pn)
-                except TypeError:
-                    raise SyntaxError("Non-atom provided as interface parameter.")
+            if self.verbosity > 0:
+                if cmd == 'import':
+                    out.write('Importing %s\n' % ifname)
+                else:
+                    out.write('Exporting %s\n' % ifname)
+
+            ctx = self.fetch_interface(url)
 
             if cmd == 'import':
-                out.write('Importing %s\n' % ifname)
-                ctx = ImportCtx(ifname, self, prefix, params)
+                self.gh_import(ctx, ifname, paramnames, prefix)
             else:
-                out.write('Exporting %s\n' % ifname)
-                ctx = ExportCtx(ifname, self, prefix, params)
+                self.gh_export(ctx, ifname, paramnames, prefix)
                 
-            if not self.run(self.urlctx, url, ctx, out):
-                raise VerifyError (cmd + " of interface %s, URL %s" %
-                                   (ifname, url))
-                
-            # Check that all passed interface parameters were in fact used.
-            if len(ctx.used_params) != len(params):
-                raise VerifyError(
-                    "Some interface parameters were not used in the " + cmd +
-                    " context.")
-
-            # Don't need ctx.kinds or ctx.terms any more
-            ctx.kinds = None
-            ctx.terms = None
-            self.interfaces[ifname] = ctx
             return
 
         if cmd in ('stmt', 'term', 'kind'):
@@ -489,19 +1002,11 @@ class VerifyCtx:
         if len(hyps) & 1:
             raise VerifyError('hyp list must have even length')
 
-        # fvmap will map the names of binding variables occurring in the
-        # hypotheses or conclusions to dictionaries (treated as sets)
-        # indicating which term variables each binding variable may not
-        # occur free in.  That is, if there is a free variable constraint
-        # context (tvar bvar), then fvmap[bvar][tvar] is set to zero, simply
-        # to add tvar into the domain of fvmap[bvar].
-        # We could alternatively use a Python 2.4+ Set for each fvmap[bvar]...
-        fvmap = {}
-        vall = []
+        varlist = []
         varmap = {}
 
         if dkind is not None:
-            t = term_common(dkind, dsig, None,
+            dt = term_common(dkind, dsig, None,
                             self.kinds, self.terms, self.syms)
             # Check that the term does not have two formal binding variable
             # arguments of the same kind.  Such arguments could be substituted
@@ -509,7 +1014,7 @@ class VerifyCtx:
             # definition statement cannot say anything about the definition
             # in that case as its proof assumes all binding variables are
             # distinct. A bit ugly.
-            tk, ak, fm = t
+            tk, ak, fm = dt
             for j in xrange(1, len(fm)):
                 if fm[j] < 0:
                     continue    # not a binding variable
@@ -520,78 +1025,96 @@ class VerifyCtx:
                         raise VerifyError('Formal binding arguments %s and %s of defined term %s have the same kind.' % (dsig[i+1], dsig[j+1], dsig[0]))
 
         hypmap = {}
+        ihyps = []
         for i in range(0, len(hyps), 2):
             if not isinstance(hyps[i], basestring):
                 raise VerifyError('hyp label must be string')
             if hyps[i] in hypmap:
                 raise VerifyError('Repeated hypothesis label ' + hyps[1])
-            hypmap[hyps[i]] = hyps[i + 1]
-            self.kind_of(hyps[i + 1], vall, varmap, self.syms)
-        num_hypvars = len(vall)
+            e = self.internalize(hyps[i + 1], varlist, varmap)
+            # e is (kw, kindix, iexp)
+            ihyps.append(e[2])
+            hypmap[hyps[i]] = e[2]
+        num_hypvars = len(varlist)
         if dkind is not None:
             # Temporarily add the definition to self.terms when parsing the
             # conclusion. term_common checked that the term doesn't exist yet.
-            self.terms[dsig[0]] = t
-        self.kind_of(stmt, vall, varmap, self.syms)
+            termix = len(self.term_hist)
+            self.terms[dsig[0]] = termix
+            self.term_hist.append((dsig[0], -1, termix,
+                                   dt[0], dt[1], dt[2], dsig, label))
+        iconcl = self.internalize(stmt, varlist, varmap)[2]
         if dkind is not None:
             # The term being defined must not occur in the hypotheses or the
-            # proof steps.
+            # proof steps. Note, however, that we leave the term in term_hist.
+            # It will be cleaned up by do_cmd() if anything fails...
             del self.terms[dsig[0]]
-        num_nondummies = len(vall)
-        for var in vall:
-            if var[0] == 'var':
-                fvmap[var[2]] = {}
+        num_nondummies = len(varlist)
+        # fvmap will map the indices of binding variables occurring in the
+        # hypotheses or conclusions to dictionaries (treated as sets)
+        # indicating which term variables each binding variable may not
+        # occur free in.  That is, if there is a free variable constraint
+        # context (tvar bvar), then fvmap[ix(bvar)][ix(tvar)] is set to zero,
+        # simply to add ix(tvar) into the domain of fvmap[ix(bvar)].
+        # We could alternatively use a Python 2.4+ Set for each fvmap[bvar]...
+        fvmap = {}
+        for ix in xrange(num_nondummies):
+            if varlist[ix][0] == 'var':
+                fvmap[ix] = {}
+        ifv = []
         for clause in fv:
             if not isinstance(clause, list) or len(clause) == 0:
                 raise VerifyError('each fv clause must be list of vars')
-            tvar = clause[0]
             try:
-                vi = varmap[tvar]
+                iclause = [varmap[vn] for vn in clause]
             except TypeError:
-                raise VerifyError('var in fv clause must be string')
+                raise VerifyError('Var in fv clause must be string')
             except KeyError:
-                raise VerifyError('"%s" is not a variable occurring in the hypotheses or conclusions.' % tvar)
-            if vall[vi][0] != 'tvar':
-                raise VerifyError('first var in fv clause must be tvar: ' + tvar)
-            for var in clause[1:]:
-                try:
-                    vm = fvmap[var]
-                except TypeError:
-                    raise VerifyError('var in fv clause must be string')
-                except KeyError:
-                    raise VerifyError('subsequent var in fv clause must be a binding variable occurring in the hypotheses or conclusions: ' + var)
-                vm[tvar] = 0
+                raise VerifyError('"%s" is not a variable occurring in the hypotheses or conclusions.' % vn)
 
-        proofctx = ProofCtx(label, fvmap)
-        proofctx.varlist = vall
-        proofctx.varmap = varmap
-        proofctx.num_hypvars = num_hypvars
-        proofctx.num_nondummies = num_nondummies
+            tvar = iclause[0]
+            if varlist[tvar][0] != 'tvar':
+                raise VerifyError('First var in fv clause must be tvar: %s'
+                                  % clause[0])
+            for bvix in iclause[1:]:
+                if varlist[bvix][0] != 'var':
+                    raise VerifyError('Subsequent vars in fv clause must be binding variables: %s'
+                                      % varlist[bvix][2])
+                fvmap[bvix][tvar] = 0
+            ifv.append(iclause)
 
+        proofctx = ProofCtx(label, ifv, ihyps, iconcl,
+                            varlist, varmap, num_hypvars, num_nondummies,
+                            fvmap)
         if dkind is not None:
-            proofctx.defterm = t
+            proofctx.defterm = dt
+
         for step in proof:
             #print 'step:', step
             if step == '?':
                 for x in proofctx.stack:
-                    print sexp_to_string(x)
+                    print self.iexp_to_string(x, varlist)
                 continue
             try:
                 self.check_proof_step(hypmap, step, proofctx)
             except VerifyError, x:
                 x.why += ' [' + sexp_to_string(step) + ']'
-                x.stack = proofctx.stack
+                x.proofctx = proofctx
                 raise x
         if len(proofctx.mandstack) != 0:
             raise VerifyError('extra mand hyps on stack at and of proof',
-                              label)
+                              label, proofctx)
         if len(proofctx.stack) != 1:
             raise VerifyError('stack must have one term at end of proof',
-                              label, proofctx.stack)
+                              label, proofctx)
         extra = ''
         missing = ''
         for v in fvmap:
             for A, val in fvmap[v].iteritems():
+                # Note, val = fvmap[v][A] may be:
+                #   0, if the constraint (A v) was provided but not needed
+                #   None, if the constraint was not provided, but was needed
+                #   1, if the constraint was provided and needed
                 if val == 0:
                     extra = extra + (' (%s %s)' % (A, v))
                 elif val is None:
@@ -611,98 +1134,126 @@ class VerifyCtx:
     # These are really methods of both the verify and proofctx objects, and
     # are here by tradition.
     def check_proof_step(self, hypmap, step, proofctx):
+        pvl = proofctx.varlist
         if isinstance(step, list):
-            kind = self.kind_of(step, proofctx.varlist,
-                                proofctx.varmap, self.syms)
-            #print 'kind of ' + sexp_to_string(step) + ' = ' + kind
-            proofctx.mandstack.append(('tvar', kind, step))
-        elif hypmap.has_key(step):
+            proofctx.mandstack.append(self.internalize(step, pvl,
+                                                       proofctx.varmap))
+            return
+
+        if hypmap.has_key(step):
             if len(proofctx.mandstack) != 0:
                 raise VerifyError('hyp expected no mand hyps, got %d' % len(proofctx.mandstack))
             proofctx.stack.append(hypmap[step])
-        else:
-            try:
-                v = self.syms[step]
-            except KeyError:
-                raise VerifyError('unknown proof step: ' + step)
-            if v[0] in ('var', 'tvar'):
-                if not step in proofctx.varmap:
-                    proofctx.varmap[step] = len(proofctx.varlist)
-                    proofctx.varlist.append(v)
-                proofctx.mandstack.append(v)
-            elif v[0] in ('stmt', 'thm'):
-                (fv, hyps, concl, mand, syms) = v[1:]
-                if len(mand) != len(proofctx.mandstack):
-                    raise VerifyError('expected %d mand hyps, got %d' % (len(mand), len(proofctx.mandstack)))
-                env = {}
-                for i in range(len(mand)):
-                    tkind = mand[i]
-                    # Each element on mandstack is a triple (t, kind, expr)
-                    # where t is 'tvar' or 'var', kind is the epression's kind
-                    # and expr is the actual value on the stack.
-                    el = proofctx.mandstack[i]
-                    if el[1] != tkind[1]: # is this ok given kindbind?
-                        raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + tkind[1] + ' got ' + el[1])
-                    self.match(tkind[2], el[2], env)
-                sp = len(proofctx.stack) - len(hyps)
-                if sp < 0:
-                    raise VerifyError('stack underflow')
-                for i in range(len(hyps)):
-                    el = proofctx.stack[sp + i]
-                    self.match(hyps[i], el, env)
-                invmap = {}
-                for var, exp in env.iteritems():
-                    if syms[var][0] == 'var':
-                        if not isinstance(exp, basestring):
-                            raise VerifyError('expected binding variable for ' +
-                                              var + ' but matched ' +
-                                              sexp_to_string(exp))
-                        if self.syms[exp][0] != 'var':
-                            raise VerifyError('expected binding variable for ' +
-                                              var + '; ' + exp +
-                                              ' is term variable')
-                        if invmap.has_key(exp):
-                            raise VerifyError('binding variables ' + invmap[exp] + ' and ' + var + ' both map to ' + exp)
-                        invmap[exp] = var
-                for clause in fv:
-                    tvar = clause[0]
-                    for var in clause[1:]:
-                        if self.check_free_in_proof(env[var], env[tvar],
-                                                    proofctx):
-                            raise VerifyError('Free variable constraint violation: Variable %s occurs explicitly free in %s' % (env[var], env[tvar]))
-                #print 'env:', env, 'syms:', syms, 'invmap:', invmap
-                result = self.apply_subst(concl, env)
-                proofctx.stack[sp:] = [result]
-                proofctx.mandstack = []
-                #print 'stack:', proofctx.stack
+            return
 
-    def def_conc_match(self, conc, remnant, dsig, defterm, proofctx, result):
+        try:
+            v = self.syms[step]
+        except KeyError:
+            raise VerifyError('unknown proof step: ' + step)
+        if v[0] in ('var', 'tvar'):
+            proofctx.mandstack.append(self.internalize(step, pvl,
+                                                       proofctx.varmap))
+            return
+
+        # v[0] is in ('stmt', 'thm', 'defthm')
+        # Does the slicing get optimized away here?
+        (fv, hyps, concl, varlist, num_hypvars, num_nondummies) = v[1:7]
+        num_wild = num_nondummies - num_hypvars
+        if len(proofctx.mandstack) != num_wild:
+            raise VerifyError('expected %d mand hyps, got %d' %
+                              (num_wild, len(proofctx.mandstack)))
+        env = [-1]*num_nondummies
+        try:
+            for i in xrange(num_wild):
+                e1 = i + num_hypvars
+                wvar = varlist[e1]
+                # wvar is (kw, kindix, vname)
+                # Each element on mandstack is a triple (t, kindix, iexpr)
+                # where t is 'tvar' or 'var' or 'term', kindix is the
+                # epression's kind index, and iexpr is the actual internal
+                # value on the stack.
+                el = proofctx.mandstack[i]
+                if el[1] != wvar[1]: # is this ok given kindbind?
+                    raise VerifyError(
+                        'kind mismatch for %s: expected %s, got %s' %
+                        (wvar[2], self.kind_hist[wvar[1]][0],
+                         self.kind_hist[el[1]][0]))
+                e2 = el[2]
+                match(e1, e2, env)
+
+            sp = len(proofctx.stack) - len(hyps)
+            if sp < 0:
+                raise VerifyError('stack underflow')
+            for i in range(len(hyps)):
+                e1 = hyps[i]
+                e2 = proofctx.stack[sp + i]
+                match(e1, e2, env)
+
+        except UnifyError, x:
+            why = ('Unification error: %s vs %s (inside %s vs %s)' %
+                   (self.iexp_to_string(x.e1, varlist),
+                    self.iexp_to_string(x.e2, pvl),
+                    self.iexp_to_string(e1, varlist),
+                    self.iexp_to_string(e2, pvl)))
+            raise VerifyError(why)
+
+        invmap = {}
+        for var in xrange(num_nondummies):
+            exp = env[var]
+            if varlist[var][0] == 'var':
+                if isinstance(exp, list) or pvl[exp][0] != 'var':
+                    raise VerifyError(
+                        'Expected binding variable for %s but matched %s' %
+                        (varlist[var][2],
+                         self.iexp_to_string(exp, pvl)))
+                if exp in invmap:
+                    raise VerifyError(
+                            'Binding variables %s and %s both map to %s' %
+                            (varlist[invmap[exp]][2], varlist[var][2],
+                             pvl[exp][2]))
+                invmap[exp] = var
+        for clause in fv:
+            tvar = clause[0]
+            for var in clause[1:]:
+                if self.check_free_in_proof(env[var], env[tvar],
+                                            proofctx):
+                    raise VerifyError(
+                            'Free variable constraint violation: Variable %s occurs explicitly free in %s'
+                            % (pvl[env[var]][2], pvl[env[tvar]][2]))
+        result = apply_subst(concl, env)
+        #print 'result=', result, self.iexp_to_string(result, proofctx.varlist)
+        proofctx.stack[sp:] = [result]
+        proofctx.mandstack = []
+
+    def def_conc_match(self, conc, remnant, dsig, freemap, proofctx, result):
         """ Check that the defthm conclusion <conc> properly matches the
             remnant expression <remnant> on the proof stack.
-            <conc> and <remnant> are known to be well-formed at this point.
+            <conc> and <remnant> are known to be well-formed internal
+            expressions at this point. dsig is also internal.
         """
-        if isinstance(conc, basestring):
+        if not isinstance(conc, list):
             if conc != remnant:
-                raise VerifyError('Conclusion variable ' + conc +
-                                  ' vs. remnant ' + sexp_to_string(remnant))
+                raise VerifyError('Conclusion variable %s vs remnant %s ' %
+                                  (proofctx.varlist[conc][2],
+                                   self.iexp_to_string(remnant,
+                                                       proofctx.varlist)))
             return
-        if type(remnant) != type([]):
-            raise VerifyError('Expected term expression, found ' + remnant)
+        if not isinstance(remnant, list):
+            raise VerifyError('Expected term expression, found %s' %
+                              proofctx.varlist[remnant][2])
         if conc[0] == remnant[0]:
             i = 1
             for arg in conc[1:]:
                 self.def_conc_match(arg, remnant[i], dsig,
-                                    defterm, proofctx, result)
+                                    freemap, proofctx, result)
                 i = i + 1
             return
 
         # All uses of the new term must exactly match the term signature.
         if conc != dsig:
-            raise VerifyError('Conclusion subexpression ' + \
-                         sexp_to_string(conc) +
-                         '\nmatches neither remnant subexpression nor the ' +
-                         'new term signature ' + sexp_to_string(dsig) +
-                         '\nexactly.')
+            raise VerifyError('Conclusion subexpression %s\nmatches neither remnant subexpression nor the new term signature %s\n exactly' %
+                              (self.iexp_to_string(conc, proofctx.varlist),
+                               self.iexp_to_string(dsig, proofctx.varlist)))
 
         if result[0] is not None:
             if remnant != result[0]:
@@ -725,25 +1276,23 @@ class VerifyCtx:
             if v in dsig[1:]:
                 i = i + 1  # Note, each v occurs only once in allv...
                 continue
-
-            vi = proofctx.varmap[v]
-            if vi < proofctx.num_nondummies:
-                raise VerifyError("Definition dummy '" + v +
-                                  "' is not a proof dummy.")
-            vv = proofctx.varlist[vi]
+            vv = proofctx.varlist[v]
+            if v < proofctx.num_nondummies:
+                raise VerifyError("Definition dummy '%s' is not a proof dummy."
+                                  % vv[2])
             if vv[0] != 'var':
-                raise VerifyError("Definition dummy '" + v +
-                                  "' is not a binding variable")
-            if self.check_free_in(v, remnant, None):
-                raise VerifyError("Definition dummy '" + v +
-                                  "' occurs explicitly free in definiens")
+                raise VerifyError(
+                    "Definition dummy '%s' is not a binding variable" % vv[2])
+            if self.check_free_in(v, remnant, None, proofctx.varlist):
+                raise VerifyError(
+                    "Definition dummy '%s' occurs explicitly free in definiens"
+                    % vv[2])
 
         if i != len(dsig) - 1:
             raise VerifyError(
                 'Not all term argument variables occur in definiens')
 
         # Also need to construct the freemap for the new term.
-        freemap = defterm[2]
         nargs = len(freemap)
         for i in xrange(nargs):
             bmap = freemap[i]
@@ -751,7 +1300,7 @@ class VerifyCtx:
                 continue  # skip term variables
             l = []
             # IDEA: make self.freelist() return a bitmap?
-            self.freelist(conc[i + 1], remnant, l)
+            self.freelist(conc[i + 1], remnant, l, proofctx.varlist)
             for j in xrange(nargs):
                 if conc[j + 1] in l:
                     bmap = bmap | (1 << j)
@@ -762,44 +1311,13 @@ class VerifyCtx:
         # proofctx.fvvarmap.get(var, None) is just None and
         # check_free_in() will return False unless var occurs _explicitly_
         # free in term.
-        self.check_free_in(var, term, proofctx.fvvarmap.get(var, None))
+        self.check_free_in(var, term, proofctx.fvvarmap.get(var, None),
+                           proofctx.varlist)
 
-    # match templ, which is an expression in the variable space of the
-    # assertion being applied, against exp, an expression in the variable
-    # space of the current proof, extending dictionary env, which maps from
-    # the variables in the template space to expressions in the current proof
-    def match(self, templ, exp, env):
-        if type(templ) == type('var'):
-            if env.has_key(templ):
-                if exp != env[templ]:
-                    # todo: more debug detail
-                    raise VerifyError('Unification error')
-            else:
-                # Note, we check elsewhere if a binding variable is matched
-                # against a non-binding-variable term.
-                env[templ] = exp
-        elif type(templ) == type([]):
-            if type(exp) != type([]):
-                raise VerifyError('Unification error, expected ' + sexp_to_string(templ) + ' got ' + exp)
-            if templ[0] != exp[0]:
-                raise VerifyError('Unification error, expected ' + templ[0] + ' got ' + exp[0])
-            # todo: next check should never trigger, I think all terms
-            # given to match are well-formed.
-            if len(exp) != len(templ):
-                raise VerifyError('Term ' + templ[0] + ' expects arity ' +
-                                  str(len(templ)) + ' got ' + str(len(exp)))
-            for i in range(1, len(templ)):
-                self.match(templ[i], exp[i], env)
-
-    def apply_subst(self, templ, env):
-        if type(templ) == type('var'):
-            return env[templ]
-        elif type(templ) == type([]):
-            return [templ[0]] + [self.apply_subst(el, env) for el in templ[1:]]
-
-def term_common(kindname, sig, freespecs, kinds, terms, vars):
+def term_common(kindname, sig, freespecs, kinds, terms, syms):
     """ term parsing support for 'term' and 'defthm' commands """
-    if  type(sig) != type([]) or len(sig) < 1 or type(sig[0]) != type('term'):
+    if not isinstance(sig, list) or len(sig) < 1 or \
+       not isinstance(sig[0], basestring):
         raise SyntaxError(\
             'A term signature must be a list starting with a term symbol.')
     try:
@@ -829,7 +1347,7 @@ def term_common(kindname, sig, freespecs, kinds, terms, vars):
     for i in xrange(nargs):
         v = args[i]
         try:
-            var = vars[v]
+            var = syms[v]
         except KeyError:
             raise VerifyError('Unknown variable ' + v)
         except TypeError:
@@ -839,7 +1357,7 @@ def term_common(kindname, sig, freespecs, kinds, terms, vars):
         invmap[v] = i
         argkinds.append(var[1])  # kinds[var[1]] ?
         if var[0] == 'var':
-            freemap[i] = 0      # empty bitmap
+            freemap[i] = 0      # empty bitmap by default
         elif var[0] != 'tvar':  # might be 'stmt' or 'thm' in defthm case
             raise VerifyError('Term formal argument must be a variable.')
 
@@ -847,7 +1365,7 @@ def term_common(kindname, sig, freespecs, kinds, terms, vars):
         return (kind, argkinds, freemap)
 
     for freespec in freespecs:
-        if type(freespec) != type([]) or len(freespec) < 2:
+        if not isinstance(freespec, list) or len(freespec) < 2:
             raise SyntaxError('Each free variable map must be a list of at least two variables.')
         try:
             bvix = invmap[freespec[0]]
@@ -915,505 +1433,211 @@ def invertible_match(newexp, origexp, env, inv):
         i = i + 1
     return True
 
-class InterfaceCtx:
-    def __init__(self, name, verify, prefix, params, sort="import"):
-        self.name = name
-        self.verify = verify
-        self.prefix = prefix
-        self.params = params
-        self.sort = sort
-        self.used_params = {}
-        self.vars = {}
-        # self.myterm holds the terms introduced by this import context.
-        # self.terms is the larger collection of terms visible at the
-        # current point in this import context. It contains also terms
-        # made available via param commands.
-        self.terms = {}
-        self.myterms = {}
-        # self.mykinds is the collection of kinds introduced by the import
-        # context itself. self.kinds is the larger collection of kinds
-        # available to the import context(at the current point). It includes
-        # also kinds made available via param commands.
-        self.kinds = {}
-        self.mykinds = {}
-        self.error_count = 0
+# name, verify, prefix, params, and sort refer to the interface
+# as imported (or exported) into a Verify context, not to the interface
+# itself.
 
-    def countError(self):
-        self.error_count = self.error_count + 1
 
-    def get_kind(self, rawkind):
-        try:
-            return self.kinds[rawkind]
-        except KeyError:
-            raise VerifyError('Kind ' + rawkind + ' is not known in ' + \
-                              self.sort + ' context.')
-        except TypeError:
-            raise SyntaxError ('A kind name must be a string.')
+class InterfaceCtx(GhilbertCtx):
+    def __init__(self, urlctx, run, global_ctx, fname,
+                 build_interface=build_if):
+        GhilbertCtx.__init__(self, urlctx, run, global_ctx, fname,
+                             build_interface)
 
-    def kind_cmd_common(self, arg):
-        if type(arg) != type([]) or len(arg) != 1:
-            raise VerifyError('kind command takes one arg')
-        kname = arg[0]
-        if type(kname) != type('str'):
-            raise VerifyError('kind argument must be string')
-
-        if kname in self.kinds:
-            raise VerifyError('A kind ' + kname +
-                     ' is already visible in the current ' + self.sort +
-                     ' export context.')
-
-        kprefixed = self.prefix + kname
-
-        self.kinds[kname] = kprefixed
-        self.mykinds[kname] = kprefixed
-        return kprefixed
-
-    def var_cmd(self, cmd, arg):
-        if not isinstance(arg, list) or len(arg) < 1:
-            raise SyntaxError('Expected ' + cmd + ' (KIND VAR ...)')
-        kind = self.get_kind(arg[0])
-        for v in arg[1:]:
-            if type(v) != type('var'):
-                raise SyntaxError('Variable names must be atoms.')
-            if v in self.vars:
-                raise VerifyError('Variable ' + v + ' already defined')
-            self.vars[v] = (cmd, kind, v)
-
-    def param_cmd(self, arg):
-        # param (IFACE IGNORED_URL (PARAM ...) PREFIX)
-        if type(arg) != type([]) or len(arg) != 4:
-            raise SyntaxError( \
-                'Expected param (IFACE IGNORED_URL (PARAM ...) PREFIX)')
-        ifname = arg[0]
-        url = arg[1]            # Unused except to check it is an atom
-        paramnames = arg[2]
-        prefix = arg[3]
-        if type(ifname) != type('ifname') or \
-            type(url) != type('url') or \
-            type(paramnames) != type([]) or \
-            type(prefix) != type('prefix'):
-            raise SyntaxError( \
-                'Expected param (IFACE IGNORED_URL (PARAM ...) PREFIX)')
-        if len(prefix) < 2 or prefix[0] != '"' or prefix[-1] != '"':
-            raise SyntaxError('Namespace prefix must be enclosed in quotes')
-        prefix = prefix[1:-1]
-
-        if ifname in self.used_params:
-            raise VerifyError('Interface parameter ' + ifname + \
-                              ' was already used.')
-        n = len(self.used_params)
-        try:
-            p = self.params[n]
-        except IndexError:
-            raise VerifyError(\
-                "More param commands than provided interface parameters")
-
+    def param(self, ifname, pif, paramnames, prefix):
         subparams = []
         for pn in paramnames:
             try:
-                subparams.append(self.used_params[pn])
+                subparams.append(self.interfaces[pn])
             except KeyError:
                 raise VerifyError('Unknown interface parameter name ' + pn)
             except TypeError:
                 raise SyntaxError('param parameter must be interface name')
 
+        # The subparams check needs thought -- a parameter is not just
+        # an InterfaceCtx, but an association of an InterfaceCtx with
+        # a prefix and some subparameters of its own...
         # note, this check also checks distinctness of subparams
-        if subparams != p.params:
-            raise VerifyError('Context ' + self.name + \
-                   ' changes parameters to parameter interface ' + \
-                   ifname + ' (' + p.name + ')')
+        # Are these parameter checks sufficient here?
+        if len(subparams) != len(pif.iflist):
+            raise VerifyError("Parameters to interface '%s' do not match."
+                              % ifname)
+        for ix in xrange(len(subparams)):
+            ppif = self.iflist[subparams[ix]]
+            if ppif[1] is not pif.iflist[ix][1]:
+                raise VerifyError(
+                    "Parameters to interface '%s' do not match." % ifname)
 
-        self.used_params[ifname] = p
+        kindmap = self.iface_kinds(pif, subparams, prefix)
 
-        # Make the param interface's kinds and terms available in
-        # the current import context, with the specified prefix.
-        # For each, verify that there is not already a kind or term in the
-        # import context namespace with a colliding name.
-        # Note that we don't add stmt's from the param interface
-        # the current import context -- they are not needed.
-        for k, kr in p.mykinds.iteritems():
-            kpref = prefix + k
-            if kpref in self.kinds:
-                raise VerifyError('Context ' + self.name +
-                                  ' already contains a kind ' + kpref)
-            self.kinds[kpref] = kr
-        for t, tr in p.myterms.iteritems():
-            tpref = prefix + t
+        ifindex = len(self.iflist)
+        for t in pif.term_hist:
+            # t is (termname_in_pif, origin_ifindex_in_pif, origin_termix,
+            #       rkindix, argkindixs, freemap, sig [, defthm_label])
+            if t[1] >= 0:
+                continue
+            tpref = prefix + t[0]
             if tpref in self.terms:
-                raise VerifyError('Context ' + self.name +
-                                  ' already contains a term ' + tpref)
-            self.terms[tpref] = tr
+                raise VerifyError("A term '%s' already exists" % tpref)
+            my_rkind = kindmap[t[3]]
+            my_argkinds = [kindmap[kix] for kix in t[4]]
+            n = len(self.term_hist)
+            self.terms[tpref] = n
+            self.term_hist.append((tpref, ifindex, t[2],
+                                       my_rkind, my_argkinds, t[5], t[6]))
 
-class ImportCtx(InterfaceCtx):
-    def __init__(self, name, verify, prefix, params):
-        InterfaceCtx.__init__(self, name, verify, prefix, params, 'import')
-
-    def map_syms(self, sexp, mapping, varlist, varmap,
-                 kind=None, binding_var=False):
-        """ Apply mapping to term symbols in an expression 'sexp'
-            Check that the expression is well-formed, satisfying kind and
-            binding constraints. Collect the variables used in used_vars.
-        """
-        if isinstance(sexp, basestring):
-            try:
-                v = self.vars[sexp]
-            except KeyError:
-                raise VerifyError(\
-                    'Variable %s not known in import context' % sexp)
-            if kind is not None and kind != v[1]:
-                raise VerifyError('Expected expression of kind %s, found %s' %
-                                  (kind, sexp))
-            if binding_var and v[0] != 'var':
-                raise VerifyError(\
-                    'Expected a binding variable, found term variable %s' %
-                    sexp)
-            if sexp not in varmap:
-                varmap[sexp] = len(varlist)
-                varlist.append(v)
-            return sexp
-
-        if len(sexp) < 1 or type(sexp[0]) != type ('name'):
-            raise SyntaxError('Invalid term expression ' +
-                              sexp_to_string(sexp))
-        if binding_var:
-            raise VerifyError('Expected a binding variable, found %s' %
-                              sexp_to_string(sexp))
-        try:
-            tmapped = mapping[sexp[0]]
-            t = self.verify.terms[tmapped]
-        except KeyError:
-            raise VerifyError('Expression %s has unknown term symbol' %
-                              sexp_to_string(sexp))
-        # t is (kind, argkinds, freemap)
-        if kind is not None and t[0] != kind:
-            raise VerifyError('Expected expression of kind %s, found %s' %
-                              (kind, sexp_to_string(sexp)))
-        newterm = [tmapped]
-        nargs = len(sexp) - 1
-        if len(t[1]) != nargs:
-            raise VerifyError('Arity mismatch for term expression %s' %
-                              sexp_to_string(sexp))
-        for j in xrange(len(sexp) - 1):
-            el = sexp[j + 1]
-            argkind = t[1][j]
-            binding_var = (j in t[2])
-            newterm.append(self.map_syms(el, mapping, varlist, varmap,
-                                         kind, binding_var))
-        return newterm
-
-    def do_cmd(self, cmd, arg, out):
-        """ Command processing for import context """
-        if cmd == 'kind':
-            kprefixed = self.kind_cmd_common(arg)
-            self.verify.add_kind(kprefixed, kprefixed)
-        elif cmd in ('var', 'tvar'):
-            self.var_cmd(cmd, arg)
-        elif cmd == 'term':
-            if type(arg) != type([]) or len(arg) < 2:
-                raise SyntaxError("Expected 'term (KIND (TERMNAME VAR ...) (BVAR FVAR ...) ...)'")
-            t = term_common(arg[0], arg[1], arg[2:],
-                            self.kinds, self.terms, self.vars)
-            (kind, argkinds, freemap) = t
-            local_termname = arg[1][0]
-
-            termname = self.prefix + local_termname
-
-            self.verify.add_term(termname, kind, argkinds, freemap)
-            self.myterms[local_termname] = termname
-            self.terms[local_termname] = termname
-        elif cmd == 'stmt':
-            # import context stmt command handling
-            if len(arg) != 4:
-                raise VerifyError('stmt needs exactly 4 arguments')
-            (local_label, fv, local_hyps, local_stmt) = arg
-            if type(local_label) != type('sym') or \
-               type(fv) != type([]) or \
-               type(local_hyps) != type([]):
-                raise SyntaxError('Expected stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCLUSION)')
-            # Note that since we don't obtain stmt's from prior param
-            # interfaces in the import context, we only have to check
-            # the stmt label as prefixed for the verify context.
-            label = self.prefix + local_label
-            # out.write('label=', label, ' self.terms=', self.terms)
-            varlist = []
-            varmap = {}
-            hyps = [self.map_syms(hyp, self.terms, varlist, varmap) for hyp in local_hyps]
-            num_hypvars = len(varlist)
-            stmt = self.map_syms(local_stmt, self.terms, varlist, varmap)
-            for clause in fv:
-                if type(clause) != type([]) or len(clause) < 2:
-                    raise SyntaxError('Free variable contraint context clause must be a list of at least two variables')
-                want = 'tvar'
-                for vname in clause:
-                    try:
-                        v = self.vars[vname]
-                    except KeyError:
-                        raise VerifyError('Unknown variable in free variable constraint context: ' + vname)
-                    except TypeError:
-                        raise SyntaxError('Free variable constraint context clause items must be variables')
-                    if v[0] != want:
-                        raise VerifyError('In free variable constraint context clause, the first variable must be a term variable and the remaining variables must be binding variables')
-                    want = 'var'
-                    if vname not in varmap:
-                        raise VerifyError('Variable %s in free variable constraint context does not occur in the hypotheses or conclusion of the statement %s' % (vname, local_label))
-
-            self.verify.add_assertion('stmt', label, fv, hyps, stmt,
-                                      varlist, num_hypvars, len(varlist),
-                                      self.vars)
-        elif cmd == 'param':
-            self.param_cmd(arg)
-        elif cmd == 'kindbind':
-            # TODO. Note that the interface file kindbind command expects
-            # two existing kinds and makes them equivalent.  This can occur
-            # after earlier uses of the two separate kinds, and means that
-            # kind comparisons throughout the verifier need to be
-            # careful to recognize the equivalence.
-            out.write('interface kindbind: TODO!')
-        else:
-            out.write('*** Warning: unrecognized command ' + cmd + \
-                  ' seen in import context. ***')
-
-class ExportCtx(InterfaceCtx):
-    def __init__(self, name, verify, prefix, params):
-        InterfaceCtx.__init__(self, name, verify, prefix, params, 'export')
-        self.assertions = {}
-
-    def export_match(self, sexp, vexp, varmap, invmap):
-        """ Match export-context expression sexp against verify-context
-            expression vexp, building variable map varmap from export-context
-            variables to verify-context variables as one goes.
-            Return True on success, or False on failure.
-            Note that this applies both syntactical and proof checks.
-        """
-        if type(sexp) == type('var'):
-            if type(vexp) != type('var'):
-                return False
-            vvar = varmap.get(sexp, None)
-            if vvar is None:
-                try:
-                    v = self.vars[sexp]
-                except KeyError:
-                    return False
-                # Check binding vs. term var and kinds
-                vv = self.verify.syms[vexp]
-                if v != vv:
-                    return False
-                if vexp in invmap:
-                    return False
-                varmap[sexp] = vexp
-                invmap[vexp] = sexp
-                return True
-            return vvar == vexp
-        if type(vexp) != type([]):
-            return False
-        n = len(sexp)
-        if n != len(vexp):
-            return False
-        tname = sexp[0]
-        if type(tname) != type('var'):
-            return False
-        if not tname in self.terms:  # can't use a term we don't know yet
-            return False
-        prefname = self.prefix + tname
-        if prefname != vexp[0]:
-            return False
-        n = n - 1
-        for i in xrange(n):
-            if not self.export_match(sexp[i + 1], vexp[i + 1], varmap, invmap):
-                return False
-        return True
+        self.interfaces[ifname] = ifindex
+        self.iflist.append((ifname, pif, subparams, prefix, kindmap))
         
 
-    def do_cmd(self, cmd, arg, out):
-        """ ExportCtx command processing """
+    # do_cmd() for InterfaceCtx
+    def do_cmd(self, cmd, arg, record=None):
+        out = self.out
         if cmd == 'kind':
-            kprefixed = self.kind_cmd_common(arg)
-            try:
-                k = self.verify.kinds[kprefixed]
-            except KeyError:
-                raise VerifyError('The kind ' + kprefixed +
-                                  ' does not occur in the verify context.')
-
-        elif cmd in ('var', 'tvar'):
-            self.var_cmd(cmd, arg)
-
-        elif cmd == 'term':
-            if type(arg) != type([]) or len(arg) < 2:
+            if not isinstance(arg, list) or len(arg) != 1 or \
+                   not isinstance(arg[0], basestring):
+                raise SyntaxError("Expected 'kind (KINDNAME)'")
+            kname = arg[0]
+            if kname in self.kinds:
+                raise VerifyError("A kind '%s' already exists." % arg)
+            n = len(self.kind_hist)
+            self.kinds[kname] = n
+            self.kind_hist.append((kname, -1, n))
+            return
+        if cmd in ('var', 'tvar'):
+            if not isinstance(arg, list) or len(arg) < 1 or \
+               not isinstance(arg[0], basestring):
+                raise SyntaxError("Expected 'var (KINDNAME VARNAME ...)'")
+            kname = arg[0]
+            kix = self.get_kind(kname)
+            for vn in arg[1:]:
+                if not isinstance(vn, basestring):
+                    raise SyntaxError("A variable must be an identifier: %s" %
+                                      sexp_to_string(vn))
+                if vn in self.syms:
+                    raise VerifyError("A symbol '%s' already exists." % vn)
+                self.syms[vn] = (cmd, kix, vn) # don't store kname for interface
+            return
+        if cmd == 'term':
+            if not isinstance(arg, list) or len(arg) < 2:
                 raise SyntaxError("Expected 'term (KIND (TERMNAME VAR ...) (BVAR FVAR ...) ...)'")
-
-            t = term_common(arg[0], arg[1], arg[2:],
-                            self.kinds, self.terms, self.vars)
-            (kind, argkinds, freemap) = t
-            local_termname = arg[1][0]
-
-            termname = self.prefix + local_termname
-
-            try:
-                (tkind, targkinds, tfreemap) = self.verify.terms[termname]
-            except KeyError:
-                raise VerifyError('The term symbol ' + termname +
-                                  '%s does not exist in the verify context.')
-
-            # Check that ther term from the verify context agrees with that
-            # declared in the export context.
-
-            if kind != tkind:
-                raise VerifyError('Term ' + local_termname +
-                                  ' kind mismatch with verify context term ' +
-                                  termname)
-
-            if argkinds != targkinds:
-                raise VerifyError(\
-                    'Term signature mismatch with verify context for ' +
-                    local_termname)
-
-            if freemap != tfreemap:
-                raise VerifyError(\
-                    'Term freemap mismatch with verify context for ' +
-                    local_termname)
+            sig = arg[1]
+            t = term_common(arg[0], sig, arg[2:],
+                            self.kinds, self.terms, self.syms)
             
-            self.myterms[local_termname] = termname
-            self.terms[local_termname] = termname
-
-        elif cmd == 'stmt':
-            # Export context stmt command handling
-            if len(arg) != 4:
-                raise VerifyError('stmt needs exactly 4 arguments')
-            (local_label, fv, local_hyps, local_conc) = arg
-            if type(local_label) != type('sym') or \
-               type(fv) != type([]) or \
-               type(local_hyps) != type([]):
+            n = len(self.term_hist)
+            self.terms[sig[0]] = n
+            self.term_hist.append((sig[0], -1, n,
+                                   t[0], t[1], t[2], sig))
+            return
+        if cmd == 'stmt':
+            # InterfaceCtx stmt command handling
+            if not isinstance(arg, list) or len(arg) != 4:
+                raise SyntaxError('stmt needs exactly 4 arguments')
+            (label, fv, hyps, concl) = arg
+            if not isinstance(label, basestring) or \
+               not isinstance(fv, list) or not isinstance(hyps, list):
                 raise SyntaxError('Expected stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCLUSION)')
-            # Note that since we don't obtain stmt's from prior param
-            # interfaces in the export context, we only have to check
-            # the stmt label as prefixed for the verify context.
-            label = self.prefix + local_label
-            try:
-                (vkw, vfv, vhyps, vconcl, vmand, vsyms) = self.verify.syms[label]
-            except KeyError:
-                raise VerifyError('No symbol %s is known in verify context.' % label)
-            except ValueError:
-                raise VerifyError('The symbol %s is not an assertion in verify context' % label)
 
-            if local_label in self.assertions:
-                raise VerifyError('A statement with name %s already exists in export context.' % local_label)
-            if local_label in self.vars:
-                raise VerifyError('%s already exists as a variable in export context.' % local_label)
-
-
-            # Check that the hypotheses and conclusion provided in export
-            # context match those in verify context, apart from variable
-            # renames (and term prefixing, of course)
-            nhyps = len(local_hyps)
-            if nhyps != len(vhyps):
-                raise VerifyError('Different numbers of hypotheses between verify and export context for stmt %s' % local_label)
-
+            varlist = []
             varmap = {}
-            invmap = {}
-            for i in range(nhyps):
-                hyp = local_hyps[i]
-                vhyp = vhyps[i]
-                if not self.export_match(hyp, vhyp, varmap, invmap):
-                    raise VerifyError('Hypothesis mismatch for stmt %s\nExport context:\n   %s\nVerify context:\n   %s' % (local_label, sexp_to_string(hyp), sexp_to_string(vhyp)))
-            if not self.export_match(local_conc, vconcl, varmap, invmap):
-                raise VerifyError('Conclusion mismatch for stmt %s\nExport context:\n   %s\nVerify context:\n   %s' % (local_label, sexp_to_string(local_conc), sexp_to_string(vconcl)))
+            ihyps = [self.internalize(hyp, varlist, varmap)[2] for hyp in hyps]
+            num_hypvars = len(varlist)
+            iconcl = self.internalize(concl, varlist, varmap)[2]
 
-            # Would it make sense to save a 'nonfree' dictionary
-            # with each stmt / thm added to the verify context?
-            # For now, we reconstruct the nonfrees map here.
-            nonfrees_orig = {}
-            for clause in vfv:
-                tvar = clause[0]
-                for bvar in clause[1:]:
-                    try:
-                        d = nonfrees_orig[bvar]
-                    except KeyError:
-                        d = {}
-                        nonfrees_orig[bvar] = d
-                    d[tvar] = 0
-
-            nonfrees = {}
+            ifv = []
             for clause in fv:
-                if type(clause) != type([]) or len(clause) < 2:
+                if not isinstance(clause, list) or len(clause) < 2:
                     raise SyntaxError('Free variable contraint context clause must be a list of at least two variables')
                 want = 'tvar'
+                fvc = []
                 for vname in clause:
                     try:
-                        v = self.vars[vname]
+                        vix = varmap[vname]
                     except KeyError:
-                        raise VerifyError('Unknown variable in free variable constraint context: ' + vname)
+                        raise VerifyError("Free variable constraint context item '%s' is not a variable occurring in the hypotheses or conclusion." % vname)
                     except TypeError:
                         raise SyntaxError('Free variable constraint context clause items must be variables')
+                    v = varlist[vix]
                     if v[0] != want:
-                        raise VerifyError('In free variable constraint context clause, the first variable must be a term variable and the remaining variables must be binding variables')
-                    try:
-                        vvar = varmap[vname]
-                    except KeyError:
-                        raise VerifyError('Variable %s in free variable constraint context does not occur in the hypotheses or conclusion of the statement %s' % (vname, local_label))
-                    if want == 'tvar':
-                        tvar = vvar
-                    else:
-                        # Hmm, we could perhaps allow stronger freeness
-                        # constraints in the exported stmt than in the
-                        # original, but for now we don't.
-                        if not tvar in nonfrees_orig[vvar]:
-                            raise VerifyError('Export context free variable constraint context for %s is too strong' % vname)
-                        # Add tvar to the set of term variables in which vvar
-                        # may not occur free.
-                        d = nonfrees.get(vvar, None)
-                        if d is None:
-                            d = {}
-                            nonfrees[vvar] = d
-                        d[tvar] = 0
+                        raise VerifyError('In free variable constraint context clause %s, the first variable must be a term variable and the remaining variables must be binding variables' % sexp_to_string(clause))
                     want = 'var'
-            # Check that the (non)freeness constraints provided in the export
-            # context are at least as strong as those in the verify context
+                    fvc.append(vix)
+                ifv.append(fvc)
 
-            for vvar, d_orig in nonfrees_orig.iteritems():
-                try:
-                    d = nonfrees[vvar]
-                except KeyError:
-                    raise VerifyError('Export context free variable constraint context in stmt %d is too weak' % local_label)
-                for v in d_orig:
-                    if not v in d:
-                        raise VerifyError('Export context free variable constraint context in stmt %d is too weak' % local_label)
-                
-            # Remember we've used a stmt with name local_label
-            self.assertions[local_label] = 0
-        elif cmd == 'param':
-            self.param_cmd(arg)
-        elif cmd == 'kindbind':
-            # TODO. Note that the interface file kindbind command expects
-            # two existing kinds and makes them equivalent.  This can occur
-            # after earlier uses of the two separate kinds, and means that
-            # kind comparisons throughout the verifier need to be
-            # careful to recognize the equivalence.
-            print 'interface kindbind: TODO!'
-        else:
-            print '*** Warning: unrecognized command ' + cmd + \
-                  ' seen in export context. ***'
+            self.add_sym(label,
+                         ('stmt', ifv, ihyps, iconcl,
+                          varlist, num_hypvars, len(varlist), record))
 
-def run(urlctx, url, ctx, out):
-    s = Scanner(urlctx.resolve(url))
+            self.assertion_hist.append(label)
+            return
+
+        if cmd == 'param':
+            if not isinstance(arg, list) or len(arg) != 4:
+                raise SyntaxError( \
+                    'Expected param (IFACE URL (PARAM ...) PREFIX)')
+            ifname = arg[0]
+            url = arg[1]            # Unused except to check it is an atom
+            paramnames = arg[2]
+            prefix = arg[3]
+            if not isinstance(ifname, basestring) or \
+               not isinstance(url, basestring) or \
+               not isinstance(paramnames, list) or \
+               not isinstance(prefix, basestring):
+                raise SyntaxError( \
+                    'Expected param (IFACE IGNORED_URL (PARAM ...) PREFIX)')
+            if len(prefix) < 2 or prefix[0] != '"' or prefix[-1] != '"':
+                raise SyntaxError('Enclose Namespace prefix in quotes.')
+            prefix = prefix[1:-1]
+            if ifname in self.interfaces:
+                raise VerifyError(
+                    "Interface parameter '%s' was already used." % ifname)
+
+            # Fetch the interface by its url, it may already be loaded.
+            # (It would be if this is an import or export context loaded
+            # from a verify context)
+            pif = self.fetch_interface(url)
+
+            self.param(ifname, pif, paramnames, prefix)
+            return
+
+        if cmd == 'kindbind':
+            # We allow kindbind in interface files with the same semantics
+            # as in proof files -- i.e., kindbind introduces a new kind
+            # name as an alias for an existing kind. It does not join
+            # two pre-existing kinds.
+            self.kindbind_cmd(arg)
+            return
+            
+        out.write('*** Warning: unrecognized command ' + cmd + \
+                  ' seen in import context. ***')
+
+def run(urlctx, url, ctx):
+    record = ctx.record
+    s = ScannerRec(urlctx.resolve(url), record)
     try:
         while 1:
+            if record is not None:
+                s.record = ''
             cmd = read_sexp(s)
             if cmd is None:
                 return True
             if type(cmd) != str:
                 raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
             arg = read_sexp(s)
-            ctx.do_cmd(cmd, arg, out)
+            ctx.do_cmd(cmd, arg, (None if record is None
+                                  else s.record.lstrip()))
     except VerifyError, x:
-        out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
+        ctx.out.write('Verify error at %s:%d:\n%s\n' % (url, s.lineno, x.why))
     except SyntaxError, x:
-        out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
-    ctx.countError()
+        ctx.out.write('Syntax error at line %s:%d:\n%s\n' % (url, s.lineno, str(x)))
+    ctx.count_error()
     return False
 
 if __name__ == '__main__':
     i = 1
     fail_continue = False
+    verbosity = 1
     while i < len(sys.argv):
         arg = sys.argv[i]
         if arg[0] != '-':
@@ -1423,19 +1647,28 @@ if __name__ == '__main__':
             break
         if arg == '-c':
             fail_continue = True
+            break
+        if arg == '-v':
+            i = i + 1
+            verbosity = int(sys.argv[i])
         else:
             print >> sys.stderr, 'Unknown option:', arg
         i = i + 1
         
     fn = sys.argv[i]
+    gctx = GlobalCtx()
     urlctx = UrlCtx('', fn, sys.stdin)
-    ctx = VerifyCtx(urlctx, run, fail_continue)
+    #urlctx.out = sys.stdout
     if fn == '-':
         url = fn
     else :
-        url = 'file://' + fn        
-    ctx.run(urlctx, url, ctx, sys.stdout)
+        url = 'file://' + fn
+    norm_url = urlctx.normalize(url)
+    ctx = VerifyCtx(urlctx, run, gctx, norm_url, build_if, fail_continue)
+    ctx.verbosity = verbosity
+    ctx.run(urlctx, url, ctx)
     if ctx.error_count != 0:
         print 'Number of errors: %d' % ctx.error_count
         sys.exit(1)
+    ctx.complete()
 

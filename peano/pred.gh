@@ -1,0 +1,386 @@
+# Ghilbert proof file for context PRED
+
+import (PROP_AX /peano/prop_ax.ghi () "")
+import (PROP /peano/prop.ghi (PROP_AX) "")
+import (PRED_AX /peano/pred_ax.ghi (PROP_AX) "")
+
+
+tvar (wff ch ph ps ta th)
+tvar (obj A B C)
+var (obj u v w x y z)
+
+# Pure predicate calculus
+
+# An alias/abbreviation for ax-gen:
+thm (gen () (1 ph) (A. x ph) 1 x ax-gen)
+
+# An alias/abbreviation for ax-nfi
+thm (alnfi ((ph x)) () (-> ph (A. x ph)) ph x ax-nf)
+
+# An alias for Margaris A4, a.k.a ax-5
+thm (ax-alim () () (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps)))
+  x ph ps ax-5)
+
+defthm (df-ex wff (E. x ph) () () (<-> (E. x ph) (-. (A. x (-. ph))))
+     (-. (A. x (-. ph))) biid)
+
+thm (a4i ()
+  (hyp (A. x ph))
+  ph
+  hyp x ph ax-4 ax-mp
+)
+
+thm (a5i () (1 (A. x (-> ph ps))) (-> (A. x ph) (A. x ps))
+     1 x ph ps ax-5 ax-mp)
+
+thm (a5gi () (1 (-> ph ps)) (-> (A. x ph) (A. x ps))
+  1 x ax-gen a5i)
+
+thm (ex9 () () (E. x (= x y))
+  x y ax-9 
+    x (= x y) df-ex
+  mpbir)
+
+thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
+  x ph df-ex biimpi
+    (-. ph) x ax-nf con1i
+  syl
+)
+
+thm (ex-nfi ((ph x)) (1 (E. x ph)) ph
+  1 x ph ex-nf ax-mp
+)
+
+thm (mpg ()
+  (hyp1 (-> (A. x ph) ps)
+   hyp2 ph)
+  ps
+  hyp2 x gen hyp1 ax-mp
+)
+
+thm (19.3 ((ph x))
+  ()
+  (<-> (A. x ph) ph)
+  x ph ax-4 ph x alnfi impbii
+)
+
+# aka 19.7
+thm (alnex () ()
+  (<-> (A. x (-. ph)) (-. (E. x ph)))
+  x ph df-ex con2bii
+)
+
+thm (19.8a () ()
+  (-> ph (E. x ph))
+  x (-. ph) ax-4 con2i
+  x ph df-ex sylibr
+)
+
+thm (19.2 () ()
+  (-> (A. x ph) (E. x ph))
+  x ph ax-4 ph x 19.8a syl
+)
+
+thm (19.9 ((ph x))
+  ()
+  (<-> (E. x ph) ph)
+
+  x (-. ph) 19.3
+  x ph alnex bitr3i con4bii bicomi
+)
+
+thm (19.15 () ()
+  (-> (A. x (<-> ph ps)) (<-> (A. x ph) (A. x ps)))
+
+  ph ps bi1 x gen
+  x (<-> ph ps) (-> ph ps) ax-alim ax-mp
+  x ph ps ax-alim syl
+
+    ph ps bi2 x gen
+    x (<-> ph ps) (-> ps ph) ax-alim ax-mp
+    x ps ph ax-alim syl
+  impbid
+)
+
+thm (19.15i ()
+  (hyp (A. x (<-> ph ps)))
+  (<-> (A. x ph) (A. x ps))
+  hyp x ph ps 19.15 ax-mp)
+
+thm (19.15d () (H1 (-> ph (A. x (<-> ps ch)))) 
+      (-> ph (<-> (A. x ps) (A. x ch)))
+     H1 x ps ch 19.15 syl)
+
+thm (albii ()
+  (hyp (<-> ph ps))
+  (<-> (A. x ph) (A. x ps))
+  hyp x gen 19.15i)
+
+# aka 19.6
+thm (alex () ()
+  (<-> (A. x ph) (-. (E. x (-. ph))))
+  ph notnot x albii
+  x (-. ph) df-ex con2bii bitri
+)
+
+thm (19.20i ()
+  (hyp (-> ph ps))
+  (-> (A. x ph) (A. x ps))
+  hyp x gen x ph ps ax-alim ax-mp)
+
+thm (19.21 ((ph x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> ph (A. x ps)))
+
+  x ph ps ax-alim ph x alnfi syl5
+    (-> ph (A. x ps)) x alnfi
+      x ps ax-4
+      ph imim2i
+      x 19.20i
+    syl
+  impbii
+)
+
+thm (19.21ai ((ph x))
+  (hyp (-> ph ps))
+  (-> ph (A. x ps))
+  ph x alnfi hyp x 19.20i syl
+)
+
+thm (19.5 () ()
+  (<-> (A. x (A. y ph)) (A. y (A. x ph)))
+  x (A. y ph) ax-4 y ph ax-4 syl x 19.21ai y 19.21ai
+    y (A. x ph) ax-4 x ph ax-4 syl y 19.21ai x 19.21ai
+  impbii
+)
+
+thm (19.22 () ()
+  (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
+
+  ph ps con34b x albii
+    x (-. ps) (-. ph) ax-alim sylbi con3d
+    x ph df-ex x ps df-ex imbi12i sylibr
+)
+
+thm (19.22i ()
+  (hyp (-> ph ps))
+  (-> (E. x ph) (E. x ps))
+  hyp x gen x ph ps 19.22 ax-mp)
+
+thm (19.22d ((ph x))
+  (hyp (-> ph (-> ps ch)))
+  (-> ph (-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.22 syl
+)
+
+thm (19.18 () ()
+  (-> (A. x (<-> ph ps)) (<-> (E. x ph) (E. x ps)))
+  ph ps bi1 x 19.20i x ph ps 19.22 syl
+    ph ps bi2 x 19.20i x ps ph 19.22 syl
+  impbid
+)
+
+thm (exbii ()
+  (hyp (<-> ph ps))
+  (<-> (E. x ph) (E. x ps))
+  x ph ps 19.18 hyp mpg
+)
+
+thm (exbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.18 syl
+)
+
+thm (19.29 () ()
+  (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps)))
+  x ph (-. ps) ax-alim
+    x ps alnex
+  syl6ib
+  con3i
+    (A. x ph) (E. x ps) df-an
+      x (-> ph (-. ps)) alex con2bii
+  3imtr4i
+    ph ps df-an x exbii
+  sylibr
+)
+
+thm (19.32 ((ph x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ ph (A. x ps)))
+
+  x (-. ph) ps 19.21
+    ph ps df-or x albii
+      ph (A. x ps) df-or
+  3bitr4i
+)
+
+thm (19.31 ((ps x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ (A. x ph) ps))
+
+  x ps ph 19.32
+  ph ps orcom x albii
+  (A. x ph) ps orcom
+  3bitr4i
+)
+
+thm (19.23 ((ps x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> (E. x ph) ps))
+
+  ph ps imor x albii
+  x (-. ph) ps 19.31 bitri
+  x ph alnex ps orbi1i bitri
+  (E. x ph) ps imor bitr4i
+)
+
+thm (19.23ai ((ps x))
+  (hyp (-> ph ps))
+  (-> (E. x ph) ps)
+  hyp x 19.22i
+  x ps 19.9 sylib
+)
+
+thm (19.41 ((ps x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ (E. x ph) ps))
+  x (/\ ph ps) df-ex
+    x (-. ph) (-. ps) 19.31
+      ph ps ianor x albii
+        (E. x ph) ps ianor x ph alnex (-. ps) orbi1i bitr4i
+    3bitr4i con2bii
+  bitr4i
+)
+
+thm (ex6 () () (-> (E. x ph) (A. x (E. x ph)))
+     x ph df-ex
+       x (-. ph) ax-6
+     sylbi
+       x ph df-ex x albii
+     sylibr)
+
+thm (axex () () (<-> (A. x (E. x ph)) (E. x ph))
+     x (E. x ph) ax-4
+     x ph ex6
+     impbii)
+
+thm (exax1 () () (-> (E. x (A. x ph)) (A. x ph))
+     x (A. x ph) df-ex
+       x ph ax-6 con1i
+     sylbi)
+
+thm (exax () () (<-> (E. x (A. x ph)) (A. x ph))
+     x ph exax1
+     (A. x ph) x 19.8a
+     impbii)
+
+thm (exax1d () (1 (-> ph (E. x (A. x ps)))) (-> ph (A. x ps))
+     1 x ps exax1 syl)
+
+# Predicate logic with equailty
+
+thm (=refl_lem1 () () (E. x (= y y))
+  x y ex9
+    x y y ax-8 pm2.43i x 19.22i
+  ax-mp
+)
+
+thm (=refl () () (= x x)
+  y x =refl_lem1 ex-nfi
+)
+
+# but the other direction?
+thm (=sym1 () () (-> (= x A) (= A x))
+  x =refl
+    x A x ax-8
+  mpi
+)
+
+# Note, this doesn't work immediately if y is replaced with a term variable...
+thm (=sym () () (<-> (= x y) (= y x))
+  x y =sym1
+  y x =sym1
+  impbii
+)
+
+thm (=trans () () (-> (= x y) (-> (= y z) (= x z)))
+  x y =sym1
+    y x z ax-8
+  syl
+)
+
+thm (=eq1 () () (-> (= x y) (<-> (= y z) (= x z)))
+  x y z =trans
+    x y z ax-8
+  impbid
+)
+
+thm (=eq2 () () (-> (= x y) (<-> (= z x) (= z y)))
+  x y z =eq1 bicomd
+    x z =sym
+      y z =sym
+    bibi12i
+  sylib   
+)
+
+# Version of ax-11 using E.
+#thm (ex11 () () (-> (= x y) (-> (E. x (/\ (= x y) ph)) (E. y ph)))
+#     x y (-. ph) ax-11
+#       y ph alnex biimpri
+#     syl5
+#       x (-> (= x y) (-. ph)) alex biimpi
+#     syl6 con4d
+#       (= x y) ph df-an x exbii biimpi
+#     syl5)
+
+
+thm (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps)))
+     ph ps pm2.27 x 19.20i
+       x (-> ph ps) ps 19.22
+     syl com12)
+
+thm (eximp1d () (1 (-> ph (E. x (-> ps ch)))) (-> ph (-> (A. x ps) (E. x ch)))
+     1 x ps ch eximp1 syl)
+
+thm (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps)))
+     ph ps pm2.27 x 19.22i eximp1d
+     )
+
+thm (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps))))
+     x ph (/\ ph ps) mpexax
+       ph ps ancl x 19.20i
+     syl5
+     )
+
+thm (sbaxex () () (-> (A. x (-> (= x y) ph)) (E. x (/\ (= x y) ph)))
+     x y ex9
+       x (= x y) ph mpexaxp
+     ax-mp)
+
+thm (sbaxexd () (1 (-> ph (A. x (-> (= x y) ps))))
+        (-> ph (E. x (/\ (= x y) ps)))
+     1 x y ps sbaxex syl)
+
+thm (exlem1 ((ph x)) () (-> (E. x ph) (E. x (/\ (= x y) ph)))
+     ph x alnfi
+       ph (= x y) ax-1 x 19.20i
+     syl x 19.22i exax1d sbaxexd)
+
+thm (exalpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))
+     (-> (E. x ph) (E. y ps))
+     y x =sym 1 sylbi com12 y 19.21ai
+       y x ex9
+         y (= y x) ps mpexax
+       ax-mp
+     syl x 19.23ai)
+
+thm (exalpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps)))
+     (<-> (E. x ph) (E. y ps))
+    1 biimpd exalpha1
+    y x =sym 1 sylbi biimprd exalpha1
+    impbii)
+
+defthm (df-eu wff (E! x ph) ((ph y)) ()
+          (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
+       z y x =eq2 ph bibi2d x 19.21ai 19.15d exalpha)
+

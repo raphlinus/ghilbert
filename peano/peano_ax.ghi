@@ -1,57 +1,57 @@
-# Experimental interface for Peano arithmetic
+param (PROP_AX prop_ax.ghi () "")
+param (PROP prop.ghi (PROP_AX) "")
+param (PRED_AX pred_ax.ghi (PROP_AX) "")
+param (PRED pred.ghi (PROP_AX PROP PRED_AX) "")
 
-# We conjecture the following properties about this interface, with at
-# this point only a moderate amount of confidence:
-#
-# * It encapsulates PA soundly and completely.
-# * It is possible to interpret in a set.mm universe.
-# * It is reasonably useful.
-#
-# There are two extensions that may improve usefulness: classes and
-# ax-11. The latter would enable a substitution operator with all the
-# expected properties. However, it makes the syntactic interpretation
-# in set.mm problematic.
-
-param (PROP prop.ghi () "")
-param (PEANO_MIN peano_min.ghi (PROP) "")
+kindbind (obj nat)
 
 tvar (wff ph ps ch)
-tvar (num A B C D)
-var (num x y z)
+tvar (nat A B C D)
+var (nat x y z)
 
-# Definition of exists - could be done through def instead of axiom here.
-term (wff (E. x ph))
-stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+# Similar to ax-8, but for tvars instead of vars.
+stmt (ax-eqtr () ()
+  (-> (/\ (= A B) (= A C)) (= B C)))
 
-# Exists-unique is handy for iota def, but could be expanded there
-term (wff (E! x ph))
-stmt (df-eu ((ph y)) ()
-  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
+# Similar to ax-9, but expanded to nat's instead of var's,
+# and requiring a free variable constraint.
+stmt (ax-tyex ((A x)) ()
+  (-. (A. x (-. (= x A)))))
 
-term (num (1))
-stmt (df-1 () () (= (1) (S (0))))
 
-# Definition of less than or equal to.
-term (wff (<= A B))
-stmt (df-le ((A x) (B x)) ()
-  (<-> (<= A B) (E. x (= (+ A x) B))))
+# Properties of natural numbers: Peano axioms
 
-term (wff (< A B))
-stmt (df-lt () ()
-  (<-> (< A B) (/\ (<= A B) (-. (= A B)))))
+term (nat (0))
+term (nat (S A))
+term (nat (+ A B))
+term (nat (* A B))
 
-term (wff ([/] A x ph) (x A))
-stmt (df-subst ((A z) (ph z)) ()
-  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
+# Equality axiom for addition
+stmt (addeq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
 
-term (wff (rwff x ph))
-stmt (df-rwff () ()
-  (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph)))))
+# Equality axiom for multiplication
+stmt (muleq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
 
-# iota is a draft at this point.
-# term (num (iota x ph))
-#stmt (ax-iota ((ph y)) ()
-#  (-> (E! x ph)
-#    (E. y (/\ (= y (iota x ph))
-#      (E. x (/\ (= x y) ph))))))
+stmt (pa_ax1 () () (-. (= (0) (S A))))
+
+# Note that the biconditional captures equality properties of S as
+# well as the traditional Peano axiom 2.
+stmt (pa_ax2 () ()
+  (<-> (= A B) (= (S A) (S B))))
+stmt (pa_ax3 () ()
+  (= (+ A (0)) A))
+stmt (pa_ax4 () ()
+  (= (+ A (S B)) (S (+ A B))))
+stmt (pa_ax5 () ()
+  (= (* A (0)) (0)))
+stmt (pa_ax6 () ()
+  (= (* A (S B)) (+ (* A B) A)))
+
+stmt (pa_ind ((ph y)) ()
+  (-> (/\ (A. x (-> (= x (0)) ph))
+          (A. y (-> (A. x (-> (= x y) ph))
+                    (A. x (-> (= x (S y)) ph)))))
+      (A. x ph)))
 

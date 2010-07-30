@@ -1,0 +1,49 @@
+# Ghilbert interface file /peano/pred_ax.ghi
+
+param (PROP_AX /peano/prop_ax.ghi () "")
+
+kind (obj)
+
+tvar (wff ph ps)
+tvar (obj A B)
+var (obj x y z)
+
+term (wff (A. x ph))
+term (wff (= A B))
+
+stmt (ax-gen ()
+  (ph)
+  (A. x ph))
+
+# roughly Margaris A5, but without the subst
+# We may be able to prove this from other axioms in this file
+# but for now we keep it.
+stmt (ax-4 () ()
+  (-> (A. x ph) ph))
+
+# Margaris A4, a.k.a. ax-5
+stmt (ax-5 () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+
+stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
+
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
+
+# Hmm, potentially stronger than metamath's ax-8 since
+# we allow A and B to be term variables instead of just binding
+# variables. Hopefully the restriction of x to be a binding
+# variable is enough to keep us safe when dealing with terms
+# that "don't exist".
+stmt (ax-8 () ()
+  (-> (= x A) (-> (= x B) (= A B))))
+
+stmt (ax-9 () ()
+  (-. (A. x (-. (= x y)))))
+
+stmt (ax-11 () () (-> (= x y) (-> (A. y ph) (A. x (-> (= x y) ph)))))
+
+# roughly equivalent to ax-17
+stmt (ax-nf ((ph x))
+  ()
+  (-> ph (A. x ph)))
+

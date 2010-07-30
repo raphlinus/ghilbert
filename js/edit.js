@@ -241,7 +241,7 @@ GH.CanvasEdit.prototype.deleteselection = function() {
 GH.CanvasEdit.prototype.save = function() {
     var req = new XMLHttpRequest();
     var text = ('name=' + encodeURIComponent(name) +
-                '&number=' + document.getElementById('number').value +
+                // '&number=' + document.getElementById('number').value +
 		'&content=' + encodeURIComponent(this.text.join('\n')));
     req.onreadystatechange = function () {if (req.readyState == 4) {
                                               document.getElementById('output').innerHTML=req.responseText;}};
@@ -380,15 +380,15 @@ GH.CanvasEdit.init = function() {
     var text = new GH.CanvasEdit(canvas, inputlayer);
     canvas.focus();
     text.dirty();
-    var number = document.getElementById('number');
-    number.onchange = function() {
-        var url = '../peano/peano_thms.gh';
-        var uc = new GH.XhrUrlCtx('../', url);
-        var v = new GH.VerifyCtx(uc, run);
-        run(uc, '../proofs_upto/' + number.value, v);
-        window.direct.vg = v;
-        text.dirty();
-    };
+//     var number = document.getElementById('number');
+//     number.onchange = function() {
+//         var url = '../peano/peano_thms.gh';
+//         var uc = new GH.XhrUrlCtx('../', url);
+//         var v = new GH.VerifyCtx(uc, run);
+//         run(uc, '../proofs_upto/' + number.value, v);
+//         window.direct.vg = v;
+//         text.dirty();
+//     };
 
     return text;
 };

@@ -23,6 +23,7 @@ import verify
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
+from google.appengine.ext.db import stats # DLK debug
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 
@@ -38,6 +39,629 @@ def json_dumps(obj):
         return "[" + ", ".join(map(json_dumps, obj)) + "]"
     else:
         return 'null'
+
+# DLK just thinking...
+#
+# How much does the database structure need to reflect the structure
+# in the Ghilbert universe?
+# I think we want the module to read the whole database and keep
+# the results cached, pre-parsed, for subsequent requests.
+# Need to worry about accesses to the database by multiple processes,
+# however.
+
+class StringScanner(object):
+    def __init__(self, str):
+        self.record = str.encode('ascii')
+        self.lines = self.record.splitlines()
+        self.lineno = 0
+        self.toks = []
+        self.tokix = 0
+
+    def get_tok(self):
+        while len(self.toks) == self.tokix:
+            if self.lineno >= len(self.lines):
+                return None
+            line = self.lines[self.lineno]
+            self.lineno += 1
+            line = line.split('#')[0]
+            line = line.replace('(', ' ( ')
+            line = line.replace(')', ' ) ')
+            self.toks = line.split()
+            self.tokix = 0
+        result = self.toks[self.tokix]
+        self.tokix += 1
+        return result
+
+# Increments whenever the Ghilbert universe / database is extended
+# in a way that cannot invalidate previous work.
+# There will be just one entity of this kind in the database.
+class ExtensionGeneration(db.Model):
+    gen = db.IntegerProperty()
+
+# Increments whenever the Ghilbert universe / database is modified
+# in a way that might invlidate earlier work, triggering a full re-read
+# of the database.
+# There will be just one entity of this kind in the database.
+class EditGeneration(db.Model):
+    gen = db.IntegerProperty()
+
+# Can the ExtensionGeneration/EditGeneration idea be race-free?
+
+class GHContext(db.Model):
+    name = db.StringProperty()  # will be None for interface file
+    fname = db.StringProperty(required=True) # use TextProperty() instead?
+    level = db.IntegerProperty(required=True)
+
+# Represents an import/param/export command
+class GHInterface(db.Model):
+    ctx_from = db.ReferenceProperty(GHContext,
+                                    collection_name="ghinterface_from_set",
+                                    required=True)
+    ctx_to = db.ReferenceProperty(GHContext,
+                                  collection_name="ghinterface_to_set",
+                                  required=True)
+    # 'name' names this import among all imports of the parent interface
+    name = db.StringProperty(required=True)
+    prefix = db.StringProperty()
+    params = db.TextProperty()
+    # index among interfaces with the same ctx_from
+    index = db.IntegerProperty(required=True)
+    style = db.StringProperty(required=True,
+                              choices=set(['param', 'import', 'export']))
+
+class GHKind(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    name = db.StringProperty(required=True)
+
+class GHKindbind(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    k_old = db.StringProperty(required=True)
+    k_new = db.StringProperty(required=True)
+
+class GHVar(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    name = db.StringProperty(required=True)
+    var_kind = db.StringProperty(required=True)
+    binding = db.BooleanProperty(default=False)
+
+class GHTerm(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    arg = db.TextProperty(required=True)
+    
+class GHStmt(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    cmd = db.TextProperty(required=True)
+
+# Note, we don't order the theorems in the database. We infer an ordering
+# that works (when possible).
+# We don't want to store any index or depth value to order the theorems,
+# since such a value would have to be recalculated for a large number of
+# theorems if a theorem were inserted earlier, or a proof of an existing
+# theorem changes in depth.
+class GHThm(db.Model):
+    ctx = db.ReferenceProperty(GHContext, required=True)    
+    cmd = db.TextProperty(required=True)
+
+# Use cases:
+# - Retrieve all kinds, terms, variables, and statements valid (axiomatic or
+#   provable) in a context.
+# - Retrieve just those statements and terms that are axiomatic in a context.
+# - Add a variable to a context.
+# - Prove a theorem in a context.
+# - Prove a defthm in a context, adding the defined term and statement.
+# - Edit an existing theorem or defthm, preserving its interface.
+#   (Need to ensure that the new proof doesn't depend upon results proven
+#   later that depend on it.  If the theorem is relocated in the context
+#   sequence, need to make sure it is not moved after any other results that
+#   depend on it. But the linear sequence is a bit artificial.)
+# - Add a new proof of a statement within a different context.
+# - Add an unproven statement as an axiom, creating a larger context.
+#   (Probably want to be able to add several at once, so as not need to name
+#    all the intermediate ones...)
+# - If a context has axioms that turn out to be provable based upon
+#   the parent context (or other axioms of the same context), such axioms
+#   may be removed as explicit dependencies of the context.
+# - Dump the full database to a client. Probably need to break in pieces
+#   to avoid quota limits.
+# - Recreate the database based upon input files, or extend the database
+#   using bulk updates based upon input files.
+
+def init_datastore(defaults):
+    # This routine is called only when 'resetting to factory defaults'.
+    # It should be very rare except during development or maintenance.
+    # The datastore is empty when this routine starts. (Hmm, Remote access?)
+    ds_contexts = {}
+    gctx = verify.GlobalCtx()
+    out = DummyWriter()
+    for d in defaults:
+        init_datastore_ctx(d, gctx, ds_contexts, out)
+    return ds_contexts
+
+def init_datastore_ctx(d, gctx, ds_contexts, out):
+    global gh_base_dir
+    name, path = d
+    name = name.upper()
+
+    if path in ds_contexts:
+        logging.error("Verify context %s (%s) repeated." % (name, path))
+        return
+
+    logging.info("Adding context %s, from %s" % (name, path))
+
+    def ghapp_build_if(ctx, fn, url):
+        global gh_base_dir
+        global_ctx = ctx.global_ctx
+##        logging.info(
+##            'ghapp_build_if: fn=%s ctx.global_ctx.all_interfaces=%r'
+##            % (fn, global_ctx.all_interfaces))
+        if fn.endswith('.ghi'):
+            if not fn.startswith(gh_base_dir):
+                logging.error(
+                    'ghapp_build_if: interface path %s does not start with %s'
+                    % (fn, gh_base_dir))
+                raise verify.VerifyError('Bad path prefix')
+            fnp = fn[:-1]
+            vctx = global_ctx.all_interfaces.get(fnp, None)
+            if vctx is not None:
+                if fnp in global_ctx.iface_in_progress:
+                    raise verify.VerifyError(
+                        "Tried to fetch auto-export of in-progress %s" % fnp)
+                if vctx.name is not None:
+                    return vctx
+            
+        pif = verify.InterfaceCtx(ctx.urlctx, ctx.run, ctx.global_ctx, fn,
+                                  ctx.build_interface)
+        pif.record = ctx.record
+        if not pif.run(ctx.urlctx, url, pif):
+            raise verify.VerifyError(
+                "Failed while loading interface '%s'" % url)
+        pif.complete()
+        return pif
+
+    # TODO: rethink the filename / path handling here
+    urlctx = verify.UrlCtx(gh_base_dir, path, None, False)
+    path_norm = urlctx.normalize(path)
+    vctx = verify.VerifyCtx(urlctx, verify.run, gctx, path_norm,
+                            ghapp_build_if, False)
+    vctx.name = name
+    vctx.out = out
+    vctx.record = ''
+    vctx.ignore_exports = True
+    vctx.run(urlctx, path, vctx)
+    if vctx.error_count != 0:
+        logging.warning('%d errors verifying %s' % (vctx.error_count,
+                                                      name))
+    vctx.complete()
+
+    # Handle imports, (kinds), variables, and (terms)
+    init_datastore_ictx(vctx, ds_contexts, name)
+
+
+def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
+    global gh_base_dir
+
+    fname = gh_ctx.fname
+    if not fname.startswith(gh_base_dir):
+        logging.error('Real interface path %s does not start with %s' %
+                      (fname, gh_base_dir))
+        raise verify.VerifyError('Bad path prefix')
+    fname = fname[len(gh_base_dir):]
+
+    if fname in ds_contexts:
+        logging.info("Context %s (%s) repeated." % (name, fname))
+        return ds_contexts[fname]
+
+    logging.info("Building Ghilbert context %s" % fname)
+
+    ds_ctx = GHContext(name=name, fname=fname, level=gh_ctx.level)
+    ds_ctx.put()
+    ds_contexts[fname] = ds_ctx
+
+    # First, all the imports.
+    nifs = len(gh_ctx.iflist)
+    for ix in xrange(nifs):
+        imp = gh_ctx.iflist[ix]
+        # For verify context,
+        #  ifname, ictx, params, prefix, kindmap, termmap, style
+        # termmap and style are absent for an interface file context.
+        ifname, ictx, params, prefix = imp[:4]
+        # We only handle imports that occur before any export, in order
+        # that we can put them all at the start of the file.
+        # We generate exported interface files automatically, so we don't
+        # store their results separately in the datastore.
+        if name is not None:
+            if imp[6] == 'export':
+                break
+            style = 'import'
+        else:
+            style = 'param'
+        param_fname = ictx.fname
+        try:
+            ids_ctx = ds_contexts[param_fname]
+        except KeyError:
+            ids_ctx = init_datastore_ictx(ictx, ds_contexts, None)
+            
+        pnames = [gh_ctx.iflist[jx][0] for jx in params]
+        paramnames = '#'.join(pnames)
+        iface = GHInterface(ctx_from=ds_ctx, ctx_to=ids_ctx, name=ifname,
+                            prefix=prefix, params=paramnames, index=ix,
+                            style='import')
+        iface.put()
+
+    # Kinds
+    if name is None:
+        for kh in gh_ctx.kind_hist:
+            kname, ifindex, kix = kh
+            if ifindex >= 0:
+                continue        # skip kinds originating elsewhere
+            ghk = GHKind(ctx=ds_ctx, name=kname)
+            ghk.put()
+
+    # Kindbinds. We allow kindbind (with alias-only semantics) in interface
+    # files as well as proof files.
+    for k in gh_ctx.kindbinds:
+        kix = gh_ctx.kinds[k]
+        kv = gh_ctx.kind_hist[kix]
+        ghkb = GHKindbind(ctx=ds_ctx, k_old=kv[0], k_new=k)
+        ghkb.put()
+
+    # Variables.  Ugh, two passes through this...
+    for vname, sym in gh_ctx.syms.iteritems():
+        if sym[0] != 'var' and sym[0] != 'tvar':
+            continue
+        #logging.info('vname=%s, sym=%r' % (vname, sym))
+        if len(sym) == 4:
+            kname = sym[3]
+        else:
+            kname = gh_ctx.kind_hist[sym[1]][0]
+        ghv = GHVar(ctx=ds_ctx, name=vname, var_kind=kname,
+                    binding=(sym[0] == 'var'))
+        ghv.put()
+
+    if name is not None:
+        # Now, all the verify context's thm's and defthm's.
+        for ah in gh_ctx.assertion_hist:
+            # logging.info('creating [def]thm entity: %s' % ah)
+            thm = gh_ctx.syms[ah]
+            # thm is (kw, fv, hyps, concl, varlist,
+            #         num_hypvars, num_nondummies, record)
+            ght = GHThm(ctx=ds_ctx, cmd=thm[7])
+            ght.put()
+        logging.info("Finished Ghilbert context %s" % fname)
+        return ds_ctx  # No terms/stmts in verify context except defthm terms
+
+    # Terms (other than defthm terms in verify context)
+    for th in gh_ctx.term_hist:
+        tname, ifindex, termix, rkind, argkinds, freemap, sig = th
+        if ifindex >= 0:
+            continue        # skip terms originating elsewhere
+        arg = gh_ctx.term_arg_string(rkind, sig, freemap)
+        ght = GHTerm(ctx=ds_ctx, arg=arg)
+        ght.put()
+
+    # stmt's
+    for ah in gh_ctx.assertion_hist:
+        stmt = gh_ctx.syms[ah]
+        #logging.info('creating stmt entity: %s %r' %
+        #             (ah, stmt))
+        # stmt is (kw, fv, hyps, concl, varlist,
+        #          num_hypvars, num_nondummies, record)
+        ghs = GHStmt(ctx=ds_ctx, cmd=stmt[7])
+        ghs.put()
+
+    logging.info("Finished Ghilbert context %s" % fname)
+    return ds_ctx
+
+# gh_global_ctx will be a verify.GlobalCtx.
+gh_global_ctx = None
+#gh_interfaces = {}
+
+class DummyWriter(object):
+    def __init__(self):
+        pass
+    def write(self, data):
+        logging.info('%s' % data)
+        return
+
+class GHDatastoreError(Exception):
+    def __init__(self, why):
+        self.why = why
+
+def read_datastore():
+    global gh_global_ctx
+    global gh_base_dir
+
+    logging.info('Reading datastore')
+    out = DummyWriter()
+    gh_global_ctx = verify.GlobalCtx()
+    ctx_q = GHContext.all()
+    ctx_q.order('level')
+    for ds_ctx in ctx_q:
+        pfname = ds_ctx.fname.encode('ascii')
+        logging.info('Context: %s' % pfname)
+        cname = ds_ctx.name
+        full_pname = os.path.join(gh_base_dir, pfname[1:])
+        if full_pname in gh_global_ctx.all_interfaces:
+            raise GHDatastoreError('Duplicate context file name "%s"' % pfname)
+
+        urlctx = verify.UrlCtx(gh_base_dir, pfname, None, False)
+        if cname is not None:
+            gh_ctx = verify.VerifyCtx(urlctx, None, gh_global_ctx,
+                                      full_pname, False)
+            gh_ctx.name = cname.encode('ascii')
+        else:
+            if full_pname in gh_global_ctx.iface_in_progress:
+                raise GHDatastoreError(
+                    'Recursive reference to interface context %s in progress.'
+                    % full_pname)
+            gh_ctx = verify.InterfaceCtx(urlctx, None, gh_global_ctx,
+                                         full_pname, None)
+
+        gh_ctx.verbosity = 0
+        gh_ctx.out = out
+        read_context(ds_ctx, gh_ctx, out)
+        gh_ctx.complete()
+
+    
+def read_context(ds_ctx, ictx, out):
+    q = GHInterface.all()
+    q.filter("ctx_from =", ds_ctx)
+    q.order("index")
+
+    # Handle all params/imports
+    for iface in q:
+        read_iface(iface, ictx, out)
+
+    # Handle all locally defined kinds; don't need to do this for
+    # verify contexts.
+    if ictx.name is None:
+        for ghk in ds_ctx.ghkind_set:
+            kname = ghk.name.encode('ascii')
+            # check_id(kname)
+            n = len(ictx.kind_hist)
+            ictx.add_kind(kname, n)
+            ictx.kind_hist.append((kname, -1, n))
+
+    # We allow kindbinds (with alias-only semantics) in both interface
+    # files and proof files now...
+    for ghkb in ds_ctx.ghkindbind_set:
+        k_old = ghkb.k_old.encode('ascii')
+        # check_id(k_old)
+        k_new = ghkb.k_new.encode('ascii')
+        # check_id(k_new)
+        #logging.info('kindbind (%s %s)' % (k_old, k_new))
+        ictx.add_kind(k_new, ictx.get_kind(k_old))
+        ictx.kindbinds.append(k_new)
+
+    # Variables
+    for ghv in ds_ctx.ghvar_set:
+        vname = ghv.name.encode('ascii')
+        # check_id(vname)
+        if vname in ictx.syms:
+            raise verify.VerifyError(
+                "A symbol '%s' already exists in interface %s" %
+                (vname, ictx.fname))
+        kname = ghv.var_kind.encode('ascii')
+        # check_id(kname)
+        try:
+            kix = ictx.kinds[kname]
+        except KeyError:
+            raise verify.VerifyError(
+                "The kind '%s' does not exist in interface %s" %
+                (kname, ictx.fname))
+        if ictx.name is None:
+            ictx.syms[vname] = (('var' if ghv.binding else 'tvar'), kix, vname)
+        else:
+            ictx.syms[vname] = (('var' if ghv.binding else 'tvar'), kix,
+                                vname, kname)
+        #logging.info("Variable: (%s %d %s)\n" % ictx.syms[vname])
+
+    # Terms, statements for interface contexts
+    if ictx.name is None:
+        for ght in ds_ctx.ghterm_set:
+            # logging.info('term arg: %s' % ght.arg)
+            sc = StringScanner(ght.arg)
+            ictx.scanner = sc
+            e = verify.read_sexp(sc)
+            if e is None:
+                raise verify.VerifyError("Unexpected end of data -- term.")
+            try:
+                ictx.do_cmd('term', e, None)
+            except verify.VerifyError, x:
+                logging.error('%s' % x.why)
+                raise
+
+        for ghs in ds_ctx.ghstmt_set:
+            sc = StringScanner(ghs.cmd)
+            ictx.scanner = sc
+            # logging.info('stmt cmd: %s' % sc.record)
+            cmd = verify.read_sexp(sc)
+            if cmd != 'stmt':
+                raise verify.VerifyError("Expected stmt command")
+            e = verify.read_sexp(sc)
+            if e is None:
+                raise verify.VerifyError("Unexpected end of data -- stmt.")
+            try:
+                ictx.do_cmd('stmt', e, sc.record)
+            except verify.VerifyError, x:
+                logging.error('%s' % x.why)
+                raise
+
+    if ictx.name is not None:
+        thmap = {}
+        ictx.bad_thms = []
+        for ghth in ds_ctx.ghthm_set:
+            # handle out-of-order cases
+            add_thm(ictx, ghth, thmap, out)
+        ictx.unresolved_thms = thmap
+
+
+def read_iface(iface, ictx, out):
+    global gh_global_ctx
+    global gh_base_dir
+
+    fname = iface.ctx_to.fname.encode('ascii')
+    # check_id(fname)
+    full_pname = os.path.join(gh_base_dir, fname[1:])
+    try:
+        pif = gh_global_ctx.all_interfaces[full_pname]
+    except KeyError:
+        raise GHDatastoreError(
+            'Interface %s not already loaded when needed by %s'  %
+            (fname, ictx.fname))
+
+    ifname = iface.name.encode('ascii')
+    # check_id(ifname)
+    if ifname in ictx.interfaces:
+        raise verify.VerifyError(
+            "An interface of name '%s' already exists in %s"
+            % (ifname, ictx.fname))
+    prefix = iface.prefix.encode('ascii')
+    # check_id('"' + prefix + '"')
+    epn = iface.params.encode('ascii')
+    param_names = ([] if epn == '' else epn.split('#'))
+
+    if ictx.name is None:
+        ictx.param(ifname, pif, param_names, prefix)
+    else:
+        cmd = iface.style.encode('ascii')
+        if cmd == 'import':
+            ictx.gh_import(pif, ifname, param_names, prefix)
+        elif cmd == 'export':
+            ictx.gh_export(pif, ifname, param_names, prefix)
+        else:
+            raise verify.VerifyError("Unexpected interface command %s" % cmd)
+
+    if pif.level >= ictx.level:
+        ictx.level = pif.level + 1
+
+def find_unresolved_terms(vctx, exp, unk_terms):
+    if not isinstance(exp, list):
+        return
+    if len(exp) < 1 or isinstance(exp[0], list):
+        raise GHDatastoreError("Invalid term")
+    tname_tup = (exp[0],)
+    if exp[0] not in vctx.terms and tname_tup not in unk_terms:
+        unk_terms.append(tname_tup)
+    for e in exp[1:]:
+        find_unresolved_terms(vctx, e, unk_terms)
+
+def find_unresolved(vctx, cmd, e, cmdstr):
+    # thm (LABEL FVC HYPS CONC STEPS)
+    # defthm (LABEL KIND SIG FVC HYPS CONC STEPS)
+    # cmdstring has the full command + arg with comments
+    unk = []
+    unk_terms = []
+    steps_ix = (4 if cmd == 'thm' else 6)
+    if (not isinstance(e, list) or len(e) <= steps_ix or
+        not isinstance(e[0], basestring) or
+        not isinstance(e[steps_ix - 2], list) or
+        (len(e[steps_ix - 2]) & 1) != 0):
+        raise GHDatastoreError("Bad 'thm' or 'defthm' syntax")
+
+    hyps = e[steps_ix - 2]
+
+    hypnames = {}
+    for ix in xrange(0, len(hyps), 2):
+        hn = hyps[ix]
+        if not isinstance(hn, basestring):
+            raise GHDatastoreError("Hypothesis name must be an identifier")
+        hypnames[hn] = 0 # don't really need value here...
+        find_unresolved_terms(vctx, hyps[ix + 1], unk_terms)
+
+    # recored all proof steps that are unknown identifiers
+    for step in e[steps_ix:]:
+        if isinstance(step, list):
+            find_unresolved_terms(vctx, step, unk_terms)
+            continue
+        if step not in hypnames and step not in vctx.syms:
+            if step not in unk:
+                unk.append(step)
+    # tag on the command and argument
+    unk.append(cmd)
+    unk.append(e)
+    unk.append(cmdstr)
+    return unk_terms + unk
+
+def may_be_resolved(vctx, ul, unk):
+    # deal with theorems pending waiting for the assertion or defined term
+    # that just became available (and perhaps waiting for others)
+    for u in ul:
+        while len(u) > 3:
+            if isinstance(u[0], tuple):
+                if u[0][0] in vctx.terms:
+                    u = u[:1]
+            elif u[0] in vctx.syms:
+                u = u[:1]
+            else:
+                break
+        if len(u) == 3:  # ready to resolve u
+            unk.extend(u)
+            continue
+        # u still needs other theorems before it can be resolved
+        try:
+            ul2 = thmap[u[0]]
+        except KeyError:
+            ul2 = []
+            thmap[u[0]] = ul2
+        ul2.append(u[1:])
+
+def add_thm(vctx, th, thmap, out):
+    sc = StringScanner(th.cmd)
+    vctx.scanner = sc
+    cmd = verify.read_sexp(sc)
+    if cmd is None:
+        raise GHDatastoreError('Missing command word')
+    if not cmd in ('thm', 'defthm'):
+        raise GHDatastoreError("Expected 'thm' or 'defthm'")
+    e = verify.read_sexp(sc)
+    if e is None:
+        raise GHDatastoreError('Missing command argument')
+    unk = find_unresolved(vctx, cmd, e, sc.record)
+##    logging.info("add %s %s, unresolved %r" %
+##                 (cmd, verify.sexp_to_string(e), unk))
+    if len(unk) > 3:
+        try:
+            ul = thmap[unk[0]]
+        except KeyError:
+            ul = []
+            thmap[unk[0]] = ul
+        ul.append(unk[1:])
+        return
+
+    while len(unk) > 0:
+        # unk[:3] is [cmd, e, cmdstr] for newly resolved theorem
+        cmd, e, cmdstr = unk[:3]
+        unk = unk[3:]
+        if cmd == 'defthm':
+            # save both the command string and the defined term name
+            record = (cmdstr, e[2][0])
+            try:
+                vctx.do_cmd(cmd, e, record)
+            except (verify.VerifyError, SyntaxError):
+                vctx.bad_thms.append(cmdstr)
+                continue
+            # Is any theorem waiting on the until-now unresolved term?
+            ul = thmap.get((record[1],), None)
+            if ul != None:
+                del thmap[(record[1],)]
+                may_be_resolved(vctx, ul, unk)
+        else:
+            try:
+                vctx.do_cmd(cmd, e, cmdstr)
+            except (verify.VerifyError, SyntaxError):
+                vctx.bad_thms.append(cmdstr)
+                continue
+                
+        name = e[0]
+        ul = thmap.get(name, None)
+        if ul is None:
+            continue
+        del thmap[name]
+        may_be_resolved(vctx, ul, unk)
+
+
+# DLK brainstorming end
 
 # Return a stream over all proofs in the repository, including the base peano set.
 # The proofs are ordered by number.  Optionally, you may provide one proof to be replaced.
@@ -124,7 +748,8 @@ class SaveHandler(webapp.RequestHandler):
         url = '-'
         urlctx = verify.UrlCtx('','peano/peano_thms.gh', pipe)
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
-        ctx.run(urlctx, url, ctx,self.response.out)
+        ctx.out = self.response.out
+        ctx.run(urlctx, url, ctx)
         # Accept or reject
         if ctx.error_count > 0:
             self.response.out.write("\nCannot save; %d errors\n" % ctx.error_count)
@@ -132,31 +757,233 @@ class SaveHandler(webapp.RequestHandler):
             proof.put()
             self.response.out.write("\nsave ok\n")
 
-
-class EditPage(webapp.RequestHandler):
+class ContextHandler(webapp.RequestHandler):
     def get(self, name):
-        if name == '':
-            name = 'new%20theorem'
+        global gh_global_ctx
+        global gh_base_dir
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
         name = urllib.unquote(name);
-        q = Proof.all()
-        q.filter('name =', name)
-        q.order('-date')
-        proof = q.get()
-        if proof and proof.number is not None:
-            number = float(proof.number)
+        export = False
+        ictx = None
+        vctx = None
+        full_pname = os.path.join(gh_base_dir, name[1:])
+        logging.info('Looking for %s' % full_pname)
+        ctx = gh_global_ctx.all_interfaces.get(full_pname, None)
+        if ctx is None:
+            if full_pname.endswith('.ghi'):
+                vctx = gh_global_ctx.all_interfaces.get(full_pname[:-1], None)
+                ctx = vctx
+                export = True
+        elif ctx.name is None:
+            ictx = ctx
         else:
-            proofs = db.GqlQuery("SELECT * FROM Proof ORDER BY number DESC LIMIT 1")
-            last_proof = proofs.get()
-            if (last_proof and last_proof.number is not None):
-                number = float(last_proof.number + 1)
+            vctx = ctx
+        if ictx is None and vctx is None:
+            self.error(404)
+            return
+                
+        self.response.headers.add_header('content-type', 'text/plain')
+        out = self.response.out
+        impcmd = 'param'
+        if ictx is None:
+            if export:
+                out.write("# Ghilbert interface file for context %s\n\n"
+                          % vctx.name)
+                # Don't write params, we want a unified export that is
+                # all-in-one
+                #
+                # Write all kinds
+                # Write all varibles
+                # Write all terms
+                # Write all stmts
+                #  But problem: some of the terms & stmts, coming from imports
+                #  of the vctx, may use variable definitions that are not
+                #  native to the vctx, and could in principle be
+                #  inconsistent with the variable definitions of the vctx.
+                #  We don't have this problem if we don't do a unified
+                #  export, and only export the terms and theorems
+                #  introduced by the vctx itself...
+                # Other question: How do we reconcile generated proven but
+                # incomplete prop.ghi with complete unproven prop.ghi?
+                #
+                # For now, don't try a unified export.
             else:
-                number = float(1)
+                out.write("# Ghilbert proof file for context %s\n\n" % vctx.name)
+                impcmd = 'import'
+        else:
+            fname = ctx.fname[len(gh_base_dir):]
+            out.write("# Ghilbert interface file %s\n\n" % fname)
 
+        # have to put out imports in order.
+        for imp in ctx.iflist:
+            # imp is (ifname, ictx, params, prefix,
+            #         kindmap, termmap, cmdword)  for a verify context.
+            # termmap and cmdword are missing for an interface context
+            # skip exports
+            if len(imp) == 7 and imp[6] == 'export':
+                continue
+            ifname, pctx, params, prefix, kindmap = imp[:5]
+            #logging.info('imp=%r' % (imp,))
+            if not pctx.fname.startswith(gh_base_dir):
+                logging.error('Real interface path %s does not start with %s' %
+                              (pctx.fname, gh_base_dir))
+                raise verify.VerifyError('Bad path prefix')
+            fname = pctx.fname[len(gh_base_dir):]
+            if pctx.name is not None:
+                fname = fname + 'i'
+            out.write('%s (%s %s (%s) "%s")\n' %
+                      (impcmd, ifname, fname,
+                       ' '.join([ctx.iflist[p][0] for p in params]), prefix))
+
+        out.write('\n')
+
+        # note, all kinds in verify context or export come from
+        # import/param
+        if ictx is not None:
+            for k in ictx.kind_hist:
+                if k[1] >= 0:
+                    continue  # skip kinds originating in other interfaces
+                out.write('kind (%s)\n' % k[0])
+
+        # kindbinds
+        for k in ctx.kindbinds:
+            kix = ctx.kinds[k]
+            kv = ctx.kind_hist[kix]
+            out.write('kindbind (%s %s)\n' % (kv[0], k))
+        out.write('\n')
+
+        varkinds = {}
+        for vv in ctx.syms.itervalues(): # hmm, too many stmt/thm/defthm
+            if vv[0] == 'var' or vv[0] == 'tvar':
+                if len(vv) == 4:
+                    kname = vv[3]
+                else:
+                    kname = ctx.kind_hist[vv[1]][0]
+                try:
+                    prl = varkinds[kname]
+                except KeyError:
+                    prl = ([],[])
+                    varkinds[kname] = prl
+                if vv[0] == 'tvar':
+                    prl[0].append(vv[2])
+                else:
+                    prl[1].append(vv[2])
+        for kname, prl in varkinds.iteritems():
+            if prl[0] != []:
+                prl[0].sort()    
+                out.write('tvar (%s %s)\n' % (kname, ' '.join(prl[0])))
+            if prl[1] != []:
+                prl[1].sort()    
+                out.write('var (%s %s)\n' % (kname, ' '.join(prl[1])))
+        out.write('\n')
+
+        if ictx is None:
+            for thname in vctx.assertion_hist:
+                thm = vctx.syms[thname]
+                record = thm[7]
+                if isinstance(record, tuple):
+                    cmd, termname = record
+                else:
+                    cmd, termname = record, None
+                if export:
+                    if termname is not None:
+                        tm = vctx.term_hist[vctx.terms[termname]]
+                        # tm is (termname, ifindex, termix_orig,
+                        #        rkind, argkinds, freemap, sig)
+                        out.write('term %s\n' %
+                                  vctx.term_arg_string(tm[3], tm[6], tm[5]))
+                    varlist = thm[4]
+                    fv = []
+                    for clause in thm[1]:
+                        fv.append(vctx.iexps_to_string(clause, varlist))
+                    out.write("stmt (%s (%s) %s %s)\n" %
+                              (thname,
+                               ' '.join(fv),
+                               vctx.iexps_to_string(thm[2], varlist),
+                               vctx.iexp_to_string(thm[3], varlist)))
+                else:
+                    out.write('%s\n\n' % cmd) # preserves comments
+
+            for nm, ul in vctx.unresolved_thms.iteritems():
+                if isinstance(nm, tuple):
+                    nm = "term '%s'" % nm[0]
+                else:
+                    nm = "assertion '%s'" % nm
+                out.write("\n## Depend on unresolved %s\n" % nm)
+                for u in ul:
+                    out.write("#%s %s\n" % (u[-3],
+                                            verify.sexp_to_string(u[-2])))
+            
+            return    # done for verify context.
+
+        for tm in ictx.term_hist:
+            if tm[1] >= 0:
+                continue
+            # tm is (termname, ifindex, termix_orig,
+            #        rkind, argkinds, freemap, sig)
+            out.write('term %s\n' %
+                      ictx.term_arg_string(tm[3], tm[6], tm[5]))
+
+        out.write('\n')
+        # order the axioms better?
+        for label in ictx.assertion_hist:
+            stmt = ictx.syms[label]
+            out.write("%s\n\n" % stmt[7])
+        return
+
+
+class EditPage(webapp.RequestHandler):
+    def get(self, name):
+        global gh_global_ctx
+        global gh_base_dir
+        # name here is URL-encoded, we want to display the unencoded version
+        # as text, and avoid the possibility of injection attack.
+        name = urllib.unquote(name)
+        if len(name) < 2 or name[0] != '/':
+            self.error(404)
+            return
+        full_pname = os.path.join(gh_base_dir, name[1:])
+        try:
+            gh_ctx = gh_global_ctx.all_interfaces[full_pname]
+            ps = (full_pname, '')
+        except KeyError:
+            ps = os.path.split(full_pname)
+            try:
+                gh_ctx = gh_global_ctx.all_interfaces[ps[0]]
+            except KeyError:
+                self.error(404)
+                return
+        if gh_ctx.name is None: # only allow verify contexts, for now
+            self.error(404)
+            return
+        ps = (ps[0][len(gh_base_dir):], ps[1])
+        hist = gh_ctx.assertion_hist
+        thmname = ps[1]
+        if thmname == '':
+            thmname = 'New theorem'
+            cmd = None
+        else:
+            if thmname == 'LAST': # Get latest theorem
+                n = len(hist)
+                if n == 0:
+                    self.error(404)
+                    return
+                thmname = hist[n - 1]
+            try:
+                thm = gh_ctx.syms[thmname]
+            except:
+                self.error(404)
+                return
+
+            if thm[0] not in ('thm', 'defthm'):
+                self.error(404)
+                return
+            cmd = thm[7]
+            if isinstance(cmd, tuple):
+                cmd = cmd[0]
 
         self.response.out.write("""<title>Ghilbert</title>
-        
 
 <body>
 <a href="/">Home</a> <a href="/recent">Recent</a>
@@ -170,10 +997,8 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-<label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
-<canvas id="canvas" width="640" height="480" tabindex="0"></canvas><br/>
+<canvas id="canvas" width="640" height="480" tabindex="0" style="float:left"></canvas>
 <canvas id="stack" width="640" height="240" tabindex="0"></canvas>
-
 <div id="output">(output goes here)</div>
 
 <script type="text/javascript">
@@ -181,26 +1006,18 @@ class EditPage(webapp.RequestHandler):
 name = %s;
 GH.Direct.replace_thmname(name);
 
-url = '/peano/peano_thms.gh';
-uc = new GH.XhrUrlCtx('/', url);
+url = %s;
+uc = new GH.XhrUrlCtx('/ctx', url);
 v = new GH.VerifyCtx(uc, run);
-run(uc, '/proofs_upto/%f', v);
+run(uc, %s, v);
 
 var mainpanel = GH.CanvasEdit.init();
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
-var number = document.getElementById('number');
-number.onchange = function() {
-    var url = '../peano/peano_thms.gh';
-    var uc = new GH.XhrUrlCtx('../', url);
-    var v = new GH.VerifyCtx(uc, run);
-    run(uc, '../proofs_upto/' + number.value, v);
-    window.direct.vg = v;
-    text.dirty();
-};
-""" % (number, `name`, number));
-        if proof:
-            result = json_dumps(proof.content.split('\n'))
+
+""" % (`thmname`, `ps[0]`, `ps[0]`))
+        if cmd:
+            result = json_dumps(cmd.split('\n'))
             self.response.out.write('mainpanel.text = %s;\n' % result)
             self.response.out.write('mainpanel.dirty();\n');
         self.response.out.write('</script>\n')
@@ -218,6 +1035,7 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
 
 class AllProofsPage(webapp.RequestHandler):
     def get(self, number):
+        self.response.headers.add_header('content-type', 'text/plain')
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
         
 class StaticPage(webapp.RequestHandler):
@@ -233,7 +1051,9 @@ class StaticPage(webapp.RequestHandler):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        self.response.out.write("""<title>Ghilbert web app</title>
+        global gh_global_ctx
+        out = self.response.out
+        out.write("""<title>Ghilbert web app</title>
 <body>
 <h1>Ghilbert web app</h1>
 
@@ -247,23 +1067,83 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 <p><a href="/recent">Recent saves</a></p>
 """)
         user = users.get_current_user()
+        word = 'login'
         if user:
-            self.response.out.write('<p>Logged in as ' + user.nickname() + '\n')
-        self.response.out.write('<p><a href="%s">login</a>' %
-                                users.create_login_url('/'))
+            word = 'logout'
+            out.write('<p>Logged in as ' + user.nickname() + '\n')
+            if users.is_current_user_admin():
+                out.write('<p>You are an administrator.\n')
+                
+        out.write('<p><a href="%s">%s</a>' %
+                                (users.create_login_url('/'), word))
+        out.write('<p>Contexts:\n')
+        for ctx in gh_global_ctx.interface_list:
+            fn = ctx.fname
+            pfn = fn[len(gh_base_dir):]
+            out.write('<p><a href="%s">%s</a>\n' %
+                      (urllib.quote('/ctx' + pfn), cgi.escape(pfn)))
+        out.write('</body>\n')
+
+
+def clear_datastore():
+    logging.warning('***** Clearing Datastore! *****')
+    q = db.Query()
+    for item in q:
+        item.delete()
+
+class ResetPage(webapp.RequestHandler):
+    def get(self):
+        if not users.is_current_user_admin():
+            self.error(401)
+            return
+        out = self.response.out
+        out.write("""<title>Reset to Factory Defaults</title>
+        
+<body style="background-color:black;color:yellow">
+<h1>Reset Ghilbert to Factory Defaults</h1>
+<h2><em>Warning</em>: Pressing the big red button will destroy all work not present in the factory default files!</h2>
+<p>
+<a href="/">Go Home</a>
+<br>
+<br>
+<form action="/reset" method="post">
+<input type="submit" value="Reset" style="background-color:red;color:black;width:100px;height:50px"/>
+</form>
+""")
+        return
+
+    def post(self):
+        if not users.is_current_user_admin():
+            self.error(401)
+            return
+        clear_datastore()
+        defaults = [
+                   ('PROP', '/peano/prop.gh'),
+                   ('PRED', '/peano/pred.gh'),
+                   ('PEANO', '/peano/peano_thms.gh'),
+                   ('PEANO_SET', '/peano/peano_set.gh'),
+                   ]
+        init_datastore(defaults)
+        read_datastore()
+        self.redirect("/")
 
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
                                       ('/recent', RecentPage),
                                       ('/peano/(.*)', StaticPage),
                                       ('/proofs_upto/(.*)', AllProofsPage),
-                                      ('/edit/(.*)', EditPage),
+                                      ('/edit(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
-                                      ('/save', SaveHandler)],
-                                     debug=True)
+                                      ('/ctx(.*)', ContextHandler),
+                                      ('/save', SaveHandler),
+                                      ('/reset', ResetPage),
+                                      ], debug=True)
+
+gh_base_dir = os.path.realpath(os.getcwd())  # realpath not necessary?
 
 def main():
     run_wsgi_app(application)
 
 if __name__ == "__main__":
+    read_datastore()
     main()

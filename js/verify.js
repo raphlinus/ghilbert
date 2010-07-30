@@ -952,6 +952,7 @@ GH.InterfaceCtx = function(verify, prefix, params) {
     this.vars = {};
     this.mykinds = {};
     this.kinds = {};
+    this.kindbinds = [];
     this.myterms = {};
     this.terms = {};
     this.used_params = {};
@@ -1061,6 +1062,27 @@ GH.InterfaceCtx.prototype.kind_cmd_common = function(arg) {
     var kind = this.prefix + arg[0];
     this.mykinds[loc_kind] = kind;
     this.kinds[loc_kind] = kind;
+    return kind;
+};
+
+GH.InterfaceCtx.prototype.kindbind_cmd_common = function(arg) {
+    if (typeof(arg) === 'string' || arg.length != 2 ||
+	typeof(arg[0]) !== 'string' || typeof(arg[1]) !== 'string') {
+        throw "Expected 'kindbind (OLDKIND NEWKIND)'";
+    }
+    var k_old = arg[0];
+    var k_new = arg[1];
+    if (!this.kinds.hasOwnProperty(k_old)) {
+        throw "Old kind " + k_old + " does not exist in import context.";
+    }
+    // Note, kind is a prefixed kind in verify context...
+    var kind = this.kinds[k_old];
+    if (this.kinds.hasOwnProperty(k_new)) {
+        throw "New kind " + k_new + " already exists in import context.";
+    }
+    this.kinds[k_new] = kind;
+    this.mykinds[k_new] = kind;
+    this.kindbinds.push(k_new);
     return kind;
 };
 
@@ -1200,6 +1222,12 @@ GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
         // import context 'kind' command
         kind = this.kind_cmd_common(arg);
 	this.verify.add_kind(kind, kind);
+	return;
+    }
+    if (cmd === 'kindbind') {
+        kind = this.kindbind_cmd_common(arg);
+	var k_new_pref = this.prefix + arg[1];
+	this.verify.add_kind(k_new_pref, kind);
 	return;
     }
     if (cmd === 'var' || cmd === 'tvar') {
@@ -1477,6 +1505,17 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	kind = this.get_kind(prefixed_kind);
 	this.mykinds[arg[0]] = kind;
 	this.kinds[arg[0]] = kind;
+	return;
+    }
+    if (cmd === 'kindbind') {
+        kind = this.kindbind_cmd_common(arg);
+	var k_new_pref = this.prefix + arg[1];
+	if (!this.verify.kinds.hasOwnProperty(k_new_pref)) {
+	    throw "The new kind " + k_new_pref + " does not exist in verify context.";
+	}
+	if (this.verify.kinds[k_new_pref] !== kind) {
+	    throw "The new kind " + k_new_pref + " is not bound to " + kind + "  in verify context.";
+	}
 	return;
     }
     if (cmd === 'var' || cmd === 'tvar') {

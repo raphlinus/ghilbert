@@ -18,6 +18,8 @@ class TestUrlCtx:
           self.d = {}
      def add(self, url, val):
           self.d[url] = val
+     def normalize(self, url):
+          return url
      def resolve(self, url):
           return StringStream(self.d[url])
 
@@ -37,7 +39,23 @@ def sexp(s):
      return verify.read_sexp(verify.Scanner(stream))
 
 def test_one_fv(verifyctx, expected, var, term, fvctx = None):
-     free = verifyctx.free_in(var, sexp(term), fvctx)
+     varlist = []
+     varmap = {}
+     try:
+          e = verifyctx.internalize(sexp(term), varlist, varmap)
+          if var not in varmap:
+               verifyctx.internalize(var, varlist, varmap)
+          if fvctx != None:
+               fvc_int = {}
+               for v in fvctx.iterkeys():
+                    u = verifyctx.internalize(v, varlist, varmap)
+                    fvc_int[u[2]] = 0
+               fvctx = fvc_int
+                    
+     except verify.VerifyError, x:
+          print 'Verify Error: %s' % x.why
+          raise
+     free = verifyctx.free_in(varmap[var], e[2], fvctx, varlist)
      if free: explanation = "free in"
      else: explanation = "not free in"
      if verbose or free != expected: print var, explanation, term
@@ -55,15 +73,19 @@ var (nat x y)
 term (wff (= A B))
 term (wff (A. x ph))
 term (wff ([/] A x ph) (x A))
+term (nat (+ A B))
 """)
-     verifyctx = verify.VerifyCtx(urlctx, run_regression)
-     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'], out)
-     verifyctx.do_cmd('tvar', ['nat', 'A', 'B'], out)
-     verifyctx.do_cmd('var', ['nat', 'x', 'y'], out)
+     gctx = verify.GlobalCtx()
+     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     verifyctx.out = out
+     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'])
+     verifyctx.do_cmd('tvar', ['nat', 'A', 'B'])
+     verifyctx.do_cmd('var', ['nat', 'x', 'y', 'z'])
+     verifyctx.do_cmd('tvar', ['wff', 'ph'])
      test_one_fv(verifyctx, True, 'x', '(= x y)')
      test_one_fv(verifyctx, False, 'z', '(= x y)')
      test_one_fv(verifyctx, False, 'x', '(A. x ph)')
-     test_one_fv(verifyctx, True, 'x', '([/] (= x y) x ph)')
+     test_one_fv(verifyctx, True, 'x', '([/] (+ x y) x ph)')
      test_one_fv(verifyctx, False, 'x', '([/] A x ph)')
      test_one_fv(verifyctx, True, 'x', 'x')
      test_one_fv(verifyctx, False, 'x', 'y')
@@ -87,9 +109,11 @@ term (wff (= A B))
 term (wff (-> ph ps))
 term (wff (A. x ph))
 stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
-""")     
-     verifyctx = verify.VerifyCtx(urlctx, run_regression)
-     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '"foo."'], out)
+""")
+     gctx = verify.GlobalCtx()
+     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     verifyctx.out = out
+     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '"foo."'])
      print verifyctx.syms
 
 def TestThm(out):
@@ -105,18 +129,19 @@ term (wff (-> ph ps))
 term (wff (A. x ph))
 stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
 """)     
-     verifyctx = verify.VerifyCtx(urlctx, run_regression)
-     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'], out)
-     verifyctx.do_cmd('tvar', ['wff', 'ph', 'ps'], out)
-     verifyctx.do_cmd('var', ['nat', 'x', 'y'], out)
+     gctx = verify.GlobalCtx()
+     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'])
+     verifyctx.do_cmd('tvar', ['wff', 'ph', 'ps'])
+     verifyctx.do_cmd('var', ['nat', 'x', 'y'])
      verifyctx.do_cmd('thm', ['19.21ai2', [['ph', 'x']],
                               ['hyp', ['->', 'ph', 'ps']],
                               ['->', 'ph', ['A.', 'x', 'ps']],
-                              'hyp', 'x', '19.21ai'], out)
+                              'hyp', 'x', '19.21ai'])
      print verifyctx.syms
 
 # Version of run loop tuned for regression testing
-def run_regression(urlctx, url, ctx, out):
+def run_regression(urlctx, url, ctx):
     s = verify.Scanner(urlctx.resolve(url))
     while 1:
          cmd = verify.read_sexp(s)
@@ -125,7 +150,7 @@ def run_regression(urlctx, url, ctx, out):
          if type(cmd) != str:
               raise SyntaxError('cmd must be atom')
          arg = verify.read_sexp(s)
-         ctx.do_cmd(cmd, arg, out)
+         ctx.do_cmd(cmd, arg)
 
 def regression(fn, out):
      urlctx = TestUrlCtx()
@@ -140,10 +165,13 @@ def regression(fn, out):
                elif cmd[0] == '!save':
                     dosave = True
                elif cmd[0] in ('!accept', '!reject'):
-                    verifyctx = verify.VerifyCtx(urlctx, run_regression)
+                    gctx = verify.GlobalCtx()
+                    verifyctx = verify.VerifyCtx(urlctx, run_regression,
+                                                 gctx, cmd[1])
+                    verifyctx.out = out
                     error = None
                     try:
-                         run_regression(urlctx, cmd[1], verifyctx, out)
+                         run_regression(urlctx, cmd[1], verifyctx)
                     except verify.VerifyError, x:
                          error = "VerifyError: " + x.why
                     except SyntaxError, x:

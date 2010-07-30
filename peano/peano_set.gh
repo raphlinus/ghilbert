@@ -1,0 +1,107 @@
+# Ghilbert proof file for context PEANO_SET
+
+import (PROP_AX /peano/prop_ax.ghi () "")
+import (PROP /peano/prop.ghi (PROP_AX) "")
+import (PRED_AX /peano/pred_ax.ghi (PROP_AX) "")
+import (PRED /peano/pred.ghi (PROP_AX PROP PRED_AX) "")
+import (PEANO_AX /peano/peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
+import (PEANO /peano/peano_thms.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX) "")
+import (NAIVE_SET /peano/naive_set.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX PEANO) "")
+
+
+tvar (set S T)
+tvar (wff ch ph ps ta th)
+tvar (nat A A' B B' C C' D)
+var (nat x x' y y' z)
+
+thm (eqri ((S x) (T x))
+  (hyp (<-> (e. x S) (e. x T)))
+  (=_ S T)
+  hyp x gen S T x df-seq mpbir
+)
+
+thm (eleq2 () ()
+  (-> (=_ S T) (<-> (e. A S) (e. A T)))
+  S T x df-seq
+    x A S ax-eleq1 x A T ax-eleq1 bibi12d
+  cla4g sylbi
+)
+
+thm (eleq2i ()
+  (hyp (=_ S T))
+  (<-> (e. A S) (e. A T))
+  hyp S T A eleq2 ax-mp
+)
+
+thm (abid ()
+  (hyp (rwff x ph))
+  (<-> (e. x ({|} x ph)) ph)
+  x x ph ax-elab
+    hyp x ph df-rwff mpbi a4i
+  bitr4i
+)
+
+thm (elab ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (e. A ({|} x ph)) ps)
+  A x ph ax-elab
+  hyp sbcie bitri
+)
+
+thm (elab2 ((A x) (ps x))
+  (hyp1 (-> (= x A) (<-> ph ps))
+   hyp2 (=_ S ({|} x ph)))
+  (<-> (e. A S) ps)
+  hyp2 A eleq2i hyp1 elab bitri
+)
+
+thm (elin () ()
+  (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T)))
+
+  x A S ax-eleq1 x A T ax-eleq1 anbi12d
+    S T x df-in
+  elab2
+)
+
+# Problem: this theorem verified, but is not true, without
+# constraints (S x) (T x). Consider S = {x + 1}, T = {x + 2}.
+# The problem was that df-seq lacked these constraints, but needs them.
+# Fixed.
+thm (dfss2 ((S x) (T x)) ()
+  (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
+
+  S T df-ss
+    (e. x S) (e. x T) pm4.71 (e. x S) (/\ (e. x S) (e. x T)) bicom bitri
+
+      x S T elin
+      (e. x S) bibi1i
+    bitr4i x albii
+    (i^i S T) S x df-seq bitr4i
+
+  bitr4i
+)
+
+thm (noel () ()
+  (-. (e. A ({/})))
+
+  A eqid
+    (= x A) id (= x A) id eqeq12d notbid
+      x df-emptyset
+    elab2
+  con2bii mpbi
+)
+
+thm (elsnc () ()
+  (<-> (e. A ({} B)) (= A B))
+  x A B eqeq1
+    B x df-sn
+  elab2
+)
+
+thm (snid () ()
+  (e. A ({} A))
+  A eqid
+    A A elsnc
+  mpbir
+)
+

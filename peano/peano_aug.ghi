@@ -1,0 +1,51 @@
+# Experimental interface for Peano arithmetic
+
+# We conjecture the following properties about this interface, with at
+# this point only a moderate amount of confidence:
+#
+# * It encapsulates PA soundly and completely.
+# * It is possible to interpret in a set.mm universe.
+# * It is reasonably useful.
+#
+# There are two extensions that may improve usefulness: classes and
+# ax-11. The latter would enable a substitution operator with all the
+# expected properties. However, it makes the syntactic interpretation
+# in set.mm problematic.
+
+param (PROP_AX prop_ax.ghi () "")
+param (PROP prop.ghi (PROP_AX) "")
+param (PRED_AX pred_ax.ghi (PROP_AX) "")
+param (PRED pred.ghi (PROP_AX PROP PRED_AX) "")
+param (PEANO_AX peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
+
+tvar (wff ph ps ch)
+tvar (nat A B C D)
+var (nat x y z)
+
+term (nat (1))
+stmt (df-1 () () (= (1) (S (0))))
+
+# Definition of less than or equal to.
+term (wff (<= A B))
+stmt (df-le ((A x) (B x)) ()
+  (<-> (<= A B) (E. x (= (+ A x) B))))
+
+term (wff (< A B))
+stmt (df-lt () ()
+  (<-> (< A B) (/\ (<= A B) (-. (= A B)))))
+
+term (wff ([/] A x ph) (x A))
+stmt (df-subst ((A z) (ph z)) ()
+  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
+
+term (wff (rwff x ph))
+stmt (df-rwff () ()
+  (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph)))))
+
+# iota is a draft at this point.
+# term (nat (iota x ph))
+#stmt (ax-iota ((ph y)) ()
+#  (-> (E! x ph)
+#    (E. y (/\ (= y (iota x ph))
+#      (E. x (/\ (= x y) ph))))))
+

@@ -1,14 +1,17 @@
 # Naive set theory
 
-param (PROP prop.ghi () "")
-param (PEANO_MIN peano_min.ghi (PROP) "")
-param (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
+param (PROP_AX prop_ax.ghi () "")
+param (PROP prop.ghi (PROP_AX) "")
+param (PRED_AX pred_ax.ghi (PROP_AX) "")
+param (PRED pred.ghi (PROP_AX PROP PRED_AX) "")
+param (PEANO_AX peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
+param (PEANO peano_thms.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX) "")
 
 kind (set)
 
 tvar (wff ph ps ch)
-tvar (num A B C D)
-var (num x y z)
+tvar (nat A B C D)
+var (nat x y z)
 tvar (set S T)
 
 term (set ({|} x ph))
@@ -59,22 +62,22 @@ stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))
 # conservative, in that all instances could be mechanically removed,
 # at the cost of making expressions uglier.
 
-term (num (iota S))
+term (nat (iota S))
 stmt (ax-iota () () (= (iota ({} A)) A))
 stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))
 
 # Minimum of a set
 
-term (num (min S))
+term (nat (min S))
 stmt (df-min ((S x y)) ()
   (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))))
 
 # Division and modulo
 
-term (num (div A B))
+term (nat (div A B))
 stmt (df-div ((A x y) (B x y)) ()
   (= (div A B) (min ({|} x (E. y (= (+ (* B x) y) A))))))
 
-term (num (mod A B))
+term (nat (mod A B))
 stmt (df-mod () ()
   (= (mod A B) (iota ({|} x (= (+ (* B (div A B)) x) A)))))
