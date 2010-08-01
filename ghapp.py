@@ -1123,9 +1123,14 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         for ctx in gh_global_ctx.interface_list:
             fn = ctx.fname
             pfn = fn[len(gh_base_dir):]
-            out.write('<p><a href="%s">%s</a> <a href="%s"> edit</a>\n' %
-                      (urllib.quote('/ctx' + pfn), cgi.escape(pfn),
-                       urllib.quote('/edit' + pfn)))
+            if ctx.name is not None:
+                out.write('<p><a href="%s">%s</a> <a href="%s"> edit</a>\n' %
+                          (urllib.quote('/ctx' + pfn), cgi.escape(pfn),
+                           urllib.quote('/edit' + pfn)))
+                pfn += 'i'
+            out.write('<p><a href="%s">%s</a>\n' %
+                      (urllib.quote('/ctx' + pfn), cgi.escape(pfn)))
+                
         out.write('</body>\n')
 
 
