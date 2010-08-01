@@ -1610,7 +1610,7 @@ class InterfaceCtx(GhilbertCtx):
             return
             
         out.write('*** Warning: unrecognized command ' + cmd + \
-                  ' seen in import context. ***')
+                  ' seen in import context. ***\n')
 
 def run(urlctx, url, ctx):
     record = ctx.record

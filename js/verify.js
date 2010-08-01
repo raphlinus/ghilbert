@@ -228,6 +228,14 @@ GH.VerifyCtx = function(urlctx, run) {
     this.interfaces = {};
     this.urlctx = urlctx;
     this.run = run;
+    this.to_drop = null
+};
+
+GH.VerifyCtx.prototype.drop_thm = function(thmname) {
+    // Check that thmname is a valid identifier? It probably does not matter
+    // since it will be ignored if it does not match any existing theorem.
+    this.to_drop = thmname;
+    this.drop_thm_cmd_lines = null
 };
 
 GH.VerifyCtx.prototype.add_sym = function(label, val) {
@@ -429,6 +437,10 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	hyps = arg[2];
 	concl = arg[3];
 	proof = arg.slice(4);
+	if (label === this.to_drop) {
+	    log ('!!! Dropping ' + label)
+	    return
+	}
 	log('checking ' + label);
 	proofctx = new GH.ProofCtx();
 	this.check_proof(proofctx, label, fv, hyps, concl, proof, null, null);
@@ -452,6 +464,10 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	    throw 'Expected at least 7 args to thm';
 	}
 	label = arg[0];
+	if (label === this.to_drop) {
+	    log ('!!! Dropping ' + label)
+	    return
+	}
 	var dkind = arg[1];
 	var dsig = arg[2];
 	fv = arg[3];
@@ -822,7 +838,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
 	return;
     }
     if (!this.syms.hasOwnProperty(step)) {
-        throw "Unrecognized proof step '" + step + "'";
+        throw "   ... unrecognized proof step '" + step + "'";
     }
     var v = this.syms[step];
     if (v[0] === 'var' || v[0] === 'tvar') {
@@ -835,26 +851,34 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
     } 
     // This test is now likely redundant...
     if (v[0] === 'stmt' || v[0] === 'thm') {
+	var result = this.match_inference(v, proofctx, proofctx.mandstack)
+	var sp = proofctx.stack.length - v[2].length;
+	proofctx.stack.splice(sp);
+	proofctx.stack.push(result);
+	proofctx.mandstack = [];
+    }
+};
+
+GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
         var fv = v[1];
 	var hyps = v[2];
 	var concl = v[3];
 	var mand = v[4];
 	var syms = v[5];
-	if (mand.length !== proofctx.mandstack.length) {
-	    throw 'Expected ' + mand.length + ' mand hyps, got ' + proofctx.mandstack.length;
+	if (mand.length !== mandstack.length) {
+	    throw 'Expected ' + mand.length + ' mand hyps, got ' + mandstack.length;
 	}
 	var env = {};
 	var el;
 	for (var i = 0; i < mand.length; i++) {
 	    var mv = mand[i];
-	    el = proofctx.mandstack[i];
+	    el = mandstack[i];
 	    if (el[0][1] !== mv[1]) {
 	        throw ('Kind mismatch for ' + mv[2] + ': expected ' +
 		       mv[1] + ' found ' + el[0][1]);
 	    }
 	    if (mv[0] === 'var' && el[0][0] !== 'var') {
-	        throw ('Applying ' + step +
-		  ', expected expression substituted for mandatory variable ' +
+	        throw ('Unifying, expected expression substituted for mandatory variable ' +
 		       mv[2] + ' to be a binding variable, but found ' +
 		       GH.sexp_to_string(el[1]));
 	    }
@@ -896,10 +920,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
 	  }
 	}
 	var result = this.apply_subst(concl, env);
-	proofctx.stack.splice(sp);
-	proofctx.stack.push(result);
-	proofctx.mandstack = [];
-    }
+	return result;
 };
 
 GH.VerifyCtx.prototype.free_in_proof = function(v, term, proofctx) {

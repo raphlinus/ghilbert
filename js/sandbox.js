@@ -32,7 +32,15 @@ function run(urlctx, url, ctx) {
 	    }
 	    var arg = GH.read_sexp(s);
 	    //log(cmd + ' ' + GH.sexp_to_string(arg));
-	    ctx.do_cmd(cmd, arg);
+	    try {
+	        ctx.do_cmd(cmd, arg);
+	    } catch (e) {
+	        if (typeof e === 'string') {
+	            log(e);
+		} else {
+	            log(e.message);
+		}
+	    }
 	}
 	//} catch (e) {
 	//log(url + ':' + s.lineno + ': ' + e);

@@ -50,8 +50,11 @@ def json_dumps(obj):
 # however.
 
 class StringScanner(object):
-    def __init__(self, str):
-        self.record = str.encode('ascii')
+    def __init__(self, str_to_scan):
+        if isinstance(str_to_scan, str):
+            self.record = str_to_scan
+        else:
+            self.record = str_to_scan.encode('ascii')
         self.lines = self.record.splitlines()
         self.lineno = 0
         self.toks = []
@@ -139,8 +142,11 @@ class GHStmt(db.Model):
 # theorems if a theorem were inserted earlier, or a proof of an existing
 # theorem changes in depth.
 class GHThm(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)    
+    ctx = db.ReferenceProperty(GHContext, required=True)
+    name = db.StringProperty(required=True)
     cmd = db.TextProperty(required=True)
+    author = db.UserProperty()
+    date = db.DateTimeProperty(auto_now=True)
 
 # Use cases:
 # - Retrieve all kinds, terms, variables, and statements valid (axiomatic or
@@ -325,7 +331,7 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
             thm = gh_ctx.syms[ah]
             # thm is (kw, fv, hyps, concl, varlist,
             #         num_hypvars, num_nondummies, record)
-            ght = GHThm(ctx=ds_ctx, cmd=thm[7])
+            ght = GHThm(ctx=ds_ctx, name=ah, cmd=thm[7])
             ght.put()
         logging.info("Finished Ghilbert context %s" % fname)
         return ds_ctx  # No terms/stmts in verify context except defthm terms
@@ -354,7 +360,6 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
 
 # gh_global_ctx will be a verify.GlobalCtx.
 gh_global_ctx = None
-#gh_interfaces = {}
 
 class DummyWriter(object):
     def __init__(self):
@@ -363,6 +368,8 @@ class DummyWriter(object):
         logging.info('%s' % data)
         return
 
+dummy_writer = DummyWriter()
+
 class GHDatastoreError(Exception):
     def __init__(self, why):
         self.why = why
@@ -370,9 +377,10 @@ class GHDatastoreError(Exception):
 def read_datastore():
     global gh_global_ctx
     global gh_base_dir
+    global dummy_writer
 
     logging.info('Reading datastore')
-    out = DummyWriter()
+    out = dummy_writer
     gh_global_ctx = verify.GlobalCtx()
     ctx_q = GHContext.all()
     ctx_q.order('level')
@@ -399,6 +407,7 @@ def read_datastore():
 
         gh_ctx.verbosity = 0
         gh_ctx.out = out
+        gh_ctx.datastore_context = ds_ctx
         read_context(ds_ctx, gh_ctx, out)
         gh_ctx.complete()
 
@@ -488,13 +497,11 @@ def read_context(ds_ctx, ictx, out):
                 raise
 
     if ictx.name is not None:
-        thmap = {}
         ictx.bad_thms = []
+        ictx.unresolved_thms = {}
         for ghth in ds_ctx.ghthm_set:
             # handle out-of-order cases
-            add_thm(ictx, ghth, thmap, out)
-        ictx.unresolved_thms = thmap
-
+            add_thm(ictx, ghth.name.encode('ascii'), ghth.cmd, True)
 
 def read_iface(iface, ictx, out):
     global gh_global_ctx
@@ -606,98 +613,90 @@ def may_be_resolved(vctx, ul, unk):
             thmap[u[0]] = ul2
         ul2.append(u[1:])
 
-def add_thm(vctx, th, thmap, out):
-    sc = StringScanner(th.cmd)
+def add_thm(vctx, name, th_cmd, keep_if_fail):
+    """ Called from both the read_datastore() and SaveHandler() code
+        paths, this routine adds the theorem command th_cmd to the
+        vctx verify context. If keep_if_fail is true, the theorem may
+        be kept in vctx.unresolved_thms or in vctx.bad_thms if it fails
+        to verify...
+        Returns True if the theorem was successfully added, False otherwise.
+    """
+    sc = StringScanner(th_cmd)
     vctx.scanner = sc
     cmd = verify.read_sexp(sc)
-    if cmd is None:
-        raise GHDatastoreError('Missing command word')
     if not cmd in ('thm', 'defthm'):
-        raise GHDatastoreError("Expected 'thm' or 'defthm'")
+        vctx.out.write("Expected 'thm' or 'defthm'\n")
+        return False
     e = verify.read_sexp(sc)
     if e is None:
-        raise GHDatastoreError('Missing command argument')
+        vctx.out.write('Missing command argument\n')
+        return False
+    if not isinstance(e, list) or len(e) < 1 or e[0] != name:
+        vctx.out.write('Mismatched theorem labels.\n')
+        return False
     unk = find_unresolved(vctx, cmd, e, sc.record)
 ##    logging.info("add %s %s, unresolved %r" %
 ##                 (cmd, verify.sexp_to_string(e), unk))
+    thmap = vctx.unresolved_thms
     if len(unk) > 3:
+        if not keep_if_fail:
+            return False
         try:
             ul = thmap[unk[0]]
         except KeyError:
             ul = []
             thmap[unk[0]] = ul
         ul.append(unk[1:])
-        return
+        return False
 
     while len(unk) > 0:
         # unk[:3] is [cmd, e, cmdstr] for newly resolved theorem
         cmd, e, cmdstr = unk[:3]
         unk = unk[3:]
+        record = cmdstr
         if cmd == 'defthm':
-            # save both the command string and the defined term name
-            record = (cmdstr, e[2][0])
-            try:
-                vctx.do_cmd(cmd, e, record)
-            except (verify.VerifyError, SyntaxError):
+            if (not isinstance(e, list) or len(e) < 2 or
+                not isinstance(e[2], list) or len(e[2]) < 0):
+                if not keep_if_fail:
+                    return False
                 vctx.bad_thms.append(cmdstr)
                 continue
+            # save both the command string and the defined term name
+            record = (cmdstr, e[2][0])
+
+        ok = True
+        try:
+            vctx.do_cmd(cmd, e, record)
+        except verify.VerifyError, x:
+            vctx.out.write('Verify error:\n%s\n' % x.why)
+            ok = False
+        except SyntaxError, x:
+            vctx.out.write('Syntax error:\n%s\n' % str(x))
+            ok = False
+        if not ok:
+            if not keep_if_fail:
+                return False
+            vctx.bad_thms.append(cmdstr)
+            continue
+
+        if cmd == 'defthm':
             # Is any theorem waiting on the until-now unresolved term?
             ul = thmap.get((record[1],), None)
             if ul != None:
                 del thmap[(record[1],)]
                 may_be_resolved(vctx, ul, unk)
-        else:
-            try:
-                vctx.do_cmd(cmd, e, cmdstr)
-            except (verify.VerifyError, SyntaxError):
-                vctx.bad_thms.append(cmdstr)
-                continue
-                
+
         name = e[0]
+        keep_if_fail = True
         ul = thmap.get(name, None)
         if ul is None:
             continue
         del thmap[name]
         may_be_resolved(vctx, ul, unk)
 
+    return True
 
-# DLK brainstorming end
 
-# Return a stream over all proofs in the repository, including the base peano set.
-# The proofs are ordered by number.  Optionally, you may provide one proof to be replaced.
-# TODO: this probably doesn't have to all be in memory at once.
-# TODO: this also shouldn't query the entire DB and sort.
-def get_all_proofs(replacing=None, below=None):
-    pipe = StringIO.StringIO()
-    for line in open('peano/peano_thms.gh', 'r'):
-        pipe.write(str(line))
-
-    q = Proof.all()
-    q.order('number')
-    written = (replacing is None)
-    for proof in q:
-        if below is not None and proof.number >= below:
-            break    
-        if not written and proof.number > replacing.number:
-            pipe.write(str(replacing.content))
-            written = True
-        if replacing is None or proof.name != replacing.name:
-            pipe.write("# number %s\n" % str(proof.number))
-            if proof.content is None:
-                pipe.write("# proof.content is None\n")
-            else:
-                pipe.write(str(proof.content))
-                pipe.write("\n")
-    pipe.seek(0)
-    return pipe
-
-class Proof(db.Model):
-    author = db.UserProperty()
-    name = db.StringProperty()
-    content = db.TextProperty()
-    date = db.DateTimeProperty(auto_now=True)
-    number = db.FloatProperty()
-    
 class Greeting(db.Model):
     author = db.UserProperty()
     content = db.StringProperty(multiline=True)
@@ -705,58 +704,86 @@ class Greeting(db.Model):
 
 class RecentPage(webapp.RequestHandler):
     def get(self):
+        # TODO: We could keep track of recent theorems added or changed without
+        # having to do the query...
         self.response.out.write("""<html><body>
 <p>Recent saves:</p>""")
 
-        proofs = db.GqlQuery("SELECT * FROM Proof ORDER BY date DESC LIMIT 10")
+        thms = db.GqlQuery("SELECT * FROM GHThm ORDER BY date DESC LIMIT 10")
 
-        for proof in proofs:
-            if proof.author:
-                self.response.out.write('<b>%s</b> wrote ' % proof.author.nickname())
+        out = self.response.out
+        for thm in thms:
+            if thm.author:
+                out.write('<b>%s</b> wrote ' % thm.author.nickname())
             else:
-                self.response.out.write('An anonymous person wrote ')
-            self.response.out.write('<a href="/edit/%s">%s</a>:<br />' %
-                                    (urllib.quote(proof.name),
-                                     cgi.escape(proof.name)))
-            if (proof.content is None):
+                out.write('An anonymous person wrote ')
+            ctx = thm.ctx
+            out.write('<a href="/edit%s">%s</a>:<br />' %
+                      (urllib.quote(ctx.fname + '/' + thm.name),
+                       cgi.escape(thm.name)))
+            if (thm.cmd is None):
                 content = ""
             else:
-                content = cgi.escape(proof.content)
-        
+                content = cgi.escape(thm.cmd)
             newcontent = []
             for line in content.rstrip().split('\n'):
                 sline = line.lstrip()
                 newcontent.append('&nbsp;' * (len(line) - len(sline)) + sline)
             content = '<br />'.join(newcontent)
-            self.response.out.write('<blockquote>%s</blockquote>' % content)
+            out.write('<blockquote>%s</blockquote>' % content)
+
+def datastore_add_new_thm(ctx, name, cmd):
+    ds_ctx = ctx.datastore_context
+    gh_thm = GHThm(ctx=ds_ctx, name=name, cmd=cmd)
+    if users.get_current_user():
+        gh_thm.author = users.get_current_user()
+    gh_thm.put()
 
 class SaveHandler(webapp.RequestHandler):
     def post(self):
+        global gh_global_ctx
+        global gh_base_dir
+
+        out = self.response.out
         # Note, the following line gets the un-url-encoded name.
         name = self.request.get('name')
-        proof = Proof.get_or_insert(name)
-        proof.name = name
-        proof.content = self.request.get('content')
-        proof.number = float(self.request.get('number'))
+        ctxname = self.request.get('context')
+        cmd = self.request.get('content')
+        if name == '' or ctxname == '' or cmd == '':
+            self.error(400) # bad request
+            return
+        
+        logging.info("SaveHandler: context %s theorem %s" % (ctxname, name))
+        ctxname_full = os.path.join(gh_base_dir, ctxname[1:])
+        try:
+            ctx = gh_global_ctx.all_interfaces[ctxname_full]
+        except KeyError:
+            out.write('Save Failed: Unknown context %s\n' % ctxname)
+            return
+        if ctx.name is None:
+            out.write('Save Failed: Context %s is not a proof-file context\n'
+                      % ctxname)
+            return
+        sym = ctx.syms.get(name, None)
+        if sym != None:
+            if sym[0] in ('var', 'tvar'):
+                out.write('Save Failed: there is a variable of name %s\n' %
+                          name)
+                return
+            out.write('Save Failed: Cannot replace existing theorem yet...')
+            return  # TODO
 
-        if users.get_current_user():
-            proof.author = users.get_current_user()
+        # TODO: check for a symbol conflict in any context importing ctx,
+        # or in interface files imported by such a context...
 
-
-        self.response.out.write("Verifying:\n")
-        pipe = get_all_proofs(replacing=proof)
-        url = '-'
-        urlctx = verify.UrlCtx('','peano/peano_thms.gh', pipe)
-        ctx = verify.VerifyCtx(urlctx, verify.run, False)
-        ctx.out = self.response.out
-        ctx.run(urlctx, url, ctx)
-        # Accept or reject
-        if ctx.error_count > 0:
-            self.response.out.write("\nCannot save; %d errors\n" % ctx.error_count)
-        else:
-            proof.put()
-            self.response.out.write("\nsave ok\n")
-
+        ctx.out = out
+        result = add_thm(ctx, name, cmd, False)
+        ctx.out = dummy_writer
+        if result: # TODO -- save incomplete / broken theorems
+            datastore_add_new_thm(ctx, name, cmd)
+            out.write('Saved %s\n' % name)
+        return
+        
 class ContextHandler(webapp.RequestHandler):
     def get(self, name):
         global gh_global_ctx
@@ -960,6 +987,7 @@ class EditPage(webapp.RequestHandler):
         ps = (ps[0][len(gh_base_dir):], ps[1])
         hist = gh_ctx.assertion_hist
         thmname = ps[1]
+        existing_thm = ''
         if thmname == '':
             thmname = 'New theorem'
             cmd = None
@@ -970,20 +998,18 @@ class EditPage(webapp.RequestHandler):
                     self.error(404)
                     return
                 thmname = hist[n - 1]
-            try:
-                thm = gh_ctx.syms[thmname]
-            except:
-                self.error(404)
-                return
+            thm = gh_ctx.syms.get(thmname, None)
+            if thm is None:
+                cmd = "# No theorem named '%s' was found." % thmname
+            elif thm[0] not in ('thm', 'defthm'):
+                cmd = "# '%s' is not a theorem." % thmname
+            else:
+                cmd = thm[7]
+                if isinstance(cmd, tuple): #defthm has (cmd, deftermname)
+                    cmd = cmd[0]
+                existing_thm = thmname
 
-            if thm[0] not in ('thm', 'defthm'):
-                self.error(404)
-                return
-            cmd = thm[7]
-            if isinstance(cmd, tuple):
-                cmd = cmd[0]
-
-        self.response.out.write("""<title>Ghilbert</title>
+        self.response.out.write("""<head><title>Ghilbert</title><style type="text/css"></style></head>
 
 <body>
 <a href="/">Home</a> <a href="/recent">Recent</a>
@@ -994,13 +1020,25 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/inputlayer.js" type="text/javascript"></script>
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
+<script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-<canvas id="canvas" width="640" height="480" tabindex="0" style="float:left"></canvas>
-<canvas id="stack" width="640" height="240" tabindex="0"></canvas>
+<div style="display:block;float:left">
+  <label for="exist_thm">Edit existing theorem named: </label><input type="text" id="exist_thm" value="%s"/><br/>
+  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
+  <canvas id="stack" width="660" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
 <div id="output">(output goes here)</div>
-
+</div>
+<div width="400" height="800" style="display:block;float:left">
+  <button id="inferences">Inference</button>
+  <button id="deductions">Deduction</button>
+  <button id="unified">Unified</button>
+  <br/>
+  <table id="panel" border="1" style="border:1px solid;">
+  </table>
+</div>
 <script type="text/javascript">
 
 name = %s;
@@ -1009,17 +1047,27 @@ GH.Direct.replace_thmname(name);
 url = %s;
 uc = new GH.XhrUrlCtx('/ctx', url);
 v = new GH.VerifyCtx(uc, run);
-run(uc, %s, v);
-
-var mainpanel = GH.CanvasEdit.init();
+v.drop_thm(document.getElementById('exist_thm').value)
+run(uc, url, v);
+var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
+var exist_thm = document.getElementById('exist_thm');
+exist_thm.onchange = function() {
+    var thmname = exist_thm.value;
+    thmname = thmname.replace(/^\s*(\S*)[\s\S]*$/, '$1');
+    if (thmname.length === 0) {
+        return;
+    }
+    document.location.href = "/edit" + url + "/" + encodeURIComponent(thmname);
+};
+var panel = new GH.Panel(window.direct.vg);
+""" % (existing_thm, `thmname`, `ps[0]`))
+## """ % (number, `name`, number));
 
-""" % (`thmname`, `ps[0]`, `ps[0]`))
         if cmd:
             result = json_dumps(cmd.split('\n'))
-            self.response.out.write('mainpanel.text = %s;\n' % result)
-            self.response.out.write('mainpanel.dirty();\n');
+            self.response.out.write('mainpanel.setLines(%s);\n' % result)
         self.response.out.write('</script>\n')
 
 from google.appengine.ext import webapp
@@ -1033,11 +1081,6 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
         for name in os.environ.keys():
             self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
 
-class AllProofsPage(webapp.RequestHandler):
-    def get(self, number):
-        self.response.headers.add_header('content-type', 'text/plain')
-        self.response.out.write(get_all_proofs(below=float(number)).getvalue())
-        
 class StaticPage(webapp.RequestHandler):
     def get(self, filename):
         try:
@@ -1080,8 +1123,9 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         for ctx in gh_global_ctx.interface_list:
             fn = ctx.fname
             pfn = fn[len(gh_base_dir):]
-            out.write('<p><a href="%s">%s</a>\n' %
-                      (urllib.quote('/ctx' + pfn), cgi.escape(pfn)))
+            out.write('<p><a href="%s">%s</a> <a href="%s"> edit</a>\n' %
+                      (urllib.quote('/ctx' + pfn), cgi.escape(pfn),
+                       urllib.quote('/edit' + pfn)))
         out.write('</body>\n')
 
 
@@ -1131,7 +1175,6 @@ application = webapp.WSGIApplication(
                                      [('/', MainPage),
                                       ('/recent', RecentPage),
                                       ('/peano/(.*)', StaticPage),
-                                      ('/proofs_upto/(.*)', AllProofsPage),
                                       ('/edit(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/ctx(.*)', ContextHandler),
