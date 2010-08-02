@@ -1,0 +1,28 @@
+# Ghilbert interface file for context PEANO_SET
+
+param (PROP_AX /peano/prop_ax.ghi () "")
+param (PROP /peano/prop.ghi (PROP_AX) "")
+param (PRED_AX /peano/pred_ax.ghi (PROP_AX) "")
+param (PRED /peano/pred.ghi (PROP_AX PROP PRED_AX) "")
+param (PEANO_AX /peano/peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
+param (PEANO /peano/peano_thms.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX) "")
+param (NAIVE_SET /peano/naive_set.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX PEANO) "")
+
+
+tvar (set S T)
+tvar (wff ch ph ps ta th)
+tvar (nat A A' B B' C C' D)
+var (nat x x' y y' z)
+
+stmt (eqri ((S x) (T x)) ((<-> (e. x S) (e. x T))) (=_ S T))
+stmt (eleq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T))))
+stmt (eleq2i () ((=_ S T)) (<-> (e. A S) (e. A T)))
+stmt (abid () ((rwff x ph)) (<-> (e. x ({|} x ph)) ph))
+stmt (elab ((A x) (ps x)) ((-> (= x A) (<-> ph ps))) (<-> (e. A ({|} x ph)) ps))
+stmt (elab2 ((A x) (ps x)) ((-> (= x A) (<-> ph ps)) (=_ S ({|} x ph))) (<-> (e. A S) ps))
+stmt (elin () () (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T))))
+stmt (dfss2 ((S x) (T x)) () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+stmt (noel () () (-. (e. A ({/}))))
+stmt (elsnc () () (<-> (e. A ({} B)) (= A B)))
+stmt (snid () () (e. A ({} A)))
+stmt (iotacl ((S x)) () (-> (E! x (e. x S)) (e. (iota S) S)))

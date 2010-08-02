@@ -1,15 +1,15 @@
-# Building up theorems of peano arithmetic.
+# Ghilbert proof file for context PEANO
 
-import (PROP_AX prop_ax.ghi () "")
-import (PROP prop.ghi (PROP_AX) "")
-import (PRED_AX pred_ax.ghi (PROP_AX) "")
-import (PRED pred.ghi (PROP_AX PROP PRED_AX) "")
-import (PEANO_AX peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
+import (PROP_AX /peano/prop_ax.ghi () "")
+import (PROP /peano/prop.ghi (PROP_AX) "")
+import (PRED_AX /peano/pred_ax.ghi (PROP_AX) "")
+import (PRED /peano/pred.ghi (PROP_AX PROP PRED_AX) "")
+import (PEANO_AX /peano/peano_ax.ghi (PROP_AX PROP PRED_AX PRED) "")
 
-tvar (wff ph ps ch th ta)
-tvar (nat A B C D A' B' C')
-var (nat x y z x' y')
 
+tvar (wff ch ph ps ta th)
+tvar (nat A A' B B' C C' D)
+var (nat x x' y y' z)
 
 # Predicate calculus with equality
 
@@ -203,7 +203,6 @@ thm (substex ((ph x y) (ps y) (ch x) (A y))
   x 19.21ai 
   x ps (E. y ch) 19.23 sylib imp
 )
-
 
 # Peano arithmetic
 
@@ -863,7 +862,452 @@ thm (rwffi ((ps x) (ph y))
   x ph df-rwff mpbir
 )
 
-export (PEANO peano_aug.ghi (PROP_AX PROP PRED_AX PRED PEANO_AX) "")
+#GH# Author: abliss
+thm (opth1 () ()
+   (-> (/\ (= A C) (= B D)) (= (<,> A B) (<,> C D)))
+  A C B D addeq12 (+ A B) muleq1d
+  A C B D addeq12 (+ A B) (+ C D) (+ C D) muleq2 syl eqtrd
+  (= A C) (= B D) pm3.27
+  addeq12d
+  A B df-op C D df-op 3eqtr4g
+)
 
-# Some naive set theory
+#GH# Author: abliss
+thm (test () () (E. x (= x (0)))
+  x (0) ax-tyex nalexi)
+
+#GH# Author: abliss
+thm (distl () ()
+  (= (* (+ A B) C) (+ (* A C) (* B C)))
+
+   (+ A B) C mulcom C A B distr eqtr
+   C A mulcom C B mulcom addeq12i eqtr)
+
+#GH# Author: abliss
+thm (distrl () ()
+  (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
+  (+ A B) C D distr
+    A B C distl A B D distl addeq12i eqtr)
+
+#GH# Author: abliss
+thm (lemul3lem1 () (hyp (-> ph (= (+ A B) C))) (-> ph (<= A C))
+  A B addge01t 
+   hyp
+   A leeq2d
+  mpbii
+)
+
+#GH# Author: abliss
+thm (lemul3lem2 () (hyp (-> ph (<= (+ A B) C))) (-> ph (<= A C))
+  A B addge01t ph a1i
+   hyp
+  jca
+    A (+ A B) C letr
+  syl)
+
+#GH# Author: abliss
+thm (lemul3 () ()
+  (-> (/\(<= A B) (<= C D)) (<= (* A C) (* B D)))
+  A B x df-le C D y df-le anbi12i
+  x (= (+ A x) B) (E. y (= (+ C y) D)) 19.41 bitr4i
+    y (= (+ A x) B) (= (+ C y) D) 19.29
+    y (= (+ A x) B) 19.3
+    sylanbr
+  x 19.22i  sylbi
+
+  (+ A x) B (+ C y) D muleq12
+    A x C y distrl 
+  syl5eqr
+ lemul3lem1 lemul3lem2
+ y exani x exani syl)
+
+#GH# Author: abliss
+thm (lttr () ()
+  (-> (/\ (< A B) (< B C)) (< A C))
+  A B nnltp1let B C nnltp1let anbi12i biimpi
+  B (1) addge01t
+  (+ A (1)) B (+ B (1)) letr mpan2 (<= (+ B (1)) C) anim1i syl
+  (+ A (1)) (+ B (1)) C letr syl
+  A C nnltp1let sylibr)
+
+#GH# Author: abliss
+thm (addassrli () (h (= A (+ B (+ C D))))
+   (= A (+ (+ B C) D))
+   h
+   B C D addass eqtr4)
+
+#GH# Author: abliss
+thm (mulid () ()
+  (= (* A (1)) A)
+    df-1  (1) (S (0)) A muleq2 ax-mp 
+    A (0) pa_ax6 
+      A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3  
+    eqtr
+  eqtr)
+
+#GH# Author: abliss
+thm (ltmul () () (
+  -> (/\(< A B) (< C D)) (< (* A C) (* B D)))
+  A B nnltp1let C D nnltp1let anbi12i
+  (+ A (1)) B (+ C (1)) D lemul3 sylbi
+  
+  (* A C) (+ (* (1) C) (* A (1))) addge01t 
+    (* A C) (* (1) C) (* A (1)) addass (* A C) leeq2i  mpbir
+     (* A C) (+ (+ (* A C) (* (1) C)) (* A (1))) (1) leadd1 mpbi
+    A (1) C (1) distrl addassrli 
+      (1) mulid (+ (+ (* A C) (* (1) C)) (* A (1))) addeq2i eqtr
+      (+ (* A C) (1)) leeq2i
+  mpbir
+  jctil
+  (+ (* A C) (1)) (* (+ A (1)) (+ C (1))) (* B D) letr syl
+  (* A C) (* B D) nnltp1let sylibr)
+
+#GH# Author: abliss
+thm (sqle () ()
+  (<-> (<= A B) (<= (* A A) (* B B)))
+  A B A B lemul3 anidms
+  (* A A) (* B B) lenltt
+    B A B A ltmul anidms con3i sylbi A B lenltt sylibr
+  impbii)
+
+#GH# Author: abliss
+thm (lteq1d () (hyp (-> ph (= A B)))
+  (-> ph (<-> (< A C) (< B C)))
+  hyp C leeq2d
+  C A lenltt
+  C B lenltt
+ bibi12i
+ sylib
+ con4bid
+)
+
+#GH# Author: abliss
+thm (muleq12d () 
+  (hyp1 (-> ph (= A B)) 
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (* A C) (* B D)))
+  hyp1  hyp2 
+  jca
+  A B C D muleq12
+  syl
+)
+
+#GH# Author: abliss
+thm (sqrtlem5 () ()
+  (E. x (/\ (<= (* x x) (0)) (< (0) (* (S x) (S x)))))
+   x (0) tyex 
+      (0) leid  (0) pa_ax5 (0) leeq1i  mpbir
+   (= x (0)) id (= x (0)) id muleq12d  (0) leeq1d  mpbiri
+     1nle0 (1) (0) lenltt mtbi notnotri
+        (1) mulid  df-1 df-1  pm3.2i
+        (1) (S (0)) (1) (S (0)) muleq12
+      ax-mp eqtr3  (0) lteq2i
+     mpbi
+     (= x (0)) id  suceqd
+     (= (S x) (S (0))) id (= (S x) (S (0))) id muleq12d syl (0) lteq2d mpbiri
+  jca
+  x 19.22i ax-mp
+)
+
+#GH# Author: abliss
+thm (sqrtlem1 ((A x)) ()
+  (-> (= y A) 
+     (<-> (E. x (/\ (<= (* x x) y) (< y (* (S x) (S x)))))
+          (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))))
+  (= y A) id (* x x) leeq2d
+  (= y A) id (* (S x) (S x)) lteq1d
+  anbi12d x exbid
+)
+
+#GH# Author: abliss
+thm (lelttr () ()
+  (-> (/\ (<= A B) (< B C)) (< A C))
+  A B (1) leadd1
+  B C nnltp1let
+  anbi12i
+  (+ A (1)) (+ B (1)) C letr sylbi
+  A C nnltp1let
+  sylibr
+)
+
+#GH# Author: abliss
+thm (lteq1i () (h (= A B))
+  (<-> (< A C) (< B C))
+  h (= A B) id C lteq1d ax-mp)
+
+#GH# Author: abliss
+thm (sqrtlem6 () ()
+  (-> (E. x (/\ (<= (* x x) y) (< y (* (S x) (S x)))))
+      (E. x (/\ (<= (* x x) (S y)) (< (S y) (* (S x) (S x))))))
+
+  # y < x' * x' <-> case A \/ case B
+  y (* (S x) (S x)) nnltp1let    (+ y (1)) (* (S x) (S x)) lefoo3     bitri
+
+  # spruce this up by adding (... and PH) to both sides
+  biimpi (<= (* x x) y) anim1i ancoms ancomd 
+  
+  # For MUCH later, to factor out the common AND
+  (<= (* x x) y) 
+    (= (+ y (1)) (* (S x) (S x))) 
+      (<= (+ (+ y (1)) (1)) (* (S x) (S x)))
+  andi
+
+  # We don't need this AND term, but Case B does, so add it in here
+  (<= (* x x) y) (= (+ y (1)) (* (S x) (S x))) pm3.27 
+
+  # Tuck this away for "later"...
+  z (S x) tyex
+
+  # Case A -> x' * x' = y'
+  y a1suc eqcomi    (+ y (1)) (* (S x) (S x)) (S y)  eqeq1     mpbii 
+
+  # Case A -> x' * x' <= y'
+  (* (S x) (S x)) leid 
+  (= (* (S x) (S x)) (S y)) id (* (S x) (S x)) leeq2d mpbii
+  # Introduce z as x'
+  (= z (S x)) id   (= z (S x)) id   muleq12d   (S y) leeq1d     biimprcd  syl
+  
+
+  # x' < x''
+  (+ (S x) (1)) leid   (S x) a1suc  (+ (S x) (1)) leeq2i  mpbir   (S x) (S (S x)) nnltp1let    mpbir
+  # x' * x' < x'' * x''
+  (< (S x) (S (S x))) pm4.24  mpbi (S x) (S (S x)) (S x) (S (S x)) ltmul  ax-mp
+  # Case A -> y' < x'' * x''
+  (= (* (S x) (S x)) (S y)) id (* (S (S x)) (S (S x))) lteq1d mpbii
+  (= z (S x)) id suceqd  (= z (S x)) id suceqd   muleq12d (S y) lteq2d  
+      biimprcd syl
+
+  # Join it all up for case A
+  jcad syl  z 19.21ai 
+  z (= z (S x)) (/\ (<= (* z z) (S y)) (< (S y) (* (S z) (S z))))  19.22 syl
+  # ... and it's finally "later".
+  mpi
+  # Bring in the extra AND clause
+  syl
+
+  # Okay, time to consider Case B
+  # Tuck this away for "later"...
+  z x tyex
+
+  # y <= y'
+  y (1) addge02t y a1suc y (1) addcom eqtr y leeq2i mpbir
+  # x*x <=y -> x*x <= y'
+  (* x x) y (S y) letr mpan2
+
+  # y + 1 + 1 < x' * x' -> y + 1 < x' * x'
+  (+ y (1)) (* (S x) (S x)) nnltp1let  biimpri 
+  # ... -> y' < x' * x'
+  y a1suc  (* (S x) (S x))  lteq1i  sylibr
+
+  # Join up case B
+  anim12i 
+  # Now to add the z
+  # z=x -> z*z<=y' <-> x*x<=y'
+  z x z x muleq12 anidms (S y) leeq1d
+  # z=x -> y'<z'*z'<-> y'<x'*x'
+  z x pa_ax2 biimpi   z x pa_ax2 biimpi muleq12d (S y) lteq2d
+  # put it all together
+  anbi12d biimprcd syl
+  z 19.21ai
+  z (= z x) (/\ (<= (* z z) (S y)) (< (S y) (* (S z) (S z))))  19.22  syl
+  # And it's finally "later" again.
+  mpi
+
+
+  # Unify the cases
+  jaoi
+  # Now it is MUCH later, time to factor
+  sylbi
+  # Both cases are handled!
+  syl
+
+  # Existential plumbing
+  x  19.22i 19.9d
+  # alpha switch
+  z x z x muleq12 anidms (S y) leeq1d
+  z x pa_ax2 biimpi   z x pa_ax2 biimpi muleq12d (S y) lteq2d
+  anbi12d exalpha sylib
+)
+
+#GH# Author: abliss
+thm (sqrt ((A x)) ()
+   (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
+  z (0) x sqrtlem1
+  z y x sqrtlem1
+  z (S y) x sqrtlem1
+  z A x sqrtlem1
+  x sqrtlem5
+  x y sqrtlem6
+  finds
+)
+
+#GH# Author: abliss
+thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
+  B A sqle
+  notbii
+  (* B B) (* A A) lenltt
+  notbii bitri 
+  (< (* A A) (* B B)) notnot bicomi bitri
+
+  B A lenltt notbii
+  bitr3i
+  (< A B) notnot bicomi bitri bicomi
+)
+
+#GH# Author: abliss
+thm (lesym () () 
+  (<-> (= A B) (/\ (<= A B) (<= B A)))
+  # A=B -> A<=B
+  B leid    (= A B) id B leeq1d    mpbiri
+  # A=B -> B<=A
+  A leid    (= A B) id A leeq1d    mpbii
+  jca
+  
+  A B lenltt
+  B A df-lt
+  notbii   bitri
+  (<= B A) (-. (= B A)) ianor
+  bitri biimpi
+
+  (<= B A) (-. (-. (= B A))) imor bicomi biimpi syl  imp
+  (= B A) notnot2 syl
+  eqcomd
+
+ impbii
+)
+
+#GH# Author: abliss
+thm (lesuc () () 
+  (<-> (< A (S B)) (<= A B))
+   A (S B) nnltp1let
+   B a1suc   (+ A (1)) leeq2i bitri
+   A B (1) leadd1 bicomi bitri
+)
+
+#GH# Author: abliss
+thm (sqrtuniq () ()
+   (-> (/\ (/\ (<= (* A A) B) (< B (* (S A) (S A))))
+           (/\ (<= (* C C) B) (< B (* (S C) (S C)))))
+   (= A C))
+   
+   # Diddle with and ordering
+   (<= (* C C) B)  (< B (* (S C) (S C)))  ancom
+      (/\ (<= (* A A) B)    (< B (* (S A) (S A)))) anbi2i
+   (<= (* A A) B) (< B (* (S A) (S A)))
+      (< B (* (S C) (S C)))    (<= (* C C) B)    an4    
+   bitri
+
+   (* A A) B (* (S C) (S C)) lelttr
+   (* C C) B (* (S A) (S A)) lelttr ancoms anim12i
+   sylbi
+
+   # ... -> A < C' /\ C < A'
+   A (S C) sqlt  C (S A) sqlt anbi12i  biimpri syl
+
+   A C lesuc   C A lesuc
+   anbi12i
+   A C lesym bicomi bitri biimpi syl
+)
+
+#GH# Author: abliss
+thm (opthlem1 () ()
+   (/\ (<= (* (+ A B) (+ A B)) (+ (* (+ A B) (+ A B)) B))
+       (< (+ (* (+ A B) (+ A B)) B) (* (S (+ A B)) (S (+ A B)))))
+ # First part is easy 
+ (* (+ A B) (+ A B)) B  addge01t
+
+   # A + B <= A + B
+   (+ A B) leid  
+   # A + B <= (A + B)'
+   (+ A B)  (1) addge01t  (+ A B) a1suc (+ A B) leeq2i mpbir
+ # Now multiply them out
+ (+ A B) (+ A B) (+ A B) (S (+ A B)) lemul3 mp2an
+
+ # Throw in a free A on the right side
+ (* (+ A B) (S (+ A B))) A addge01t
+ (* (+ A B) (+ A B)) (* (+ A B) (S (+ A B))) (+  (* (+ A B) (S (+ A B))) A) letr mp2an
+ # And add B to each side
+ (* (+ A B) (+ A B)) (+ (* (+ A B) (S (+ A B))) A)  B leadd1 mpbi
+ # Convert le to lt using suc
+(+ (* (+ A B) (+ A B)) B) (+ (+ (* (+ A B) (S (+ A B))) A)  B) lesuc mpbir
+
+
+ # Expand left side of (A+B)'**2 and distribute.
+ (+ A B) a1suc (S (+ A B)) muleq1i
+ (+ A B) (1) (S (+ A B)) distl eqtr
+ # Remove 1* 
+ (S (+ A B)) (1) mulcom   (S (+ A B)) mulid eqtr3     (* (+ A B) (S (+ A B))) addeq2i eqtr
+ # Expand (A+B)'
+ (+ A B) a1suc (* (+ A B) (S (+ A B))) addeq2i eqtr
+ # Pull the 1 out to the right and reassoc
+ addassrli
+ (* (+ A B) (S (+ A B))) A B addass (1) addeq1i eqtr4
+ # Convert the +1 to a suc
+
+ (+ (+ (* (+ A B) (S (+ A B))) A) B)  a1suc eqtr4
+ (+ (* (+ A B) (+ A B)) B)  lteq2i mpbir
+
+ pm3.2i
+)
+
+#GH# Author: abliss
+thm (opthlem2 () ()
+    (-> (= (<,> A B) (<,> C D)) (= (+ C D) (+ A B)))
+
+    A B opthlem1
+
+    A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+    (* (+ A B) (+ A B)) leeq2d
+    A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+    (* (S (+ A B)) (S (+ A B))) lteq1d
+    anbi12d
+  mpbii
+
+  C D opthlem1
+  (+ C D) (+ (* (+ C D) (+ C D)) D) (+ A B) sqrtuniq
+  mpan
+
+  syl
+)
+
+#GH# Author: abliss
+thm (opthlem3 () ()
+    (-> (= (<,> A B) (<,> C D)) (= B D))
+  A B C D opthlem2
+
+  # Duplicate the conclusion
+  (= (<,> A B) (<,> C D)) (= (+ C D) (+ A B)) anidmdbi mpbir
+  # Square the conclusion
+  (+ C D) (+ A B) (+ C D) (+ A B) muleq12 syl
+
+  eqcomd B addeq1d eqcomd
+
+  A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+
+  eqtrd
+  (* (+ C D) (+ C D)) B D addcan2
+  sylib
+)
+
+#GH# Author: abliss
+thm (opth () ()
+    (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
+  A B C D opthlem2
+
+    A B C D opthlem3
+    A B D addcan2
+  sylibr
+  
+  eqtrd
+  C D A addcan
+  sylib
+  eqcomd
+  A B C D opthlem3 
+  jca
+  A C B D opth1
+  
+
+
+ impbii
+)
 
