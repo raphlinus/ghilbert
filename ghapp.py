@@ -55,6 +55,7 @@ class StringScanner(object):
             self.record = str_to_scan
         else:
             self.record = str_to_scan.encode('ascii')
+        self.record = self.record.strip()
         self.lines = self.record.splitlines()
         self.lineno = 0
         self.toks = []
@@ -546,7 +547,7 @@ def find_unresolved_terms(vctx, exp, unk_terms):
     if not isinstance(exp, list):
         return
     if len(exp) < 1 or isinstance(exp[0], list):
-        raise GHDatastoreError("Invalid term")
+        raise SyntaxError("Invalid term.")
     tname_tup = (exp[0],)
     if exp[0] not in vctx.terms and tname_tup not in unk_terms:
         unk_terms.append(tname_tup)
@@ -564,7 +565,7 @@ def find_unresolved(vctx, cmd, e, cmdstr):
         not isinstance(e[0], basestring) or
         not isinstance(e[steps_ix - 2], list) or
         (len(e[steps_ix - 2]) & 1) != 0):
-        raise GHDatastoreError("Bad 'thm' or 'defthm' syntax")
+        raise SyntaxError("Bad 'thm' or 'defthm' syntax.")
 
     hyps = e[steps_ix - 2]
 
@@ -572,7 +573,7 @@ def find_unresolved(vctx, cmd, e, cmdstr):
     for ix in xrange(0, len(hyps), 2):
         hn = hyps[ix]
         if not isinstance(hn, basestring):
-            raise GHDatastoreError("Hypothesis name must be an identifier")
+            raise SyntaxError("Hypothesis name must be an identifier.")
         hypnames[hn] = 0 # don't really need value here...
         find_unresolved_terms(vctx, hyps[ix + 1], unk_terms)
 
@@ -634,12 +635,18 @@ def add_thm(vctx, name, th_cmd, keep_if_fail):
     if not isinstance(e, list) or len(e) < 1 or e[0] != name:
         vctx.out.write('Mismatched theorem labels.\n')
         return False
-    unk = find_unresolved(vctx, cmd, e, sc.record)
+    try:
+        unk = find_unresolved(vctx, cmd, e, sc.record)
+    except SyntaxError, x:
+        vctx.out.write('%s\n' % str(x))
+        return False
+        
 ##    logging.info("add %s %s, unresolved %r" %
 ##                 (cmd, verify.sexp_to_string(e), unk))
     thmap = vctx.unresolved_thms
     if len(unk) > 3:
         if not keep_if_fail:
+            vctx.out.write("Unresolved symbol '%s'\n" % unk[0])
             return False
         try:
             ul = thmap[unk[0]]
@@ -782,6 +789,8 @@ class SaveHandler(webapp.RequestHandler):
         if result: # TODO -- save incomplete / broken theorems
             datastore_add_new_thm(ctx, name, cmd)
             out.write('Saved %s\n' % name)
+        else:
+            out.write('Failed.\n')
         return
         
 class ContextHandler(webapp.RequestHandler):
