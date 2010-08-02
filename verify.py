@@ -1116,9 +1116,11 @@ class VerifyCtx(GhilbertCtx):
                 #   None, if the constraint was not provided, but was needed
                 #   1, if the constraint was provided and needed
                 if val == 0:
-                    extra = extra + (' (%s %s)' % (A, v))
+                    extra = extra + (' (%s %s)' %
+                                     (varlist[A][2], varlist[v][2]))
                 elif val is None:
-                    missing = missing + (' (%s %s)' % (A, v))
+                    missing = missing + (' (%s %s)' %
+                                     (varlist[A][2], varlist[v][2]))
 
         if missing != '':
             raise VerifyError('Missing free variable constraint pairs:%s' %
