@@ -142,7 +142,7 @@ GH.typesetclab = function(term) {
 };
 
 GH.typeset = function(sexp) {
-    if (typeof sexp == 'string') {
+    if (GH.typeOf(sexp) == 'string') {
 	var trans = { et: '\u03b7',
 	    th: '\u03b8',
 	    ta: '\u03c4',
@@ -179,7 +179,7 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == '<->') {
 	return GH.typesetinfix(sexp, 'n', 100, '\u2194');
     } else if (sexp[0] == '-.') {
-	if (typeof sexp[1] != 'string') {
+	if (GH.typeOf(sexp[1]) != 'string') {
 	    if (sexp[1][0] == '=') {
 		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
 	    } else if (sexp[1][0] == '=_') {

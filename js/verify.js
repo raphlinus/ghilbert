@@ -3,9 +3,22 @@
 // Apache 2 license
 
 // Put everything into a namespace defined by one variable.
-if (typeof GH === 'undefined') {
+if (typeof GH == 'undefined') {
   var GH = {};
 }
+
+/**
+ * Like the regular typeof, but returns 'string' for Objects which are
+ * instanceof String.  This allows us to extend String objects with
+ * more properties, since JS does not allow you to set properties on
+ * strings.
+ */
+GH.typeOf = function(obj) {
+    if (obj instanceof String) {
+	return 'string';
+    }
+    return typeof obj;
+};
 
 GH.Scanner = function (lines) {
     this.lines = lines;
@@ -37,7 +50,7 @@ GH.Scanner.prototype.get_tok = function() {
 GH.read_sexp = function(scanner) {
     while (1) {
 	var tok = scanner.get_tok();
-	if (tok === null) {
+	if (tok == null) {
 	    return null;
 	}
 	if (tok == "(") {
@@ -46,7 +59,7 @@ GH.read_sexp = function(scanner) {
 		var subsexp = GH.read_sexp(scanner);
 		if (subsexp == ")") {
 		    break;
-		} else if (subsexp === null) {
+		} else if (subsexp == null) {
 		    throw 'eof inside sexp';
 		}
 		result.push(subsexp);
@@ -59,11 +72,11 @@ GH.read_sexp = function(scanner) {
 };
 
 GH.sexp_to_string = function(sexp) {
-    if (typeof sexp === 'string') {
+    if (GH.typeOf(sexp) == 'string') {
 	return sexp;
-    } else if (typeof sexp === 'number') {
+    } else if (GH.typeOf(sexp) == 'number') {
         return '' + sexp; // DLK adding for debug purposes
-    } else if (sexp === null) {
+    } else if (sexp == null) {
         return '#null';  // DLK adding for debug purposes
     } else {
         // map would of course be shorter, but how available is it?
@@ -78,9 +91,9 @@ GH.sexp_to_string = function(sexp) {
 // Similar semantics as Python's os.path.split
 GH.pathsplit = function(path) {
     var i = path.lastIndexOf('/');
-    if (i === -1) {
+    if (i == -1) {
 	return ['', path];
-    } else if (i === 0) {
+    } else if (i == 0) {
 	return ['/', path.slice(1)];
     } else {
 	return [path.slice(0, i), path.slice(i + 1)];
@@ -90,9 +103,9 @@ GH.pathsplit = function(path) {
 // Similar semantics as Python's os.path.join. Could be vararg, but we only use
 // with 2.
 GH.pathjoin = function(path1, path2) {
-    if (path2.charAt(0) === '/' || path1.length === 0) {
+    if (path2.charAt(0) == '/' || path1.length == 0) {
 	return path2;
-    } else if (path1.charAt(path1.length - 1) === '/') {
+    } else if (path1.charAt(path1.length - 1) == '/') {
 	return path1 + path2;
     } else {
 	return path1 + '/' + path2;
@@ -101,13 +114,13 @@ GH.pathjoin = function(path1, path2) {
 
 // Is there not a builtin JS technique for this?
 GH.sexp_equals = function(a, b) {
-    if (typeof a === 'undefined') {
+    if (GH.typeOf(a) == 'undefined') {
       throw 'whoa!';
     }
-    if (typeof a === 'string') {
-       return a === b;
+    if (GH.typeOf(a) == 'string') {
+       return a == b;
     }
-    if (typeof b === 'string' || a.length !== b.length) {
+    if (GH.typeOf(b) == 'string' || a.length != b.length) {
        return false;
     }
     for (var i = 0; i < a.length; i++) {
@@ -144,11 +157,11 @@ GH.XhrUrlCtx.prototype.resolve = function (url) {
 // the specified kinds, terms, and syms.
 // Return the (kind, argkinds, freemap) tuple.
 GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
-    if (typeof tkind !== 'string' || !kinds.hasOwnProperty(tkind)) {
+    if (GH.typeOf(tkind) != 'string' || !kinds.hasOwnProperty(tkind)) {
         throw 'Term result kind must be a known kind';
     }
-    if (typeof tsig === 'string' || tsig.length < 1 ||
-        typeof tsig[0] !== 'string') {
+    if (GH.typeOf(tsig) == 'string' || tsig.length < 1 ||
+        GH.typeOf(tsig[0]) != 'string') {
         throw 'Term signature must be a list starting with term symbol';
     }
     if (terms.hasOwnProperty(tsig[0])) {
@@ -159,7 +172,7 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
     var freemap = [];
     for (var i = 0; i < tsig.length - 1; i++) {
 	var arg = tsig[i + 1];
-	if (typeof arg !== 'string' || !syms.hasOwnProperty(arg)) {
+	if (GH.typeOf(arg) != 'string' || !syms.hasOwnProperty(arg)) {
 	    throw ('Term formal argument ' + GH.sexp_to_string(arg) +
 		   ' is not a known variable');
 	}
@@ -168,9 +181,9 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
 	}
 	var vv = syms[arg];
 	argkinds.push(vv[1]);
-	if (vv[0] === 'tvar') {
+	if (vv[0] == 'tvar') {
 	    freemap.push(null);
-	} else if (vv[0] === 'var') {
+	} else if (vv[0] == 'var') {
 	    freemap.push([]);
 	} else {
 	    throw 'Symbol ' + arg + ' is not a variable.';
@@ -178,29 +191,29 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
 	inverse[arg] = i;
     }
     var k = kinds[tkind];
-    if (freespecs === null) {
+    if (freespecs == null) {
         return [k, argkinds, freemap];
     }
-    if (typeof freespecs === 'string') {
+    if (GH.typeOf(freespecs) == 'string') {
         throw 'A term free variable map must be a list';
     }
     for (i = 0; i < freespecs.length; i++) {
         var clause = freespecs[i];
-	if (typeof clause === 'string' || clause.length < 2 ||
-	    typeof clause[0] !== 'string') {
+	if (GH.typeOf(clause) == 'string' || clause.length < 2 ||
+	    GH.typeOf(clause[0]) != 'string') {
 	    throw 'Each free variable map clause must be a list of at least two term argument variables';
 	}
 	var bvar = clause[0];
 	var fm = freemap[inverse[bvar]];
-	if (!inverse.hasOwnProperty(bvar) || fm === null) {
+	if (!inverse.hasOwnProperty(bvar) || fm == null) {
 	    throw 'The first variable in a term free variable map clause must be a binding variable argument of the term';
 	}
-	if (fm.length !== 0) {
+	if (fm.length != 0) {
 	    throw 'More than one free variable map clause for binding variable ' + bvar;
 	}
 	for (var j = 1; j < clause.length; j++) {
 	    var v = clause[j];
-	    if (typeof v !== 'string' || !inverse.hasOwnProperty(v)) {
+	    if (GH.typeOf(v) != 'string' || !inverse.hasOwnProperty(v)) {
 	      throw 'Free variable map clause element is not a term formal argument: ' + GH.sexp_to_string(v);
 	    }
 	    var n = inverse[v];
@@ -270,7 +283,7 @@ GH.VerifyCtx.prototype.add_assertion = function(kw, label, fv, hyps, concl,
 GH.VerifyCtx.prototype.allvars = function(exp) {
     var fv = [];
     function allvars_rec(exp) {
-	if (typeof exp == 'string') {
+	if (GH.typeOf(exp) == 'string') {
 	    if (fv.indexOf(exp) == -1) {
 		fv.push(exp);
 	    }
@@ -285,7 +298,7 @@ GH.VerifyCtx.prototype.allvars = function(exp) {
 };
 
 GH.VerifyCtx.prototype.free_scan = function(v, term, accum) {
-    if (typeof term === 'string') {
+    if (GH.typeOf(term) == 'string') {
         return accum(term);
     } else {
 	var freemap = this.terms[term[0]][2];
@@ -293,7 +306,7 @@ GH.VerifyCtx.prototype.free_scan = function(v, term, accum) {
 	var i;
 	for (i = 0; i < freemap.length; i++) {
 	    var fl = freemap[i]; // note fl is sorted if not null
-	    if (fl === null || term[i + 1] !== v) {
+	    if (fl == null || term[i + 1] != v) {
 	        continue;
 	    }
 	    for (var j = 0; j < subterms.length; j++) {
@@ -303,7 +316,7 @@ GH.VerifyCtx.prototype.free_scan = function(v, term, accum) {
 	    }
 	}
 	for (i = 0; i < subterms.length; i++) {
-	    if (subterms[i] !== null &&
+	    if (subterms[i] != null &&
 		this.free_scan(v, subterms[i], accum)) {
 		return true;
 	    }
@@ -315,10 +328,10 @@ GH.VerifyCtx.prototype.free_scan = function(v, term, accum) {
 GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
     var syms = this.syms;
     function test(vv) {
-        if (vv === v) {
+        if (vv == v) {
 	    return true;
 	}
-        if (fvvars === null || syms[vv][0] === 'var') {
+        if (fvvars == null || syms[vv][0] == 'var') {
 	    return false;
 	}
 	return !fvvars.hasOwnProperty(vv);
@@ -333,7 +346,7 @@ GH.VerifyCtx.prototype.free_in = function(v, term, fvvars) {
 GH.VerifyCtx.prototype.freeset = function(v, exp, varset) {
     var syms = this.syms;
     function test(vv) {
-        if (vv === v || syms[vv][0] !== 'var') {
+        if (vv == v || syms[vv][0] != 'var') {
 	    varset[vv] = 0;
 	}
 	return false;
@@ -344,17 +357,17 @@ GH.VerifyCtx.prototype.freeset = function(v, exp, varset) {
 GH.VerifyCtx.prototype.check_free_in = function(v, exp, varset) {
     var syms = this.syms;
     function test(vv) {
-        if (vv === v) {
+        if (vv == v) {
 	    return true; // only return true if vv explicitly free
         }
-	if (varset === null || syms[vv][0] === 'var') {
+	if (varset == null || syms[vv][0] == 'var') {
 	    return false;
 	}
 	if (!varset.hasOwnProperty(vv)) {
 	    varset[vv] = null;
 	    return false;
 	}
-	if (varset[vv] === 0) {
+	if (varset[vv] == 0) {
 	    varset[vv] = 1;
 	}
 	return false;
@@ -374,10 +387,10 @@ GH.VerifyCtx.prototype.check_free_in = function(v, exp, varset) {
 GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
 					  binding_var, syms) {
     var v;
-    if (typeof exp === 'string') {
+    if (GH.typeOf(exp) == 'string') {
 	v = syms[exp];
 	if (!syms.hasOwnProperty(exp) ||
-            (v[0] !== 'var' && v[0] !== 'tvar')) {
+            (v[0] != 'var' && v[0] != 'tvar')) {
 	    throw 'Expression not a var: ' + exp;
 	}
 	if (binding_var && v[0] != 'var') {
@@ -389,10 +402,10 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
 	}
 	return this.kinds[v[1]];
     }
-    if (exp.length === 0) {
+    if (exp.length == 0) {
       throw "Term can't be empty list";
     }
-    if (typeof exp[0] !== 'string') {
+    if (GH.typeOf(exp[0]) != 'string') {
       throw 'Term symbol must be id';
     }
     if (!this.terms.hasOwnProperty(exp[0])) {
@@ -403,15 +416,15 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
 	       GH.sexp_to_string(exp));
     }
     v = this.terms[exp[0]];
-    if (exp.length - 1 !== v[1].length) {
+    if (exp.length - 1 != v[1].length) {
         throw ('Arity mismatch: ' + exp[0] + ' has arity ' + v[1].length + 
 	       ' but was given ' + (exp.length - 1));
     }
     for (var i = 0; i < exp.length - 1; i++) {
-	binding_var = v[2][i] !== null;
+	binding_var = v[2][i] != null;
         var child_kind = this.kind_of(exp[i + 1], varlist, varmap, 
 				      binding_var, syms);
-	if (child_kind !== this.kinds[v[1][i]]) {
+	if (child_kind != this.kinds[v[1][i]]) {
 	    throw 'Kind mismatch';
 	}
     }
@@ -420,7 +433,7 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
 
 GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
   var i, j, label, fv, hyps, concl, proof, new_hyps, proofctx;
-    if (cmd === 'thm') {
+    if (cmd == 'thm') {
 	if (arg.length < 5) {
 	    throw 'Expected at least 5 args to thm';
 	}
@@ -447,7 +460,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 			   proofctx.num_nondummies, this.syms);
 	return;
     }
-    if (cmd === 'defthm') {
+    if (cmd == 'defthm') {
 	if (arg.length < 7) {
 	    throw 'Expected at least 7 args to thm';
 	}
@@ -464,7 +477,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 			 dkind, dsig);
 	proofctx.definiens = null;
 	this.def_conc_match(concl, proofctx.stack[0], proofctx, dsig);
-	if (proofctx.definiens === null) {
+	if (proofctx.definiens == null) {
 	    throw 'Term being defined does not occur in conclusion.';
 	}
 	log ('  ' + GH.sexp_to_string(dsig) + '  ' +
@@ -480,10 +493,10 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 			   proofctx.num_nondummies, this.syms);
 	return;
     }
-    if (cmd === 'import' || cmd === 'export') {
-        if (typeof arg === 'string' || arg.length != 4 ||
-	    typeof arg[0] !== 'string' || typeof arg[1] != 'string' ||
-	    typeof arg[2] === 'string' || typeof arg[3] != 'string') {
+    if (cmd == 'import' || cmd == 'export') {
+        if (GH.typeOf(arg) == 'string' || arg.length != 4 ||
+	    GH.typeOf(arg[0]) != 'string' || GH.typeOf(arg[1]) != 'string' ||
+	    GH.typeOf(arg[2]) == 'string' || GH.typeOf(arg[3]) != 'string') {
 	    throw ("Expected '" + cmd +
 		   " (IFNAME URL (IFNAME ...) \"PREFIX\")'");
 	}
@@ -491,7 +504,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	var url = arg[1];
 	var params = arg[2];
 	var prefix = arg[3];
-	if (prefix.length < 2 || prefix.charAt(0) !== '"' || prefix.charAt(prefix.length - 1) !== '"') {
+	if (prefix.length < 2 || prefix.charAt(0) != '"' || prefix.charAt(prefix.length - 1) != '"') {
 	    throw 'Namespace prefix must be enclosed in quotes';
 	}
 	prefix = prefix.substring(1, prefix.length - 1);
@@ -502,7 +515,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	var inverse = {};
 	for (i = 0; i < params.length; i++) {
 	    var p = params[i];
-	    if (typeof p !== 'string') {
+	    if (GH.typeOf(p) != 'string') {
 	        throw cmd + ' parameter must be an interface name';
 	    }
 	    if (!this.interfaces.hasOwnProperty(p)) {
@@ -516,7 +529,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	    pifs.push(iface);
 	}
 	var ctx;
-	if (cmd === 'import') {
+	if (cmd == 'import') {
 	    log ('Importing ' + iname);
 	    ctx = new GH.ImportCtx(this, prefix, pifs);
 	} else {
@@ -533,28 +546,28 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 	this.interfaces[iname] = ctx;
 	return;
     }
-    if (cmd === 'var' || cmd === 'tvar') {
-        if (typeof arg === 'string' || arg.length < 1) {
+    if (cmd == 'var' || cmd == 'tvar') {
+        if (GH.typeOf(arg) == 'string' || arg.length < 1) {
 	    throw "Expected '" + cmd + " (KIND VAR ...)'";
 	}
 	var kind = this.get_kind(arg[0]);
 	for (i = 1; i < arg.length; i++) {
-	    if (typeof arg[i] !== 'string') {
+	    if (GH.typeOf(arg[i]) != 'string') {
 	        throw 'variable name must be an identifier.';
 	    }
 	    this.add_sym(arg[i], [cmd, kind, arg[i]]);
 	}
 	return;
     }
-    if (cmd === 'kindbind') {
-        if (typeof arg === 'string' || arg.length !== 2 ||
-	    typeof arg[0] !== 'string' || typeof arg[1] !== 'string') {
+    if (cmd == 'kindbind') {
+        if (GH.typeOf(arg) == 'string' || arg.length != 2 ||
+	    GH.typeOf(arg[0]) != 'string' || GH.typeOf(arg[1]) != 'string') {
 	    throw "Expected 'kindbind (OLDKIND NEWKIND)'";
 	}
 	this.add_kind(arg[1], this.get_kind(arg[0]));
 	return;
     }
-    if (cmd === 'term' || cmd === 'param' || cmd === 'kind') {
+    if (cmd == 'term' || cmd == 'param' || cmd == 'kind') {
         throw 'Interface file command encountered in proof file.';
     }
     log ('Unrecognized command ' + cmd);
@@ -565,19 +578,19 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
 // <concl> and <remnant> are known to be well-formed at this point.
 GH.VerifyCtx.prototype.def_conc_match = function(concl, remnant, 
 						 proofctx, dsig) {
-    if (typeof concl === 'string') {
+    if (GH.typeOf(concl) == 'string') {
         if (concl != remnant) {
 	    throw ('defthm conclusion mismatch: ' + concl + '\nversus: ' +
 		   GH.sexp_to_string(remnant));
 	}
 	return;
     }
-    if (typeof remnant === 'string') {
+    if (GH.typeOf(remnant) == 'string') {
         throw ('defthm conclusion mismatch: expected term, found\n ' +
 	       remnant);
     }
     var i;
-    if (concl[0] === remnant[0]) {
+    if (concl[0] == remnant[0]) {
         // since concl and remnant are well-formed, they both have the same
         // length.
         for (i = 1; i < concl.length; i++) {
@@ -585,17 +598,17 @@ GH.VerifyCtx.prototype.def_conc_match = function(concl, remnant,
 	}
 	return;
     }
-    if (concl[0] !== dsig[0]) {
+    if (concl[0] != dsig[0]) {
         throw ('defthm conclusion mismatch: expected\n ' +
 	       GH.sexp_to_string(concl) + '\nbut found\n ' +
 	       GH.sexp_to_string(remnant));
     }
     for (i = 1; i < concl.length; i++) {
-        if (concl[i] !== dsig[i]) {
+        if (concl[i] != dsig[i]) {
 	    throw ('All uses of the term being defined in the defthm conclusion must exactly match the definition term signature');
         }
     }
-    if (proofctx.definiens !== null) {
+    if (proofctx.definiens != null) {
         if (!GH.sexp_equals(proofctx.definiens, remnant)) {
 	    throw 'All remnant subexpressions matching the definition term in the defthm conclusion must be identical.';
 	}
@@ -634,14 +647,14 @@ GH.VerifyCtx.prototype.def_conc_match = function(concl, remnant,
 		   GH.sexp_to_string(remnant));
 	}
     }
-    if (argcount !== dsig.length - 1) {
+    if (argcount != dsig.length - 1) {
         throw 'Not all formal definition arguments occurred in definiens.';
     }
     // construct the freemap
     var freemap = proofctx.defterm[2];
     for (i = 0; i < freemap.length; i++) {
         var fm = freemap[i];
-	if (fm === null) {
+	if (fm == null) {
 	    continue;
 	}
 	var l = {};
@@ -661,26 +674,26 @@ GH.VerifyCtx.prototype.fvmap_build = function(fv, varlist, varmap) {
     var v, i, j;
     for (i = 0; i < num_nondummies; i++) {
 	v = varlist[i];
-	if (v[0] === 'var') {
+	if (v[0] == 'var') {
 	    fvmap[v[2]] = {};  // note, only nondummies get fvmap entries
 	}
     }
     for (i = 0; i < fv.length; i++) {
 	var clause = fv[i];
-	if (typeof clause === 'string' || clause.length === 0) {
+	if (GH.typeOf(clause) == 'string' || clause.length == 0) {
 	    throw 'Each fv clause must be list of vars';
 	}
 	var tvar = clause[0];
-	if (typeof tvar !== 'string') {
+	if (GH.typeOf(tvar) != 'string') {
 	    throw 'Var in fv clause must be string';
 	}
 	if (!(varmap.hasOwnProperty(tvar) && 
-	      varlist[varmap[tvar]][0] === 'tvar')) {
+	      varlist[varmap[tvar]][0] == 'tvar')) {
 	    throw 'First var in fv clause must be nondummy tvar: ' + tvar;
 	}
 	for (j = 1; j < clause.length; j++) {
 	    v = clause[j];
-	    if (typeof v !== 'string') {
+	    if (GH.typeOf(v) != 'string') {
 		throw 'Var in fv clause must be string';
 	    }
 	    // Check that v is a binding variable occurring in the 
@@ -698,15 +711,15 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
 					      label, fv, hyps, stmt, proof,
 					      dkind, dsig) {
     var defterm;
-    if (dkind === null) {
-        if (typeof label !== 'string' || typeof fv === 'string' ||
-	    typeof hyps === 'string') {
+    if (dkind == null) {
+        if (GH.typeOf(label) != 'string' || GH.typeOf(fv) == 'string' ||
+	    GH.typeOf(hyps) == 'string') {
 	    throw "Expected 'thm (LABEL ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'";
 	}
     } else {
-        if (typeof label !== 'string' || typeof dkind !== 'string' ||
-	    typeof dsig === 'string' || typeof fv === 'string' ||
-	    typeof hyps === 'string') {
+        if (GH.typeOf(label) != 'string' || GH.typeOf(dkind) != 'string' ||
+	    GH.typeOf(dsig) == 'string' || GH.typeOf(fv) == 'string' ||
+	    GH.typeOf(hyps) == 'string') {
 	    throw "Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'";
 	}
 	defterm = GH.term_common(dkind, dsig, null, 
@@ -720,7 +733,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     var i;
     var hypmap = {};
     for (i = 0; i < hyps.length; i += 2) {
-	if (typeof hyps[i] !== 'string') {
+	if (GH.typeOf(hyps[i]) != 'string') {
 	    throw 'Hyp label must be string';
 	}
 	if (hypmap.hasOwnProperty(hyps[i])) {
@@ -730,20 +743,20 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
 	this.kind_of(hyps[i + 1], varlist, varmap, false, this.syms);
     }
     var num_hypvars = varlist.length;
-    if (dkind !== null) {
+    if (dkind != null) {
         var j;
         // Check that the defined term does not have more than one binding variable argument of a given kind.
         var fmap = defterm[2];
 	var ak = defterm[1];
         for (j = 1; j < fmap.length; j++) {
-	    if (fmap[j] === null) {
+	    if (fmap[j] == null) {
 	        continue; // skip term variable formal arguments
 	    }
 	    for (i = 0; i < j; i++) {
-	        if (fmap[i] === null) {
+	        if (fmap[i] == null) {
 		    continue;
 	        }
-		if (ak[i] === ak[j]) {
+		if (ak[i] == ak[j]) {
 		    throw ('Formal binding variable arguments ' + dsig[i+1] +
 			   ' and ' + dsig[j+1] + ' of defined term ' + 
 			   dsig[0] + ' have the same kind.');
@@ -755,7 +768,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
         this.terms[dsig[0]] = defterm;
     }
     this.kind_of(stmt, varlist, varmap, false, this.syms);
-    if (dkind !== null) {
+    if (dkind != null) {
         // remove temporarily added term being defined
         delete this.terms[dsig[0]];
     }
@@ -767,16 +780,16 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     proofctx.num_hypvars = num_hypvars;
     proofctx.num_nondummies = num_nondummies;
 
-    if (dkind !== null) {
+    if (dkind != null) {
         proofctx.defterm = defterm;
     }
     for (i = 0; i < proof.length; i++) {
 	this.check_proof_step(hypmap, proof[i], proofctx);
     }
-    if (proofctx.mandstack.length !== 0) {
+    if (proofctx.mandstack.length != 0) {
 	throw 'Extra mand hyps on stack at end of proof';
     }
-    if (proofctx.stack.length !== 1) {
+    if (proofctx.stack.length != 1) {
 	throw 'Stack must have one term at end of proof';
     }
     var missing = '';
@@ -788,19 +801,19 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
 	for (A in nfis) {
 	  if (nfis.hasOwnProperty(A)) {
 	      val = nfis[A];
-	      if (val === null) {
+	      if (val == null) {
 		  missing = missing + " (" + A + " " + v + ")";
-	      } else if (val === 0) {
+	      } else if (val == 0) {
 		  extra = extra + " (" + A + " " + v + ")";
 	      }
 	  }
 	}
       }
     }
-    if (missing !== '') {
+    if (missing != '') {
         throw 'Missing free variable constraint context pairs: ' + missing;
     }
-    if (extra !== '') {
+    if (extra != '') {
         throw 'Extra free variable constraint context pairs: ' + extra;
     }
     return;
@@ -808,14 +821,14 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
 
 GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
     var kind;
-    if (typeof step !== 'string') {
+    if (GH.typeOf(step) != 'string') {
         kind = this.kind_of(step, proofctx.varlist, proofctx.varmap, false,
 			    this.syms);
 	proofctx.mandstack.push([['tvar', kind], step]);
 	return;
     } 
     if (hypmap.hasOwnProperty(step)) {
-	if (proofctx.mandstack.length !== 0) {
+	if (proofctx.mandstack.length != 0) {
 	    throw 'Hyp expected no mand hyps, got ' + proofctx.mandstack.length;
 	}
 	proofctx.stack.push(hypmap[step]);
@@ -825,7 +838,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
         throw "Unrecognized proof step '" + step + "'";
     }
     var v = this.syms[step];
-    if (v[0] === 'var' || v[0] === 'tvar') {
+    if (v[0] == 'var' || v[0] == 'tvar') {
         if (!proofctx.varmap.hasOwnProperty(step)) {
 	    proofctx.varmap[step] = proofctx.varlist.length;
 	    proofctx.varlist.push(v);
@@ -834,8 +847,8 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
 	return;
     } 
     // This test is now likely redundant...
-    if (v[0] === 'stmt' || v[0] === 'thm') {
-	var result = this.match_inference(v, proofctx, proofctx.mandstack)
+    if (v[0] == 'stmt' || v[0] == 'thm') {
+	var result = this.match_inference(v, proofctx, proofctx.mandstack);
 	var sp = proofctx.stack.length - v[2].length;
 	proofctx.stack.splice(sp);
 	proofctx.stack.push(result);
@@ -849,7 +862,7 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
 	var concl = v[3];
 	var mand = v[4];
 	var syms = v[5];
-	if (mand.length !== mandstack.length) {
+	if (mand.length != mandstack.length) {
 	    throw 'Expected ' + mand.length + ' mand hyps, got ' + mandstack.length;
 	}
 	var env = {};
@@ -857,11 +870,11 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
 	for (var i = 0; i < mand.length; i++) {
 	    var mv = mand[i];
 	    el = mandstack[i];
-	    if (el[0][1] !== mv[1]) {
+	    if (el[0][1] != mv[1]) {
 	        throw ('Kind mismatch for ' + mv[2] + ': expected ' +
 		       mv[1] + ' found ' + el[0][1]);
 	    }
-	    if (mv[0] === 'var' && el[0][0] !== 'var') {
+	    if (mv[0] == 'var' && el[0][0] != 'var') {
 	        throw ('Unifying, expected expression substituted for mandatory variable ' +
 		       mv[2] + ' to be a binding variable, but found ' +
 		       GH.sexp_to_string(el[1]));
@@ -889,11 +902,11 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
 	for (v in env) {
 	  if (env.hasOwnProperty(v)) {
 	    var exp = env[v];
-	    if (syms[v][0] === 'var') {
-	        if (typeof exp !== 'string') {
+	    if (syms[v][0] == 'var') {
+	        if (GH.typeOf(exp) != 'string') {
 		    throw 'Expected binding variable for ' + v;
 		}
-		if (this.syms[exp][0] !== 'var') {
+		if (this.syms[exp][0] != 'var') {
 		    throw 'Expected binding variable for ' + v + '; ' + exp + ' is term variable';
 		}
 		if (invmap.hasOwnProperty(exp)) {
@@ -905,41 +918,56 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
 	}
 	var result = this.apply_subst(concl, env);
 	return result;
-}
+};
 
 GH.VerifyCtx.prototype.free_in_proof = function(v, term, proofctx) {
     return this.check_free_in(v, term, proofctx.fvvarmap[v] || null);
 };
 
-GH.VerifyCtx.prototype.match = function(templ, exp, env) {
-    // log('match: templ=' + GH.sexp_to_string(templ) + '  exp=' + GH.sexp_to_string(exp));
-    if (typeof templ === 'string') {
-        if (env.hasOwnProperty(templ)) {
-	    if (!GH.sexp_equals(exp, env[templ])) {
-		log(GH.sexp_to_string(exp) + " -- " + GH.sexp_to_string(env[templ]));
-		throw 'Unification error';
-	    }
+/**
+ * Attempts to fit the expression exp into the template templ, in
+ * accordance with existing assignments stored in env (a map of vars
+ * to terms).  On failure, throws up.
+ */
+GH.VerifyCtx.prototype.match = function(templ, exp, env, alreadyExpanded) {
+    if (0) {
+	log('match: templ=' + GH.sexp_to_string(templ) + '  exp=' + GH.sexp_to_string(exp)
+	    + (alreadyExpanded ? " aE" : ""));
+    }
+    // TODO(abliss): create a UnificationError object, with which the
+    // error can be fixed in one click.
+    if (GH.typeOf(templ) == 'string') {
+	if (alreadyExpanded) {
+	    if (templ.toString() != exp) throw "Unification error 1, expected " + templ
+		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
 	} else {
-	    env[templ] = exp;
+            if (env.hasOwnProperty(templ)) {
+		this.match(env[templ], exp, env, true);
+	    } else {
+		env[templ] = exp;
+	    }
 	}
     } else {
-	if (typeof exp === 'string') {
-	    throw 'Unification error, expected ' + GH.sexp_to_string(templ) + ' got ' + exp;
+	if (GH.typeOf(exp) == 'string') {
+	    throw 'Unification error 2, expected ' + GH.sexp_to_string(templ)
+		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
 	}
-	if (templ[0] !== exp[0]) {
-	    throw 'Unification error, expected ' + templ[0] + ' got ' + exp[0];
+	if (templ[0].toString() != exp[0]) {
+	    throw 'Unification error 3, expected ' + templ[0]
+		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
+
 	}
-	if (exp.length !== templ.length) {
+	if (exp.length != templ.length) {
 	    throw 'Term ' + templ[0] + ' expects arity ' + templ.length + ' got ' + exp.length;
 	}
 	for (var i = 1; i < templ.length; i++) {
-	    this.match(templ[i], exp[i], env);
+	    this.match(templ[i], exp[i], env, alreadyExpanded);
 	}
     }
 };
 
 GH.VerifyCtx.prototype.apply_subst = function(templ, env) {
-    if (typeof templ === 'string') {
+    if (GH.typeOf(templ) == 'string') {
 	return env[templ];
     } else {
 	var result = [templ[0]];
@@ -968,14 +996,14 @@ GH.InterfaceCtx.prototype.get_kind = function(rawkind) {
 };
 
 GH.InterfaceCtx.prototype.var_cmd = function(cmd, arg) {
-    if (typeof arg === 'string' || arg.length < 1 || 
-        typeof arg[0] !== 'string') {
+    if (GH.typeOf(arg) == 'string' || arg.length < 1 || 
+        GH.typeOf(arg[0]) != 'string') {
         throw "Expected '" + cmd + " (KIND NAME ...)'";
     }
     var kind = this.get_kind(arg[0]);
     for (var i = 1; i < arg.length; i++) {
         var v = arg[i];
-	if (typeof v !== "string") {
+	if (GH.typeOf(v) != "string") {
 	    throw 'variable name must be an atom';
 	}
 	if (this.vars.hasOwnProperty(v)) {
@@ -986,17 +1014,17 @@ GH.InterfaceCtx.prototype.var_cmd = function(cmd, arg) {
 };
 
 GH.InterfaceCtx.prototype.param_cmd = function(arg) {
-    if (typeof arg === 'string' || arg.length !== 4 ||
-	typeof arg[0] !== 'string' || typeof arg[1] !== 'string' ||
-	typeof arg[2] === 'string' || typeof arg[3] !== 'string') {
+    if (GH.typeOf(arg) == 'string' || arg.length != 4 ||
+	GH.typeOf(arg[0]) != 'string' || GH.typeOf(arg[1]) != 'string' ||
+	GH.typeOf(arg[2]) == 'string' || GH.typeOf(arg[3]) != 'string') {
         throw "Expected 'param (IFNAME URL (IFNAME ...) \"PREFIX\")'";
     }
     var ifname = arg[0];
     // var url = arg[1];
     var params = arg[2];
     var prefix = arg[3];
-    if (prefix.length < 2 || prefix.charAt(0) !== '"' ||
-	prefix.charAt(prefix.length - 1) !== '"') {
+    if (prefix.length < 2 || prefix.charAt(0) != '"' ||
+	prefix.charAt(prefix.length - 1) != '"') {
         throw 'param prefix must be enclosed in quotes';
     }
     prefix = prefix.substring(1, prefix.length - 1);
@@ -1015,14 +1043,14 @@ GH.InterfaceCtx.prototype.param_cmd = function(arg) {
     var i;
     for (i = 0; i < params.length; i++) {
         var p = params[i];
-	if (typeof p !== 'string') {
+	if (GH.typeOf(p) != 'string') {
 	    throw 'Parameters to param must be interface names.';
 	}
 	if (!this.used_params.hasOwnProperty(p)) {
 	    throw 'Unknown interface name ' + p;
 	}
 	var pif = this.used_params[p];
-	if (pif !== iface.params[i]) {
+	if (pif != iface.params[i]) {
 	    throw 'Inconsistent parametrization of interface ' + ifname;
 	}
     }
@@ -1053,10 +1081,10 @@ GH.InterfaceCtx.prototype.param_cmd = function(arg) {
 };
 
 GH.InterfaceCtx.prototype.kind_cmd_common = function(arg) {
-    if (typeof arg === 'string' || arg.length !== 1) {
+    if (GH.typeOf(arg) == 'string' || arg.length != 1) {
         throw 'Kind takes one arg';
     }
-    if (typeof arg[0] !== 'string') {
+    if (GH.typeOf(arg[0]) != 'string') {
         throw 'Kind must be string';
     }
     var loc_kind = arg[0];
@@ -1081,12 +1109,12 @@ GH.ImportCtx.prototype.map_syms = function(sexp, mapping, varlist,
     // while translating the expression terms into verify
     // context, and collecting all the variables used in varlist and
     // used_vars.
-    if (typeof sexp === 'string') {
+    if (GH.typeOf(sexp) == 'string') {
         if (!this.vars.hasOwnProperty(sexp)) {
 	    throw 'Unknown variable ' + sexp;
 	}
         var vv = this.vars[sexp];
-	if (kind !== null && vv[1] != kind) {
+	if (kind != null && vv[1] != kind) {
 	    throw 'Expected variable of kind ' + kind + ', found ' + sexp;
 	}
 	if (binding_var && vv[0] != 'var') {
@@ -1102,7 +1130,7 @@ GH.ImportCtx.prototype.map_syms = function(sexp, mapping, varlist,
 	    throw '() is not a valid term expression.';
         }
 	var locterm = sexp[0];
-        if (typeof locterm !== 'string') {
+        if (GH.typeOf(locterm) != 'string') {
 	    throw 'Bad term symbol' + GH.sexp_to_string(locterm);
 	}
 	if (!mapping.hasOwnProperty(locterm)) {
@@ -1110,19 +1138,19 @@ GH.ImportCtx.prototype.map_syms = function(sexp, mapping, varlist,
 	}
 	var vterm = mapping[locterm];
 	var t = this.verify.terms[vterm];
-        if (kind !== null && t[0] !== kind) {
+        if (kind != null && t[0] != kind) {
 	    throw ('Expected term of kind ' + kind + ', but found ' +
 		   GH.sexp_to_string(sexp));
 	}
 	var result = [vterm];
 	var argkinds = t[1];
         var freemap = t[2];
-	if (argkinds.length !== sexp.length - 1) {
+	if (argkinds.length != sexp.length - 1) {
 	    throw ('Expected ' + argkinds.length + ' arguments for term ' +
 		   locterm + ', but found ' + GH.sexp_to_string(sexp));
 	}
 	for (var i = 1; i < sexp.length; i++) {
-	    var binding = (freemap[i - 1] !== null);
+	    var binding = (freemap[i - 1] != null);
 	    result.push(this.map_syms(sexp[i], mapping, varlist, used_vars,
 				      argkinds[i - 1], binding));
 	}
@@ -1132,11 +1160,11 @@ GH.ImportCtx.prototype.map_syms = function(sexp, mapping, varlist,
 
 GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
     var kind, i, j, v, vv;
-    if (cmd === 'stmt') {
+    if (cmd == 'stmt') {
         // import context 'stmt' command
-	if (typeof arg === 'string' || arg.length !== 4 ||
-            typeof arg[0] !== 'string' || typeof arg[1] === 'string' ||
-            typeof arg[2] === 'string') {
+	if (GH.typeOf(arg) == 'string' || arg.length != 4 ||
+            GH.typeOf(arg[0]) != 'string' || GH.typeOf(arg[1]) == 'string' ||
+            GH.typeOf(arg[2]) == 'string') {
 	    throw "Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'";
 	}
 	var local_label = arg[0];
@@ -1158,13 +1186,13 @@ GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
 	// Check fv.
 	for (i = 0; i < fv.length; i++) {
 	    var clause = fv[i];
-	    if (typeof clause === 'string' || clause.length < 2) {
+	    if (GH.typeOf(clause) == 'string' || clause.length < 2) {
 	        throw 'Each free variable constraint context clause must be a list of at least two variables.';
 	    }
 	    var want = 'tvar';
 	    for (j = 0; j < clause.length; j++) {
 	        v = clause[j];
-		if (typeof v !== 'string') {
+		if (GH.typeOf(v) != 'string') {
 		    throw 'Free variable constraint clause list elements must be variables';
 		}
 		if (!this.vars.hasOwnProperty(v)) {
@@ -1185,9 +1213,9 @@ GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
 				  this.vars);
 	return;
     }
-    if (cmd === 'term') {
+    if (cmd == 'term') {
         // import context 'term' command
-        if (typeof arg === 'string' || arg.length < 2) {
+        if (GH.typeOf(arg) == 'string' || arg.length < 2) {
 	    throw "Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'";
 	}
 	var term = GH.term_common(arg[0], arg[1], arg.slice(2), 
@@ -1201,17 +1229,17 @@ GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
 	this.myterms[local_termname] = termname;
 	return;
     }
-    if (cmd === 'kind') {
+    if (cmd == 'kind') {
         // import context 'kind' command
         kind = this.kind_cmd_common(arg);
 	this.verify.add_kind(kind, kind);
 	return;
     }
-    if (cmd === 'var' || cmd === 'tvar') {
+    if (cmd == 'var' || cmd == 'tvar') {
         this.var_cmd(cmd, arg);
 	return;
     }
-    if (cmd === 'param') {
+    if (cmd == 'param') {
         this.param_cmd(arg);
 	return;
     }
@@ -1232,12 +1260,12 @@ GH.ExportCtx.prototype = new GH.InterfaceCtx();
 // Note that this applies both syntactical and proof checks.
 // Failures on some syntactic checks throw immediately.
 GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
-    if (typeof exp === 'string') {
-        if (typeof vexp !== 'string') {
+    if (GH.typeOf(exp) == 'string') {
+        if (GH.typeOf(vexp) != 'string') {
 	    return false;
 	}
 	if (varmap.hasOwnProperty(exp)) {
-	    return (varmap[exp] === vexp);
+	    return (varmap[exp] == vexp);
 	}
 	if (!this.vars.hasOwnProperty(exp)) {
 	    throw 'Unknown variable' + exp;
@@ -1256,13 +1284,13 @@ GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
 	invmap[vexp] = exp;
 	return true;
     }
-    if (typeof vexp === 'string') {
+    if (GH.typeOf(vexp) == 'string') {
         return false;
     }
     if (exp.length < 1) {
         throw 'The empty list () is not a valid term expression.';
     }
-    if (typeof exp[0] != 'string') {
+    if (GH.typeOf(exp[0]) != 'string') {
         throw 'A term expression must start with a term symbol.';
     }
     if (!this.terms.hasOwnProperty(exp[0])) {
@@ -1285,11 +1313,11 @@ GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
 
 GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
     var kind, i, j, v, vv;
-    if (cmd === 'stmt') {
+    if (cmd == 'stmt') {
         // export context 'stmt' command
-	if (typeof arg === 'string' || arg.length !== 4 ||
-            typeof arg[0] !== 'string' || typeof arg[1] === 'string' ||
-            typeof arg[2] === 'string') {
+	if (GH.typeOf(arg) == 'string' || arg.length != 4 ||
+            GH.typeOf(arg[0]) != 'string' || GH.typeOf(arg[1]) == 'string' ||
+            GH.typeOf(arg[2]) == 'string') {
 	    throw "Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'";
 	}
 	var local_label = arg[0];
@@ -1305,7 +1333,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	}
 	var vstmt = this.verify.syms[label];
 
-	if (vstmt[0] !== 'thm' && vstmt[0] !== 'stmt') {
+	if (vstmt[0] != 'thm' && vstmt[0] != 'stmt') {
 	    throw ("The symbol '" + label + 
 		   "' is not an assertion in verify context.");
 	}
@@ -1321,7 +1349,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	// var vmand = vstmt[4];
 	// var vsyms = vstmt[5]
 	
-	if (local_hyps.length !== vhyps.length) {
+	if (local_hyps.length != vhyps.length) {
 	    throw ("The exported assertion '" + local_label + 
 		   "' has " + local_hyps + 
 		   " hypotheses, while its original has " + vhyps.length);
@@ -1364,13 +1392,13 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	var nonfrees = {};
 	for (i = 0; i < fv.length; i++) {
 	    clause = fv[i];
-	    if (typeof clause === 'string' || clause.length < 2) {
+	    if (GH.typeOf(clause) == 'string' || clause.length < 2) {
 	        throw 'Each free variable constraint context clause must be a list of at least two variables.';
 	    }
 	    var want = 'tvar';
 	    for (j = 0; j < clause.length; j++) {
 	        v = clause[j];
-		if (typeof v !== 'string') {
+		if (GH.typeOf(v) != 'string') {
 		    throw 'Free variable constraint clause list elements must be variables';
 		}
 		if (!this.vars.hasOwnProperty(v)) {
@@ -1383,7 +1411,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 		if (vv[0] != want) {
 		    throw 'The first variable in a free variable constraint clause must be a term variable, and the remaining variables must be binding variables.';
 		}
-		if (want === 'tvar') {
+		if (want == 'tvar') {
 		    tvar = varmap[v];
 		} else {
 		    bvar = varmap[v];
@@ -1421,9 +1449,9 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	this.assertions[local_label] = 0;
 	return;
     }
-    if (cmd === 'term') {
+    if (cmd == 'term') {
         // export context 'term' command
-        if (typeof arg === 'string' || arg.length < 2) {
+        if (GH.typeOf(arg) == 'string' || arg.length < 2) {
 	    throw "Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'";
 	}
 	var term = GH.term_common(arg[0], arg[1], arg.slice(2), 
@@ -1440,7 +1468,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	}
 	var vterm = this.verify.terms[termname];
 
-	if (term[0] !== vterm[0]) {
+	if (term[0] != vterm[0]) {
 	    throw ('Result kind mismatch with verify context for ' +
 		   local_termname);
 	}
@@ -1454,8 +1482,8 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	for (i = 0; i < freemap.length; i++) {
 	    var fm = freemap[i];
 	    var vfm = vfreemap[i];
-	    if (fm === null || vfm === null) {
-	        if (fm !== null || vfm !== null) {
+	    if (fm == null || vfm == null) {
+	        if (fm != null || vfm != null) {
 		    throw ('binding/non-binding mismatch for term ' + 
 			   local_termname + ' argument ' + i);
 		}
@@ -1466,7 +1494,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	    }
 	    // note fm/vfm are sorted so they must agree exactly
 	    for (j = 0; j < fm.length; j++) {
-	        if (fm[j] !== vfm[j]) {
+	        if (fm[j] != vfm[j]) {
 		  throw 'freemap mismatch for term ' + local_termname;
 		}
 	    }
@@ -1475,7 +1503,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	this.myterms[local_termname] = termname;
 	return;
     }
-    if (cmd === 'kind') {
+    if (cmd == 'kind') {
         // export context 'kind' command
         var prefixed_kind = this.kind_cmd_common(arg);
 	// The prefixed kind must exist in verify context.
@@ -1484,11 +1512,11 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
 	this.kinds[arg[0]] = kind;
 	return;
     }
-    if (cmd === 'var' || cmd === 'tvar') {
+    if (cmd == 'var' || cmd == 'tvar') {
         this.var_cmd(cmd, arg);
 	return;
     }
-    if (cmd === 'param') {
+    if (cmd == 'param') {
         this.param_cmd(arg);
 	return;
     }
