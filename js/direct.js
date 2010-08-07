@@ -227,7 +227,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 	}
 	for (i = 0; i < thestep.length; i += 2) {
 	    var hypname = thestep[i];
-	    if (Gh.typeOf(hypname) != 'string') {
+	    if (GH.typeOf(hypname) != 'string') {
 	        return 'Hyp label must be string';
 	    }
 	    if (this.hypmap.hasOwnProperty(hypname)) {
