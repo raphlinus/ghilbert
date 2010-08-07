@@ -198,15 +198,14 @@ def init_datastore_ctx(d, gctx, ds_contexts, out):
     def ghapp_build_if(ctx, fn, url):
         global gh_base_dir
         global_ctx = ctx.global_ctx
-##        logging.info(
-##            'ghapp_build_if: fn=%s ctx.global_ctx.all_interfaces=%r'
+##        logging.info('ghapp_build_if: fn=%s ctx.global_ctx.all_interfaces=%r'
 ##            % (fn, global_ctx.all_interfaces))
+        if not fn.startswith(gh_base_dir):
+            logging.error(
+                'ghapp_build_if: interface path %s does not start with %s'
+                % (fn, gh_base_dir))
+            raise verify.VerifyError('Bad path prefix')
         if fn.endswith('.ghi'):
-            if not fn.startswith(gh_base_dir):
-                logging.error(
-                    'ghapp_build_if: interface path %s does not start with %s'
-                    % (fn, gh_base_dir))
-                raise verify.VerifyError('Bad path prefix')
             fnp = fn[:-1]
             vctx = global_ctx.all_interfaces.get(fnp, None)
             if vctx is not None:
@@ -214,9 +213,12 @@ def init_datastore_ctx(d, gctx, ds_contexts, out):
                     raise verify.VerifyError(
                         "Tried to fetch auto-export of in-progress %s" % fnp)
                 if vctx.name is not None:
+                    #logging.info("ghapp_build_if: using verify context for %s" % fn)
                     return vctx
-            
-        pif = verify.InterfaceCtx(ctx.urlctx, ctx.run, ctx.global_ctx, fn,
+
+        # Note, the fetch_interface() checked global_ctx.all_interfaces
+        # for a match before this routine was called. Create a new interface.
+        pif = verify.InterfaceCtx(ctx.urlctx, ctx.run, global_ctx, fn,
                                   ctx.build_interface)
         pif.record = ctx.record
         if not pif.run(ctx.urlctx, url, pif):
@@ -398,6 +400,9 @@ def read_datastore():
             gh_ctx = verify.VerifyCtx(urlctx, None, gh_global_ctx,
                                       full_pname, False)
             gh_ctx.name = cname.encode('ascii')
+            # verify contexts that import this context's automatically exported
+            # interface. Indexed by full pathname.
+            gh_ctx.importers = {}
         else:
             if full_pname in gh_global_ctx.iface_in_progress:
                 raise GHDatastoreError(
@@ -535,7 +540,12 @@ def read_iface(iface, ictx, out):
         cmd = iface.style.encode('ascii')
         if cmd == 'import':
             ictx.gh_import(pif, ifname, param_names, prefix)
-        elif cmd == 'export':
+            if pif.name is not None:
+                if ictx.fname not in pif.importers:
+                    logging.info ('Setting %s as importer of %s' %
+                                  (ictx.fname, full_pname))
+                    pif.importers[ictx.fname] = ictx
+        elif cmd == 'export': # shouldn't really occur at present...
             ictx.gh_export(pif, ifname, param_names, prefix)
         else:
             raise verify.VerifyError("Unexpected interface command %s" % cmd)
@@ -772,7 +782,7 @@ class SaveHandler(webapp.RequestHandler):
                       % ctxname)
             return
         sym = ctx.syms.get(name, None)
-        if sym != None:
+        if sym is not None:
             if sym[0] in ('var', 'tvar'):
                 out.write('Save Failed: there is a variable of name %s\n' %
                           name)
@@ -780,8 +790,14 @@ class SaveHandler(webapp.RequestHandler):
             out.write('Save Failed: Cannot replace existing theorem yet...')
             return  # TODO
 
-        # TODO: check for a symbol conflict in any context importing ctx,
-        # or in interface files imported by such a context...
+        # Check to see if the symbol already exists in any of the other
+        # verify contexts that import ctx
+        for importer in ctx.importers.itervalues():
+            sym = importer.syms.get(name, None)
+            if sym is None:
+                continue
+            out.write("Save Failed: dependent context %s already contains a symbol '%s'" % (importer.name, name))
+            return
 
         ctx.out = out
         result = add_thm(ctx, name, cmd, False)
