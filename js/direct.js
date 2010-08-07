@@ -74,15 +74,17 @@ GH.Direct.prototype.update = function() {
 	    try {
 		status = thmctx.tok(spl[j]);	
 	    } catch (ex) {
-		auLink.style.display = 'inline';
-		auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
-		    + ":" + ex.found.end + "]" + " with " + ex.expected + "?";
-		var that = this;
-		auLink.onclick = function() {
-		    that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
-		    that.update();
-		    return false;
-		};
+		if (ex.found) {
+		    auLink.style.display = 'inline';
+		    auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
+			+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
+		    var that = this;
+		    auLink.onclick = function() {
+			that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
+			that.update();
+			return false;
+		    };
+		}
 		status = "! " + ex;
 	    }
 	    if (status) {
@@ -225,7 +227,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 	}
 	for (i = 0; i < thestep.length; i += 2) {
 	    var hypname = thestep[i];
-	    if (typeof hypname != 'string') {
+	    if (Gh.typeOf(hypname) != 'string') {
 	        return 'Hyp label must be string';
 	    }
 	    if (this.hypmap.hasOwnProperty(hypname)) {
