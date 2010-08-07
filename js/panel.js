@@ -77,9 +77,8 @@ GH.Panel = function(ctx) {
                 window.direct.text.appendText(text);
                 window.direct.update();
             }
-            appendText("\n");
             // Push on the mandatory hyps using their default names
-            appendText("\n" + sym[4].map(function(mand) { return mand[2]; }).join(" "));
+            appendText(" " + sym[4].map(function(mand) { return mand[2]; }).join(" "));
             // Push on the sym name itself
             appendText(" " + symName + "\n");
         };

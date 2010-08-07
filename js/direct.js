@@ -59,6 +59,8 @@ GH.Direct.replace_thmname = function (newname) {
 };
 
 GH.Direct.prototype.update = function() {
+    var auLink = document.getElementById("autounify");
+    auLink.style.display='none';
     this.stack.text = [];
     var thmctx = new GH.DirectThm(this.vg);
     this.thmctx = thmctx;
@@ -67,9 +69,22 @@ GH.Direct.prototype.update = function() {
     var offset = 0;
     for (i = 0; i < this.text.numLines() && status == null; i++) {
 	var spl = GH.splitrange(this.text.getLine(i), offset);
-	offset += this.text.getLine(i).length;
+	offset += this.text.getLine(i).length + 1;
 	for (var j = 0; j < spl.length; j++) {
-	    status = thmctx.tok(spl[j]);
+	    try {
+		status = thmctx.tok(spl[j]);	
+	    } catch (ex) {
+		auLink.style.display = 'inline';
+		auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
+		    + ":" + ex.found.end + "]" + " with " + ex.expected + "?";
+		var that = this;
+		auLink.onclick = function() {
+		    that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
+		    that.update();
+		    return false;
+		};
+		status = "! " + ex;
+	    }
 	    if (status) {
 		loc = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end;
 		break;
@@ -243,6 +258,9 @@ GH.DirectThm.prototype.tok = function(tok) {
 	try {
 	    this.vg.check_proof_step(this.hypmap, thestep, this.proofctx);
 	} catch (e3) {
+	    if (e3.found) {
+		throw e3;
+	    }
 	    return "! " + e3;
 	}
     } else if (state == 10) {

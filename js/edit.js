@@ -48,7 +48,12 @@ GH.TextareaEdit = function(textarea) {
     };
     this.appendText = function(text) {
 	textarea.value += text;
-    }
+    };
+    this.splice = function(start, len, newText) {
+	var chars = textarea.value.split('');
+	chars.splice(start, len, newText);
+	textarea.value = chars.join('');
+    };
 };
 
 
@@ -91,7 +96,13 @@ GH.CanvasEdit = function(canvas, inputlayer) {
     this.appendText = function(text) {
 	this.text += text;
 	this.dirty();
-    }
+    };
+    this.splice = function(start, len, newText) {
+	var chars = this.text.split('');
+	chars.splice(start, len, newText);
+	this.text = chars.join('');
+	this.dirty();
+    };
 
     // todo: use slightly different logic for identifier->symbols, these
     // fire too easily as substrings

@@ -118,7 +118,7 @@ GH.sexp_equals = function(a, b) {
       throw 'whoa!';
     }
     if (GH.typeOf(a) == 'string') {
-       return a == b;
+       return a.toString() == b.toString();
     }
     if (GH.typeOf(b) == 'string' || a.length != b.length) {
        return false;
@@ -934,12 +934,25 @@ GH.VerifyCtx.prototype.match = function(templ, exp, env, alreadyExpanded) {
 	log('match: templ=' + GH.sexp_to_string(templ) + '  exp=' + GH.sexp_to_string(exp)
 	    + (alreadyExpanded ? " aE" : ""));
     }
-    // TODO(abliss): create a UnificationError object, with which the
-    // error can be fixed in one click.
+    function UnificationError(mesg, found, expected) {
+	this.toString = function() {
+	    return "Unification error: " + mesg
+		+ " expected " + expected
+		+ " got " + found +"[" + found.beg + ":" + found.end + "]";
+	};
+	if (found.beg) {
+	    this.expected = GH.sexp_to_string(expected);
+	    this.found = GH.sexp_to_string(found);
+	} else {
+	    this.found = GH.sexp_to_string(expected);
+	    this.expected = GH.sexp_to_string(found);
+	}
+    }
     if (GH.typeOf(templ) == 'string') {
 	if (alreadyExpanded) {
-	    if (templ.toString() != exp) throw "Unification error 1, expected " + templ
-		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
+	    if (templ.toString() != exp) {
+		throw new UnificationError("1", exp, templ);
+	    }
 	} else {
             if (env.hasOwnProperty(templ)) {
 		this.match(env[templ], exp, env, true);
@@ -949,16 +962,13 @@ GH.VerifyCtx.prototype.match = function(templ, exp, env, alreadyExpanded) {
 	}
     } else {
 	if (GH.typeOf(exp) == 'string') {
-	    throw 'Unification error 2, expected ' + GH.sexp_to_string(templ)
-		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
+	    throw new UnificationError("2", exp, templ);
 	}
 	if (templ[0].toString() != exp[0]) {
-	    throw 'Unification error 3, expected ' + templ[0]
-		+ " got " + exp +"[" + exp.beg + ":" + exp.end + "]";
-
+	    throw new UnificationError("3", exp, templ);
 	}
 	if (exp.length != templ.length) {
-	    throw 'Term ' + templ[0] + ' expects arity ' + templ.length + ' got ' + exp.length;
+	    throw new UnificationError("Length mismatch", exp, templ);
 	}
 	for (var i = 1; i < templ.length; i++) {
 	    this.match(templ[i], exp[i], env, alreadyExpanded);
