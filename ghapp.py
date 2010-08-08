@@ -210,6 +210,7 @@ number.onchange = function() {
     text.dirty();
 };
 var panel = new GH.Panel(window.direct.vg);
+window.onbeforeunload = function() { return "Are you sure you want to leave?";}
 """ % (number, `name`, number));
         if proof:
             result = json_dumps(proof.content.split('\n'))
