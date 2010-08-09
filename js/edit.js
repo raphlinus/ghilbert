@@ -286,12 +286,15 @@ GH.save = function(content) {
 		'&name=' + encodeURIComponent(name) +
                 // '&number=' + document.getElementById('number').value +
 		'&content=' + encodeURIComponent(content));
-    req.onreadystatechange = function () {if (req.readyState == 4) {
-                                              document.getElementById('output').innerHTML=req.responseText;}};
+    // Mozilla does not send the readystatechange event for synchronous
+    // requests. Since we send a synchronous request, we can just handle
+    // the response after send() returns.
     req.open('POST', '/save', false);
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
     req.send(text);
+    if (req.readyState == 4) {
+        document.getElementById('output').innerHTML = req.responseText;
+    }
 };
 
 GH.CanvasEdit.prototype.handle_keydown = function(evt) {
