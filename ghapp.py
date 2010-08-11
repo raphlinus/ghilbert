@@ -154,7 +154,19 @@ class EditPage(webapp.RequestHandler):
                 number = float(1)
 
 
-        self.response.out.write("""<head><title>Ghilbert</title><style type="text/css"></style></head>
+        self.response.out.write("""<head>
+<title>Ghilbert</title>
+<style type="text/css">
+    #panel tr.headerRow {background-color: #ccc}
+    #panel tr.clickableRow {cursor: pointer}
+    #panel tr.clickableRow:hover {background-color: #eee}
+    #panel tr.clickableRow:active {background-color: #ddd}
+    table#panel { border: 1px solid black; border-collapse:collapse;}
+    #panel tr { border: 1px solid black; }
+    #panel td {padding: .3em; }
+
+</style>
+</head>
         
 
 <body>

@@ -20,6 +20,7 @@ GH.Table = function(tableElement) {
         collection.forEach(function(rowArr) {table.appendChild(rowMap[rowArr[0]]);});
     }
     var header = document.createElement('tr');
+    header.className += 'headerRow';
     function addHeader(name, sortIndex) {
         var th = document.createElement('th');
         var a = document.createElement('a');
@@ -50,6 +51,7 @@ GH.Table = function(tableElement) {
         newCollection.forEach(function(row) {
                                   collection.push(row);
                                   var tr = document.createElement('tr');
+                                  tr.className += "clickableRow";
                                   rowMap[row[0]] = tr;
                                   row.forEach(function(cell) {
                                                   if (typeof(cell) === 'function') {
