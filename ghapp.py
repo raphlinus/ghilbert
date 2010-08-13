@@ -76,20 +76,16 @@ class StringScanner(object):
         self.tokix += 1
         return result
 
-# Increments whenever the Ghilbert universe / database is extended
-# in a way that cannot invalidate previous work.
+# The low-order 32 bits of EditGeneration() increments whenever there
+# is a database change that extends (but does not invalidate) earlier
+# work.  The high-order 32 bits of EditGeneration() increments whenever
+# there is a change that requires a full re-read of the datastore.
 # There will be just one entity of this kind in the database.
-class ExtensionGeneration(db.Model):
-    gen = db.IntegerProperty()
-
-# Increments whenever the Ghilbert universe / database is modified
-# in a way that might invlidate earlier work, triggering a full re-read
-# of the database.
-# There will be just one entity of this kind in the database.
+# All items in the database have EditGeneration as parent.
 class EditGeneration(db.Model):
     gen = db.IntegerProperty()
 
-# Can the ExtensionGeneration/EditGeneration idea be race-free?
+# Can the EditGeneration idea be race-free?
 
 class GHContext(db.Model):
     name = db.StringProperty()  # will be None for interface file
@@ -248,6 +244,7 @@ def init_datastore_ctx(d, gctx, ds_contexts, out):
 
 def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
     global gh_base_dir
+    global gh_edit_gen
 
     fname = gh_ctx.fname
     if not fname.startswith(gh_base_dir):
@@ -262,7 +259,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
 
     logging.info("Building Ghilbert context %s" % fname)
 
-    ds_ctx = GHContext(name=name, fname=fname, level=gh_ctx.level)
+    ds_ctx = GHContext(name=name, fname=fname, level=gh_ctx.level,
+                       parent=gh_edit_gen[1])
     ds_ctx.put()
     ds_contexts[fname] = ds_ctx
 
@@ -294,7 +292,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
         paramnames = '#'.join(pnames)
         iface = GHInterface(ctx_from=ds_ctx, ctx_to=ids_ctx, name=ifname,
                             prefix=prefix, params=paramnames, index=ix,
-                            style='import')
+                            style='import',
+                            parent=gh_edit_gen[1])
         iface.put()
 
     # Kinds
@@ -303,7 +302,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
             kname, ifindex, kix = kh
             if ifindex >= 0:
                 continue        # skip kinds originating elsewhere
-            ghk = GHKind(ctx=ds_ctx, name=kname)
+            ghk = GHKind(ctx=ds_ctx, name=kname,
+                         parent=gh_edit_gen[1])
             ghk.put()
 
     # Kindbinds. We allow kindbind (with alias-only semantics) in interface
@@ -311,7 +311,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
     for k in gh_ctx.kindbinds:
         kix = gh_ctx.kinds[k]
         kv = gh_ctx.kind_hist[kix]
-        ghkb = GHKindbind(ctx=ds_ctx, k_old=kv[0], k_new=k)
+        ghkb = GHKindbind(ctx=ds_ctx, k_old=kv[0], k_new=k,
+                          parent=gh_edit_gen[1])
         ghkb.put()
 
     # Variables.  Ugh, two passes through this...
@@ -324,7 +325,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
         else:
             kname = gh_ctx.kind_hist[sym[1]][0]
         ghv = GHVar(ctx=ds_ctx, name=vname, var_kind=kname,
-                    binding=(sym[0] == 'var'))
+                    binding=(sym[0] == 'var'),
+                    parent=gh_edit_gen[1])
         ghv.put()
 
     if name is not None:
@@ -334,7 +336,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
             thm = gh_ctx.syms[ah]
             # thm is (kw, fv, hyps, concl, varlist,
             #         num_hypvars, num_nondummies, record)
-            ght = GHThm(ctx=ds_ctx, name=ah, cmd=thm[7])
+            ght = GHThm(ctx=ds_ctx, name=ah, cmd=thm[7],
+                        parent=gh_edit_gen[1])
             ght.put()
         logging.info("Finished Ghilbert context %s" % fname)
         return ds_ctx  # No terms/stmts in verify context except defthm terms
@@ -345,7 +348,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
         if ifindex >= 0:
             continue        # skip terms originating elsewhere
         arg = gh_ctx.term_arg_string(rkind, sig, freemap)
-        ght = GHTerm(ctx=ds_ctx, arg=arg)
+        ght = GHTerm(ctx=ds_ctx, arg=arg,
+                     parent=gh_edit_gen[1])
         ght.put()
 
     # stmt's
@@ -355,7 +359,8 @@ def init_datastore_ictx(gh_ctx, ds_contexts, name=None):
         #             (ah, stmt))
         # stmt is (kw, fv, hyps, concl, varlist,
         #          num_hypvars, num_nondummies, record)
-        ghs = GHStmt(ctx=ds_ctx, cmd=stmt[7])
+        ghs = GHStmt(ctx=ds_ctx, cmd=stmt[7],
+                     parent=gh_edit_gen[1])
         ghs.put()
 
     logging.info("Finished Ghilbert context %s" % fname)
@@ -376,6 +381,45 @@ dummy_writer = DummyWriter()
 class GHDatastoreError(Exception):
     def __init__(self, why):
         self.why = why
+
+def gh_edit_gen_refresh():
+    global gh_edit_gen
+    _, egen = gh_edit_gen
+    if egen is None:
+        egen_q = EditGeneration.all()
+        for e in egen_q:
+            egen = e
+            break
+    if egen is None:
+        return 0
+    egen = db.get(egen.key())
+    edit_gen = egen.gen
+    gh_edit_gen = (edit_gen, egen)
+    return edit_gen
+    
+def read_datastore_until_consistent():
+    while True:
+        edit_gen = gh_edit_gen_refresh()
+        if edit_gen == 0:
+            return 0
+        read_datastore()
+        edit_gen2 = gh_edit_gen_refresh()
+        if edit_gen == edit_gen2:
+            return edit_gen
+        logging.info("*** Datastore updated during read, rereading! ***")
+
+def datastore_refresh():
+    global gh_edit_gen
+    edit_gen, egen = gh_edit_gen
+    edit_gen_now = gh_edit_gen_refresh()
+    if edit_gen_now == edit_gen or edit_gen_now == 0:
+        return edit_gen_now
+
+    # Note, if there are no changes in the high order thirty-two bits
+    # of the edit generation, we ought to be able to do a partial
+    # read of only the new stuff rather than a full reread.  But for
+    # now, we do a full reread...
+    return read_datastore_until_consistent()
 
 def read_datastore():
     global gh_global_ctx
@@ -751,15 +795,41 @@ class RecentPage(webapp.RequestHandler):
 
 def datastore_add_new_thm(ctx, name, cmd):
     ds_ctx = ctx.datastore_context
-    gh_thm = GHThm(ctx=ds_ctx, name=name, cmd=cmd)
+    gh_thm = GHThm(ctx=ds_ctx, name=name, cmd=cmd,
+                   parent=gh_edit_gen[1])
     if users.get_current_user():
         gh_thm.author = users.get_current_user()
     gh_thm.put()
 
+def datastore_add_new_thm_cb(ctx, name, cmd, edit_gen, egen):
+    datastore_add_new_thm(ctx, name, cmd)
+    egen = db.get(egen.key())
+    if edit_gen != egen.gen:
+        raise db.Rollback("Database updated by another context while saving theorem.")
+    edit_gen += 1
+    egen.gen = edit_gen
+    egen.put()
+    return (edit_gen, egen)
+
+def datastore_add_new_thm_transaction(ctx, name, cmd, edit_gen, egen):
+    global gh_edit_gen
+    res = db.run_in_transaction(datastore_add_new_thm_cb,
+                                ctx, name, cmd, edit_gen, egen)
+    if res is not None:
+        gh_edit_gen = res
+    return res
+
 class SaveHandler(webapp.RequestHandler):
     def post(self):
+        global gh_edit_gen
         global gh_global_ctx
         global gh_base_dir
+
+        edit_gen = datastore_refresh()
+        if edit_gen == 0:
+            out.write("Ghilbert is unavailable now.\r\n")
+            self.error(503)  # Service unavailable
+            return
 
         out = self.response.out
         # Note, the following line gets the un-url-encoded name.
@@ -781,6 +851,7 @@ class SaveHandler(webapp.RequestHandler):
             out.write('Save Failed: Context %s is not a proof-file context\n'
                       % ctxname)
             return
+
         sym = ctx.syms.get(name, None)
         if sym is not None:
             if sym[0] in ('var', 'tvar'):
@@ -803,7 +874,11 @@ class SaveHandler(webapp.RequestHandler):
         result = add_thm(ctx, name, cmd, False)
         ctx.out = dummy_writer
         if result: # TODO -- save incomplete / broken theorems
-            datastore_add_new_thm(ctx, name, cmd)
+            res = datastore_add_new_thm_transaction(ctx, name, cmd,
+                                                    edit_gen, gh_edit_gen[1])
+            if res is None:
+                out.write('Save failed. Please try again.\r\n')
+                return
             out.write('Saved %s\n' % name)
         else:
             out.write('Failed.\n')
@@ -813,6 +888,12 @@ class ContextHandler(webapp.RequestHandler):
     def get(self, name):
         global gh_global_ctx
         global gh_base_dir
+
+        edit_gen = datastore_refresh()
+        if edit_gen == 0:
+            out.write("Ghilbert is unavailable now.\r\n")
+            self.error(503)  # Service unavailable
+            return
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
         name = urllib.unquote(name);
@@ -991,6 +1072,13 @@ class EditPage(webapp.RequestHandler):
         global gh_base_dir
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
+
+        edit_gen = datastore_refresh()
+        if edit_gen == 0:
+            out.write("Ghilbert is unavailable now.\r\n")
+            self.error(503)  # Service unavailable
+            return
+
         name = urllib.unquote(name)
         if len(name) < 2 or name[0] != '/':
             self.error(404)
@@ -1145,6 +1233,9 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         out.write('<p><a href="%s">%s</a>' %
                                 (users.create_login_url('/'), word))
         out.write('<p>Contexts:\n')
+        if gh_global_ctx is None:
+            out.write('</body>\n')
+            return
         for ctx in gh_global_ctx.interface_list:
             fn = ctx.fname
             pfn = fn[len(gh_base_dir):]
@@ -1158,12 +1249,25 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
                 
         out.write('</body>\n')
 
+# (Current generation number, EditGeneration object)
+gh_edit_gen = (0, None)
 
 def clear_datastore():
+    global gh_edit_gen
     logging.warning('***** Clearing Datastore! *****')
+    egen_q = EditGeneration.all()
+    edit_gen = 0
+    for egen in egen_q:
+        edit_gen = egen.gen
+        break
+    edit_gen += 0x100000000
     q = db.Query()
     for item in q:
         item.delete()
+    # edit generation 0 implies readonly until init_datastore() is done.
+    egen = EditGeneration(gen=0)
+    egen.put()
+    gh_edit_gen = (edit_gen, egen)
 
 class ResetPage(webapp.RequestHandler):
     def get(self):
@@ -1187,6 +1291,7 @@ class ResetPage(webapp.RequestHandler):
         return
 
     def post(self):
+        global gh_edit_gen
         if not users.is_current_user_admin():
             self.error(401)
             return
@@ -1198,8 +1303,19 @@ class ResetPage(webapp.RequestHandler):
                    ('PEANO_SET', '/peano/peano_set.gh'),
                    ]
         init_datastore(defaults)
-        read_datastore()
+        edit_gen, egen = gh_edit_gen
+        egen.gen = edit_gen
+        egen.put()
+        read_datastore_until_consistent()
         self.redirect("/")
+
+class EditGenPage(webapp.RequestHandler):
+    def get(self):
+        global gh_edit_gen
+        self.response.headers.add_header('content-type', 'text/plain')
+        out = self.response.out
+        edit_gen = gh_edit_gen_refresh()
+        out.write('0x%x\n' % edit_gen)
 
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
@@ -1210,6 +1326,7 @@ application = webapp.WSGIApplication(
                                       ('/ctx(.*)', ContextHandler),
                                       ('/save', SaveHandler),
                                       ('/reset', ResetPage),
+                                      ('/egen', EditGenPage),
                                       ], debug=True)
 
 gh_base_dir = os.path.realpath(os.getcwd())  # realpath not necessary?
@@ -1218,5 +1335,5 @@ def main():
     run_wsgi_app(application)
 
 if __name__ == "__main__":
-    read_datastore()
+    read_datastore_until_consistent()
     main()
