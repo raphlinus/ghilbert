@@ -393,6 +393,8 @@ def gh_edit_gen_refresh():
     if egen is None:
         return 0
     egen = db.get(egen.key())
+    if egen is None:
+        return 0
     edit_gen = egen.gen
     gh_edit_gen = (edit_gen, egen)
     return edit_gen
@@ -1252,28 +1254,23 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 # (Current generation number, EditGeneration object)
 gh_edit_gen = (0, None)
 
-def clear_datastore():
-    global gh_edit_gen
+def clear_datastore(maxitems=0):
     logging.warning('***** Clearing Datastore! *****')
-    egen_q = EditGeneration.all()
-    edit_gen = 0
-    for egen in egen_q:
-        edit_gen = egen.gen
-        break
-    edit_gen += 0x100000000
     q = db.Query()
+    items = 0
     for item in q:
         item.delete()
-    # edit generation 0 implies readonly until init_datastore() is done.
-    egen = EditGeneration(gen=0)
-    egen.put()
-    gh_edit_gen = (edit_gen, egen)
+        items += 1
+        if maxitems != 0 and items >= maxitems:
+            return False
+    return True
 
 class ResetPage(webapp.RequestHandler):
     def get(self):
         if not users.is_current_user_admin():
             self.error(401)
             return
+        gh_edit_gen_refresh()
         out = self.response.out
         out.write("""<title>Reset to Factory Defaults</title>
         
@@ -1283,31 +1280,117 @@ class ResetPage(webapp.RequestHandler):
 <p>
 <a href="/">Go Home</a>
 <br>
-<br>
-<form action="/reset" method="post">
-<input type="submit" value="Reset" style="background-color:red;color:black;width:100px;height:50px"/>
-</form>
+<br> <label for="step_num" id="step_label"> </label>
+<br> <input type="button" id="reset" style="background-color:red;color:black;width:100px;height:50px" onclick="factory_reset()" name="reset" value="Reset"/>
+<script type="text/javascript">
+factory_reset = function () {
+    var req = new XMLHttpRequest();
+    req.open('POST', '/reset_post', true);
+    req.step = 0;
+    var label = document.getElementById('step_label');
+    var rsc_func = function () {
+        if (req.readyState != 4) {
+            return;
+        }
+        if (req.status != 200) {
+            label.innerHTML += ' ERROR: ' + req.status;
+            req.abort()
+            req = null
+            return
+        }
+        resp = req.responseText;
+        if (resp.substring(0, 4) === 'done') {
+            req = null
+            window.location.href = '/'
+            return
+        } else if (resp.substring(0, 4) === 'next') {
+            req.step += 1;
+            label.innerHTML = ' ' + req.step;
+        } else if (resp.substring(0, 5) === 'again') {
+            label.innerHTML += '.';
+        } else {
+            label.innerHTML += ' Unexpected response: ' + resp;
+            req.abort()
+            req = null
+            return;
+        }
+        req.open('POST', '/reset_post', true);
+        req.setRequestHeader('Content-Type',
+                             'application/x-www-form-urlencoded');
+        req.onreadystatechange = rsc_func;
+        req.send('step=' + req.step);
+    };
+    req.onreadystatechange = rsc_func;
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    req.send('step=0');
+    label.innerHTML = ' 0';
+};
+
+</script>
 """)
         return
 
+gh_dsinit = None
+
+class ResetPost(webapp.RequestHandler):
     def post(self):
         global gh_edit_gen
+        global gh_dsinit
         if not users.is_current_user_admin():
             self.error(401)
             return
-        clear_datastore()
+        out = self.response.out
+        stepstr = self.request.get('step')
+        logging.info("stepstr: " + stepstr)
+        if stepstr == '':
+            self.error(400) # bad request
+        try:
+            step = int(stepstr)
+        except ValueError:
+            self.error(400) # bad request
+            return
+        logging.info("step is: %s", step)
+        if step <= 0:
+            if clear_datastore(50):
+                out.write('next\r\n')
+                # edit generation 0 implies readonly until init_datastore()
+                # is done.
+                egen = EditGeneration(gen=0)
+                egen.put()
+                gh_edit_gen = (gh_edit_gen[0] + 0x100000000, egen)
+            else:
+                out.write('again\r\n')
+            return
+        if step == 1:
+            gh_dsinit = ({}, verify.GlobalCtx(), DummyWriter())
+
         defaults = [
                    ('PROP', '/peano/prop.gh'),
                    ('PRED', '/peano/pred.gh'),
                    ('PEANO', '/peano/peano_thms.gh'),
                    ('PEANO_SET', '/peano/peano_set.gh'),
                    ]
-        init_datastore(defaults)
-        edit_gen, egen = gh_edit_gen
-        egen.gen = edit_gen
-        egen.put()
+
+        ds_contexts = gh_dsinit[0]
+        gctx = gh_dsinit[1]
+        dummywriter = gh_dsinit[2]
+
+        ix = step - 1
+        if ix < len(defaults):
+            init_datastore_ctx(defaults[ix], gctx, ds_contexts, dummywriter)
+            out.write('next\r\n')
+            return
+
+        if ix == len(defaults):
+            edit_gen, egen = gh_edit_gen
+            egen.gen = edit_gen
+            egen.put()
+            out.write('next\r\n')
+            return
+
         read_datastore_until_consistent()
-        self.redirect("/")
+        out.write('done\r\n')
+        return
 
 class EditGenPage(webapp.RequestHandler):
     def get(self):
@@ -1326,6 +1409,7 @@ application = webapp.WSGIApplication(
                                       ('/ctx(.*)', ContextHandler),
                                       ('/save', SaveHandler),
                                       ('/reset', ResetPage),
+                                      ('/reset_post', ResetPost),
                                       ('/egen', EditGenPage),
                                       ], debug=True)
 
