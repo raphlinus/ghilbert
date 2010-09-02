@@ -47,6 +47,12 @@ def iexp_to_string_rec(buf, iexp, varlist, term_hist):
         return
     buf.fromstring(varlist[iexp][2])
 
+class ErrorMark(object):
+    ## Stored in the GhilbertCtx cmd_hist 'undo' slot to mark an error.
+    def __init__(self, msg, undo_info):
+        self.msg = msg
+        self.undo_info = undo_info
+
 class VerifyError(Exception):
     def __init__(self, why, label = None, proofctx = None):
         self.why = why
@@ -104,26 +110,31 @@ class ScannerRec:
         self.record = record
         return line[ix:jx]
 
-class Scanner:
-    def __init__(self, instream):
-        self.instream = instream
-        self.lineno = 0
-        self.toks = []
-        self.tokix = 0
-    def get_tok(self):
-        while len(self.toks) == self.tokix:
-            line = self.instream.readline()
-            self.lineno += 1
-            if line == '':
-                return None
-            line = line.split('#')[0]
-            line = line.replace('(', ' ( ')
-            line = line.replace(')', ' ) ')
-            self.toks = line.split()
-            self.tokix = 0
-        result = self.toks[self.tokix]
-        self.tokix += 1
-        return result
+    def end_record(self):  # only called if self.record is not None.
+        record = self.record
+        self.record = ''
+        return record
+
+##class Scanner:
+##    def __init__(self, instream):
+##        self.instream = instream
+##        self.lineno = 0
+##        self.toks = []
+##        self.tokix = 0
+##    def get_tok(self):
+##        while len(self.toks) == self.tokix:
+##            line = self.instream.readline()
+##            self.lineno += 1
+##            if line == '':
+##                return None
+##            line = line.split('#')[0]
+##            line = line.replace('(', ' ( ')
+##            line = line.replace(')', ' ) ')
+##            self.toks = line.split()
+##            self.tokix = 0
+##        result = self.toks[self.tokix]
+##        self.tokix += 1
+##        return result
 
 def read_sexp(scanner):
     while 1:
@@ -144,23 +155,16 @@ def read_sexp(scanner):
             return tok
 
 class UrlCtx:
-    def __init__(self, repobase, basefn, instream, restricted=False):
+    def __init__(self, repobase, basefn, instream):
         self.repobase = repobase              # base for absolute paths
         if basefn[0] == '/':
             basefn = os.path.join(repobase, basefn[1:])
         self.base = os.path.split(basefn)[0]  # base for relative paths
         self.instream = instream
-        self.restricted = restricted # only one-component filename, no '/', '\'
 
-    def normalize(self, url):
-        #self.out.write('UrlCtx.resolve(%s)\n' % url)
+    def normalize(self, url, caller_fname):
+        #self.out.write('UrlCtx.normalize(%s)\n' % url)
         #self.out.write('  base=%s, repobase=%s\n' % (self.base, self.repobase))
-        if self.restricted:
-            if '/' in url or '\\' in url or url == '.' or url == '..' \
-               or url == '-':
-                raise VerifyError(
-                    'Interface file url must be a simple one-component path.')
-        
         if url == '-':
             return url
         if url.startswith('file://'):
@@ -168,22 +172,23 @@ class UrlCtx:
         elif url.startswith('/'):
             fn = os.path.join(self.repobase, url[1:])
         else:
-            fn = os.path.join(self.base, url)
+            caller_dir = os.path.split(caller_fname)[0]
+            fn = os.path.join(caller_dir, url)
         fn = os.path.realpath(fn)
         #self.out.write('  fn=%s\n' % fn)
         return fn
 
-    def resolve(self, url):
+    def resolve(self, url, caller_fname):
         """ Return a stream corresponding to url within this context. """
         # need to be careful about security if used on malicious inputs
-        fn = self.normalize(url)
+        fn = self.normalize(url, caller_fname)
         if fn == '-':
             return self.instream
         try:
             f = open(fn, 'r')
         except IOError:
             raise VerifyError("Cannot open '%s' (url '%s')" % (fn, url))
-        return f
+        return ScannerRec(f)
 
 class ProofCtx:
     def __init__(self, label, ifv, ihyps, iconcl,
@@ -201,17 +206,91 @@ class ProofCtx:
         self.fvvarmap = fvvarmap
         self.defterm = None
 
+# The purpose of the GlobalCtx object is to
+# - map urls to GhilbertCtx objects;
+# - hold any additional data that is shared by the interdependent
+#   Ghilbert contexts in the system.
+# The primary method provided by this class is fetch_interface(),
+# which fetches the GhilbertCtx object corresponding to a url
+# on behalf of a calling context.
 class GlobalCtx(object):
-    def __init__(self, cookie=None):
+    def __init__(self, urlctx, cookie=None):
         self.all_interfaces = {} # maps urls to GhilbertCtx's
         self.interface_list = []
         self.iface_in_progress = {}
+        self.urlctx = urlctx
         self.cookie = cookie
+
+    def start_context(self, ctx):
+        self.iface_in_progress[ctx.fname] = ctx
 
     def complete_context(self, ctx):
         del self.iface_in_progress[ctx.fname]
         self.all_interfaces[ctx.fname] = ctx
         self.interface_list.append(ctx)
+
+    def fetch_interface(self, url, caller_ctx):
+        """ Return the GhilbertCtx corresponding to url, on behalf of
+            caller_ctx.
+        """
+        # TODO: normalize should take into account caller_ctx.fname
+        fn = self.urlctx.normalize(url, caller_ctx.fname)
+        if fn in self.iface_in_progress:
+            raise VerifyError("Recursive fetch for interface file '%s'" % fn)
+
+        pif = self.all_interfaces.get(fn, None)
+        if pif != None:
+            if pif.name is not None:
+                raise VerifyError(
+                    'Attempt to import/export/param a proof-file context %s.'
+                    % fn)
+            return pif
+
+        # Note, build_interface is a variable attribute, not a member function,
+        # of self.
+        pif = self._build_interface(caller_ctx, fn, url)
+
+        if pif.level >= caller_ctx.level:
+            caller_ctx.level = pif.level + 1
+        return pif
+
+    def _build_interface(self, ctx, fn, url):
+        """ An interface corresponding to normalized filename fn does not
+            yet exist. Create and read this interface, for use by the
+            calling context ctx, which imported/exported/param'ed it
+            using the name url.  Returns a GhilbertCtx.
+        """
+        pif = InterfaceCtx(self, fn)
+        pif.out = ctx.out
+        pif.record = ctx.record
+        scanner = self.urlctx.resolve(url, ctx.fname)
+        scanner.record = ctx.record
+        if not self.run(scanner, url, pif):
+            raise VerifyError ("Failed while loading interface '%s'" % url)
+        self.complete_context(pif)
+        return pif
+
+    def run(self, scanner, url, ctx):
+        record = scanner.record
+        try:
+            while 1:
+                cmd = read_sexp(scanner)
+                if cmd is None:
+                    return True
+                if type(cmd) != str:
+                    raise SyntaxError('cmd must be atom: %s has type %s' %
+                                      (cmd, type(cmd)))
+                arg = read_sexp(scanner)
+                ctx.do_cmd(cmd, arg, (None if record is None
+                                      else scanner.end_record()))
+        except VerifyError, x:
+            ctx.out.write('Verify error at %s:%d:\n%s\n' %
+                          (url, scanner.lineno, x.why))
+        except SyntaxError, x:
+            ctx.out.write('Syntax error at line %s:%d:\n%s\n' %
+                          (url, scanner.lineno, str(x)))
+        ctx.count_error()
+        return False
 
 
 # Map terms in an internal expression.
@@ -255,19 +334,8 @@ def match(templ, exp, env):
     for i in range(1, len(templ)):
         match(templ[i], exp[i], env)
 
-def build_if(ctx, fn, url):
-    pif = InterfaceCtx(ctx.urlctx, ctx.run, ctx.global_ctx, fn,
-                       ctx.build_interface)
-    pif.out = ctx.out
-    pif.record = ctx.record
-    if not pif.run(ctx.urlctx, url, pif):
-        raise VerifyError ("Failed while loading interface '%s'" % url)
-    pif.complete()
-    return pif
-
 class GhilbertCtx(object):
-    def __init__(self, urlctx, run, global_ctx, fname,
-                 build_interface=build_if):
+    def __init__(self, global_ctx, fname):
         self.kinds = {}         # kind names to indices in kind_hist
         self.kind_hist = []     # (prefixed_kind, ifindex, orig_kind)
         self.kindbinds = []     # kind aliases introduced by this context
@@ -278,20 +346,81 @@ class GhilbertCtx(object):
         self.interfaces = {}  # maps used interface names to InterfaceCtx's
         self.global_ctx = global_ctx
         self.error_count = 0
-        self.urlctx = urlctx
-        self.run = run
         self.fname = fname  # Absolute, normalized 'URL' for this context.
-        self.assertion_hist = []
         self.level = 0
         self.name = None
-        self.build_interface = build_interface
         self.verbosity = 1
         self.out = sys.stdout
         self.record = None
-        global_ctx.iface_in_progress[fname] = self
+        global_ctx.start_context(self)
+        # Each Ghilbert command processed adds 4 entries to self.cmd_hist
+        # The information saved is chosen to make it easy to reproduce
+        # the text of the commands, and to be able to undo commands in reverse
+        # order.  Only commands that consist of a valid atom followed by a
+        # valid s-expression list are saved. Commands that are not successful
+        # will nevertheless be saved in the history, but processing such
+        # unsuccessful commands must have _no_ effect on the context state.
+        # A command that is partially successful (e.g. a var command that
+        # succeeds in adding only some of its listed variables, or an
+        # import command that encounters an error partway through) must
+        # generate undo information for the part of the command that succeeds,
+        # and the part of the command that does not succeeds mut have no
+        # effect and generate no additional undo information.
+        # [0] The command word.
+        # [1] The command argument s-expression.
+        # [2] The text of the command, including any preceding comments and
+        #     whitespace.
+        # [3] A reference to information useful in undoing the command's
+        #     effect, or None if the command was unsuccessful and had no
+        #     effect. Used by the undo_cmd() method.
+        self.cmd_hist = None
+        self.badthms = {}
 
-    def complete(self):
-        self.global_ctx.complete_context(self)
+    def record_error(self, errstr):
+        self.error_count = self.error_count + 1
+        cmd_hist = self.cmd_hist
+        assert(cmd_hist is not None)
+
+        cnum = len(self.cmd_hist) - 4
+        assert(cnum >= 0)
+        cmd = cmd_hist[cnum]
+        undo = cmd_hist[cnum + 3]
+        cmd_hist[cnum + 3] = ErrorMark(errstr, undo)
+        if cmd in ('thm', 'defthm'):
+            arg = cmd_hist[cnum + 1]
+            if (isinstance(arg, list) and len(arg) > 0 and
+                isinstance(arg[0], basestring)):
+                label = arg[0]
+                l = self.badthms.get(label)
+                if l is None:
+                    l = []
+                    self.badthms[label] = l
+                else:
+                    self.out.write(
+                        'Warning: repeated bad assertion named %s\n')
+                l.append(cnum)
+
+    def undo_to(self, cmd_ix):
+        cmd_hist = self.cmd_hist
+        assert(cmd_hist is not None)
+        maxcmd = len(cmd_hist) / 4
+        assert(0 <= cmd_ix <= maxcmd)
+        while maxcmd > cmd_ix:
+            self.undo_cmd()
+            maxcmd -= 1
+
+    def apply_hist(self, hist):
+        maxhist = len(hist)
+        assert((maxhist & 3) == 0)
+        ix = 0
+        while ix < maxhist:
+            try:
+                do_cmd(hist[ix], hist[ix + 1], hist[ix + 2])
+            except verify.VerifyError, x:
+                self.record_error('Verify error: %s' % x.why)
+            except SyntaxError, x:
+                self.record_error('Syntax error: %s' % str(x))
+            ix += 4
 
     def count_error(self):
         self.error_count = self.error_count + 1
@@ -392,27 +521,6 @@ class GhilbertCtx(object):
         # ugh, packing & unpacking into tuples
         return ('term', term[3], result)
 
-    def fetch_interface(self, url):
-        fn = self.urlctx.normalize(url)
-        if fn in self.global_ctx.iface_in_progress:
-            raise VerifyError("Recursive fetch for interface file '%s'" % fn)
-
-        pif = self.global_ctx.all_interfaces.get(fn, None)
-        if pif != None:
-            if pif.name is not None:
-                raise VerifyError(
-                    'Attempt to import/export/param a proof-file context %s.'
-                    % fn)
-            return pif
-
-        # Note, build_interface is a variable attribute, not a member function,
-        # of self.
-        pif = self.build_interface(self, fn, url)
-
-        if pif.level >= self.level:
-            self.level = pif.level + 1
-        return pif
-
     def iexp_to_string(self, iexp, varlist):
         buf = array.array('c')
         iexp_to_string_rec(buf, iexp, varlist, self.term_hist)
@@ -430,6 +538,12 @@ class GhilbertCtx(object):
         return buf.tostring()
 
     def iface_kinds(self, ictx, params, prefix, export=False):
+        if self.cmd_hist is None:
+            kind_undo_list = None
+            kindbind_undo_list = None
+        else:
+            kind_undo_list = self.cmd_hist[-1][1]
+            kindbind_undo_list = self.cmd_hist[-1][2]
         ifindex = len(self.iflist)
         nk = len(ictx.kind_hist)
         kindmap = [-1]*nk
@@ -455,6 +569,8 @@ class GhilbertCtx(object):
                 n = len(self.kind_hist)
                 self.kinds[kpref] = n
                 self.kind_hist.append((kpref, ifindex, ix))
+                if kind_undo_list is not None:
+                    kind_undo_list.append(kpref)
                 kindmap[ix] = n
 
         # Imported kindbinds
@@ -476,10 +592,16 @@ class GhilbertCtx(object):
                 if kpref in self.kinds:
                     raise VerifyError("A kind '%s' already exists." % kpref)
                 self.kinds[kpref] = ix
+                if kindbind_undo_list is not None:
+                    kindbind_undo_list.append(kpref)
 
         return kindmap
 
     def iface_terms(self, ictx, params, prefix, kindmap, export=False):
+        if self.cmd_hist is None:
+            term_undo_list = None
+        else:
+            term_undo_list = self.cmd_hist[-1][3]
         ifindex = len(self.iflist)
         nt = len(ictx.term_hist)
         termmap = [-1]*nt
@@ -517,6 +639,8 @@ class GhilbertCtx(object):
                 n = len(self.term_hist)
                 self.terms[tpref] = n
                 self.term_hist.append(tv)
+                if term_undo_list is not None:
+                    term_undo_list.append(tpref)
                 termmap[ix] = n
 
         return termmap
@@ -554,11 +678,8 @@ class GhilbertCtx(object):
 
 
 class VerifyCtx(GhilbertCtx):
-    def __init__(self, urlctx, run, global_ctx, fname,
-                 build_interface=build_if,
-                 fail_continue=False):
-        GhilbertCtx.__init__(self, urlctx, run, global_ctx, fname,
-                             build_interface)
+    def __init__(self, global_ctx, fname, fail_continue=False):
+        GhilbertCtx.__init__(self, global_ctx, fname)
         self.fail_continue = fail_continue
         self.ignore_exports = False
 
@@ -712,7 +833,7 @@ class VerifyCtx(GhilbertCtx):
                         "Parameter mismatch (%d, %d) for interface '%s'"
                         % (ix, jx, ifname))
         return params
-        
+
 
     # import InterfaceCtx ictx with the specified name, parameters, and prefix
     # paramnames is a list of the interface names of the parameter interfaces
@@ -725,6 +846,10 @@ class VerifyCtx(GhilbertCtx):
 
         termmap = self.iface_terms(ictx, params, prefix, kindmap)
 
+        if self.cmd_hist is None:
+            assertion_undo_list = None
+        else:
+            assertion_undo_list = self.cmd_hist[-1][4]
         if ictx.name is None:
             allowable = ('stmt',)
         else:
@@ -732,7 +857,7 @@ class VerifyCtx(GhilbertCtx):
         for label, val in ictx.syms.iteritems():
             if not val[0] in allowable:
                 continue
-            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, record = val
+            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, cmd_ix = val
             labelpref = prefix + label
             if labelpref in self.syms:
                 raise VerifyError(
@@ -744,7 +869,10 @@ class VerifyCtx(GhilbertCtx):
             vconcl = map_syms(concl, termmap)
             vvarlist = [(v[0], kindmap[v[1]], v[2]) for v in varlist]
             self.syms[labelpref] = ('stmt', fv, vhyps, vconcl,
-                                    vvarlist, num_hypvars, num_nondummies, record)
+                                    vvarlist, num_hypvars, num_nondummies,
+                                    cmd_ix)
+            if assertion_undo_list is not None:
+                assertion_undo_list.append(labelpref)
 
         ifindex = len(self.iflist)
         self.interfaces[ifname] = ifindex
@@ -762,7 +890,7 @@ class VerifyCtx(GhilbertCtx):
         for label, val in ictx.syms.iteritems():
             if val[0] != 'stmt':
                 continue
-            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, record = val
+            kw, fv, hyps, concl, varlist, num_hypvars, num_nondummies, cmd_ix = val
             labelpref = prefix + label
             try:
                 vstmt = self.syms[labelpref]
@@ -795,7 +923,7 @@ class VerifyCtx(GhilbertCtx):
         self.iflist.append((ifname, ictx, params, prefix,
                             kindmap, termmap, 'export'))
 
-    def defthm_cmd(self, arg, record):
+    def defthm_cmd(self, arg):
         # defthm (LABEL KIND (DEFSYM VAR ...)
         #           ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
         #           STEP ...)
@@ -868,17 +996,24 @@ class VerifyCtx(GhilbertCtx):
         if result[0] == None:
             raise VerifyError("The term '" + dsig[0] +
                "' being defined does not occur in the defthm conclusion.")
+
+        cmd_ix = (None if self.cmd_hist is None else len(self.cmd_hist) - 4)
         self.add_sym(label,
                      ('defthm', proofctx.ifv, proofctx.ihyps,
                       proofctx.iconcl, proofctx.varlist,
-                      proofctx.num_hypvars, proofctx.num_nondummies, record))
-        self.assertion_hist.append(label)
+                      proofctx.num_hypvars, proofctx.num_nondummies, cmd_ix))
         # The term was already added to self.term_history in term_common
         # in self.check_proof(). Add it back to self.terms, too.
         self.terms[dsig[0]] = termix
 
     def do_cmd(self, cmd, arg, record=None):
         """ Command processing for Verify (proof file) context """
+        cmd_hist = self.cmd_hist
+        if cmd_hist is not None:
+            cmd_hist.append(cmd)
+            cmd_hist.append(arg)
+            cmd_hist.append(record)
+            cmd_hist.append(None)
         out = self.out
         if cmd == 'thm':
             # thm (LABEL ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC
@@ -910,11 +1045,14 @@ class VerifyCtx(GhilbertCtx):
                     raise x
                 self.count_error()
 
+            cmd_ix = (None if cmd_hist is None else len(cmd_hist) - 4)
             self.add_sym(label,
                          ('thm', proofctx.ifv, proofctx.ihyps, proofctx.iconcl,
                           proofctx.varlist,
-                          proofctx.num_hypvars, proofctx.num_nondummies, record))
-            self.assertion_hist.append(label)
+                          proofctx.num_hypvars, proofctx.num_nondummies,
+                          cmd_ix))
+            if cmd_hist is not None:
+                cmd_hist[-1] = label
             return
 
         if cmd == 'defthm':
@@ -924,22 +1062,30 @@ class VerifyCtx(GhilbertCtx):
             # this up if things go pear-shaped.
             termix_orig = len(self.term_hist)
             try:
-                self.defthm_cmd(arg, record)
+                self.defthm_cmd(arg)
             except:
                 if len(self.term_hist) > termix_orig:
                     del self.term_hist[termix_orig:]
                 raise
+            if cmd_hist is not None:
+                cmd_hist[-1] = (arg[0], arg[2][0])
             return
 
         if cmd in ('var', 'tvar'):
             kind = self.get_kind(arg[0])
+            if cmd_hist is not None:
+                cmd_hist[-1] = []
             for v in arg[1:]:
                 # Save arg[0] too so we preserve the kind name in spite of
                 # kindbinds...
                 self.add_sym(v, (cmd, kind, v, arg[0]))
+                if cmd_hist is not None:
+                    cmd_hist[-1].append(v)
             return
         if cmd == 'kindbind':
             self.kindbind_cmd(arg)
+            if cmd_hist is not None:
+                cmd_hist[-1] = arg[1]
             return
         if cmd in ('import', 'export'):
             # import (IFACE URL (PARAMS) PREFIX)
@@ -967,13 +1113,24 @@ class VerifyCtx(GhilbertCtx):
                 else:
                     out.write('Exporting %s\n' % ifname)
 
-            ctx = self.fetch_interface(url)
+            ctx = self.global_ctx.fetch_interface(url, self)
 
-            if cmd == 'import':
-                self.gh_import(ctx, ifname, paramnames, prefix)
-            else:
-                self.gh_export(ctx, ifname, paramnames, prefix)
-                
+            if cmd_hist is not None:
+                # ifname, kinds, kindbinds, terms, assertions
+                cmd_hist[-1] = [ifname, [], [], [], []]
+            try:
+                if cmd == 'import':
+                    self.gh_import(ctx, ifname, paramnames, prefix)
+                else:
+                    self.gh_export(ctx, ifname, paramnames, prefix)
+            except:
+                # The interface itself has not been saved. Undo any
+                # kind, kindbind, term, and assertion additions.
+                if cmd_hist is not None:
+                    undo = cmd_hist[-1]
+                    self.import_undo(undo[1], undo[2], undo[3], undo[4])
+                    cmd_hist[-1] = None
+                raise
             return
 
         if cmd in ('stmt', 'term', 'kind'):
@@ -985,6 +1142,76 @@ class VerifyCtx(GhilbertCtx):
                 out.write(msg)
             else:
                 raise VerifyError(msg)
+
+    def import_undo(self, k_undo, kb_undo, t_undo, s_undo):
+        for label in s_undo:
+            del self.syms[label]
+        while len(t_undo) > 0:
+            tername = t_undo[-1]
+            termix = self.terms[termname]
+            assert(termix + 1 == len(self.term_hist))
+            del self.terms[termname]
+            del self.term_hist[-1:]
+            del t_undo[-1:]
+        while len(kb_undo) > 0:
+            kname = kb_undo[-1]
+            assert(self.kindbinds[-1] == kname)
+            del self.kinds[kname]
+            del self.kindbinds[-1:]
+        for kname in k_undo:
+            del self.kinds[kname]
+
+    def undo_cmd(self):
+        cmd_hist = self.cmd_hist
+        assert(cmd_hist is not None)
+        n = len(cmd_hist) - 4
+        assert(n >= 0 and (n & 3) == 0)
+        cmd = cmd_hist[n]
+        arg = cmd_hist[n + 1]
+        data = cmd_hist[n + 3]
+        del cmd_hist[n:]
+        if isinstance(data, ErrorMark):
+            self.error_count -= 1
+            data = data.undo_info
+            if cmd in ('thm', 'defthm'):
+                if (isinstance(arg, list) and len(arg) > 0 and
+                    isinstance(arg[0], basestring)):
+                    label = arg[0]
+                    l = self.badthms[label]
+                    assert(l[-1] == cnum)
+                    del l[-1]
+                    if len(l) == 0:
+                        del self.badthms[label]
+        if data is None:
+            return
+        if cmd == 'thm':
+            label = data
+            del self.syms[label]
+        elif cmd == 'defthm':
+            label, termname = data
+            del self.syms[label]
+            termix = self.terms[termname]
+            assert(termix + 1 == len(self.term_hist))
+            del self.terms[termname]
+            del self.term_hist[termix:]
+        elif cmd in ('var', 'tvar'):
+            vars = data
+            for v in vars:
+                del self.syms[v]
+        elif cmd == 'kindbind':
+            kname = data
+            del self.kinds[kname]
+            assert(self.kindbinds[-1] == kname)
+            del self.kindbinds[-1:]
+        elif cmd in ('import', 'export'):
+            ifname, k_undo, kb_undo, t_undo, s_undo = data
+            ifindex = self.interfaces[ifname]
+            assert (ifindex + 1 == len(self.iflist))
+            del self.interfaces[ifname]
+            del seif.iflist[-1:]
+            self.import_undo(k_undo, kb_undo, t_undo, s_undo)
+        else:
+            assert(False)
 
     def check_proof(self, label, fv, hyps, stmt, proof,
                     dkind=None, dsig=None):
@@ -1441,10 +1668,8 @@ def invertible_match(newexp, origexp, env, inv):
 
 
 class InterfaceCtx(GhilbertCtx):
-    def __init__(self, urlctx, run, global_ctx, fname,
-                 build_interface=build_if):
-        GhilbertCtx.__init__(self, urlctx, run, global_ctx, fname,
-                             build_interface)
+    def __init__(self, global_ctx, fname):
+        GhilbertCtx.__init__(self, global_ctx, fname)
 
     def param(self, ifname, pif, paramnames, prefix):
         subparams = []
@@ -1494,6 +1719,12 @@ class InterfaceCtx(GhilbertCtx):
 
     # do_cmd() for InterfaceCtx
     def do_cmd(self, cmd, arg, record=None):
+        cmd_hist = self.cmd_hist
+        if cmd_hist is not None:
+            cmd_hist.append(cmd)
+            cmd_hist.append(arg)
+            cmd_hist.append(record)
+            cmd_hist.append(None)
         out = self.out
         if cmd == 'kind':
             if not isinstance(arg, list) or len(arg) != 1 or \
@@ -1505,6 +1736,8 @@ class InterfaceCtx(GhilbertCtx):
             n = len(self.kind_hist)
             self.kinds[kname] = n
             self.kind_hist.append((kname, -1, n))
+            if cmd_hist is not None:
+                cmd_hist[-1] = kname
             return
         if cmd in ('var', 'tvar'):
             if not isinstance(arg, list) or len(arg) < 1 or \
@@ -1512,6 +1745,8 @@ class InterfaceCtx(GhilbertCtx):
                 raise SyntaxError("Expected 'var (KINDNAME VARNAME ...)'")
             kname = arg[0]
             kix = self.get_kind(kname)
+            if cmd_hist is not None:
+                cmd_hist[-1] = []
             for vn in arg[1:]:
                 if not isinstance(vn, basestring):
                     raise SyntaxError("A variable must be an identifier: %s" %
@@ -1519,6 +1754,8 @@ class InterfaceCtx(GhilbertCtx):
                 if vn in self.syms:
                     raise VerifyError("A symbol '%s' already exists." % vn)
                 self.syms[vn] = (cmd, kix, vn) # don't store kname for interface
+                if cmd_hist is not None:
+                    cmd_hist[-1].append(vn)
             return
         if cmd == 'term':
             if not isinstance(arg, list) or len(arg) < 2:
@@ -1531,6 +1768,8 @@ class InterfaceCtx(GhilbertCtx):
             self.terms[sig[0]] = n
             self.term_hist.append((sig[0], -1, n,
                                    t[0], t[1], t[2], sig))
+            if cmd_hist is not None:
+                cmd_hist[-1] = sig[0]
             return
         if cmd == 'stmt':
             # InterfaceCtx stmt command handling
@@ -1567,11 +1806,12 @@ class InterfaceCtx(GhilbertCtx):
                     fvc.append(vix)
                 ifv.append(fvc)
 
+            cmd_ix = (None if cmd_hist is None else len(cmd_hist) - 4)
             self.add_sym(label,
                          ('stmt', ifv, ihyps, iconcl,
-                          varlist, num_hypvars, len(varlist), record))
-
-            self.assertion_hist.append(label)
+                          varlist, num_hypvars, len(varlist), cmd_ix))
+            if cmd_hist is not None:
+                cmd_hist[-1] = label
             return
 
         if cmd == 'param':
@@ -1598,9 +1838,19 @@ class InterfaceCtx(GhilbertCtx):
             # Fetch the interface by its url, it may already be loaded.
             # (It would be if this is an import or export context loaded
             # from a verify context)
-            pif = self.fetch_interface(url)
+            pif = self.global_ctx.fetch_interface(url, self)
 
-            self.param(ifname, pif, paramnames, prefix)
+            if cmd_hist is not None:
+                # ifname, kinds, kindbinds, terms
+                cmd_hist[-1] = [ifname, [], [], []]
+            try:
+                self.param(ifname, pif, paramnames, prefix)
+            except:
+                if cmd_hist is not None:
+                    undo = cmd_hist[-1]
+                    self.param_undo(undo[1], undo[2], undo[3])
+                    cmd_hist[-1] = None
+                raise
             return
 
         if cmd == 'kindbind':
@@ -1609,32 +1859,70 @@ class InterfaceCtx(GhilbertCtx):
             # name as an alias for an existing kind. It does not join
             # two pre-existing kinds.
             self.kindbind_cmd(arg)
+            if cmd_hist is not None:
+                cmd_hist[-1] = arg[1]
             return
             
         out.write('*** Warning: unrecognized command ' + cmd + \
                   ' seen in import context. ***\n')
 
-def run(urlctx, url, ctx):
-    record = ctx.record
-    s = ScannerRec(urlctx.resolve(url), record)
-    try:
-        while 1:
-            if record is not None:
-                s.record = ''
-            cmd = read_sexp(s)
-            if cmd is None:
-                return True
-            if type(cmd) != str:
-                raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
-            arg = read_sexp(s)
-            ctx.do_cmd(cmd, arg, (None if record is None
-                                  else s.record.lstrip()))
-    except VerifyError, x:
-        ctx.out.write('Verify error at %s:%d:\n%s\n' % (url, s.lineno, x.why))
-    except SyntaxError, x:
-        ctx.out.write('Syntax error at line %s:%d:\n%s\n' % (url, s.lineno, str(x)))
-    ctx.count_error()
-    return False
+    def param_undo(self, k_undo, kb_undo, t_undo):
+        while len(t_undo) > 0:
+            tername = t_undo[-1]
+            termix = self.terms[termname]
+            assert(termix + 1 == len(self.term_hist))
+            del self.terms[termname]
+            del self.term_hist[-1:]
+            del t_undo[-1:]
+        while len(kb_undo) > 0:
+            kname = kb_undo[-1]
+            assert(self.kindbinds[-1] == kname)
+            del self.kinds[kname]
+            del self.kindbinds[-1:]
+        for kname in k_undo:
+            del self.kinds[kname]
+
+    def undo_cmd(self):
+        cmd_hist = self.cmd_hist
+        assert(cmd_hist is not None)
+        n = len(cmd_hist) - 4
+        assert(n >= 0 and (n & 3) == 0)
+        cmd = cmd_hist[n]
+        arg = cmd_hist[n + 1]
+        data = cmd_hist[n + 3]
+        del cmd_hist[n:]
+        if isinstance(data, ErrorMark):
+            self.error_count -= 1
+            data = data.undo_info
+        if data is None:
+            return
+        if cmd == 'stmt':
+            label = data
+            del self.syms[label]
+        elif cmd == 'term':
+            termname = data
+            termix = self.terms[termname]
+            assert(termix + 1 == len(self.term_hist))
+            del self.terms[termname]
+            del self.term_hist[termix:]
+        elif cmd in ('var', 'tvar'):
+            vars = data
+            for v in vars:
+                del self.syms[v]
+        elif cmd == 'kindbind':
+            kname = data
+            del self.kinds[kname]
+            assert(self.kindbinds[-1] == kname)
+            del self.kindbinds[-1:]
+        elif cmd == 'param':
+            ifname, k_undo, kb_undo, t_undo = data
+            ifindex = self.interfaces[ifname]
+            assert (ifindex + 1 == len(self.iflist))
+            del self.interfaces[ifname]
+            del seif.iflist[-1:]
+            self.param_undo(k_undo, kb_undo, t_undo)
+        else:
+            assert(False)
 
 if __name__ == '__main__':
     i = 1
@@ -1658,19 +1946,19 @@ if __name__ == '__main__':
         i = i + 1
         
     fn = sys.argv[i]
-    gctx = GlobalCtx()
     urlctx = UrlCtx('', fn, sys.stdin)
     #urlctx.out = sys.stdout
     if fn == '-':
         url = fn
     else :
         url = 'file://' + fn
-    norm_url = urlctx.normalize(url)
-    ctx = VerifyCtx(urlctx, run, gctx, norm_url, build_if, fail_continue)
-    ctx.verbosity = verbosity
-    ctx.run(urlctx, url, ctx)
-    if ctx.error_count != 0:
-        print 'Number of errors: %d' % ctx.error_count
+    norm_url = urlctx.normalize(url, fn)
+    gctx = GlobalCtx(urlctx)
+    vctx = VerifyCtx(gctx, norm_url, fail_continue)
+    vctx.verbosity = verbosity
+    scanner = urlctx.resolve(url, fn)
+    gctx.run(scanner, url, vctx)
+    if vctx.error_count != 0:
+        print 'Number of errors: %d' % vctx.error_count
         sys.exit(1)
-    ctx.complete()
 

@@ -18,10 +18,11 @@ class TestUrlCtx:
           self.d = {}
      def add(self, url, val):
           self.d[url] = val
-     def normalize(self, url):
+     def normalize(self, url, fname):
           return url
-     def resolve(self, url):
-          return StringStream(self.d[url])
+     def resolve(self, url, fname):
+          f = StringStream(self.d[url])
+          return verify.ScannerRec(f)
 
      # additional interface for data-driven tests
      def open_append(self, url):
@@ -34,9 +35,15 @@ class TestUrlCtx:
      def revert(self):
           self.d[self.current_url] = self.saved_value
 
+class TestGlobalCtx(verify.GlobalCtx):
+     def __init__(self, urlctx):
+          verify.GlobalCtx.__init__(self, urlctx)
+     def run(self, scanner, url, ctx):
+          return run_regression(scanner, url, ctx)
+
 def sexp(s):
      stream = StringStream(s)
-     return verify.read_sexp(verify.Scanner(stream))
+     return verify.read_sexp(verify.ScannerRec(stream))
 
 def test_one_fv(verifyctx, expected, var, term, fvctx = None):
      varlist = []
@@ -75,8 +82,8 @@ term (wff (A. x ph))
 term (wff ([/] A x ph) (x A))
 term (nat (+ A B))
 """)
-     gctx = verify.GlobalCtx()
-     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     gctx = TestGlobalCtx(urlctx)
+     verifyctx = verify.VerifyCtx(gctx, "")
      verifyctx.out = out
      verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'])
      verifyctx.do_cmd('tvar', ['nat', 'A', 'B'])
@@ -110,8 +117,8 @@ term (wff (-> ph ps))
 term (wff (A. x ph))
 stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
 """)
-     gctx = verify.GlobalCtx()
-     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     gctx = TestGlobalCtx(urlctx)
+     verifyctx = verify.VerifyCtx(gctx, "")
      verifyctx.out = out
      verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '"foo."'])
      print verifyctx.syms
@@ -129,8 +136,8 @@ term (wff (-> ph ps))
 term (wff (A. x ph))
 stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
 """)     
-     gctx = verify.GlobalCtx()
-     verifyctx = verify.VerifyCtx(urlctx, run_regression, gctx, "")
+     gctx = TestGlobalCtx(urlctx)
+     verifyctx = verify.VerifyCtx(gctx, "")
      verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'])
      verifyctx.do_cmd('tvar', ['wff', 'ph', 'ps'])
      verifyctx.do_cmd('var', ['nat', 'x', 'y'])
@@ -141,15 +148,15 @@ stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
      print verifyctx.syms
 
 # Version of run loop tuned for regression testing
-def run_regression(urlctx, url, ctx):
-    s = verify.Scanner(urlctx.resolve(url))
-    while 1:
-         cmd = verify.read_sexp(s)
+def run_regression(scanner, url, ctx):
+     while 1:
+         cmd = verify.read_sexp(scanner)
          if cmd is None:
               return True
          if type(cmd) != str:
               raise SyntaxError('cmd must be atom')
-         arg = verify.read_sexp(s)
+         arg = verify.read_sexp(scanner)
+         #print '%s %s' % (cmd, verify.sexp_to_string(arg))
          ctx.do_cmd(cmd, arg)
 
 def regression(fn, out):
@@ -165,13 +172,13 @@ def regression(fn, out):
                elif cmd[0] == '!save':
                     dosave = True
                elif cmd[0] in ('!accept', '!reject'):
-                    gctx = verify.GlobalCtx()
-                    verifyctx = verify.VerifyCtx(urlctx, run_regression,
-                                                 gctx, cmd[1])
+                    gctx = TestGlobalCtx(urlctx)
+                    verifyctx = verify.VerifyCtx(gctx, cmd[1])
                     verifyctx.out = out
                     error = None
                     try:
-                         run_regression(urlctx, cmd[1], verifyctx)
+                         scanner = urlctx.resolve(cmd[1], '.')
+                         gctx.run(scanner, cmd[1], verifyctx)
                     except verify.VerifyError, x:
                          error = "VerifyError: " + x.why
                     except SyntaxError, x:

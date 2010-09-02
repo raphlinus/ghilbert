@@ -27,7 +27,7 @@ from google.appengine.ext.db import stats # DLK debug
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 
-from django.utils import simplejson
+from django.utils import simplejson as json
 
 # Only supports strings and lists now.
 def json_dumps(obj):
@@ -50,105 +50,216 @@ def json_dumps(obj):
 # however.
 
 class StringScanner(object):
-    def __init__(self, str_to_scan):
-        if isinstance(str_to_scan, str):
-            self.record = str_to_scan
+
+    def __init__(self, text, lineno=1):
+        if isinstance(text, str):
+            self.text = text
         else:
-            self.record = str_to_scan.encode('ascii')
-        self.record = self.record.strip()
-        self.lines = self.record.splitlines()
-        self.lineno = 0
-        self.toks = []
-        self.tokix = 0
+            self.text = text.encode('ascii')
+        self.start_ix = 0
+        self.ix = 0
+        self.lineno = 1
 
     def get_tok(self):
-        while len(self.toks) == self.tokix:
-            if self.lineno >= len(self.lines):
-                return None
-            line = self.lines[self.lineno]
-            self.lineno += 1
-            line = line.split('#')[0]
-            line = line.replace('(', ' ( ')
-            line = line.replace(')', ' ) ')
-            self.toks = line.split()
-            self.tokix = 0
-        result = self.toks[self.tokix]
-        self.tokix += 1
-        return result
+        ix = self.ix
+        text = self.text
+        l = len(text)
+        in_comment = False
+        tok_start = None
+        while ix < l:
+            ch = text[ix]
+            n = ord(ch)
+            if n >= 127 or (n < 32 and ch not in '\n\r'):
+                raise SyntaxError('Invalid character 0x%x in text' % n)
+            if in_comment:
+                if (ch == '\n' or
+                    ch == '\r' and (ix + 1 == l or text[ix + 1] != '\n')):
+                    in_comment = False
+                    self.lineno += 1
+                ix += 1
+                continue
+            if ch in ' ()#\r\n':
+                if tok_start is not None:
+                    self.ix = ix
+                    return text[tok_start:ix]
+                if ch in '()':
+                    self.ix = ix + 1
+                    return ch
+                if ch == '#':
+                    in_comment = True
+                elif (ch == '\n' or
+                      ch == '\r' and (ix + 1 == l or text[ix + 1] != '\n')):
+                    self.lineno += 1
+            elif tok_start is None:
+                tok_start = ix
+            ix += 1
+            continue
+        self.ix = ix
+        if tok_start is None:
+            return None
+        return text[tok_start:ix]
 
-# The low-order 32 bits of EditGeneration() increments whenever there
-# is a database change that extends (but does not invalidate) earlier
-# work.  The high-order 32 bits of EditGeneration() increments whenever
-# there is a change that requires a full re-read of the datastore.
-# There will be just one entity of this kind in the database.
-# All items in the database have EditGeneration as parent.
-class EditGeneration(db.Model):
-    gen = db.IntegerProperty()
+    def end_record(self):
+        start_ix = self.start_ix
+        ix = self.ix
+        self.start_ix = ix
+        return self.text[start_ix:ix]
 
-# Can the EditGeneration idea be race-free?
+def number_to_key(n):
+    """ n must be an integer (or long) greater than 0, of fewer than 100
+        decimal digits. Return a string representation of n that preserves
+        ordering, when using the usual lexicographical ordering on strings.
+    """
+    if n <= 0:
+        raise ValueError('number_to_key() argument must be > 0')
+    w = 1
+    p = 10
+    while n >= p:
+        w += 1
+        p *= 10
+    if w >= 100:
+        raise ValueError('number_to_key() argument must be have fewer than 100 digits when expressed as a decimal number.')
+    return '%02d:%d' % (w, n)
 
-class GHContext(db.Model):
-    name = db.StringProperty()  # will be None for interface file
-    fname = db.StringProperty(required=True) # use TextProperty() instead?
-    level = db.IntegerProperty(required=True)
+def key_to_number(kstr):
+    """ This function is a left-inverse to number_to_key().
+        That is, key_to_number(number_to_key(n)) == n for non-negative
+        intergers n in the domain of number_to_key().
+    """
+    return int(kstr[3:])
 
-# Represents an import/param/export command
-class GHInterface(db.Model):
-    ctx_from = db.ReferenceProperty(GHContext,
-                                    collection_name="ghinterface_from_set",
-                                    required=True)
-    ctx_to = db.ReferenceProperty(GHContext,
-                                  collection_name="ghinterface_to_set",
-                                  required=True)
-    # 'name' names this import among all imports of the parent interface
-    name = db.StringProperty(required=True)
-    prefix = db.StringProperty()
-    params = db.TextProperty()
-    # index among interfaces with the same ctx_from
-    index = db.IntegerProperty(required=True)
-    style = db.StringProperty(required=True,
-                              choices=set(['param', 'import', 'export']))
-
-class GHKind(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    name = db.StringProperty(required=True)
-
-class GHKindbind(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    k_old = db.StringProperty(required=True)
-    k_new = db.StringProperty(required=True)
-
-class GHVar(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    name = db.StringProperty(required=True)
-    var_kind = db.StringProperty(required=True)
-    binding = db.BooleanProperty(default=False)
-
-class GHTerm(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    arg = db.TextProperty(required=True)
     
-class GHStmt(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    cmd = db.TextProperty(required=True)
+# Every Generation entity in the datastore is top-level; it has no
+# ancestors.
+#
+#  - A given Generation entity corresponds to a sequence (i.e. a 'log') of
+#    GHLogEntry entities, that all have the Generation entity as their
+#    parent. If there is more than one Generation entity, they are
+#    distinguished by their 'gen' value, which is non-negative. Generation
+#    entities with higher 'gen' values are more _recent_ than Generation
+#    entities with lower 'gen' values.
+#  - If an app instance detects that its current Generation item no
+#    longer exists in the datastore, or if the app instance does not yet
+#    have a current Generation item, it should query for the most recent
+#    Generation item in the datastore, and start using that.  In fact,
+#    each time an app services a request, it should update to the latest
+#    Generation.
+#  - When extending a log, an app should do the following within a transaction:
+#    - read the current edit generation by key from the datastore, to verify
+#      that it still exists.
+#    - query for GHLogEntry descendants of the current Generation
+#      whose log entry numbers are greater than or equal to the next
+#      expected log entry number (i.e., the last read log entry number plus
+#      1).  The query should return no results. (Should we use a key name
+#      instead? We can use a string key that corresponds with the 
+#        0 :1 :2 :3 :4 :5 :6 :7 :8 :9 ::10 ::11 ... ::99 :::100 ... :::999
+#        ::::1000 ... ::::9999 :::::10000
+#       Ways of encoding non-negative integers as strings that preserve
+#       ordering, using the lexicographical ordering on strings.
+#       00: 01:1 ... 01:9 02:10 ... 02:99 03:100 ... 03:999
+#       04:1000 ... 04:9999 05:10000 ... 05:99999 06:100000 ... 06:999999
+#       all the way up to 99:99...9 (99 9's after the :). Given that integer
+#       properties fit in 64 bits, that's more than enough range.
+#
+#  - If the Generation item has gen = 0, the datastore is in the
+#    process of being administratively updated, and the datastore state
+#    may be inconsistent.  Client requests should wait until the gen value
+#    of the Generation becomes non-zero.
+#  - All valid GHLogEntries have the current EditGenertation item as
+#    their parent.
+class Generation(db.Model):
+    """ The key name for a Generation entity is the generation number, encoded
+        with number_to_key().
+    """
+    # to_do is greater than zero while the Generation is being initialized.
+    # basis is a json list the default files used to initialize the Generation
+    # and context names (null except for verify context files).
+    # to_do starts at the length of the list represented by base, and
+    # decreases down to zero as the initialization procedes.
+    to_do = db.IntegerProperty(required=True)
+    basis = db.TextProperty()
 
-# Note, we don't order the theorems in the database. We infer an ordering
-# that works (when possible).
-# We don't want to store any index or depth value to order the theorems,
-# since such a value would have to be recalculated for a large number of
-# theorems if a theorem were inserted earlier, or a proof of an existing
-# theorem changes in depth.
-class GHThm(db.Model):
-    ctx = db.ReferenceProperty(GHContext, required=True)
-    name = db.StringProperty(required=True)
-    cmd = db.TextProperty(required=True)
-    author = db.UserProperty()
-    date = db.DateTimeProperty(auto_now=True)
+def latest_generation():
+    """ Returns the latest initialized Generation entity object in the
+        datastore.
+    """
+    q = Generation.all()
+    latest = None
+    # Ordered by key...
+    for gen in q:
+        if gen.to_do == 0:
+            latest = gen
+    return latest
 
-# Use cases:
-# - Retrieve all kinds, terms, variables, and statements valid (axiomatic or
-#   provable) in a context.
-# - Retrieve just those statements and terms that are axiomatic in a context.
+def all_generations():
+    q = db.Query(Generation, keys_only=True)
+    gen_nums = []
+    for key in q:
+        name = key.name()
+        gen = key_to_number(name)
+        gen_nums.append(gen)
+    return gen_nums
+
+def get_generation(num):
+    gen_name = number_to_key(num)
+    key = db.Key.from_path('Generation', gen_name)
+    return db.get(key)
+
+def next_generation(gen_list):
+    gen = 1
+    for g in gen_list:
+        if g >= gen:
+            gen = g + 1
+    return gen
+
+class EditGeneration(db.Model):
+    gen = db.IntegerProperty(required=True)
+
+# Can the Generation idea be race-free?
+
+class GHLogEntry(db.Model):
+    """ The key name for a GHLogEntry entity is its 1-based index in
+        the log, encoded with number_to_key().
+    """
+    context_index = db.IntegerProperty(required=True)
+    command = db.StringProperty(required=True)
+    data = db.TextProperty() # Maybe use BlobProperty instead?
+    author = db.UserProperty(auto_current_user_add=True)
+    date = db.DateTimeProperty(auto_now_add=True)
+
+# GHLogEntry commands
+# 'new_interface_context'
+#   - context_index is the number of new contexts introduced earlier in the
+#     log. Equivalently, it is the index of the context being introduced.
+#   - data contains the interface context path (e.g. '/peano/pred_ax.ghi')
+# 'new_proof_context_named: <VerifyContextName>'
+#   - context_index is the number of new contexts introduced earlier in the
+#     log. Equivalently, it is the index of the context being introduced.
+#   - data contains the proof context path (e.g. '/peano/peano_thms.gh')
+# 'extend'
+#   - context_index identifies the earlier-introduced context to be extended.
+#   - data contains a number of ghilbert commands (comments allowed) to
+#     append to the specified context. Individual ghilbert commands should
+#     not be split between extend entries.
+# 'replace: <starting_command_num> until: <stopping_command_num>'
+#   - context_index identifies the earlier-introduced context to be modified
+#   - data contains a number of ghilbert commands.  These replace the ghilbert
+#     commands of the affected context, starting with <starting_command_num>
+#     up to but not including <stopping_command_num>. Any comments (and non-
+#     initial whitespace) preceding a command are considered part of the
+#     command.
+#     The first ghilbert command in a context has number zero.
+#     <starting_command_num> and <stopping_command_num> are non-negative
+#     decimal numbers, consisting of the characters [0-9]. They must be
+#     in the range from 0 to the current number of commands in the affected
+#     context, and <starting_command_num> must not be greater than
+#     <stopping_command_num>.
+#     Note that an 'extend' log entry is equivalent to a 'replace' log
+#     entry specifying a <starting_command_num> and a <stopping_command_num>
+#     equal to the current number of commands in the context. Insertion before
+#     command number <N> in the context is done as 'replace: <N> until: <N>'.
+
+# Some use cases:
 # - Add a variable to a context.
 # - Prove a theorem in a context.
 # - Prove a defthm in a context, adding the defined term and statement.
@@ -169,34 +280,13 @@ class GHThm(db.Model):
 # - Recreate the database based upon input files, or extend the database
 #   using bulk updates based upon input files.
 
-# (Current generation number, EditGeneration object)
-gh_edit_gen = (0, None)
+# (Current generation number, Generation object)
+gh_gen = None
 
 def clear_datastore(maxitems=0):
     logging.warning('***** Clearing Datastore! *****')
-    # We wanted to just clear everything, i.e.
-    #   q = db.Query()
-    #   for item in q:
-    #      item.delete()
-    # but got errors in the production app-engine when
-    # this apparently tried to delete some internal entities.
-    # Then we tried restricting to clearing all descendents of
-    # a particular ancestor_key, but during development several
-    # different ancestor keys (and sometimes none at all) got used,
-    # and wouldn't get deleted.
-    # So for robustness, we instead clear all kinds that this
-    # app uses.
-##    q = db.Query()
-##    q.ancestor(ancestor_key)
-##    items = 0
-##    for item in q:
-##        item.delete()
-##        items += 1
-##        if maxitems != 0 and items >= maxitems:
-##            return False
-
     items = 0
-    classes = (GHThm, GHStmt, GHVar, GHTerm, GHInterface, GHKind, GHKindbind, GHContext, EditGeneration)
+    classes = (EditGeneration, Generation, GHLogEntry)
     for cl in classes:
         q = cl.all()
         for item in q:
@@ -204,255 +294,95 @@ def clear_datastore(maxitems=0):
             items += 1
             if maxitems != 0 and items >= maxitems:
                 return False
-    
     return True
 
-gh_dsinit = None
+def clear_generation(gen_num, maxitems=0):
+    logging.warning('***** Clearing Generation %d *****' % gen_num)
+    gen_name = number_to_key(gen_num)
+    k = db.Key.from_path('Generation', gen_name)
+    q = GHLogEntry.all()
+    q.ancestor(k)
+    items = 0
+    for item in q:
+        item.delete()
+        items += 1
+        if maxitems != 0 and items >= maxitems:
+            logging.warning('... cleared %d items' % items)
+            return False
+    logging.warning('... cleared %d items' % items)
+    gen = db.get(k)
+    if gen is not None:
+        gen.delete()
+    return True
 
-def GHDatastoreReset(ancestor_key, defaults, maxitems):
-    while True:
-        done = clear_datastore(2 * maxitems)
-        if done:
-            break
-        yield 'Clearing'
-    ghdi = GHDatastoreInitializer(maxitems)
-    for name, path in defaults:
-        acp = ghdi.add_context_partial(name, path)
-        for done in acp:
-            if isinstance(acp, basestring):
-                yield done
-            else:
-                yield path
+def GHAddFile(name, path, parent, index):
+    global gh_base_dir
+    # TODO: check that path starts with '/'.
+    # TODO: check that name is a valid atom (interface name) & unique!
+    logging.info('GHAddFile %s, %s' % (name, path))
+    full_pname = os.path.join(gh_base_dir, path[1:])
+    fd = None
+    try:
+        try:
+            fd = open(full_pname, mode='r')
+        except IoError, e:
+            raise
+        content = fd.read() # returns string, not Unicode string
+        if len(content) > 500000: # actual limit is currently 1MB.
+            raise ValueError('File %s too big for datastore' % full_pname)
+        command = ('new_interface_context' if name is None
+                   else 'new_proof_context_named: %s' % name)
+        ctx_no = index
+        num = index * 2 + 1  # use 1-based index for key_name
+        entry_name = number_to_key(num)
+        entry = GHLogEntry(context_index=ctx_no,
+                           command=command,
+                           data=path,
+                           parent=parent,
+                           key_name=entry_name)
+        entry.put()
+        num = index * 2 + 2
+        entry_name = number_to_key(num)
+        entry = GHLogEntry(context_index=ctx_no,
+                           command='extend',
+                           data=content,
+                           parent=parent,
+                           key_name=entry_name)
+        entry.put()
+    finally:
+        if fd is not None:
+            fd.close()
 
-class GHDatastoreInitializer(object):
-    def __init__(self, maxitems):
-        self.ds_contexts = {}
-        self.gctx = verify.GlobalCtx()
-        self.out = DummyWriter()
-        self.maxitems = maxitems
-        self.count = 0
+def gh_generation_create_cb(gen_num, defaults):
+    gen = get_generation(gen_num)
+    if gen is None:
+        gen_name = number_to_key(gen_num)
+        gen = Generation(to_do=len(defaults),
+                         basis=json.dumps(defaults),
+                         key_name=gen_name)
+        gen.put()
+    else:
+        basis = json.loads(gen.basis)
+        if basis != defaults:
+            logging.info('Conflicting bases for generation creation')
+            raise Rollback('Conflicting bases for generation creation')
 
-    def yield_now(self):
-        self.count += 1
-        if self.count >= self.maxitems:
-            self.count = 0
-            return True
-        return False
-
-    def add_context_partial(self, name, path):
-        global gh_base_dir
-
-        if path in self.ds_contexts:
-            logging.error("Verify context %s (%s) repeated." % (name, path))
-            return
-
-        logging.info("Adding context %s, from %s" % (name, path))
-
-        def ghapp_build_if(ctx, fn, url):
-            global gh_base_dir
-            global_ctx = ctx.global_ctx
-##          logging.info(
-##                'ghapp_build_if: fn=%s ctx.global_ctx.all_interfaces=%r'
-##                % (fn, global_ctx.all_interfaces))
-            if not fn.startswith(gh_base_dir):
-                logging.error(
-                    'ghapp_build_if: interface path %s does not start with %s'
-                    % (fn, gh_base_dir))
-                raise verify.VerifyError('Bad path prefix')
-            if fn.endswith('.ghi'):
-                fnp = fn[:-1]
-                vctx = global_ctx.all_interfaces.get(fnp, None)
-                if vctx is not None:
-                    if fnp in global_ctx.iface_in_progress:
-                        raise verify.VerifyError(
-                            "Tried to fetch auto-export of in-progress %s" % fnp)
-                    if vctx.name is not None:
-                        #logging.info("ghapp_build_if: using verify context for %s" % fn)
-                        return vctx
-
-            # Note, the fetch_interface() checked global_ctx.all_interfaces
-            # for a match before this routine was called. Create a new interface.
-            pif = verify.InterfaceCtx(ctx.urlctx, ctx.run, global_ctx, fn,
-                                      ctx.build_interface)
-            pif.record = ctx.record
-            if not pif.run(ctx.urlctx, url, pif):
-                raise verify.VerifyError(
-                    "Failed while loading interface '%s'" % url)
-            pif.complete()
-            return pif
-
-        # TODO: rethink the filename / path handling here
-        urlctx = verify.UrlCtx(gh_base_dir, path, None, False)
-        path_norm = urlctx.normalize(path)
-        vctx = verify.VerifyCtx(urlctx, verify.run, self.gctx, path_norm,
-                                ghapp_build_if, False)
-
-        vctx.name = name
-        vctx.out = self.out
-        vctx.verbosity = 0
-        vctx.record = ''
-        vctx.ignore_exports = True
-        vctx.run(urlctx, path, vctx)
-        if vctx.error_count != 0:
-            logging.warning('%d errors verifying %s' % (vctx.error_count,
-                                                          name))
-        vctx.complete()
-
-        for done in self.init_datastore_ictx(vctx, name):
-            yield done
-
-    def init_datastore_ictx(self, gh_ctx, name=None):
-        global gh_base_dir
-        global gh_edit_gen
-
-        fname = gh_ctx.fname
-        if not fname.startswith(gh_base_dir):
-            logging.error('Real interface path %s does not start with %s' %
-                          (fname, gh_base_dir))
-            raise verify.VerifyError('Bad path prefix')
-        fname = fname[len(gh_base_dir):]
-
-        if fname in self.ds_contexts:
-            logging.info("Context %s (%s) repeated." % (name, fname))
-            yield self.ds_contexts[fname]
-            return
-
-        logging.info("Building Ghilbert context %s" % fname)
-
-        ds_ctx = GHContext(name=name, fname=fname, level=gh_ctx.level,
-                           parent=gh_edit_gen[1])
-        ds_ctx.put()
-        self.ds_contexts[fname] = ds_ctx
-
-        if self.yield_now():
-            yield fname
-
-        # First, all the imports.
-
-        for ix in xrange(len(gh_ctx.iflist)):
-            imp = gh_ctx.iflist[ix]
-            # For verify context,
-            #  ifname, ictx, params, prefix, kindmap, termmap, style
-            # termmap and style are absent for an interface file context.
-            ifname, ictx, params, prefix = imp[:4]
-            # We only handle imports that occur before any export, in order
-            # that we can put them all at the start of the file.
-            # We generate exported interface files automatically, so we don't
-            # store their results separately in the datastore.
-            if name is not None:
-                if imp[6] == 'export':
-                    break
-                style = 'import'
-            else:
-                style = 'param'
-            param_fname = ictx.fname
-            try:
-                ids_ctx = self.ds_contexts[param_fname]
-            except KeyError:
-                igen = self.init_datastore_ictx(ictx, None)
-                for done in igen:
-                    ids_ctx = done  # last item returned is imported context
-                    if isinstance(done, basestring):
-                        yield done
-
-            pnames = [gh_ctx.iflist[jx][0] for jx in params]
-            paramnames = '#'.join(pnames)
-            iface = GHInterface(ctx_from=ds_ctx, ctx_to=ids_ctx, name=ifname,
-                                prefix=prefix, params=paramnames, index=ix,
-                                style='import',
-                                parent=gh_edit_gen[1])
-            iface.put()
-            if self.yield_now():
-                yield fname
-
-        # Kinds
-        if name is None:
-            for kh in gh_ctx.kind_hist:
-                kname, ifindex, kix = kh
-                if ifindex >= 0:
-                    continue        # skip kinds originating elsewhere
-                ghk = GHKind(ctx=ds_ctx, name=kname,
-                             parent=gh_edit_gen[1])
-                ghk.put()
-                if self.yield_now():
-                    yield fname
-
-        # Kindbinds. We allow kindbind (with alias-only semantics) in interface
-        # files as well as proof files.
-        for k in gh_ctx.kindbinds:
-            kix = gh_ctx.kinds[k]
-            kv = gh_ctx.kind_hist[kix]
-            ghkb = GHKindbind(ctx=ds_ctx, k_old=kv[0], k_new=k,
-                              parent=gh_edit_gen[1])
-            ghkb.put()
-            if self.yield_now():
-                yield fname
-
-        # Variables.  Ugh, two passes through this...
-        for vname, sym in gh_ctx.syms.iteritems():
-            if sym[0] != 'var' and sym[0] != 'tvar':
-                continue
-            #logging.info('vname=%s, sym=%r' % (vname, sym))
-            if len(sym) == 4:
-                kname = sym[3]
-            else:
-                kname = gh_ctx.kind_hist[sym[1]][0]
-            ghv = GHVar(ctx=ds_ctx, name=vname, var_kind=kname,
-                        binding=(sym[0] == 'var'),
-                        parent=gh_edit_gen[1])
-            ghv.put()
-            if self.yield_now():
-                yield fname
-
-        if name is not None:
-            # Now, all the verify context's thm's and defthm's.
-            for ah in gh_ctx.assertion_hist:
-                # logging.info('creating [def]thm entity: %s' % ah)
-                thm = gh_ctx.syms[ah]
-                # thm is (kw, fv, hyps, concl, varlist,
-                #         num_hypvars, num_nondummies, record)
-                ght = GHThm(ctx=ds_ctx, name=ah, cmd=thm[7],
-                            parent=gh_edit_gen[1])
-                ght.put()
-                if self.yield_now():
-                    yield fname
-                #logging.info('put %s' % ah)
-
-            logging.info("Finished Ghilbert context %s" % fname)
-            yield ds_ctx
-            return  # No terms/stmts in verify context except defthm terms
-
-        # Terms (other than defthm terms in verify context)
-        for th in gh_ctx.term_hist:
-            tname, ifindex, termix, rkind, argkinds, freemap, sig = th
-            if ifindex >= 0:
-                continue        # skip terms originating elsewhere
-            arg = gh_ctx.term_arg_string(rkind, sig, freemap)
-            ght = GHTerm(ctx=ds_ctx, arg=arg,
-                         parent=gh_edit_gen[1])
-            ght.put()
-            if self.yield_now():
-                yield fname
-
-        # stmt's
-        for ah in gh_ctx.assertion_hist:
-            stmt = gh_ctx.syms[ah]
-            #logging.info('creating stmt entity: %s %r' %
-            #             (ah, stmt))
-            # stmt is (kw, fv, hyps, concl, varlist,
-            #          num_hypvars, num_nondummies, record)
-            ghs = GHStmt(ctx=ds_ctx, cmd=stmt[7],
-                         parent=gh_edit_gen[1])
-            ghs.put()
-            if self.yield_now():
-                yield fname
-
-        logging.info("Finished Ghilbert context %s" % fname)
-        yield ds_ctx
-        return
-
-# gh_global_ctx will be a verify.GlobalCtx.
-gh_global_ctx = None
+    n = gen.to_do
+    if n == 0:
+        return 'done'
+    if n < 0 or n > len(defaults):
+        raise Rollback('Invalid to_do count.')
+    name, path = defaults[-n]
+    GHAddFile(name, path, gen, len(defaults) - n)
+    n -= 1
+    gen.to_do = n
+    gen.put()
+    return path
+    
+        
+def GHGenerationCreate(gen_num, defaults):
+    res = db.run_in_transaction(gh_generation_create_cb, gen_num, defaults)
+    return res
 
 class DummyWriter(object):
     def __init__(self):
@@ -465,28 +395,18 @@ dummy_writer = DummyWriter()
 
 class GHDatastoreError(Exception):
     def __init__(self, why):
+        Exception.__init__(self, why)
         self.why = why
 
-def gh_edit_gen_refresh():
-    global gh_edit_gen
-    _, egen = gh_edit_gen
-    if egen is None:
-        egen_q = EditGeneration.all()
-        for e in egen_q:
-            egen = e
-            break
-    if egen is None:
-        return 0
-    egen = db.get(egen.key())
-    if egen is None:
-        return 0
-    edit_gen = egen.gen
-    gh_edit_gen = (edit_gen, egen)
-    return edit_gen
+def gh_gen_refresh():
+    global gh_gen
+    gen = latest_generation()
+    gh_gen = gen
+    return gen
     
 gh_updater = None
 
-def GHDatastoreUpdate(maxitems):
+def GHDatastoreUpdate(maxitems, out=None):
     """ Attempt to (partially) update the verifier datastructures based
         upon the current datastore contents.
         - Returns 'done' if the verifier datastructures were brought up to
@@ -496,414 +416,292 @@ def GHDatastoreUpdate(maxitems):
         - Returns 'wait' if the datastore is currently empty or being
           reinitialized
     """
-    global gh_edit_gen
     global gh_updater
 
-    if gh_updater is None:
-        edit_gen, egen = gh_edit_gen
-        edit_gen_now = gh_edit_gen_refresh()
-        if edit_gen_now == 0:
-            return 'wait'
-        if edit_gen_now == edit_gen:
-            return 'done'
-        gh_updater = GHUpdater(maxitems, edit_gen_now)
-    try:
-        gh_updater.generator.next()
-    except StopIteration:
-        egi = gh_updater.edit_gen_init
+    gen = latest_generation()
+    if gen == None:
+        logging.info ("No Generation!")
         gh_updater = None
-        edit_gen_now = gh_edit_gen_refresh()
-        if edit_gen_now == 0:
-            return 'wait'
-        if edit_gen_now == egi:
-            return 'done'
+        return 'wait'
+
+    logging.info ("latest gen: %s" % gen.key().name())
+    if gh_updater is not None:
+        if gh_updater.current_gen.key() != gen.key():
+            logging.info ("update key mismatch, restarting")
+            gh_updater = None
+
+    if gh_updater is None:
+        logging.info ("Creating new GHUpdater")
+        gh_updater = GHUpdater(maxitems, gen)
+
+    if out is None:
+        out = DummyWriter()
+
+    if gh_updater.read_datastore(out):
+        return 'done'
+    
     # TODO: catch other exceptions?
     return 'again'
-        
-    
 
 class GHUpdater(object):
-    def __init__(self, maxitems, edit_gen_init):
+    def __init__(self, maxitems, gen):
         self.maxitems = maxitems
-        self.count = 0
-        self.edit_gen_init = edit_gen_init
-        self.generator = self.read_datastore()
+        self.next_entry_number = 1
+        self.context_list = []
+        self.context_dict = {}
+        self.ctx_in_progress = {}
+        self.current_gen = gen
 
-    def yield_now(self):
-        self.count += 1
-        if self.count >= self.maxitems:
-            self.count = 0
-            return True
-        return False
-
-    # TODO: must do this in pieces at repeated request from client
-    # It takes too long, otherwise, for the full read case.
-    def read_datastore(self):
-        global gh_global_ctx
+    def read_datastore(self, out):
         global gh_base_dir
-        global dummy_writer
 
-        logging.info('Reading datastore')
-        out = dummy_writer
-        gh_global_ctx = verify.GlobalCtx()
-        ctx_q = GHContext.all()
-        ctx_q.order('level')
-        for ds_ctx in ctx_q:
-            pfname = ds_ctx.fname.encode('ascii')
-            logging.info('Context: %s' % pfname)
-            cname = ds_ctx.name
-            full_pname = os.path.join(gh_base_dir, pfname[1:])
-            if full_pname in gh_global_ctx.all_interfaces:
-                raise GHDatastoreError('Duplicate context file name "%s"'
-                                       % pfname)
-            urlctx = verify.UrlCtx(gh_base_dir, pfname, None, False)
-            if cname is not None:
-                gh_ctx = verify.VerifyCtx(urlctx, None, gh_global_ctx,
-                                          full_pname, False)
-                gh_ctx.name = cname.encode('ascii')
-                # verify contexts that import this context's automatically
-                # exported interface. Indexed by full pathname.
-                gh_ctx.importers = {}
-            else:
-                if full_pname in gh_global_ctx.iface_in_progress:
-                    raise GHDatastoreError(
-                     'Recursive reference to interface context %s in progress.'
-                     % full_pname)
-                gh_ctx = verify.InterfaceCtx(urlctx, None, gh_global_ctx,
-                                             full_pname, None)
-            gh_ctx.verbosity = 0
-            gh_ctx.out = out
-            gh_ctx.datastore_context = ds_ctx
-            for done in self.read_context(ds_ctx, gh_ctx, out):
-                yield done
-            gh_ctx.complete()
-    
-    def read_context(self, ds_ctx, ictx, out):
-        q = GHInterface.all()
-        q.filter("ctx_from =", ds_ctx)
-        q.order("index")
+        logging.info('Reading log from #%d' % self.next_entry_number)
+        self.out = out
 
-        # Handle all params/imports
-        for iface in q:
-            read_iface(iface, ictx, out)
-            if self.yield_now():
-                yield False
-
-        # Handle all locally defined kinds; don't need to do this for
-        # verify contexts.
-        if ictx.name is None:
-            for ghk in ds_ctx.ghkind_set:
-                kname = ghk.name.encode('ascii')
-                # check_id(kname)
-                n = len(ictx.kind_hist)
-                ictx.add_kind(kname, n)
-                ictx.kind_hist.append((kname, -1, n))
-                if self.yield_now():
-                    yield False
-
-        # We allow kindbinds (with alias-only semantics) in both interface
-        # files and proof files now...
-        for ghkb in ds_ctx.ghkindbind_set:
-            k_old = ghkb.k_old.encode('ascii')
-            # check_id(k_old)
-            k_new = ghkb.k_new.encode('ascii')
-            # check_id(k_new)
-            #logging.info('kindbind (%s %s)' % (k_old, k_new))
-            ictx.add_kind(k_new, ictx.get_kind(k_old))
-            ictx.kindbinds.append(k_new)
-            if self.yield_now():
-                yield False
-
-        # Variables
-        for ghv in ds_ctx.ghvar_set:
-            vname = ghv.name.encode('ascii')
-            # check_id(vname)
-            if vname in ictx.syms:
-                raise verify.VerifyError(
-                    "A symbol '%s' already exists in interface %s" %
-                    (vname, ictx.fname))
-            kname = ghv.var_kind.encode('ascii')
-            # check_id(kname)
-            try:
-                kix = ictx.kinds[kname]
-            except KeyError:
-                raise verify.VerifyError(
-                    "The kind '%s' does not exist in interface %s" %
-                    (kname, ictx.fname))
-            if ictx.name is None:
-                ictx.syms[vname] = (('var' if ghv.binding else 'tvar'), kix, vname)
-            else:
-                ictx.syms[vname] = (('var' if ghv.binding else 'tvar'), kix,
-                                    vname, kname)
-            #logging.info("Variable: (%s %d %s)\n" % ictx.syms[vname])
-            if self.yield_now():
-                yield False
-
-
-        # Terms, statements for interface contexts
-        if ictx.name is None:
-            for ght in ds_ctx.ghterm_set:
-                # logging.info('term arg: %s' % ght.arg)
-                sc = StringScanner(ght.arg)
-                ictx.scanner = sc
-                e = verify.read_sexp(sc)
-                if e is None:
-                    raise verify.VerifyError("Unexpected end of data -- term.")
-                try:
-                    ictx.do_cmd('term', e, None)
-                except verify.VerifyError, x:
-                    logging.error('%s' % x.why)
-                    raise
-                if self.yield_now():
-                    yield False
-
-            for ghs in ds_ctx.ghstmt_set:
-                sc = StringScanner(ghs.cmd)
-                ictx.scanner = sc
-                # logging.info('stmt cmd: %s' % sc.record)
-                cmd = verify.read_sexp(sc)
-                if cmd != 'stmt':
-                    raise verify.VerifyError("Expected stmt command")
-                e = verify.read_sexp(sc)
-                if e is None:
-                    raise verify.VerifyError("Unexpected end of data -- stmt.")
-                try:
-                    ictx.do_cmd('stmt', e, sc.record)
-                except verify.VerifyError, x:
-                    logging.error('%s' % x.why)
-                    raise
-                if self.yield_now():
-                    yield False
-
-        if ictx.name is not None:
-            ictx.bad_thms = []
-            ictx.unresolved_thms = {}
-            for ghth in ds_ctx.ghthm_set:
-                # handle out-of-order cases
-                add_thm(ictx, ghth.name.encode('ascii'), ghth.cmd, True)
-                if self.yield_now():
-                    yield False
-            logging.info('There are %s bad and %s unresolved theorems' %
-                         (len(ictx.bad_thms), len(ictx.unresolved_thms)))
-
-def read_iface(iface, ictx, out):
-    global gh_global_ctx
-    global gh_base_dir
-
-    fname = iface.ctx_to.fname.encode('ascii')
-    # check_id(fname)
-    full_pname = os.path.join(gh_base_dir, fname[1:])
-    try:
-        pif = gh_global_ctx.all_interfaces[full_pname]
-    except KeyError:
-        raise GHDatastoreError(
-            'Interface %s not already loaded when needed by %s'  %
-            (fname, ictx.fname))
-
-    ifname = iface.name.encode('ascii')
-    # check_id(ifname)
-    if ifname in ictx.interfaces:
-        raise verify.VerifyError(
-            "An interface of name '%s' already exists in %s"
-            % (ifname, ictx.fname))
-    prefix = iface.prefix.encode('ascii')
-    # check_id('"' + prefix + '"')
-    epn = iface.params.encode('ascii')
-    param_names = ([] if epn == '' else epn.split('#'))
-
-    if ictx.name is None:
-        ictx.param(ifname, pif, param_names, prefix)
-    else:
-        cmd = iface.style.encode('ascii')
-        if cmd == 'import':
-            ictx.gh_import(pif, ifname, param_names, prefix)
-            if pif.name is not None:
-                if ictx.fname not in pif.importers:
-                    logging.info ('Setting %s as importer of %s' %
-                                  (ictx.fname, full_pname))
-                    pif.importers[ictx.fname] = ictx
-        elif cmd == 'export': # shouldn't really occur at present...
-            ictx.gh_export(pif, ifname, param_names, prefix)
-        else:
-            raise verify.VerifyError("Unexpected interface command %s" % cmd)
-
-    if pif.level >= ictx.level:
-        ictx.level = pif.level + 1
-
-def find_unresolved_terms(vctx, exp, unk_terms):
-    if not isinstance(exp, list):
-        return
-    if len(exp) < 1 or isinstance(exp[0], list):
-        raise SyntaxError("Invalid term.")
-    tname_tup = (exp[0],)
-    if exp[0] not in vctx.terms and tname_tup not in unk_terms:
-        unk_terms.append(tname_tup)
-    for e in exp[1:]:
-        find_unresolved_terms(vctx, e, unk_terms)
-
-def find_unresolved(vctx, cmd, e, cmdstr):
-    # thm (LABEL FVC HYPS CONC STEPS)
-    # defthm (LABEL KIND SIG FVC HYPS CONC STEPS)
-    # cmdstring has the full command + arg with comments
-    unk = []
-    unk_terms = []
-    steps_ix = (4 if cmd == 'thm' else 6)
-    if (not isinstance(e, list) or len(e) <= steps_ix or
-        not isinstance(e[0], basestring) or
-        not isinstance(e[steps_ix - 2], list) or
-        (len(e[steps_ix - 2]) & 1) != 0):
-        raise SyntaxError("Bad 'thm' or 'defthm' syntax.")
-
-    hyps = e[steps_ix - 2]
-
-    hypnames = {}
-    for ix in xrange(0, len(hyps), 2):
-        hn = hyps[ix]
-        if not isinstance(hn, basestring):
-            raise SyntaxError("Hypothesis name must be an identifier.")
-        hypnames[hn] = 0 # don't really need value here...
-        find_unresolved_terms(vctx, hyps[ix + 1], unk_terms)
-
-    # recored all proof steps that are unknown identifiers
-    for step in e[steps_ix:]:
-        if isinstance(step, list):
-            find_unresolved_terms(vctx, step, unk_terms)
-            continue
-        if step not in hypnames and step not in vctx.syms:
-            if step not in unk:
-                unk.append(step)
-    # tag on the command and argument
-    unk.append(cmd)
-    unk.append(e)
-    unk.append(cmdstr)
-    return unk_terms + unk
-
-def may_be_resolved(thmap, vctx, ul, unk):
-    # deal with theorems pending waiting for the assertion or defined term
-    # that just became available (and perhaps waiting for others)
-    for u in ul:
-        while len(u) > 3:
-            if isinstance(u[0], tuple):
-                if u[0][0] in vctx.terms:
-                    u = u[1:]
-            elif u[0] in vctx.syms:
-                u = u[1:]
-            else:
+        count = 0
+        while True:
+            entry_name = number_to_key(self.next_entry_number)
+            ekey = db.Key.from_path('GHLogEntry', entry_name,
+                                 parent=self.current_gen.key())
+            entry = db.get(ekey)
+            if entry is None:
                 break
-        if len(u) == 3:  # ready to resolve u
-            logging.info('resolved %s' % u[-2])
-            unk.extend(u)
-            continue
-        if len(u) < 3:
-            raise verify.VerifyError('may_be_resolved() internal error')
-        logging.info('theorem %s still unresolved for %s' %
-                     (u[-2][0], u[0]))
-        # u still needs other theorems before it can be resolved
-        try:
-            ul2 = thmap[u[0]]
-        except KeyError:
-            ul2 = []
-            thmap[u[0]] = ul2
-        ul2.append(u[1:])
+            self.read_entry(entry)
+            self.next_entry_number += 1
+            count += 1
+            if count >= self.maxitems:
+                return False
+        #logging.info('read_datastore done, count=%d' % count)
+        return True
 
-def add_thm(vctx, name, th_cmd, keep_if_fail):
-    """ Called from both the read_datastore() and SaveHandler() code
-        paths, this routine adds the theorem command th_cmd to the
-        vctx verify context. If keep_if_fail is true, the theorem may
-        be kept in vctx.unresolved_thms or in vctx.bad_thms if it fails
-        to verify...
-        Returns True if the theorem was successfully added, False otherwise.
-    """
+    def lookup_context(self, norm_path):
+        """ Given a normalized path, look up the corresponding ghilbert
+            context.
+              Returns (None, False) if there is no such context.
+              Returns (ctx, False) if the context was found directly.
+              Returns (ctx, True) if the context was found as the automatically
+                generated export from a proof file context.
+        """
+        pif = self.context_dict.get(norm_path)
+        if pif is not None:
+            return pif, False
+        if norm_path.endswith('.ghi'):
+            pif = self.context_dict.get(norm_path[:-1])
+            if pif is None or pif.name is None:
+                return None, False
+            return pif, True
+        return None, False
+
+    def normalize(self, url, caller_fname):
+        global gh_base_dir
+        if url[0] == '/':
+            fn = os.path.join(gh_base_dir, url[1:])
+        else:
+            # caller_fname is already normalized.
+            caller_dir = os.path.split(caller_fname)[0]
+            caller_dir = os.path.join(gh_base_dir, caller_dir[1:])
+            fn = os.path.join(caller_dir, url)
+        fn = os.path.realpath(fn)
+        if not fn.startswith(gh_base_dir + '/'):
+            raise verify.VerifyError('Bad interface url: %s' % url)
+        return fn[len(gh_base_dir):]
+
+    def fetch_interface(self, url, caller_ctx):
+        fn = self.normalize(url, caller_ctx.fname)
+        # TODO: These recursion guards are not foolproof. Could have mutually
+        # recursive imports by verify contexts...
+        if fn in self.ctx_in_progress:
+            raise VerifyError('Interface %s recursively fetched')
+        pif = self.context_dict.get(fn)
+        if pif is None:
+            if fn.endswith('.ghi'):
+                fnp = fn[:-1]
+                if fnp in self.ctx_in_progress:
+                    raise verify.VerifyError('Interface %s recursively fetched')
+                pif = self.context_dict.get(fnp)
+                if pif.name is None:
+                    pif = None
+            if pif is None:
+                raise verify.VerifyError('Interface %s (%s) not found' %
+                                         (url, fn))
+            if caller_ctx.name is not None:
+                pif.importers[caller_ctx.fname] = caller_ctx
+        else:
+            if pif.name is not None:
+                raise verify.VerifyError('Attempt to use proof file context as interface file: %s' % url)
+        # Note, we rely on having contexts defined before they are used,
+        # so we don't need to 'build' an interace context here.
+        if pif.level >= caller_ctx.level:
+            caller_ctx.level = pif.level + 1
+
+        return pif
+
+    def start_context(self, ctx):
+        self.ctx_in_progress[ctx.fname] = ctx
+
+    def read_entry(self, entry):
+        global gh_base_dir
+
+        """ Evaluate the command in the GHLogEntry entity entry"""
+        entry_num = self.next_entry_number
+        command = entry.command
+        ctx_ix = entry.context_index
+        if (command == 'new_interface_context' or
+            command.startswith('new_proof_context_named: ')):
+            if ctx_ix != len(self.context_list):
+                raise GHDatastoreError(
+                    "In log entry #%d, expected new context %d but found %d" %
+                    (entry_num, self.new_context_index, ctx_ix))
+            path = entry.data.encode('ascii')
+            if len(path) < 1 or path[0] != '/':
+                raise GHDatastoreError(
+                    'Invalid context path in log entry #%d: %s' %
+                    (entry_num, path))
+            norm_path = self.normalize(path, '/')
+            if norm_path in self.context_dict or path in self.ctx_in_progress:
+                raise GHDatastoreError(
+                    "Duplicate context '%s' created in log entry #%d" %
+                    (norm_path, entry_num))
+
+            if command == 'new_interface_context':
+                gh_ctx = verify.InterfaceCtx(self, norm_path)
+            else: # proof file context
+                gh_ctx = verify.VerifyCtx(self, norm_path, False)
+                cname = command[len('new_proof_context_named: '):]
+                # TODO: check that cname is a valid context name...
+                gh_ctx.name = cname.encode('ascii')
+                gh_ctx.importers = {}
+            gh_ctx.verbosity = 0
+            gh_ctx.out = DummyWriter()
+            gh_ctx.cmd_hist = []
+            gh_ctx.context_index = ctx_ix
+            self.context_list.append(gh_ctx)
+        elif command == 'extend':
+            try:
+                gh_ctx = self.context_list[ctx_ix]
+            except IndexError:
+                raise GHDatastoreError(
+                    'Invalid context index %d in extend at log entry #%d' %
+                    (ctx_ix, entry_num))
+            norm_path = gh_ctx.fname
+            self.ctx_in_progress[norm_path] = gh_ctx
+            scanner = StringScanner(entry.data)
+            self.run(scanner, norm_path, gh_ctx)
+            del self.ctx_in_progress[norm_path]
+            self.context_dict[norm_path] = gh_ctx
+        elif command[:8] == 'replace:':
+            l = command.split()
+            try:
+                start = long(l[1])
+                stop = long(l[2])
+            except:
+                raise GHDatastoreError("Invalid command '%s'" % command)
+            try:
+                gh_ctx = self.context_list[ctx_ix]
+            except IndexError:
+                raise GHDatastoreError(
+                    'Invalid context index %d in extend at log entry #%d' %
+                    (ctx_ix, entry_num))
+            maxcmd = len(gh_ctx.cmd_hist) / 4
+            if (start < 0 or start > stop or stop > maxcmd):
+                raise GHDatastoreError(
+                    'Bad command indices (max %d) in %s' % (maxcmd, command))
+            tail = gh_ctx.cmd_hist[stop:maxcmd]
+            norm_path = gh_ctx.fname
+            self.ctx_in_progress[norm_path] = gh_ctx
+            gh_ctx.undo_to(start)
+            scanner = StringScanner(entry.data)
+            self.run(scanner, norm_path, gh_ctx)
+            gh_ctx.apply_hist(tail)
+            del self.ctx_in_progress[norm_path]
+            self.context_dict[norm_path] = gh_ctx
+        else:
+            raise GHDatastoreError("Unhandled log entry #%d, command: %s" %
+                                   (entry_num, command))
+
+    def run(self, scanner, url, ctx):
+        read_sexp = verify.read_sexp
+        while 1:
+            cmd = verify.read_sexp(scanner)
+            if cmd is None:
+                return True
+            if not isinstance(cmd, str):
+                logging.error('Command word is not string: %s' %
+                              verify.sexp_to_string(cmd))
+                continue
+            arg = read_sexp(scanner)
+            if not isinstance(arg, list):
+                logging.error('Command argument is not list: %s' % cmd)
+                continue
+            try:
+                ctx.do_cmd(cmd, arg, scanner.end_record())
+            except verify.VerifyError, x:
+                ctx.record_error('Verify error: %s' % x.why)
+            except SyntaxError, x:
+                ctx.record_error('Syntax error: %s' % str(x))
+        return True
+
+    def datastore_logentry_cb(self, ctx_ix, command, content):
+        gen = self.current_gen
+        gkey = gen.key()
+        gen = db.get(gkey)
+        if gen is None:
+            raise db.Rollback('Generation %s no longer exists.' % gkey.name())
+        num = self.next_entry_number
+        entry_name = number_to_key(num)
+        ekey = db.Key.from_path('GHLogEntry', entry_name, parent=gkey)
+        entry = db.get(ekey)
+        if entry is not None:
+            # should we try to read to the end of the log here?
+            raise db.Rollback('Not at current end of log!')
+        
+        entry = GHLogEntry(context_index=ctx_ix,
+                           command=command,
+                           data=content,
+                           parent=gen,
+                           key_name=entry_name)
+        entry.put()
+        # Note, do not increment self.next_entry_number here!
+        return True
+
+    def datastore_extend(self, ctx_ix, content):
+        res = db.run_in_transaction(self.datastore_logentry_cb,
+                                    ctx_ix, 'extend', content)
+        return res
+
+
+    def datastore_replace(self, ctx_ix, start, stop, new_content):
+        ctx = self.context_list[ctx_ix]
+        maxcmd = len(ctx.cmd_hist) / 4
+        assert (0 <= start <= stop <= maxcmd)
+        command = 'replace: %d until: %d' % (start, stop)
+        res = db.run_in_transaction(self.datastore_logentry_cb,
+                                    ctx_ix, command, new_content)
+        return res
+        
+def theorem_basic_syntax(label, th_cmd, out):
     sc = StringScanner(th_cmd)
-    vctx.scanner = sc
     cmd = verify.read_sexp(sc)
-    #logging.info("add_thm %s %s" % (cmd, name))
     if not cmd in ('thm', 'defthm'):
-        vctx.out.write("Expected 'thm' or 'defthm'\n")
-        return False
+        out.write("Expected 'thm' or 'defthm'\n")
+        return None
     e = verify.read_sexp(sc)
     if e is None:
-        vctx.out.write('Missing command argument\n')
-        return False
-    if not isinstance(e, list) or len(e) < 1 or e[0] != name:
-        vctx.out.write('Mismatched theorem labels.\n')
-        return False
-    try:
-        unk = find_unresolved(vctx, cmd, e, sc.record)
-    except SyntaxError, x:
-        vctx.out.write('%s\n' % str(x))
-        return False
+        out.write('Missing command argument\n')
+        return None
+    if not isinstance(e, list) or len(e) < 1 or e[0] != label:
+        out.write('Mismatched theorem labels.\n')
+        return None
+    record = sc.end_record()
+    e2 = verify.read_sexp(sc)
+    if e2 is not None:
+        out.write('Extra expressions after %s command\n' % cmd)
+        return None
+    return record
 
-##    logging.info("add %s %s, unresolved %r" %
-##                 (cmd, verify.sexp_to_string(e), unk))
-    thmap = vctx.unresolved_thms
-    if len(unk) > 3:
-        if not keep_if_fail:
-            vctx.out.write("Unresolved symbol '%s'\n" % unk[0])
-            return False
-        logging.info("Deferring %s for unresolved %s" % (name, unk[0]))
-        try:
-            ul = thmap[unk[0]]
-        except KeyError:
-            ul = []
-            thmap[unk[0]] = ul
-        ul.append(unk[1:])
-        return False
-
-    while len(unk) > 0:
-        # unk[:3] is [cmd, e, cmdstr] for newly resolved theorem
-        cmd, e, cmdstr = unk[:3]
-        unk = unk[3:]
-        record = cmdstr
-        # logging.info("resolved %s" % e[0])
-        if cmd == 'defthm':
-            if (not isinstance(e, list) or len(e) < 2 or
-                not isinstance(e[2], list) or len(e[2]) < 0):
-                logging.info("bad %s" % cmdstr)
-                if not keep_if_fail:
-                    return False
-                vctx.bad_thms.append(cmdstr)
-                continue
-            # save both the command string and the defined term name
-            record = (cmdstr, e[2][0])
-
-        ok = True
-        try:
-            vctx.do_cmd(cmd, e, record)
-        except verify.VerifyError, x:
-            vctx.out.write('Verify error:\n%s\n' % x.why)
-            ok = False
-        except SyntaxError, x:
-            vctx.out.write('Syntax error:\n%s\n' % str(x))
-            ok = False
-        if not ok:
-            if not keep_if_fail:
-                return False
-            vctx.bad_thms.append(cmdstr)
-            continue
-
-        if cmd == 'defthm':
-            # Is any theorem waiting on the until-now unresolved term?
-            ul = thmap.get((record[1],), None)
-            if ul != None:
-                del thmap[(record[1],)]
-                may_be_resolved(thmap, vctx, ul, unk)
-
-        name = e[0]
-        keep_if_fail = True
-        ul = thmap.get(name, None)
-        if ul is None:
-            continue
-        del thmap[name]
-        may_be_resolved(thmap, vctx, ul, unk)
-
-    return True
-
-
-class Greeting(db.Model):
-    author = db.UserProperty()
-    content = db.StringProperty(multiline=True)
-    date = db.DateTimeProperty(auto_now_add=True)
+class LogPage(webapp.RequestHandler):
+    def get(self):
+        pass
 
 class RecentPage(webapp.RequestHandler):
     def get(self):
@@ -935,39 +733,13 @@ class RecentPage(webapp.RequestHandler):
             content = '<br />'.join(newcontent)
             out.write('<blockquote>%s</blockquote>' % content)
 
-def datastore_add_new_thm(ctx, name, cmd):
-    ds_ctx = ctx.datastore_context
-    gh_thm = GHThm(ctx=ds_ctx, name=name, cmd=cmd,
-                   parent=gh_edit_gen[1])
-    if users.get_current_user():
-        gh_thm.author = users.get_current_user()
-    gh_thm.put()
-
-def datastore_add_new_thm_cb(ctx, name, cmd, edit_gen, egen):
-    datastore_add_new_thm(ctx, name, cmd)
-    egen = db.get(egen.key())
-    if edit_gen != egen.gen:
-        raise db.Rollback("Database updated by another context while saving theorem.")
-    edit_gen += 1
-    egen.gen = edit_gen
-    egen.put()
-    return (edit_gen, egen)
-
-def datastore_add_new_thm_transaction(ctx, name, cmd, edit_gen, egen):
-    global gh_edit_gen
-    res = db.run_in_transaction(datastore_add_new_thm_cb,
-                                ctx, name, cmd, edit_gen, egen)
-    if res is not None:
-        gh_edit_gen = res
-    return res
-
 class SaveHandler(webapp.RequestHandler):
     def post(self):
-        global gh_edit_gen
-        global gh_global_ctx
+        global gh_updater
         global gh_base_dir
 
         out = self.response.out
+
         res = GHDatastoreUpdate(100)
         if res == 'wait':
             out.write("Ghilbert is unavailable now.\r\n")
@@ -976,26 +748,26 @@ class SaveHandler(webapp.RequestHandler):
         if res == 'again':
             out.write("again\r\n")
             return
-        edit_gen, egen = gh_edit_gen
 
         # Note, the following line gets the un-url-encoded name.
         name = self.request.get('name')
         ctxname = self.request.get('context')
         cmd = self.request.get('content')
+        cmd = cmd.strip()
         if name == '' or ctxname == '' or cmd == '':
             self.error(400) # bad request
             return
         
         logging.info("SaveHandler: context %s theorem %s" % (ctxname, name))
-        ctxname_full = os.path.join(gh_base_dir, ctxname[1:])
-        try:
-            ctx = gh_global_ctx.all_interfaces[ctxname_full]
-        except KeyError:
+        ctx, auto_export = gh_updater.lookup_context(ctxname)
+        if ctx is None:
+            self.error(404)
             out.write('Save Failed: Unknown context %s\n' % ctxname)
             return
-        if ctx.name is None:
-            out.write('Save Failed: Context %s is not a proof-file context\n'
-                      % ctxname)
+        if auto_export or ctx.name is None:
+            self.error(404)
+            out.write('Save Failed: %s is not a proof-file context\n' %
+                      ctxname)
             return
 
         sym = ctx.syms.get(name, None)
@@ -1007,6 +779,16 @@ class SaveHandler(webapp.RequestHandler):
             out.write('Save Failed: Cannot replace existing theorem yet...')
             return  # TODO
 
+        bad_cmds = ctx.badthms.get(name)
+        if bad_cmds is not None:
+            out.write('Save Failed: %s exists as a bad theorem already\n' %
+                      name)
+            return
+
+        # FIXME: What if there is a FAILED theorem of the same name?
+        # Presently it would not be replaced, but a new version would be
+        # appended. Probably not what we want.
+
         # Check to see if the symbol already exists in any of the other
         # verify contexts that import ctx
         for importer in ctx.importers.itervalues():
@@ -1016,35 +798,49 @@ class SaveHandler(webapp.RequestHandler):
             out.write("Save Failed: dependent context %s already contains a symbol '%s'" % (importer.name, name))
             return
 
-        ctx.out = out
-        result = add_thm(ctx, name, cmd, False)
-        ctx.out = dummy_writer
-        if result: # TODO -- save incomplete / broken theorems
-            res = datastore_add_new_thm_transaction(ctx, name, cmd,
-                                                    edit_gen, egen)
-            if res is None:
-                out.write('Save failed. Please try again.\r\n')
-                return
+        # Check the basic syntax of the 'thm' or 'defthm' command, strip
+        # any trailing comments/whitespace. Does not check that the theorem
+        # verifies!
+        record = theorem_basic_syntax(name, cmd, out)
+        if record is None:
+            self.error(400)
+            out.write("Save Failed: Bad syntax\n")
+            return
+
+        # Extend the datastore log with the new record consisting of the
+        # thm/defthm command.
+        prefix = '\n\n'
+        res = gh_updater.datastore_extend(ctx.context_index, prefix + record)
+        if res:
+            gh_updater.read_datastore(out)
             out.write('Saved %s\n' % name)
         else:
-            out.write('Failed.\n')
+            out.write('Log extension failed. Please try again.\r\n')
         return
-        
+
 class ContextHandler(webapp.RequestHandler):
     def get(self, name):
-        global gh_global_ctx
+        global gh_updater
         global gh_base_dir
 
         out = self.response.out
-        res = GHDatastoreUpdate(100)
-        if res == 'wait':
-            out.write("Ghilbert is unavailable now.\r\n")
-            self.error(503)  # Service unavailable
-            return
-        # Redirect to same URL if not done updating.
-        if res == 'again':
-            self.redirect(name)
-            return
+        # We don't perform an update here, unless gh_updater doesn't
+        # exist at all. Frequently several
+        # ContextHandler requests are performed at once, and
+        # performing an update for each one would slow things down
+        # more than we want. Other pages (e.g. the edit page) that
+        # generate requests for multiple contexts should do one update
+        # themselves.
+        if gh_updater is None:
+            res = GHDatastoreUpdate(100)
+            if res == 'wait':
+                out.write("Ghilbert is unavailable now.\r\n")
+                self.error(503)  # Service unavailable
+                return
+            # Redirect to same URL if not done updating.
+            if res == 'again':
+                self.redirect(name)
+                return
 
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
@@ -1052,175 +848,101 @@ class ContextHandler(webapp.RequestHandler):
         export = False
         ictx = None
         vctx = None
-        full_pname = os.path.join(gh_base_dir, name[1:])
+        full_pname = name
         logging.info('Looking for %s' % full_pname)
-        ctx = gh_global_ctx.all_interfaces.get(full_pname, None)
+        ctx, auto_export = gh_updater.lookup_context(full_pname)
         if ctx is None:
-            if full_pname.endswith('.ghi'):
-                vctx = gh_global_ctx.all_interfaces.get(full_pname[:-1], None)
-                ctx = vctx
-                export = True
-        elif ctx.name is None:
-            ictx = ctx
-        else:
-            vctx = ctx
-        if ictx is None and vctx is None:
             self.error(404)
             return
-                
-        self.response.headers.add_header('content-type', 'text/plain')
+
+        self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
         out = self.response.out
-        impcmd = 'param'
-        if ictx is None:
-            if export:
-                out.write("# Ghilbert interface file for context %s\n\n"
-                          % vctx.name)
-                # Don't write params, we want a unified export that is
-                # all-in-one
-                #
-                # Write all kinds
-                # Write all varibles
-                # Write all terms
-                # Write all stmts
-                #  But problem: some of the terms & stmts, coming from imports
-                #  of the vctx, may use variable definitions that are not
-                #  native to the vctx, and could in principle be
-                #  inconsistent with the variable definitions of the vctx.
-                #  We don't have this problem if we don't do a unified
-                #  export, and only export the terms and theorems
-                #  introduced by the vctx itself...
-                # Other question: How do we reconcile generated proven but
-                # incomplete prop.ghi with complete unproven prop.ghi?
-                #
-                # For now, don't try a unified export.
-            else:
-                out.write("# Ghilbert proof file for context %s\n\n" % vctx.name)
-                impcmd = 'import'
-        else:
-            fname = ctx.fname[len(gh_base_dir):]
-            out.write("# Ghilbert interface file %s\n\n" % fname)
 
-        # have to put out imports in order.
-        for imp in ctx.iflist:
-            # imp is (ifname, ictx, params, prefix,
-            #         kindmap, termmap, cmdword)  for a verify context.
-            # termmap and cmdword are missing for an interface context
-            # skip exports
-            if len(imp) == 7 and imp[6] == 'export':
-                continue
-            ifname, pctx, params, prefix, kindmap = imp[:5]
-            #logging.info('imp=%r' % (imp,))
-            if not pctx.fname.startswith(gh_base_dir):
-                logging.error('Real interface path %s does not start with %s' %
-                              (pctx.fname, gh_base_dir))
-                raise verify.VerifyError('Bad path prefix')
-            fname = pctx.fname[len(gh_base_dir):]
-            if pctx.name is not None:
-                fname = fname + 'i'
-            out.write('%s (%s %s (%s) "%s")\n' %
-                      (impcmd, ifname, fname,
-                       ' '.join([ctx.iflist[p][0] for p in params]), prefix))
+        # We can use the command history directly for all cases except
+        # for the automatically generated interface file corresponding to
+        # a proof file context.
+        if not auto_export:
+            ix = 0
+            cmd_hist = ctx.cmd_hist
+            while ix < len(cmd_hist):
+                cmd_text = cmd_hist[ix + 2]
+                out.write(cmd_text)
+                ix += 4
+            return
 
-        out.write('\n')
+        out.write("# Ghilbert interface file for context %s\n\n" % ctx.name)
+        
+        # Although we might like a 'unified' export that is all-in-one
+        # without any param dependencies, some of the terms & stmts, coming
+        # from imports of the proof file context ctx, may use variable
+        # definitions that are not native to the ctx, and could in principle
+        # be inconsistent with the variable definitions of ctx.
+        # We don't have this problem if we don't do a unified export, and
+        # only export the terms and theorems introduced by the ctx itself
+        # For now, don't try a unified export.
 
-        # note, all kinds in verify context or export come from
-        # import/param
-        if ictx is not None:
-            for k in ictx.kind_hist:
-                if k[1] >= 0:
-                    continue  # skip kinds originating in other interfaces
-                out.write('kind (%s)\n' % k[0])
+        ix = 0
+        cmd_hist = ctx.cmd_hist
+        while ix < len(cmd_hist):
+            cmd = cmd_hist[ix]
+            arg = cmd_hist[ix + 1]
+            undo = cmd_hist[ix + 3]
+            if undo is None or isinstance(undo, verify.ErrorMark):
+                out.write('# Failed: %s %s\n' %
+                          (cmd, verify.sexp_to_string(arg)))
+            elif cmd == 'thm':
+                label, fvc, hyps, conc = arg[:4]
+                hyps = hyps[1::2]
+                narg = [label, fvc, hyps, conc]
+                out.write('stmt %s\n' % verify.sexp_to_string(narg))
+            elif cmd == 'defthm':
+                label, kind, sig, fvc, hyps, conc = arg[:6]
+                hyps = hyps[1::2]
+                narg = [label, fvc, hyps, conc]
+                tm = ctx.term_hist[ctx.terms[sig[0]]]
+                # tm is (termname, ifindex, termix_orig,
+                #        rkind, argkinds, freemap, sig)
+                texp = [kind, sig]
+                freemap = tm[5]
+                for fmix in xrange(len(freemap)):
+                    bmap = freemap[fmix]
+                    if bmap <= 0:
+                        continue  # skip non-binding and fully-bound arguments
+                    bvar = sig[1 + fmix]
+                    fmitem = [bvar]
+                    jx = 0
+                    po2 = 1
+                    while po2 <= bmap:
+                        if (po2 & bmap) != 0:
+                            fmitem.append(sig[1 + jx])
+                        jx += 1
+                        po2 <<= 1
+                    texp.append(fmitem)
+                out.write('\nterm %s\n' % verify.sexp_to_string(texp))
+                out.write('stmt %s\n' % verify.sexp_to_string(narg))
+            elif cmd == 'import':
+                out.write('param %s\n' % verify.sexp_to_string(arg))
+            elif cmd == 'export':
+                # One difficulty is that an export command in a proof file can
+                # establish an interface that can be passed as an argument
+                # to a subsequent import command. But if the auto-export does
+                # not represent this export command, and does represent the
+                # subsequent import that depends upon the export command,
+                # then the auto-export will contain an invalid import
+                # referring to an unknown intterface.
+                # For now, we just don't support this kind of construction.
+                out.write('# Unsupported: export %s' %
+                          verify.sexp_to_string(arg))
+            else:  # var, kindbind
+                cmd_text = cmd_hist[ix + 2]
+                out.write(cmd_text + '\n')
+            ix += 4
 
-        # kindbinds
-        for k in ctx.kindbinds:
-            kix = ctx.kinds[k]
-            kv = ctx.kind_hist[kix]
-            out.write('kindbind (%s %s)\n' % (kv[0], k))
-        out.write('\n')
-
-        varkinds = {}
-        for vv in ctx.syms.itervalues(): # hmm, too many stmt/thm/defthm
-            if vv[0] == 'var' or vv[0] == 'tvar':
-                if len(vv) == 4:
-                    kname = vv[3]
-                else:
-                    kname = ctx.kind_hist[vv[1]][0]
-                try:
-                    prl = varkinds[kname]
-                except KeyError:
-                    prl = ([],[])
-                    varkinds[kname] = prl
-                if vv[0] == 'tvar':
-                    prl[0].append(vv[2])
-                else:
-                    prl[1].append(vv[2])
-        for kname, prl in varkinds.iteritems():
-            if prl[0] != []:
-                prl[0].sort()    
-                out.write('tvar (%s %s)\n' % (kname, ' '.join(prl[0])))
-            if prl[1] != []:
-                prl[1].sort()    
-                out.write('var (%s %s)\n' % (kname, ' '.join(prl[1])))
-        out.write('\n')
-
-        if ictx is None:
-            for thname in vctx.assertion_hist:
-                thm = vctx.syms[thname]
-                record = thm[7]
-                if isinstance(record, tuple):
-                    cmd, termname = record
-                else:
-                    cmd, termname = record, None
-                if export:
-                    if termname is not None:
-                        tm = vctx.term_hist[vctx.terms[termname]]
-                        # tm is (termname, ifindex, termix_orig,
-                        #        rkind, argkinds, freemap, sig)
-                        out.write('term %s\n' %
-                                  vctx.term_arg_string(tm[3], tm[6], tm[5]))
-                    varlist = thm[4]
-                    fv = []
-                    for clause in thm[1]:
-                        fv.append(vctx.iexps_to_string(clause, varlist))
-                    out.write("stmt (%s (%s) %s %s)\n" %
-                              (thname,
-                               ' '.join(fv),
-                               vctx.iexps_to_string(thm[2], varlist),
-                               vctx.iexp_to_string(thm[3], varlist)))
-                else:
-                    out.write('%s\n\n' % cmd) # preserves comments
-
-            for nm, ul in vctx.unresolved_thms.iteritems():
-                if isinstance(nm, tuple):
-                    nm = "term '%s'" % nm[0]
-                else:
-                    nm = "assertion '%s'" % nm
-                out.write("\n## Depend on unresolved %s\n" % nm)
-                for u in ul:
-                    out.write("#%s %s\n" % (u[-3],
-                                            verify.sexp_to_string(u[-2])))
-            
-            return    # done for verify context.
-
-        for tm in ictx.term_hist:
-            if tm[1] >= 0:
-                continue
-            # tm is (termname, ifindex, termix_orig,
-            #        rkind, argkinds, freemap, sig)
-            out.write('term %s\n' %
-                      ictx.term_arg_string(tm[3], tm[6], tm[5]))
-
-        out.write('\n')
-        # order the axioms better?
-        for label in ictx.assertion_hist:
-            stmt = ictx.syms[label]
-            out.write("%s\n\n" % stmt[7])
         return
-
-
+    
 class EditPage(webapp.RequestHandler):
     def get(self, name):
-        global gh_global_ctx
+        global gh_updater
         global gh_base_dir
         # name here is URL-encoded, we want to display the unencoded version
         # as text, and avoid the possibility of injection attack.
@@ -1240,22 +962,22 @@ class EditPage(webapp.RequestHandler):
         if len(name) < 2 or name[0] != '/':
             self.error(404)
             return
-        full_pname = os.path.join(gh_base_dir, name[1:])
-        try:
-            gh_ctx = gh_global_ctx.all_interfaces[full_pname]
-            ps = (full_pname, '')
-        except KeyError:
-            ps = os.path.split(full_pname)
-            try:
-                gh_ctx = gh_global_ctx.all_interfaces[ps[0]]
-            except KeyError:
+        gh_ctx, auto_export = gh_updater.lookup_context(name)
+        if gh_ctx is None:
+            ps = os.path.split(name)
+            gh_ctx, auto_export = gh_updater.lookup_context(ps[0])
+            if gh_ctx is None:
                 self.error(404)
+                out.write('Not found: %s' % name)
                 return
-        if gh_ctx.name is None: # only allow verify contexts, for now
+        else:
+            ps = (name, '')
+
+        # only allow proof file contexts, for now
+        if gh_ctx.name is None or auto_export:
             self.error(404)
+            out.write('Not a proof file context: %s' % name)
             return
-        ps = (ps[0][len(gh_base_dir):], ps[1])
-        hist = gh_ctx.assertion_hist
         thmname = ps[1]
         existing_thm = ''
         if thmname == '':
@@ -1263,22 +985,75 @@ class EditPage(webapp.RequestHandler):
             cmd = None
         else:
             if thmname == 'LAST': # Get latest theorem
+                hist = gh_ctx.cmd_hist
                 n = len(hist)
-                if n == 0:
+                thmname = None
+                while n >= 4:
+                    n -= 4
+                    cmd = hist[n]
+                    if cmd not in ('thm', 'defthm'):
+                        continue
+                    arg = hist[n + 1]
+                    if not isinstance(arg[0], basestring):
+                        continue
+                    thmname = arg[0]
+                    break
+                if thmname is None:
                     self.error(404)
+                    out.write('No recognizable theorems!')
                     return
-                thmname = hist[n - 1]
             thm = gh_ctx.syms.get(thmname, None)
             if thm is None:
-                cmd = "# No theorem named '%s' was found." % thmname
+                badcmdl = gh_ctx.badthms.get(thmname)
+                if badcmdl is None:
+                    cmd = "# No theorem named '%s' was found." % thmname
+                else:
+                    cmd_ix = badcmdl[0]
+                    cmd = gh_ctx.cmd_hist[cmd_ix + 2].lstrip()
+                    existing_thm = thmname
             elif thm[0] not in ('thm', 'defthm'):
                 cmd = "# '%s' is not a theorem." % thmname
             else:
-                cmd = thm[7]
-                if isinstance(cmd, tuple): #defthm has (cmd, deftermname)
-                    cmd = cmd[0]
+                cmd_ix = thm[7]
+                cmd = gh_ctx.cmd_hist[cmd_ix + 2].lstrip()
                 existing_thm = thmname
 
+        # Would like:
+        #
+        # [ text entry ] [Find] [Insert Before] [Rename] | [Save]
+        # +-----------------------------------------------------+
+        # | Edit area                                           |
+        # |                                                     |
+        # ~                                                     ~
+        # +-----------------------------------------------------+
+        # | Proof stack display area                            |
+        # |                                                     |
+        # ~                                                     ~
+        # +-----------------------------------------------------+
+        #
+        # where one enters a label in the text entry, and
+        # clicks one of the first three buttons. (Administrators
+        # might also have a [Delete] button.)
+        # [Find] simply retrieves the thm or defthm command text,
+        #    placing it in the edit area.
+        # [Insert Before] inserts the current thm or defthm from
+        #    the edit area in the proof context before the thm/defthm
+        #    named in the text entry. The thm/defthm named in the text
+        #    entry must exist, and the thm/defthm in the edit area must
+        #    meet minimal syntactic requirements and must have a
+        #    new label that doesn't conflict with other existing
+        #    symbols (or saved bad theorems).
+        # [Save] The thm/defthm from the edit area is saved.
+        #    Uses the assertion label from the edit area, not any
+        #    in the text entry. If the named assertion already
+        #    exists in the proof context (& not imported) it is replaced,
+        #    but only if the existing saved theorem is bad, or if the
+        #    assertion from the edit area verifies and has the same
+        #    ('equivalent'?) hypotheses and conclusions (and the proof
+        #    is 'no worse'?). If the named assertion does not already exist
+        #    in the proof context (or in any dependent proof context)
+        #    it is added at the end of the context provided it meets
+        #    minimal syntactic requirements.
         self.response.out.write("""<head><title>Ghilbert</title><style type="text/css"></style></head>
 
 <body>
@@ -1315,7 +1090,7 @@ name = %s;
 GH.Direct.replace_thmname(name);
 
 url = %s;
-uc = new GH.XhrUrlCtx('/ctx', url);
+uc = new GH.XhrUrlCtx('/ctx', '/ctx' + url);
 v = new GH.VerifyCtx(uc, run);
 v.drop_thm(document.getElementById('exist_thm').value)
 run(uc, url, v);
@@ -1345,7 +1120,7 @@ import os
 
 class PrintEnvironmentHandler(webapp.RequestHandler):
     def get(self, arg):
-        self.response.out.write(simplejson.dumps([1, 2]) + "\n")
+        self.response.out.write(json.dumps([1, 2]) + "\n")
         if arg is not None:
             print 'arg = ' + arg + '<br />\n'
         for name in os.environ.keys():
@@ -1358,13 +1133,12 @@ class StaticPage(webapp.RequestHandler):
         except IOError, x:
             self.error(404)
             return
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
         for line in lines:
             self.response.out.write(line)
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        global gh_global_ctx
         out = self.response.out
 
         res = GHDatastoreUpdate(100)
@@ -1397,12 +1171,11 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         out.write('<p><a href="%s">%s</a>' %
                                 (users.create_login_url('/'), word))
         out.write('<p>Contexts:\n')
-        if gh_global_ctx is None:
+        if gh_updater is None:
             out.write('</body>\n')
             return
-        for ctx in gh_global_ctx.interface_list:
-            fn = ctx.fname
-            pfn = fn[len(gh_base_dir):]
+        for ctx in gh_updater.context_list:
+            pfn = ctx.fname
             if ctx.name is not None:
                 out.write('<p><a href="%s">%s</a> <a href="%s"> edit</a>\n' %
                           (urllib.quote('/ctx' + pfn), cgi.escape(pfn),
@@ -1416,7 +1189,7 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 class UpdateHandler(webapp.RequestHandler):
     def post(self):
         out = self.response.out
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
         res = GHDatastoreUpdate(100)
         out.write('%s\r\n' % res)
 
@@ -1425,40 +1198,45 @@ class ResetPage(webapp.RequestHandler):
         out = self.response.out
         if not users.is_current_user_admin():
             self.error(401)
-            self.response.headers.add_header('content-type', 'text/plain')
+            self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
             out.write('401 Unauthorized.')
             return
-        gh_edit_gen_refresh()
+        gens = all_generations()
+        next_gen = next_generation(gens)
         out.write("""<title>Reset to Factory Defaults</title>
         
 <body style="background-color:black;color:yellow">
-<h1>Reset Ghilbert to Factory Defaults</h1>
-<h2><em>Warning</em>: Pressing the big red button will destroy all work not present in the factory default files!</h2>
+<h1>Administrative Maintenance</h1>
 <p>
 <a href="/">Go Home</a>
 <br>
 <br> <label for="step_num" id="step_label"> </label>
-<br> <input type="button" id="reset" style="background-color:red;color:black;width:100px;height:50px" onclick="factory_reset()" name="reset" value="Reset"/>
+<br> <label for="gen_entry" id="gen_entry_label"> Generation </label> <input type="text" id="gen_entry" name="gen" size="16" tabindex="0" value="%s"/>
+<input type="button" id="init" style="background-color:yellow;color:black;" onclick="factory_reset('init')" name="init" value="Create with Default Content"/>
+<input type="button" id="clear" style="background-color:red;color:black;" onclick="factory_reset('clear')" name="reset" value="Clear"/>
+<br/>
 <script type="text/javascript">
-factory_reset = function () {
+factory_reset = function (cmd) {
     var req = new XMLHttpRequest();
     req.open('POST', '/reset', true);
     var oldresp = null
     var label = document.getElementById('step_label');
+    var gen_entry = document.getElementById('gen_entry');
+    var body = 'cmd=' + cmd + '&gen=' + encodeURIComponent(gen_entry.value);
     var rsc_func = function () {
         if (req.readyState != 4) {
             return;
         }
+        resp = req.responseText;
         if (req.status != 200) {
-            label.innerHTML += ' ERROR: ' + req.status;
+            label.innerHTML += ' ERROR: ' + req.status + ' ' + resp;
             req.abort()
             req = null
             return
         }
-        resp = req.responseText;
         if (resp.substring(0, 4) === 'done') {
             req = null
-            window.location.href = '/'
+            window.location.href = '/reset'
             return
         } else if (resp === oldresp) {
             label.innerHTML += '.';
@@ -1470,70 +1248,96 @@ factory_reset = function () {
         req.setRequestHeader('Content-Type',
                              'application/x-www-form-urlencoded');
         req.onreadystatechange = rsc_func;
-        req.send('');
+        req.send(body);
     };
     req.onreadystatechange = rsc_func;
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     label.innerHTML = '';
-    req.send('');
+    req.send(body);
 };
 
 </script>
-""")
+""" % str(next_gen))
+        out.write('<br>Generations:')
+        for n in gens:
+            out.write(' %d' % n)
+        out.write('</body>\n')
         return
 
+    def genstr_to_num(self, gen):
+        try:
+            n = long(gen)
+        except ValueError:
+            self.error(400)
+            self.response.out.write('Bad generation: ' + gen)
+            return -1
+        if n <= 0 or n > 0x7fffffffffffffff:
+            self.error(400)
+            self.response.out.write('Generation out of range: ' + gen)
+            return -1
+        return n
+
     def post(self):
-        global gh_edit_gen
-        global gh_dsinit
         out = self.response.out
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
         if not users.is_current_user_admin():
             self.error(401)
             out.write('401 Unauthorized.')
             return
-        if gh_edit_gen[1] is None and gh_edit_gen_refresh() == 0:
-            egen = EditGeneration(gen=0)
-            egen.put()
-            gh_edit_gen = (0, egen)
-        if gh_dsinit is None:
-            defaults = [
-                ('PROP', '/peano/prop.gh'),
-                ('PRED', '/peano/pred.gh'),
-                ('PEANO', '/peano/peano_thms.gh'),
-                ('PEANO_SET', '/peano/peano_set.gh'),
-                ]
-            gh_dsinit = GHDatastoreReset(gh_edit_gen[1].key(), defaults, 40)
-        try:
-            val = gh_dsinit.next()
-        except StopIteration:
-            gh_dsinit = None
-            egen = gh_edit_gen[1]
-            egen.gen = gh_edit_gen[0] + 0x100000000
-            egen.put()
-            out.write('done')
+        cmd = self.request.get('cmd')
+        gen = self.request.get('gen')
+        #logging.info("ResetPage post cmd='%s', gen='%s'" % (cmd, gen))
+        if cmd == 'clear':
+            if gen == 'all':
+                if clear_datastore(80):
+                    out.write('done')
+                else:
+                    out.write('Clearing...')
+                return
+            n = self.genstr_to_num(gen)
+            if n < 0:
+                return
+            if clear_generation(n, 80):
+                out.write('done')
+            else:
+                out.write('Clearing...')
             return
-        out.write('%s' % val)
-        return
+        if cmd != 'init':
+            self.error(400)
+            out.write('Unknown command.')
+            return
 
-class EditGenPage(webapp.RequestHandler):
-    def get(self):
-        global gh_edit_gen
-        self.response.headers.add_header('content-type', 'text/plain')
-        out = self.response.out
-        edit_gen = gh_edit_gen_refresh()
-        out.write('0x%x\n' % edit_gen)
+        n = self.genstr_to_num(gen)
+        if n < 0:
+            return
+        defaults = [
+            [None,          u'/peano/prop_ax.ghi'],
+            [u'PROP',       u'/peano/prop.gh'],
+            [None,          u'/peano/pred_ax.ghi'],
+            [u'PRED',       u'/peano/pred.gh'],
+            [None,          u'/peano/peano_ax.ghi'],
+            [u'PEANO',      u'/peano/peano_thms.gh'],
+            [None,          u'/peano/naive_set.ghi'],
+            [u'PEANO_SET',  u'/peano/peano_set.gh'],
+            ]
+        res = GHGenerationCreate(n, defaults)
+        if res == 'conflict':
+            self.error(400)
+        out.write(res)
+        return
+                
 
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
                                       ('/recent', RecentPage),
-                                      ('/peano/(.*)', StaticPage),
+                                     # ('/peano/(.*)', StaticPage),
                                       ('/edit(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/ctx(.*)', ContextHandler),
                                       ('/save', SaveHandler),
                                       ('/reset', ResetPage),
                                       ('/update', UpdateHandler),
-                                      ('/egen', EditGenPage),
+                                      ('/log', LogPage),
                                       ], debug=True)
 
 gh_base_dir = os.path.realpath(os.getcwd())  # realpath not necessary?
