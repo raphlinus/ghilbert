@@ -707,31 +707,67 @@ class RecentPage(webapp.RequestHandler):
     def get(self):
         # TODO: We could keep track of recent theorems added or changed without
         # having to do the query...
-        self.response.out.write("""<html><body>
-<p>Recent saves:</p>""")
-
-        thms = db.GqlQuery("SELECT * FROM GHThm ORDER BY date DESC LIMIT 10")
-
         out = self.response.out
-        for thm in thms:
-            if thm.author:
-                out.write('<b>%s</b> wrote ' % thm.author.nickname())
+        res = GHDatastoreUpdate(100)
+        if res == 'wait':
+            out.write("Ghilbert is unavailable now.\r\n")
+            self.error(503)  # Service unavailable
+            return
+        # Redirect to same URL if not done updating.
+        if res == 'again':
+            self.redirect('/recent')
+            return
+        gen = gh_updater.current_gen
+        gkey = gen.key()
+        out.write("""<html><body>
+<p>Recent Changes (generation %s):</p>""" % gkey.name())
+
+        eno = gh_updater.next_entry_number
+        eno -= 10
+        if eno < 0:
+            eno = 0
+
+        while eno < gh_updater.next_entry_number:
+            eno_keyname = number_to_key(eno)
+            ekey = db.Key.from_path('GHLogEntry', eno_keyname, parent=gkey)
+            entry = db.get(ekey)
+            if entry is None:
+                eno += 1
+                continue
+            ctx_ix = entry.context_index
+            ctx = gh_updater.context_list[ctx_ix]
+            if ctx.name is None:
+                eno += 1
+                continue # for now
+            command = entry.command
+            ctx_edit_href = ('<a href="/edit%s">%s</a>' %
+                             (urllib.quote(ctx.fname), cgi.escape(ctx.fname)))
+            if command == 'extend':
+                verb = 'extended context %s:<br />' % ctx_edit_href
+            elif command[:8] == 'replace:':
+                items = command.split()
+                verb = ('replaced context %s commands &#91%s:%s&#93:<br />' %
+                        ctx_edit_href, items[1], items[3])
+            elif command == 'new_interface_context':
+                verb = ('created new interface context %s:<br />' %
+                        ctx_edit_href)
+            elif command.startswith('new_proof_context_named: '):
+                verb = ('created new proof context %s:<br />' %
+                        ctx_edit_href)
+            if entry.author:
+                out.write('%d. <b>%s</b> %s' %
+                          (eno, entry.author.nickname(), verb))
             else:
-                out.write('An anonymous person wrote ')
-            ctx = thm.ctx
-            out.write('<a href="/edit%s">%s</a>:<br />' %
-                      (urllib.quote(ctx.fname + '/' + thm.name),
-                       cgi.escape(thm.name)))
-            if (thm.cmd is None):
-                content = ""
-            else:
-                content = cgi.escape(thm.cmd)
+                out.write('%d. An anonymous person %s' % (eno, verb))
+            # TODO: replace thm/defthm names in content with links
+            content = cgi.escape(entry.data.strip())
             newcontent = []
             for line in content.rstrip().split('\n'):
                 sline = line.lstrip()
                 newcontent.append('&nbsp;' * (len(line) - len(sline)) + sline)
             content = '<br />'.join(newcontent)
             out.write('<blockquote>%s</blockquote>' % content)
+            eno += 1
 
 class SaveHandler(webapp.RequestHandler):
     def post(self):
