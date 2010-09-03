@@ -524,8 +524,7 @@ class GHUpdater(object):
             if pif is None:
                 raise verify.VerifyError('Interface %s (%s) not found' %
                                          (url, fn))
-            if caller_ctx.name is not None:
-                pif.importers[caller_ctx.fname] = caller_ctx
+            pif.importers[caller_ctx.fname] = caller_ctx
         else:
             if pif.name is not None:
                 raise verify.VerifyError('Attempt to use proof file context as interface file: %s' % url)
@@ -576,6 +575,7 @@ class GHUpdater(object):
             gh_ctx.cmd_hist = []
             gh_ctx.context_index = ctx_ix
             self.context_list.append(gh_ctx)
+            return
         elif command == 'extend':
             try:
                 gh_ctx = self.context_list[ctx_ix]
@@ -589,11 +589,16 @@ class GHUpdater(object):
             self.run(scanner, norm_path, gh_ctx)
             del self.ctx_in_progress[norm_path]
             self.context_dict[norm_path] = gh_ctx
+            # For now we assume extension only occurs by single thm/defthm,
+            # with the label checked for no possibility of conflict with
+            # symbols in dependent contexts.  So we skip the dependent
+            # context reprocessing.
+            return
         elif command[:8] == 'replace:':
             l = command.split()
             try:
                 start = long(l[1])
-                stop = long(l[2])
+                stop = long(l[3])
             except:
                 raise GHDatastoreError("Invalid command '%s'" % command)
             try:
@@ -606,7 +611,7 @@ class GHUpdater(object):
             if (start < 0 or start > stop or stop > maxcmd):
                 raise GHDatastoreError(
                     'Bad command indices (max %d) in %s' % (maxcmd, command))
-            tail = gh_ctx.cmd_hist[stop:maxcmd]
+            tail = gh_ctx.cmd_hist[(stop*4):(maxcmd*4)]
             norm_path = gh_ctx.fname
             self.ctx_in_progress[norm_path] = gh_ctx
             gh_ctx.undo_to(start)
@@ -618,7 +623,23 @@ class GHUpdater(object):
         else:
             raise GHDatastoreError("Unhandled log entry #%d, command: %s" %
                                    (entry_num, command))
+        
+        if gh_ctx.name is None:
+            return
 
+        # Reverify any dependent contexts
+        # Note, we need to do dependent interface contexts also!
+        # TODO: report errors...
+        for ctx in self.context_list:
+            if ctx.fname not in gh_ctx.importers:
+                continue
+            logging.info('Reprocessing %s\n' % ctx.fname)
+            hist = ctx.cmd_hist[:]
+            ctx.undo_to(0)
+            self.ctx_in_progress[ctx.fname] = ctx
+            ctx.apply_hist(hist)
+            del self.ctx_in_progress[ctx.fname]
+        
     def run(self, scanner, url, ctx):
         read_sexp = verify.read_sexp
         while 1:
@@ -664,13 +685,13 @@ class GHUpdater(object):
         # Note, do not increment self.next_entry_number here!
         return True
 
-    def datastore_extend(self, ctx_ix, content):
+    def ctx_cmds_add(self, ctx_ix, content):
         res = db.run_in_transaction(self.datastore_logentry_cb,
                                     ctx_ix, 'extend', content)
         return res
 
 
-    def datastore_replace(self, ctx_ix, start, stop, new_content):
+    def ctx_cmds_replace(self, ctx_ix, start, stop, new_content):
         ctx = self.context_list[ctx_ix]
         maxcmd = len(ctx.cmd_hist) / 4
         assert (0 <= start <= stop <= maxcmd)
@@ -698,6 +719,30 @@ def theorem_basic_syntax(label, th_cmd, out):
         out.write('Extra expressions after %s command\n' % cmd)
         return None
     return record
+
+def cmds_basic_syntax(cmds, out):
+    sc = StringScanner(cmds)
+    ncmds = 0
+    while True:
+        cmd = verify.read_sexp(sc)
+        if cmd is None:
+            break
+        # For now, we don't allow import/export commands
+        if not cmd in ('thm', 'defthm', 'var', 'tvar', 'kindbind'):
+            out.write(
+                "Expected 'thm', 'defthm', 'var', 'tvar', or 'kindbind'\n")
+            return None
+        e = verify.read_sexp(sc)
+        if e is None:
+            out.write('Missing command argument\n')
+            return None
+        if not isinstance(e, list) or len(e) < 1:
+            out.write('Invalid command argument\n')
+            return None
+        ncmds += 1
+    if ncmds == 0:
+        return ''
+    return sc.end_record()
 
 class LogPage(webapp.RequestHandler):
     def get(self):
@@ -746,8 +791,8 @@ class RecentPage(webapp.RequestHandler):
                 verb = 'extended context %s:<br />' % ctx_edit_href
             elif command[:8] == 'replace:':
                 items = command.split()
-                verb = ('replaced context %s commands &#91%s:%s&#93:<br />' %
-                        ctx_edit_href, items[1], items[3])
+                verb = ('replaced context %s commands &lt;%s:%s&gt; :<br />' %
+                        (ctx_edit_href, items[1], items[3]))
             elif command == 'new_interface_context':
                 verb = ('created new interface context %s:<br />' %
                         ctx_edit_href)
@@ -768,6 +813,81 @@ class RecentPage(webapp.RequestHandler):
             content = '<br />'.join(newcontent)
             out.write('<blockquote>%s</blockquote>' % content)
             eno += 1
+
+class ReplaceHandler(webapp.RequestHandler):
+    def bad_request(self, msg):
+        self.error(400)
+        if msg is not None:
+            self.response.out.write('Replace Failed: %s\n' % msg)
+
+    def post(self):
+        
+        out = self.response.out
+        res = GHDatastoreUpdate(100)
+        if res == 'wait':
+            out.write("Ghilbert is unavailable now.\r\n")
+            self.error(503)  # Service unavailable
+            return
+        if res == 'again':
+            out.write("again\r\n")
+            return
+
+        name = self.request.get('name')
+        ctxname = self.request.get('context')
+        content = self.request.get('content')
+        if name == '' or ctxname == '':
+            self.bad_request()
+            return
+
+        logging.info("ReplaceHandler: context %s theorem %s" % (ctxname, name))
+        ctx, auto_export = gh_updater.lookup_context(ctxname)
+        if ctx is None:
+            self.bad_request('Unknown context %s' % ctxname)
+            return
+        if auto_export or ctx.name is None:
+            self.bad_request('%s is not a proof-file context' % ctxname)
+            return
+
+        # preferentially replace bad thms to good ones...
+        bad_cmds = ctx.badthms.get(name)
+        if bad_cmds is None:
+            sym = ctx.syms.get(name, None)
+            if sym is None:
+                self.bad_request('%s not known' % name)
+                return
+            if sym[0] in ('var', 'tvar'):
+                self.bad_request('%s is a variable, not a theorem' % name)
+                return
+            if sym[0] == 'stmt':
+                self.bad_request('%s is an imported statement\n' % name)
+                return
+            cmd_ix = sym[7]
+            bad = False
+        else:
+            cmd_ix = bad_cmds[-1] # hmm, we try to keep at most one
+            bad = True
+
+        # Probably want to make it more difficult to delete a good (verified)
+        # theorem than a bad (unverified) theorem.  For now though, we
+        # just do what the user asks.
+
+        assert ((0 <= cmd_ix < len(ctx.cmd_hist)) and (cmd_ix & 3) == 0)
+        cmd_ix /= 4
+
+        record = cmds_basic_syntax(content, out)
+        if record is None:
+            self.bad_request('Bad command syntax')
+            return
+
+        res = gh_updater.ctx_cmds_replace(ctx.context_index,
+                                          cmd_ix, cmd_ix + 1, record)
+        if res:
+            gh_updater.read_datastore(out)
+            out.write('Replaced %s\n' % name)
+        else:
+            out.write('Log extension failed. Please try again.\r\n')
+        return
+        
 
 class SaveHandler(webapp.RequestHandler):
     def post(self):
@@ -812,22 +932,27 @@ class SaveHandler(webapp.RequestHandler):
                 out.write('Save Failed: there is a variable of name %s\n' %
                           name)
                 return
-            out.write('Save Failed: Cannot replace existing theorem yet...')
+            out.write(
+                "Save Failed: Use 'replace' to replace existing theorem %s\n"
+                % name)
             return  # TODO
 
         bad_cmds = ctx.badthms.get(name)
         if bad_cmds is not None:
-            out.write('Save Failed: %s exists as a bad theorem already\n' %
-                      name)
+            out.write(
+                "Save Failed: Use 'replace' to replace unverified theorem %s\n"
+                % name)
             return
 
         # FIXME: What if there is a FAILED theorem of the same name?
         # Presently it would not be replaced, but a new version would be
-        # appended. Probably not what we want.
+        # appended. Not what we want.
 
         # Check to see if the symbol already exists in any of the other
         # verify contexts that import ctx
-        for importer in ctx.importers.itervalues():
+        for importer in self.context_list:
+            if importer.fname not in ctx.importers:
+                continue
             sym = importer.syms.get(name, None)
             if sym is None:
                 continue
@@ -846,7 +971,7 @@ class SaveHandler(webapp.RequestHandler):
         # Extend the datastore log with the new record consisting of the
         # thm/defthm command.
         prefix = '\n\n'
-        res = gh_updater.datastore_extend(ctx.context_index, prefix + record)
+        res = gh_updater.ctx_cmds_add(ctx.context_index, prefix + record)
         if res:
             gh_updater.read_datastore(out)
             out.write('Saved %s\n' % name)
@@ -1048,48 +1173,12 @@ class EditPage(webapp.RequestHandler):
                     cmd = gh_ctx.cmd_hist[cmd_ix + 2].lstrip()
                     existing_thm = thmname
             elif thm[0] not in ('thm', 'defthm'):
-                cmd = "# '%s' is not a theorem." % thmname
+                cmd = "# '%s' is a %s, not a theorem." % (thmname, thm[0])
             else:
                 cmd_ix = thm[7]
                 cmd = gh_ctx.cmd_hist[cmd_ix + 2].lstrip()
                 existing_thm = thmname
 
-        # Would like:
-        #
-        # [ text entry ] [Find] [Insert Before] [Rename] | [Save]
-        # +-----------------------------------------------------+
-        # | Edit area                                           |
-        # |                                                     |
-        # ~                                                     ~
-        # +-----------------------------------------------------+
-        # | Proof stack display area                            |
-        # |                                                     |
-        # ~                                                     ~
-        # +-----------------------------------------------------+
-        #
-        # where one enters a label in the text entry, and
-        # clicks one of the first three buttons. (Administrators
-        # might also have a [Delete] button.)
-        # [Find] simply retrieves the thm or defthm command text,
-        #    placing it in the edit area.
-        # [Insert Before] inserts the current thm or defthm from
-        #    the edit area in the proof context before the thm/defthm
-        #    named in the text entry. The thm/defthm named in the text
-        #    entry must exist, and the thm/defthm in the edit area must
-        #    meet minimal syntactic requirements and must have a
-        #    new label that doesn't conflict with other existing
-        #    symbols (or saved bad theorems).
-        # [Save] The thm/defthm from the edit area is saved.
-        #    Uses the assertion label from the edit area, not any
-        #    in the text entry. If the named assertion already
-        #    exists in the proof context (& not imported) it is replaced,
-        #    but only if the existing saved theorem is bad, or if the
-        #    assertion from the edit area verifies and has the same
-        #    ('equivalent'?) hypotheses and conclusions (and the proof
-        #    is 'no worse'?). If the named assertion does not already exist
-        #    in the proof context (or in any dependent proof context)
-        #    it is added at the end of the context provided it meets
-        #    minimal syntactic requirements.
         self.response.out.write("""<head><title>Ghilbert</title><style type="text/css"></style></head>
 
 <body>
@@ -1106,9 +1195,11 @@ class EditPage(webapp.RequestHandler):
 
 <p>
 <div style="display:block;float:left">
-  <label for="exist_thm">Edit existing theorem named: </label><input type="text" id="exist_thm" value="%s"/><br/>
+  <label for="exist_thm">Existing theorem name: </label><input type="text" id="exist_thm" value="%s"/>
+  <input type="button" id="fetch" onclick="GH.fetch(document.getElementById('exist_thm').value)" name="fetch" value="fetch"/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save new"/>
+  <input type="button" id="replace" onclick="GH.replace(document.getElementById('exist_thm').value, document.getElementById('canvas').value)" name="replace" value="replace"/><br/>
   <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
-  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
   <canvas id="stack" width="660" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
 <div id="output">(output goes here)</div>
 </div>
@@ -1134,8 +1225,7 @@ var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
 var exist_thm = document.getElementById('exist_thm');
-exist_thm.onchange = function() {
-    var thmname = exist_thm.value;
+GH.fetch = function(thmname) {
     thmname = thmname.replace(/^\s*(\S*)[\s\S]*$/, '$1');
     if (thmname.length === 0) {
         return;
@@ -1263,7 +1353,7 @@ factory_reset = function (cmd) {
         if (req.readyState != 4) {
             return;
         }
-        resp = req.responseText;
+        var resp = req.responseText;
         if (req.status != 200) {
             label.innerHTML += ' ERROR: ' + req.status + ' ' + resp;
             req.abort()
@@ -1371,6 +1461,7 @@ application = webapp.WSGIApplication(
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/ctx(.*)', ContextHandler),
                                       ('/save', SaveHandler),
+                                      ('/replace', ReplaceHandler),
                                       ('/reset', ResetPage),
                                       ('/update', UpdateHandler),
                                       ('/log', LogPage),

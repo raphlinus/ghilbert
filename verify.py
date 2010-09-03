@@ -342,8 +342,10 @@ class GhilbertCtx(object):
         self.terms = {}
         self.term_hist = []
         self.syms = {}
-        self.iflist = []  #list of import/export/param interface names used
-        self.interfaces = {}  # maps used interface names to InterfaceCtx's
+        self.interfaces = {}  # maps interface names to indices in iflist
+        self.iflist = []  #list of (ifname, ictx, params, prefix,
+                          #         kindmap, termmap, style)
+                          # where style is 'import' or 'export'
         self.global_ctx = global_ctx
         self.error_count = 0
         self.fname = fname  # Absolute, normalized 'URL' for this context.
@@ -378,6 +380,7 @@ class GhilbertCtx(object):
 
     def record_error(self, errstr):
         self.error_count = self.error_count + 1
+        self.out.write("%s\n" % errstr)
         cmd_hist = self.cmd_hist
         assert(cmd_hist is not None)
 
@@ -415,8 +418,8 @@ class GhilbertCtx(object):
         ix = 0
         while ix < maxhist:
             try:
-                do_cmd(hist[ix], hist[ix + 1], hist[ix + 2])
-            except verify.VerifyError, x:
+                self.do_cmd(hist[ix], hist[ix + 1], hist[ix + 2])
+            except VerifyError, x:
                 self.record_error('Verify error: %s' % x.why)
             except SyntaxError, x:
                 self.record_error('Syntax error: %s' % str(x))
@@ -498,6 +501,7 @@ class GhilbertCtx(object):
             termix = self.terms[exp[0]]
         except KeyError:
             raise VerifyError("term '%s' not known" % exp[0])
+
         term = self.term_hist[termix]
         # term is (termname, ifindex, termix_orig,
         #          rkind, argkinds, freemap, sig [, defthm_label])
@@ -604,9 +608,11 @@ class GhilbertCtx(object):
             term_undo_list = self.cmd_hist[-1][3]
         ifindex = len(self.iflist)
         nt = len(ictx.term_hist)
+        #self.out.write('ictx %s knows %d terms\n' % (ictx.fname, nt))
         termmap = [-1]*nt
         for ix in xrange(nt):
             t = ictx.term_hist[ix]
+            #self.out.write('  %s\n' % t[0])
             # t is (termname_in_ictx, ifindex_in_ictx, termix_orig,
             #       rkind, argkinds, freemap, sig [, defterm_label])
             # Note that rkind and the elements of argkinds are kind indices
@@ -794,6 +800,8 @@ class VerifyCtx(GhilbertCtx):
     def check_params(self, ictx, ifname, paramnames):
         # Check that the parameter interfaces are all distinct(?) and all
         # correspond to existing interfaces.
+        # Returns a list mapping indices of parameters passed to ictx,
+        # to indices of the corresponding interfaces in self.iflist
         used = {}
         params = []
         try:
@@ -819,6 +827,8 @@ class VerifyCtx(GhilbertCtx):
         for ix in xrange(n):
             ifaceloc = self.iflist[params[ix]]
             ifaceimp = ictx.iflist[ix]
+            # iflist entries are
+            #   (ifname, ictx, params, prefix, kindmap, termmap, style)
             # Compare InterfaceCtx values for identity
             if ifaceimp[1] is not ifaceloc[1]:
                 raise VerifyError("Parameter mismatch for interface '%s'" %
@@ -1146,28 +1156,29 @@ class VerifyCtx(GhilbertCtx):
     def import_undo(self, k_undo, kb_undo, t_undo, s_undo):
         for label in s_undo:
             del self.syms[label]
-        while len(t_undo) > 0:
-            tername = t_undo[-1]
+
+        ix = len(t_undo)
+        while ix > 0:
+            ix -= 1
+            termname = t_undo[ix]
             termix = self.terms[termname]
             assert(termix + 1 == len(self.term_hist))
             del self.terms[termname]
             del self.term_hist[-1:]
-            del t_undo[-1:]
-        while len(kb_undo) > 0:
-            kname = kb_undo[-1]
-            assert(self.kindbinds[-1] == kname)
+        for kname in kb_undo:
             del self.kinds[kname]
-            del self.kindbinds[-1:]
         for kname in k_undo:
             del self.kinds[kname]
 
     def undo_cmd(self):
+        """ Undo the last command in this proof file context """
         cmd_hist = self.cmd_hist
         assert(cmd_hist is not None)
         n = len(cmd_hist) - 4
         assert(n >= 0 and (n & 3) == 0)
         cmd = cmd_hist[n]
         arg = cmd_hist[n + 1]
+        #self.out.write('undo %s %s\n' % (cmd, arg[0]))
         data = cmd_hist[n + 3]
         del cmd_hist[n:]
         if isinstance(data, ErrorMark):
@@ -1178,7 +1189,7 @@ class VerifyCtx(GhilbertCtx):
                     isinstance(arg[0], basestring)):
                     label = arg[0]
                     l = self.badthms[label]
-                    assert(l[-1] == cnum)
+                    assert(l[-1] == n)
                     del l[-1]
                     if len(l) == 0:
                         del self.badthms[label]
@@ -1208,7 +1219,7 @@ class VerifyCtx(GhilbertCtx):
             ifindex = self.interfaces[ifname]
             assert (ifindex + 1 == len(self.iflist))
             del self.interfaces[ifname]
-            del seif.iflist[-1:]
+            del self.iflist[-1:]
             self.import_undo(k_undo, kb_undo, t_undo, s_undo)
         else:
             assert(False)
@@ -1270,12 +1281,16 @@ class VerifyCtx(GhilbertCtx):
             self.terms[dsig[0]] = termix
             self.term_hist.append((dsig[0], -1, termix,
                                    dt[0], dt[1], dt[2], dsig, label))
-        iconcl = self.internalize(stmt, varlist, varmap)[2]
-        if dkind is not None:
-            # The term being defined must not occur in the hypotheses or the
-            # proof steps. Note, however, that we leave the term in term_hist.
-            # It will be cleaned up by do_cmd() if anything fails...
-            del self.terms[dsig[0]]
+        try:
+            iconcl = self.internalize(stmt, varlist, varmap)[2]
+        finally:
+            if dkind is not None:
+                # The term being defined must not occur in the hypotheses
+                # or the proof steps. Note, however, that we leave the
+                # term in term_hist.
+                # It will be cleaned up by do_cmd() if anything fails
+                # (or failed...)
+                del self.terms[dsig[0]]
         num_nondummies = len(varlist)
         # fvmap will map the indices of binding variables occurring in the
         # hypotheses or conclusions to dictionaries (treated as sets)
@@ -1697,6 +1712,10 @@ class InterfaceCtx(GhilbertCtx):
 
         kindmap = self.iface_kinds(pif, subparams, prefix)
 
+        if self.cmd_hist is None:
+            term_undo_list = None
+        else:
+            term_undo_list = self.cmd_hist[-1][3]
         ifindex = len(self.iflist)
         for t in pif.term_hist:
             # t is (termname_in_pif, origin_ifindex_in_pif, origin_termix,
@@ -1712,6 +1731,8 @@ class InterfaceCtx(GhilbertCtx):
             self.terms[tpref] = n
             self.term_hist.append((tpref, ifindex, t[2],
                                        my_rkind, my_argkinds, t[5], t[6]))
+            if term_undo_list is not None:
+                term_undo_list.append(tpref)
 
         self.interfaces[ifname] = ifindex
         self.iflist.append((ifname, pif, subparams, prefix, kindmap))
@@ -1867,28 +1888,31 @@ class InterfaceCtx(GhilbertCtx):
                   ' seen in import context. ***\n')
 
     def param_undo(self, k_undo, kb_undo, t_undo):
-        while len(t_undo) > 0:
-            tername = t_undo[-1]
+        ix = len(t_undo)
+        while ix > 0:
+            ix -= 1
+            termname = t_undo[ix]
+            #self.out.write('param_undo term %s' % termname)
             termix = self.terms[termname]
             assert(termix + 1 == len(self.term_hist))
             del self.terms[termname]
             del self.term_hist[-1:]
-            del t_undo[-1:]
-        while len(kb_undo) > 0:
-            kname = kb_undo[-1]
-            assert(self.kindbinds[-1] == kname)
+        for kname in kb_undo:
+            #self.out.write('param_undo kind_bind %s' % kname)
             del self.kinds[kname]
-            del self.kindbinds[-1:]
         for kname in k_undo:
+            #self.out.write('param_undo kind %s' % kname)
             del self.kinds[kname]
 
     def undo_cmd(self):
+        """ Undo the last command in this interface file context """
         cmd_hist = self.cmd_hist
         assert(cmd_hist is not None)
         n = len(cmd_hist) - 4
         assert(n >= 0 and (n & 3) == 0)
         cmd = cmd_hist[n]
         arg = cmd_hist[n + 1]
+        #self.out.write('undo %s %s\n' % (cmd, arg[0]))
         data = cmd_hist[n + 3]
         del cmd_hist[n:]
         if isinstance(data, ErrorMark):
@@ -1909,6 +1933,12 @@ class InterfaceCtx(GhilbertCtx):
             vars = data
             for v in vars:
                 del self.syms[v]
+        elif cmd == 'kind':
+            kname = data
+            kix = self.kinds[kname]
+            assert(kix + 1 == len(self.kind_hist))
+            del self.kinds[kname]
+            del self.kind_hist[-1]
         elif cmd == 'kindbind':
             kname = data
             del self.kinds[kname]
@@ -1919,7 +1949,7 @@ class InterfaceCtx(GhilbertCtx):
             ifindex = self.interfaces[ifname]
             assert (ifindex + 1 == len(self.iflist))
             del self.interfaces[ifname]
-            del seif.iflist[-1:]
+            del self.iflist[-1:]
             self.param_undo(k_undo, kb_undo, t_undo)
         else:
             assert(False)

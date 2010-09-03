@@ -297,6 +297,29 @@ GH.save = function(content) {
     }
 };
 
+GH.replace = function(thname, content) {
+    var req = new XMLHttpRequest();
+    var text = ('context=' + encodeURIComponent(url) + 
+		'&name=' + encodeURIComponent(thname) +
+                '&content=' + encodeURIComponent(content));
+    req.open('POST', '/replace', true);
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    var rsc_func = function () {
+        if (req.readyState != 4) {
+            return;
+        }
+        var resp = req.responseText;
+        if (req.status != 200) {
+	    resp = ' ERROR: ' + req.status + ' ' + resp
+            req.abort()
+            req = null
+        }
+        document.getElementById('output').innerHTML = resp
+    };
+    req.onreadystatechange = rsc_func;
+    req.send(text);
+};
+
 GH.CanvasEdit.prototype.handle_keydown = function(evt) {
     var lineno = this.cursor[0];
     var pos = this.cursor[1];
