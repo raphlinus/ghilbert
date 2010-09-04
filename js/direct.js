@@ -61,6 +61,7 @@ GH.Direct.replace_thmname = function (newname) {
 GH.Direct.prototype.update = function() {
     var auLink = document.getElementById("autounify");
     auLink.style.display='none';
+    delete auLink.onclick;
     this.stack.text = [];
     var thmctx = new GH.DirectThm(this.vg);
     this.thmctx = thmctx;

@@ -80,9 +80,9 @@ GH.Panel = function(ctx) {
                 window.direct.update();
             }
             // Push on the mandatory hyps using their default names
-            appendText(" " + sym[4].map(function(mand) { return mand[2]; }).join(" "));
+            appendText(" " + sym[4].map(function(mand) { return mand[2]; }).join("  "));
             // Push on the sym name itself
-            appendText(" " + symName + "\n");
+            appendText("  " + symName + "    ");
         };
     }
     var inferenceCollection = [];

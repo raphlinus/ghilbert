@@ -28,8 +28,17 @@ GH.cursormax = function(c1, c2) {
 
 GH.TextareaEdit = function(textarea) {
     var self = this;
-    textarea.onkeyup = function() {
+    textarea.onkeyup = function(event) {
+        var ret = false;
+        if (event.keyCode === 13 && event.ctrlKey) {
+            var auLink = document.getElementById("autounify");
+            if (auLink.onclick) {
+                auLink.onclick();
+                ret = true;
+            }
+        }
         if (self.listener) self.listener();
+        return ret;
     };
     this.clearImtrans = function() {
         
