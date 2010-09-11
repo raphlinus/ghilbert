@@ -9,13 +9,8 @@ GH.Table = function(tableElement) {
     function sortByIndex(index) {
         collection.forEach(function(rowObj) {table.removeChild(rowMap[rowObj.name]);});
         collection.sort(function(a, b) {
-                            if (a[index] < b[index]) {
-                                return -1;
-                            } else if (a[index] > b[index]) {
-                                return 1;
-                            } else {
-                                return 0;
-                            }
+                            return (a.cells[index] < b.cells[index])
+                                ?  -1 : 1;
                         });
         collection.forEach(function(rowObj) {table.appendChild(rowMap[rowObj.name]);});
     }
@@ -60,7 +55,7 @@ GH.Table = function(tableElement) {
                         datum.innerHTML = cell;
                         tr.appendChild(datum);
                     });
-                if (row.onlick) { tr.onclick = row.onclick; }
+                if (row.onclick) { tr.onclick = row.onclick; }
                 table.appendChild(tr);
             });
     };
@@ -106,7 +101,8 @@ GH.Panel = function(ctx) {
         collection.push(
             {
                 name: symName,
-                filterString: sym[2].map(GH.sexp_to_string).join(" ") + " "
+                filterString: symName + " " +
+                    sym[2].map(GH.sexp_to_string).join(" ") + " "
                     + GH.sexp_to_string(sym[3]),
                 onclick: addStep(symName, sym),
                 cells: [symName,
@@ -135,7 +131,8 @@ GH.Panel = function(ctx) {
                     collection.push(
                         {
                             name: symName,
-                            filterString: GH.sexp_to_string(result),
+                            filterString: symName + " "
+                                + GH.sexp_to_string(result),
                             onclick: addStep(symName, sym),
                             cells: [symName, sym[2].length,
                                     GH.sexptounicode(result)]});
