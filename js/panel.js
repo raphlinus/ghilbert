@@ -2,12 +2,12 @@ GH.Table = function(tableElement) {
     // ================ Private Variables ================
     var table = tableElement;
     var collection = [];
-    // map from row ID (== the first cell of the row) to TR element.
+    // map from row name to TR element.
     var rowMap = {};
 
 
     function sortByIndex(index) {
-        collection.forEach(function(rowArr) {table.removeChild(rowMap[rowArr[0]]);});
+        collection.forEach(function(rowObj) {table.removeChild(rowMap[rowObj.name]);});
         collection.sort(function(a, b) {
                             if (a[index] < b[index]) {
                                 return -1;
@@ -17,7 +17,7 @@ GH.Table = function(tableElement) {
                                 return 0;
                             }
                         });
-        collection.forEach(function(rowArr) {table.appendChild(rowMap[rowArr[0]]);});
+        collection.forEach(function(rowObj) {table.appendChild(rowMap[rowObj.name]);});
     }
     var header = document.createElement('tr');
     header.className += 'headerRow';
@@ -37,33 +37,40 @@ GH.Table = function(tableElement) {
 
     // ================ Public Functions ================
     /**
-     * @param collection an array of table rows. Each row is an array
-     * containing the string values for the rows, plus one last value
-     * to be the onclick function for the row.  The first datum in each
-     * row is treated as rowId so it should be unique.
+     * @param collection an array of table rows. Each row is an object
+     * with the following members. cells: the string values for the
+     * rows. name: the (unique) symName of the row.  onclick: an optional
+     * onclick function for the row.
      */
     this.setContents = function(newCollection) {
-        var rowArr;
-        while ((rowArr = collection.pop())) {
-            table.removeChild(rowMap[rowArr[0]]);
-            delete rowMap[rowArr[0]];
+        var rowObj;
+        while ((rowObj = collection.pop())) {
+            table.removeChild(rowMap[rowObj.name]);
+            delete rowMap[rowObj.name];
         }
-        newCollection.forEach(function(row) {
-                                  collection.push(row);
-                                  var tr = document.createElement('tr');
-                                  tr.className += "clickableRow";
-                                  rowMap[row[0]] = tr;
-                                  row.forEach(function(cell) {
-                                                  if (typeof(cell) === 'function') {
-                                                      tr.onclick = cell;
-                                                  } else {
-                                                      var datum = document.createElement('td');
-                                                      datum.innerHTML = cell;
-                                                      tr.appendChild(datum);
-                                                  }
-                                              });
-                                  table.appendChild(tr);
-                              });
+        newCollection.forEach(
+            function(row) {
+                collection.push(row);
+                var tr = document.createElement('tr');
+                tr.className += "clickableRow";
+                rowMap[row.name] = tr;
+                row.cells.forEach(
+                    function(cell) {
+                        var datum = document.createElement('td');
+                        datum.innerHTML = cell;
+                        tr.appendChild(datum);
+                    });
+                if (row.onlick) { tr.onclick = row.onclick; }
+                table.appendChild(tr);
+            });
+    };
+    this.filter = function(pattern) {
+        collection.forEach(
+            function (row) {
+                rowMap[row.name].style.display =
+                    (!pattern || (row.filterString.indexOf(pattern) >= 0))
+                    ? "table-row" : "none";
+        });
     };
 };
 
@@ -96,10 +103,15 @@ GH.Panel = function(ctx) {
             continue;
         }
         var collection = (sym[2].length > 0) ? inferenceCollection : deductionCollection;
-        collection.push([symName,
-                         sym[2].map(GH.sexptounicode).join("<br/>"),
-                         GH.sexptounicode(sym[3]),
-                         addStep(symName, sym)]);
+        collection.push(
+            {
+                name: symName,
+                filterString: sym[2].map(GH.sexp_to_string).join(" ") + " "
+                    + GH.sexp_to_string(sym[3]),
+                onclick: addStep(symName, sym),
+                cells: [symName,
+                        sym[2].map(GH.sexptounicode).join("<br/>"),
+                        GH.sexptounicode(sym[3])]});
     }
     document.getElementById('inferences').onclick = function() {
         self.table.setContents(inferenceCollection);
@@ -111,7 +123,7 @@ GH.Panel = function(ctx) {
         var collection = [];
         self.inferences.forEach(
             function(row) {
-                var symName = row[0];
+                var symName = row.name;
                 var sym = self.ctx.syms[symName];
                 var proofctx = window.direct.thmctx.proofctx;
                 var result;
@@ -120,12 +132,22 @@ GH.Panel = function(ctx) {
                                                     return [mand, mand[2]];
                                                 });
                     result = self.ctx.match_inference(sym, proofctx, mandstack);
-                    collection.push([symName, sym[2].length, GH.sexptounicode(result), addStep(symName, sym)]);
+                    collection.push(
+                        {
+                            name: symName,
+                            filterString: GH.sexp_to_string(result),
+                            onclick: addStep(symName, sym),
+                            cells: [symName, sym[2].length,
+                                    GH.sexptounicode(result)]});
                 } catch (e) {
                     // cannot unify.
                     return;
                 }
             });
         self.table.setContents(collection);
+    };
+
+    document.getElementById('filter').onkeyup = function() {
+        self.table.filter(document.getElementById('filter').value);
     };
 };

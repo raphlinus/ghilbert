@@ -194,6 +194,7 @@ class EditPage(webapp.RequestHandler):
   <button id="inferences">Inference</button>
   <button id="deductions">Deduction</button>
   <button id="unified">Unified</button>
+  <label for="filter">filter: </label><input type="text" id="filter"/>
   <br/>
   <table id="panel" border="1" style="border:1px solid;">
   </table>
