@@ -185,7 +185,8 @@ class EditPage(webapp.RequestHandler):
 <div style="display:block;float:left">
   <label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
   <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
-  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/><br/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/>
+  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/><br/>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
   <canvas id="stack" width="800" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
 <div id="output">(output goes here)</div>

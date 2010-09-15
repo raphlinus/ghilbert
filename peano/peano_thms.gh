@@ -10,7 +10,7 @@ kindbind (num nat)
 
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C')
-var (nat x y z x' y')
+var (nat v w x y z v' w' x' y' z')
 
 # Pure predicate calculus
 
@@ -1297,3 +1297,1587 @@ thm (snid () ()
 
 
 
+# number 1.0
+thm (opth1 () ()
+   (-> (/\ (= A C) (= B D)) (= (<,> A B) (<,> C D)))
+  A C B D addeq12 (+ A B) muleq1d
+  A C B D addeq12 (+ A B) (+ C D) (+ C D) muleq2 syl eqtrd
+  (= A C) (= B D) pm3.27
+  addeq12d
+  A B df-op C D df-op 3eqtr4g
+)
+# number 2.0
+thm (19.8ai () (hyp ph) (E. x ph) hyp ph x 19.8a ax-mp )
+
+# number 2.5
+thm (nalexi () (hyp (-. (A. x (-. ph)))) (E. x ph)
+  hyp x ph df-ex bicomi mpbi)  
+# number 3.0
+thm (test () () (E. x (= x (0)))
+  x (0) ax-tyex nalexi) 
+# number 4.0
+thm (impexpi  () (hyp (-> (/\ ph ps) ch)) (-> ps (-> ph ch))
+  hyp ancoms ps ph ch impexp mpbi)
+# number 5.0
+thm (distl () ()
+  (= (* (+ A B) C) (+ (* A C) (* B C)))
+
+   (+ A B) C mulcom C A B distr eqtr
+   C A mulcom C B mulcom addeq12i eqtr)
+# number 6.0
+thm (distrl () ()
+  (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
+  (+ A B) C D distr
+    A B C distl A B D distl addeq12i eqtr)
+# number 7.0
+thm (lemul3lem1 () (hyp (-> ph (= (+ A B) C))) (-> ph (<= A C))
+  A B addge01t 
+   hyp
+   A leeq2d
+  mpbii
+)
+# number 8.0
+thm (lemul3lem2 () (hyp (-> ph (<= (+ A B) C))) (-> ph (<= A C))
+  A B addge01t ph a1i
+   hyp
+  jca
+    A (+ A B) C letr
+  syl)
+# number 9.0
+thm (exani ((ps x)) (hyp (-> ph ps)) (-> (E. x ph) ps)
+  hyp
+  x 19.22i
+  x ps 19.9 sylib)
+# number 10.0
+
+thm (lemul3 () ()
+  (-> (/\(<= A B) (<= C D)) (<= (* A C) (* B D)))
+  A B x df-le C D y df-le anbi12i
+  x (= (+ A x) B) (E. y (= (+ C y) D)) 19.41 bitr4i
+    y (= (+ A x) B) (= (+ C y) D) 19.29
+    y (= (+ A x) B) 19.3
+    sylanbr
+  x 19.22i  sylbi
+
+  (+ A x) B (+ C y) D muleq12
+    A x C y distrl 
+  syl5eqr
+ lemul3lem1 lemul3lem2
+ y exani x exani syl)
+# number 11.0
+thm (lttr () ()
+  (-> (/\ (< A B) (< B C)) (< A C))
+  A B nnltp1let B C nnltp1let anbi12i biimpi
+  B (1) addge01t
+  (+ A (1)) B (+ B (1)) letr mpan2 (<= (+ B (1)) C) anim1i syl
+  (+ A (1)) (+ B (1)) C letr syl
+  A C nnltp1let sylibr)
+
+# number 12.0
+thm (addassrli () (h (= A (+ B (+ C D))))
+   (= A (+ (+ B C) D))
+   h
+   B C D addass eqtr4)
+# number 13.0
+thm (mulid () ()
+  (= (* A (1)) A)
+    df-1  (1) (S (0)) A muleq2 ax-mp 
+    A (0) pa_ax6 
+      A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3  
+    eqtr
+  eqtr)
+# number 14.0
+thm (ltmul () () (
+  -> (/\(< A B) (< C D)) (< (* A C) (* B D)))
+  A B nnltp1let C D nnltp1let anbi12i
+  (+ A (1)) B (+ C (1)) D lemul3 sylbi
+  
+  (* A C) (+ (* (1) C) (* A (1))) addge01t 
+    (* A C) (* (1) C) (* A (1)) addass (* A C) leeq2i  mpbir
+     (* A C) (+ (+ (* A C) (* (1) C)) (* A (1))) (1) leadd1 mpbi
+    A (1) C (1) distrl addassrli 
+      (1) mulid (+ (+ (* A C) (* (1) C)) (* A (1))) addeq2i eqtr
+      (+ (* A C) (1)) leeq2i
+  mpbir
+  jctil
+  (+ (* A C) (1)) (* (+ A (1)) (+ C (1))) (* B D) letr syl
+  (* A C) (* B D) nnltp1let sylibr)
+# number 15.0
+thm (sqle () ()
+  (<-> (<= A B) (<= (* A A) (* B B)))
+  A B A B lemul3 anidms
+  (* A A) (* B B) lenltt
+    B A B A ltmul anidms con3i sylbi A B lenltt sylibr
+  impbii)  
+ 
+# number 16.0
+thm (lteq1d () (hyp (-> ph (= A B)))
+  (-> ph (<-> (< A C) (< B C)))
+  hyp C leeq2d
+  C A lenltt
+  C B lenltt
+ bibi12i
+ sylib
+ con4bid
+)
+# number 17.0
+thm (muleq12d () 
+  (hyp1 (-> ph (= A B)) 
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (* A C) (* B D)))
+  hyp1  hyp2 
+  jca
+  A B C D muleq12
+  syl
+)
+# number 18.0
+thm (sqrtlem5 () ()
+  (E. x (/\ (<= (* x x) (0)) (< (0) (* (S x) (S x)))))
+   x (0) tyex 
+      (0) leid  (0) pa_ax5 (0) leeq1i  mpbir
+   (= x (0)) id (= x (0)) id muleq12d  (0) leeq1d  mpbiri
+     1nle0 (1) (0) lenltt mtbi notnotri
+        (1) mulid  df-1 df-1  pm3.2i
+        (1) (S (0)) (1) (S (0)) muleq12
+      ax-mp eqtr3  (0) lteq2i
+     mpbi
+     (= x (0)) id  suceqd
+     (= (S x) (S (0))) id (= (S x) (S (0))) id muleq12d syl (0) lteq2d mpbiri
+  jca
+  x 19.22i ax-mp
+)
+# number 19.0
+thm (sqrtlem1 ((A x)) ()
+  (-> (= y A) 
+     (<-> (E. x (/\ (<= (* x x) y) (< y (* (S x) (S x)))))
+          (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))))
+  (= y A) id (* x x) leeq2d
+  (= y A) id (* (S x) (S x)) lteq1d
+  anbi12d x exbid
+)
+# number 20.0
+thm (lelttr () ()
+  (-> (/\ (<= A B) (< B C)) (< A C))
+  A B (1) leadd1
+  B C nnltp1let
+  anbi12i
+  (+ A (1)) (+ B (1)) C letr sylbi
+  A C nnltp1let
+  sylibr
+)
+
+# number 21.0
+thm (lteq1i () (h (= A B))
+  (<-> (< A C) (< B C))
+  h (= A B) id C lteq1d ax-mp)
+# number 22.0
+thm (ancomd () (h (-> ph (/\ ps ch)))
+  (-> ph (/\ ch ps))
+  h
+  ps ch ancom 
+
+ sylib
+)
+# number 23.0
+thm (19.9d ((ps x)) (h (-> ph (E. x ps)))
+  (-> ph ps)
+  h
+  x ps 19.9
+  sylib
+)
+# number 24.0
+thm (sqrtlem6 () ()
+  (-> (E. x (/\ (<= (* x x) y) (< y (* (S x) (S x)))))
+      (E. x (/\ (<= (* x x) (S y)) (< (S y) (* (S x) (S x))))))
+
+  # y < x' * x' <-> case A \/ case B
+  y (* (S x) (S x)) nnltp1let    (+ y (1)) (* (S x) (S x)) lefoo3     bitri
+
+  # spruce this up by adding (... and PH) to both sides
+  biimpi (<= (* x x) y) anim1i ancoms ancomd 
+  
+  # For MUCH later, to factor out the common AND
+  (<= (* x x) y) 
+    (= (+ y (1)) (* (S x) (S x))) 
+      (<= (+ (+ y (1)) (1)) (* (S x) (S x)))
+  andi
+
+  # We don't need this AND term, but Case B does, so add it in here
+  (<= (* x x) y) (= (+ y (1)) (* (S x) (S x))) pm3.27 
+
+  # Tuck this away for "later"...
+  z (S x) tyex
+
+  # Case A -> x' * x' = y'
+  y a1suc eqcomi    (+ y (1)) (* (S x) (S x)) (S y)  eqeq1     mpbii 
+
+  # Case A -> x' * x' <= y'
+  (* (S x) (S x)) leid 
+  (= (* (S x) (S x)) (S y)) id (* (S x) (S x)) leeq2d mpbii
+  # Introduce z as x'
+  (= z (S x)) id   (= z (S x)) id   muleq12d   (S y) leeq1d     biimprcd  syl
+  
+
+  # x' < x''
+  (+ (S x) (1)) leid   (S x) a1suc  (+ (S x) (1)) leeq2i  mpbir   (S x) (S (S x)) nnltp1let    mpbir
+  # x' * x' < x'' * x''
+  (< (S x) (S (S x))) pm4.24  mpbi (S x) (S (S x)) (S x) (S (S x)) ltmul  ax-mp
+  # Case A -> y' < x'' * x''
+  (= (* (S x) (S x)) (S y)) id (* (S (S x)) (S (S x))) lteq1d mpbii
+  (= z (S x)) id suceqd  (= z (S x)) id suceqd   muleq12d (S y) lteq2d  
+      biimprcd syl
+
+  # Join it all up for case A
+  jcad syl  z 19.21ai 
+  z (= z (S x)) (/\ (<= (* z z) (S y)) (< (S y) (* (S z) (S z))))  19.22 syl
+  # ... and it's finally "later".
+  mpi
+  # Bring in the extra AND clause
+  syl
+
+  # Okay, time to consider Case B
+  # Tuck this away for "later"...
+  z x tyex
+
+  # y <= y'
+  y (1) addge02t y a1suc y (1) addcom eqtr y leeq2i mpbir
+  # x*x <=y -> x*x <= y'
+  (* x x) y (S y) letr mpan2
+
+  # y + 1 + 1 < x' * x' -> y + 1 < x' * x'
+  (+ y (1)) (* (S x) (S x)) nnltp1let  biimpri 
+  # ... -> y' < x' * x'
+  y a1suc  (* (S x) (S x))  lteq1i  sylibr
+
+  # Join up case B
+  anim12i 
+  # Now to add the z
+  # z=x -> z*z<=y' <-> x*x<=y'
+  z x z x muleq12 anidms (S y) leeq1d
+  # z=x -> y'<z'*z'<-> y'<x'*x'
+  z x pa_ax2 biimpi   z x pa_ax2 biimpi muleq12d (S y) lteq2d
+  # put it all together
+  anbi12d biimprcd syl
+  z 19.21ai
+  z (= z x) (/\ (<= (* z z) (S y)) (< (S y) (* (S z) (S z))))  19.22  syl
+  # And it's finally "later" again.
+  mpi
+
+
+  # Unify the cases
+  jaoi
+  # Now it is MUCH later, time to factor
+  sylbi
+  # Both cases are handled!
+  syl
+
+  # Existential plumbing
+  x  19.22i 19.9d
+  # alpha switch
+  z x z x muleq12 anidms (S y) leeq1d
+  z x pa_ax2 biimpi   z x pa_ax2 biimpi muleq12d (S y) lteq2d
+  anbi12d exalpha sylib
+)
+  
+# number 25.0
+thm (sqrt ((A x)) ()
+   (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
+  z (0) x sqrtlem1
+  z y x sqrtlem1
+  z (S y) x sqrtlem1
+  z A x sqrtlem1
+  x sqrtlem5
+  x y sqrtlem6
+  finds
+)
+# number 26.0
+thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
+  B A sqle
+  notbii
+  (* B B) (* A A) lenltt
+  notbii bitri 
+  (< (* A A) (* B B)) notnot bicomi bitri
+
+  B A lenltt notbii
+  bitr3i
+  (< A B) notnot bicomi bitri bicomi
+)
+# number 27.0
+thm (lesym () () 
+  (<-> (= A B) (/\ (<= A B) (<= B A)))
+  # A=B -> A<=B
+  B leid    (= A B) id B leeq1d    mpbiri
+  # A=B -> B<=A
+  A leid    (= A B) id A leeq1d    mpbii
+  jca
+  
+  A B lenltt
+  B A df-lt
+  notbii   bitri
+  (<= B A) (-. (= B A)) ianor
+  bitri biimpi
+
+  (<= B A) (-. (-. (= B A))) imor bicomi biimpi syl  imp
+  (= B A) notnot2 syl
+  eqcomd
+
+ impbii
+)
+
+# number 28.0
+thm (lesuc () () 
+  (<-> (< A (S B)) (<= A B))
+   A (S B) nnltp1let
+   B a1suc   (+ A (1)) leeq2i bitri
+   A B (1) leadd1 bicomi bitri
+)
+# number 29.0
+
+thm (sqrtuniq () ()
+   (-> (/\ (/\ (<= (* A A) B) (< B (* (S A) (S A))))
+           (/\ (<= (* C C) B) (< B (* (S C) (S C)))))
+   (= A C))
+   
+   # Diddle with and ordering
+   (<= (* C C) B)  (< B (* (S C) (S C)))  ancom
+      (/\ (<= (* A A) B)    (< B (* (S A) (S A)))) anbi2i
+   (<= (* A A) B) (< B (* (S A) (S A)))
+      (< B (* (S C) (S C)))    (<= (* C C) B)    an4    
+   bitri
+
+   (* A A) B (* (S C) (S C)) lelttr
+   (* C C) B (* (S A) (S A)) lelttr ancoms anim12i
+   sylbi
+
+   # ... -> A < C' /\ C < A'
+   A (S C) sqlt  C (S A) sqlt anbi12i  biimpri syl
+
+   A C lesuc   C A lesuc
+   anbi12i
+   A C lesym bicomi bitri biimpi syl
+)
+
+# number 30.0
+thm (opthlem1 () ()
+   (/\ (<= (* (+ A B) (+ A B)) (+ (* (+ A B) (+ A B)) B))
+       (< (+ (* (+ A B) (+ A B)) B) (* (S (+ A B)) (S (+ A B)))))
+ # First part is easy 
+ (* (+ A B) (+ A B)) B  addge01t
+
+   # A + B <= A + B
+   (+ A B) leid  
+   # A + B <= (A + B)'
+   (+ A B)  (1) addge01t  (+ A B) a1suc (+ A B) leeq2i mpbir
+ # Now multiply them out
+ (+ A B) (+ A B) (+ A B) (S (+ A B)) lemul3 mp2an
+
+ # Throw in a free A on the right side
+ (* (+ A B) (S (+ A B))) A addge01t
+ (* (+ A B) (+ A B)) (* (+ A B) (S (+ A B))) (+  (* (+ A B) (S (+ A B))) A) letr mp2an
+ # And add B to each side
+ (* (+ A B) (+ A B)) (+ (* (+ A B) (S (+ A B))) A)  B leadd1 mpbi
+ # Convert le to lt using suc
+(+ (* (+ A B) (+ A B)) B) (+ (+ (* (+ A B) (S (+ A B))) A)  B) lesuc mpbir
+
+
+ # Expand left side of (A+B)'**2 and distribute.
+ (+ A B) a1suc (S (+ A B)) muleq1i
+ (+ A B) (1) (S (+ A B)) distl eqtr
+ # Remove 1* 
+ (S (+ A B)) (1) mulcom   (S (+ A B)) mulid eqtr3     (* (+ A B) (S (+ A B))) addeq2i eqtr
+ # Expand (A+B)'
+ (+ A B) a1suc (* (+ A B) (S (+ A B))) addeq2i eqtr
+ # Pull the 1 out to the right and reassoc
+ addassrli
+ (* (+ A B) (S (+ A B))) A B addass (1) addeq1i eqtr4
+ # Convert the +1 to a suc
+
+ (+ (+ (* (+ A B) (S (+ A B))) A) B)  a1suc eqtr4
+ (+ (* (+ A B) (+ A B)) B)  lteq2i mpbir
+
+ pm3.2i
+)
+# number 31.0
+thm (opthlem2 () ()
+    (-> (= (<,> A B) (<,> C D)) (= (+ C D) (+ A B)))
+
+    A B opthlem1
+
+    A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+    (* (+ A B) (+ A B)) leeq2d
+    A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+    (* (S (+ A B)) (S (+ A B))) lteq1d
+    anbi12d
+  mpbii
+
+  C D opthlem1
+  (+ C D) (+ (* (+ C D) (+ C D)) D) (+ A B) sqrtuniq
+  mpan
+
+  syl
+)
+# number 32.0
+thm (opthlem3 () ()
+    (-> (= (<,> A B) (<,> C D)) (= B D))
+  A B C D opthlem2
+
+  # Duplicate the conclusion
+  (= (<,> A B) (<,> C D)) (= (+ C D) (+ A B)) anidmdbi mpbir
+  # Square the conclusion
+  (+ C D) (+ A B) (+ C D) (+ A B) muleq12 syl
+
+  eqcomd B addeq1d eqcomd
+
+  A B df-op (<,> C D) eqeq1i biimpi  C D df-op  syl6eq
+
+  eqtrd
+  (* (+ C D) (+ C D)) B D addcan2
+  sylib
+)
+# number 33.0
+thm (opth () ()
+    (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
+  A B C D opthlem2
+
+    A B C D opthlem3
+    A B D addcan2
+  sylibr
+  
+  eqtrd
+  C D A addcan
+  sylib
+  eqcomd
+  A B C D opthlem3 
+  jca
+  A C B D opth1
+  
+
+
+ impbii
+)
+# number 33.5
+thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
+  x ph df-ex biimpi 
+    (-. ph) x alnfi con1i
+  syl
+)
+# number 34.0
+thm (iotacl ((S x)) ()
+   (-> (E! x (e. x S)) (e. (iota S) S))
+  x (e. x S) y df-eu biimpi
+
+
+    x y elsnc (e. x S)  bibi2i x gen 19.15i biimpri
+    S ({} y) x  df-seq biimpri
+  syl
+  y 19.22i syl
+
+  S ({} y) ax-iotaeq y ax-iota  syl6eq 
+  (iota S) y elsnc  sylibr
+  S ({} y) (iota S) eleq2
+
+  biimprd mpd y 19.22i
+  syl
+    y (e. (iota S) S) ex-nf
+  syl
+)
+ 
+# number 35.0
+thm (alpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))  
+     (-> (A. x ph) (A. y ps))
+ (A. x ph) y alnfi
+
+    x ph y a4sbc
+    y x ph z df-subst 
+  sylib
+
+  x (/\ (= x z) ph) (= z y) 19.41
+  biimpri   ancoms   (/\ (= x z) ph) (= z y) ancom x exbii     sylib  z 19.22i
+ syl
+
+    (= z y) (= x z) ph anass
+      z y x ax-eqtr    z x eqcom  sylan2br  eqcomd
+    ph anim1i
+  sylbir
+  x 19.22i z 19.22i syl
+
+  z (E. x (/\ (= x y) ph)) 19.9    sylib
+  1 imp x  19.22i   syl  x ps 19.9   sylib
+  
+  y 19.20i   syl
+)
+# number 36.0
+thm (alpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps))) 
+  (<-> (A. x ph) (A. y ps))
+    1  biimpd alpha1
+    1  eqcoms biimprd alpha1  
+  impbii
+)
+# number 36.5
+thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
+       (<-> (E. x (= (* A x) B)) (E. y (= (* A y) B)))
+      x y A muleq2 B eqeq1d exalpha)
+
+defthm (df-divides wff (| A B) ((A x) (B x)) ()
+       (<-> (| A B) (E. x (= (* A x) B)))
+        y A B x df-divides-just)
+
+# number 37.0
+thm (divideseq1imp () ()
+  (-> (= A B) (-> (| A C) (| B C)))
+
+  (= A B) z alnfi
+
+    A B z muleq1    (= (* A z) C) anim1i
+    (* A z) C (* B z) ax-eqtr   eqcomd   ancoms 
+  syl    ex
+
+
+    z gen  z (= A B) (-> (= (* A z) C) (= (* B z) C)) ax-alim   ax-mp
+  syl
+    z (= (* A z) C) (= (* B z) C) 19.22
+  syl
+
+
+  A C z df-divides
+  syl5ib
+
+
+  B C z df-divides
+  (| A C) imbi2i
+  sylibr
+)
+# number 38.1
+thm (divideseq1 () ()
+  (-> (= A B) (<-> (| A C) (| B C)))
+
+  A B C divideseq1imp
+  B A C divideseq1imp eqcoms 
+    impbid
+)
+# number 39.0
+thm (df-prime-just ((A x) (A y)) ()
+    (<-> (A. x (-> (| x A) (\/ (= x (1)) (= x A))))
+         (A. y (-> (| y A) (\/ (= y (1)) (= y A)))))
+    x y A divideseq1
+    x y (1) eqeq1
+    x y A eqeq1  orbi12d
+  imbi12d
+  alpha
+)
+defthm (df-prime wff (prime A) ((A x))  ()
+  (<-> (prime A) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))
+y A x df-prime-just)
+
+tvar (wff et zi si)
+# number 40.0
+thm (0orpos () () (\/ (= A (0)) (<= (1) A))
+  # x = 0 \/ 1<= x
+    A z lefoo
+    (1) A z df-le    (= A (0)) orbi2i
+  mpbir
+)
+# number 41.0
+thm (leadd2 () ()
+  (<-> (<= A B) (<= (+ C A) (+ C B)))
+  A B C leadd1
+  A C addcom (+ B C) leeq1i bitri
+  B C addcom (+ C A) leeq2i bitri
+)
+# number 42.0
+thm (0ne2 () () (-. (= (0) (+ (1) (1))))
+    (1) pa_ax1  (1) a1suc (0) eqeq2i  mtbi #  (= (* x y) (+ (1) (1)))  mt2bi bicomi 
+)
+# number 43.0
+#jctil with hyps listed backwards
+thm (jctilb () (h1 ch h2 (-> ph ps)) (-> ph (/\ ch ps))
+  h2 h1 jctil
+)
+# number 44.0
+thm (2primelem1 () 
+  (h1 (\/ ph ps) 
+   h2 (\/ ch (\/ th (\/ ta et)))
+   h3 (-> (/\ ps et) (-. si))
+   h4 (-> ph (-. si))
+   h5 (-> ch (-. si)))
+   (-> si (\/ th ta))
+
+  h4 con2i
+  h1 ph ps df-or mpbi syl
+  h3  con2i  ps et ianor sylib    ps et pm4.62 sylibr   mpd
+  h5 con2i
+  h2  ch (\/ th (\/ ta et)) df-or mpbi syl  
+  th ta et 3orass sylibr 
+  th ta et df-3or sylib   (\/ th ta) et df-or sylib con1d   mpd
+)
+# number 45.0
+thm (2prime () () (prime (+ (1) (1)))
+  x (+ (1) (1)) y df-divides
+
+  # y is 0 or >=1.
+  y 0orpos
+  # x is 0, 1 2, or >= 3
+    x 0orpos
+    (1) x lefoo3    (= x (0)) orbi2i
+  mpbi
+  (+ (1) (1)) x lefoo3   (= (1) x) orbi2i (= x (0)) orbi2i   mpbi
+
+
+  # 1<=y and 3<=x means x * y >= 1*3
+  (1) y (+ (+ (1) (1)) (1)) x lemul3
+  # replace 1*3  with 3
+  (+ (+ (1) (1)) (1)) mulid (+ (+ (1) (1)) (1)) (1) mulcom eqtr3 (* y x) leeq1i bicomi sylib
+  # but it's not true that 3 <= 2
+  1nle0    (1) (0) (+ (1) (1)) leadd2    (+ (1) (1)) pa_ax3 (+ (+ (1) (1)) (1)) leeq2i bitri   notbii   mpbi
+  # so this line of reasoning means that x * y != 2
+  x y mulcom (+ (1) (1)) eqeq1i biimpi (+ (+ (1) (1)) (1)) leeq2d    mtbiri  con2i  syl
+
+  # y=0 can't give us x*y = 2
+    0ne2
+    y (0) x muleq2    x pa_ax5  syl6eq  (+ (1) (1)) eqeq1d  biimpd
+  mtoi
+
+  # x=0 can't give us x*y = 2 either
+    0ne2
+    x (0) y muleq1   y pa_ax5r  syl6eq  (+ (1) (1)) eqeq1d  biimpd
+  mtoi
+
+  # That's all the math -- from here on out it's juggling predicates, connectives, and quantifiers.
+  # If the verifier autounified I wouldn't have to carry around all the mandhyps baggage.
+  # Instead I tried to tuck most of it away in a lemma.
+  2primelem1
+
+  (1) x eqcom   (= (+ (1) (1)) x) orbi1i  sylib
+  (+ (1) (1)) x eqcom (= x (1)) orbi2i sylib
+  y 19.22i
+  y (\/ (= x (1)) (= x (+ (1) (1)))) 19.9  sylib
+  sylbi x gen 
+
+
+  (+ (1) (1)) x df-prime   mpbir
+)
+# number 46.0
+thm (dividesmul () () 
+    (-> (| A B) (| A (* B C)))
+  A B x df-divides biimpi
+
+   y (* x C) tyex
+   y (* x C) A muleq2   y 19.22i
+  ax-mp
+
+  (* A x) B C muleq1
+  A x C mulass  syl5eqr
+  (* A y) eqeq2d
+  biimpd
+
+  y 19.21ai    y (= (* A y) (* A (* x C))) (= (* A y) (* B C)) 19.22 syl
+
+  mpi
+  x 19.22i syl
+  x (E. y (= (* A y) (* B C))) 19.9   biimpi  syl
+
+  A (* B C) y df-divides   biimpri   syl
+)
+
+# number 47.0
+# Induction tool for exfactorial
+thm (exfactoriallem1 ((A x) (A y)) ()
+    (-> (= z A)
+        (<-> (E. x (A. y (-> (<= (S (S y)) (S (S z))) (| (S (S y)) (S (S x))))))
+             (E. x (A. y (-> (<= (S (S y)) (S (S A))) (| (S (S y)) (S (S x))))))))
+ 
+   (= z A) id  suceqd      (= (S z) (S A)) id  suceqd  syl
+   (= (S (S z)) (S (S A))) id (S (S y)) leeq2d syl
+   (| (S (S y)) (S (S x))) imbi1d
+   y 19.21ai
+   19.15d
+   x exbid
+)
+
+# number 48.0
+thm (divideseq2imp () ()
+  (-> (= A B) (-> (| C A) (| C B)))
+
+  
+  A B (* C z) eqeq2    biimpd
+  z 19.22d
+  C B z df-divides biimpri    syl6
+
+  C A z df-divides biimpi
+
+  syl5
+)
+# number 49.0
+thm (divideseq2 () ()
+  (-> (= A B) (<-> (| C A) (| C B)))
+   A B C divideseq2imp
+   B A C divideseq2imp eqcoms
+  impbid
+)
+
+# number 50.0
+thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
+     A (0) lesym 
+     # 0 <= A
+     (0) A addge01t    A pa_ax3r (0) leeq2i     mpbi 
+   mpbiran2
+)
+# number 51.0
+thm (dividessym () () (| A A)
+    x (1) tyex
+    x (1) A muleq2  eqcomd  A mulid  eqcomi syl5eq   eqcomd  x 19.22i
+  ax-mp
+  A A x df-divides
+  mpbir
+)
+# number 52.0
+# Base case for induction in exfactorial
+thm (exfactoriallem2 () () 
+  (E. x (A. y (-> (<= (S (S y)) (S (S (0)))) (| (S (S y)) (S (S x))))))
+
+  x (0) tyex
+
+  # (for later)
+    (S (S (0))) dividessym
+  # Prove y''<= 0'' -> y'' = 0''
+    y (0) (1) leadd1
+    y a1suc (+ (0) (1)) leeq1i
+  bitr4i
+  (S y) (+ (0) (1)) (1) leadd1 bitri
+  (S y) a1suc (+ (+ (0) (1)) (1)) leeq1i  bitr4i
+  (+ (0) (1)) a1suc (S (S y)) leeq2i bitr4i
+  (0) a1suc     (S (0)) (+ (0) (1)) pa_ax2  mpbi   (S (S y)) leeq2i bitr4i
+  biimpri 
+  y eq0le0 sylibr
+  suceqd suceqd
+
+  # ... -> y'' | 0''  (it's later)
+    (S (S y)) (S (S (0))) (S (S (0))) divideseq1  syl  biimprd
+  mpi
+
+  # ... which is the same as y'' | x'' when x=0
+     (= x (0)) a1i
+     x (0) eqcom biimpi suceqd suceqd    (S (S (0))) (S (S x)) (S (S y)) divideseq2   syl  biimpd
+  syld
+
+  y 19.21ai 
+  x 19.22i ax-mp  
+)
+# number 53.0
+# Utility to avoid excessive mandhyp baggage in exfactoriallem3
+thm (exfactoriallem4 () 
+  (h1 (-> ph (\/ ps ch)) 
+   h2 (-> th ps))
+  (-> (-> ch th) (-> ph ps)) 
+
+  h1
+  (-> ch th) anim1i 
+  ps ch (-> ch th) andir  sylib
+  ps (-> ch th) pm3.26   (/\ ch (-> ch th)) orim1i  syl
+  ch th pm3.35  ps orim2i syl
+  h2 ps orim2i syl
+  ps oridm sylib
+  expcom
+)
+# number 54.0
+# Inductive step for exfactorial
+thm (exfactoriallem3 () () 
+  (-> (E. x (A. y (-> (<= (S (S y)) (S (S z))) (| (S (S y)) (S (S x))))))
+      (E. x (A. y (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S x)))))))
+
+  # Set up the two cases
+    (S (S y)) (S (S (S z))) lefoo3 biimpi
+
+  # first case: y'' = z'''.  This becomes y'' | z''' * x''
+  (S (S (S z))) dividessym    (S (S (S z))) (S (S (S z))) (S (S x)) dividesmul ax-mp
+  (S (S y)) (S (S (S z)))  (* (S (S (S z))) (S (S x))) divideseq1  mpbiri
+  (<= (+ (S (S y)) (1)) (S (S (S z)))) orim1i syl
+
+  # Second case: y'' + 1 <= z'''.  This becomes y'' <= z''
+  (S (S y)) (S (S z)) (1) leadd1
+  (S (S z)) a1suc   (+ (S (S y)) (1)) leeq2i  bitr4i biimpri 
+  (| (S (S y)) (* (S (S (S z))) (S (S x)))) orim2i syl
+  # Handle second case by adding an assumption
+    (S (S y)) (S (S x)) (S (S (S z)))  dividesmul
+      (S (S x)) (S (S (S z))) mulcom
+    (* (S (S x)) (S (S (S z)))) (* (S (S (S z))) (S (S x))) (S (S y)) divideseq2  ax-mp sylib
+  exfactoriallem4
+
+  # So (z''' * x'') is our new x''... we need to show it is at least 2
+    (S (S (S z))) (S x) pa_ax6   
+    (* (S (S (S z))) (S x)) (S (S z)) pa_ax4 eqtr
+      (* (S (S (S z))) (S x)) (S z) pa_ax4  
+      (+ (* (S (S (S z))) (S x)) (S (S z))) (S (+ (* (S (S (S z))) (S x)) (S z))) pa_ax2 mpbi
+    eqtr
+      (* (S (S (S z))) (S (S x))) (S (S (+ (* (S (S (S z))) (S x)) (S z)))) (S (S y)) divideseq2   
+    ax-mp
+  biimpi  (<= (S (S y)) (S (S (S z)))) imim2i syl
+
+  # Bundle up...
+  y 19.20i
+  x 19.22i
+
+  # for later still
+    x' (+ (* (S (S (S z))) (S x)) (S z)) tyex
+  # Need an substitution: x -> (z''' * x' + z')
+      x' (+ (* (S (S (S z))) (S x)) (S z)) pa_ax2 biimpi suceqd
+        (S (S x')) (S (S (+ (* (S (S (S z))) (S x)) (S z)))) (S (S y)) divideseq2  biimprd  
+        (| (S (S y)) (S (S (+ (* (S (S (S z))) (S x)) (S z))))) (| (S (S y)) (S (S x'))) (<= (S (S y)) (S (S (S z)))) imim2 syl
+        y 19.21ai
+        y (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S (+ (* (S (S (S z))) (S x)) (S z)))))) (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S x')))) ax-alim syl
+      syl
+      com12
+      x' 19.22d
+    mpi
+    x 19.22i
+  syl
+  x (E. x' (A. y (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S x')))))) 19.9 sylib
+  # now alpha change x' back to x
+    x' x pa_ax2 biimpi suceqd 
+    (S (S x')) (S (S x)) (S (S y)) divideseq2 biimpd  syl
+    (| (S (S y)) (S (S x'))) (| (S (S y)) (S (S x))) (<= (S (S y)) (S (S (S z)))) imim2 syl
+    y 19.21ai 
+    y (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S x')))) (-> (<= (S (S y)) (S (S (S z)))) (| (S (S y)) (S (S x)))) ax-alim syl
+    exalpha1
+  syl
+)
+# number 55.0
+thm (exfactorial ((A x) (A y)) ()
+    (E. x (A. y (-> (<= (S (S y)) (S (S A)))
+                     (| (S (S y)) (S (S x))))))
+    z (0) x y exfactoriallem1
+    z y' x y exfactoriallem1
+    z (S y') x y exfactoriallem1
+    z A x y exfactoriallem1
+    x y exfactoriallem2
+    x y y' exfactoriallem3
+    finds
+)
+# number 56.0
+thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
+    A B x divideseq2 
+      A B x eqeq2
+      (= x (1)) orbi2d
+    imbi12d
+    x 19.21ai
+    19.15d
+
+      A x df-prime
+        B x df-prime
+    3bitr4g
+)
+# number 57.0
+thm (dividesle () () (-> (| A (S B)) (<= A (S B)))
+    A (S B) x df-divides biimpi
+        B pa_ax1
+            x (0) A muleq2    A pa_ax5  syl6eq
+            (* A x) (0) (S B) eqeq1   syl   biimpd   con3d
+        mpi
+        con2i
+            x y lefoo
+            (= x (0)) (E. y (= (+ (1) y) x)) df-or   biimpi    ax-mp
+        syl
+            y a1suc   y (1) addcom     eqtr     x eqeq1i   biimpri  
+            (S y) x A muleq2    syl
+            (* A (S y)) (* A x) (S B) eqeq1    syl  biimprd
+                A (* A y) addge01t  
+                    A y pa_ax6    (* A y) A  addcom eqtr   (S B) eqeq1i   biimpi    A leeq2d  biimpd
+                mpi
+            syl6
+        y 19.22i    syl
+        y (-> (= (* A x) (S B)) (<= A (S B))) 19.9  sylib
+        pm2.43i
+    x 19.22i syl
+    x (<= A (S B)) 19.9 sylib
+)
+# number 58.0
+thm (sindlem1 () 
+  (h1 (-> ch (-> ps (\/ (-> th ph) ta)))
+   h2 (-> si (/\ th (-> ta ph))))
+  (-> si (-> ch (-> ps ph)))
+
+  si ch pm3.2
+  h2   h1    anim12i    syl6
+
+  (/\ th (-> ta ph))  ps  ax-1    (-> ps (\/ (-> th ph) ta))  anim1i    syl6
+  ps  (/\ th (-> ta ph))  (\/ (-> th ph) ta)  pm3.43    syl6
+
+  th  (-> ta ph)  (\/ (-> th ph) ta)  anass    biimpi    syl8
+  
+
+    (-> ta ph)  (-> th ph)  ta  andi    biimpi
+    (-> ta ph)  (-> th ph)  pm3.27    (/\ (-> ta ph) ta)  orim1i    syl
+    (-> ta ph)  ta  ancom    biimpi   (-> th ph)  orim2i    syl 
+    th  anim2i
+  syl8
+
+  ta  ph  pm3.35    (-> th ph)  orim2i    th  anim2i    syl8
+
+  th  (-> th ph)  ph  andi    biimpi    th  ph  pm3.27    (/\ th (-> th ph)) orim2i    syl    syl8
+  
+  th  ph  pm3.35    ph  orim1i    syl8
+
+  ph  pm1.2    syl8
+)
+# number 59.0
+# Strong Induction.
+thm (sind ((A x) (ta x) (ph y))                    # ph(x) is some term in x; ph(A) is to be proved
+  (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   hyp3 (-> (= x (S y)) (<-> ph th))               # th is ph(y')
+   hyp4 (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   hyp5 ps
+   hyp6 (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds 
+  ta
+
+# Tuck this away for later
+hyp4
+  z  x  tyex    x  leid    (= z x)  id    x  leeq2d    biimprd    mpi    z 19.22i    ax-mp
+
+    # Don't blink, or you'll miss the actual math content of this proof.
+    (= z (S y)) id    x leeq2d    biimpd
+       x (S y) lefoo3    biimpi
+       y a1suc (+ x (1)) leeq2i  biimpi    x y (1) leadd1  sylibr (= x (S y)) orim2i syl
+    syl6 
+    # That was it!  All that's left is a little bit of logic and a lot of juggling.
+    hyp3    biimprd  (<= x y) orim1i    syl6
+#      x  ph  ps  19.21    biimpri
+        z y tyex
+          (= z y) id   x leeq2d    biimprd    (<= x y) (<= x z) ph imim1    syl   x  19.21ai    
+          x  (-> (<= x z) ph)  (-> (<= x y) ph)  ax-alim    syl  
+          a2i    z 19.20i 
+          z  (= z y)  (A. x (-> (<= x y) ph))  19.22    syl
+        mpi    z  (A. x (-> (<= x y) ph))  ex-nf    syl   
+#.     syl .
+      # Now the logic is all done, and we just need to juggle.
+      # We'll need to use the consequent "x<=y -> ph" twice, so duplicate it here
+      (A. z (-> (= z y) (A. x (-> (<= x z) ph))))  (A. x (-> (<= x y) ph))  anidmdbi  biimpri  ax-mp
+      # Grind the first one into a theta
+      hyp6    (A. x (-> (<= x y) ph))  anim1i  syl 
+      # Pull the quantifier off the second one
+      x  (-> (<= x y) ph)  ax-4    th  anim2i    syl
+    # Juggling lematized for your convenience
+    sindlem1
+ 
+    x    19.21ai    x  (= z (S y))  (-> (<= x z) ph)  19.21    sylib
+    z  19.21ai
+    y  gen
+
+        # Base case
+        (= z (0)) id    x leeq2d    biimpd   x eq0le0 biimpri    hyp5 hyp1 mpbiri   syl  syl6    x 19.21ai    z gen 
+            # Instead of calling "x  ph  y pa_ind" as in finds, we call it like this:
+            z  (A. x (-> (<= x z) ph))  y  pa_ind
+        mpan
+    ax-mp
+
+    # Huzzah!  Now just some cleanup.
+    a4i    a4i
+  z 19.22i    ax-mp    z  ph  ex-nf    ax-mp
+vtocl
+)
+
+# number 59.5
+thm (not0divides () () (-. (| (0) (S A)))
+  A pa_ax1
+    (0)  (S A)  x  df-divides    biimpi
+    x  pa_ax5   x  (0)  mulcom    eqtr3    (S A)  eqeq1i    biimpri    x 19.22i    syl
+    x  (= (0) (S A))  ex-nf    syl
+  mto
+)
+# number 60.0
+
+# Every multitude has either a proper multitude divisor or a prime multitude divisor
+thm (primedivisor.1 ((A x) (A z)) () 
+    (\/ (E. z (/\ (< (S (S z)) (S (S A))) (| (S (S z)) (S (S A)))))
+        (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S A))))))
+
+# Case 1: A'' is itself prime
+x (prime (S (S A))) 19.3  biimpri
+  x A tyex
+    (= x A) id suceqd suceqd
+    (S (S x)) (S (S A)) primeeq biimprd    syl
+      (= x A) id suceqd suceqd
+      (S (S x)) (S (S A)) (S (S A)) divideseq1   syl  biimprd
+    anim12d
+      (S (S A)) dividessym   (prime (S (S A))) jctr
+    syl5    com12
+    x 19.20i
+    x (= x A) (/\ (prime (S (S x))) (| (S (S x)) (S (S A)))) 19.22  syl
+  mpi
+syl
+
+# Case 2: A'' is not prime.
+  (S (S A)) x df-prime   notbii  biimpi
+  (-> (| x (S (S A))) (\/ (= x (1)) (= x (S (S A))))) notnot  biimpri   x 19.20i    con3i   syl
+  x (-. (-> (| x (S (S A))) (\/ (= x (1)) (= x (S (S A)))))) df-ex  sylibr
+  (| x (S (S A))) (\/ (= x (1)) (= x (S (S A)))) pm4.61   biimpi  x 19.22i   syl
+
+    x (S A) dividesle
+      (= x (1)) (= x (S (S A))) ioran  biimpi  
+    anim12i  ancomd
+    (-. (= x (1))) (-. (= x (S (S A)))) (<= x (S (S A)))  anass sylib 
+    x (S (S A)) df-lt    biimpri  ancoms  (-. (= x (1))) anim2i   syl
+    (| x (S (S A)))  (-. (\/ (= x (1)) (= x (S (S A)))))  (/\ (-. (= x (1))) (< x (S (S A))))  pm5.3    mpbi
+    (| x (S (S A))) (-. (= x (1))) (< x (S (S A))) anass    biimpri    syl
+        (S A)  not0divides    x  (0)  (S (S A))  divideseq1    biimpd    mtoi    con2i
+         x 0orpos    ori    syl    
+         (1)  x  y  df-le    biimpi    y a1suc    y  (1)  addcom    eqtr    x  eqeq1i    biimpri    y  19.22i    syl    syl             
+         (-. (= x (1)))  anim1i   
+         y  (= (S y) x)  (-. (= x (1)))  19.41    sylibr
+           (S y)  x  (1)  eqeq1    biimpd    con3d    (= (S y) x)  (-. (= x (1)))  (-. (= (S y) (1)))  pm3.31    ax-mp  
+           (= y (0))  id   suceqd    df-1    syl6eqr    con3i    y 0orpos    ori    syl    syl
+               (1)  y  z  df-le    biimpi    z a1suc    z  (1)  addcom    eqtr    y  eqeq1i    biimpri    (= (S z) y)  id    suceqd   syl    eqcomd
+           z  19.22i    syl    syl
+        (= (S y) x)  (-. (= x (1)))  (E. z (= (S y) (S (S z))))  pm5.3    mpbi    y  19.22i    syl 
+
+        z  (= (S y) (S (S z)))  (= (S y) x)  19.41    biimpri    ancoms     y  19.22i   syl  
+        (S y)  (S (S z))  x  ax-eqtr     z  19.22i    y  19.22i    syl
+        y  (E. z (= (S (S z)) x))  ex-nf    syl 
+        (| x (S (S A)))  (-. (= x (1)))  (E. z (= (S (S z)) x))  pm5.3    mpbi    ancomd 
+        z  (= (S (S z)) x)  (| x (S (S A)))  19.41    sylibr  
+          (S (S z))  x  (S (S A))  divideseq1    biimprd    (= (S (S z)) x)  (| x (S (S A)))  (| (S (S z)) (S (S A)))  pm3.31    ax-mp    
+          (= (S (S z)) x)  (| x (S (S A)))  (| (S (S z)) (S (S A)))  pm5.3    mpbi
+        z  19.22i   syl 
+     (< x (S (S A)))   anim1i    syl  
+     z  (/\ (= (S (S z)) x) (| (S (S z)) (S (S A))))  (< x (S (S A)))  19.41    sylibr
+       (= (S (S z)) x)  (| (S (S z)) (S (S A)))  (< x (S (S A)))  an23    (= (S (S z))  x)  id    (S (S A))  lteq1d    biimprd 
+          (= (S (S z)) x)  (< x (S (S A)))  (< (S (S z)) (S (S A)))  pm3.31    ax-mp    (| (S (S z)) (S (S A))) anim1i
+       sylbi
+     z 19.22i    syl
+   x  19.22i    syl
+   x  (E. z (/\ (< (S (S z)) (S (S A))) (| (S (S z)) (S (S A)))))  ex-nf    syl
+nsyl4    orri
+)
+# number 61.0
+# Induction tool
+thm (primedivisor.2 ((A x)) () 
+    (-> (= y A) (<-> (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S y)))))
+                     (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S A)))))))
+    (= y A)  id    suceqd    suceqd
+    (S (S y))  (S (S A)) (S (S x))  divideseq2    syl
+    (prime (S (S x)))  anbi2d
+    x exbid
+)
+
+# number 62.0
+thm (lesuc1 () () 
+  (<-> (<= A B) (<= (S A) (S B)))
+  A  B  (1)  leadd1
+  A  a1suc    (+ B (1))  leeq1i    bitr4i
+  B  a1suc    (S A)  leeq2i    bitr4i
+)
+# number 63.0
+thm (dividestr () () 
+  (-> (/\ (| A B) (| B C)) (| A C))
+    A  B  x  df-divides    biimpi
+        B  C  y  df-divides    biimpi
+    anim12i
+    x  (= (* A x) B)  (E. y (= (* B y) C))  19.41    sylibr
+    y  (= (* B y) C)  (= (* A x) B)  19.41    biimpri    ancoms    x 19.22i    syl
+        (* A x)  B  y  muleq1     C  eqeq1d    biimprd
+        (= (* A x) B)  (= (* B y) C)  (= (* (* A x) y) C)  pm3.31    ax-mp        
+        ancoms A  x  y  mulass    syl5eqr    z 19.21ai
+            z  (* x y)  tyex
+            z  (* x y)  A  muleq2    C  eqeq1d    biimprd    z  19.22i    ax-mp    
+            z  (= (* A (* x y)) C)  (= (* A z) C)  eximp1    ax-mp
+        syl
+    y  19.22i    x  19.22i    syl
+    19.9d    19.9d
+    A  C  z  df-divides    sylibr
+)
+# number 64.0
+thm (primedivisor ((A x)) () 
+    (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S A)))))
+
+x' (0)  x  primedivisor.2
+  x' (S y)  x  primedivisor.2 
+    x'  A  x  primedivisor.2
+
+      # Base case
+      x  (0)  tyex
+        2prime
+          df-1    (1)  (S (0))  pa_ax2    mpbi   (1)  a1suc    eqtr3    (S (S (0))) (+ (1) (1)) primeeq    ax-mp
+        mpbir
+        (= x (0))  id    suceqd    suceqd    (S (S x))  (S (S (0)))  primeeq    syl    biimprd    mpi
+          (S (S (0)))  dividessym
+          (= x (0))  id    suceqd    suceqd    (S (S x))  (S (S (0)))  (S (S (0))) divideseq1   syl    biimprd    mpi
+        jca
+      x  19.22i    ax-mp
+
+        # Inductive step
+        x' (S y) x primedivisor.1  
+          (S (S x'))  (S (S y))  lesuc    biimpi 
+          (S x')  (S y)  lesuc1    sylibr    x'  y  lesuc1    sylibr
+          (| (S (S x')) (S (S (S y))))  anim1i
+        x'  19.22i    (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S (S y))))))  orim1i    ax-mp
+          (<= x' y)  (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S x')))))  (| (S (S x')) (S (S (S y))))  pm3.45   
+          x'  19.20i  x'  (/\ (<= x' y) (| (S (S x')) (S (S (S y)))))  (/\ (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S x'))))) (| (S (S x')) (S (S (S y))))) 19.22    syl  
+        (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S (S y))))))   orim1d    mpi
+          (S (S x))  (S (S x'))  (S (S (S y)))  dividestr    (prime (S (S x)))  anim2i
+          anassrs    x  19.22i 
+          x  (/\ (prime (S (S x))) (| (S (S x)) (S (S x'))))  (| (S (S x')) (S (S (S y))))  19.41    (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S (S y)))))) imbi1i    mpbi
+        x'  19.22i    19.9d            
+        (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S (S y))))))  orim1i    syl
+        (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S (S y))))))  pm1.2  syl    
+        sind
+)
+
+# number 65.0
+thm (lemul4 () () 
+  (-> (<= (* A (S C)) (* B (S C)))  (<= A B))
+  A  B  lenltt    biimpri   con1i
+  B  A  df-lt    sylib
+  B  A  x  df-le    biimpi    (-. (= B A)) anim1i    syl
+  x  (= (+ B x) A)  (-. (= B A))  19.41    biimpri    syl
+      x  (0)  B  addeq2    B  pa_ax3    syl6eq    A  eqeq1d    biimpd    com12    con3d
+      (= (+ B x) A)  (-. (= B A))  (-. (= x (0)))    pm3.31    ax-mp
+        (+ B x)  A  (S C)  muleq1
+        (+ B x)  (S C)  mulcom    (S C)  B  x  distr   eqtr    
+        (S C)  B  mulcom    (* (S C) x)  addeq1i    eqtr    syl5eqr
+        (-. (= B A)) adantr
+      jca
+      x  y  lefoo      ori
+          z  (* (1) C)tyex 
+            z  (* (1) C)  (1) addeq2
+            (1)  C  pa_ax6    (1)  (S C)  mulcom    eqtr3    (* (1) C)  (1)  addcom    eqtr3  eqcomi    syl6eq
+          z  19.22i    ax-mp
+          (1)  (* (S C) (1))  z  df-le    mpbir
+          (1)  (* (S C) (1))  (* (S C) y)  leadd1    mpbi
+            (+ (1) y)  x  (S C)  muleq2    (S C)  (1)  y  distr    syl5eqr
+            (+ (1) (* (S C) y))  leeq2d    biimpd
+          mpi
+            (1)  (* (S C) y)  addge01t    (1)  (+ (1) (* (S C) y))  (* (S C) x)  letr 
+            (<= (1) (+ (1) (* (S C) y)))  (<= (+ (1) (* (S C) y)) (* (S C) x))  (<= (1) (* (S C) x))  pm3.3    ax-mp    ax-mp
+          syl
+      y  19.22i    syl    y  (<= (1) (* (S C) x))  19.9    sylib
+      (1)  (* (S C) x)  (* B (S C))  leadd2    sylib
+      (= (+ (* B (S C)) (* (S C) x)) (* A (S C)))  id    (+ (* B (S C)) (1))  leeq2d    biimpd    anim12i
+     (<= (+ (* B (S C)) (1)) (+ (* B (S C)) (* (S C) x)))  (<= (+ (* B (S C)) (1)) (* A (S C)))  pm3.35    syl
+    syl
+  x  19.22i    syl    x  (<= (+ (* B (S C)) (1)) (* A (S C)))  19.9    sylib
+  (* B (S C))  (* A (S C))  nnltp1let    biimpri    syl
+  (* A (S C))  (* B (S C))  lenltt    biimpi    con2i    syl
+  con4i
+)
+# number 66.0
+thm (dividesadd.1 () ()
+    (-> (| (S A) (+ (* (S A) B) C)) (| (S A) C))
+    (S A)  (+ (* (S A) B) C)  x  df-divides    biimpi
+        (* (S A) B)  C  addge01t
+        ( = (* (S A) x) (+ (* (S A) B) C))  id  (* (S A) B)  leeq2d    biimprd    mpi
+        (S A)  B  mulcom    (* (S A) x)  leeq1i    sylib
+        (S A)  x  mulcom    (* B (S A))  leeq2i    sylib
+        B  A  x  lemul4    syl
+        B  x  y  df-le    sylib
+        (+ B y)  x  (S A)  muleq2    eqcomd   y  19.22i    syl  
+        ancri  
+        y  (= (* (S A) x) (* (S A) (+ B y)))  (= (* (S A) x) (+ (* (S A) B) C))  19.41    sylibr
+          (* (S A) x)  (* (S A) (+ B y))  (+ (* (S A) B) C)  ax-eqtr
+          (S A)  B  y  distr    (+ (* (S A) B) C)  eqeq1i    sylib
+          (* (S A) B)  (* (S A) y)  C  addcan2    biimpi    syl
+                
+        y  19.22i    syl
+        (S A)  C  y  df-divides    sylibr
+
+    x  19.22i   syl    x  (| (S A) C) 19.9    sylib
+)
+# number 67.0
+thm (divides1 () ()
+     (-. (| (S (S A)) (1)))
+  A  pa_ax1    df-1  (S (S A))  leeq2i      (S A)  (0)  lesuc1    bitr4i    (S A)  eq0le0    bitr4i    biimpi   eqcomd  con3i  ax-mp
+    (S (S A))  (1)  x  df-divides    biimpi
+        x  z  lefoo
+          0ne1
+            x  (0)  (S (S A))  muleq2    (S (S A)) pa_ax5    syl6eq
+            (1) eqeq1d    biimpd    con3d
+          mpi    (E. z (= (+ (1) z) x))  orim1i
+        ax-mp
+        (= (* (S (S A)) x) (1))  (E. z (= (+ (1) z) x))  imor    biimpri    ax-mp
+        ancli
+        (+ (1) z)  x  (S (S A)) muleq2    (1)  eqeq1d    biimprd    z  19.22i    (= (* (S (S A)) x) (1))  anim2i    syl
+        ancomd    z  (-> (= (* (S (S A)) x) (1)) (= (* (S (S A)) (+ (1) z)) (1)))  (= (* (S (S A)) x) (1))  19.41    sylibr
+        (= (* (S (S A)) x) (1))  (= (* (S (S A)) (+ (1) z)) (1))  pm3.35    ancoms    z  19.22i    syl
+    x  19.22i    syl    x  (E. z (= (* (S (S A)) (+ (1) z)) (1)))  19.9    sylib
+      x  (* (S (S A)) z) tyex 
+       x  (* (S (S A)) z)  (S (S A)) addeq2    (1)  eqeq1d    biimprd
+        (S (S A))  (1)  z  distr    (1)  eqeq1i   biimpi
+        (S (S A))  mulid    (* (S (S A)) z)  addeq1i      syl5eqr
+       syl5com
+      x  19.22d    mpi
+      (S (S A))  (1)  x  df-le    biimpri    syl
+    z  19.22i    syl    z  (<= (S (S A)) (1)) 19.9    sylib
+    con3i  
+  ax-mp
+)
+# number 67.0
+
+# number 68.0
+thm (dividesadd.2 () () 
+  (-> (| (S A) B) (-> (| (S A) (+ B C)) (| (S A) C)))
+    (S A)  B  x  df-divides    biimpi
+        (* (S A) x)  B  C  addeq1    
+        (+ (* (S A) x) C)  (+ B C)  (S A)  divideseq2    biimprd    syl
+         A  x  C  dividesadd.1    syl6
+    x  19.22i    syl
+    x  (-> (| (S A) (+ B C)) (| (S A) C))  ex-nf    syl
+)
+# number 69.0
+thm (suceqi () (h (= A B))  (= (S A) (S B))
+    h    (= A B)  id    suceqd    ax-mp
+)
+# number 70.0
+thm (infprime.1 ((A x)) () (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x))))) 
+    y  x  A  exfactorial
+        x  divides1    
+        (S x) (S (S y)) (1)  dividesadd.2     con3d    mpi
+            (<= (S (S x)) (S (S A))) imim2i    con2d   (S (S x))  (S (S A))  lenltt   biimpri
+        con1i    syl6
+     x  19.20i       y  19.22i    ax-mp
+        x  (+ y (1))  primedivisor
+            (S y)  (1)  pa_ax4r    y  (1)  pa_ax4r    suceqi    eqtr    
+            (+ (S (S y)) (1))  (S (S (+ y (1))))  (S (S x))  divideseq2    ax-mp    biimpri
+            (prime (S (S x)))  anim2i
+        x  19.22i    ax-mp  
+        y  gen
+    pm3.2i
+    y  (A. x (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x)))))  (A. y (E. x (/\ (prime (S (S x))) (| (S (S x)) (+ (S (S y)) (1))))))  19.41    mpbir
+    y  (E. x (/\ (prime (S (S x))) (| (S (S x)) (+ (S (S y)) (1)))))  ax-4    (A. x (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x)))))  anim2i    y  19.22i    ax-mp
+    x  (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x))))  (/\ (prime (S (S x))) (| (S (S x)) (+ (S (S y)) (1))))  19.29    y  19.22i    ax-mp
+        
+            (| (S (S x)) (+ (S (S y)) (1)))  (< (S (S A)) (S (S x)))  pm2.27    (prime (S (S x)))  anim2i     (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x))))  anim2i    
+                (prime (S (S x)))  (-> (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x)))) (< (S (S A)) (S (S x))))  ancom    biimpi    (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x))))  anim2i  
+            (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x))))  (-> (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x)))) (< (S (S A)) (S (S x))))  (prime (S (S x)))    anass    sylibr    syl
+            (-> (| (S (S x)) (+ (S (S y)) (1))) (< (S (S A)) (S (S x))))  (< (S (S A)) (S (S x)))  pm3.35    (prime (S (S x)))  anim1i    syl
+    x  19.22i    y  19.22i    ax-mp
+    y  (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x)))))  19.9    mpbi
+)
+  
+# number 71.0
+thm (infprime ((A x)) () (E. x (/\ (< A x) (prime x)))
+
+y  A  infprime.1
+ (/\ (< (S (S A)) (S (S y))) (prime (S (S y))))  x  alnfi
+  x  (S (S y))  tyex
+    (= x (S (S y)))  id    (S (S A))  lteq2d    biimprd
+    x  (S (S y)) primeeq    biimprd  anim12d
+  x  19.22i    ax-mp   
+  x  (/\ (< (S (S A)) (S (S y))) (prime (S (S y))))  (/\ (< (S (S A)) x) (prime x))  eximp1    ax-mp
+ syl
+y  19.22i    ax-mp
+y  (E. x (/\ (< (S (S A)) x) (prime x)))  19.9  mpbi
+
+    (+ A (1)) (1) addge01t
+    A  (+ (+ A (1)) (1))  nnltp1let    mpbir
+    A  a1suc    suceqi    (+ A (1))  a1suc    eqtr    A  lteq2i    mpbir
+    A  (S (S A))  x  lttr  mpan
+    (prime x)  anim1i    
+x  19.22i    ax-mp
+)
+# number 72.0
+thm (sqrteu ((A x)) () (E! x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
+    y  A  sqrt
+        y  A  x  sqrtuniq    ex    y  x  eqcom    syl6ib
+            y  x  y  x  muleq12    anidms    A  leeq1d   eqcoms 
+                x  y  eqcom    biimpi   suceqd    x  y  eqcom   biimpi suceqd    muleq12d    A  lteq2d
+            anbi12d    biimpd    com12
+        impbid    x  19.21ai
+        y  19.22i    ax-mp
+        x  (/\ (<= (* x x) A) (< A (* (S x) (S x))))  y  df-eu    biimpri 
+    ax-mp
+)
+# number 73.0
+thm (abeq ((ph y) (ps x))
+  (h1 (-> (= x y) (<-> ph ps)))
+  (=_ ({|} x ph) ({|} y ps))
+  z  x  ph  ax-elab
+  z  x  ph  y' df-subst    bitri
+      z  y  ps  ax-elab
+      z  y  ps  y' df-subst    bitri
+          x  y  y'  ax-eqtr    ex
+          y  x  y'  ax-eqtr    ex    eqcoms  impbid
+          h1    anbi12d
+          exalpha
+          (= y' z)  anbi2i
+          y'  exbii
+      bitr4i
+  bitr4i
+  eqri
+)
+# number 74.0
+thm (df-sqrt-just ((A x) (A y)) ()
+(= (iota ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x))))))
+   (iota ({|} y (/\ (<= (* y y) A) (< A (* (S y) (S y)))))))
+    y  x  y  x  muleq12    anidms    A  leeq1d   eqcoms 
+    x  y  eqcom    biimpi   suceqd    x  y  eqcom   biimpi suceqd    muleq12d    A  lteq2d 
+    anbi12d    bicomd    #  rwffi    abid
+   abeq    ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))  ({|} y (/\ (<= (* y y) A) (< A (* (S y) (S y)))))  ax-iotaeq     ax-mp
+)
+defthm  (df-sqrt num (sqrt A) ((A x)) ()
+  (= (sqrt A)  (iota ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))))
+  y  A  x  df-sqrt-just)
+# number 75.0
+thm (abeq2 () () 
+    (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
+    x  (<-> ph ps)  ax-4
+    y  x  sbcbid
+    y  x  ph  ax-elab    syl5bb
+    y  x  ps  ax-elab    syl6bbr
+    y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
+)
+# number 76.0
+thm (syl6seqr ()
+  (hyp1 (-> ph (=_ S T))
+   hyp2 (=_ U T))
+  (-> ph (=_ S U))
+  hyp1    S  T  x  df-seq    sylib    
+  x  (<-> (e. x S) (e. x T))  ax-4    syl
+      hyp2    U  T  x  df-seq    mpbi    a4i
+  syl6bbr    
+  x  19.21ai
+  S  U  x  df-seq       sylibr    
+)
+# number 77.0
+thm (sqrteq () () (-> (= A B) (= (sqrt A) (sqrt B)))
+  (= A B)  id    (* x x)  leeq2d  
+  (= A B)  id    (* (S x) (S x))  lteq1d    anbi12d
+  x  19.21ai
+  x  (/\ (<= (* x x) A) (< A (* (S x) (S x))))  (/\ (<= (* x x) B) (< B (* (S x) (S x))))  abeq2    syl
+  ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))  ({|} x (/\ (<= (* x x) B) (< B (* (S x) (S x)))))  ax-iotaeq    syl
+ 
+  B  x  df-sqrt  syl6eqr
+  A  x  df-sqrt  syl5eq
+)
+  
+# number 78.0
+thm (opeq2 () () (-> (= A B) (= (<,> C A) (<,> C B)))
+  A  B  C  addeq2  
+  A  B  C  addeq2  jca
+  (+ C A)  (+ C B)  (+ C A)  (+ C B)  muleq12    syl  
+  ancri
+  (* (+ C A) (+ C A))  (* (+ C B) (+ C B))  A  B  addeq12    syl
+  C  A  df-op       syl5eq    
+  C  B  df-op       syl6eqr
+)
+# number 78.5
+thm (opeq1 () () (-> (= A B) (= (<,> A C) (<,> B C)))
+    A  B  C  addeq1    A  B  C  addeq1    jca
+    (+ A C) (+ B C) (+ A C) (+ B C) muleq12    syl
+    C  addeq1d
+        A  C  df-op
+    syl5eq
+    B  C  df-op   syl6eqr    
+)
+# number 79.0
+thm (df-tail-just ((A x) (A y') (A y) (A z)) ()
+    (= (iota ({|} x (E. y (= (<,> y x) A))))
+       (iota ({|} z (E. y' (= (<,> y' z) A)))))
+  x  z  y  opeq2  A  eqeq1d    y  exbid  
+  y  y'  z  opeq1    A  eqeq1d   exalpha   syl6bb    abeq
+  ({|} x (E. y (= (<,> y x) A)))  ({|} z (E. y' (= (<,> y' z) A)))    ax-iotaeq    ax-mp
+)
+defthm  (df-tail num (tail A) ((A x) (A y')) ()
+  (= (tail A)  (iota ({|} x (E. y' (= (<,> y' x) A)))))
+  z  y  A  x  y'  df-tail-just)
+
+# number 80.0
+thm (tailop () () (= (tail (<,> A B)) B)
+  (<,> A B)  x  z  df-tail
+    z  x  A  B  opth    z  exbii   
+    z  (= z A)  (= x B)  19.41   bitri    
+    z  A  tyex    (E. z (= z A))  (= x B)  ibar    ax-mp    bitr4i
+    x  gen    x  (E. z (= (<,> z x) (<,> A B)))  (= x B)  abeq2    ax-mp
+    ({|} x (E. z (= (<,> z x) (<,> A B))))  ({|} x (= x B))  ax-iotaeq    ax-mp
+  eqtr
+  B  x df-sn    ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp    eqtr4
+  B  ax-iota    eqtr
+)
+# number 81.0
+thm (df-head-just ((A x) (A y') (A y) (A z)) ()
+    (= (iota ({|} x (E. y (= (<,> x y) A))))
+       (iota ({|} z (E. y' (= (<,> z y') A)))))
+  x  z  y  opeq1  A  eqeq1d    y  exbid  
+  y  y'  z  opeq2    A  eqeq1d   exalpha   syl6bb    abeq
+  ({|} x (E. y (= (<,> x y) A)))  ({|} z (E. y' (= (<,> z y') A)))   ax-iotaeq    ax-mp
+)
+defthm  (df-head num (head A) ((A x) (A y')) ()
+  (= (head A)  (iota ({|} x (E. y' (= (<,> x  y') A)))))
+  z  y  A  x  y'  df-head-just)
+ 
+# number 82.0
+thm (19.41l ((ph x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+# number 82.0
+thm (19.41r ((ph x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+# number 83.0
+thm (headop () () (= (head (<,> A B)) A)
+  (<,> A B)  x  z  df-head
+
+
+    x  z  A  B  opth    z  exbii   
+    z  (= x A)  (= z B)  19.41r   bitri    
+    z  B  tyex    (E. z (= z B))  (= x A)  iba    ax-mp    bitr4i
+    x  gen    x  (E. z (= (<,> x z) (<,> A B)))  (= x A)  abeq2    ax-mp
+    ({|} x (E. z (= (<,> x z) (<,> A B))))  ({|} x (= x A))  ax-iotaeq    ax-mp
+  eqtr
+  A  x df-sn    ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp    eqtr4
+  A  ax-iota    eqtr
+)
+
+# number 84.0
+thm (eualpha ((ph y) (ps x)) (h1 (-> (= x y) (<-> ph ps)))
+     (<-> (E! x ph) (E! y ps))
+    h1
+      x  y  z  eqeq1
+    bibi12d    alpha
+    z  exbii
+        x  ph  z  df-eu
+          y  ps  z  df-eu
+        bibi12i    biimpri
+    ax-mp
+)
+# number 85.0
+thm (eubid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E! x ps) (E! x ch)))
+  hyp   (= x z)  bibi1d    
+  x  19.21ai       19.15d     z  exbid    
+  x  ps  z  df-eu   syl5bb    
+  x  ch  z  df-eu      syl6bbr    
+)
+# number 86.0
+thm (df-fun-just ((S x) (S y) (S x') (S y')) ()
+  (<-> (A. x  (E! y  (e. (<,> x  y ) S)))
+       (A. x' (E! y' (e. (<,> x' y') S))))
+  x  x'  y'  opeq1    (<,> x y')  (<,> x' y')  S  ax-eleq1  syl    y'  eubid
+    y  y'  x  opeq2     (<,> x y)  (<,> x y')  S  ax-eleq1    syl    eualpha
+  syl5bb    
+  alpha
+)
+
+defthm (df-fun wff (fun S) ((S x) (S y))  ()
+  (<-> (fun S) (A. x (E! y (e. (<,> x y) S))))
+x' y' S x y df-fun-just)
+
+# number 87.0
+thm (df-min-just ((S x) (S y) (S x') (S y')) ()
+  (= (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))
+     (iota ({|} x' (/\ (e. x' S) (A. y' (-> (e. y' S) (<= x' y')))))))
+x  x'  S  ax-eleq1
+  (= x x')  id    y  leeq1d    (e. y S)  imbi2d   y  19.21ai    
+  y  (-> (e. y S) (<= x y))  (-> (e. y S) (<= x' y))  19.15    syl
+    y  y'  S  ax-eleq1
+      (= y y')  id    x'  leeq2d
+    imbi12d   alpha
+  syl6bb
+anbi12d    
+abeq
+({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))  ({|} x' (/\ (e. x' S) (A. y' (-> (e. y' S) (<= x' y')))))    ax-iotaeq    ax-mp   
+)
+
+
+defthm  (df-min num (min S) ((S x) (S y)) ()
+        (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))))
+          x' S y' x y df-min-just)
+
+# number 88.0
+thm (mineq () () (-> (=_ S T) (= (min S) (min T)))
+  S  T  x  df-seq    biimpi    x  (<-> (e. x S) (e. x T))  ax-4    syl
+    S  T  y  df-seq    biimpi    y  (<-> (e. y S) (e. y T))  ax-4    syl
+    (<= x y)  imbi1d    
+    y  19.21ai    
+    19.15d
+  anbi12d    
+  x  19.21ai
+  x  (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))  (/\ (e. x T) (A. y (-> (e. y T) (<= x y))))  abeq2    syl
+  ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))  ({|} x (/\ (e. x T) (A. y (-> (e. y T) (<= x y)))))  ax-iotaeq    syl
+
+  S  x  y  df-min    syl5eq    
+  T  x  y  df-min    syl6eqr
+)
+# number 89.0
+thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
+  (= (min ({|} x (E. y (= (+ (* B y) x) A))))
+     (min ({|} x' (E. y' (= (+ (* B y') x') A)))))
+  x  x'  (* B y)  addeq2    A  eqeq1d     y  exbid    
+    y  y'  B  muleq2    x'  addeq1d    A  eqeq1d    exalpha
+  syl6bb    
+  abeq
+  ({|} x (E. y (= (+ (* B y) x) A)))  ({|} x' (E. y' (= (+ (* B y') x') A)))  mineq    ax-mp
+)
+
+
+defthm  (df-mod num (mod A B) ((A x y) (B x y)) ()
+        (= (mod A B) (min ({|} x (E. y (= (+ (* B y) x) A)))))
+          x'  y'  B  A  x  y df-mod-just)
+
+# number 90.0
+thm (addeq2d () (h (-> ph (= A B))) (-> ph (= (+ C A) (+ C B)))
+    h
+    A  B  C  addeq2  syl
+)
+# number 91.0
+
+thm (df-gcd-just ((A v w x y z v' w' x' y' z') (B v w x y z v' w' x' y' z')) ()
+(= (min ({|} z (/\ (-. (= z (0)))
+                (E. v (E. w (E. x (E. y (= (+ (* v A) (* w B))
+                                            (+ (+ (* x A) (* y B)) z)))))))))
+(min ({|} z' (/\ (-. (= z' (0)))
+              (E. v' (E. w' (E. x' (E. y' (= (+ (* v' A) (* w' B))
+                                           (+ (+ (* x' A) (* y' B)) z'))))))))))
+z  z'  (0)  eqeq1   notbid    
+
+  z  z'  (+ (* x' A) (* y' B))  addeq2    (+ (* v' A) (* w' B))  eqeq2d  y'  exbid  x'  exbid  w'  exbid  v'  exbid
+    v  v'  A  muleq1  (* w' B)  addeq1d  (+ (+ (* x' A) (* y' B)) z)  eqeq1d    y'  exbid  x'  exbid  w'  exbid
+      w  w'  B  muleq1    (* v A)  addeq2d    (+ (+ (* x' A) (* y' B)) z)  eqeq1d    y'  exbid    x'  exbid
+        x  x'  A  muleq1    (* y' B)  addeq1d    z  addeq1d    (+ (* v A) (* w B))  eqeq2d  y'  exbid    
+            y  y'  B  muleq1    (* x A)  addeq2d    z  addeq1d    (+ (* v A) (* w B))  eqeq2d    exalpha        
+        syl5bb    exalpha
+      syl5bb    exalpha
+    syl5bb    exalpha
+  syl5bb
+
+anbi12d    
+abeq  
+({|} z (/\ (-. (= z (0))) (E. v (E. w (E. x (E. y (= (+ (* v A) (* w B)) (+ (+ (* x A) (* y B)) z))))))))  ({|} z' (/\ (-. (= z' (0))) (E. v' (E. w' (E. x' (E. y' (= (+ (* v' A) (* w' B)) (+ (+ (* x' A) (* y' B)) z'))))))))  mineq  ax-mp
+)
+
+defthm  (df-gcd num (gcd A B) ((A v w x y z) (B v w x y z)) ()
+        (= (gcd A B) (min ({|} z (/\ (-. (= z (0)))
+                (E. v (E. w (E. x (E. y (= (+ (* v A) (* w B))
+                                            (+ (+ (* x A) (* y B)) z))))))))))
+          z' v' w' x' y' A B z v w x y df-gcd-just)
+
+# number 92.0
+
+thm (minex.1 () () 
+  (-> (= y y')
+    (<->
+      (-> (e. y ({|} x ph)) (/\ (e. (min ({|} x ph)) ({|} x ph))
+                                (<= (min ({|} x ph)) y)))
+      (-> (e. y' ({|} x ph)) (/\ (e. (min ({|} x ph)) ({|} x ph))
+                                 (<= (min ({|} x ph)) y')))))
+
+y  y'  ({|} x ph)  ax-eleq1
+  (= y y')  id    (min ({|} x ph))  leeq2d    (e. (min ({|} x ph)) ({|} x ph)) anbi2d
+  imbi12d    
+)
+# number 94.0
+thm (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps)))
+    ph  ps  pm3.26 x  19.20i    x  ph  19.3    sylib
+    ph  ps  pm3.27  x  19.20i   jca       
+      ph  ps  ibar   x  19.21ai       19.15d         biimpa    
+    impbii
+)
+# number 95.0
+thm (alan2 ((ps x)) () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) ps))
+  ph  ps  ancom     x  albii    x  ps  ph  alan1  bitri  
+  ps  (A. x ph)  ancom    bitri
+)

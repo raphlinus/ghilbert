@@ -53,7 +53,9 @@ GH.TextareaEdit = function(textarea) {
         this.listener = callback;        
     };
     this.setLines = function(text) {
-        textarea.value = text.join('\n');
+        textarea.value = text.map(
+            function(line) { return line.replace(/^#!/,''); })
+            .join('\n');
     };
     this.appendText = function(text) {
 	textarea.value += text;
@@ -99,7 +101,8 @@ GH.CanvasEdit = function(canvas, inputlayer) {
         this.listeners.push(callback);
     };
     this.setLines = function(text) {
-        this.text = text;
+        this.text = text.map(
+            function(line) { return line.replace(/^#!/,''); });
 	this.dirty();
     };
     this.appendText = function(text) {
@@ -317,6 +320,13 @@ GH.save = function(content) {
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
     req.send(text);
+};
+
+GH.saveDraft = function(content) {
+    GH.save(
+        content.split("\n")
+            .map(function(line) { return "#!" + line; })
+            .join("\n"));
 };
 
 GH.CanvasEdit.prototype.handle_keydown = function(evt) {

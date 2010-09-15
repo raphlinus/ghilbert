@@ -63,18 +63,22 @@ term (num (iota S))
 stmt (ax-iota () () (= (iota ({} A)) A))
 stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))
 
-# Minimum of a set
+                # Minimum of a set
 
-term (num (min S))
-stmt (df-min ((S x y)) ()
-  (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))))
+#term (num (min S))
+#stmt (df-min ((S x y)) ()
+#  (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))))
 
 # Division and modulo
 
-term (num (div A B))
-stmt (df-div ((A x y) (B x y)) ()
-  (= (div A B) (min ({|} x (E. y (= (+ (* B x) y) A))))))
+#term (num (div A B))
+#stmt (df-div ((A x y) (B x y)) ()
+#  (= (div A B) (min ({|} x (E. y (= (+ (* B x) y) A))))))
 
-term (num (mod A B))
-stmt (df-mod () ()
-  (= (mod A B) (iota ({|} x (= (+ (* B (div A B)) x) A)))))
+#term (num (mod A B))
+#stmt (df-mod () ()
+#  (= (mod A B) (iota ({|} x (= (+ (* B (div A B)) x) A)))))
+
+#term (num (mod A B))
+#stmt (df-mod () ()
+#  (= (mod A B) (min ({|} x (E. y (= (+ (* B y) x) A)))))
