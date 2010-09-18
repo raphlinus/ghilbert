@@ -937,8 +937,9 @@ GH.VerifyCtx.prototype.match = function(templ, exp, env, alreadyExpanded) {
     function UnificationError(mesg, found, expected) {
 	this.toString = function() {
 	    return "Unification error: " + mesg
-		+ " expected " + expected
-		+ " got " + found +"[" + found.beg + ":" + found.end + "]";
+		+ " expected " + GH.sexptounicode(expected)
+		+ " got " + GH.sexptounicode(found)
+                + (found.beg ? "[" + found.beg + ":" + found.end + "]" : "");
 	};
 	if (found.beg) {
 	    this.expected = GH.sexp_to_string(expected);

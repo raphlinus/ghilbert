@@ -28,17 +28,28 @@ GH.cursormax = function(c1, c2) {
 
 GH.TextareaEdit = function(textarea) {
     var self = this;
-    textarea.onkeyup = function(event) {
-        var ret = false;
+    // Stack of [before,func] pairs for ctrl-z.  If empty, use regular undo.
+    this.undoStack = [];
+    textarea.onkeydown = function(event) {
         if (event.keyCode === 13 && event.ctrlKey) {
             var auLink = document.getElementById("autounify");
-            if (auLink.onclick) {
+            if (auLink.style.display !='none') {
                 auLink.onclick();
-                ret = true;
+                return false;
             }
-        }
+        } else if (event.keyCode == 90 && event.ctrlKey) {
+            if (self.undoStack.length &&
+                (textarea.value ==
+                 self.undoStack[self.undoStack.length - 1][0])) {
+                self.undoStack.pop()[1]();
+                return false;
+            }
+        } 
+        return true;
+    };
+    textarea.onkeyup = function(event) {
         if (self.listener) self.listener();
-        return ret;
+        return true;
     };
     this.clearImtrans = function() {
         
@@ -56,14 +67,24 @@ GH.TextareaEdit = function(textarea) {
         textarea.value = text.map(
             function(line) { return line.replace(/^#!/,''); })
             .join('\n');
+        if (self.listener) self.listener();
     };
     this.appendText = function(text) {
 	textarea.value += text;
     };
     this.splice = function(start, len, newText) {
-	var chars = textarea.value.split('');
-	chars.splice(start, len, newText);
-	textarea.value = chars.join('');
+        var oldChars;
+        {
+	    var chars = textarea.value.split('');
+	    oldChars = chars.splice(start, len, newText);
+	    textarea.value = chars.join('');
+        }
+        var undoFunc = function() {
+            var chars = textarea.value.split('');
+	    chars.splice(start, newText.length, oldChars.join(''));
+	    textarea.value = chars.join('');
+        };
+        this.undoStack.push([textarea.value, undoFunc]);
     };
 };
 

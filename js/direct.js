@@ -61,7 +61,6 @@ GH.Direct.replace_thmname = function (newname) {
 GH.Direct.prototype.update = function() {
     var auLink = document.getElementById("autounify");
     auLink.style.display='none';
-    delete auLink.onclick;
     this.stack.text = [];
     var thmctx = new GH.DirectThm(this.vg);
     this.thmctx = thmctx;
@@ -75,7 +74,7 @@ GH.Direct.prototype.update = function() {
 	    try {
 		status = thmctx.tok(spl[j]);	
 	    } catch (ex) {
-		if (ex.found) {
+		if (ex.found && (ex.found.beg)) {
 		    auLink.style.display = 'inline';
 		    auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
 			+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
@@ -83,8 +82,24 @@ GH.Direct.prototype.update = function() {
 		    auLink.onclick = function() {
 			that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
 			that.update();
+			if (auLink.style.display != 'none') {
+			    auLink.onmouseover();
+			}
 			return false;
 		    };
+		    var canvas = document.getElementById("canvas");
+		    if (canvas.setSelectionRange) {
+			auLink.onmouseover = function() {
+			    var cursor = canvas.selectionEnd;
+			    auLink.onmouseout = function() {
+				canvas.setSelectionRange(cursor, cursor);
+				delete auLink.onmouseout;
+			    };
+			    canvas.setSelectionRange(ex.found.beg,
+						     ex.found.end);
+			};			  
+		    }
+
 		}
 		status = "! " + ex;
 	    }
