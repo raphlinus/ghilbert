@@ -80,23 +80,26 @@ GH.Direct.prototype.update = function() {
 			+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
 		    var that = this;
 		    auLink.onclick = function() {
+                        if (auLink.onmouseout) {
+                            auLink.onmouseout();
+                        }
 			that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
 			that.update();
 			if (auLink.style.display != 'none') {
 			    auLink.onmouseover();
-			}
+                        }
 			return false;
 		    };
-		    var canvas = document.getElementById("canvas");
-		    if (canvas.setSelectionRange) {
+		    var textarea = document.getElementById("canvas");
+		    if (textarea.setSelectionRange) {
 			auLink.onmouseover = function() {
-			    var cursor = canvas.selectionEnd;
+			    var cursor = textarea.selectionEnd;
 			    auLink.onmouseout = function() {
-				canvas.setSelectionRange(cursor, cursor);
+				textarea.setSelectionRange(cursor, cursor);
 				delete auLink.onmouseout;
 			    };
-			    canvas.setSelectionRange(ex.found.beg,
-						     ex.found.end);
+			    textarea.setSelectionRange(ex.found.beg,
+						       ex.found.end);
 			};			  
 		    }
 

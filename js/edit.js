@@ -74,6 +74,11 @@ GH.TextareaEdit = function(textarea) {
     };
     this.splice = function(start, len, newText) {
         var oldChars;
+        var selectionEnd = textarea.selectionEnd;
+        var newSelectionEnd = selectionEnd;
+        if (start < selectionEnd) {
+            newSelectionEnd += newText.length - len;
+        }
         {
 	    var chars = textarea.value.split('');
 	    oldChars = chars.splice(start, len, newText);
@@ -83,7 +88,9 @@ GH.TextareaEdit = function(textarea) {
             var chars = textarea.value.split('');
 	    chars.splice(start, newText.length, oldChars.join(''));
 	    textarea.value = chars.join('');
+            textarea.setSelectionRange(selectionEnd, selectionEnd);
         };
+        textarea.setSelectionRange(newSelectionEnd, newSelectionEnd);
         this.undoStack.push([textarea.value, undoFunc]);
     };
 };
@@ -495,3 +502,10 @@ GH.CanvasEdit.init = function() {
 function myalert(s) {
     document.getElementById('status').firstChild.nodeValue = s;
 }
+
+GH.setSize = function(size) {
+  document.getElementById("canvas").cols = 60 + size * 20;
+  document.getElementById("canvas").rows = 8 + size * 8;
+  document.getElementById("stack").width = 600 + size * 400;
+  document.getElementById("stack").height = 240 + size * 60;
+};
