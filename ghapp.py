@@ -64,6 +64,8 @@ def get_all_proofs(replacing=None, below=None):
             else:
                 pipe.write(str(proof.content))
                 pipe.write("\n")
+    if not written:
+        pipe.write(str(replacing.content))
     pipe.seek(0)
     return pipe
 
