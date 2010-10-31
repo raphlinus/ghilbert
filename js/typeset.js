@@ -142,12 +142,12 @@ GH.typesetclab = function(term) {
 };
 
 GH.typesetop = function(term) {
-    var open_slug = GH.stringslug('<');
+    var open_slug = GH.stringslug('\u27e8');
     var x_slug = GH.typeset(term[1]);
     var comma_slug = GH.stringslug(',');
     var y_slug = GH.typeset(term[2]);
     var sp_slug = GH.spaceslug(1 + y_slug.prsp);
-    var close_slug = GH.stringslug('>');
+    var close_slug = GH.stringslug('\u27e9');
     var slugs = [open_slug, x_slug, comma_slug, sp_slug, y_slug, close_slug];
     return GH.combineslugs(slugs, 9999);
 };

@@ -30,24 +30,59 @@ GH.TextareaEdit = function(textarea) {
     var self = this;
     // Stack of [before,func] pairs for ctrl-z.  If empty, use regular undo.
     this.undoStack = [];
+    self.restore_excursion = function() {};
     textarea.onkeydown = function(event) {
-        if (event.keyCode === 13 && event.ctrlKey) {
+        self.restore_excursion();
+        if (event.keyCode === 13 && (event.ctrlKey || event.shiftKey)) {
+            // Ctrl- or Shift-Enter: accept autounify
             var auLink = document.getElementById("autounify");
             if (auLink.style.display !='none') {
                 auLink.onclick();
                 return false;
             }
         } else if (event.keyCode == 90 && event.ctrlKey) {
+            // Ctrl-z: undo
             if (self.undoStack.length &&
                 (textarea.value ==
                  self.undoStack[self.undoStack.length - 1][0])) {
                 self.undoStack.pop()[1]();
                 return false;
             }
-        } 
+        }
         return true;
     };
     textarea.onkeyup = function(event) {
+        window.onbeforeunload = function() { return "Are you sure you want to leave?";};
+        if (event.keyCode === 48 && event.shiftKey) {
+            // Shift-0: Electric parens
+            var cursor = textarea.selectionEnd;
+            var i = cursor - 1;
+            var parenCount = 0;
+            while (true) {
+                if (textarea.value[i] == ')') {
+                    parenCount++;
+                } else if (textarea.value[i] == '(') {
+                    parenCount--;
+                }
+                if (parenCount == 0) {
+                    break;
+                }
+                i--;
+                if (i < 0) {
+                    return true;
+                }
+            }
+            textarea.setSelectionRange(i, i + 1);
+            self.restore_excursion = function() {
+                textarea.setSelectionRange(cursor, cursor);
+                self.restore_excursion = function() {};
+            };
+            window.setTimeout(
+                function() {
+                    self.restore_excursion();
+                }, 500);
+            return true;
+        } 
         if (self.listener) self.listener();
         return true;
     };
@@ -249,6 +284,7 @@ GH.CanvasEdit.prototype.draw = function() {
 };
 
 GH.CanvasEdit.prototype.handler = function(evt, data) {
+    window.onbeforeunload = function() { return "Are you sure you want to leave?";};
     if (evt === 'textinput') {
 	return this.handle_textinput(data);
     } else if (evt === 'keydown') {
@@ -338,16 +374,38 @@ GH.CanvasEdit.prototype.deleteselection = function() {
 };
 
 GH.save = function(content) {
+    // TODO(abliss): properly handle button presses while xhr in flight
+    var saving = document.getElementById("saving");
     var req = new XMLHttpRequest();
     var text = ('name=' + encodeURIComponent(name) +
                 '&number=' + document.getElementById('number').value +
 		'&content=' + encodeURIComponent(content));
-    req.onreadystatechange = function () {if (req.readyState == 4) {
-                                              document.getElementById('output').innerHTML=req.responseText;}};
-    req.open('POST', '/save', false);
+    req.onreadystatechange = function () {
+        if (req.readyState == 4) {
+            var lines = req.responseText.split("\n");
+            this.result = lines.splice(lines.length - 4).join("\n");
+            if (req.responseText.indexOf("save ok") >= 0) {
+                window.onbeforeunload = function() { };
+            }
+        }
+    };
+    req.open('POST', '/save', true);
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
     req.send(text);
+    var dots = 0;
+    function spin() {
+        if (req.result) {
+            saving.innerHTML = req.result;
+        } else {
+            saving.innerHTML = "Saving";
+            for (var i = 0; i < dots; i++) {
+                saving.innerHTML += ".";
+            }
+            dots = (dots + 1) % 4;
+            window.setTimeout(spin, 100);
+        }
+    }
+    spin();
 };
 
 GH.saveDraft = function(content) {

@@ -183,10 +183,13 @@ class EditPage(webapp.RequestHandler):
 
 <p>
 <div style="display:block;float:left">
-  <label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
-  <textarea id="canvas" cols="95" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
+  <label for="number">number: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
+<br/>
+  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
   <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/>
-  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/><br/>
+  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/>
+  <span id="saving"></span>
+<br/>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
   <canvas id="stack" width="800" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
 </div>
@@ -224,7 +227,6 @@ number.onchange = function() {
     text.dirty();
 };
 var panel = new GH.Panel(window.direct.vg);
-window.onbeforeunload = function() { return "Are you sure you want to leave?";}
 """ % (number, `name`, number));
         if proof:
             result = json_dumps(proof.content.split('\n'))
