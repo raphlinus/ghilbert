@@ -1,5 +1,18 @@
 var GHT = { };
-// A Term is an Operator, a Variable, or a Tuple of Terms.
+GHT.forEach = function(obj, func, running) {
+    for (k in obj) {
+        if (obj.hasOwnProperty(k)) {
+            running = func(k, obj[k], running);
+        }
+    }
+    return running;
+};
+// Like JSON.stringify, but handles NaN correctly.  does not handle null.
+GHT.stringify = function(x) {
+    return JSON.stringify(x).replace(/null/, 'NaN');
+};
+// A Term is an Operator, a Variable, or a Tuple of Terms (the first
+// of which is an Operator)
 function Term() {
     this.clone = function(mapping) {
         return this;
@@ -20,13 +33,27 @@ function Term() {
       return this;  
     };
 }
-function Operator(name, type, inputs, bindings) {
+function Operator(key, name, type, inputs, bindings) {
     this.toString = function() {return name;};
     this.inputs = inputs;
     this.bindings = bindings;
+    this.key = key;
     this.getType = function() {
         return type;
     };
+    this.toSource = function() {
+        return "O(" + GHT.stringify(key) + ")";
+    };
+    this.newTerm = function() {
+        var args = [this];
+        for (var i = 0; i < this.inputs.length; i++) {
+            args.push(new Variable(this.inputs[i]));
+        }
+        return T(args);
+    };
+}
+function O(s) {
+    return GHT.Operators[s];
 }
 Operator.prototype = new Term();
 function Variable(type, num) {
@@ -38,14 +65,7 @@ function Variable(type, num) {
     }
 
     this.toString = function() {
-        var typeMap = {
-            'set':'$',
-            'wff':'?',
-            'num':'#'
-        };
-        var prefix = typeMap[this.getType()];
-        if (!prefix) prefix = this.getType();
-        return prefix +""+ this.index;
+        return this.getType() +","+ this.index;
     };
     this.clone = function(mapping) {
         if (!mapping[this]) mapping[this] = new Variable(this.getType());
@@ -62,7 +82,8 @@ function Variable(type, num) {
     };
     this.extractVars = function(set) {
         if (!set) set = ({});
-        set[this] = true;
+        // If it's already true, don't mess with it.  But if it's absent, set it to false.
+        set[this] |= false;
         return set;
     };
     this.unify = function(other, mapping, map) {
@@ -80,24 +101,22 @@ function Variable(type, num) {
     this.getType = function() {
         return type;
     };
+    this.toSource = function() {
+        return "TV(" + GHT.stringify(type) + ", " + this.index + ")";
+    };
+
 }
 Variable.prototype = new Term();
-function BindingVariable(type, num) {
-    this.type = type;
-    if (num) {
-        this.index = num;
-    } else {
-        if (!Variable.lastUsed) Variable.lastUsed = 1;
-        this.index = Variable.lastUsed++;
-    }
-    this.getType = function() {
-        return type;
-    };
+function VariableFromString(str) {
+    var a = str.split(",");
+    return new Variable(a[0], a[1]);
 }
-BindingVariable.prototype = new Variable();
-
 function V(num) {
     return new Variable('wff',num);
+}
+
+function TV(type, num) {
+    return new Variable(type, num);
 }
 function Tuple(terms) {
     this.terms = terms;
@@ -122,9 +141,18 @@ function Tuple(terms) {
         }
         return true;
     };
+    // Return a set of variables into the given set, and return it.  Vars map to true
+    // iff they are ever used as binders.
     this.extractVars = function(set) {
         if (!set) set = ({});
-        this.terms.forEach(function(t) {t.extractVars(set);});
+        for (var i = 0; i < terms.length - 1; i++) {
+            if (isNaN(this.terms[0].bindings[i])) {
+                set[this.terms[i + 1]] = true;
+            } else {
+                this.terms[i + 1].extractVars(set);
+            }
+            
+        }
         return set;
     };
     this.unify = function(other, mapping, map) {
@@ -149,6 +177,10 @@ function Tuple(terms) {
     this.getType = function() {
         return this.terms[0].getType();
     };
+    this.toSource = function() {
+        return "T(" + this.terms.map(
+            function (x) { return x .toSource();}).join(",") + ")";
+    };
 }
 Tuple.prototype = new Term();
 function T(termArray) {
@@ -170,18 +202,30 @@ function hash(str) {
     return sum;
 }
 
-var Implies = new Operator("\u2192", 'wff', ['wff', 'wff'], [-1, 1]);
-var Not = new Operator("\u00ac", 'wff', ['wff'], [-1]);
-var True = new Operator("t", 'wff', [], []);
+var Implies = new Operator('->', "\u2192", 'wff', ['wff', 'wff'], [-1, 1]);
+var Not = new Operator('-.', "\u00ac", 'wff', ['wff'], [-1]);
+var True = new Operator('t', "t", 'wff', [], []);
 
 var P, Q, R, S, U;
+
 var thms = {
-    _ax1: T(Implies, P = V(), T(Implies, Q = V(), P)),
-    _ax2: T(Implies, T(Implies, P = V(), T(Implies, Q = V(), R = V())),
+    "ax-1": T(Implies, P = V(), T(Implies, Q = V(), P)),
+    "ax-2": T(Implies, T(Implies, P = V(), T(Implies, Q = V(), R = V())),
             T(Implies, T(Implies, P, Q), T(Implies, P, R))),
-    _ax3: T(Implies, T(Implies, T(Not, P = V()), T(Not, Q = V())), T(Implies, Q, P)),
+    "ax-3": T(Implies, T(Implies, T(Not, P = V()), T(Not, Q = V())), T(Implies, Q, P)),
     _axmp: T(Implies, T(Not, T(Implies, P = V(), T(Not, T(Implies, P, Q = V())))), Q),
     _axand: T(Implies, P=V(), T(Not, T(Implies, P, T(Not, T(True)))))
+};
+
+thms.toSource = function() {
+    var out = "{";
+    for (x in this) {
+        if (this[x].toSource) {
+            out += GHT.stringify(x) + ":" + this[x].toSource() + ",";
+        }
+    }
+    out += "}";
+    return out;
 };
 
 /**
@@ -242,145 +286,75 @@ function unify(template, example, mapping, connected) {
     return mapping;
 }
 
-function OperatorFromSexp(sexp) {
-    var term = window.verifyctx.terms[sexp];
-    if (!term) throw "Unknown operator " + sexp;
+function OperatorFromSexp(sexp, expectedType) {
     if (!GHT.Operators[sexp]) {
         // Attempt to make it on the fly
+        var term = window.verifyctx.terms[sexp];
+        if (!term) throw "Unknown operator " + sexp;
         var type = term[0];
         var inputs = term[1];
         var bindings = term[2].map(function(x) {
                                        // TODO: bogus
                                        if (x === null) return 0; // exact ?
                                        if (x.length === 0) return NaN; // binding ?
-                                       if (x.length === 1) return NaN; // WTF is with [/] ?
+                                       if (x.length === 1) return NaN; // TODO:WTF is with [/] ?
                                        return 0; // *shrug*
                                    });
-        GHT.Operators[sexp] = new Operator(GH.sexptounicode([sexp, '','','','','']),
+        GHT.Operators[sexp] = new Operator(sexp, GH.sexptounicode([sexp, '','','','','']),
                                            type, inputs, bindings);
     }
-    return GHT.Operators[sexp];
+    var op = GHT.Operators[sexp];
+    if (op.getType() !== expectedType) {
+        throw "Wrong type: wanted " + expectedType + " got " + op.getType();
+    }
+    return op;
 }
 // Convert a ghilbert-style sexp into one of our Term objects.
 // References window.direct.vg to look up type information.
-function TermFromSexp(sexp) {
+function TermFromSexp(sexp, expectedType) {
     // Is it a Tuple?
     if (sexp instanceof Array) {
-        var op = OperatorFromSexp(sexp[0]);
-        var args = sexp.slice(1).map(TermFromSexp);
-        args.unshift(op);
+        var op = OperatorFromSexp(sexp[0], expectedType);
+        var args = [op];
+        for (var i = 0; i < op.inputs.length; i++) {
+            args.push(TermFromSexp(sexp[1 + i], op.inputs[i]));
+        }
         return T(args);
     } 
-    // Is it a Variable?
-    var sym = window.verifyctx.syms[sexp];
-    if (sym) {
-        switch (sym[0]) {
-        case 'var':
-            return new BindingVariable(sym[1], -hash(sexp));
-        case 'tvar':
-            return new Variable(sym[1], -hash(sexp));
-        }
-    }
-    // What the hell is it?!
-    throw "Unknown sexp: " + sexp;
+    // It must be a variable.
+    return new Variable(expectedType, hash(sexp));
 }
 
 GHT.log = [];
-GHT.arrows = {
-    'wff': '->',
-    'num': '<=',
-    'set': 'C_'
-};
 GHT.bindings = {
-    "-1": "terminal", // "This, or things which arrow this."
-    "0": "exact",     // "This term, or things term-equivalent to this."
-    "1": "initial",   // "This, or things which this arrows."
-    "NaN": "none"     // "This is a binding variable."
+    "-1":  "terminal",    // "This, or things which arrow this."
+    "0":   "exact",       // "This term, or things term-equivalent to this."
+    "1":   "initial",     // "This, or things which this arrows."
+    "NaN": "binding"      // "This is a binding variable."
 };
-GHT.Operators = { //TODO: autodetect these
-    '->': Implies,
-    '-.': Not,
-    't': True,
-    'A.': new Operator("\u2200", 'wff', ['tvar', 'wff'], [NaN, 1]),
-    'E.': new Operator("\u2203", 'wff', ['tvar', 'wff'], [NaN, 1]),
-    '/\\': new Operator("\u2227", 'wff', ['wff', 'wff'], [1, 1]),
-    '<=': new Operator("\u2264", 'num', ['num', 'num'], [-1, 1]),
-    'e.': new Operator("\u2208", 'wff', ['num', 'set'], [0, 1]),
-    'S': new Operator("Suc", 'num', ['num'], [1]),
-    '{|}': new Operator("{|}", 'set', ['num','wff'], [NaN, 1])
-};
-GHT.vars = {
-    'ph': {type: 'wff',
-           display:'\u03c6'        
-          },
-    'ps': {type: 'wff',
-           display:'\u03c8'        
-          },
-    'ch': {type: 'wff',
-           display:'\u03c7'        
-          },
-    'A': {type: 'var',
-           display:'A'
-          },
-    'B': {type: 'var',
-           display:'B'
-          },
-    'x': {type: 'tvar',
-           display:'x'
-          },
-    'y': {type: 'tvar',
-           display:'y'
-          },
-    'z': {type: 'tvar',
-           display:'z'
-          },
-    'S': {type: 'set',
-           display:'S'
-          },
-    'T': {type: 'set',
-           display:'T'
-          }
-};
-GHT.terminals = {
-    wff: {
-        "true" :{
-            sexp: ['true']
-        },
-        "ax-1": {
-         sexp: ['->', 'ph', ['->', 'ps', 'ph']]
-        },
-        "ax-2": {
-         sexp: ['->', ['->', 'ph', ['->', 'ps', 'ch']],
-                ['->', ['->', 'ph', 'ps'],['->', 'ph', 'ch']]]
-        },
-        "ax-3": {
-         sexp: ['->', ['->', ['-.', 'ph'],['-.', 'ps']],['->', 'ps', 'ph']]
-        },
-        "ax-mp_": {
-         sexp: ['->', ['-.', ['->', 'ph', ['-.', ['->', 'ph', 'ps']]]],'ps']
-        },
-        "ax-antrue": {
-         sexp: ['->', 'ph', ['-.', ['->', 'ph', ['-.', 'true']]]]
-        },
-        "relprimex.3": {
-                        sexp:["->", ["->", ["A.", "x", ["A.", "y", ["->", ["/\\", ["e.", "x", "S"], ["e.", "y", "T"]], ["relprim", "x", "y"]]]], ["E.", "z", ["/\\", ["A.", "y", ["->", ["/\\", ["<", ["S", ["S", "y"]], "A"], ["e.", ["S", ["S", "y"]], "S"]], ["|", ["S", ["S", "y"]], "z"]]], ["A.", "y", ["->", ["e.", ["S", ["S", "y"]], "T"], ["-.", ["|", ["S", ["S", "y"]], "z"]]]]]]], ["->", ["A.", "x", ["A.", "y", ["->", ["/\\", ["e.", "x", "S"], ["e.", "y", "T"]], ["relprim", "x", "y"]]]], ["E.", "z", ["/\\", ["A.", "y", ["->", ["/\\", ["<", ["S", ["S", "y"]], ["S", "A"]], ["e.", ["S", ["S", "y"]], "S"]], ["|", ["S", ["S", "y"]], "z"]]], ["A.", "y", ["->", ["e.", ["S", ["S", "y"]], "T"], ["-.", ["|", ["S", ["S", "y"]], "z"]]]]]]]]
-                       }
-    }
-};
+function OpList(){}
+OpList.prototype = new Object();
+OpList.prototype.toSource = function() {
+    var s = "{";
+    for (x in this) {
+        var op = this[x];                
+        if (op.toSource) {
+            s += GHT.stringify(x);
+            s += ": new Operator(";
+            s += [op.key, op.toString(), op.getType(), op.inputs, op.bindings].map(
+                GHT.stringify).join(",");            
+            s += "),";
+        }
 
-
-GHT.initials = {
-/*
-    'wff': {
-         'false' : {
-             display:'nil'
-         }
-     }
-*/
-    'num': {
-        sexp: ['0']
     }
+    s += "}";
+    return s;
 };
+GHT.Operators = new OpList();
+GHT.Operators['->'] = Implies;
+GHT.Operators['-.'] = Not; 
+GHT.Operators['t'] =  True;
+
 GHT.swap = function(before, path, after) {
     if (path.length) {
         var index = path.shift();
@@ -432,8 +406,8 @@ GHT.extract = function(term, path) {
 GHT.showTerminals = function(path) {
     return function() {
         var menu = GHT.newMenu("Terminals");
-        for (name in thms) {
-            menu.addOption(name, GHT.makeSwap(path.slice(0), thms[name], "T:" + name));
+        for (name in GHT.thms) {
+            menu.addOption(name, GHT.makeSwap(path.slice(0), GHT.thms[name], "T:" + name));
         }
     };
 };
@@ -445,9 +419,9 @@ GHT.showEquivalents = function(path) {
     return function() {
         var menu = GHT.newMenu("Equivalents");
         var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in thms) {
-            var thm = thms[name];
-            if ((thm instanceof Tuple) && (thm.terms[0] == GHT.equivalences[type])) {
+        for (name in GHT.thms) {
+            var thm = GHT.thms[name];
+            if ((thm instanceof Tuple) && (thm.terms[0] == GHT.getEquivalence(type))) {
                 var antecedent = thm.terms[1];
                 var result = thm.terms[2];
                 try {
@@ -481,10 +455,10 @@ GHT.showArrowers = function(path) {
     return function() {
         var menu = GHT.newMenu("Arrowers");
         var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in thms) {
-            var thm = thms[name];
+        for (name in GHT.thms) {
+            var thm = GHT.thms[name];
             if ((thm instanceof Tuple) &&
-                (thm.terms[0] == GHT.arrows[type])) {
+                (thm.terms[0] == GHT.getArrow(type))) {
                 var antecedent = thm.terms[1];
                 var result = thm.terms[2];
                 try {
@@ -506,10 +480,10 @@ GHT.showArrowees = function(path) {
     return function() {
         var menu = GHT.newMenu("Arrowees");
         var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in thms) {
-            var thm = thms[name];
+        for (name in GHT.thms) {
+            var thm = GHT.thms[name];
             if ((thm instanceof Tuple) && 
-                (thm.terms[0] == GHT.arrows[type])) {
+                (thm.terms[0] == GHT.getArrow(type))) {
                 var antecedent = thm.terms[1];
                 var result = thm.terms[2];
                 try {
@@ -527,50 +501,47 @@ GHT.showArrowees = function(path) {
         }
     };
 };
-GHT.showVars = function(path) {
+GHT.showAssertTerminal = function(path) {
     //TODO
 };
-GHT.showTermBuilder = function(path, type) {
-    return function() {
-        GHT.dismiss();
-/*
-        var termString = prompt("Type a term string, e.g. T(Implies, P = V(), T(Implies, Q = V(), P))");
-        var term;
-        try {
-            term = eval(termString);
-            if (!(term instanceof Term)) {
-                throw "Not a term: " + term;
-            }
-            if (term.getType() !== type) {
-                throw "Bad type: wanted " + type + " but got " + term.getType();
-            }
-        } catch (x) {
-            alert(x);
-            return;
-        }
-*/
-        var termString = prompt("Type a sexp, e.g. (-> ph (-> ps ch))");
-        try {
-            var scanner = new GH.Scanner([termString]);
-            var sexp = GH.read_sexp(scanner);
-            console.log("sexp read: " + sexp);
-            var term = TermFromSexp(sexp);
-            console.log("Term cnoverted:" + term);
-            if (!(term instanceof Term)) {
-                throw "Not a term: " + term;
-            }
-            if (term.getType() !== type) {
-                throw "Bad type: wanted " + type + " but got " + term.getType();
-            }
-        } catch (x) {
-            alert(x);
-            return;
-        }
+GHT.showTermBuilder = function(path, type, binding) {
+    return function(event) {
+        var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
+                               event.pageX, event.pageY);
         var theVar = GHT.extract(GHT.theTerm, path.slice(0));
-        var mapping = {};
-        mapping[theVar] = term;
-        GHT.setTerm(GHT.theTerm.substitute(mapping));
-        console.log("#### Substituted " + termString + " at " + path);
+        function doSub(term, isBinding) {
+            return function() {
+                GHT.dismiss();
+                var mapping = {};
+                mapping[theVar] = term;
+                if (isBinding) {
+                    // Rebinding a binding variable only affects the parent term.
+                    var parent = GHT.extract(GHT.theTerm, path.slice(0, path.length - 1));
+                    parent = parent.substitute(mapping);
+                    GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0, path.length - 1), parent));
+                    console.log("#### Rebound to " + term.toString() + " at " + path);
+                } else {
+                    // Substituting a nonbinding variable affects the whole shebang.
+                    GHT.setTerm(GHT.theTerm.substitute(mapping));
+                    console.log("#### Substituted " + term.toString() + " at " + path);
+                }
+            };
+        }
+        var isBinding = GHT.theVars[theVar];
+        if (!isBinding) {
+            // Not a binding variable; we can build a term
+            GHT.forEach(GHT.Operators, function(k, op) {
+                            if (op.getType() === type) {
+                                menu.addOption(op.toString(), doSub(op.newTerm(), false));
+                            }
+                        });
+        }
+        GHT.forEach(GHT.theVars, function(varStr, unused) {
+                        var myVar = VariableFromString(varStr);
+                        if (myVar.getType() === type) {
+                            menu.addOption(GHT.theVarMap[varStr], doSub(myVar, isBinding));
+                        }
+                    });
     };
 
 };
@@ -586,12 +557,12 @@ GHT.makeDoSubst = function(path) {
         var mapping = { };
         mapping[forVar] = newTerm;
         var answer = inTerm.substitute(mapping);
-        console.log("[/] answer is " + answer); 
+        //console.log("[/] answer is " + answer); 
         GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0), answer));
         console.log("#### Performed [/] substitution at " + path);
     };
 };
-GHT.makeTable = function(term, path, binding) {
+GHT.makeTable = function(term, path, binding, varMap) {
     //console.log("making table for " + term);
 
     var type;
@@ -600,7 +571,6 @@ GHT.makeTable = function(term, path, binding) {
         td.onclick = function(event) {
             var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
                                    event.pageX, event.pageY);
-
             if (binding === 1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
                 menu.addOption("terminals", GHT.showTerminals(path));
@@ -609,13 +579,14 @@ GHT.makeTable = function(term, path, binding) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
             } else if (binding === -1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
-                menu.addOption("initials", GHT.showInitials(path));
                 menu.addOption("arrowers", GHT.showArrowers(path));
+                menu.addOption("initials", GHT.showInitials(path));
+                //TODO: menu.addOption("assert terminal", GHT.showAssertTerminal(path));
             } 
             if (isNaN(binding)) {
-                menu.addOption("rebind", GHT.showVars(type, path));
+                menu.addOption("rebind", GHT.showTermBuilder(path, type, binding));
             } else if (term instanceof Variable) {
-                menu.addOption("term substitute", GHT.showTermBuilder(path, type));
+                menu.addOption("term substitute", GHT.showTermBuilder(path, type, binding));
             }
             if (term.terms && (term.terms[0] === GHT.Operators['[/]'])) {
                 menu.addOption("perform substitution", GHT.makeDoSubst(path));
@@ -626,8 +597,9 @@ GHT.makeTable = function(term, path, binding) {
     if (term instanceof Variable) {
         var span = document.createElement('span');
         type = term.getType();
-        span.className += " type_" + type;
-        span.innerHTML = term.toString();
+        span.className += "var type_" + type;
+        span.className += " binding_" + GHT.bindings[binding];
+        span.innerHTML = varMap[term];
         decorate(span);
         return span;
     }
@@ -657,7 +629,8 @@ GHT.makeTable = function(term, path, binding) {
         pathClone.push(i);
         td = document.createElement('td');
         tr.appendChild(td);
-        td.appendChild(GHT.makeTable(term.terms[i], pathClone, binding * op.bindings[i - 1]));
+        td.appendChild(GHT.makeTable(term.terms[i], pathClone,
+                                     binding * op.bindings[i - 1], varMap));
     };
     return table;
 
@@ -665,58 +638,109 @@ GHT.makeTable = function(term, path, binding) {
 document.getElementById("save").onclick = function() {
     var name = document.getElementById("name").value;
     console.log("#### Save as " + name);
-    thms[name] = GHT.theTerm;
+    GHT.thms[name] = GHT.theTerm;
 };
 GHT.undoStack = [];
+// Input: map from varString to isBinding
+// Output: map from varString to human-readable string
+GHT.makeVarMap = function(vars) {
+    var varNames = {
+     'wff':[["\u03c6", "\u03c7", "\u03c8", "\u03c9",  
+             "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
+     'set':[["S", "T", "U", "V", "W", "X", "Y", "Z"]],
+     'num':[["A", "B", "C", "D", "E", "F", "G",
+             "H", "I", "J", "K", "L", "M", "N"],
+            ["x", "y", "z", "a", "b", "c",
+             "d", "e", "f", "g", "h", "i"]]
+    };
+    return GHT.forEach(vars,
+        function(varStr, isBinding, varMap) {
+            if (varMap[varStr]) return varMap;
+            var type = VariableFromString(varStr).getType();
+            var name = varNames[type][isBinding ? 1 : 0].shift();
+            if (!name) name = varStr;
+            varMap[varStr] = name;
+            return varMap;
+        }, {});
+};
 GHT.setTerm = function(term) {
+    var vers = GHT.getVersion();
+    vers++;
+    GHT.undoStack[vers] = term.clone();
+    GHT.setVersion(vers);
+    // This changes the window.location hash, which will call back into actuallySetTerm.
+};
+GHT.actuallySetTerm = function(term) {
+    console.log("Setting term: " + term.toString());
     var div = document.getElementById("tree");
     try {
         if (GHT.theTable) div.removeChild(GHT.theTable);
     } catch (x) {
         console.log("No table?");
     }
-    GHT.undoStack.push(term.clone());
-    window.location = window.location.toString().replace(/#.*/, '#' + GHT.undoStack.length);
     GHT.theTerm = term;
-    GHT.theTable =  GHT.makeTable(term, [], 1);
+    GHT.theVars = term.extractVars();
+    GHT.theVarMap = GHT.makeVarMap(GHT.theVars);
+    GHT.theTable =  GHT.makeTable(term, [], 1, GHT.theVarMap);
     div.appendChild(GHT.theTable);
 };
-GHT.undo = function() {
-    //TODO: hack
-    var vers = window.location.toString().match(/#(.*)/)[1];
-    while (GHT.undoStack.length > vers) {
-        GHT.undoStack.pop();
-    }
-    GHT.setTerm(GHT.undoStack.pop());
+GHT.getVersion = function() {
+    var match = window.location.toString().match(/#(.*)/);
+    if (match) return Number(match[1]);
+    return -1;
 };
-function init(ctx) {
-    for (var symName in ctx.syms) {
-        var sym = ctx.syms[symName];
-        switch (sym[0]) {
-        case 'tvar':
-        case 'var':
-            continue;
-        }
-        if (sym[2].length > 0) {
-            // We don't need no stinkin' inferences
-            continue;
-        }
-        //  TODO: handle dvar list
-        thms[symName] = TermFromSexp(sym[3]);
-    }
-}
-init(window.verifyctx);
-GHT.equivalences = {  // TODO: autodetect these
-    'wff':GHT.Operators['<->'],
-    'set':GHT.Operators['=_'],
-    'num':GHT.Operators['=']
+GHT.setVersion = function(version) {
+    window.location = window.location.toString().replace(/#?\d*$/, '#' + version);
 };
-GHT.arrows = {  // TODO: autodetect these
-    'wff':GHT.Operators['->'],
-    'set':GHT.Operators['C_'],
-    'num':GHT.Operators['<=']
+GHT.getEquivalence = function(type) {
+    // TODO: autodetect these
+    switch(type) {
+    case 'wff':return GHT.Operators['<->'];
+    case 'set':return GHT.Operators['=_'];
+    case 'num':return GHT.Operators['='];
+    }
+    return null;
+};
+GHT.getArrow = function(type) {
+    // TODO: autodetect these
+    switch(type) {
+    case 'wff':return GHT.Operators['->'];
+    case 'set':return GHT.Operators['C_'];
+    case 'num':return GHT.Operators['<='];
+    }
+    return null;
 };
 
-window.location += "#0";
+window.addEventListener('hashchange', function() {
+                            var version = GHT.getVersion();
+                            console.log("#### Version: " + version);
+                            GHT.actuallySetTerm(GHT.undoStack[version]);
+                        }, true);
+function loadFromServer() {
+    var url = '/peano/peano_thms.gh';
+    var uc = new GH.XhrUrlCtx('/', url);
+    var v = new GH.VerifyCtx(uc, run);
+    run(uc, '/proofs_upto/999', v);
+    window.verifyctx = v;
+    function init(ctx) {
+        for (var symName in ctx.syms) {
+            var sym = ctx.syms[symName];
+            switch (sym[0]) {
+            case 'tvar':
+            case 'var':
+                continue;
+            }
+            if (sym[2].length > 0) {
+                // We don't need no stinkin' inferences
+                continue;
+            }
+            //  TODO: handle dvar list
+            GHT.thms[symName] = TermFromSexp(sym[3], 'wff');
+        }
+    }
+    init(window.verifyctx);
+}
+
+
 GHT.setTerm(thms['ax-1']);
-window.addEventListener('hashchange', GHT.undo, true);
+//loadFromServer();
