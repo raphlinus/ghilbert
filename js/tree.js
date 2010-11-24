@@ -34,7 +34,7 @@ function Term() {
     };
 }
 function Operator(key, name, type, inputs, bindings) {
-    this.toString = function() {return name;};
+    this.toString = function() {return key;};
     this.inputs = inputs;
     this.bindings = bindings;
     this.key = key;
@@ -44,12 +44,18 @@ function Operator(key, name, type, inputs, bindings) {
     this.toSource = function() {
         return "O(" + GHT.stringify(key) + ")";
     };
+    this.toString = function(varMap) {
+        return key;
+    };
     this.newTerm = function() {
         var args = [this];
         for (var i = 0; i < this.inputs.length; i++) {
             args.push(new Variable(this.inputs[i]));
         }
         return T(args);
+    };
+    this.getName = function() {
+        return name;
     };
 }
 function O(s) {
@@ -64,9 +70,10 @@ function Variable(type, num) {
         this.index = Variable.lastUsed++;
     }
 
-    this.toString = function() {
-        return this.getType() +","+ this.index;
+    this.toString = function(varMap) {
+        return (varMap && varMap[this]) ? varMap[this] : (this.getType() +","+ this.index);
     };
+
     this.clone = function(mapping) {
         if (!mapping[this]) mapping[this] = new Variable(this.getType());
         return mapping[this];
@@ -120,10 +127,11 @@ function TV(type, num) {
 }
 function Tuple(terms) {
     this.terms = terms;
-    this.toString = function() {
-        return "[" + this.terms.map(function(t) {return t.toString();}).join(' ')
-            + "]";
+    this.toString = function(varMap) {
+        return "(" + this.terms.map(function(t) {return t.toString(varMap);}).join(' ')
+            + ")";
     };
+
     this.clone = function(mapping) {
         if (!mapping) mapping = ({});
         var newTerms = this.terms.map(function(t) { return t.clone(mapping);});
@@ -201,12 +209,16 @@ function hash(str) {
     }
     return sum;
 }
-
+/*
 var Implies = new Operator('->', "\u2192", 'wff', ['wff', 'wff'], [-1, 1]);
 var Not = new Operator('-.', "\u00ac", 'wff', ['wff'], [-1]);
 var True = new Operator('t', "t", 'wff', [], []);
+GHT.Operators['->'] = Implies;
+GHT.Operators['-.'] = Not; 
+GHT.Operators['t'] =  True;
 
 var P, Q, R, S, U;
+
 
 var thms = {
     "ax-1": T(Implies, P = V(), T(Implies, Q = V(), P)),
@@ -227,6 +239,7 @@ thms.toSource = function() {
     out += "}";
     return out;
 };
+*/
 
 /**
  * Asserts that the example term can be an instance of the template term, subject to
@@ -341,7 +354,7 @@ OpList.prototype.toSource = function() {
         if (op.toSource) {
             s += GHT.stringify(x);
             s += ": new Operator(";
-            s += [op.key, op.toString(), op.getType(), op.inputs, op.bindings].map(
+            s += [op.key, op.getName(), op.getType(), op.inputs, op.bindings].map(
                 GHT.stringify).join(",");            
             s += "),";
         }
@@ -351,10 +364,10 @@ OpList.prototype.toSource = function() {
     return s;
 };
 GHT.Operators = new OpList();
-GHT.Operators['->'] = Implies;
-GHT.Operators['-.'] = Not; 
-GHT.Operators['t'] =  True;
 
+// Destructively replace the term at path {@param path} in the term
+// {@param before} with the term {@param after}.  Returns the
+// resultant term.
 GHT.swap = function(before, path, after) {
     if (path.length) {
         var index = path.shift();
@@ -378,20 +391,33 @@ GHT.newMenu = function(title, x, y) {
     GHT.dismiss = function() {
         popup.style.display = 'none';
     };
-    return {
+    GHT.theMenu = {
         addOption: function(text, func) {
+            var key = text;
+            while (this.options[key]) key += '~';
             var li  = document.createElement("li");
             li.innerHTML = text;
-            li.onclick = func;
             ul.appendChild(li);
+            this.options[key] = function(e) {
+                GHT.theStep += "GHT.theMenu.options[" + JSON.stringify(key) + "]();";
+                return func(e);
+            };
+            li.onclick = this.options[key];
+        },
+        options: {
         }
     };
+    return GHT.theMenu;
 };
-GHT.makeSwap = function(path, term, name) {
+
+// @param builderMaker a function that will be passed the path and builderMakerArg.
+// It should return a function suitable for putting in the undoStack:
+// that is, one that takes and returns a proofObj.
+GHT.makeSwap = function(path, newTerm, builderMaker, builderMakerArg) {
     return function() {
-        GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0), term.clone({})));
         GHT.dismiss();
-        console.log("#### Applied " + name + " at " + path);
+        GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0), newTerm),
+                   builderMaker(path.splice(0), builderMakerArg));
     };
 };
 
@@ -406,8 +432,9 @@ GHT.extract = function(term, path) {
 GHT.showTerminals = function(path) {
     return function() {
         var menu = GHT.newMenu("Terminals");
-        for (name in GHT.thms) {
-            menu.addOption(name, GHT.makeSwap(path.slice(0), GHT.thms[name], "T:" + name));
+        for (var name in GHT.thms) {
+            menu.addOption(name, GHT.makeSwap(path.slice(0), GHT.thms[name],
+                                              ProofObj.terminalMaker, name));
         }
     };
 };
@@ -418,87 +445,50 @@ GHT.showInitials = function(path) {
 GHT.showEquivalents = function(path) {
     return function() {
         var menu = GHT.newMenu("Equivalents");
-        var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in GHT.thms) {
-            var thm = GHT.thms[name];
-            if ((thm instanceof Tuple) && (thm.terms[0] == GHT.getEquivalence(type))) {
-                var antecedent = thm.terms[1];
-                var result = thm.terms[2];
-                try {
-                    var answer = GHT.theTerm.clone({});
-                    var example = GHT.extract(answer, path.slice(0));
+        var term = GHT.extract(GHT.theTerm, path.slice(0)); 
+        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 1);
+        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 2);
+    };
+};
 
-                    //console.log(" Result: " + answer + " to be swapped at " +  path);
-                    var mapping = unify(result, example);
-                    answer = GHT.swap(answer, path.slice(0), antecedent).substitute(mapping);
-                    menu.addOption(name, GHT.makeSwap([], answer, "A<" + name + " at " + path));
-                } catch (x) {
-                    //console.log("Can't unify " + name + ":" + x);
-                }
-                try {
-                    var answer = GHT.theTerm.clone({});
-                    var example = GHT.extract(answer, path.slice(0));
-
-                    //console.log(" Result: " + answer + " to be swapped at " +  path);
-                    var mapping = unify(antecedent, example);
-                    answer = GHT.swap(answer, path.slice(0), result).substitute(mapping);
-                    menu.addOption(name, GHT.makeSwap([], answer, "A>" + name + " at " + path));
-                } catch (x) {
-                    //console.log("Can't unify " + name + ":" + x);
-                }
-
+// Returns a function that, when called: sifts through the thm list
+// for terminals of the form [op, arg1, arg2], and
+// attempts to unify arg{@param whichArg} to the given term.  For each
+// success, adds a menu option to perform this substitution.
+// @param menu a menu to which we'll add options
+// @param term the term to serve as an example
+// @param path the path to {@param term}.
+// @param op the operator which must be the first term of the tuple.
+// @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
+GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
+    var example = term.clone({});
+    for (var name in GHT.thms) {
+        var thm = GHT.thms[name];
+        if (thm.terms[0] === op) {
+            var template = thm.terms[whichArg];
+            var result = thm.terms[3 - whichArg]; // switch 2 and 1
+            var mapping;
+            try {
+                mapping = unify(template, example);
+                result = result.substitute(mapping);
+                menu.addOption(name, GHT.makeSwap(path, result, ProofObj.TodoMaker,
+                                                  "mTM " + name + ":" + whichArg));
+            } catch (x) {
             }
         }
-    };
+    }
 };
 GHT.showArrowers = function(path) {
     return function() {
         var menu = GHT.newMenu("Arrowers");
-        var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in GHT.thms) {
-            var thm = GHT.thms[name];
-            if ((thm instanceof Tuple) &&
-                (thm.terms[0] == GHT.getArrow(type))) {
-                var antecedent = thm.terms[1];
-                var result = thm.terms[2];
-                try {
-                    var answer = GHT.theTerm.clone({});
-                    var example = GHT.extract(answer, path.slice(0));
-
-                    //console.log(" Result: " + answer + " to be swapped at " +  path);
-                    var mapping = unify(result, example);
-                    answer = GHT.swap(answer, path.slice(0), antecedent).substitute(mapping);
-                    menu.addOption(name, GHT.makeSwap([], answer, "A<" + name + " at " + path));
-                } catch (x) {
-                    //console.log("Can't unify " + name + ":" + x);
-                }
-            }
-        }
+        var term = GHT.extract(GHT.theTerm, path.slice(0)); 
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2);
     };
 };
-GHT.showArrowees = function(path) {
+GHT.showArrowees = function(path, term) {
     return function() {
         var menu = GHT.newMenu("Arrowees");
-        var type = GHT.extract(GHT.theTerm, path.slice(0)).getType();
-        for (name in GHT.thms) {
-            var thm = GHT.thms[name];
-            if ((thm instanceof Tuple) && 
-                (thm.terms[0] == GHT.getArrow(type))) {
-                var antecedent = thm.terms[1];
-                var result = thm.terms[2];
-                try {
-                    var answer = GHT.theTerm.clone({});
-                    var example = GHT.extract(answer, path.slice(0));
-
-                    //console.log(" Result: " + answer + " to be swapped at " +  path);
-                    var mapping = unify(antecedent, example);
-                    answer = GHT.swap(answer, path.slice(0), result).substitute(mapping);
-                    menu.addOption(name, GHT.makeSwap([], answer, "A>" + name + " at " + path));
-                } catch (x) {
-                    //console.log("Can't unify " + name + ":" + x);
-                }
-            }
-        }
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1);
     };
 };
 GHT.showAssertTerminal = function(path) {
@@ -506,6 +496,7 @@ GHT.showAssertTerminal = function(path) {
 };
 GHT.showTermBuilder = function(path, type, binding) {
     return function(event) {
+        if (!event) event={ };
         var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
                                event.pageX, event.pageY);
         var theVar = GHT.extract(GHT.theTerm, path.slice(0));
@@ -518,12 +509,13 @@ GHT.showTermBuilder = function(path, type, binding) {
                     // Rebinding a binding variable only affects the parent term.
                     var parent = GHT.extract(GHT.theTerm, path.slice(0, path.length - 1));
                     parent = parent.substitute(mapping);
-                    GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0, path.length - 1), parent));
-                    console.log("#### Rebound to " + term.toString() + " at " + path);
+                    GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0, path.length - 1), parent,
+                                         ProofObj.TodoMaker, "rebind to " + term.toString));
                 } else {
                     // Substituting a nonbinding variable affects the whole shebang.
-                    GHT.setTerm(GHT.theTerm.substitute(mapping));
-                    console.log("#### Substituted " + term.toString() + " at " + path);
+                    GHT.setTerm(GHT.theTerm.substitute(mapping),
+                                ProofObj.TodoMaker(path.splice(0),
+                                                   "termsub to " + term.toString()));
                 }
             };
         }
@@ -532,7 +524,7 @@ GHT.showTermBuilder = function(path, type, binding) {
             // Not a binding variable; we can build a term
             GHT.forEach(GHT.Operators, function(k, op) {
                             if (op.getType() === type) {
-                                menu.addOption(op.toString(), doSub(op.newTerm(), false));
+                                menu.addOption(op.getName(), doSub(op.newTerm(), false));
                             }
                         });
         }
@@ -558,8 +550,8 @@ GHT.makeDoSubst = function(path) {
         mapping[forVar] = newTerm;
         var answer = inTerm.substitute(mapping);
         //console.log("[/] answer is " + answer); 
-        GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0), answer));
-        console.log("#### Performed [/] substitution at " + path);
+        GHT.setTerm(GHT.swap(GHT.theTerm, path.slice(0), answer,
+                             ProofObj.TodoMaker, "perform [/]"));
     };
 };
 GHT.makeTable = function(term, path, binding, varMap) {
@@ -568,13 +560,16 @@ GHT.makeTable = function(term, path, binding, varMap) {
     var type;
     // Set onclick and mouseover listeners
     function decorate(td) {
+        var key = JSON.stringify(path);
         td.onclick = function(event) {
+            if (!event) event = {};
+            GHT.theStep = "GHT.theOnclicks['" + key + "']();";
             var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
                                    event.pageX, event.pageY);
             if (binding === 1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
                 menu.addOption("terminals", GHT.showTerminals(path));
-                menu.addOption("arrowees", GHT.showArrowees(path));
+                menu.addOption("arrowees", GHT.showArrowees(path, term));
             } else if (binding === 0) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
             } else if (binding === -1) {
@@ -592,6 +587,7 @@ GHT.makeTable = function(term, path, binding, varMap) {
                 menu.addOption("perform substitution", GHT.makeDoSubst(path));
             }
         };
+        GHT.theOnclicks[key] = td.onclick;
     }
 
     if (term instanceof Variable) {
@@ -621,7 +617,7 @@ GHT.makeTable = function(term, path, binding, varMap) {
     tr.appendChild(td);
     td.colSpan = op.inputs.length;
     td.className += 'operator';
-    td.innerHTML = op.toString().replace("<","&lt;");
+    td.innerHTML = op.getName().replace("<","&lt;");
     tr = document.createElement('tr');
     table.appendChild(tr);
     for (var i = 1; i < term.terms.length; i++) {
@@ -635,16 +631,93 @@ GHT.makeTable = function(term, path, binding, varMap) {
     return table;
 
 };
+// A ProofObj represents an in-progress draft of a ghilbert proof.
+function ProofObj(thmName) {
+    var that = this;
+    // Concatenates all varMaps and caps it off with a var map made from finalTerm.
+    // Each map must be disjoint!
+    function makeVarMap(finalTerm) {
+        that.varMaps.push(GHT.makeVarMap(finalTerm.extractVars(), GHT.ghilbertVarNames));
+        var unionMap = {};
+        that.varMaps.forEach(
+            function(map) {
+                for (var k in map) {
+                    unionMap[k] = map[k];
+                }
+            });
+        that.varMaps.pop();
+        var outMap = {};
+        for (var k in unionMap) {
+            var v = k;
+            do {
+                v = unionMap[v];
+            } while (unionMap[v]);
+            outMap[k] = v;
+        }
+        return outMap;
+    }
+    this.finish = function(finalTerm) {
+        var theVarMap = makeVarMap(finalTerm);
+        this.conclusion[0] = finalTerm.toString(theVarMap);
+        
+        var str = "";
+        function flatten(array) {
+            if (array instanceof Array) {
+                array.map(flatten);
+            } else {
+                str += array.toString(theVarMap);
+            }
+        }
+        flatten(["thm (", thmName, " (", this.dvs, ") () ", this.conclusion, "\n",
+                 this.steps]);
+        return str + ")";
+    };
+    this.dvs = [];
+    this.conclusion = [];
+    this.steps = [];
+    this.varMaps = [];
+}
+ProofObj.TodoMaker = function(path, label) {
+    return function(proofObj) {
+        proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
+        return proofObj;
+    };
+};
+ProofObj.terminalMaker = function(path, name) {
+    return function(proofObj) {
+        if (path.length == 0) {
+            // Starting proof over with this thm on the stack
+            var step = [];
+            for (var varStr in GHT.thms[name].extractVars()) {
+                step.push(VariableFromString(varStr));
+                step.push("  ");
+            }
+            step.push(name);
+            step.push("\n");
+            proofObj.steps = [step];
+        } else {
+            proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
+        }
+        return proofObj;
+    };
+};
+GHT.makeProof = function(name) {
+    var proofObj = new ProofObj(name);
+    var n = GHT.getVersion();
+    for (var i = 1; i <= n; i++) {
+        console.log(GHT.undoStack[i].step);
+        proofObj = GHT.undoStack[i].builder(proofObj);
+        proofObj.varMaps.push.apply(proofObj.varMaps, GHT.undoStack[i].varMaps);
+    }
+    return proofObj.finish(GHT.theTerm);
+};
 document.getElementById("save").onclick = function() {
     var name = document.getElementById("name").value;
+    GHT.thms[name] = GHT.theTerm;    
     console.log("#### Save as " + name);
-    GHT.thms[name] = GHT.theTerm;
 };
 GHT.undoStack = [];
-// Input: map from varString to isBinding
-// Output: map from varString to human-readable string
-GHT.makeVarMap = function(vars) {
-    var varNames = {
+GHT.goodVarNames = {
      'wff':[["\u03c6", "\u03c7", "\u03c8", "\u03c9",  
              "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
      'set':[["S", "T", "U", "V", "W", "X", "Y", "Z"]],
@@ -652,21 +725,42 @@ GHT.makeVarMap = function(vars) {
              "H", "I", "J", "K", "L", "M", "N"],
             ["x", "y", "z", "a", "b", "c",
              "d", "e", "f", "g", "h", "i"]]
+};
+GHT.ghilbertVarNames = {
+     'wff':[["ph", "ps", "ch", "th", "ta", "et", "si", "zi"]],
+     'set':[["S", "T", "U", "V"]],
+     'num':[["A", "B", "C", "A'", "B'", "C'"],
+            ["v", "w", "x", "y", "z",
+             "v'", "w'", "x'", "y'", "z'"]]
+};
+// Input: map from varString to isBinding, and one of GHT.*VarNames
+// Output: map from varString to human-readable string
+GHT.makeVarMap = function(vars, varNames) {
+    var typeIndices = {
+        wff: [0, 0], set: [0, 0], num: [0, 0]
     };
     return GHT.forEach(vars,
         function(varStr, isBinding, varMap) {
             if (varMap[varStr]) return varMap;
             var type = VariableFromString(varStr).getType();
-            var name = varNames[type][isBinding ? 1 : 0].shift();
+            var index = typeIndices[type][isBinding ? 1 : 0]++;
+            var name = varNames[type][isBinding ? 1 : 0][index];
             if (!name) name = varStr;
             varMap[varStr] = name;
             return varMap;
         }, {});
 };
-GHT.setTerm = function(term) {
+GHT.setTerm = function(term, builder) {
     var vers = GHT.getVersion();
     vers++;
-    GHT.undoStack[vers] = term.clone();
+    if (!builder) builder = ProofObj.TodoMaker(["?"], "?!");
+    var map = {};
+    var termClone = term.clone(map);
+    GHT.undoStack[vers] = {term: termClone,
+                           step: GHT.theStep,
+                           builder: builder,
+                           varMaps: [map]
+                          };
     GHT.setVersion(vers);
     // This changes the window.location hash, which will call back into actuallySetTerm.
 };
@@ -680,9 +774,12 @@ GHT.actuallySetTerm = function(term) {
     }
     GHT.theTerm = term;
     GHT.theVars = term.extractVars();
-    GHT.theVarMap = GHT.makeVarMap(GHT.theVars);
+    GHT.theVarMap = GHT.makeVarMap(GHT.theVars, GHT.goodVarNames);
+    GHT.theOnclicks = { };
     GHT.theTable =  GHT.makeTable(term, [], 1, GHT.theVarMap);
     div.appendChild(GHT.theTable);
+
+    document.getElementById('proof').innerHTML = GHT.makeProof("wip").replace(/</g, '&lt;');
 };
 GHT.getVersion = function() {
     var match = window.location.toString().match(/#(.*)/);
@@ -711,11 +808,6 @@ GHT.getArrow = function(type) {
     return null;
 };
 
-window.addEventListener('hashchange', function() {
-                            var version = GHT.getVersion();
-                            console.log("#### Version: " + version);
-                            GHT.actuallySetTerm(GHT.undoStack[version]);
-                        }, true);
 function loadFromServer() {
     var url = '/peano/peano_thms.gh';
     var uc = new GH.XhrUrlCtx('/', url);
@@ -741,6 +833,29 @@ function loadFromServer() {
     init(window.verifyctx);
 }
 
-
-GHT.setTerm(thms['ax-1']);
+GHT.setVersion(0); 
+window.onload = function() {
+    GHT.setTerm(GHT.thms['ax-1'], ProofObj.TodoMaker([], "start with ax-1"));
+    GHT.actuallySetTerm(GHT.thms['ax-1']);
+    window.setTimeout(
+        function() {
+            window.addEventListener(
+                'hashchange', function() {
+                    var version = GHT.getVersion();
+                    GHT.actuallySetTerm(GHT.undoStack[version].term);
+                }, true);
+        }, 10);
+    window.setTimeout(doStep, 50);
+};
 //loadFromServer();
+var steps = [
+    "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['ax-1']();",    
+    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
+//    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
+//    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axmp']();"
+];
+function doStep() {
+    var step = steps.shift();
+    if (step) eval(step);
+    if (steps.length) window.setTimeout(doStep, 10);
+}
