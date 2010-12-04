@@ -423,18 +423,22 @@ GHT.newMenu = function(title, x, y) {
 };
 
 // @param builderMaker a function that will be passed the path and builderMakerArg.
+// @param optMap an optional map to be substituted into theTerm before the clone.
 // It should return a function suitable for putting in the undoStack:
 // that is, one that takes a proofObj and returns the modified proofObj.
 // TODO: make this OO
-GHT.makeSwap = function(path, newTerm, builderMaker, builderMakerArg) {
+GHT.makeSwap = function(path, newTerm, builderMaker, builderMakerArg, optMap) {
     return function() {
         GHT.dismiss();
         var cloneMap = {};
-        var theClone = GHT.theTerm.clone(cloneMap);
-        GHT.setTerm(GHT.swap(theClone, path.slice(0), newTerm),
+        var theTerm = GHT.theTerm;
+        if (optMap) theTerm = theTerm.substitute(optMap);
+        var theClone = theTerm.clone(cloneMap);
+        GHT.setTerm(GHT.swap(theClone, path.slice(0), newTerm.substitute(cloneMap)),
                    builderMaker(path.splice(0), builderMakerArg), cloneMap);
     };
 };
+
 
 GHT.extract = function(term, path) {
     if (path.length) {
@@ -477,7 +481,7 @@ GHT.showEquivalents = function(path) {
 // @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
 GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
     var cloneMap = {};
-    var example = term.clone({});
+    var example = term;
     for (var name in GHT.thms) {
         var thm = GHT.thms[name];
         if (thm.terms[0] === op) {
@@ -493,7 +497,7 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
             }
             result = result.substitute(unifyMap);
             menu.addOption(name, GHT.makeSwap(path, result, ProofObj.TheoremMaker,
-                                              [name, whichArg]));
+                                              [name, whichArg], unifyMap));
         }
     }
 };
@@ -723,7 +727,7 @@ ProofObj.TheoremMaker = function(path, argList) {
         }
         proofObj.varMaps.push(unifyMap);
         step.push(thmName, "\n");
-        topOfStack = GHT.swap(topOfStack, path.slice(0), result);
+        topOfStack = GHT.swap(topOfStack.substitute(unifyMap), path.slice(0), result);
 
         // Travel up the path to the root term, applying stock inferences along the way
         var myPath = path.slice(0);
@@ -763,6 +767,7 @@ ProofObj.TerminalMaker = function(path, name) {
             step.push("\n");
             proofObj.steps = [step];
             proofObj.stack = [thm];
+            proofObj.varMaps = [];
         } else {
             proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
         }
@@ -935,10 +940,12 @@ window.onload = function() {
 };
 //loadFromServer();
 GHT.autoSteps = [
+/*  // Proves id
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['terminals']()","GHT.theMenu.options['ax-1']();",
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axand']();",
     "GHT.theOnclicks['[1,2,1]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['ax-2']();",
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axmp']();"
+*/
 ];
 function doStep() {
     var step = GHT.autoSteps.shift();
