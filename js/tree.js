@@ -71,8 +71,17 @@ function Variable(type, num) {
     }
 
     this.toString = function(varMap) {
-        return (varMap && varMap[this]) ? varMap[this].toString(varMap)
-            : (this.getType() +","+ this.index);
+        if (varMap) {
+            if (varMap[this]) {
+                return varMap[this].toString(varMap);
+            } else {
+                var newVar = varMap[null](this);
+                varMap[this] = newVar;
+                return newVar;
+            }
+        } else {
+            return  (this.getType() +","+ this.index);
+        }
     };
 
     this.clone = function(mapping) {
@@ -415,7 +424,8 @@ GHT.newMenu = function(title, x, y) {
 
 // @param builderMaker a function that will be passed the path and builderMakerArg.
 // It should return a function suitable for putting in the undoStack:
-// that is, one that takes a proofObj and the current term, and returns a new proofObj.
+// that is, one that takes a proofObj and returns the modified proofObj.
+// TODO: make this OO
 GHT.makeSwap = function(path, newTerm, builderMaker, builderMakerArg) {
     return function() {
         GHT.dismiss();
@@ -467,7 +477,7 @@ GHT.showEquivalents = function(path) {
 // @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
 GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
     var cloneMap = {};
-    var example = term.clone(cloneMap);
+    var example = term.clone({});
     for (var name in GHT.thms) {
         var thm = GHT.thms[name];
         if (thm.terms[0] === op) {
@@ -483,7 +493,7 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
             }
             result = result.substitute(unifyMap);
             menu.addOption(name, GHT.makeSwap(path, result, ProofObj.TheoremMaker,
-                                              [name, whichArg, [cloneMap, unifyMap]]));
+                                              [name, whichArg]));
         }
     }
 };
@@ -664,7 +674,11 @@ function ProofObj(thmName) {
         }
         return outMap;
     }
-    this.finish = function(finalTerm) {
+    this.finish = function() {
+        if (this.stack.length != 1) {
+            throw "ProofObj must have exactly 1 term on the stack at end of the proof: " + this.stack.length;
+        }
+        var finalTerm = this.stack.pop();
         var theVarMap = makeVarMap(finalTerm);
         GHT.finalVarMap = theVarMap; //XXX
         this.conclusion[0] = finalTerm.toString(theVarMap);
@@ -685,9 +699,10 @@ function ProofObj(thmName) {
     this.conclusion = [];
     this.steps = [];
     this.varMaps = [];
+    this.stack = [];
 }
 ProofObj.TodoMaker = function(path, label) {
-    return function(proofObj, term) {
+    return function(proofObj) {
         proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
         return proofObj;
     };
@@ -695,42 +710,59 @@ ProofObj.TodoMaker = function(path, label) {
 ProofObj.TheoremMaker = function(path, argList) {
     var thmName = argList[0];
     var whichArg = argList[1];
-    var mapList = argList[2];
-    if (path.length == 0 && whichArg == 1) {
-        return function(proofObj, term) {
-            var step = [];
-            for (var varStr in GHT.thms[thmName].extractVars()) {
-                step.push(VariableFromString(varStr));
-                step.push("  ");
+    return function(proofObj) {
+        var step = [];
+        var topOfStack = proofObj.stack.pop();
+        var example = GHT.extract(topOfStack, path.slice(0));
+        var thm = GHT.thms[thmName].clone({});
+        var template = thm.terms[whichArg];
+        var unifyMap = unify(template, example);
+        var result = thm.terms[3 - whichArg].substitute(unifyMap);
+        for (var varStr in thm.extractVars()) {
+            step.push(VariableFromString(varStr), "  ");
+        }
+        proofObj.varMaps.push(unifyMap);
+        step.push(thmName, "\n");
+        topOfStack = GHT.swap(topOfStack, path.slice(0), result);
+
+        // Travel up the path to the root term, applying stock inferences along the way
+        var myPath = path.slice(0);
+        while (myPath.length > 0) {
+            var whichChild = myPath.pop();
+            var term = GHT.extract(topOfStack, myPath.slice(0));
+            var op = term.terms[0];
+            for (var i = 1; i < op.inputs.length + 1; i++) {
+                if (i != whichChild) {
+                    step.push(term.terms[i], "  ");
+                }
             }
-            step.push(thmName);
-            step.push("    ");
-            step.push("ax-mp");
-            step.push("\n");
-            proofObj.steps.push(step);
-            proofObj.varMaps.push.apply(proofObj.varMaps, mapList);
-            return proofObj;
-        };
-    } else {
-        return function(proofObj, term) {
-            proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + thmName + "[" +
-                                whichArg + "\n");
-            return proofObj;
-        };
-    }
+            step.push(GHT.Inferences[op][whichChild - 1],"    ");
+        }
+        step.push("ax-mp\n");
+        proofObj.steps.push(step);
+
+        proofObj.stack.push(topOfStack);
+        return proofObj;
+    };
+};
+GHT.Inferences = {  // TODO: autodetect these
+    "-.": ["con3i"],
+    "->": ["imim1i", "imim2i"]
 };
 ProofObj.TerminalMaker = function(path, name) {
-    var builder = function(proofObj, term) {
+    var builder = function(proofObj) {
         if (path.length == 0) {
             // Starting proof over with this thm on the stack
             var step = [];
-            for (var varStr in term.extractVars()) {
+            var thm = GHT.thms[name].clone({});
+            for (var varStr in thm.extractVars()) {
                 step.push(VariableFromString(varStr));
                 step.push("  ");
             }
             step.push(name);
             step.push("\n");
             proofObj.steps = [step];
+            proofObj.stack = [thm];
         } else {
             proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
         }
@@ -743,11 +775,15 @@ GHT.makeProof = function(name) {
     var n = GHT.getVersion();
     for (var i = 1; i <= n; i++) {
         console.log(GHT.undoStack[i].step);
-        proofObj = GHT.undoStack[i].builder(proofObj, GHT.undoStack[i].term);
-        proofObj.varMaps.push.apply(proofObj.varMaps, GHT.undoStack[i].varMaps);
+        proofObj = GHT.undoStack[i].builder(proofObj);
+        //XXX proofObj.varMaps.push.apply(proofObj.varMaps, GHT.undoStack[i].varMaps);
     }
     GHT.theProofObj = proofObj;
-    return proofObj.finish(GHT.theTerm);
+    try {
+        return proofObj.finish(GHT.theTerm);
+    } catch (x) {
+        return "Can't finish proof: " + x;
+    }
 };
 document.getElementById("save").onclick = function() {
     var name = document.getElementById("name").value;
@@ -771,13 +807,16 @@ GHT.ghilbertVarNames = {
             ["v", "w", "x", "y", "z",
              "v'", "w'", "x'", "y'", "z'"]]
 };
-// Input: map from varString to isBinding, and one of GHT.*VarNames
-// Output: map from varString to human-readable string
+// Input: a map from vars to isBinding, and one of GHT.*VarNames
+// Output: an object that maps varString to returns a human-readable string.
+// HACK: If you don't find yourself in the varMap, use varMap[null](this) instead.  
+// TODO: make this whole thing a function instead so we can lazily
+// bind dummy vars. But how to know if they are binding??
 GHT.makeVarMap = function(vars, varNames) {
     var typeIndices = {
         wff: [0, 0], set: [0, 0], num: [0, 0]
     };
-    return GHT.forEach(vars,
+    var varMap = GHT.forEach(vars,
         function(varStr, isBinding, varMap) {
             if (varMap[varStr]) return varMap;
             var type = VariableFromString(varStr).getType();
@@ -787,17 +826,26 @@ GHT.makeVarMap = function(vars, varNames) {
             varMap[varStr] = name;
             return varMap;
         }, {});
+    varMap[null] = function(varObj) {
+        var type = varObj.getType();
+        var isBinding = 0;// XXX assume nonbinding
+        var index = typeIndices[type][isBinding ? 1 : 0]++;
+        var name = varNames[type][isBinding ? 1 : 0][index];
+        if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
+        return name;
+    };
+    return varMap;
 };
 GHT.setTerm = function(term, builder, mapping) {
     var vers = GHT.getVersion();
     vers++;
     if (!builder) builder = ProofObj.TodoMaker(["?"], "?!");
-    var map = {};
-    var termClone = term.clone(map);
+    var cloneMap = {};
+    var termClone = term.clone(cloneMap);
     GHT.undoStack[vers] = {term: termClone,
                            step: GHT.theStep,
                            builder: builder,
-                           varMaps: [mapping, map]
+                           varMaps: [mapping, cloneMap]
                           };
     GHT.setVersion(vers);
     // This changes the window.location hash, which will call back into actuallySetTerm.
@@ -886,17 +934,16 @@ window.onload = function() {
     window.setTimeout(doStep, 50);
 };
 //loadFromServer();
-var steps = [
+GHT.autoSteps = [
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['terminals']()","GHT.theMenu.options['ax-1']();",
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axand']();",
-    //"GHT.theOnclicks['[1,2,1]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['ax-2']();",
-//    "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axmp']();",
-""
+    "GHT.theOnclicks['[1,2,1]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['ax-2']();",
+    "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axmp']();"
 ];
 function doStep() {
-    var step = steps.shift();
+    var step = GHT.autoSteps.shift();
     if (step) eval(step);
-    if (steps.length) {
+    if (GHT.autoSteps.length) {
         window.setTimeout(doStep, 10);
     }
 
