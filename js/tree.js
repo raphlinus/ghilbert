@@ -411,7 +411,7 @@ GHT.newMenu = function(title, x, y) {
             li.innerHTML = text;
             ul.appendChild(li);
             this.options[key] = function(e) {
-                GHT.theStep += "GHT.theMenu.options[" + JSON.stringify(key) + "]();";
+                GHT.theStep += "GHT.theMenu.options['" + key + "']();";
                 return func(e);
             };
             li.onclick = this.options[key];
@@ -749,27 +749,53 @@ ProofObj.TheoremMaker = function(path, argList) {
         return proofObj;
     };
 };
+// Inferences used to propagate an arrowing up the tree.
 GHT.Inferences = {  // TODO: autodetect these
     "-.": ["con3i"],
     "->": ["imim1i", "imim2i"]
 };
+// Inferences used to assert the terminality of a terminal
+GHT.Terminators = {
+    "wff": "a1i"
+};
 ProofObj.TerminalMaker = function(path, name) {
     var builder = function(proofObj) {
+        // Starting proof over with this thm on the stack
+        var step = [];
+        var thm = GHT.thms[name].clone({});
+        for (var varStr in thm.extractVars()) {
+            step.push(VariableFromString(varStr));
+            step.push("  ");
+        }
+        step.push(name);
         if (path.length == 0) {
-            // Starting proof over with this thm on the stack
-            var step = [];
-            var thm = GHT.thms[name].clone({});
-            for (var varStr in thm.extractVars()) {
-                step.push(VariableFromString(varStr));
-                step.push("  ");
-            }
-            step.push(name);
-            step.push("\n");
+            // Starting proof over -- clear out the proofObj
             proofObj.steps = [step];
             proofObj.stack = [thm];
             proofObj.varMaps = [];
+            step.push("\n");
         } else {
-            proofObj.steps.push("#TODO at " + JSON.stringify(path) + ": " + label + "\n");
+            step.push("    ");
+            var topOfStack = proofObj.stack.pop();
+            var termToReplace = GHT.extract(topOfStack, path.slice(0));
+            step.push(termToReplace, "  ", GHT.Terminators[termToReplace.getType()], "    ");
+            //TODO: share code with TheoremMaker
+            var myPath = path.slice(0);
+            topOfStack = GHT.swap(topOfStack, path.slice(0), thm);
+            while (myPath.length > 0) {
+                var whichChild = myPath.pop();
+                var term = GHT.extract(topOfStack, myPath.slice(0));
+                var op = term.terms[0];
+                for (var i = 1; i < op.inputs.length + 1; i++) {
+                    if (i != whichChild) {
+                        step.push(term.terms[i], "  ");
+                    }
+                }
+                step.push(GHT.Inferences[op][whichChild - 1],"    ");
+            }
+            step.push("ax-mp\n");
+            proofObj.steps.push(step);
+            proofObj.stack.push(topOfStack);
         }
         return proofObj;
     };
@@ -945,6 +971,21 @@ GHT.autoSteps = [
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axand']();",
     "GHT.theOnclicks['[1,2,1]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['ax-2']();",
     "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axmp']();"
+*/
+
+/*  // Proves imim2
+    "GHT.theOnclicks['[]']();GHT.theMenu.options["terminals"]();GHT.theMenu.options["ax-2"]();",
+    "GHT.theOnclicks['[1]']();GHT.theMenu.options["arrowers"]();GHT.theMenu.options["ax-1"]();"
+*/
+/*
+    // Proves imim1
+    "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['ax-1']();",
+    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
+    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['imim2']();",
+    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-1']();",
+    "GHT.theOnclicks['[1,2,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
+    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
+    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axmp']();",
 */
 ];
 function doStep() {
