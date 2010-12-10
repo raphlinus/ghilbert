@@ -447,11 +447,11 @@ GHT.newMenu = function(title, x, y) {
     return GHT.theMenu;
 };
 
-GHT.showTerminals = function(path) {
+GHT.showTerminals = function(path, scheme) {
     return function() {
         var menu = GHT.newMenu("Terminals");
         for (var name in GHT.thms) {
-            menu.addOption(name, GHT.makeApplyFunction(path, 'Terminal', name));
+            menu.addOption(name, GHT.makeApplyFunction(path, 'Terminal', name, scheme));
         }
     };
 };
@@ -463,8 +463,8 @@ GHT.showEquivalents = function(path) {
     return function() {
         var menu = GHT.newMenu("Equivalents");
         var term = GHT.theTerm.extract(path.slice(0));
-        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 1);
-        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 2);
+        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 1, GHT.EquivalenceScheme);
+        GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 2, GHT.EquivalenceScheme);
     };
 };
 
@@ -477,7 +477,7 @@ GHT.showEquivalents = function(path) {
 // @param path the path to {@param term}.
 // @param op the operator which must be the first term of the tuple.
 // @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
-GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
+GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme) {
     var cloneMap = {};
     var example = term;
     for (var name in GHT.thms) {
@@ -494,27 +494,27 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg) {
                 continue;
             }
             result = result.substitute(unifyMap);
-            menu.addOption(name, GHT.makeApplyFunction(path, 'Arrow', name, whichArg == 1));
+            menu.addOption(name, GHT.makeApplyFunction(path, 'Arrow', name, whichArg, scheme));
         }
     }
 };
-GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2) {
+GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3) {
     return function() {
         GHT.dismiss();
-        GHT.setProof(GHT.getProof()['apply' + whatToApply](path, arg1, arg2));
+        GHT.setProof(GHT.getProof()['apply' + whatToApply](path, arg1, arg2, arg3));
     };
 };
 GHT.showArrowers = function(path) {
     return function() {
         var menu = GHT.newMenu("Arrowers");
         var term = GHT.theTerm.extract(path.slice(0)); 
-        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2);
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2, GHT.ArrowScheme);
     };
 };
 GHT.showArrowees = function(path, term) {
     return function() {
         var menu = GHT.newMenu("Arrowees");
-        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1);
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1, GHT.ArrowScheme);
     };
 };
 GHT.showAssertTerminal = function(path) {
@@ -596,7 +596,7 @@ GHT.makeTable = function(term, path, binding, varMap) {
                                    event.pageX, event.pageY);
             if (binding === 1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
-                menu.addOption("terminals", GHT.showTerminals(path));
+                menu.addOption("terminals", GHT.showTerminals(path, GHT.ArrowScheme));
                 menu.addOption("arrowees", GHT.showArrowees(path, term));
             } else if (binding === 0) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
@@ -734,7 +734,9 @@ GHT.ProofFactory = function() {
 
         // Extend by replacing the subterm at {@param path}, which must have
         // initial binding, with the terminal named by {@param name}.
-        this.applyTerminal = function(path, name) {
+        // @param scheme an Arrow Scheme which must contain proven
+        // inferences for all relevant steps in the chain.
+        this.applyTerminal = function(path, name, scheme) {
             // TODO: check binding here
             var newStep = [];
             var terminalTerm = GHT.thms[name].clone({});
@@ -769,9 +771,13 @@ GHT.ProofFactory = function() {
                             newStep.push(term.terms[i], "  ");
                         }
                     }
-                    newStep.push(GHT.Inferences[op][whichChild - 1],"    ");
+                    try {
+                        newStep.push(scheme[op][whichChild - 1],"    ");
+                    } catch (x) {
+                        throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
+                    }
                 }
-                newStep.push("ax-mp\n");
+                newStep.push(scheme.mp, "\n");
                 var newSteps = mSteps.slice(0);
                 newSteps.push(newStep);
                 var newDvs = mDvs.slice(0); // TODO: copy over from terminalTerm
@@ -780,11 +786,16 @@ GHT.ProofFactory = function() {
         };
         
         // Extend by replacing the subterm at {@param path} according to an
-        // arrowing theorem named by {@param name}.  If isForward is true, then
-        // the subterm is at the tail of the arrow and must have initial
-        // binding; otherwise the subterm is at the head of the arrow and must
-        // have terminal binding.
-        this.applyArrow = function(path, name, isForward) {
+        // arrowing theorem named by {@param name}.  If the named theorem is a unidirectional
+        // arrowing, then templateArg=1 means that the subterm will be
+        // the tail of the arrow and must have initial binding while templatearg=2 means that the
+        // subterm will be at the head of the arrow and must have terminal binding.  If the named
+        // theorem is a bidirectional arrowing (an equivalence), templateArg is the side to match to
+        // the named subterm (which may have any binding).
+        // @param scheme an Arrow Scheme which must contain proven inferences
+        // for all relevant steps in the chain.
+
+        this.applyArrow = function(path, name, templateArg, scheme) {
             // TODO: check binding here
             var newStep = [];
             var cloneMap = {};
@@ -793,7 +804,6 @@ GHT.ProofFactory = function() {
 
             var example = newTerm.extract(path.slice(0));
             var thm = GHT.thms[name].clone({});
-            var templateArg = isForward ? 1 : 2;
             var template = thm.terms[templateArg];
             // TODO: eliminate this second unification
             var unifyMap = unify(template, example);
@@ -817,9 +827,13 @@ GHT.ProofFactory = function() {
                         newStep.push(term.terms[i], "  ");
                     }
                 }
-                newStep.push(GHT.Inferences[op][whichChild - 1],"    ");
+                try {
+                    newStep.push(scheme[op][whichChild - 1],"    ");
+                } catch (x) {
+                    throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
+                }
             }
-            newStep.push("ax-mp\n");
+            newStep.push(scheme.mp, "\n");
             var newSteps = mSteps.slice(0);
             newSteps.push(newStep);
             var newDvs = mDvs.slice(0); // TODO: copy over from thm
@@ -852,10 +866,27 @@ GHT.ProofFactory = function() {
     ProofObj.prototype = new Object();
 };
 // Inferences used to propagate an arrowing up the tree.
-GHT.Inferences = {  // TODO: autodetect these
+// Inferences[op][n] should be an inference that transforms "x arrow
+// y" into "op(..x..) arrow op(..y..)".  The direction of the arrow
+// may get be reversed if the op.binding[n] is -1.
+// TODO: HACK: Also, each scheme must have an 'mp' property mapping to the
+// appropriate modus-ponens inference.
+GHT.ArrowScheme = {  // TODO: autodetect these
+    "mp": "ax-mp",
     "-.": ["con3i"],
-    "->": ["imim1i", "imim2i"]
+    "->": ["imim1i", "imim2i"],
+    //TODO(pickup): these aren't right
+    "<->": ["imbi1i", "imbi2i"],
+    "/\\": ["anim1i", "anim2i"]
 };
+GHT.EquivalenceScheme = {
+    "mp": "mpbi",
+    "e.": ["eleq1i", "eleq2i"],
+    "E!": ["eualpha", "eubii"],
+    "A.": ["alpha", "albii"],
+    "/\\": ["anbi1i", "anbi2i"],
+    "->": ["imbi1i", "imbi2i"],
+}
 // Inferences used to assert the terminality of a terminal
 GHT.Terminators = {
     "wff": "a1i"
@@ -1036,8 +1067,11 @@ GHT.autoSteps = [
 
 "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['df-fun']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['(lambda     )']();"
-
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['(lambda     )']();",
+"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-lambda']();",
+"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-lambda']();",
+"GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
+"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
 ];
 
 function doStep() {
