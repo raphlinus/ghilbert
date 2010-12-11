@@ -54,6 +54,11 @@ function Term() {
         }
         throw "Invalid path " + path + " for term " + this;
     };
+    // Finds the first instance of the given leaf in this term.  Puts the path
+    // in outPath and returns whether it was found.
+    this.find = function(leaf, outPath) {
+        return this.toString() === leaf.toString();
+    };
 }
 function Operator(key, name, type, inputs, bindings) {
     this.toString = function() {return key;};
@@ -105,6 +110,7 @@ function Variable(type, num) {
     };
 
     this.clone = function(mapping) {
+        if (mapping == "=") return new Variable(type, num); //HACK
         if (!mapping[this]) mapping[this] = new Variable(this.getType());
         return mapping[this];
     };
@@ -235,6 +241,15 @@ function Tuple(terms) {
             this.terms[path.shift()].splice(path, newTerm);
         }        
         return this;
+    };
+    this.find = function(leaf, outPath) {
+        for (var i = 1; i < this.terms.length; i++) {
+            if (this.terms[i].find(leaf, outPath)) {
+                outPath.unshift(i);
+                return true;
+            }
+        }
+        return false;
     };
 }
 Tuple.prototype = new Term();
@@ -569,17 +584,7 @@ GHT.showTermBuilder = function(path, type, binding) {
 GHT.makeDoSubst = function(path) {
     return function() {
         GHT.dismiss();
-        var tuple = GHT.theTerm.extract(path.slice(0));
-        if (!(tuple instanceof Tuple)
-            || (tuple.terms[0] !== GHT.Operators['[/]']))  throw "Can't subst " + tuple;
-        var newTerm = tuple.terms[1];
-        var forVar = tuple.terms[2];
-        var inTerm = tuple.terms[3];
-        var mapping = { };
-        mapping[forVar] = newTerm;
-        var answer = inTerm.substitute(mapping);
-        //console.log("[/] answer is " + answer); 
-        throw 'TODO: GHT.makeSwap(path, answer, ProofObj.TodoMaker, "perform [/]")();';
+        GHT.setProof(GHT.getProof().applySubst(path));
     };
 };
 GHT.makeTable = function(term, path, binding, varMap) {
@@ -856,6 +861,132 @@ GHT.ProofFactory = function() {
             return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
         };
 
+        // Extend by applying the substitution law sbcie at the given path.
+        this.applySubst = function(path) {
+             // TODO: This special knowledge of [/] is ugly.  Should substitution
+            // be part of ghilbert directly?  Or should we be able to learn to
+            // manipulate all [/]-like operators?
+            
+            // Our goal is to prove (-> (= x A) (<-> ph ps)) so we can use sbcie.
+            // For each instance of the substituted-for variable, we need to
+            // propagate an equality up to the root of the substitution-term.
+            var cloneMap = {};
+            var mTermClone = mTerm.clone(cloneMap);
+            var subTerm = mTermClone.extract(path.slice(0));
+            if (subTerm.terms[0].toString() !== '[/]') {
+                throw "Term not actually [/] at path " + JSON.stringify(path);
+            }
+            var newTerm = subTerm.terms[1];
+            var subForVar = subTerm.terms[2]; 
+            var subIn = subTerm.terms[3]; 
+            // This is a nasty hack -- we always assume we can't
+            // re-use variables.  This violates the assumption.  This
+            // is only legit because we have ownership of subInClone
+            // and ensure neither it nor any of its descendants will
+            // ever be used inside any other term -- only in the proof steps.
+            // subIn itself is destined to be mutated, but we need an
+            // undisturbed copy to generate the steps.
+            var subInClone = subIn.clone("=");
+            var subType = subForVar.getType();
+            var path2 = [];
+            var step = [];
+            var subMapping = {};
+            subMapping[subForVar] = newTerm;
+            var outerFirst = true;
+            while (subIn.find(subForVar, path2)) {
+                // TODO(pickup): questions...
+                // 1) should we be using inferences or deductions to push up the stack?
+                //    deductions are cleaner, but what about eubii and (A. x = y)?
+                var path2Copy = path2.slice(0);
+                var innerFirst = true;
+                var leftEq = subForVar;
+                var rightEq = newTerm;
+                while (path2.length > 0) {
+                    var whichChild = path2.pop();
+                    var opTerm = subInClone.extract(path2.slice(0));
+                    var op = opTerm.terms[0];
+                    var equivThm;
+                    try {
+                        equivThm = GHT.EquivalenceScheme[op][whichChild - 1];
+                    } catch (x) {
+                        throw "No equivalence thm found for op " + op + " child " + whichChild;
+                    }
+                    // TODO: Ugly, ugly, hack.  We're using the '..d' form for
+                    // some of these.  Need to figure out what to do with
+                    // unquantified variables.
+                    var isDForm = equivThm.match(/d$/);
+                    if (!isDForm) {
+                        step.push(leftEq, "  ", rightEq, "  ");
+                    }
+                    for (var i = 1; i < op.inputs.length + 1; i++) {
+                        if (i != whichChild) {
+                            step.push(opTerm.terms[i], "  ");
+                        }
+                    }
+                    step.push(equivThm, "    ");
+                    if (!innerFirst && !isDForm) {
+                        // The stack now has:
+                        // (-> (= A x) ($EQ0 $1 $2)
+                        // (-> ($EQ0 $1 $2) ($EQ3 $4 $5)
+                        // We want to combine these using syl.
+                        step.push("syl", "    ");
+                    }
+                    rightEq = subIn.extract(path2.slice(0));
+                    leftEq = subInClone.extract(path2.slice(0));
+
+                    innerFirst = false;    
+                }
+                if (!outerFirst) {
+                    throw "TODO: Substiution more than once not supported.";
+                    // TODO: need to also consider the case that
+                    // subVar is in newTerm
+                    // The stack now has:
+                    // (-> (= A x) (EQ(op.type) ph ps))
+                    // (-> (= A x) (EQ(op.type) ps ch)) 
+                    // We want to combine the last two terms using the transitivity of EQ.
+                    var equivThm;
+                    try {
+                        equivThm = GHT.EquivalenceThms[op.getType()].tr;
+                    } catch (x) {
+                        throw "No transitivity thm found for op " + op;
+                    }
+                    step.push(equivThm, "    ");
+                }
+                subIn = subIn.splice(path2Copy, newTerm);
+                path2 = [];
+                outerFirst = false;
+            }
+            step.push("sbcie", "    ");
+            newTerm = mTermClone.splice(path.slice(0), subIn);
+            // Push it up the stack
+            //TODO: share code with applyArrow
+            var myPath = path.slice(0);
+            while (myPath.length > 0) {
+                var whichChild = myPath.pop();
+                var term = newTerm.extract(myPath.slice(0));
+                var op = term.terms[0];
+                for (var i = 1; i < op.inputs.length + 1; i++) {
+                    if (i != whichChild) {
+                        step.push(term.terms[i], "  ");
+                    }
+                }
+                try {
+                    step.push(GHT.EquivalenceScheme[op][whichChild - 1],"    ");
+                } catch (x) {
+                    throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
+                }
+            }
+            step.push(GHT.EquivalenceScheme.mp, "\n");
+            step.push("\n");
+            var newVarMap = combineMaps(mVarMap, cloneMap);
+            var newSteps = mSteps.slice(0);
+            newSteps.push(step);
+            var newDvs = mDvs;  // TODO: propagate DVs
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+
+        };
+
+
     };
     
     
@@ -886,7 +1017,15 @@ GHT.EquivalenceScheme = {
     "A.": ["alpha", "albii"],
     "/\\": ["anbi1i", "anbi2i"],
     "->": ["imbi1i", "imbi2i"],
-}
+    "=": ["eqeq1", "eqeq2"],
+    "E.": ["exalpha", "exbid"] //TODO:HACK
+};
+GHT.EquivalenceThms = {
+    "num": {refl: "eqid", tr: "TODO:eqtr", sym: "TODO:eqsym"},
+    "set": {refl: "seqid", tr: "TODO:seqtr", sym: "TODO:seqsym"},
+    "wff": {refl: "biid", tr: "TODO:bitr", sym: "TODO:bisym"}
+};
+
 // Inferences used to assert the terminality of a terminal
 GHT.Terminators = {
     "wff": "a1i"
@@ -927,7 +1066,7 @@ GHT.makeVarMap = function(vars, varNames) {
         }, {});
     varMap[null] = function(varObj) {
         var type = varObj.getType();
-        var isBinding = 0;// XXX assume nonbinding
+        var isBinding = 1;// XXX assume binding
         var index = typeIndices[type][isBinding ? 1 : 0]++;
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
@@ -953,7 +1092,7 @@ GHT.setProof = function(proof) {
     // This changes the window.location hash, which will call back into actuallySetProof.
 };
 GHT.actuallySetProof = function(proof) {
-    console.log("Setting proof: " + proof.toString());
+    //console.log("Setting proof: " + proof.toString());
     var div = document.getElementById("tree");
     try {
         if (GHT.theTable) div.removeChild(GHT.theTable);
@@ -1072,6 +1211,8 @@ GHT.autoSteps = [
 "GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-lambda']();",
 "GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
 "GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
+"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['perform substitution']();",
+"GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['perform substitution']();",
 ];
 
 function doStep() {
