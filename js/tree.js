@@ -2,13 +2,12 @@ var GHT = { };
 if (!console) {
     console = {
         log: function() {
-            
         }
     };
 }
 GHT.reverseLookup = function(map, value) {
     for (key in map) {
-        if (map[key] == value) {
+        if (value.toString() == map[key].toString()) {
             return key;
         }
     }
@@ -46,7 +45,7 @@ function Term() {
         }
     };
     this.substitute = function(mapping) {
-      return this;  
+        return this;
     };
     this.extract = function(path) {
         if (path.length == 0) {
@@ -195,7 +194,7 @@ function Tuple(terms) {
             } else {
                 this.terms[i + 1].extractVars(set);
             }
-            
+
         }
         return set;
     };
@@ -239,7 +238,7 @@ function Tuple(terms) {
             this.terms.splice(path[0], 1, newTerm);
         } else {
             this.terms[path.shift()].splice(path, newTerm);
-        }        
+        }
         return this;
     };
     this.find = function(leaf, outPath) {
@@ -276,7 +275,7 @@ var Implies = new Operator('->', "\u2192", 'wff', ['wff', 'wff'], [-1, 1]);
 var Not = new Operator('-.', "\u00ac", 'wff', ['wff'], [-1]);
 var True = new Operator('t', "t", 'wff', [], []);
 GHT.Operators['->'] = Implies;
-GHT.Operators['-.'] = Not; 
+GHT.Operators['-.'] = Not;
 GHT.Operators['t'] =  True;
 
 var P, Q, R, S, U;
@@ -397,7 +396,7 @@ function TermFromSexp(sexp, expectedType) {
             args.push(TermFromSexp(sexp[1 + i], op.inputs[i]));
         }
         return T(args);
-    } 
+    }
     // It must be a variable.
     return new Variable(expectedType, hash(sexp));
 }
@@ -414,12 +413,12 @@ OpList.prototype = new Object();
 OpList.prototype.toSource = function() {
     var s = "{";
     for (x in this) {
-        var op = this[x];                
+        var op = this[x];
         if (op.toSource) {
             s += GHT.stringify(x);
             s += ": new Operator(";
             s += [op.key, op.getName(), op.getType(), op.inputs, op.bindings].map(
-                GHT.stringify).join(",");            
+                GHT.stringify).join(",");
             s += "),";
         }
 
@@ -482,6 +481,12 @@ GHT.showEquivalents = function(path) {
         GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 2, GHT.EquivalenceScheme);
     };
 };
+GHT.showGenerify = function() {
+    return function() {
+        GHT.dismiss();
+        GHT.setProof(GHT.getProof().generify());
+    };
+};
 
 // Returns a function that, when called: sifts through the thm list
 // for terminals of the form [op, arg1, arg2], and
@@ -522,7 +527,7 @@ GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3) {
 GHT.showArrowers = function(path) {
     return function() {
         var menu = GHT.newMenu("Arrowers");
-        var term = GHT.theTerm.extract(path.slice(0)); 
+        var term = GHT.theTerm.extract(path.slice(0));
         GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2, GHT.ArrowScheme);
     };
 };
@@ -541,15 +546,23 @@ GHT.showTermBuilder = function(path, type, binding) {
         var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
                                event.pageX, event.pageY);
         var cloneMap = {};
-        var term = GHT.getProof().getTerm(cloneMap);
-        var newVar = term.extract(path.slice(0));
-        
+        var rootTerm = GHT.getProof().getTerm(cloneMap);
+        var oldVar = rootTerm.extract(path.slice(0));
+        var theVars = rootTerm.extractVars();
         function doSub(term, isBinding) {
             return function() {
                 // TODO: should clone return a bimap?
-                var origVar = GHT.reverseLookup(cloneMap, newVar);
+                var origVar = GHT.reverseLookup(cloneMap, oldVar);
+                // If the substituand is a variable (i.e. the user is trying to
+                // manually collide two variables), we'll need to reverse-map it
+                // or it won't work.
+                try {
+                    term = VariableFromString(GHT.reverseLookup(cloneMap, term));
+                } catch (x) {
+                    // Otherwise, no problem.
+                }
                 var mapping = {};
-                mapping[newVar] = term;
+                mapping[oldVar] = term;
                 if (isBinding) {
                     // Rebinding a binding variable only affects the parent term.
                     var parent = GHT.theTerm.extract(path.slice(0, path.length - 1));
@@ -563,7 +576,7 @@ GHT.showTermBuilder = function(path, type, binding) {
                 }
             };
         }
-        var isBinding = GHT.theVars[newVar];
+        var isBinding = theVars[oldVar];
         if (!isBinding) {
             // Not a binding variable; we can build a term
             GHT.forEach(GHT.Operators, function(k, op) {
@@ -572,10 +585,11 @@ GHT.showTermBuilder = function(path, type, binding) {
                             }
                         });
         }
-        GHT.forEach(GHT.theVars, function(varStr, unused) {
+        var theVarMap = GHT.makeVarMap(theVars, GHT.goodVarNames);
+        GHT.forEach(theVars, function(varStr) {
                         var myVar = VariableFromString(varStr);
                         if (myVar.getType() === type) {
-                            menu.addOption(GHT.theVarMap[varStr], doSub(myVar, isBinding));
+                            menu.addOption(theVarMap[varStr], doSub(myVar, isBinding));
                         }
                     });
     };
@@ -599,6 +613,9 @@ GHT.makeTable = function(term, path, binding, varMap) {
             GHT.theStep = "GHT.theOnclicks['" + key + "']();";
             var menu = GHT.newMenu(GHT.bindings[binding] + " " + type,
                                    event.pageX, event.pageY);
+            if (path.length == 0){
+                menu.addOption("generify", GHT.showGenerify());
+            }
             if (binding === 1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
                 menu.addOption("terminals", GHT.showTerminals(path, GHT.ArrowScheme));
@@ -610,7 +627,7 @@ GHT.makeTable = function(term, path, binding, varMap) {
                 menu.addOption("arrowers", GHT.showArrowers(path));
                 menu.addOption("initials", GHT.showInitials(path));
                 //TODO: menu.addOption("assert terminal", GHT.showAssertTerminal(path));
-            } 
+            }
             if (isNaN(binding)) {
                 menu.addOption("rebind", GHT.showTermBuilder(path, type, binding));
             } else if (term instanceof Variable) {
@@ -726,7 +743,7 @@ GHT.ProofFactory = function() {
                 }
             }
             flatten(["thm (", thmName, " (", mDvs, ") () ", mTerm.toString(theVarMap), "\n", mSteps]);
-            return str + ")";          
+            return str + ")";
         };
         this.toString = function() {
             return JSON.stringify({ steps: mSteps,
@@ -734,7 +751,7 @@ GHT.ProofFactory = function() {
                                     varMap: JSON.stringify(mVarMap)
                                   });
         };
-        
+
         // Public extenders.  Each returns a new ProofObj.
 
         // Extend by replacing the subterm at {@param path}, which must have
@@ -782,14 +799,14 @@ GHT.ProofFactory = function() {
                         throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
                     }
                 }
-                newStep.push(scheme.mp, "\n");
+                newStep.push(scheme.mp[0], "\n");
                 var newSteps = mSteps.slice(0);
                 newSteps.push(newStep);
                 var newDvs = mDvs.slice(0); // TODO: copy over from terminalTerm
                 return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
             }
         };
-        
+
         // Extend by replacing the subterm at {@param path} according to an
         // arrowing theorem named by {@param name}.  If the named theorem is a unidirectional
         // arrowing, then templateArg=1 means that the subterm will be
@@ -832,13 +849,17 @@ GHT.ProofFactory = function() {
                         newStep.push(term.terms[i], "  ");
                     }
                 }
+                var pushUpThm;
                 try {
-                    newStep.push(scheme[op][whichChild - 1],"    ");
+                    pushUpThm = scheme[op][whichChild - 1];
                 } catch (x) {
                     throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
                 }
+                //TODO(HACK)
+                pushUpThm = pushUpThm.replace(/d$/,'i');
+                newStep.push(pushUpThm,"    ");
             }
-            newStep.push(scheme.mp, "\n");
+            newStep.push(scheme.mp[templateArg - 1], "\n");
             var newSteps = mSteps.slice(0);
             newSteps.push(newStep);
             var newDvs = mDvs.slice(0); // TODO: copy over from thm
@@ -866,7 +887,7 @@ GHT.ProofFactory = function() {
              // TODO: This special knowledge of [/] is ugly.  Should substitution
             // be part of ghilbert directly?  Or should we be able to learn to
             // manipulate all [/]-like operators?
-            
+
             // Our goal is to prove (-> (= x A) (<-> ph ps)) so we can use sbcie.
             // For each instance of the substituted-for variable, we need to
             // propagate an equality up to the root of the substitution-term.
@@ -877,8 +898,8 @@ GHT.ProofFactory = function() {
                 throw "Term not actually [/] at path " + JSON.stringify(path);
             }
             var newTerm = subTerm.terms[1];
-            var subForVar = subTerm.terms[2]; 
-            var subIn = subTerm.terms[3]; 
+            var subForVar = subTerm.terms[2];
+            var subIn = subTerm.terms[3];
             // This is a nasty hack -- we always assume we can't
             // re-use variables.  This violates the assumption.  This
             // is only legit because we have ownership of subInClone
@@ -934,7 +955,7 @@ GHT.ProofFactory = function() {
                     rightEq = subIn.extract(path2.slice(0));
                     leftEq = subInClone.extract(path2.slice(0));
 
-                    innerFirst = false;    
+                    innerFirst = false;
                 }
                 if (!outerFirst) {
                     throw "TODO: Substiution more than once not supported.";
@@ -942,7 +963,7 @@ GHT.ProofFactory = function() {
                     // subVar is in newTerm
                     // The stack now has:
                     // (-> (= A x) (EQ(op.type) ph ps))
-                    // (-> (= A x) (EQ(op.type) ps ch)) 
+                    // (-> (= A x) (EQ(op.type) ps ch))
                     // We want to combine the last two terms using the transitivity of EQ.
                     var equivThm;
                     try {
@@ -976,7 +997,7 @@ GHT.ProofFactory = function() {
                     throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
                 }
             }
-            step.push(GHT.EquivalenceScheme.mp, "\n");
+            step.push(GHT.EquivalenceScheme.mp[0], "\n");
             step.push("\n");
             var newVarMap = combineMaps(mVarMap, cloneMap);
             var newSteps = mSteps.slice(0);
@@ -986,10 +1007,28 @@ GHT.ProofFactory = function() {
 
         };
 
+        // Extend by performing alpha-substitution for the given variable at the given path.
+        this.applyAlpha = function(path, newVar) {
+             // TODO: Should share more code with applySubst, and (like it) should be less hacky.
+            throw "TODO: applyAlpha";
+        };
+        // Extend by applying the axiom "gen", adding a universal quantification over a new variable.
+        this.generify = function() {
+            //TODO: check DVs here
+            var cloneMap = {};
+            var newTerm = mTerm.clone(cloneMap);
+            var newVarMap = combineMaps(mVarMap, cloneMap);
+            var newSteps = mSteps.slice(0);
+            var newVar = new Variable('num');
+            newTerm = new Tuple([GHT.Operators['A.'], newVar, newTerm]);
+            newSteps.push([newVar, '  ', "gen\n"]);
+            var newDvs = mDvs;
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+        };
 
     };
-    
-    
+
+
     this.newProof = function(startingThmName) {
         var dummy = new ProofObj(null, [], [], {});
         return dummy.applyTerminal([], startingThmName);
@@ -1003,21 +1042,27 @@ GHT.ProofFactory = function() {
 // TODO: HACK: Also, each scheme must have an 'mp' property mapping to the
 // appropriate modus-ponens inference.
 GHT.ArrowScheme = {  // TODO: autodetect these
-    "mp": "ax-mp",
+    "mp": ["ax-mp", "ax-mp"], //TODO: what does this second ax-mp really mean? why does that work?
     "-.": ["con3i"],
     "->": ["imim1i", "imim2i"],
     //TODO(pickup): these aren't right
     "<->": ["imbi1i", "imbi2i"],
-    "/\\": ["anim1i", "anim2i"]
+    "/\\": ["anim1i", "anim2i"],
+    "=": ["eqeq1", "eqeq2"],
+    "E.": ["exalpha", "19.22i"],
+    "A.": ["alpha", "19.20i"],
+
 };
 GHT.EquivalenceScheme = {
-    "mp": "mpbi",
+    "mp": ["mpbi", "mpbir"],
     "e.": ["eleq1i", "eleq2i"],
     "E!": ["eualpha", "eubii"],
     "A.": ["alpha", "albii"],
     "/\\": ["anbi1i", "anbi2i"],
     "->": ["imbi1i", "imbi2i"],
+    "<->": ["bibi1i", "bibi2i"],
     "=": ["eqeq1", "eqeq2"],
+    "-.": ["notbii"],
     "E.": ["exalpha", "exbid"] //TODO:HACK
 };
 GHT.EquivalenceThms = {
@@ -1032,12 +1077,12 @@ GHT.Terminators = {
 };
 document.getElementById("save").onclick = function() {
     var name = document.getElementById("name").value;
-    GHT.thms[name] = GHT.theTerm;    
-    console.log("#### Save as " + name);
+    GHT.thms[name] = GHT.theTerm;
+    console.log("#### Save as " + name + " : "+ GHT.theTerm.toSource());
 };
 GHT.undoStack = [];
 GHT.goodVarNames = {
-     'wff':[["\u03c6", "\u03c7", "\u03c8", "\u03c9",  
+     'wff':[["\u03c6", "\u03c7", "\u03c8", "\u03c9",
              "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
      'set':[["S", "T", "U", "V", "W", "X", "Y", "Z"]],
      'num':[["A", "B", "C", "D", "E", "F", "G",
@@ -1047,7 +1092,7 @@ GHT.goodVarNames = {
 };
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
 // Output: an object that maps varString to returns a human-readable string.
-// HACK: If you don't find yourself in the varMap, use varMap[null](this) instead.  
+// HACK: If you don't find yourself in the varMap, use varMap[null](this) instead.
 // TODO: make this whole thing a function instead so we can lazily
 // bind dummy vars. But how to know if they are binding??
 GHT.makeVarMap = function(vars, varNames) {
@@ -1066,7 +1111,7 @@ GHT.makeVarMap = function(vars, varNames) {
         }, {});
     varMap[null] = function(varObj) {
         var type = varObj.getType();
-        var isBinding = 1;// XXX assume binding
+        var isBinding = type == 'num' ? 1 : 0;// TODO: XXX HACK PICKUP assume nums are binding, others not
         var index = typeIndices[type][isBinding ? 1 : 0]++;
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
@@ -1163,7 +1208,7 @@ function loadFromServer() {
     init(window.verifyctx);
 }
 
-GHT.setVersion(0); 
+GHT.setVersion(0);
 window.onload = function() {
     var start = (new GHT.ProofFactory()).newProof("ax-1");
     GHT.setProof(start);
@@ -1176,7 +1221,7 @@ window.onload = function() {
                     GHT.actuallySetProof(GHT.undoStack[version].proof);
                 }, true);
         }, 10);
-    window.setTimeout(doStep, 50);
+    window.setTimeout(doStep, 10);
 };
 //loadFromServer();
 GHT.autoSteps = [
@@ -1203,7 +1248,7 @@ GHT.autoSteps = [
     "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
     "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axmp']();",
 */
-
+/* progress towards funlambda
 "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['df-fun']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
 "GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['(lambda     )']();",
@@ -1213,6 +1258,54 @@ GHT.autoSteps = [
 "GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
 "GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['perform substitution']();",
 "GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['perform substitution']();",
+"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
+"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-an']();",
+"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
+"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
+"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.41']();",
+"GHT.theOnclicks['[1,2,2,1,2,2,1,2]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['A']();",
+"GHT.theOnclicks['[1,2,2,1,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['opeq2']();",
+"GHT.theOnclicks['[1,2,2,1,2,2,1,1,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['z']();",
+"GHT.theOnclicks['[1,2,2,1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
+"GHT.theOnclicks['[1,2,2,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
+"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-eqtr']();",
+"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
+"GHT.theOnclicks['[1,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['idd']();",
+        */
+/* Proves alphasub.
+"GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['df-subst']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['generify']();",
+"GHT.theOnclicks['[2,1,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['x']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['19.15']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
+"GHT.theOnclicks['[1,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
+"GHT.theOnclicks['[1,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['19.29']();",
+"GHT.theOnclicks['[1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
+"GHT.theOnclicks['[1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anass']();",
+"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.41']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['alan2']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['impexp']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-an']();",
+"GHT.theOnclicks['[2]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['generify']();",
+"GHT.theOnclicks['[2,1,2,2]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['x']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['alan2']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['generify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['alan2']();",
+"GHT.theOnclicks['[1,2,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['pm3.21']();",
+"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['19.22']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-alim']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['pm3.33']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-an']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['generify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['alan2']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['pm3.35']();",
+*/
 ];
 
 function doStep() {
