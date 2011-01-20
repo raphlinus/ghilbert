@@ -1,9 +1,6 @@
-var GHT = { };
-if (!console) {
-    console = {
-        log: function() {
-        }
-    };
+var GHT;
+if (!GHT) {
+    GHT = {};
 }
 GHT.reverseLookup = function(map, value) {
     for (var key in map) {
@@ -1177,7 +1174,7 @@ GHT.Terminators = {
     "wff": "a1i"
 };
 document.getElementById("save").onclick = function() {
-    var name = document.getElementById("name").value;
+    var name = document.getElementById("thmName").value;
     GHT.thms[name] = GHT.theTerm;
     var theLog = "";
     var vers = GHT.getVersion();
@@ -1190,13 +1187,13 @@ document.getElementById("save").onclick = function() {
 
 GHT.undoStack = [];
 GHT.goodVarNames = {
-     'wff':[["\u03c6", "\u03c7", "\u03c8", "\u03c9",
-             "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
-     'set':[["S", "T", "U", "V", "W", "X", "Y", "Z"]],
-     'num':[["A", "B", "C", "D", "E", "F", "G",
-             "H", "I", "J", "K", "L", "M", "N"],
-            ["x", "y", "z", "a", "b", "c",
-             "d", "e", "f", "g", "h", "i"]]
+    'wff'://[["\u03c6", "\u03c7", "\u03c8", "\u03c9", "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
+    [["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]],
+    'set':[["Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N"]],
+    'num':[["a", "b", "c", "d", "e", "f", "g",
+            "h", "i", "j", "k", "l", "m"],
+           ["z", "y", "x", "w", "v", "u", "t",
+            "s", "r", "q", "p", "o", "n"]]
 };
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
 // Output: an object that maps varString to returns a human-readable string.
