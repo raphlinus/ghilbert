@@ -1,3 +1,5 @@
+// Initializes the tree game.  Also handles login, saving, and the corresponding
+// communication with the server.
 var GHT;
 if (!GHT) {
     GHT = {};
@@ -36,7 +38,10 @@ GHT.Cookie = {
     }
 };
 GHT.Tip = {
-    set: function(tipKey) {
+    set: function(tipKey, tipValue) {
+        if (tipValue) {
+            this.tips[tipKey] = tipValue;
+        }
         this.theDiv.innerHTML = this.tips[tipKey];
         this.theDiv.style.display = "block";
         this.currentTip = tipKey;
@@ -48,43 +53,129 @@ GHT.Tip = {
         }  
     },
     tips: {
-        login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
-    }
+        login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress.",
+        saved: "Saved."
+    },
+    theDiv: document.getElementById("tip")
 };
-GHT.Tip.theDiv = document.getElementById("tip");
 
 // Startup: set the playerName, get the latest stuff
 (function() {
-    var playerNameCookie = "playerName";
-    var playerNameField = document.getElementById("playerName");
-    var playerName = GHT.Cookie.get(playerNameCookie);
-    var timeoutId;
-    playerNameField.onkeyup = function() {
-        window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(playerNameField.onchange, 500);
-    };
-    playerNameField.onchange = function() {
-        playerName = playerNameField.value
-        GHT.Cookie.set(playerNameCookie, playerName);
-        GHT.Tip.clear("login");
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                var status = eval(xhr.responseText);
-                document.getElementById("playerScore").innerHTML = status.score;
-                document.getElementById("playerLocation").innerHTML = status.location;
-                document.getElementById("goal").innerHTML = status.goal;
-            } else {
-                console.log("login xhr: " + xhr.readyState);
-            }
-        };
-        xhr.open("GET", "/tree/status/" + encodeURIComponent(playerName), true);
-        xhr.send(null);
-    };
-    if (!playerName) {
-        GHT.Tip.set("login");
-    } else {
-        playerNameField.value = playerName;
-        playerNameField.onchange();
-    }
-})();
+     var playerNameCookie = "playerName";
+     var playerNameField = document.getElementById("playerName");
+     GHT.playerName = GHT.Cookie.get(playerNameCookie);
+     var timeoutId;
+     playerNameField.onkeyup = function() {
+         window.clearTimeout(timeoutId);
+         timeoutId = window.setTimeout(playerNameField.onchange, 500);
+     };
+     playerNameField.onchange = function() {
+         GHT.playerName = playerNameField.value;
+         GHT.Cookie.set(playerNameCookie, GHT.playerName);
+         GHT.Tip.clear("login");
+         var xhr = new XMLHttpRequest();
+         xhr.onreadystatechange = function () {
+             if (xhr.readyState === 4) {
+                 var status = eval(xhr.responseText);
+                 document.getElementById("playerScore").innerHTML = status.score;
+                 document.getElementById("playerLocation").innerHTML = status.location;
+                 document.getElementById("goal").innerHTML = status.goal;
+             } else if (xhr.readyState > 4) {
+                 console.log("login xhr: " + xhr.readyState);
+             }
+         };
+         xhr.open("GET", "/tree/status/" + encodeURIComponent(GHT.playerName), true);
+         xhr.send(null);
+     };
+     if (!GHT.playerName) {
+         GHT.Tip.set("login");
+     } else {
+         playerNameField.value = GHT.playerName;
+         playerNameField.onchange();
+     }
+     document.getElementById("save").onclick = function() {
+         var packet = {};
+         packet.playerName = encodeURIComponent(GHT.playerName);
+         packet.thmName = document.getElementById("thmName").value;
+         GHT.Thms[packet.thmName] = GHT.theTerm;
+         packet.log = "";
+         var vers = GHT.getVersion();
+         for (var i = 1; i <= vers; i++){
+             packet.log += GHT.undoStack[i].step + "\n";
+         }
+         packet.source = GHT.theTerm.toSource();
+         packet.log += "#### Save as " + name + " : " + packet.source + "\n";
+         console.log(packet.log);
+         packet.proof = GHT.getProof().getProof(packet.thmName);
+         var xhr = new XMLHttpRequest();
+         xhr.onreadystatechange = function () {
+             if (xhr.readyState === 4) {
+                 eval(xhr.responseText);
+             } else if (xhr.readyState > 4) {
+                 console.log("save xhr: " + xhr.readyState);
+             }
+         };
+         xhr.open("POST", "/tree/save", true);
+         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+         var packetStr = "";
+         for (var key in packet) {
+             if (packetStr) {
+                 packetStr += "&";
+             }
+             packetStr += encodeURIComponent(key) + "=" + encodeURIComponent(packet[key]);
+         }
+         xhr.send(packetStr);
+     };
+ })();
+
+GHT.Operators = {};
+GHT.Thms = {};
+GHT.DisabledOptions = {};
+
+/*
+ // Inferences used to propagate an arrowing up the tree.
+ // Inferences[op][n] should be an inference that transforms "x arrow
+ // y" into "op(..x..) arrow op(..y..)".  The direction of the arrow
+ // may get be reversed if the op.binding[n] is -1.
+ // TODO: HACK: Also, each scheme must have an 'mp' property mapping to the
+ // appropriate modus-ponens inference.
+ GHT.ArrowScheme = {  // TODO: autodetect these
+ "mp": ["ax-mp", "ax-mp"], //TODO: what does this second ax-mp really mean? why does that work?
+ "-.": ["con3i"],
+ "->": ["imim1i", "imim2i"],
+ //TODO(pickup): these aren't right
+ "<->": ["imbi1i", "imbi2i"],
+ "/\\": ["anim1i", "anim2i"],
+ "=": ["eqeq1", "eqeq2"],
+ "E.": ["exalpha", "19.22i"],
+ "A.": ["alpha", "19.20i"]
+ //,
+ };
+
+ GHT.EquivalenceScheme = {
+ "mp": ["mpbi", "mpbir"],
+ "e.": ["eleq1i", "eleq2i"],
+ "E!": ["eualpha", "eubii"],
+ "A.": ["alpha", "albii"],
+ "/\\": ["anbi1i", "anbi2i"],
+ "->": ["imbi1i", "imbi2i"],
+ "<->": ["bibi1i", "bibi2i"],
+ "=": ["eqeq1", "eqeq2"],
+ "-.": ["notbii"],
+ "E.": ["exalpha", "exbid"] //TODO:HACK
+ };
+ GHT.EquivalenceThms = {
+ "num": {refl: "eqid", tr: "TODO:eqtr", sym: "TODO:eqsym"},
+ "set": {refl: "seqid", tr: "TODO:seqtr", sym: "TODO:seqsym"},
+ "wff": {refl: "biid", tr: "TODO:bitr", sym: "TODO:bisym"}
+ };
+ // Inferences used to assert the terminality of a terminal
+ GHT.Terminators = {
+ "wff": "a1i"
+ };
+ */
+GHT.ArrowScheme = {};
+GHT.EquivalenceScheme = {};
+GHT.EquivalenceThms = {};
+GHT.Terminators = {};

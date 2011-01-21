@@ -17,7 +17,7 @@
 import sys
 import os.path
 import array
-
+import StringIO
 
 # for debug printing
 def sexp_to_string(sexp):
@@ -98,6 +98,12 @@ class UrlCtx:
         else:
             fn = os.path.join(self.base, url)
         return open(fn,'r')
+
+class DictionaryCtx:
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+    def resolve(self, url):
+        return StringIO.StringIO(str(self.dictionary[url]));
 
 class ProofCtx:
     def __init__(self, label, fvvarmap):

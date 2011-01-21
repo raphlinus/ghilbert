@@ -144,7 +144,7 @@ function Variable(type, num) {
         return type;
     };
     this.toSource = function() {
-        return "TV(" + GHT.stringify(type) + ", " + num + ")";
+        return "TV(" + GHT.stringify(type) + ", -" + Math.abs(num) + ")";
     };
 
 };
@@ -270,37 +270,6 @@ function hash(str) {
     }
     return sum;
 }
-/*
-var Implies = new Operator('->', "\u2192", 'wff', ['wff', 'wff'], [-1, 1]);
-var Not = new Operator('-.', "\u00ac", 'wff', ['wff'], [-1]);
-var True = new Operator('t', "t", 'wff', [], []);
-GHT.Operators['->'] = Implies;
-GHT.Operators['-.'] = Not;
-GHT.Operators['t'] =  True;
-
-var P, Q, R, S, U;
-
-
-var thms = {
-    "ax-1": T(Implies, P = V(), T(Implies, Q = V(), P)),
-    "ax-2": T(Implies, T(Implies, P = V(), T(Implies, Q = V(), R = V())),
-            T(Implies, T(Implies, P, Q), T(Implies, P, R))),
-    "ax-3": T(Implies, T(Implies, T(Not, P = V()), T(Not, Q = V())), T(Implies, Q, P)),
-    _axmp: T(Implies, T(Not, T(Implies, P = V(), T(Not, T(Implies, P, Q = V())))), Q),
-    _axand: T(Implies, P=V(), T(Not, T(Implies, P, T(Not, T(True)))))
-};
-
-thms.toSource = function() {
-    var out = "{";
-    for (var x in this) {
-        if (this[x].toSource) {
-            out += GHT.stringify(x) + ":" + this[x].toSource() + ",";
-        }
-    }
-    out += "}";
-    return out;
-};
-*/
 
 /**
  * Asserts that the example term can be an instance of the template term, subject to
@@ -362,46 +331,7 @@ function unify(template, example, mapping, connected) {
     return mapping;
 }
 
-function OperatorFromSexp(sexp, expectedType) {
-    if (!GHT.Operators[sexp]) {
-        // Attempt to make it on the fly
-        var term = window.verifyctx.terms[sexp];
-        if (!term) throw "Unknown operator " + sexp;
-        var type = term[0];
-        var inputs = term[1];
-        var bindings = term[2].map(function(x) {
-                                       // TODO: bogus
-                                       if (x === null) return 0; // exact ?
-                                       if (x.length === 0) return NaN; // binding ?
-                                       if (x.length === 1) return NaN; // TODO:WTF is with [/] ?
-                                       return 0; // *shrug*
-                                   });
-        GHT.Operators[sexp] = new Operator(sexp, GH.sexptounicode([sexp, '','','','','']),
-                                           type, inputs, bindings);
-    }
-    var op = GHT.Operators[sexp];
-    if (op.getType() !== expectedType) {
-        throw "Wrong type: wanted " + expectedType + " got " + op.getType();
-    }
-    return op;
-}
-// Convert a ghilbert-style sexp into one of our Term objects.
-// References window.direct.vg to look up type information.
-function TermFromSexp(sexp, expectedType) {
-    // Is it a Tuple?
-    if (sexp instanceof Array) {
-        var op = OperatorFromSexp(sexp[0], expectedType);
-        var args = [op];
-        for (var i = 0; i < op.inputs.length; i++) {
-            args.push(TermFromSexp(sexp[1 + i], op.inputs[i]));
-        }
-        return T(args);
-    }
-    // It must be a variable.
-    return new Variable(expectedType, hash(sexp));
-}
 
-GHT.log = [];
 GHT.bindings = {
     "-1":  "terminal",    // "This, or things which arrow this."
     "0":   "exact",       // "This term, or things term-equivalent to this."
@@ -427,7 +357,8 @@ OpList.prototype.toSource = function() {
     return s;
 };
 GHT.Operators = new OpList();
-
+GHT.dismiss = function() {
+};
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");
     popup.style.display="block";
@@ -444,7 +375,7 @@ GHT.newMenu = function(title, x, y) {
     };
     GHT.theMenu = {
         addOption: function(text, func, preview) {
-            if (GHT.disableOptions[text]) { return; }
+            if (GHT.DisabledOptions[text]) { return; }
             var key = text;
             while (this.options[key]) key += '~';
             var tr  = document.createElement("tr");
@@ -486,9 +417,9 @@ GHT.newMenu = function(title, x, y) {
 GHT.showTerminals = function(path, scheme) {
     return function(event) {
         var menu = GHT.newMenu("Terminals", event.pageX, event.pageY);
-        for (var name in GHT.thms) {
+        for (var name in GHT.Thms) {
             menu.addOption(name, GHT.makeApplyFunction(path, 'Terminal', name, scheme),
-                           GHT.thms[name]);
+                           GHT.Thms[name]);
         }
     };
 };
@@ -522,8 +453,8 @@ GHT.showGenerify = function() {
 // @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
 GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme) {
     var example = term;
-    for (var name in GHT.thms) {
-        var thm = GHT.thms[name];
+    for (var name in GHT.Thms) {
+        var thm = GHT.Thms[name];
         if (thm.terms[0] === op) {
             var template = thm.terms[whichArg];
             var otherArg = 3 - whichArg; // switch 2 and 1
@@ -571,8 +502,8 @@ GHT.showAssertTerminal = function(path) {
         // TODO: share code with makeThmMenu?
         //= function(menu, term, path, op, whichArg, scheme) {
         var example = term;
-        for (var name in GHT.thms) {
-            var template = GHT.thms[name];
+        for (var name in GHT.Thms) {
+            var template = GHT.Thms[name];
             var unifyMap;
             try {
                 unifyMap = unify(template, example);
@@ -771,7 +702,7 @@ GHT.combineMaps = function(map1, map2) {
 // external code cannot construct ProofObjs directly but must invoke newProof from a ProofFactory.
 GHT.ProofFactory = function() {
     var GHILBERT_VAR_NAMES = {
-        'wff':[["ph", "ps", "ch", "th", "ta", "et", "si", "zi"]],
+        'wff':[["A", "B", "C", "D", "E", "F", "G", "H"]],
         'set':[["S", "T", "U", "V"]],
         'num':[["A", "B", "C", "A'", "B'", "C'"],
                ["v", "w", "x", "y", "z",
@@ -819,7 +750,7 @@ GHT.ProofFactory = function() {
         this.applyTerminal = function(path, name, scheme) {
             // TODO: check binding here
             var newStep = [];
-            var terminalTerm = GHT.thms[name].clone({});
+            var terminalTerm = GHT.Thms[name].clone({});
             for (var varStr in terminalTerm.extractVars()) {
                 newStep.push(VariableFromString(varStr));
                 newStep.push("  ");
@@ -883,7 +814,7 @@ GHT.ProofFactory = function() {
             var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
 
             var example = newTerm.extract(path.slice(0));
-            var thm = GHT.thms[name].clone({});
+            var thm = GHT.Thms[name].clone({});
             var template = thm.terms[templateArg];
             // TODO: eliminate this second unification
             var unifyMap = unify(template, example);
@@ -1109,7 +1040,7 @@ GHT.ProofFactory = function() {
             var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
             var newSteps = mSteps.slice(0);
             var example = newTerm.extract(path.slice(0));
-            var template = GHT.thms[name].clone({});
+            var template = GHT.Thms[name].clone({});
             // TODO: eliminate this second unification
             var unifyMap = unify(template, example);
             newTerm = newTerm.substitute(unifyMap);
@@ -1133,67 +1064,15 @@ GHT.ProofFactory = function() {
     };
     ProofObj.prototype = new Object();
 };
-// Inferences used to propagate an arrowing up the tree.
-// Inferences[op][n] should be an inference that transforms "x arrow
-// y" into "op(..x..) arrow op(..y..)".  The direction of the arrow
-// may get be reversed if the op.binding[n] is -1.
-// TODO: HACK: Also, each scheme must have an 'mp' property mapping to the
-// appropriate modus-ponens inference.
-GHT.ArrowScheme = {  // TODO: autodetect these
-    "mp": ["ax-mp", "ax-mp"], //TODO: what does this second ax-mp really mean? why does that work?
-    "-.": ["con3i"],
-    "->": ["imim1i", "imim2i"],
-    //TODO(pickup): these aren't right
-    "<->": ["imbi1i", "imbi2i"],
-    "/\\": ["anim1i", "anim2i"],
-    "=": ["eqeq1", "eqeq2"],
-    "E.": ["exalpha", "19.22i"],
-    "A.": ["alpha", "19.20i"]
-    //,
-};
-GHT.EquivalenceScheme = {
-    "mp": ["mpbi", "mpbir"],
-    "e.": ["eleq1i", "eleq2i"],
-    "E!": ["eualpha", "eubii"],
-    "A.": ["alpha", "albii"],
-    "/\\": ["anbi1i", "anbi2i"],
-    "->": ["imbi1i", "imbi2i"],
-    "<->": ["bibi1i", "bibi2i"],
-    "=": ["eqeq1", "eqeq2"],
-    "-.": ["notbii"],
-    "E.": ["exalpha", "exbid"] //TODO:HACK
-};
-GHT.EquivalenceThms = {
-    "num": {refl: "eqid", tr: "TODO:eqtr", sym: "TODO:eqsym"},
-    "set": {refl: "seqid", tr: "TODO:seqtr", sym: "TODO:seqsym"},
-    "wff": {refl: "biid", tr: "TODO:bitr", sym: "TODO:bisym"}
-};
-
-// Inferences used to assert the terminality of a terminal
-GHT.Terminators = {
-    "wff": "a1i"
-};
-document.getElementById("save").onclick = function() {
-    var name = document.getElementById("thmName").value;
-    GHT.thms[name] = GHT.theTerm;
-    var theLog = "";
-    var vers = GHT.getVersion();
-    for (var i = 1; i <= vers; i++){
-        theLog += GHT.undoStack[i].step + "\n";
-    }
-    theLog += "#### Save as " + name + " : "+ GHT.theTerm.toSource() + "\n";
-    console.log(theLog);
-};
 
 GHT.undoStack = [];
 GHT.goodVarNames = {
-    'wff'://[["\u03c6", "\u03c7", "\u03c8", "\u03c9", "\u03b1", "\u03b2", "\u03b3", "\u03b4", "\u03b5"]],
-    [["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]],
-    'set':[["Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N"]],
-    'num':[["a", "b", "c", "d", "e", "f", "g",
-            "h", "i", "j", "k", "l", "m"],
-           ["z", "y", "x", "w", "v", "u", "t",
-            "s", "r", "q", "p", "o", "n"]]
+    'wff': [["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]],
+    'set': [["Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N"]],
+    'num': [["a", "b", "c", "d", "e", "f", "g",
+             "h", "i", "j", "k", "l", "m"],
+            ["z", "y", "x", "w", "v", "u", "t",
+             "s", "r", "q", "p", "o", "n"]]
 };
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
 // Output: an object that maps varString to returns a human-readable string.
@@ -1255,7 +1134,6 @@ GHT.actuallySetProof = function(proof) {
     GHT.theTable =  GHT.makeTable(term, [], 1, GHT.theVarMap);
     div.appendChild(GHT.theTable);
 
-    document.getElementById('proof').innerHTML = proof.getProof("wip").replace(/</g, '&lt;');
 };
 GHT.getVersion = function() {
     var match = window.location.toString().match(/#(.*)/);
@@ -1284,195 +1162,13 @@ GHT.getArrow = function(type) {
     return null;
 };
 
-function loadFromServer() {
-    var url = '/peano/peano_thms.gh';
-    var uc = new GH.XhrUrlCtx('/', url);
-    var v = new GH.VerifyCtx(uc, run);
-    run(uc, '/proofs_upto/999', v);
-    window.verifyctx = v;
-    function init(ctx) {
-        for (var symName in ctx.syms) {
-            var sym = ctx.syms[symName];
-            switch (sym[0]) {
-            case 'tvar':
-            case 'var':
-                continue;
-            }
-            if (sym[2].length > 0) {
-                // We don't need no stinkin' inferences
-                continue;
-            }
-            //  TODO: handle dvar list
-            GHT.thms[symName] = TermFromSexp(sym[3], 'wff');
-        }
-    }
-    init(window.verifyctx);
-}
-
 GHT.setVersion(0);
-GHT.grep = function(obj, keys) {
-    var newObj = {};
-    keys.forEach(function(key) {newObj[key] = obj[key];});
-    return newObj;
-};
-//loadFromServer();
-GHT.autoSteps = [
-/*
-  // Proves id
-    "GHT.theOnclicks['[]']()","GHT.theMenu.options['terminals']()","GHT.theMenu.options['ax-1']();",
-    "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axand']();",
-    "GHT.theOnclicks['[1,2,1]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['ax-2']();",
-    "GHT.theOnclicks['[]']()","GHT.theMenu.options['arrowees']()","GHT.theMenu.options['_axmp']();"
-*/
-
-  // Proves imim2
-/*
-    "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['ax-2']();",
-    "GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['ax-1']();",
-*/
-/*
-    // Proves imim1
-    "GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['ax-1']();",
-    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
-    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['imim2']();",
-    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-1']();",
-    "GHT.theOnclicks['[1,2,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
-    "GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-2']();",
-    "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axmp']();",
-*/
-/* Proves exalpha2 
-"GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['df-ex']();",
-"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[1,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['alphasub']();",
-"GHT.theOnclicks['[1,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-subst']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-ex']();",
-"GHT.theOnclicks['[1,1,2,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['iman']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['annim']();",
-"GHT.theOnclicks['[1,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-ex']();",
-"GHT.theOnclicks['[1,1,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['notnot~']();",
-"GHT.theOnclicks['[1,1,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.21']();",
-"GHT.theOnclicks['[1,1,2,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['impexp']();",
-"GHT.theOnclicks['[1,1,2,1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
-"GHT.theOnclicks['[1,1,2,1,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-eqtr']();",
-"GHT.theOnclicks['[1,1,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.5']();",
-"GHT.theOnclicks['[1,1,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-ex']();",
-/* proves funlambda       
-"GHT.theOnclicks['[]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['df-fun']();",
-"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['(lambda     )']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-lambda']();",
-"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-lambda']();",
-"GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ax-elab']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['perform substitution']();",
-"GHT.theOnclicks['[1,2,2,1]']();GHT.theMenu.options['perform substitution']();",
-"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['_axand']();",
-"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-an']();",
-"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
-"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
-"GHT.theOnclicks['[1,2,2,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.41']();",
-"GHT.theOnclicks['[1,2,2,1,2,2,1,2]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['A']();",
-"GHT.theOnclicks['[1,2,2,1,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['opeq2']();",
-"GHT.theOnclicks['[1,2,2,1,2,2,1,1,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['z']();",
-"GHT.theOnclicks['[1,2,2,1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
-"GHT.theOnclicks['[1,2,2,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
-"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-eqtr']();",
-"GHT.theOnclicks['[1,2,2,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
-"GHT.theOnclicks['[1,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['exalpha2']();",
-"GHT.theOnclicks['[1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['imex']();",
-"GHT.theOnclicks['[1,2,2,2,2,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['opeq1']();",
-"GHT.theOnclicks['[1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['bi1']();",
-"GHT.theOnclicks['[1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['eqeq1']();",
-"GHT.theOnclicks['[1,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom~']();",
-"GHT.theOnclicks['[1,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['idd']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['opth']();",
-"GHT.theOnclicks['[1,1,2,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
-"GHT.theOnclicks['[1,1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm3.35']();",
-"GHT.theOnclicks['[1,1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['ax-alim']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-eu']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['eximp1']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['ax-alim']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['dfbi2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['pm4.76']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['impexp~']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['19.29']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anass~']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['pm3.35']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ax-eqtr']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ex-nf']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['eqeq2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['bi2.04~']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['eximp1']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm5.31']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2,1,2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['eqeq2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2,1,2,1,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['z']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['pm5.33']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['pm3.35']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm2.27']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.41']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom~']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm5.31']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['bi2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['eqeq2']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['eqcom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['ancom']();",
-"GHT.theOnclicks['[1,1,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anass']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm3.35']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2,1]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['idd']();",
-"GHT.theOnclicks['[1,1,2,2,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,1,2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.41']();",
-"GHT.theOnclicks['[1,1,2,2,1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['pm3.35']();",
-"GHT.theOnclicks['[1,1,2,2,1,2,1]']();GHT.theMenu.options['terminals']();GHT.theMenu.options['tyex']();",
-"GHT.theOnclicks['[1,1,2,2,1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['idd']();",
-"GHT.theOnclicks['[1,1,2,2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['anidm']();",
-"GHT.theOnclicks['[1,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['19.3']();",
-*/
-
-];
-
-function doStep() {
-    var step = GHT.autoSteps.shift();
-    if (step) eval(step);
-    if (GHT.autoSteps.length) {
-        window.setTimeout(doStep, 10);
-    }
-
-}
 window.onload = function() {
-    GHT.disableOptions = {};
-    
-    if (true) {    // ================ BEGINNER MODE ================
-        GHT.allThms = GHT.thms;
-        GHT.allOperators = GHT.Operators;
-        GHT.thms = GHT.grep(GHT.allThms,
-                            ["ax-1","ax-2","ax-3"
-                             //,"idd","id","imim2","imim1","tied", "tie","pm2.43"
-                             //,"pm2.21","con3","notnot1","notnot2","pm2.18"
-                            ]);
-        GHT.Operators = GHT.grep(GHT.allOperators, ["->","-."]);
-        GHT.disableOptions = {'generify':1, 'equivalents':1,'initials':1, 'term substitute':1,
-                              'terminals':1};
-    }
+/*
     var start = (new GHT.ProofFactory()).newProof("ax-1");
     GHT.setProof(start);
     GHT.actuallySetProof(start);
+*/
     window.setTimeout(
         function() {
             window.addEventListener(
@@ -1482,7 +1178,6 @@ window.onload = function() {
                     GHT.actuallySetProof(GHT.undoStack[version].proof);
                 }, true);
         }, 10);
-    window.setTimeout(doStep, 10);
 };
 
 document.getElementById("reset").onclick = GHT.showTerminals([], null);
