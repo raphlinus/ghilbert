@@ -20,6 +20,7 @@ import logging
 import StringIO
 import verify
 from time import gmtime, strftime
+import re
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -27,6 +28,86 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 
 from django.utils import simplejson
+
+class Goal(db.Model):
+    name = db.StringProperty()
+    value = db.IntegerProperty()
+    next = db.StringProperty()
+    ghilbert = db.StringProperty()
+    html = db.TextProperty()
+    # TODO: which interfaces are required; which goals are required; branch points
+    
+#TODO:hack
+def get_goal(name):
+    goal = Goal.get_or_insert(key_name=name)
+    if (name == "con12"):
+        goal.next = "contraction"
+        goal.put()
+    if (goal.name is None):
+        goal.name = name
+        if (name == "idd"):
+            goal.next = "id"
+            goal.value = 1
+            goal.html = "(&#x2192; A (&#x2192; B B))"
+            goal.ghilbert = "() () (-> A (-> B B))"
+            goal.put()
+        elif (name == "id"):
+            goal.next = "imim2"
+            goal.value = 1
+            goal.html = "(&#x2192; A A)"
+            goal.ghilbert = "() () (-> A A)"
+            goal.put()
+        elif (name == "imim2"):
+            goal.next = "imim1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A B) (&#x2192; (&#x2192; C A) (&#x2192; C B))))"
+            goal.ghilbert = "() () (-> (-> A B) (-> (-> C A) (-> C B)))" 
+            goal.put()
+        elif (name == "imim1"):
+            goal.next = "assertion"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A B) (&#x2192; (&#x2192; B C) (&#x2192; A C))))"
+            goal.ghilbert = "() () (-> (-> A B) (-> (-> B C) (-> A C)))" 
+            goal.put()
+        elif (name == "assertion"):
+            goal.next = "tie"
+            goal.value = 1
+            goal.html = "(&#x2192; A (&#x2192; (&#x2192; A B) B)))"
+            goal.ghilbert = "() () (-> A (-> (-> A B) B))" 
+            goal.put()
+        elif (name == "tie"):
+            goal.next = "con12"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; (&#x2192; A A) B) B)"
+            goal.ghilbert = "() () (-> (-> (-> A A) B) B)" 
+            goal.put()
+        elif (name == "con12"):
+            goal.next = "contraction"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A (&#x2192; B C)) (&#x2192; B (&#x2192; A C)))"
+            goal.ghilbert = "() () (-> (-> A (-> B C)) (-> B (-> A C)))" 
+            goal.put()
+        elif (name == "contraction"):
+            goal.next = "contraction"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A (&#x2192; A B)) (&#x2192; A B))"
+            goal.ghilbert = "() () (-> (-> A (-> A B)) (-> A B))"
+            goal.put()
+        else:
+            goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
+    return goal
+#TODO: OO
+def check_goal(player, proof, stream):
+    goal = get_goal(player.goal)
+    if (goal.ghilbert is None):
+        return False
+    pattern = "thm \([^)]* " + goal.ghilbert.replace("(","\(").replace(")","\)")
+    if re.match(pattern, proof):
+        player.score += goal.value
+        player.goal = goal.next
+        return True
+    stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
+    return False
 
 class Player(db.Model):
     name = db.StringProperty()
@@ -42,15 +123,22 @@ class Player(db.Model):
     ghilbertText = db.TextProperty()
     # Log of all actions
     log = db.TextProperty()
-    
+    # Javascript for updating the UI to reflect this object's current state
+    def update_js(self):
+        dict = {};
+        for k in ("score", "location", "goal", "name"):
+            dict[k] = getattr(self,k);
+        dict["goal"] = get_goal(dict["goal"]).html
+        return "\nGHT.updateUi('player',%s)\n" % simplejson.dumps(dict)
+        
 class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
         player = Player.get_or_insert(key_name=playerName)
         tip = '"Welcome back."';
         if (player.location is None):
             player.score = 0
-            player.location = "PropCal1"
-            player.goal="(&#x2192; A (&#x2192; B B))"
+            player.location = "Inner Procal"
+            player.goal="idd"
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             player.setupJs = """
@@ -79,19 +167,9 @@ tvar (wff A B C D E F G H)
 
             tip = '"Welcome!  I see you\'re new here.  Feel free to click around and explore.  You can\'t mess up."'
             player.put()
-        self.response.out.write("""
-%s
-
-GHT.Tip.set("welcome", %s);
-
-({
-score: %s,
-location: "%s",
-goal: "%s",
-name: "%s",
-})
-"""
-                                % (player.setupJs, tip, player.score, player.location, player.goal, player.name));
+        self.response.out.write(player.setupJs);
+        self.response.out.write('GHT.Tip.set("welcome", %s);\n' % tip);
+        self.response.out.write(player.update_js());
 
 
 class SaveHandler(webapp.RequestHandler):
@@ -116,7 +194,8 @@ stmt (imim1i () ((-> A B)) (-> (-> B C) (-> A C)))
 stmt (imim2i () ((-> A B)) (-> (-> C A) (-> C B)))
 """
                       }
-        proofText = player.ghilbertText + "\n" + self.request.get('proof') + "\n"
+        newProof = self.request.get('proof')
+        proofText = player.ghilbertText + "\n" + newProof + "\n"
         output = StringIO.StringIO();
         output.write("Verifying: \n===\n%s\n===\n" % proofText);
         interfaces["-"] = proofText;
@@ -126,7 +205,11 @@ stmt (imim2i () ((-> A B)) (-> (-> C A) (-> C B)))
         if ctx.error_count > 0:
             self.response.out.write("GHT.Tip.set('saveError', 'Cannot save!');\n/*\n%s\n*/" % output.getvalue())
         else:
-            self.response.out.write("GHT.Tip.set('saved');\n")
+            if (check_goal(player, newProof, self.response.out)):
+                self.response.out.write("GHT.Tip.set('achieved');\n")
+                self.response.out.write(player.update_js())
+            else:
+                self.response.out.write("GHT.Tip.set('saved');\n")
             player.ghilbertText = proofText;
             player.log += "\n# %s\n%s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()),
                                             self.request.get('log'))

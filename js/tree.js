@@ -371,6 +371,7 @@ GHT.newMenu = function(title, x, y) {
     var table = document.createElement("table");
     popup.appendChild(table);
     GHT.dismiss = function() {
+        GHT.Tip.clear();
         popup.style.display = 'none';
     };
     GHT.theMenu = {

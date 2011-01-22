@@ -53,16 +53,36 @@ GHT.Tip = {
         }  
     },
     tips: {
-        login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress.",
-        saved: "Saved."
+        login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
+        ,saved: "Saved."
+        ,achieved: "Goal Achived!"
+        ,arrow:'The tree <table class="type_wff binding_terminal" style="display:inline"><tr><td colspan="2" class="operator">&#x2192;<\/td><\/tr><tr><td><span class="var type_wff binding_terminal">A<\/span><\/td><td><span class="var type_wff binding_initial">B<\/span><\/td><\/tr><\/table> is written "(&#x2192; A B)" and pronounced "A arrows B."'
+        ,color:'A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
+        ,letters:'After each step, all letters are remapped back to the beginning of the alphabet.'
+        ,bindings:'The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
     },
     theDiv: document.getElementById("tip")
+};
+GHT.updateUi = function(nodeBase, obj) {
+    for (var k in obj) {
+        var nodeName = nodeBase + "." + k;
+        var node = document.getElementById(nodeName);
+        if (node) {
+            if (node.type === "text"){
+                node.value = obj[k];
+            } else {
+                node.innerHTML = obj[k];
+            }
+        } else {
+            console.log("Node not found: " + nodeName);
+        }
+    }
 };
 
 // Startup: set the playerName, get the latest stuff
 (function() {
-     var playerNameCookie = "playerName";
-     var playerNameField = document.getElementById("playerName");
+     var playerNameCookie = "player.name";
+     var playerNameField = document.getElementById("player.name");
      GHT.playerName = GHT.Cookie.get(playerNameCookie);
      var timeoutId;
      playerNameField.onkeyup = function() {
@@ -76,10 +96,7 @@ GHT.Tip = {
          var xhr = new XMLHttpRequest();
          xhr.onreadystatechange = function () {
              if (xhr.readyState === 4) {
-                 var status = eval(xhr.responseText);
-                 document.getElementById("playerScore").innerHTML = status.score;
-                 document.getElementById("playerLocation").innerHTML = status.location;
-                 document.getElementById("goal").innerHTML = status.goal;
+                 eval(xhr.responseText);
              } else if (xhr.readyState > 4) {
                  console.log("login xhr: " + xhr.readyState);
              }
@@ -96,7 +113,7 @@ GHT.Tip = {
      document.getElementById("save").onclick = function() {
          var packet = {};
          packet.playerName = encodeURIComponent(GHT.playerName);
-         packet.thmName = document.getElementById("thmName").value;
+         packet.thmName = document.getElementById("theorem.name").value;
          GHT.Thms[packet.thmName] = GHT.theTerm;
          packet.log = "";
          var vers = GHT.getVersion();
