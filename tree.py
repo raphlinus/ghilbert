@@ -40,8 +40,8 @@ class Goal(db.Model):
 #TODO:hack
 def get_goal(name):
     goal = Goal.get_or_insert(key_name=name)
-    if (name == "con12"):
-        goal.next = "contraction"
+    if (goal.name == "notnot1"):
+        goal.html = "(&#x2192; (A (&#x00ac; (&#x00ac; A))))"
         goal.put()
     if (goal.name is None):
         goal.name = name
@@ -88,10 +88,58 @@ def get_goal(name):
             goal.ghilbert = "() () (-> (-> A (-> B C)) (-> B (-> A C)))" 
             goal.put()
         elif (name == "contraction"):
-            goal.next = "contraction"
+            goal.next = "fie"
             goal.value = 1
             goal.html = "(&#x2192; (&#x2192; A (&#x2192; A B)) (&#x2192; A B))"
             goal.ghilbert = "() () (-> (-> A (-> A B)) (-> A B))"
+            goal.put()
+        elif (name == "fie"):
+            goal.next = "notnot2"
+            goal.value = 1
+            goal.html = "(&#x2192; ((&#x00ac; A) (&#x2192; A B)))"
+            goal.ghilbert = "() () (-> (-. A) (-> A B))"
+            goal.put()
+        elif (name == "notnot1"):
+            goal.next = "con3"
+            goal.value = 1
+            goal.html = "(&#x2192; (A (&#x00ac; (&#x00ac; A))))"
+            goal.ghilbert = "() () (-> A (-. (-. A)))"
+            goal.put()
+        elif (name == "notnot2"):
+            goal.next = "notnot1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x00ac; (&#x00ac; A)) A)"
+            goal.ghilbert = "() () (-> (-. (-. A)) A)"
+            goal.put()
+        elif (name == "con3"):
+            goal.next = "nimp2"
+            goal.value = 1
+            goal.html = "(&#x2192;  (&#x2192; A B)  (&#x2192; (&#x00ac; B) (&#x00ac; A)))"
+            goal.ghilbert = "() () (-> (-> A B) (-> (-. B) (-. A)))"
+            goal.put()
+        elif (name == "nimp2"):
+            goal.next = "nimp1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x00ac; (&#x2192; A B)) (&#x00ac; B))"
+            goal.ghilbert = "() () (-> (-. (-> A B)) (-. B))"
+            goal.put()
+        elif (name == "nimp1"):
+            goal.next = "mth8"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x00ac; (&#x2192; A B)) A)"
+            goal.ghilbert = "() () (-> (-. (-> A B)) A)"
+            goal.put()
+        elif (name == "mth8"):
+            goal.next = "bijust"
+            goal.value = 1
+            goal.html = "(&#x2192; A (&#x2192; (&#x00ac; B) (&#x00ac; (&#x2192; A B))))"
+            goal.ghilbert = "() () (-> A (-> (-. B) (-. (-> A B))))"
+            goal.put()
+        elif (name == "bijust"):
+            goal.next = "PICKUP(df-bi)"
+            goal.value = 1
+            goal.html = "(&#x00ac; (&#x2192; (&#x2192; A A) (&#x00ac; (&#x2192; A A))))"
+            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> A A))))"
             goal.put()
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
@@ -109,6 +157,22 @@ def check_goal(player, proof, stream):
     stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
     return False
 
+def send_to_CorePropCal(player, stream):
+    player.location = "Outer Procal"
+    stream.write("GHT.Tip.set('negUnlocked');\n")
+    newJs ="""
+// CorePropCal
+GHT.Operators["-."] = new Operator("-.","\u00ac","wff",["wff"],[-1]);
+GHT.Thms["Transpose"] = T(O("->"),T(O("->"),T(O("-."),TV("wff", -560)),T(O("-."),TV("wff", -571))),T(O("->"),TV("wff", -571),TV("wff", -560)));
+GHT.ArrowScheme["-."] = ["con3i"];
+"""
+    stream.write(newJs);
+    player.goal = "fie"
+    player.setupJs += newJs;
+    player.ghilbertText += """
+import (COREPROPCAL CorePropCal (POSPROPCAL) "")
+"""
+    
 class Player(db.Model):
     name = db.StringProperty()
     lastSeen = db.DateTimeProperty(auto_now=True)
@@ -129,7 +193,7 @@ class Player(db.Model):
         for k in ("score", "location", "goal", "name"):
             dict[k] = getattr(self,k);
         dict["goal"] = get_goal(dict["goal"]).html
-        return "\nGHT.updateUi('player',%s)\n" % simplejson.dumps(dict)
+        return "\nGHT.updateUi('player',%s);\n" % simplejson.dumps(dict)
         
 class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
@@ -147,8 +211,8 @@ GHT.Thms = {};
 GHT.ArrowScheme = {};
 GHT.DisabledOptions = {};
 GHT.Operators["->"] = new Operator("->","\u2192","wff",["wff","wff"],[-1,1]);
-GHT.Thms["ax-simplify"] = T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -1)));
-GHT.Thms["ax-distribute"] = T(O("->"),T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -3))),T(O("->"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -1),TV("wff", -3))));
+GHT.Thms["Simplify"] = T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -1)));
+GHT.Thms["Distribute"] = T(O("->"),T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -3))),T(O("->"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -1),TV("wff", -3))));
 GHT.ArrowScheme["mp"] = ["ax-mp", "ax-mp"]; //TODO: what does this second ax-mp really mean? why does that work?
 GHT.ArrowScheme["->"] = ["imim1i", "imim2i"];
 GHT.DisabledOptions.generify = 1;
@@ -156,7 +220,7 @@ GHT.DisabledOptions.equivalents = 1;
 GHT.DisabledOptions.initials = 1;
 GHT.DisabledOptions["term substitute"] = 1;
 GHT.DisabledOptions.terminals = 1;
-GHT.setProof((new GHT.ProofFactory()).newProof("ax-simplify"));
+GHT.setProof((new GHT.ProofFactory()).newProof("Simplify"));
 
 """
             player.ghilbertInterfaces = ["PosPropCal"]
@@ -184,14 +248,22 @@ class SaveHandler(webapp.RequestHandler):
         interfaces = {'PosPropCal':"""
 # positive propositional calculus
 kind (wff)
-tvar (wff A B C D E F G H)
+tvar (wff A B C)
 term (wff (-> A B))
-stmt (ax-simplify () () (-> A (-> B A)))
-stmt (ax-distribute () () (-> (-> A (-> B C)) (-> (-> A B) (-> A C))))
+stmt (Simplify () () (-> A (-> B A)))
+stmt (Distribute () () (-> (-> A (-> B C)) (-> (-> A B) (-> A C))))
 stmt (ax-mp () (A (-> A B)) B)
-#TODO: these are provable from above... reduce the interface?
+#TODO: provable from above... reduce the interface?
 stmt (imim1i () ((-> A B)) (-> (-> B C) (-> A C)))
 stmt (imim2i () ((-> A B)) (-> (-> C A) (-> C B)))
+""",
+                      'CorePropCal':"""
+param (POSPROPCAL PosPropCal () "")
+tvar (wff A B C)
+term (wff (-. A))
+stmt (Transpose () () (-> (-> (-. A) (-. B)) (-> B A)))
+#TODO: provable from above... reduce the interface?
+stmt (con3i () ((-> A B)) (-> (-. B) (-. A)))
 """
                       }
         newProof = self.request.get('proof')
@@ -205,15 +277,18 @@ stmt (imim2i () ((-> A B)) (-> (-> C A) (-> C B)))
         if ctx.error_count > 0:
             self.response.out.write("GHT.Tip.set('saveError', 'Cannot save!');\n/*\n%s\n*/" % output.getvalue())
         else:
-            if (check_goal(player, newProof, self.response.out)):
-                self.response.out.write("GHT.Tip.set('achieved');\n")
-                self.response.out.write(player.update_js())
-            else:
-                self.response.out.write("GHT.Tip.set('saved');\n")
             player.ghilbertText = proofText;
             player.log += "\n# %s\n%s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()),
                                             self.request.get('log'))
             player.setupJs += "GHT.Thms['%s'] = %s;\n" % (self.request.get('thmName'), self.request.get('source'))
+            if (check_goal(player, newProof, self.response.out)):
+                if (player.score == 2): #HACK
+                    send_to_CorePropCal(player, self.response.out)
+                else:
+                    self.response.out.write("GHT.Tip.set('achieved');\n")
+                self.response.out.write(player.update_js())
+            else:
+                self.response.out.write("GHT.Tip.set('saved');\n")
             player.put()
 
 application = webapp.WSGIApplication(

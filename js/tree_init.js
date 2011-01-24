@@ -56,10 +56,11 @@ GHT.Tip = {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
         ,achieved: "Goal Achived!"
-        ,arrow:'The tree <table class="type_wff binding_terminal" style="display:inline"><tr><td colspan="2" class="operator">&#x2192;<\/td><\/tr><tr><td><span class="var type_wff binding_terminal">A<\/span><\/td><td><span class="var type_wff binding_initial">B<\/span><\/td><\/tr><\/table> is written "(&#x2192; A B)" and pronounced "A arrows B."'
-        ,color:'A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
-        ,letters:'After each step, all letters are remapped back to the beginning of the alphabet.'
-        ,bindings:'The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
+        ,arrow:'Tip: The tree <table class="type_wff binding_terminal" style="display:inline"><tr><td colspan="2" class="operator">&#x2192;<\/td><\/tr><tr><td><span class="var type_wff binding_terminal">A<\/span><\/td><td><span class="var type_wff binding_initial">B<\/span><\/td><\/tr><\/table> is written "(&#x2192; A B)" and pronounced "A arrows B."'
+        ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
+        ,letters:'Tip: After each step, all letters are remapped back to the beginning of the alphabet.'
+        ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
+        ,negUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (&#x00ac;) and a new terminal (Transpose)."
     },
     theDiv: document.getElementById("tip")
 };
