@@ -40,9 +40,6 @@ class Goal(db.Model):
 #TODO:hack
 def get_goal(name):
     goal = Goal.get_or_insert(key_name=name)
-    if (goal.name == "notnot1"):
-        goal.html = "(&#x2192; (A (&#x00ac; (&#x00ac; A))))"
-        goal.put()
     if (goal.name is None):
         goal.name = name
         if (name == "idd"):
@@ -102,7 +99,7 @@ def get_goal(name):
         elif (name == "notnot1"):
             goal.next = "con3"
             goal.value = 1
-            goal.html = "(&#x2192; (A (&#x00ac; (&#x00ac; A))))"
+            goal.html = "(&#x2192; (A (&#x00ac; (&#x00ac; A)))"
             goal.ghilbert = "() () (-> A (-. (-. A)))"
             goal.put()
         elif (name == "notnot2"):
@@ -130,16 +127,16 @@ def get_goal(name):
             goal.ghilbert = "() () (-> (-. (-> A B)) A)"
             goal.put()
         elif (name == "mth8"):
-            goal.next = "bijust"
+            goal.next = "df-and-just"
             goal.value = 1
             goal.html = "(&#x2192; A (&#x2192; (&#x00ac; B) (&#x00ac; (&#x2192; A B))))"
             goal.ghilbert = "() () (-> A (-> (-. B) (-. (-> A B))))"
             goal.put()
-        elif (name == "bijust"):
+        elif (name == "df-and-just"):
             goal.next = "PICKUP(df-bi)"
             goal.value = 1
-            goal.html = "(&#x00ac; (&#x2192; (&#x2192; A A) (&#x00ac; (&#x2192; A A))))"
-            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> A A))))"
+            goal.html = "(&#x00ac; (&#x2192; (&#x2192; A A) (&#x00ac; (&#x2192; B B))))"
+            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> B B))))"
             goal.put()
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
@@ -152,7 +149,15 @@ def check_goal(player, proof, stream):
     pattern = "thm \([^)]* " + goal.ghilbert.replace("(","\(").replace(")","\)")
     if re.match(pattern, proof):
         player.score += goal.value
+        if (player.score == 8): #TODO:data driven
+            send_to_CorePropCal(player, self.response.out)
+        elif (player.goal == "df-and-just"):
+            # TODO: PICKUP: add defthm, paraeterize tips, inform user of new thm
+            pass
+        else:
+            self.response.out.write("GHT.Tip.set('achieved');\n")
         player.goal = goal.next
+
         return True
     stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
     return False
@@ -282,10 +287,6 @@ stmt (con3i () ((-> A B)) (-> (-. B) (-. A)))
                                             self.request.get('log'))
             player.setupJs += "GHT.Thms['%s'] = %s;\n" % (self.request.get('thmName'), self.request.get('source'))
             if (check_goal(player, newProof, self.response.out)):
-                if (player.score == 2): #HACK
-                    send_to_CorePropCal(player, self.response.out)
-                else:
-                    self.response.out.write("GHT.Tip.set('achieved');\n")
                 self.response.out.write(player.update_js())
             else:
                 self.response.out.write("GHT.Tip.set('saved');\n")

@@ -115,7 +115,8 @@ GHT.updateUi = function(nodeBase, obj) {
          var packet = {};
          packet.playerName = encodeURIComponent(GHT.playerName);
          packet.thmName = document.getElementById("theorem.name").value;
-         GHT.Thms[packet.thmName] = GHT.theTerm;
+         GHT.Thms[packet.thmName] = GHT.theTerm.clone();
+         GHT.redecorate();
          packet.log = "";
          var vers = GHT.getVersion();
          for (var i = 1; i <= vers; i++){

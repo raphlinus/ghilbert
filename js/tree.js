@@ -594,6 +594,18 @@ GHT.makeTable = function(term, path, binding, varMap) {
     // Set onclick and mouseover listeners
     function decorate(td) {
         var key = JSON.stringify(path);
+        if (true) { // experimental auto-menu-open
+            var timeoutId;
+            td.onmouseover = function() {
+                window.clearTimeout(timeoutId);
+                timeoutId = window.setTimeout(td.onclick, 400);
+                console.log("timeout: " + timeoutId);
+            };
+            td.onmouseout = function() {
+                window.clearTimeout(timeoutId);
+                console.log("out: " + timeoutId);
+            };
+        }
         td.onclick = function(event) {
             if (!event) event = {};
             GHT.theStep = "GHT.theOnclicks['" + key + "']();";
@@ -1117,14 +1129,18 @@ GHT.setProof = function(proof) {
     GHT.setVersion(vers);
     // This changes the window.location hash, which will call back into actuallySetProof.
 };
-GHT.actuallySetProof = function(proof) {
-    //console.log("Setting proof: " + proof.toString());
+GHT.redecorate = function() {
     var div = document.getElementById("tree");
     try {
         if (GHT.theTable) div.removeChild(GHT.theTable);
     } catch (x) {
         console.log("No table?");
     }
+    GHT.theTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.theVarMap);
+    div.appendChild(GHT.theTable);
+};
+GHT.actuallySetProof = function(proof) {
+    //console.log("Setting proof: " + proof.toString());
     var cloneMap = {};
     var term = proof.getTerm(cloneMap);
     GHT.theProof = proof;
@@ -1132,9 +1148,7 @@ GHT.actuallySetProof = function(proof) {
     GHT.theVars = term.extractVars();
     GHT.theVarMap = GHT.makeVarMap(GHT.theVars, GHT.goodVarNames);
     GHT.theOnclicks = { };
-    GHT.theTable =  GHT.makeTable(term, [], 1, GHT.theVarMap);
-    div.appendChild(GHT.theTable);
-
+    GHT.redecorate();
 };
 GHT.getVersion = function() {
     var match = window.location.toString().match(/#(.*)/);
