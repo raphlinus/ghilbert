@@ -1032,6 +1032,7 @@ GHT.ProofFactory = function() {
         // theorem.  We then eliminate the subterm, and all its parent
         // terms until we find one that is not terminally-bound.
         // @param scheme an Arrow Scheme which must contain proven inferences
+        // TODO: this is currently not functional
         this.applyDetach = function(path, name, scheme) {
             // Compute the tree of bindings from the root down to the subterm.
             var bindingAncestry = [1];

@@ -39,6 +39,8 @@ class Goal(db.Model):
     
 #TODO:hack
 def get_goal(name):
+    if (name == "PICKUP"):
+        name = "ancom"
     goal = Goal.get_or_insert(key_name=name)
     if (goal.name is None):
         goal.name = name
@@ -175,12 +177,95 @@ def get_goal(name):
             goal.ghilbert = "() () (-> (/\ A B) B)"
             goal.put()
         elif (name == "and"):
-            goal.next = "PICKUP"
+            goal.next = "ancom"
             goal.value = 1
             goal.html = "(&#x2192; A (&#x2192; B (&#x2227; A B)))"
             goal.ghilbert = "() () (-> A (-> B (/\ A B)))"
             goal.put()
-
+        elif (name == "ancom"):
+            goal.next = "dfbi"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2227; A B) (&#x2227; B A))"
+            goal.ghilbert = "() () (-> (/\ A B) (/\ B A))"
+            goal.put()
+        elif (name == "dfbi"):
+            goal.next = "def-bi-1"
+            goal.value = 1
+            goal.html = "(&#x2227; (&#x2192; A A) (&#x2192; B B))"
+            goal.ghilbert = "() () (/\ (-> A A) (-> B B))"
+            goal.put()
+        elif (name == "def-bi-1"):
+            goal.next = "def-bi-2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2227; (&#x2192; A B) (&#x2192; B A)))"
+            goal.ghilbert = "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))"
+            goal.put()
+        elif (name == "def-bi-2"):
+            goal.next = "bi1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2227; (&#x2192; A B) (&#x2192; B A)) (&#x2194; A B))"
+            goal.ghilbert = "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))"
+            goal.put()
+        elif (name == "bi1"):
+            goal.next = "bi2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2192; A B))"
+            goal.ghilbert = "() () (-> (<-> A B) (-> A B))"
+            goal.put()
+        elif (name == "bi2"):
+            goal.next = "imbi1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2192; B A))"
+            goal.ghilbert = "() () (-> (<-> A B) (-> B A))"
+            goal.put()
+        elif (name == "imbi1"):
+            goal.next = "imbi2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2192; A C) (&#x2192; B C))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))"
+            goal.put()
+        elif (name == "imbi2"):
+            goal.next = "bibi1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2192; C A) (&#x2192; C B))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))"
+            goal.put()
+        elif (name == "bibi1"):
+            goal.next = "bibi2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2194; A C) (&#x2194; B C)))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))"
+            goal.put()
+        elif (name == "bibi2"):
+            goal.next = "mpbi"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2194; C A) (&#x2194; C B)))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))"
+            goal.put()
+        elif (name == "mpbi"):
+            goal.next = "mpbir"
+            goal.value = 1
+            goal.html = "(&#x2192; A (&#x2192; (&#x2194; A B) B))"
+            goal.ghilbert = "() () (-> A (-> (<-> A B) B))"
+            goal.put()
+        elif (name == "mpbir"):
+            goal.next = "anbi1"
+            goal.value = 1
+            goal.html = "(&#x2192; B (&#x2192; (&#x2194; A B) A))"
+            goal.ghilbert = "() () (-> B (-> (<-> A B) A))"
+            goal.put()
+        elif (name == "anbi1"):
+            goal.next = "anbi2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2227; A C) (&#x2227; B C)))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))"
+            goal.put()
+        elif (name == "anbi2"):
+            goal.next = "dfbi2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2194; A B) (&#x2194; (&#x2227; C A) (&#x2227; C B)))"
+            goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))"
+            goal.put()
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
     return goal
@@ -200,8 +285,13 @@ def check_goal(player, proof, thmName, stream):
             unlock_anim1(player, thmName, stream)
         elif (player.goal == "anim2"):
             unlock_anim2(player, thmName, stream)
+        elif (player.goal == "dfbi"):
+            unlock_bi(player, thmName, stream)
+        elif (player.goal == "anbi2"):
+            pass
+            #unlock_equivalences(player, thmName, stream) # TODO:PICKUP
         else:
-            stream.write("GHT.Tip.set('achieved');\n")
+            stream.write("GHT.Tip.set('achieved'); // %s\n" % player.goal)
         player.goal = goal.next
 
 
@@ -219,6 +309,7 @@ GHT.Thms["Conjoin"] =  T(O("-."),T(O("->"),T(O("->"),T(O("/\\\\"),TV("wff", -360
 GHT.ArrowScheme["/\\\\"] = [null, null];
 """
     stream.write(newJs);
+    stream.write("\nGHT.redecorate();\n");
     player.setupJs += newJs;
     player.goal = "df-and-1"
     player.ghilbertText += """
@@ -236,9 +327,9 @@ def unlock_anim1(player, thmName, stream):
 // anim1
 GHT.Operators["/\\\\"].bindings[0] = 1;
 GHT.ArrowScheme["/\\\\"][0] = "anim1i";
-GHT.redecorate();
 """
     stream.write(newJs);
+    stream.write("\nGHT.redecorate();\n");
     player.setupJs += newJs;
     player.goal = "df-and-1"
     player.ghilbertText += """
@@ -255,9 +346,9 @@ def unlock_anim2(player, thmName, stream):
 // anim2
 GHT.Operators["/\\\\"].bindings[1] = 1;
 GHT.ArrowScheme["/\\\\"][1] = "anim2i";
-GHT.redecorate();
 """
     stream.write(newJs);
+    stream.write("\nGHT.redecorate();\n");
     player.setupJs += newJs;
     player.goal = "df-and-1"
     player.ghilbertText += """
@@ -267,6 +358,28 @@ thm (anim2i () (h (-> A B)) (-> (/\ C A) (/\ C B))
   ax-mp
 )
 """ % thmName
+
+# TODO: there should be a mechanism for the player to define eir own operators "off the rails"
+def unlock_bi(player, thmName, stream):
+    stream.write("GHT.Tip.set('biUnlocked');\n")
+    newJs ="""
+// Bi
+GHT.Operators["<->"] = new Operator("<->","\u2194","wff",["wff","wff"],[Infinity,Infinity])
+GHT.Thms["Equivalate"] =  T(O("/\\\\"),T(O("->"),T(O("<->"),TV("wff", -1),TV("wff", -2)),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1)))),T(O("->"),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1))),T(O("<->"),TV("wff", -1),TV("wff", -2))));
+GHT.ArrowScheme["<->"] = [null, null];
+"""
+    stream.write(newJs);
+    player.setupJs += newJs;
+    player.goal = "def-bi-1"
+    player.ghilbertText += """
+defthm (Equivalate wff (<-> A B) () ()
+     (/\ (-> (<-> A B) (/\ (-> A B) (-> B A)))
+         (-> (/\ (-> A B) (-> B A)) (<-> A B)))
+
+    (/\ (-> A B) (-> B A))  (/\ (-> A B) (-> B A))  %s
+)
+""" % thmName
+
 
 def send_to_CorePropCal(player, stream):
     player.location = "Outer Procal"
@@ -283,6 +396,7 @@ GHT.ArrowScheme["-."] = ["con3i"];
     player.ghilbertText += """
 import (COREPROPCAL CorePropCal (POSPROPCAL) "")
 """
+
     
 class Player(db.Model):
     name = db.StringProperty()
