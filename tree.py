@@ -133,11 +133,54 @@ def get_goal(name):
             goal.ghilbert = "() () (-> A (-> (-. B) (-. (-> A B))))"
             goal.put()
         elif (name == "df-and-just"):
-            goal.next = "PICKUP(df-bi)"
+            goal.next = "dfand1"
             goal.value = 1
-            goal.html = "(&#x00ac; (&#x2192; (&#x2192; (&#x00ac; (&#x2192; A (&#x00ac; B)))) (&#x00ac; (&#x2192; A (&#x00ac; B)))) (&#x00ac; (&#x2192; (&#x00ac; (&#x2192; C (&#x00ac; D))) (&#x00ac; (&#x2192; C (&#x00ac; D))))))"
-            goal.ghilbert = "() () (-. (-> (-> (-. (-> A (-. B)))) (-. (-> A (-. B)))) (-. (-> (-. (-> C (-. D))) (-. (-> C (-. D))))))"
+            goal.html = "(&#x00ac; (&#x2192; (&#x2192; A A) (&#x00ac; (&#x2192; B B))))"
+            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> B B)))"
             goal.put()
+        elif (name == "dfand1"):
+            goal.next = "dfand2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2227; A B) (&#x00ac; (&#x2192; A (&#x00ac; B))))"
+            goal.ghilbert = "() () (-> (/\ A B) (-. (-> A (-. B))))"
+            goal.put()
+        elif (name == "dfand2"):
+            goal.next = "anim1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x00ac; (&#x2192; A (&#x00ac; B))) (&#x2227; A B))"
+            goal.ghilbert = "() () (-> (-. (-> A (-. B))) (/\ A B))"
+            goal.put()
+        elif (name == "anim1"):
+            goal.next = "anim2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A B) (&#x2192; (&#x2227; A C) (&#x2227; B C)))"
+            goal.ghilbert = "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))"
+            goal.put()
+        elif (name == "anim2"):
+            goal.next = "and1"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2192; A B) (&#x2192; (&#x2227; C A) (&#x2227; C B)))"
+            goal.ghilbert = "() () (-> (-> A B) (-> (/\ C A) (/\ C B)))"
+            goal.put()
+        elif (name == "and1"):
+            goal.next = "and2"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2227; A B) A)"
+            goal.ghilbert = "() () (-> (/\ A B) A)"
+            goal.put()
+        elif (name == "and2"):
+            goal.next = "and"
+            goal.value = 1
+            goal.html = "(&#x2192; (&#x2227; A B) B)"
+            goal.ghilbert = "() () (-> (/\ A B) B)"
+            goal.put()
+        elif (name == "and"):
+            goal.next = "PICKUP"
+            goal.value = 1
+            goal.html = "(&#x2192; A (&#x2192; B (&#x2227; A B)))"
+            goal.ghilbert = "() () (-> A (-> B (/\ A B)))"
+            goal.put()
+
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
     return goal
@@ -146,29 +189,34 @@ def check_goal(player, proof, thmName, stream):
     goal = get_goal(player.goal)
     if (goal.ghilbert is None):
         return False
-    pattern = "thm \([^)]* " + goal.ghilbert.replace("(","\(").replace(")","\)")
+    pattern = "thm \([^)]* " + goal.ghilbert.replace("\\","\\\\").replace("(","\(").replace(")","\)")
     if re.match(pattern, proof):
         player.score += goal.value
         if (player.goal == "contraction"): #TODO:data driven
             send_to_CorePropCal(player, stream)
         elif (player.goal == "df-and-just"):
-            # TODO: PICKUP: add defthm, parameterize tips, inform user of new thm
             unlock_and(player, thmName, stream)
+        elif (player.goal == "anim1"):
+            unlock_anim1(player, thmName, stream)
+        elif (player.goal == "anim2"):
+            unlock_anim2(player, thmName, stream)
         else:
             stream.write("GHT.Tip.set('achieved');\n")
         player.goal = goal.next
+
 
         return True
     stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
     return False
 
-def unlock_and(player, stream, thmName, dfandname):
+# TODO: there should be a mechanism for the player to define eir own operators "off the rails"
+def unlock_and(player, thmName, stream):
     stream.write("GHT.Tip.set('andUnlocked');\n")
     newJs ="""
 // And
-GHT.Operators["/\\"] = new Operator("/\\","\u2227","wff",["wff","wff"],[1,1]);
-GHT.Thms["Conjoin"] =  T(O("-."),T(O("->"),T(O("->"),T(O("/\\"),TV("wff", -360),TV("wff", -361)),T(O("-."),T(O("->"),TV("wff", -360),TV("wff", -361)))),T(O("-."),T(O("->"),T(O("-."),T(O("->"),TV("wff", -360),TV("wff", -361))),T(O("/\\"),TV("wff", -360),TV("wff", -361))))));
-GHT.ArrowScheme["/\\"] = ["anim1i", "anim2i"];
+GHT.Operators["/\\\\"] = new Operator("/\\\\","\u2227","wff",["wff","wff"],[Infinity,Infinity]);
+GHT.Thms["Conjoin"] =  T(O("-."),T(O("->"),T(O("->"),T(O("/\\\\"),TV("wff", -360),TV("wff", -361)),T(O("-."),T(O("->"),TV("wff", -360),T(O("-."),TV("wff", -361))))),T(O("-."),T(O("->"),T(O("-."),T(O("->"),TV("wff", -360),T(O("-."),TV("wff", -361)))),T(O("/\\\\"),TV("wff", -360),TV("wff", -361))))));
+GHT.ArrowScheme["/\\\\"] = [null, null];
 """
     stream.write(newJs);
     player.setupJs += newJs;
@@ -179,9 +227,46 @@ defthm (Conjoin wff (/\ A B) () ()
                   (-. (-> (-. (-> A (-. B))) (/\ A B)))))
      (-. (-> A (-. B)))  (-. (-> A (-. B)))  %s
 )
-#TODO: anim{1,2}i
 """ % thmName
 
+# TODO: this should be autodetected and autogenerated for each new operator
+def unlock_anim1(player, thmName, stream):
+    stream.write("GHT.Tip.set('anim1Unlocked');\n")
+    newJs ="""
+// anim1
+GHT.Operators["/\\\\"].bindings[0] = 1;
+GHT.ArrowScheme["/\\\\"][0] = "anim1i";
+GHT.redecorate();
+"""
+    stream.write(newJs);
+    player.setupJs += newJs;
+    player.goal = "df-and-1"
+    player.ghilbertText += """
+thm (anim1i () (h (-> A B)) (-> (/\ A C) (/\ B C))
+  h
+    A  B  C  %s
+  ax-mp
+)
+""" % thmName
+
+def unlock_anim2(player, thmName, stream):
+    stream.write("GHT.Tip.set('anim2Unlocked');\n")
+    newJs ="""
+// anim2
+GHT.Operators["/\\\\"].bindings[1] = 1;
+GHT.ArrowScheme["/\\\\"][1] = "anim2i";
+GHT.redecorate();
+"""
+    stream.write(newJs);
+    player.setupJs += newJs;
+    player.goal = "df-and-1"
+    player.ghilbertText += """
+thm (anim2i () (h (-> A B)) (-> (/\ C A) (/\ C B))
+  h
+    A  B  C  %s
+  ax-mp
+)
+""" % thmName
 
 def send_to_CorePropCal(player, stream):
     player.location = "Outer Procal"

@@ -62,6 +62,8 @@ GHT.Tip = {
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
         ,negUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (&#x00ac;) and a new terminal (Transpose)."
         ,andUnlocked:"Goal Achieved!<br/>A plot point occurs, and you acquire a new operator (&#x2227;) and its terminal (Conjoin)."
+        ,anim1Unlocked:"Goal Achieved!<br/>Operator &#x2227; now passes on binding to its left child!"
+        ,anim2Unlocked:"Goal Achieved!<br/>Operator &#x2227; now passes on binding to its right child too!"
     },
     theDiv: document.getElementById("tip")
 };
@@ -112,7 +114,7 @@ GHT.updateUi = function(nodeBase, obj) {
          playerNameField.value = GHT.playerName;
          playerNameField.onchange();
      }
-     document.getElementById("save").onclick = function() {
+     function submitForm() {
          var packet = {};
          packet.playerName = encodeURIComponent(GHT.playerName);
          packet.thmName = document.getElementById("theorem.name").value;
@@ -146,6 +148,14 @@ GHT.updateUi = function(nodeBase, obj) {
              packetStr += encodeURIComponent(key) + "=" + encodeURIComponent(packet[key]);
          }
          xhr.send(packetStr);
+     };
+     document.getElementById("save").onclick = submitForm;
+     document.getElementById("theorem.name").onkeyup = function(e) {
+         if (e.keyCode == 13) {
+             submitForm();
+             return false;
+         }
+         return true;
      };
  })();
 

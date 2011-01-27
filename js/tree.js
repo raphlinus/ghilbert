@@ -333,10 +333,12 @@ function unify(template, example, mapping, connected) {
 
 
 GHT.bindings = {
-    "-1":  "terminal",    // "This, or things which arrow this."
-    "0":   "exact",       // "This term, or things term-equivalent to this."
-    "1":   "initial",     // "This, or things which this arrows."
-    "NaN": "binding"      // "This is a binding variable."
+    "-1":        "terminal",   // "This, or things which arrow this."
+    "0":         "exact",      // "This term, or things term-equivalent to this."
+    "1":         "initial",    // "This, or things which this arrows."
+    "NaN":       "binding",    // "This is a binding variable."
+    "Infinity":  "unknown",    // "Unknown! No tree ops below this point."
+    "-Infinity": "unknown"     // "Unknown! No tree ops below this point."
 };
 function OpList(){}
 OpList.prototype = new Object();
