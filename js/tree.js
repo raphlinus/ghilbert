@@ -599,11 +599,9 @@ GHT.makeTable = function(term, path, binding, varMap) {
             td.onmouseover = function() {
                 window.clearTimeout(timeoutId);
                 timeoutId = window.setTimeout(td.onclick, 400);
-                console.log("timeout: " + timeoutId);
             };
             td.onmouseout = function() {
                 window.clearTimeout(timeoutId);
-                console.log("out: " + timeoutId);
             };
         }
         td.onclick = function(event) {

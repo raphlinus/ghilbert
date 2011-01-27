@@ -135,32 +135,53 @@ def get_goal(name):
         elif (name == "df-and-just"):
             goal.next = "PICKUP(df-bi)"
             goal.value = 1
-            goal.html = "(&#x00ac; (&#x2192; (&#x2192; A A) (&#x00ac; (&#x2192; B B))))"
-            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> B B))))"
+            goal.html = "(&#x00ac; (&#x2192; (&#x2192; (&#x00ac; (&#x2192; A (&#x00ac; B)))) (&#x00ac; (&#x2192; A (&#x00ac; B)))) (&#x00ac; (&#x2192; (&#x00ac; (&#x2192; C (&#x00ac; D))) (&#x00ac; (&#x2192; C (&#x00ac; D))))))"
+            goal.ghilbert = "() () (-. (-> (-> (-. (-> A (-. B)))) (-. (-> A (-. B)))) (-. (-> (-. (-> C (-. D))) (-. (-> C (-. D))))))"
             goal.put()
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
     return goal
 #TODO: OO
-def check_goal(player, proof, stream):
+def check_goal(player, proof, thmName, stream):
     goal = get_goal(player.goal)
     if (goal.ghilbert is None):
         return False
     pattern = "thm \([^)]* " + goal.ghilbert.replace("(","\(").replace(")","\)")
     if re.match(pattern, proof):
         player.score += goal.value
-        if (player.score == 8): #TODO:data driven
-            send_to_CorePropCal(player, self.response.out)
+        if (player.goal == "contraction"): #TODO:data driven
+            send_to_CorePropCal(player, stream)
         elif (player.goal == "df-and-just"):
-            # TODO: PICKUP: add defthm, paraeterize tips, inform user of new thm
-            pass
+            # TODO: PICKUP: add defthm, parameterize tips, inform user of new thm
+            unlock_and(player, thmName, stream)
         else:
-            self.response.out.write("GHT.Tip.set('achieved');\n")
+            stream.write("GHT.Tip.set('achieved');\n")
         player.goal = goal.next
 
         return True
     stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
     return False
+
+def unlock_and(player, stream, thmName, dfandname):
+    stream.write("GHT.Tip.set('andUnlocked');\n")
+    newJs ="""
+// And
+GHT.Operators["/\\"] = new Operator("/\\","\u2227","wff",["wff","wff"],[1,1]);
+GHT.Thms["Conjoin"] =  T(O("-."),T(O("->"),T(O("->"),T(O("/\\"),TV("wff", -360),TV("wff", -361)),T(O("-."),T(O("->"),TV("wff", -360),TV("wff", -361)))),T(O("-."),T(O("->"),T(O("-."),T(O("->"),TV("wff", -360),TV("wff", -361))),T(O("/\\"),TV("wff", -360),TV("wff", -361))))));
+GHT.ArrowScheme["/\\"] = ["anim1i", "anim2i"];
+"""
+    stream.write(newJs);
+    player.setupJs += newJs;
+    player.goal = "df-and-1"
+    player.ghilbertText += """
+defthm (Conjoin wff (/\ A B) () ()
+          (-. (-> (-> (/\ A B) (-. (-> A (-. B))))
+                  (-. (-> (-. (-> A (-. B))) (/\ A B)))))
+     (-. (-> A (-. B)))  (-. (-> A (-. B)))  %s
+)
+#TODO: anim{1,2}i
+""" % thmName
+
 
 def send_to_CorePropCal(player, stream):
     player.location = "Outer Procal"
@@ -272,6 +293,7 @@ stmt (con3i () ((-> A B)) (-> (-. B) (-. A)))
 """
                       }
         newProof = self.request.get('proof')
+        thmName = self.request.get('thmName')
         proofText = player.ghilbertText + "\n" + newProof + "\n"
         output = StringIO.StringIO();
         output.write("Verifying: \n===\n%s\n===\n" % proofText);
@@ -285,8 +307,8 @@ stmt (con3i () ((-> A B)) (-> (-. B) (-. A)))
             player.ghilbertText = proofText;
             player.log += "\n# %s\n%s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()),
                                             self.request.get('log'))
-            player.setupJs += "GHT.Thms['%s'] = %s;\n" % (self.request.get('thmName'), self.request.get('source'))
-            if (check_goal(player, newProof, self.response.out)):
+            player.setupJs += "GHT.Thms['%s'] = %s;\n" % (thmName, self.request.get('source'))
+            if (check_goal(player, newProof, thmName, self.response.out)):
                 self.response.out.write(player.update_js())
             else:
                 self.response.out.write("GHT.Tip.set('saved');\n")
