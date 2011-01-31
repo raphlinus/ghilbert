@@ -47,7 +47,7 @@ GHT.Tip = {
         this.currentTip = tipKey;
     },
     clear: function(tipKey) {
-        if (!tipKey || this.currentTip === tipKey) {
+        if (this.currentTip && (!tipKey || this.currentTip === tipKey)) {
             this.theDiv.style.display = "none";
             delete this.currentTip;
         }  
@@ -60,12 +60,18 @@ GHT.Tip = {
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
         ,letters:'Tip: After each step, all letters are remapped back to the beginning of the alphabet.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
-        ,negUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (<span class='operator'>&#x00ac;<\/span>) and a new terminal (Transpose)."
+        ,notUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (<span class='operator'>&#x00ac;<\/span>) and a new terminal (Transpose)."
+        ,con3Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
         ,andUnlocked:"Goal Achieved!<br/>A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
-        ,anim1Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227<\/span>; now passes on binding to its left child!"
-        ,anim2Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227<\/span>; now passes on binding to its right child too!"
+        ,anim1Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its left child!"
+        ,anim2Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
     },
+    randomTips: ["arrow", "color", "letters", "bindings"],
+    randomTipIndex: 0,
+    showRandom: function() {
+        this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
+    },    
     theDiv: document.getElementById("tip")
 };
 GHT.updateUi = function(nodeBase, obj) {
@@ -123,11 +129,12 @@ GHT.updateUi = function(nodeBase, obj) {
          GHT.redecorate();
          packet.log = "";
          var vers = GHT.getVersion();
-         for (var i = 1; i <= vers; i++){
+         for (var i = GHT.theFirstStep; i <= vers; i++){
              packet.log += GHT.undoStack[i].step + "\n";
          }
          packet.source = GHT.theTerm.toSource();
-         packet.log += "#### Save as " + name + " : " + packet.source + "\n";
+         packet.log += "GHT.SaveAs('" + packet.thmName + "'); // "
+             + packet.source + "\n";
          console.log(packet.log);
          packet.proof = GHT.getProof().getProof(packet.thmName);
          var xhr = new XMLHttpRequest();
@@ -165,7 +172,10 @@ GHT.updateUi = function(nodeBase, obj) {
          }
          return true;
      };
-
+     GHT.SaveAs = function(name) {
+         document.getElementById("theorem.name").value = name;
+         submitForm();
+     };
  })();
 
 GHT.Operators = {};
@@ -183,10 +193,10 @@ GHT.DisabledOptions = {};
  "mp": ["ax-mp", "ax-mp"], //TODO: what does this second ax-mp really mean? why does that work?
  "-.": ["con3i"],
  "->": ["imim1i", "imim2i"],
- "/\\": ["anim1i", "anim2i"],
+ "/\\":["anim1i", "anim2i"],
  //TODO(pickup): this one isn't right... or ever needed??
- "<->": ["imbi1i", "imbi2i"],
- "=": ["eqeq1", "eqeq2"],
+ "<->":["imbi1i", "imbi2i"],
+ "=":  ["eqeq1", "eqeq2"],
  "E.": ["exalpha", "19.22i"],
  "A.": ["alpha", "19.20i"]
  //,
@@ -194,13 +204,13 @@ GHT.DisabledOptions = {};
 
  GHT.EquivalenceScheme = {
  "mp": ["mpbi", "mpbir"],
- "/\\": ["anbi1i", "anbi2i"],
+ "/\\":["anbi1i", "anbi2i"],
  "->": ["imbi1i", "imbi2i"],
- "<->": ["bibi1i", "bibi2i"],
+ "<->":["bibi1i", "bibi2i"],
  "e.": ["eleq1i", "eleq2i"],
  "E!": ["eualpha", "eubii"],
  "A.": ["alpha", "albii"],
- "=": ["eqeq1", "eqeq2"],
+ "=":  ["eqeq1", "eqeq2"],
  "-.": ["notbii"],
  "E.": ["exalpha", "exbid"] //TODO:HACK
  };

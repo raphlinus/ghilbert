@@ -360,6 +360,14 @@ OpList.prototype.toSource = function() {
 };
 GHT.Operators = new OpList();
 GHT.dismiss = function() {
+    GHT.Tip.clear();
+    if (GHT.dismiss.popup) {
+        GHT.dismiss.popup.style.display = 'none';
+        delete GHT.dismiss.popup;
+    }
+    if (Math.random() < .1) {
+        GHT.Tip.showRandom();
+    }
 };
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");
@@ -372,10 +380,7 @@ GHT.newMenu = function(title, x, y) {
     popup.innerHTML = title + "<br/>";
     var table = document.createElement("table");
     popup.appendChild(table);
-    GHT.dismiss = function() {
-        GHT.Tip.clear();
-        popup.style.display = 'none';
-    };
+    GHT.dismiss.popup = popup;
     GHT.theMenu = {
         addOption: function(text, func, preview) {
             if (GHT.DisabledOptions[text]) { return; }
@@ -395,15 +400,15 @@ GHT.newMenu = function(title, x, y) {
             table.appendChild(tr);
             this.options[key] = function(e) {
                 GHT.theStep += "GHT.theMenu.options['" + key + "']();";
-                return func(e);
+                func(e);
             };
+            this.options[key].func = func;
             tr.onclick = this.options[key];
             
         },
         options: {
         },
         executeIfSingleton: function() {
-            var len = 0;
             var opt = null;
             for (var key in this.options) {
                 if (opt) {
@@ -411,7 +416,7 @@ GHT.newMenu = function(title, x, y) {
                 }
                 opt = this.options[key];
             }
-            opt();
+            opt.func();
         }
     };
     return GHT.theMenu;
@@ -738,7 +743,9 @@ GHT.ProofFactory = function() {
             var theVarMap = GHT.combineMaps(mVarMap, GHT.makeVarMap(mTerm.extractVars(), GHILBERT_VAR_NAMES));
             var str = "";
             function flatten(array) {
-                if (array instanceof Array) {
+                if (!array) {
+                    str += "*NULL*";
+                } else if (array instanceof Array) {
                     array.map(flatten);
                 } else {
                     str += array.toString(theVarMap);
@@ -839,10 +846,13 @@ GHT.ProofFactory = function() {
             newStep.push(name, "\n");
             newTerm = newTerm.substitute(unifyMap);
             newTerm = newTerm.splice(path.slice(0), result);
-
             // Travel up the path to the root term, applying stock inferences along the way
             var myPath = path.slice(0);
+            var headRoot = (templateArg == 2 ? newTerm : mTerm);
+            var tailRoot = (templateArg == 1 ? newTerm : mTerm);
             while (myPath.length > 0) {
+                newStep.push([headRoot.extract(myPath.slice(0)), "  ",
+                              tailRoot.extract(myPath.slice(0)), "  "]);
                 var whichChild = myPath.pop();
                 var term = newTerm.extract(myPath.slice(0));
                 var op = term.terms[0];
@@ -857,9 +867,13 @@ GHT.ProofFactory = function() {
                 } catch (x) {
                     throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
                 }
-                //TODO(HACK)
-                pushUpThm = pushUpThm.replace(/d$/,'i');
-                newStep.push(pushUpThm,"    ");
+                newStep.push(pushUpThm,"    ax-mp\n    ");
+                if (op.bindings[whichChild - 1] == -1) {
+                    // This arrowing theorem will switch the order of our mandhyps.
+                    var tmp = headRoot;
+                    headRoot = tailRoot;
+                    tailRoot = tmp;
+                }
             }
             newStep.push(scheme.mp[templateArg - 1], "\n");
             var newSteps = mSteps.slice(0);
@@ -930,6 +944,8 @@ GHT.ProofFactory = function() {
                     var op = opTerm.terms[0];
                     var equivThm;
                     try {
+                        // TODO(pickup): This needs to be recast to
+                        // use deductions instead of inferences, as applyArrow has.
                         equivThm = GHT.EquivalenceScheme[op][whichChild - 1];
                     } catch (x) {
                         throw "No equivalence thm found for op " + op + " child " + whichChild;
@@ -1196,4 +1212,8 @@ window.onload = function() {
         }, 10);
 };
 
-document.getElementById("reset").onclick = GHT.showTerminals([], null);
+document.getElementById("reset").onclick = function(e) {
+    GHT.showTerminals([], null)(e);
+    GHT.theStep = "GHT.showTerminals([], null)({pageX:0,pageY:0});";
+    GHT.theFirstStep = GHT.getVersion() + 1; // TODO: doesn't work with dismiss
+};
