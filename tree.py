@@ -235,13 +235,22 @@ defthm (Equivalate wff (<-> A B) () ()
             goal.next = "mpbi"
             goal.ghilbert = "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))"
         elif (name == "mpbi"):
-            goal.new_js = '\n GHT.EquivalenceScheme["mp"] = ["%s", null]; \n'
+            goal.new_js = '\n GHT.EquivalenceScheme["mp"] = ["_mpbi", null];//%s \n'
             goal.next = "mpbir"
             goal.ghilbert = "() () (-> A (-> (<-> A B) B))"
+            #TODO: deductionify (deduce?) these from the inferences
+            goal.new_ghilbert = """
+thm (_mpbi () (1 A 2 (<-> A B)) B
+2  1  A  B  %s   ax-mp    ax-mp)
+"""
         elif (name == "mpbir"):
-            goal.new_js = '\n GHT.EquivalenceScheme["mp"][1] = "%s"; \n'
+            goal.new_js = '\n GHT.EquivalenceScheme["mp"][1] = "_mpbir";//%s \n'
             goal.next = "anbi1"
             goal.ghilbert = "() () (-> A (-> (<-> B A) B))"
+            goal.new_ghilbert = """
+thm (_mpbir () (1 A 2 (<-> B A)) B
+2  1  A  B  %s   ax-mp    ax-mp)
+"""
         elif (name == "anbi1"):
             goal.new_js = '\n GHT.EquivalenceScheme["/\\\\"] = ["%s", null]; \n'
             goal.next = "anbi2"
@@ -251,9 +260,10 @@ defthm (Equivalate wff (<-> A B) () ()
             goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))"
             goal.new_js = """
 GHT.EquivalenceScheme["/\\\\"][1] = "%s";
-GHT.Operators["<->"].bindings[1] = [0, 0];
+GHT.Operators["<->"].bindings = [0, 0];
 delete GHT.DisabledOptions.equivalents;
 """
+            goal.update_js = "GHT.Tip.set('equivUnlocked');\n"
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
             return goal
@@ -289,6 +299,7 @@ def check_goal(player, proof, thmName, stream):
         stream.write(player.update_js())
         stream.write("\nGHT.redecorate();\n");
         return True
+    stream.write("GHT.Tip.set('saved'); // %s\n" % player.goal)
     stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
     return False
 

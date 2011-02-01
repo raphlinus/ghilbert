@@ -66,6 +66,7 @@ GHT.Tip = {
         ,anim1Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its left child!"
         ,anim2Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
+        ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple</span> status to its children, which can only be equivalated."
     },
     randomTips: ["arrow", "color", "letters", "bindings"],
     randomTipIndex: 0,
