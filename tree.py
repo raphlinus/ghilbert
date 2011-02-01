@@ -21,6 +21,7 @@ import StringIO
 import verify
 from time import gmtime, strftime
 import re
+import random
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -29,12 +30,19 @@ from google.appengine.ext import db
 
 from django.utils import simplejson
 
+class GoalTrain(db.Model):
+    name = db.StringProperty()
+    # Each element in the list is a ghilbert expression for the next goal in the chain.
+    # It can also be "!special", in which case we'll execute the appropriate "special" goal,
+    # feeding in the name of the last-saved theorem.
+    goals = db.StringListProperty()
+
+# for special goals
 class Goal(db.Model):
     name = db.StringProperty()
-    value = db.IntegerProperty()
-    next = db.StringProperty()
-    ghilbert = db.StringProperty()
-    html = db.TextProperty()
+    score = db.IntegerProperty()
+    # Location to move the player to after this goal.
+    new_location = db.StringProperty()
     # This text will be appended to the player's ghilbert_text when the theorem is unlocked.
     # Must have one %s which will be replaced by the player's chosen theorem name.
     new_ghilbert = db.TextProperty()
@@ -48,34 +56,9 @@ class Goal(db.Model):
 #TODO:hack
 def get_goal(name):
     goal = Goal.get_or_insert(key_name=name)
-    if (name == "PICKUP"):
-        name = "anbi2"
     if (True): #goal.name is None
         goal.name = name
-        if (name == "idd"):
-            goal.next = "id"
-            goal.ghilbert = "() () (-> A (-> B B))"
-        elif (name == "id"):
-            goal.next = "imim2"
-            goal.ghilbert = "() () (-> A A)"
-        elif (name == "imim2"):
-            goal.next = "imim1"
-            goal.ghilbert = "() () (-> (-> A B) (-> (-> C A) (-> C B)))" 
-        elif (name == "imim1"):
-            goal.next = "assertion"
-            goal.ghilbert = "() () (-> (-> A B) (-> (-> B C) (-> A C)))" 
-        elif (name == "assertion"):
-            goal.next = "tie"
-            goal.ghilbert = "() () (-> A (-> (-> A B) B))" 
-        elif (name == "tie"):
-            goal.next = "con12"
-            goal.ghilbert = "() () (-> (-> (-> A A) B) B)" 
-        elif (name == "con12"):
-            goal.next = "contraction"
-            goal.ghilbert = "() () (-> (-> A (-> B C)) (-> B (-> A C)))" 
-        elif (name == "contraction"):
-            goal.next = "fie"
-            goal.ghilbert = "() () (-> (-> A (-> A B)) (-> A B))"
+        if (name == "!unlock not"):
             goal.new_ghilbert = """
 # %s
 import (COREPROPCAL CorePropCal (POSPROPCAL) "")
@@ -88,36 +71,16 @@ GHT.Thms["Transpose"] = T(O("->"),T(O("->"),T(O("-."),TV("wff", -560)),T(O("-.")
 GHT.ArrowScheme["-."] = [null];
 """
             goal.update_js = "GHT.Tip.set('notUnlocked');\n"
-        elif (name == "fie"):
-            goal.next = "notnot2"
-            goal.ghilbert = "() () (-> (-. A) (-> A B))"
-        elif (name == "notnot1"):
-            goal.next = "con3"
-            goal.ghilbert = "() () (-> A (-. (-. A)))"
-        elif (name == "notnot2"):
-            goal.next = "notnot1"
-            goal.ghilbert = "() () (-> (-. (-. A)) A)"
-        elif (name == "con3"):
-            goal.next = "nimp2"
-            goal.ghilbert = "() () (-> (-> A B) (-> (-. B) (-. A)))"
+            goal.new_location = "Outer Procal"
+
+        elif (name == "!con3"):
             goal.update_js = "GHT.Tip.set('con3Unlocked');\n"
             goal.new_js ="""
 // con3
 GHT.Operators["-."].bindings[0] = -1;
 GHT.ArrowScheme["-."][0] = "%s";
 """
-        elif (name == "nimp2"):
-            goal.next = "nimp1"
-            goal.ghilbert = "() () (-> (-. (-> A B)) (-. B))"
-        elif (name == "nimp1"):
-            goal.next = "mth8"
-            goal.ghilbert = "() () (-> (-. (-> A B)) A)"
-        elif (name == "mth8"):
-            goal.next = "df-and-just"
-            goal.ghilbert = "() () (-> A (-> (-. B) (-. (-> A B))))"
-        elif (name == "df-and-just"):
-            goal.next = "dfand1"
-            goal.ghilbert = "() () (-. (-> (-> A A) (-. (-> B B)))"
+        elif (name == "!unlock and"):
             goal.update_js = "GHT.Tip.set('andUnlocked');\n"
             goal.new_js = """
 // %s
@@ -133,63 +96,21 @@ defthm (Conjoin wff (/\ A B) () ()
      (-. (-> A (-. B)))  (-. (-> A (-. B)))  %s
 )
 """
-        elif (name == "dfand1"):
-            goal.next = "dfand2"
-            goal.ghilbert = "() () (-> (/\ A B) (-. (-> A (-. B))))"
-        elif (name == "dfand2"):
-            goal.next = "anim1"
-            goal.ghilbert = "() () (-> (-. (-> A (-. B))) (/\ A B))"
-        elif (name == "anim1"):
-            goal.next = "anim2"
-            goal.ghilbert = "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))"
+        elif (name == "!anim1"):
             goal.update_js = "GHT.Tip.set('anim1Unlocked');\n"
             goal.new_js = """
 // anim1
 GHT.Operators["/\\\\"].bindings[0] = 1;
 GHT.ArrowScheme["/\\\\"][0] = "%s";
 """
-        elif (name == "anim2"):
-            goal.next = "and1"
-            goal.ghilbert = "() () (-> (-> A B) (-> (/\ C A) (/\ C B)))"
+        elif (name == "!anim2"):
             goal.update_js = "GHT.Tip.set('anim2Unlocked');\n"
             goal.new_js = """
 // anim2
 GHT.Operators["/\\\\"].bindings[1] = 1;
 GHT.ArrowScheme["/\\\\"][1] = "%s";
 """
-        elif (name == "and1"):
-            goal.next = "and2"
-            goal.ghilbert = "() () (-> (/\ A B) A)"
-        elif (name == "and2"):
-            goal.next = "and"
-            goal.ghilbert = "() () (-> (/\ A B) B)"
-        elif (name == "and"):
-            goal.next = "anid"
-            goal.ghilbert = "() () (-> A (-> B (/\ A B)))"
-        elif (name == "anid"):
-            goal.next = "ancom"
-            goal.ghilbert = "() () (-> A (/\ A A))"
-        elif (name == "ancom"):
-            goal.next = "ancr"
-            goal.ghilbert = "() () (-> (/\ A B) (/\ B A))"
-        elif (name == "ancr"):
-            goal.next = "import"
-            goal.ghilbert = "() () (-> (-> A B) (-> A (/\ A B))"
-        elif (name == "import"):
-            goal.next = "anmp"
-            goal.ghilbert = "() () (-> (-> A (-> B C)) (-> (/\ A B) C)"
-        elif (name == "anmp"):
-            goal.next = "anim3"
-            goal.ghilbert = "() () (-> (/\ A (-> A B)) B)"
-        elif (name == "anim3"):
-            goal.next = "prth"
-            goal.ghilbert = "() () (-> (/\ A (-> B C)) (-> B (/\ A C)))"
-        elif (name == "prth"):
-            goal.next = "dfbi"
-            goal.ghilbert = "() () (-> (/\ (-> A B) (-> C D)) (-> (/\ A C) (/\ B D)))"
-        elif (name == "dfbi"):
-            goal.next = "def-bi-1"
-            goal.ghilbert = "() () (/\ (-> A A) (-> B B))"
+        elif (name == "!unlock bi"):
             goal.update_js = "GHT.Tip.set('biUnlocked');\n"
             goal.new_js = """
 // %s
@@ -198,6 +119,10 @@ GHT.Operators["<->"] = new Operator("<->","\u2194","wff",["wff","wff"],[Infinity
 GHT.Thms["Equivalate"] =  T(O("/\\\\"),T(O("->"),T(O("<->"),TV("wff", -1),TV("wff", -2)),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1)))),T(O("->"),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1))),T(O("<->"),TV("wff", -1),TV("wff", -2))));
 GHT.ArrowScheme["<->"] = [null, null];
 GHT.EquivalenceScheme = {};
+GHT.EquivalenceScheme["->"] = [null, null];
+GHT.EquivalenceScheme["<->"] = [null, null];
+GHT.EquivalenceScheme["mp"] = [null, null];
+GHT.EquivalenceScheme["/\\\\"] = [null, null];
 """
             goal.new_ghilbert = """
 defthm (Equivalate wff (<-> A B) () ()
@@ -206,102 +131,90 @@ defthm (Equivalate wff (<-> A B) () ()
     (/\ (-> A B) (-> B A))  (/\ (-> A B) (-> B A))  %s
 )
 """
-        elif (name == "def-bi-1"):
-            goal.next = "def-bi-2"
-            goal.ghilbert = "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))"
-        elif (name == "def-bi-2"):
-            goal.next = "bi1"
-            goal.ghilbert = "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))"
-        elif (name == "bi1"):
-            goal.next = "bi2"
-            goal.ghilbert = "() () (-> (<-> A B) (-> A B))"
-        elif (name == "bi2"):
-            goal.next = "imbi1"
-            goal.ghilbert = "() () (-> (<-> A B) (-> B A))"
-        elif (name == "imbi1"):
-            goal.new_js = '\n GHT.EquivalenceScheme["->"] = ["%s", null]; \n'
-            goal.next = "imbi2"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))"
-        elif (name == "imbi2"):
+        elif (name == "!imbi1"):
+            goal.new_js = '\n GHT.EquivalenceScheme["->"][0] = "%s"; \n'
+        elif (name == "!imbi2"):
             goal.new_js = '\n GHT.EquivalenceScheme["->"][1] = "%s"; \n'
-            goal.next = "bibi1"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))"
-        elif (name == "bibi1"):
-            goal.new_js = '\n GHT.EquivalenceScheme["<->"] = ["%s", null]; \n'
-            goal.next = "bibi2"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))"
-        elif (name == "bibi2"):
+        elif (name == "!bibi1"):
+            goal.new_js = '\n GHT.EquivalenceScheme["<->"][0] = "%s"; \n'
+        elif (name == "!bibi2"):
             goal.new_js = '\n GHT.EquivalenceScheme["<->"][1] = "%s"; \n'
-            goal.next = "mpbi"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))"
-        elif (name == "mpbi"):
-            goal.new_js = '\n GHT.EquivalenceScheme["mp"] = ["_mpbi", null];//%s \n'
-            goal.next = "mpbir"
-            goal.ghilbert = "() () (-> A (-> (<-> A B) B))"
+        elif (name == "!mpbi"):
+            goal.new_js = '\n GHT.EquivalenceScheme["mp"][0] = "_mpbi";//%s \n'
             #TODO: deductionify (deduce?) these from the inferences
             goal.new_ghilbert = """
 thm (_mpbi () (1 A 2 (<-> A B)) B
 2  1  A  B  %s   ax-mp    ax-mp)
 """
-        elif (name == "mpbir"):
+        elif (name == "!mpbir"):
             goal.new_js = '\n GHT.EquivalenceScheme["mp"][1] = "_mpbir";//%s \n'
-            goal.next = "anbi1"
-            goal.ghilbert = "() () (-> A (-> (<-> B A) B))"
             goal.new_ghilbert = """
 thm (_mpbir () (1 A 2 (<-> B A)) B
 2  1  A  B  %s   ax-mp    ax-mp)
 """
-        elif (name == "anbi1"):
-            goal.new_js = '\n GHT.EquivalenceScheme["/\\\\"] = ["%s", null]; \n'
+        elif (name == "!anbi1"):
+            goal.new_js = '\n GHT.EquivalenceScheme["/\\\\"][0] = "%s"; \n'
             goal.next = "anbi2"
             goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))"
-        elif (name == "anbi2"):
-            goal.next = "PICKUP"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))"
+        elif (name == "!anbi2"):
             goal.new_js = """
 GHT.EquivalenceScheme["/\\\\"][1] = "%s";
+"""
+        elif (name == "!enable equivalents"):
+            goal.new_js = """
+// %s
 GHT.Operators["<->"].bindings = [0, 0];
 delete GHT.DisabledOptions.equivalents;
 """
             goal.update_js = "GHT.Tip.set('equivUnlocked');\n"
+
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
             return goal
     # TODO: real parser / html formatter
-    goal.html = goal.ghilbert[6:].replace(
-        "<->", "&#x2194;").replace(
-        "-.", "&#x00ac;").replace(
-        "/\\", "&#x2227;").replace(
-        "->", "&#x2192;")
     goal.value = 1
     goal.put()
     return goal
 #TODO: OO
+def goal_to_html(ghilbert):
+    return ghilbert[6:].replace(
+        "<->", "&#x2194;").replace(
+        "-.", "&#x00ac;").replace(
+        "/\\", "&#x2227;").replace(
+        "->", "&#x2192;")
+
+def next_goal(player):
+    goals = player.GoalTrain.goals
+    for i in range(len(goals)):
+        if player.goal == goals[i]:
+            return goals[i+1]
+    return "UNKNOWN"
+
 def check_goal(player, proof, thmName, stream):
-    goal = get_goal(player.goal)
-    if (goal.ghilbert is None):
-        return False
-    pattern = "thm \([^)]* " + goal.ghilbert.replace("\\","\\\\").replace("(","\(").replace(")","\)")
+    pattern = "thm \([^)]* " + player.goal.replace("\\","\\\\").replace("(","\(").replace(")","\)")
     if re.match(pattern, proof):
-        player.score += goal.value
-        if (player.goal == "contraction"):
-            player.location = "Outer Procal" #TODO:data driven
-        if (goal.new_js):
-            player.setupJs += goal.new_js % thmName
-            stream.write(goal.new_js % thmName);
-        if (goal.new_ghilbert):
-            player.ghilbertText += goal.new_ghilbert % thmName
-        if (goal.update_js):
-            stream.write(goal.update_js)
-        else:
-            stream.write("GHT.Tip.set('achieved'); // %s\n" % player.goal)
-        player.goal = goal.next
+        player.score += 1
+        stream.write("GHT.Tip.set('achieved');")
+        next_goal = next_goal(player)
+        while (next_goal[0] == "!"):
+            goal = get_goal(next_goal)
+            if (goal.new_js):
+                player.setupJs += goal.new_js % thmName
+                stream.write(goal.new_js % thmName);
+            if (goal.new_ghilbert):
+                player.ghilbertText += goal.new_ghilbert % thmName
+            if (goal.update_js):
+                stream.write(goal.update_js)
+            next_goal = next_goal(player)
+    
+        player.goal = next_goal
         stream.write(player.update_js())
         stream.write("\nGHT.redecorate();\n");
         return True
-    stream.write("GHT.Tip.set('saved'); // %s\n" % player.goal)
-    stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
-    return False
+    else:
+        stream.write("GHT.Tip.set('saved'); // %s\n" % player.goal)
+        stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
+        return False
 
    
 class Player(db.Model):
@@ -318,22 +231,138 @@ class Player(db.Model):
     ghilbertText = db.TextProperty()
     # Log of all actions
     log = db.TextProperty()
+    # Which Goal Train is this user on?
+    goalTrain = db.ReferenceProperty(GoalTrain)
     # Javascript for updating the UI to reflect this object's current state
     def update_js(self):
         dict = {};
         for k in ("score", "location", "goal", "name"):
             dict[k] = getattr(self,k);
-        dict["goal"] = get_goal(dict["goal"]).html
+        dict["goal"] = goal_to_html(dict["goal"])
         return "\nGHT.updateUi('player',%s);\n" % simplejson.dumps(dict)
         
 class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
         player = Player.get_or_insert(key_name=playerName)
+        if (player.goalTrain is None):
+            if (random.random() < 0.5):
+                key = "test00"
+                player.goalTrain = GoalTrain.get_or_insert(key)
+                player.goalTrain.goals = [
+                    "() () (-> A (-> B B))",
+                    "() () (-> A A)",
+                    "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
+                    "() () (-> (-> A B) (-> (-> B C) (-> A C)))" ,
+                    "() () (-> A (-> (-> A B) B))" ,
+                    "() () (-> (-> (-> A A) B) B)" ,
+                    "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,
+                    "() () (-> (-> A (-> A B)) (-> A B))",
+                    "!unlock not",
+                    "() () (-> (-. A) (-> A B))",
+                    "() () (-> A (-. (-. A)))",
+                    "() () (-> (-. (-. A)) A)",
+                    "() () (-> (-> A B) (-> (-. B) (-. A)))",
+                    "!con3",
+                    "() () (-> (-. (-> A B)) A)",
+                    "() () (-> A (-> (-. B) (-. (-> A B))))",
+                    "() () (-> (-> (-. A) A) A)",
+                    "() () (-. (-> (-> A A) (-. (-> B B))))",
+                    "!unlock and",
+                    "() () (-> (/\ A B) (-. (-> A (-. B))))",
+                    "() () (-> (-. (-> A (-. B))) (/\ A B))",
+                    "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))",
+                    "!anim1",
+                    "() () (-> (-> A B) (-> (/\ C A) (/\ C B)))",
+                    "!anim2",
+                    "() () (-> (/\ A B) A)",
+                    "() () (-> (/\ A B) B)",
+                    "() () (-> A (-> B (/\ A B)))",
+                    "() () (-> A (/\ A A))",
+                    "() () (-> (/\ A B) (/\ B A))",
+                    "() () (-> (-> A B) (-> A (/\ A B)))",
+                    "() () (-> (-> A (-> B C)) (-> (/\ A B) C))",
+                    "() () (-> (/\ A (-> A B)) B)",
+                    "() () (-> (/\ A (-> B C)) (-> B (/\ A C)))",
+                    "() () (-> (/\ (-> A B) (-> C D)) (-> (/\ A C) (/\ B D)))",
+                    "() () (/\ (-> A A) (-> B B))",
+                    "!unlock bi",
+                    "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))",
+                    "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
+                    "() () (-> (<-> A B) (-> A B))",
+                    "() () (-> (<-> A B) (-> B A))",
+                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))",
+                    "!imbi1",
+                    "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))",
+                    "!imbi2",
+                    "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))",
+                    "!bibi1",
+                    "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))",
+                    "!bibi2",
+                    "() () (-> A (-> (<-> A B) B))",
+                    "!mpbi",
+                    "() () (-> A (-> (<-> B A) B))",
+                    "!mpbir",
+                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))",
+                    "!anbi",
+                    "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))",
+                    "!anbi2",
+                    "!enable equivalents "
+                    ]
+            else:
+                key = "test01"
+                player.goalTrain = GoalTrain.get_or_insert(key)
+                player.goalTrain.goals = [
+                    "() () (-> (-> (-> A A) B) B)" ,
+                    "() () (-> (-> A (-> A B)) (-> A B))",
+                    "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,
+                    "() () (-> (-> A B) (-> (-> B C) (-> A C)))" ,
+                    "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
+                    "() () (-> A (-> (-> A B) B))" ,
+                    "() () (-> A (-> B B))",
+                    "() () (-> A A)",
+                    "!unlock not",
+                    "() () (-> (-. (-. A)) A)",
+                    "() () (-> (-. (-> A B)) A)",
+                    "() () (-> (-. A) (-> A B))",
+                    "() () (-> (-> (-. A) A) A)",
+                    "() () (-> (-> A B) (-> (-. B) (-. A)))", "!con3",
+                    "() () (-> A (-. (-. A)))",
+                    "() () (-> A (-> (-. B) (-. (-> A B))))",
+                    "() () (-. (-> (-> A A) (-. (-> B B))))", "!unlock and",
+                    "() () (-> (/\ A B) (-. (-> A (-. B))))",
+                    "() () (-> (-. (-> A (-. B))) (/\ A B))",
+                    "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))", "!anim1",
+                    "() () (-> (-> A B) (-> (/\ C A) (/\ C B)))", "!anim2",
+                    "() () (-> (-> A (-> B C)) (-> (/\ A B) C))",
+                    "() () (-> (-> A B) (-> A (/\ A B)))",
+                    "() () (-> (/\ (-> A B) (-> C D)) (-> (/\ A C) (/\ B D)))",
+                    "() () (-> (/\ A (-> A B)) B)",
+                    "() () (-> (/\ A (-> B C)) (-> B (/\ A C)))",
+                    "() () (-> (/\ A B) (/\ B A))",
+                    "() () (-> (/\ A B) A)",
+                    "() () (-> (/\ A B) B)",
+                    "() () (-> A (-> B (/\ A B)))",
+                    "() () (-> A (/\ A A))",
+                    "() () (/\ (-> A A) (-> B B))", "!unlock bi",
+                    "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
+                    "() () (-> (<-> A B) (-> A B))",
+                    "() () (-> (<-> A B) (-> B A))",
+                    "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))",
+                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))", "!imbi1",
+                    "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))", "!imbi2",
+                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi",
+                    "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))", "!anbi2",
+                    "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))", "!bibi1",
+                    "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
+                    "() () (-> A (-> (<-> A B) B))", "!mpbi",
+                    "() () (-> A (-> (<-> B A) B))", "!mpbir",
+                    "!enable equivalents "
+                    ]
         tip = '"Welcome back."';
         if (player.location is None):
             player.score = 0
             player.location = "Inner Procal"
-            player.goal="idd"
+            player.goal=player.goalTrain.goals[0]
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             player.setupJs = """
