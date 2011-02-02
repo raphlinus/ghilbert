@@ -52,7 +52,19 @@ class Goal(db.Model):
     # One-time js to be sent only when the goal is achieved.  If none, put up the default tip. 
     update_js = db.TextProperty()
     # TODO: which interfaces are required; which goals are required; branch points
-    
+
+def leaderboard_js(player):
+    q = Player.all()
+    q.order("-score")
+    results = q.fetch(15)
+    html = ""
+    for p in results:
+        if p.name == player.name:
+            html += "<b>%s: %d</b> " % (p.name, p.score)
+        else:
+            html += "%s: %d " % (p.name, p.score)
+    html = html.replace('"','')
+    return "document.getElementById('leaderboard').innerHTML='%s';\n" % html
 #TODO:hack
 def get_goal(name):
     goal = Goal.get_or_insert(key_name=name)
@@ -183,8 +195,8 @@ def goal_to_html(ghilbert):
         "/\\", "&#x2227;").replace(
         "->", "&#x2192;")
 
-def next_goal(player):
-    goals = player.GoalTrain.goals
+def get_next_goal(player, stream):
+    goals = player.goalTrain.goals
     for i in range(len(goals)):
         if player.goal == goals[i]:
             return goals[i+1]
@@ -195,9 +207,9 @@ def check_goal(player, proof, thmName, stream):
     if re.match(pattern, proof):
         player.score += 1
         stream.write("GHT.Tip.set('achieved');")
-        next_goal = next_goal(player)
-        while (next_goal[0] == "!"):
-            goal = get_goal(next_goal)
+        player.goal = get_next_goal(player, stream)
+        while (player.goal[0] == "!"):
+            goal = get_goal(player.goal)
             if (goal.new_js):
                 player.setupJs += goal.new_js % thmName
                 stream.write(goal.new_js % thmName);
@@ -205,10 +217,13 @@ def check_goal(player, proof, thmName, stream):
                 player.ghilbertText += goal.new_ghilbert % thmName
             if (goal.update_js):
                 stream.write(goal.update_js)
-            next_goal = next_goal(player)
-    
-        player.goal = next_goal
+            if (goal.new_location):
+                player.location = goal.new_location
+            stream.write("// %s" % player.goal)
+            player.goal = get_next_goal(player, stream)
+        player.put()
         stream.write(player.update_js())
+        stream.write(leaderboard_js(player))
         stream.write("\nGHT.redecorate();\n");
         return True
     else:
@@ -306,8 +321,10 @@ class StatusJs(webapp.RequestHandler):
                     "!anbi",
                     "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))",
                     "!anbi2",
-                    "!enable equivalents "
+                    "!enable equivalents ",
+                    "TODO"
                     ]
+                player.goalTrain.put()
             else:
                 key = "test01"
                 player.goalTrain = GoalTrain.get_or_insert(key)
@@ -356,8 +373,10 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
                     "() () (-> A (-> (<-> A B) B))", "!mpbi",
                     "() () (-> A (-> (<-> B A) B))", "!mpbir",
-                    "!enable equivalents "
+                    "!enable equivalents ",
+                    "TODO"
                     ]
+                player.goalTrain.put()
         tip = '"Welcome back."';
         if (player.location is None):
             player.score = 0
@@ -411,7 +430,7 @@ thm (_imim1 () () (-> (-> A B) (-> (-> B C) (-> A C)))
         self.response.out.write(player.setupJs);
         self.response.out.write('GHT.Tip.set("welcome", %s);\n' % tip);
         self.response.out.write(player.update_js());
-
+        self.response.out.write(leaderboard_js(player))
 
 class SaveHandler(webapp.RequestHandler):
     def post(self):

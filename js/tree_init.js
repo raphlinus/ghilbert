@@ -60,6 +60,7 @@ GHT.Tip = {
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
         ,letters:'Tip: After each step, all letters are remapped back to the beginning of the alphabet.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
+        ,saving:'Tip: You can save your tree at any time, with any name you like.  Later you can use that saved tree.  Save when your tree matches the goal to gain points.'
         ,notUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (<span class='operator'>&#x00ac;<\/span>) and a new terminal (Transpose)."
         ,con3Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
         ,andUnlocked:"Goal Achieved!<br/>A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
@@ -68,7 +69,7 @@ GHT.Tip = {
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple</span> status to its children, which can only be equivalated."
     },
-    randomTips: ["arrow", "color", "letters", "bindings"],
+    randomTips: ["saving", "arrow", "color", "letters", "bindings"],
     randomTipIndex: 0,
     showRandom: function() {
         this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);

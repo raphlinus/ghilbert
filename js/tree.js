@@ -360,6 +360,7 @@ OpList.prototype.toSource = function() {
 };
 GHT.Operators = new OpList();
 GHT.dismiss = function() {
+    console.log("Dismiss.");
     GHT.Tip.clear();
     if (GHT.dismiss.popup) {
         GHT.dismiss.popup.style.display = 'none';
@@ -1205,7 +1206,6 @@ window.onload = function() {
         function() {
             window.addEventListener(
                 'hashchange', function() {
-                    GHT.dismiss();
                     var version = GHT.getVersion();
                     GHT.actuallySetProof(GHT.undoStack[version].proof);
                 }, true);
