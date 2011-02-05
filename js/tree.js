@@ -8,7 +8,8 @@ GHT.reverseLookup = function(map, value) {
             return key;
         }
     }
-    throw "Value " + value + " not found in map " + JSON.stringify(map);
+    return null;
+    //throw "Value " + value + " not found in map " + JSON.stringify(map);
 };
 
 GHT.forEach = function(obj, func, running) {
@@ -67,8 +68,8 @@ function Operator(key, name, type, inputs, bindings) {
     this.toSource = function() {
         return "O(" + GHT.stringify(key) + ")";
     };
-    this.toString = function(varMap) {
-        if (varMap && varMap['__niceOperators__']) { //TODO: HACK
+    this.toString = function(varMapper) {
+        if (varMapper && varMapper.__niceOperators__) { //TODO: HACK
             return name;
         }
         return key;
@@ -88,20 +89,30 @@ function O(s) {
     return GHT.Operators[s];
 }
 Operator.prototype = new Term();
+// Transitional function to bridge from the old varMap object to the new varMapper function.
+// TODO: get rid of this
+GHT.makeWrappingMapper = function(varMap) {
+    var mapper = function(inVar, addIfNull) {
+        // Wrapping mappers don't support addIfNull.
+        return varMap[inVar];
+    };
+    mapper.reverse = function(x) {
+        return GHT.reverseLookup(varMap, x);
+    };
+    return mapper;
+};
 function Variable(type, num) {
     if (!num) {
         if (!Variable.lastUsed) Variable.lastUsed = 1;
         num = Variable.lastUsed++;
     }
 
-    this.toString = function(varMap) {
-        if (varMap) {
-            if (varMap[this]) {
-                return varMap[this].toString(varMap);
-            } else {
-                var newVar = varMap[null](this);
-                varMap[this] = newVar;
-                return newVar;
+    this.toString = function(varMapper) {
+        if (varMapper) {
+            try {
+                return varMapper(this, true).toString(varMapper);
+            } catch (x) {
+                return varMapper(this, true).toString(varMapper);
             }
         } else {
             return  (this.getType() +","+ num);
@@ -162,8 +173,8 @@ function TV(type, num) {
 }
 function Tuple(terms) {
     this.terms = terms;
-    this.toString = function(varMap) {
-        return "(" + this.terms.map(function(t) {return t.toString(varMap);}).join(' ')
+    this.toString = function(varMapper) {
+        return "(" + this.terms.map(function(t) {return t.toString(varMapper);}).join(' ')
             + ")";
     };
 
@@ -393,9 +404,9 @@ GHT.newMenu = function(title, x, y) {
             td =  document.createElement("td");
             tr.appendChild(td);
             if (preview) {
-                var varMap = GHT.makeVarMap(GHT.theVars, GHT.goodVarNames);
-                varMap.__niceOperators__ = 1; // HACK
-                td.innerHTML = preview.toString(varMap);
+                var varMapper = GHT.makeVarMapper(GHT.theVars, GHT.goodVarNames);
+                varMapper.__niceOperators__ = 1; // HACK
+                td.innerHTML = preview.toString(varMapper);
             }
             table.appendChild(tr);
             this.options[key] = function(e) {
@@ -422,11 +433,12 @@ GHT.newMenu = function(title, x, y) {
     return GHT.theMenu;
 };
 
-GHT.showTerminals = function(path, scheme) {
+GHT.showTerminals = function(path, scheme, callback) {
     return function(event) {
         var menu = GHT.newMenu("Terminals", event.pageX, event.pageY);
         for (var name in GHT.Thms) {
-            menu.addOption(name, GHT.makeApplyFunction(path, 'Terminal', name, scheme),
+            menu.addOption(name,
+                           GHT.makeApplyFunction(path, 'Terminal', name, scheme, null, callback),
                            GHT.Thms[name]);
         }
     };
@@ -480,10 +492,11 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme) {
         }
     }
 };
-GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3) {
+GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3, callback) {
     return function() {
         GHT.dismiss();
         GHT.setProof(GHT.getProof()['apply' + whatToApply](path, arg1, arg2, arg3));
+        if (callback) callback();
     };
 };
 GHT.showArrowers = function(path) {
@@ -569,11 +582,11 @@ GHT.showTermBuilder = function(path, type, binding) {
                             }
                         });
         }
-        var theVarMap = GHT.makeVarMap(theVars, GHT.goodVarNames);
+        var theVarMapper = GHT.makeVarMapper(theVars, GHT.goodVarNames);
         GHT.forEach(theVars, function(varStr) {
                         var myVar = VariableFromString(varStr);
                         if (myVar.getType() === type) {
-                            menu.addOption(theVarMap[varStr], doSub(myVar, isBinding));
+                            menu.addOption(theVarMapper(varStr), doSub(myVar, isBinding));
                         }
                     });
     };
@@ -593,8 +606,8 @@ GHT.getPos = function(node) {
         x += node.offsetLeft;
     } while ((node = node.offsetParent));
     return [x,y];
-}
-GHT.makeTable = function(term, path, binding, varMap) {
+};
+GHT.makeTable = function(term, path, binding, varMapper) {
     //console.log("making table for " + term);
 
     var type;
@@ -650,7 +663,7 @@ GHT.makeTable = function(term, path, binding, varMap) {
         type = term.getType();
         span.className += "var type_" + type;
         span.className += " binding_" + GHT.bindings[binding];
-        span.innerHTML = varMap[term];
+        span.innerHTML = varMapper(term);
         decorate(span);
         return span;
     }
@@ -681,35 +694,50 @@ GHT.makeTable = function(term, path, binding, varMap) {
         td = document.createElement('td');
         tr.appendChild(td);
         td.appendChild(GHT.makeTable(term.terms[i], pathClone,
-                                     binding * op.bindings[i - 1], varMap));
+                                     binding * op.bindings[i - 1], varMapper));
     };
     return table;
 
 };
-
 // Returns a map which is the transitive closure of the union of the two maps.  They must be
 // disjoint, contain no false values, and create no cycles.
-GHT.combineMaps = function(map1, map2) {
-    var unionMap = {};
-    var key;
-    for (key in map1) {
-        unionMap[key] = map1[key];
-    }
-    for (key in map2) {
-        if (unionMap[key]) {
-            throw "Duplicate key: " + key + " remapped from " + unionMap[key] + " to " + map2[key];
+GHT.combineMappers = function(mapper1, mapper2) {
+    var memoizer = {};
+    var memoized = {};
+    var reverseMemoizer = {};
+    var reverseMemoized = {};
+    var mapper = function(inVar, addIfNull) {
+        if (memoized[inVar]) {
+            var outVar = memoizer[inVar];
+            if (outVar || !addIfNull) {
+                return outVar;
+            }
         }
-        unionMap[key] = map2[key];
-    }
-    var outMap = {};
-    for (key in unionMap) {
-        var v = key;
-        do {
-            v = unionMap[v];
-        } while (unionMap[v]);
-        outMap[key] = v;
-    }
-    return outMap;
+        var outVar = mapper1(inVar, addIfNull) || mapper2(inVar, addIfNull);
+        var answer = null;
+        while (outVar) {
+            answer = outVar;
+            outVar = mapper1(outVar) || mapper2(outVar);
+        } 
+        memoized[inVar] = true;
+        memoizer[inVar] = answer;
+        return answer;
+    };
+    mapper.reverse = function(inVar) {
+        if (reverseMemoized[inVar]) {
+            return reverseMemoizer[inVar];
+        }
+        var outVar = mapper1.reverse(inVar) || mapper2.reverse(inVar);
+        var answer = null;
+        while (outVar) {
+            answer = outVar;
+            outVar = mapper1.reverse(outVar) || mapper2.reverse(outVar);
+        } 
+        reverseMemoized[inVar] = true;
+        reverseMemoizer[inVar] = answer;
+        return answer;
+    };
+    return mapper;
 };
 
 // A ProofObj is an immutable object encapsulating a Term and a Ghilbert proof of that term's truth.
@@ -734,13 +762,25 @@ GHT.ProofFactory = function() {
     // reference should be kept to them or their components (except by other ProofObjs which will
     // also never change them.)
     //TODO: consider making terms immutable to make this easier.
-    function ProofObj(mTerm, mDvs, mSteps, mVarMap) {
+    function ProofObj(mTerm, mDvs, mSteps, mVarMapper) {
+        if (!mVarMapper) throw "No varmapper!";
         // Public accessors
         this.getTerm = function(mapping) {
             return mTerm.clone(mapping);
         };
+        // Given a variable, reverse map it as far as possible and return the original.
+        this.reverseMap = function(varObj) {
+            return mVarMapper.reverse(varObj);
+        };
+        // Given a map of var names (e.g. *_VAR_NAMES), return a mapping from
+        // our internal vars to the given names._
+        this.getVarMapper = function(varNames, reset) {
+            return GHT.combineMappers(mVarMapper,
+                                      GHT.makeVarMapper(mTerm.extractVars(), varNames, reset));
+        };
+        // Produce a complete ghilbert proof, with the given theorem name.
         this.getProof = function(thmName) {
-            var theVarMap = GHT.combineMaps(mVarMap, GHT.makeVarMap(mTerm.extractVars(), GHILBERT_VAR_NAMES));
+            var theVarMapper = this.getVarMapper(GHILBERT_VAR_NAMES, true);
             var str = "";
             function flatten(array) {
                 if (!array) {
@@ -748,10 +788,10 @@ GHT.ProofFactory = function() {
                 } else if (array instanceof Array) {
                     array.map(flatten);
                 } else {
-                    str += array.toString(theVarMap);
+                    str += array.toString(theVarMapper);
                 }
             }
-            flatten(["thm (", thmName, " (", mDvs, ") () ", mTerm.toString(theVarMap), "\n", mSteps]);
+            flatten(["thm (", thmName, " (", mDvs, ") () ", mTerm.toString(theVarMapper), "\n", mSteps]);
             return str + ")";
         };
         this.toString = function() {
@@ -781,7 +821,7 @@ GHT.ProofFactory = function() {
                 var newDvs = []; // TODO: copy over from terminalTerm
                 var newVarMap = { };
                 newStep.push("\n");
-                return new ProofObj(terminalTerm, newDvs, [newStep], newVarMap);
+                return new ProofObj(terminalTerm, newDvs, [newStep], GHT.makeWrappingMapper(newVarMap));
             } else {
                 newStep.push("    ");
                 var termToReplace = mTerm.extract(path.slice(0));
@@ -790,7 +830,7 @@ GHT.ProofFactory = function() {
                 //TODO: share code with applyArrow
                 var cloneMap = {};
                 var newTerm = mTerm.clone(cloneMap);
-                var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
+                var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
                 newTerm = newTerm.splice(path.slice(0), terminalTerm);
                 var myPath = path.slice(0);
                 while (myPath.length > 0) {
@@ -812,7 +852,7 @@ GHT.ProofFactory = function() {
                 var newSteps = mSteps.slice(0);
                 newSteps.push(newStep);
                 var newDvs = mDvs.slice(0); // TODO: copy over from terminalTerm
-                return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+                return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
             }
         };
 
@@ -831,7 +871,7 @@ GHT.ProofFactory = function() {
             var newStep = [];
             var cloneMap = {};
             var newTerm = mTerm.clone(cloneMap);
-            var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
+            var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
 
             var example = newTerm.extract(path.slice(0));
             var thm = GHT.Thms[name].clone({});
@@ -842,7 +882,7 @@ GHT.ProofFactory = function() {
             for (var varStr in thm.extractVars()) {
                 newStep.push(VariableFromString(varStr), "  ");
             }
-            newVarMap = GHT.combineMaps(newVarMap, unifyMap);
+            newVarMapper = GHT.combineMappers(newVarMapper, GHT.makeWrappingMapper(unifyMap));
             newStep.push(name, "\n");
             newTerm = newTerm.substitute(unifyMap);
             newTerm = newTerm.splice(path.slice(0), result);
@@ -881,7 +921,7 @@ GHT.ProofFactory = function() {
             var newSteps = mSteps.slice(0);
             newSteps.push(newStep);
             var newDvs = mDvs.slice(0); // TODO: copy over from thm
-            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
         };
         // Extend the proof by globally substituting a term for a variable.  The variable must not be
         // binding and this substitution must not violate existing DV constraints.  This rewrites the
@@ -894,15 +934,15 @@ GHT.ProofFactory = function() {
             var mapping = {};
             mapping[variable] = replacement;
             var newTerm = mTerm.substitute(mapping);
-            var newVarMap = GHT.combineMaps(mVarMap, mapping);
+            var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(mapping));
             var newSteps = mSteps.slice(0);
             var newDvs = mDvs;  // TODO: propagate DVs forward through replacement
-            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
         };
 
         // Extend by applying the substitution law sbcie at the given path.
         this.applySubst = function(path) {
-             // TODO: This special knowledge of [/] is ugly.  Should substitution
+            // TODO: This special knowledge of [/] is ugly.  Should substitution
             // be part of ghilbert directly?  Or should we be able to learn to
             // manipulate all [/]-like operators?
 
@@ -1019,11 +1059,11 @@ GHT.ProofFactory = function() {
             }
             step.push(GHT.EquivalenceScheme.mp[0], "\n");
             step.push("\n");
-            var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
+            var newVarMap = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
             var newSteps = mSteps.slice(0);
             newSteps.push(step);
             var newDvs = mDvs;  // TODO: propagate DVs
-            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
 
         };
 
@@ -1037,13 +1077,13 @@ GHT.ProofFactory = function() {
             //TODO: check DVs here
             var cloneMap = {};
             var newTerm = mTerm.clone(cloneMap);
-            var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
+            var newVarMap = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
             var newSteps = mSteps.slice(0);
             var newVar = new Variable('num');
             newTerm = new Tuple([GHT.Operators['A.'], newVar, newTerm]);
             newSteps.push([newVar, '  ', "gen\n"]);
             var newDvs = mDvs;
-            return new ProofObj(newTerm, newDvs, newSteps, newVarMap);
+            return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
         };
         // Extend by unifying the subterm at {@param path}, assumed to
         // have terminal binding (TODO: check this), with the named
@@ -1069,14 +1109,14 @@ GHT.ProofFactory = function() {
             }
             var cloneMap = {};
             var newTerm = mTerm.clone(cloneMap);
-            var newVarMap = GHT.combineMaps(mVarMap, cloneMap);
+            var newVarMapper = GHT.combineMapper(mVarMapper, GHT.makeWrappingMapper(cloneMap));
             var newSteps = mSteps.slice(0);
             var example = newTerm.extract(path.slice(0));
             var template = GHT.Thms[name].clone({});
             // TODO: eliminate this second unification
             var unifyMap = unify(template, example);
             newTerm = newTerm.substitute(unifyMap);
-            newVarMap = GHT.combineMaps(newVarMap, unifyMap);
+            newVarMapper = GHT.combineMapper(newVarMapper, GHT.makeWrappingMapper(unifyMap));
             var parent = termAncestry.pop();
             var child;
             while (-1 === bindingAncestry.pop()) {  // guaranteed to run at least once
@@ -1091,7 +1131,7 @@ GHT.ProofFactory = function() {
 
 
     this.newProof = function(startingThmName) {
-        var dummy = new ProofObj(null, [], [], {});
+        var dummy = new ProofObj(null, [], [], GHT.makeWrappingMapper({}));
         return dummy.applyTerminal([], startingThmName);
     };
     ProofObj.prototype = new Object();
@@ -1107,11 +1147,11 @@ GHT.goodVarNames = {
              "s", "r", "q", "p", "o", "n"]]
 };
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
-// Output: an object that maps varString to returns a human-readable string.
-// HACK: If you don't find yourself in the varMap, use varMap[null](this) instead.
+// Output: a function that takes a varString and returns a human-readable string.
+// If you want yourself added to the varMapper when not found, pass a second true argument.
 // TODO: make this whole thing a function instead so we can lazily
 // bind dummy vars. But how to know if they are binding??
-GHT.makeVarMap = function(vars, varNames) {
+GHT.makeVarMapper = function(vars, varNames) {
     var typeIndices = {
         wff: [0, 0], set: [0, 0], num: [0, 0]
     };
@@ -1125,15 +1165,24 @@ GHT.makeVarMap = function(vars, varNames) {
             varMap[varStr] = name;
             return varMap;
         }, {});
-    varMap[null] = function(varObj) {
+    function addNewVar(varObj) {
         var type = varObj.getType();
         var isBinding = type == 'num' ? 1 : 0;// TODO: XXX HACK PICKUP assume nums are binding, others not
         var index = typeIndices[type][isBinding ? 1 : 0]++;
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
+        varMap[varObj] = name;
         return name;
     };
-    return varMap;
+    return function(inVar, addIfNull) {
+        if (varMap[inVar]) {
+            return varMap[inVar];
+        } else if (addIfNull) {
+            return addNewVar(inVar);
+        } else {
+            return null;
+        }
+    };
 };
 GHT.getProof = function() {
     return GHT.theProof;
@@ -1155,7 +1204,8 @@ GHT.redecorate = function() {
     } catch (x) {
         console.log("No table?");
     }
-    GHT.theTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.theVarMap);
+    GHT.theTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(GHT.theCloneMap));
+    GHT.StableMapper.end();
     div.appendChild(GHT.theTable);
 };
 GHT.actuallySetProof = function(proof) {
@@ -1164,8 +1214,9 @@ GHT.actuallySetProof = function(proof) {
     var term = proof.getTerm(cloneMap);
     GHT.theProof = proof;
     GHT.theTerm = term;
+    GHT.theCloneMap = cloneMap;
     GHT.theVars = term.extractVars();
-    GHT.theVarMap = GHT.makeVarMap(GHT.theVars, GHT.goodVarNames);
+    GHT.theVarMapper = GHT.makeVarMapper(GHT.theVars, GHT.goodVarNames, true);
     GHT.theOnclicks = { };
     GHT.redecorate();
 };
@@ -1196,6 +1247,76 @@ GHT.getArrow = function(type) {
     return null;
 };
 
+// The stableMapper is a special varMapper that allows display names
+// to stay stable from one proof object to the next.  It also tracks
+// which variables are unused in the final product, so that they can
+// be recycled when all other variable names are used up.
+GHT.StableMapper = {
+    end: function() {
+        
+    },
+    mapper:function(theCloneMap) {
+        var varNames = {
+            available: {
+                'wff': [["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]],
+                'set': [["Z", "Y", "X", "W", "V", "U", "T", "S", "R", "Q", "P", "O", "N"]],
+                'num': [["a", "b", "c", "d", "e", "f", "g",
+                         "h", "i", "j", "k", "l", "m"],
+                        ["z", "y", "x", "w", "v", "u", "t",
+                         "s", "r", "q", "p", "o", "n"]]
+            },
+            used:  {
+                'wff': [[]],
+                'set': [[]],
+                'num': [[], []]
+            }
+        };
+        var vers = GHT.getVersion();
+        var runningVarMap = {};
+        for (var i = GHT.theFirstStep; i <= vers; i++){
+            var cloneMap;
+            var term;
+            if (i == vers) {
+                // We need to match the one used in redecorate.  TODO(hack).
+                cloneMap = GHT.theCloneMap;
+                term = GHT.theTerm;
+            } else {
+                cloneMap = {};
+                term = GHT.undoStack[i].proof.getTerm(cloneMap);
+            }
+            var vars = term.extractVars(); 
+            runningVarMap = GHT.forEach(
+                vars,
+                function(newVarStr, isBinding, varMap) {
+                    var origVarStr = GHT.reverseLookup(cloneMap, newVarStr);
+                    var varStr = GHT.undoStack[i].proof.reverseMap(origVarStr) || origVarStr;
+                    if (varMap[varStr]) {
+                        varMap[newVarStr] = varMap[varStr];
+                        varMap[origVarStr] = varMap[varStr];
+                        return varMap;
+                    }
+                    var type = VariableFromString(varStr).getType();
+                    var name = varNames.available[type][isBinding ? 1 : 0].shift();
+                    if (name) {
+                        varNames.used[type][isBinding ? 1 : 0].push(name);
+                    } else {
+                        name = varStr;
+                    }
+                    varMap[varStr] = name;
+                    varMap[origVarStr] = name;
+                    varMap[newVarStr] = name;
+                    return varMap;
+                }, runningVarMap);
+
+        }
+
+        return function(inVar, addIfNull) {
+            return runningVarMap[inVar];
+            // addIfNull should not be needed.
+        };
+    }
+};
+
 GHT.setVersion(0);
 window.onload = function() {
 /*
@@ -1214,7 +1335,10 @@ window.onload = function() {
 };
 
 document.getElementById("reset").onclick = function(e) {
-    GHT.showTerminals([], null)(e);
+    function callback() {
+        GHT.theFirstStep = GHT.getVersion();
+    }
     GHT.theStep = "GHT.showTerminals([], null)({pageX:0,pageY:0});";
-    GHT.theFirstStep = GHT.getVersion() + 1; // TODO: doesn't work with dismiss
+    GHT.showTerminals([], null, callback)(e);
 };
+GHT.theFirstStep = 1;

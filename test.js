@@ -1,5 +1,6 @@
 // This test script solves the entire goal-chain test00.
 var steps = [
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['Simplify']();",
 "GHT.SaveAs('idd');",
@@ -334,20 +335,36 @@ var steps = [
 "GHT.theOnclicks['[2,2]']();GHT.theMenu.options['ancombi']();",
 "GHT.SaveAs('anass');",
 
+]/*
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['import']();",
+"GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
+"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
+"GHT.SaveAs('impexp');",
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['def-bi-1']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
+"GHT.theOnclicks['[2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['def-bi-2']();",
+"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['def-bi-2']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
+"GHT.SaveAs('dfbi3');",
 ];
+*/
+GHT.delayTime = 10;
 function callback() {
-    var time = 10;
+
     if (steps.length > 0) {
         var step = steps.shift();
         try {
             eval(step);
-            time = 10;
+            GHT.delayTime = 10;
         } catch (x) {
-            console.log(x + " / " + time);
+            console.log(x + " / " + GHT.delayTime);
             steps.unshift(step);
-            time *= 2;
+            GHT.delayTime *= 2;
         }
-        window.setTimeout(callback, time);
+        window.setTimeout(callback, GHT.delayTime);
     }
 }
 callback();
