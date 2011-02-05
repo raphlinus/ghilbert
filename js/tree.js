@@ -360,7 +360,6 @@ OpList.prototype.toSource = function() {
 };
 GHT.Operators = new OpList();
 GHT.dismiss = function() {
-    console.log("Dismiss.");
     GHT.Tip.clear();
     if (GHT.dismiss.popup) {
         GHT.dismiss.popup.style.display = 'none';
@@ -851,6 +850,7 @@ GHT.ProofFactory = function() {
             var myPath = path.slice(0);
             var headRoot = (templateArg == 2 ? newTerm : mTerm);
             var tailRoot = (templateArg == 1 ? newTerm : mTerm);
+            var mpIndex = templateArg - 1;
             while (myPath.length > 0) {
                 newStep.push([headRoot.extract(myPath.slice(0)), "  ",
                               tailRoot.extract(myPath.slice(0)), "  "]);
@@ -868,15 +868,16 @@ GHT.ProofFactory = function() {
                 } catch (x) {
                     throw "Step failed: op=" + op + " child=" + whichChild + ": " + x;
                 }
-                newStep.push(pushUpThm,"    ax-mp\n    ");
+                newStep.push(pushUpThm, "    ", "ax-mp", "\n    ");
                 if (op.bindings[whichChild - 1] == -1) {
                     // This arrowing theorem will switch the order of our mandhyps.
                     var tmp = headRoot;
                     headRoot = tailRoot;
                     tailRoot = tmp;
+                    mpIndex = 1 - mpIndex;
                 }
             }
-            newStep.push(scheme.mp[templateArg - 1], "\n");
+            newStep.push(scheme.mp[mpIndex], "\n");
             var newSteps = mSteps.slice(0);
             newSteps.push(newStep);
             var newDvs = mDvs.slice(0); // TODO: copy over from thm

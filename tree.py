@@ -40,7 +40,7 @@ class GoalTrain(db.Model):
 # for special goals
 class Goal(db.Model):
     name = db.StringProperty()
-    score = db.IntegerProperty()
+    score = db.IntegerProperty(default=0)
     # Location to move the player to after this goal.
     new_location = db.StringProperty()
     # This text will be appended to the player's ghilbert_text when the theorem is unlocked.
@@ -171,6 +171,10 @@ thm (_mpbir () (1 A 2 (<-> B A)) B
         elif (name == "!anbi2"):
             goal.new_js = """
 GHT.EquivalenceScheme["/\\\\"][1] = "%s";
+"""
+        elif (name == "!notbi"):
+            goal.new_js = """
+GHT.EquivalenceScheme["-."] = ["%s"];
 """
         elif (name == "!enable equivalents"):
             goal.new_js = """
@@ -305,23 +309,28 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
                     "() () (-> (<-> A B) (-> A B))",
                     "() () (-> (<-> A B) (-> B A))",
-                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))",
-                    "!imbi1",
-                    "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))",
-                    "!imbi2",
-                    "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))",
-                    "!bibi1",
-                    "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))",
-                    "!bibi2",
-                    "() () (-> A (-> (<-> A B) B))",
-                    "!mpbi",
-                    "() () (-> A (-> (<-> B A) B))",
-                    "!mpbir",
-                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))",
-                    "!anbi",
-                    "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))",
-                    "!anbi2",
-                    "!enable equivalents ",
+                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))", "!imbi1",
+                    "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))", "!imbi2",
+                    "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))", "!bibi1",
+                    "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
+                    "() () (-> A (-> (<-> A B) B))", "!mpbi",
+                    "() () (-> A (-> (<-> B A) B))", "!mpbir",
+                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi",
+                    "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))", "!anbi2",
+                    "() () (-> (<-> A B) (<-> (-. B) (-. A)))", "!notbi",
+                    "!enable equivalents",
+                    "() () (<-> (<-> A B) (<-> B A))",
+                    "() () (<-> A A)",
+                    "() () (<-> A (-. (-. A)))",
+                    "() () (<-> (-> A B) (-> (-. B) (-. A)))",
+                    "() () (<-> (/\ A B) (-. (-> A (-. B))))",
+                    "() () (<-> (/\ A B) (/\ B A))",
+                    "() () (<-> A (/\ A A))",
+                    "() () (<-> (-> A (-> B C)) (-> B (-> A C)))",
+                    "() () (<-> (/\ (/\ A B) C) (/\ A (/\ B C)))",
+                    "() () (<-> (-> A (-> B C)) (-> (/\ A B) C))",
+                    "() () (<-> (<-> A B) (/\ (-> A B) (-> B A)))",
+
                     "TODO"
                     ]
                 player.goalTrain.put()
@@ -373,7 +382,8 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
                     "() () (-> A (-> (<-> A B) B))", "!mpbi",
                     "() () (-> A (-> (<-> B A) B))", "!mpbir",
-                    "!enable equivalents ",
+                    "() () (-> (<-> A B) (<-> (-. B) (-. A)))", "!notbi",
+                    "!enable equivalents",
                     "TODO"
                     ]
                 player.goalTrain.put()
@@ -471,7 +481,7 @@ stmt (Transpose () () (-> (-> (-. A) (-. B)) (-> B A)))
 
         if ctx.error_count > 0:
             self.response.out.write("GHT.Tip.set('saveError', 'Cannot save!');\n/*\n%s\n*/" % output.getvalue())
-            player.log += "\n# ERROR.\n" 
+            player.log += "\n# ERROR\n\n"
         else:
             player.ghilbertText = proofText;
             player.setupJs += "GHT.Thms['%s'] = %s;\n" % (thmName, self.request.get('source'))
