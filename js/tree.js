@@ -33,7 +33,11 @@ function Term() {
     this.equals = function(other, mapping) {
         return this == other;
     };
-    this.extractVars = function(set) {
+    // Returns a map from variables to {isBinding, paths}.  isBinding
+    // will be true if the var is ever used as a binding variable
+    // within this term (e.g the x in (E. x ph)).  paths is an array
+    // of paths to the variable from this term.
+    this.extractVars = function(set, path) {
         if (!set) set = ({});
         return set;
     };
@@ -107,13 +111,9 @@ function Variable(type, num) {
         num = Variable.lastUsed++;
     }
 
-    this.toString = function(varMapper) {
+    this.toString = function(varMapper, isBinding) {
         if (varMapper) {
-            try {
-                return varMapper(this, true).toString(varMapper);
-            } catch (x) {
-                return varMapper(this, true).toString(varMapper);
-            }
+            return varMapper(this, true, isBinding).toString(varMapper);  // TODO: untested!
         } else {
             return  (this.getType() +","+ num);
         }
@@ -133,10 +133,18 @@ function Variable(type, num) {
             return true;
         }
     };
-    this.extractVars = function(set) {
+    this.extractVars = function(set, path) {
         if (!set) set = ({});
-        // If it's already true, don't mess with it.  But if it's absent, set it to false.
-        set[this] |= false;
+        if (!path) path = [];
+        // If binding is already true, don't mess with it.  But if it's absent, set it to false.
+        if (!set[this]) {
+            set[this] = {
+                isBinding:false,
+                paths:[path.slice()]
+            };
+        } else {
+            set[this].paths.push(path.slice());
+        }
         return set;
     };
     this.unify = function(other, mapping, map) {
@@ -174,8 +182,15 @@ function TV(type, num) {
 function Tuple(terms) {
     this.terms = terms;
     this.toString = function(varMapper) {
-        return "(" + this.terms.map(function(t) {return t.toString(varMapper);}).join(' ')
-            + ")";
+        var str = [];
+        for (var i = 0; i < this.terms.length; i++) {
+            var isBinding = false;
+            if (i > 0 && isNaN(this.terms[0].bindings[i - 1])) {
+                isBinding = true; // TODO: untested!
+            }
+            str.push(this.terms[i].toString(varMapper, isBinding)); 
+        }
+        return "(" + str.join(' ') + ")";
     };
 
     this.clone = function(mapping) {
@@ -197,15 +212,17 @@ function Tuple(terms) {
     };
     // Return a set of variables into the given set, and return it.  Vars map to true
     // iff they are ever used as binders.
-    this.extractVars = function(set) {
+    this.extractVars = function(set, path) {
         if (!set) set = ({});
-        for (var i = 0; i < terms.length - 1; i++) {
-            if (isNaN(this.terms[0].bindings[i])) {
-                set[this.terms[i + 1]] = true;
-            } else {
-                this.terms[i + 1].extractVars(set);
+        if (!path) path = [];
+        path = path.slice();
+        path.push(0);
+        for (var i = 1; i < terms.length; i++) {
+            path.splice(path.length - 1, 1, i);
+            this.terms[i].extractVars(set, path);
+            if (isNaN(this.terms[0].bindings[i - 1])) {
+                set[this.terms[i]].isBinding = true;
             }
-
         }
         return set;
     };
@@ -573,7 +590,7 @@ GHT.showTermBuilder = function(path, type, binding) {
                 }
             };
         }
-        var isBinding = theVars[oldVar];
+        var isBinding = theVars[oldVar].isBinding;
         if (!isBinding) {
             // Not a binding variable; we can build a term
             GHT.forEach(GHT.Operators, function(k, op) {
@@ -607,9 +624,9 @@ GHT.getPos = function(node) {
     } while ((node = node.offsetParent));
     return [x,y];
 };
-GHT.makeTable = function(term, path, binding, varMapper) {
-    //console.log("making table for " + term);
-
+// @param pathToNodeMap: if present, this will be populated and can be
+// used to map term-paths to DOM nodes.  TODO: this likely causes memory leaks.
+GHT.makeTable = function(term, path, binding, varMapper, pathToNodeMap) {
     var type;
     // Set onclick and mouseover listeners
     function decorate(td) {
@@ -661,42 +678,53 @@ GHT.makeTable = function(term, path, binding, varMapper) {
     if (term instanceof Variable) {
         var span = document.createElement('span');
         type = term.getType();
-        span.className += "var type_" + type;
+        span.className += "tree var type_" + type;
         span.className += " binding_" + GHT.bindings[binding];
-        span.innerHTML = varMapper(term);
+        span.innerHTML = varMapper(term, true, isNaN(binding)); // TODO: untested!
+        if (pathToNodeMap) {
+            pathToNodeMap[path] = span;
+        }
         decorate(span);
         return span;
     }
-    var table = document.createElement('table');
     if (!(term instanceof Tuple)) {
         throw "Bad term " + term;
     }
+    var wrapper = document.createElement('span');
+    if (pathToNodeMap) {
+        pathToNodeMap[path] = wrapper;
+    }
+
+    wrapper.className = 'tree wrapper';
     var op = term.terms[0];
     if (!(op instanceof Operator)) throw "Tuple starting with non-op " + op;
-
     type = op.getType();
-    table.className += " type_" + type;
-    table.className += " binding_" + GHT.bindings[binding];
-    table.cols = op.inputs.length;
-    var tr = document.createElement('tr');
-    table.appendChild(tr);
-    var td = document.createElement('td');
-    decorate(td);
-    tr.appendChild(td);
-    td.colSpan = op.inputs.length;
-    td.className += 'operator';
-    td.innerHTML = op.getName().replace("<","&lt;");
-    tr = document.createElement('tr');
-    table.appendChild(tr);
+    var opSpan = document.createElement('span');
+    if (pathToNodeMap) {
+        path.push(0);
+        pathToNodeMap[path] = wrapper;
+        path.pop();
+    }
+    wrapper.appendChild(opSpan);
+    opSpan.className += "tree operator type_" + type;
+    opSpan.className += " binding_" + GHT.bindings[binding];
+    opSpan.appendChild(document.createTextNode(op.getName().replace("<","&lt;")));
+    decorate(opSpan);
+    var argsSpan = document.createElement('span');
+    argsSpan.className = "tree args";
+    wrapper.appendChild(argsSpan);
     for (var i = 1; i < term.terms.length; i++) {
         var pathClone = path.slice(0);
         pathClone.push(i);
-        td = document.createElement('td');
-        tr.appendChild(td);
-        td.appendChild(GHT.makeTable(term.terms[i], pathClone,
-                                     binding * op.bindings[i - 1], varMapper));
+        var arg = (GHT.makeTable(term.terms[i], pathClone,
+                                 binding * op.bindings[i - 1], varMapper, pathToNodeMap));
+        if (i == 1) {
+            arg.className += " first";
+        }
+        arg.className += " arg";
+        argsSpan.appendChild(arg);
     };
-    return table;
+    return wrapper;
 
 };
 // Returns a map which is the transitive closure of the union of the two maps.  They must be
@@ -921,7 +949,34 @@ GHT.ProofFactory = function() {
             var newSteps = mSteps.slice(0);
             newSteps.push(newStep);
             var newDvs = mDvs.slice(0); // TODO: copy over from thm
-            return new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
+            var newProof = new ProofObj(newTerm, newDvs, newSteps, newVarMapper);
+            newProof.parentProof = this;
+            // Set up animation hints.  animations is an array of {src, dsts}.
+            // src is the path to a term that should be a source in the animation.
+            // dsts is an array of paths to which the source should be animated.
+            newProof.animations = [];
+            var beforeVars = thm.terms[templateArg].extractVars();
+            var afterVars = thm.terms[3 - templateArg].extractVars();
+            GHT.forEach(
+                beforeVars,
+                function(varStr, result) {
+                    // Only the first occurence of the var on
+                    // in the template is an animation source.
+                    var srcPath = path.slice();
+                    srcPath.push.apply(srcPath, result.paths[0]);
+                    var dsts = [];
+                    // Each of the occurences in the result is a destination.
+                    if (afterVars[varStr]) {
+                        afterVars[varStr].paths.forEach(
+                            function(afterPath) {
+                                var dstPath = path.slice();
+                                dstPath.push.apply(dstPath, afterPath);
+                                dsts.push(dstPath);
+                            });
+                        newProof.animations.push({src:srcPath, dsts:dsts});
+                    }
+                });
+            return newProof;
         };
         // Extend the proof by globally substituting a term for a variable.  The variable must not be
         // binding and this substitution must not violate existing DV constraints.  This rewrites the
@@ -1131,6 +1186,7 @@ GHT.ProofFactory = function() {
 
 
     this.newProof = function(startingThmName) {
+        console.log("newProof: " + startingThmName);
         var dummy = new ProofObj(null, [], [], GHT.makeWrappingMapper({}));
         return dummy.applyTerminal([], startingThmName);
     };
@@ -1156,29 +1212,28 @@ GHT.makeVarMapper = function(vars, varNames) {
         wff: [0, 0], set: [0, 0], num: [0, 0]
     };
     var varMap = GHT.forEach(vars,
-        function(varStr, isBinding, varMap) {
+        function(varStr, result, varMap) {
             if (varMap[varStr]) return varMap;
             var type = VariableFromString(varStr).getType();
-            var index = typeIndices[type][isBinding ? 1 : 0]++;
-            var name = varNames[type][isBinding ? 1 : 0][index];
+            var index = typeIndices[type][result.isBinding ? 1 : 0]++;
+            var name = varNames[type][result.isBinding ? 1 : 0][index];
             if (!name) name = varStr;
             varMap[varStr] = name;
             return varMap;
         }, {});
-    function addNewVar(varObj) {
+    function addNewVar(varObj, isBinding) {
         var type = varObj.getType();
-        var isBinding = type == 'num' ? 1 : 0;// TODO: XXX HACK PICKUP assume nums are binding, others not
         var index = typeIndices[type][isBinding ? 1 : 0]++;
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
         varMap[varObj] = name;
         return name;
     };
-    return function(inVar, addIfNull) {
+    return function(inVar, addIfNull, isBinding) {
         if (varMap[inVar]) {
             return varMap[inVar];
         } else if (addIfNull) {
-            return addNewVar(inVar);
+            return addNewVar(inVar, isBinding);
         } else {
             return null;
         }
@@ -1197,21 +1252,144 @@ GHT.setProof = function(proof) {
     GHT.setVersion(vers);
     // This changes the window.location hash, which will call back into actuallySetProof.
 };
+/*
+// Returns the node at the given path, if possible.  If not, returns
+// the deepest node along that lineage.
+GHT.extractNode = function(node, path) {
+    if (path.length == 0) {
+        return node;
+    }
+    var whichChild = path.shift();
+    if (whichChild < node.childElementCount) {
+        var child = node.children[whichChild];
+        if (child.nodeName == "SPAN"){
+            return GHT.extractNode(child, path);
+        }
+    }
+    return node;
+};
+*/
+GHT.setLeafOpacity = function(node, opacity) {
+    if (node.firstChild.nodeName == "SPAN") {
+        for (var i = node.childElementCount - 1; i >= 0; i--) {
+            GHT.setLeafOpacity(node.children[i], opacity);
+        }
+    } else {
+        node.style.opacity = opacity;
+    }
+};
+GHT.getPos = function(node) {
+    var x = 0;
+    var y = 0;
+    do {
+        y += node.offsetTop;
+        x += node.offsetLeft;
+    } while ((node = node.offsetParent));
+    return [x,y];
+};
+// Makes a deep clone of @param oldNode, positions it on top of the original,
+// then animates it to the position of @param newNode.  When the clone gets
+// there, it will be removed.
+GHT.sendNodeToNode = function(oldNode, newNode) {
+    var clone = oldNode.cloneNode(true);
+    // Hide the destination until the animator gets there
+    newNode.style.visibility = "hidden";
+    document.body.appendChild(clone);
+    clone.style.position = "absolute";
+    clone.className = ""; // HACK: to prevent it from being animated to its starting spot
+    var oldNodeCoords = GHT.getPos(oldNode);
+    clone.style.left = oldNodeCoords[0];
+    clone.style.top = oldNodeCoords[1];
+    var newNodeCoords = GHT.getPos(newNode);
+    clone.className = oldNode.className; // undo HACK
+    clone.style.left = newNodeCoords[0];
+    clone.style.top = newNodeCoords[1];
+    // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
+    // would leave other browsers stuck with the extra children.
+    GHT.onTransitionEnd(clone, function() {
+                            document.body.removeChild(clone);
+                            newNode.style.visibility = "visible";
+                       });
+};
+GHT.onTransitionEnd = function(node, callback) {
+    // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
+    // would leave other browsers stuck with the extra children.
+    var timeout = RegExp(" AppleWebKit/").test(navigator.userAgent)
+        ? 1000// HACK: this must be synced with CSS -webkit-transition-duration
+        : 0;
+    window.setTimeout(callback, timeout); 
+
+};
+
 GHT.redecorate = function() {
     var div = document.getElementById("tree");
-    try {
-        if (GHT.theTable) div.removeChild(GHT.theTable);
-    } catch (x) {
-        console.log("No table?");
-    }
-    GHT.theTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(GHT.theCloneMap));
+    var oldTable = GHT.theTable;
+    var oldPathToNodeMap = GHT.thePathToNodeMap;
+    var newPathToNodeMap = {};
+    var newTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(GHT.theCloneMap),
+                                  newPathToNodeMap);
+    GHT.theTable = newTable;
+    GHT.thePathToNodeMap = newPathToNodeMap;
+    newTable.style.position = 'absolute';
+    newTable.style.top = 0;
+    newTable.style.left = 0;
+    newTable.style.opacity = 0;
     GHT.StableMapper.end();
-    div.appendChild(GHT.theTable);
+
+    
+    div.appendChild(newTable);
+    try {
+        if (oldTable) {
+            // Figure out if animations apply, and whether they should go in forward or reverse.
+            var animations = null;
+            var srcMap, dstMap, forward;
+            if ((GHT.theProof.parentProof == GHT.thePreviousProof)
+                && GHT.theProof.animations) {
+                animations = GHT.theProof.animations;
+                srcMap = oldPathToNodeMap;
+                dstMap = newPathToNodeMap;
+                forward = true;
+            } else if ((GHT.thePreviousProof.parentProof == GHT.theProof)
+                       && GHT.thePreviousProof.animations) {
+                animations = GHT.thePreviousProof.animations;
+                dstMap = oldPathToNodeMap;
+                srcMap = newPathToNodeMap;
+                forward = false;
+            }
+            if (animations) {
+                animations.forEach(
+                    function(animation) {
+                        var srcNode = srcMap[animation.src];
+                        if (srcNode) {
+                            animation.dsts.forEach(
+                                function(dstPath) {
+                                    var dstNode = dstMap[dstPath];
+                                    if (dstNode) {
+                                        if (forward) {
+                                            GHT.sendNodeToNode(srcNode, dstNode);
+                                        } else {
+                                            GHT.sendNodeToNode(dstNode, srcNode);
+                                        }
+                                    }
+                                });
+                        }
+                        // Hide the original since the clones are animating away
+                        srcNode.style.visibility = "hidden";
+                    });
+            }
+            oldTable.style.opacity = 0;
+            GHT.onTransitionEnd(oldTable, function(e) { div.removeChild(oldTable); });
+        }
+    } catch (x) {
+        console.log(x); //XXX
+    } 
+    window.setTimeout( function() { newTable.style.opacity = 100;}, 0);
 };
 GHT.actuallySetProof = function(proof) {
     //console.log("Setting proof: " + proof.toString());
     var cloneMap = {};
     var term = proof.getTerm(cloneMap);
+    GHT.thePreviousProof = GHT.theProof;
     GHT.theProof = proof;
     GHT.theTerm = term;
     GHT.theCloneMap = cloneMap;
@@ -1287,7 +1465,7 @@ GHT.StableMapper = {
             var vars = term.extractVars(); 
             runningVarMap = GHT.forEach(
                 vars,
-                function(newVarStr, isBinding, varMap) {
+                function(newVarStr, result, varMap) {
                     var origVarStr = GHT.reverseLookup(cloneMap, newVarStr);
                     var varStr = GHT.undoStack[i].proof.reverseMap(origVarStr) || origVarStr;
                     if (varMap[varStr]) {
@@ -1296,9 +1474,9 @@ GHT.StableMapper = {
                         return varMap;
                     }
                     var type = VariableFromString(varStr).getType();
-                    var name = varNames.available[type][isBinding ? 1 : 0].shift();
+                    var name = varNames.available[type][result.isBinding ? 1 : 0].shift();
                     if (name) {
-                        varNames.used[type][isBinding ? 1 : 0].push(name);
+                        varNames.used[type][result.isBinding ? 1 : 0].push(name);
                     } else {
                         name = varStr;
                     }

@@ -4,8 +4,8 @@ var GHT;
 if (!GHT) {
     GHT = {};
 }
-if (!console) {
-    console = {
+if (!window.console) {
+    window.console = {
         log: function() {
         }
     };
@@ -43,12 +43,12 @@ GHT.Tip = {
             this.tips[tipKey] = tipValue;
         }
         this.theDiv.innerHTML = this.tips[tipKey];
-        this.theDiv.style.display = "block";
+        this.theDiv.style.visibility = "visible";
         this.currentTip = tipKey;
     },
     clear: function(tipKey) {
         if (this.currentTip && (!tipKey || this.currentTip === tipKey)) {
-            this.theDiv.style.display = "none";
+            this.theDiv.style.visibility = "hidden";
             delete this.currentTip;
         }  
     },
@@ -58,9 +58,10 @@ GHT.Tip = {
         ,achieved: "Goal Achived!"
         ,arrow:'Tip: The tree <table class="type_wff binding_terminal" style="display:inline"><tr><td colspan="2" class="operator">&#x2192;<\/td><\/tr><tr><td><span class="var type_wff binding_terminal">A<\/span><\/td><td><span class="var type_wff binding_initial">B<\/span><\/td><\/tr><\/table> is written "(&#x2192; A B)" and pronounced "A arrows B."'
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
-        ,letters:'Tip: After each step, all letters are remapped back to the beginning of the alphabet.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
         ,saving:'Tip: You can save your tree at any time, with any name you like.  Later you can use that saved tree.  Save when your tree matches the goal to gain points.'
+        ,escape:"Tip: The Escape key closes any menu that's in your your way."
+        ,undo:"Tip: You can use your browser's BACK/FORWARD keys to undo/redo all actions."
         ,notUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (<span class='operator'>&#x00ac;<\/span>) and a new terminal (Transpose)."
         ,con3Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
         ,andUnlocked:"Goal Achieved!<br/>A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
@@ -69,7 +70,7 @@ GHT.Tip = {
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple</span> status to its children, which can only be equivalated."
     },
-    randomTips: ["saving", "arrow", "color", "letters", "bindings"],
+    randomTips: ["undo", "saving", "arrow", "color", "bindings", "escape"],
     randomTipIndex: 0,
     showRandom: function() {
         this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
@@ -96,31 +97,34 @@ GHT.updateUi = function(nodeBase, obj) {
 (function() {
      var playerNameCookie = "player.name";
      var playerNameField = document.getElementById("player.name");
-     GHT.playerName = GHT.Cookie.get(playerNameCookie);
      var timeoutId;
      playerNameField.onkeyup = function() {
          window.clearTimeout(timeoutId);
          timeoutId = window.setTimeout(playerNameField.onchange, 500);
      };
      playerNameField.onchange = function() {
-         GHT.playerName = playerNameField.value;
-         GHT.Cookie.set(playerNameCookie, GHT.playerName);
-         GHT.Tip.clear("login");
-         var xhr = new XMLHttpRequest();
-         xhr.onreadystatechange = function () {
-             if (xhr.readyState === 4) {
-                 eval(xhr.responseText);
-             } else if (xhr.readyState > 4) {
-                 console.log("login xhr: " + xhr.readyState);
-             }
-         };
-         xhr.open("GET", "/tree/status/" + encodeURIComponent(GHT.playerName), true);
-         xhr.send(null);
+         var playerName = playerNameField.value;
+         if (playerName !== GHT.playerName) {
+             GHT.playerName = playerName;
+             GHT.Cookie.set(playerNameCookie, GHT.playerName);
+             GHT.Tip.clear("login");
+             var xhr = new XMLHttpRequest();
+             xhr.onreadystatechange = function () {
+                 if (xhr.readyState === 4) {
+                     eval(xhr.responseText);
+                 } else if (xhr.readyState > 4) {
+                     console.log("login xhr: " + xhr.readyState);
+                 }
+             };
+             xhr.open("GET", "/tree/status/" + encodeURIComponent(GHT.playerName), true);
+             xhr.send(null);
+         }
      };
-     if (!GHT.playerName) {
+     var playerName = GHT.Cookie.get(playerNameCookie);
+     if (!playerName) {
          GHT.Tip.set("login");
      } else {
-         playerNameField.value = GHT.playerName;
+         playerNameField.value = playerName;
          playerNameField.onchange();
      }
      function submitForm() {

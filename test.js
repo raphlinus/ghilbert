@@ -351,14 +351,14 @@ var steps = [
 "GHT.SaveAs('dfbi3');",
 ];
 */
-GHT.delayTime = 10;
+GHT.delayTime = 1200;
 function callback() {
 
     if (steps.length > 0) {
         var step = steps.shift();
         try {
             eval(step);
-            GHT.delayTime = 10;
+            GHT.delayTime = 1200;
         } catch (x) {
             console.log(x + " / " + GHT.delayTime);
             steps.unshift(step);
