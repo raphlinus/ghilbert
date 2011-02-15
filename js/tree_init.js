@@ -55,7 +55,8 @@ GHT.Tip = {
     tips: {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
-        ,achieved: "Goal Achived!"
+        ,return: "Welcome back.  We missed you! (Press ESCAPE to close.)"
+        ,achieved: "Goal Achived! (Press ESCAPE to close.)"
         ,arrow:'Tip: The tree <table class="type_wff binding_terminal" style="display:inline"><tr><td colspan="2" class="operator">&#x2192;<\/td><\/tr><tr><td><span class="var type_wff binding_terminal">A<\/span><\/td><td><span class="var type_wff binding_initial">B<\/span><\/td><\/tr><\/table> is written "(&#x2192; A B)" and pronounced "A arrows B."'
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
@@ -69,15 +70,25 @@ GHT.Tip = {
         ,anim2Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple</span> status to its children, which can only be equivalated."
+        ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
+        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Try to make your diagram match the Goal.  To do this first one, apply Simplify on the root (that's the topmost arrow) three times.  Then give your new terminal a name (anything will do) and press Save."
+        ,tutorial1: "Great!  Notice that your letters don't haven to match the Goal's letters; you just need the same pattern.  This next goal you've already seen, so just hit your browser's BACK button twice to return to it.  Give it different name and press Save."
     },
     randomTips: ["undo", "saving", "arrow", "color", "bindings", "escape"],
     randomTipIndex: 0,
     showRandom: function() {
-        this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
+        var score = GHT.UiObjs.player.score;
+        if (this.tips["tutorial" + score]) {
+            this.set("tutorial" + score);
+        } else if (Math.random() < .1) {
+            this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
+        }
     },    
     theDiv: document.getElementById("tip")
 };
+GHT.UiObjs = {};
 GHT.updateUi = function(nodeBase, obj) {
+    GHT.UiObjs[nodeBase] = obj;
     for (var k in obj) {
         var nodeName = nodeBase + "." + k;
         var node = document.getElementById(nodeName);

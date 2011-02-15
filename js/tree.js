@@ -393,9 +393,7 @@ GHT.dismiss = function() {
         GHT.dismiss.popup.style.display = 'none';
         delete GHT.dismiss.popup;
     }
-    if (Math.random() < .1) {
-        GHT.Tip.showRandom();
-    }
+    GHT.Tip.showRandom();
 };
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");

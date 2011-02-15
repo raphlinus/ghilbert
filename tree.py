@@ -264,10 +264,12 @@ class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
         player = Player.get_or_insert(key_name=playerName)
         if (player.goalTrain is None):
-            if (random.random() < 0.5):
-                key = "test00"
+            if (random.random() < 1.1):
+                key = "test02"
                 player.goalTrain = GoalTrain.get_or_insert(key)
                 player.goalTrain.goals = [
+                    "() () (-> A (-> B (-> C (-> D (-> E D)))))",
+                    "() () (-> A (-> B (-> C (-> B))))",
                     "() () (-> A (-> B B))",
                     "() () (-> A A)",
                     "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
@@ -334,60 +336,7 @@ class StatusJs(webapp.RequestHandler):
                     "TODO"
                     ]
                 player.goalTrain.put()
-            else:
-                key = "test01"
-                player.goalTrain = GoalTrain.get_or_insert(key)
-                player.goalTrain.goals = [
-                    "() () (-> (-> (-> A A) B) B)" ,
-                    "() () (-> (-> A (-> A B)) (-> A B))",
-                    "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,
-                    "() () (-> (-> A B) (-> (-> B C) (-> A C)))" ,
-                    "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
-                    "() () (-> A (-> (-> A B) B))" ,
-                    "() () (-> A (-> B B))",
-                    "() () (-> A A)",
-                    "!unlock not",
-                    "() () (-> (-. (-. A)) A)",
-                    "() () (-> (-. (-> A B)) A)",
-                    "() () (-> (-. A) (-> A B))",
-                    "() () (-> (-> (-. A) A) A)",
-                    "() () (-> (-> A B) (-> (-. B) (-. A)))", "!con3",
-                    "() () (-> A (-. (-. A)))",
-                    "() () (-> A (-> (-. B) (-. (-> A B))))",
-                    "() () (-. (-> (-> A A) (-. (-> B B))))", "!unlock and",
-                    "() () (-> (/\ A B) (-. (-> A (-. B))))",
-                    "() () (-> (-. (-> A (-. B))) (/\ A B))",
-                    "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))", "!anim1",
-                    "() () (-> (-> A B) (-> (/\ C A) (/\ C B)))", "!anim2",
-                    "() () (-> (-> A (-> B C)) (-> (/\ A B) C))",
-                    "() () (-> (-> A B) (-> A (/\ A B)))",
-                    "() () (-> (/\ (-> A B) (-> C D)) (-> (/\ A C) (/\ B D)))",
-                    "() () (-> (/\ A (-> A B)) B)",
-                    "() () (-> (/\ A (-> B C)) (-> B (/\ A C)))",
-                    "() () (-> (/\ A B) (/\ B A))",
-                    "() () (-> (/\ A B) A)",
-                    "() () (-> (/\ A B) B)",
-                    "() () (-> A (-> B (/\ A B)))",
-                    "() () (-> A (/\ A A))",
-                    "() () (/\ (-> A A) (-> B B))", "!unlock bi",
-                    "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
-                    "() () (-> (<-> A B) (-> A B))",
-                    "() () (-> (<-> A B) (-> B A))",
-                    "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))",
-                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))", "!imbi1",
-                    "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))", "!imbi2",
-                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi",
-                    "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))", "!anbi2",
-                    "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))", "!bibi1",
-                    "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
-                    "() () (-> A (-> (<-> A B) B))", "!mpbi",
-                    "() () (-> A (-> (<-> B A) B))", "!mpbir",
-                    "() () (-> (<-> A B) (<-> (-. B) (-. A)))", "!notbi",
-                    "!enable equivalents",
-                    "TODO"
-                    ]
-                player.goalTrain.put()
-        tip = '"Welcome back."';
+        tip = '"return"';
         if (player.location is None):
             player.score = 0
             player.location = "Inner Procal"
@@ -435,10 +384,10 @@ thm (_imim1 () () (-> (-> A B) (-> (-> B C) (-> A C)))
 )
 """
 
-            tip = '"Welcome!  I see you\'re new here.  Feel free to click around and explore.  You can\'t mess up."'
+            tip = '"newPlayer"'
             player.put()
         self.response.out.write(player.setupJs);
-        self.response.out.write('GHT.Tip.set("welcome", %s);\n' % tip);
+        self.response.out.write('GHT.Tip.set(%s);\n' % tip);
         self.response.out.write(player.update_js());
         self.response.out.write(leaderboard_js(player))
 
