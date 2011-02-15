@@ -421,9 +421,9 @@ GHT.newMenu = function(title, x, y) {
             td =  document.createElement("td");
             tr.appendChild(td);
             if (preview) {
-                var varMapper = GHT.makeVarMapper(GHT.theVars, GHT.goodVarNames);
-                varMapper.__niceOperators__ = 1; // HACK
-                td.innerHTML = preview.toString(varMapper);
+                var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
+                theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
+                td.innerHTML = preview.toString(theVarMapper);
             }
             table.appendChild(tr);
             this.options[key] = function(e) {
@@ -1326,7 +1326,7 @@ GHT.redecorate = function() {
     var oldTable = GHT.theTable;
     var oldPathToNodeMap = GHT.thePathToNodeMap;
     var newPathToNodeMap = {};
-    var newTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(GHT.theCloneMap),
+    var newTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(),
                                   newPathToNodeMap);
     GHT.theTable = newTable;
     GHT.thePathToNodeMap = newPathToNodeMap;
@@ -1372,9 +1372,9 @@ GHT.redecorate = function() {
                                         }
                                     }
                                 });
+                            // Hide the original since the clones are animating away
+                            srcNode.style.visibility = "hidden";
                         }
-                        // Hide the original since the clones are animating away
-                        srcNode.style.visibility = "hidden";
                     });
             }
             oldTable.style.opacity = 0;
@@ -1394,7 +1394,6 @@ GHT.actuallySetProof = function(proof) {
     GHT.theTerm = term;
     GHT.theCloneMap = cloneMap;
     GHT.theVars = term.extractVars();
-    GHT.theVarMapper = GHT.makeVarMapper(GHT.theVars, GHT.goodVarNames, true);
     GHT.theOnclicks = { };
     GHT.redecorate();
 };
@@ -1433,7 +1432,7 @@ GHT.StableMapper = {
     end: function() {
         
     },
-    mapper:function(theCloneMap) {
+    mapper:function() {
         var varNames = {
             available: {
                 'wff': [["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]],
@@ -1488,9 +1487,18 @@ GHT.StableMapper = {
 
         }
 
-        return function(inVar, addIfNull) {
-            return runningVarMap[inVar];
-            // addIfNull should not be needed.
+        // These are used for new variables introduced in previews.
+        var temporaries = {};
+        return function(inVar, addIfNull, isBinding) {
+            var result = runningVarMap[inVar] || temporaries[inVar];
+            if (!result && addIfNull) {
+                // addIfNull is only needed in previews.  The result
+                // only lasts as long as this mapper.
+                var type = inVar.getType();
+                result = varNames.available[type][isBinding ? 1 : 0].shift();
+                temporaries[inVar] = result;
+            }
+            return result;
         };
     }
 };
