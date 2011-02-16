@@ -55,7 +55,7 @@ GHT.Tip = {
     tips: {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
-        ,return: "Welcome back.  We missed you! (Press ESCAPE to close.)"
+        ,returned: "Welcome back.  We missed you! (Press ESCAPE to close.)"
         ,achieved: "Goal Achived! (Press ESCAPE to close.)"
         ,arrow:'Tip: The tree <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
@@ -84,7 +84,7 @@ GHT.Tip = {
         var score = GHT.UiObjs.player.score;
         if (this.tips["tutorial" + score]) {
             this.set("tutorial" + score);
-        } else if (Math.random() < 1) {
+        } else if (Math.random() < .1) {
             this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
         }
     },

@@ -233,7 +233,7 @@ def check_goal(player, proof, thmName, stream):
 class Player(db.Model):
     name = db.StringProperty()
     lastSeen = db.DateTimeProperty(auto_now=True)
-    score = db.IntegerProperty()
+    score = db.IntegerProperty(default=0)
     location = db.StringProperty()
     goal = db.StringProperty()
     # JS that sets up the tree-proof environment: operators, theorems, arrow schemes
@@ -332,7 +332,7 @@ class StatusJs(webapp.RequestHandler):
                     "TODO"
                     ]
                 player.goalTrain.put()
-        tip = '"return"';
+        tip = '"returned"';
         if (player.location is None):
             player.score = 0
             player.location = "Inner Procal"

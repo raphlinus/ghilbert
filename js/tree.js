@@ -1312,11 +1312,14 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
                        });
 };
 GHT.onTransitionEnd = function(node, callback) {
+    var transitions = RegExp(" AppleWebKit/").test(navigator.userAgent) ||
+        RegExp("Firefox/4").test(navigator.userAgent);
     // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
     // would leave other browsers stuck with the extra children.
-    var timeout = RegExp(" AppleWebKit/").test(navigator.userAgent)
-        ? 1000// HACK: this must be synced with CSS -webkit-transition-duration
-        : 0;
+//Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.04 (lucid) Firefox/3.6.13
+    var timeout = transitions
+        ? 1000 // HACK: this must be synced with CSS -webkit-transition-duration
+        : 0; //XXX
     window.setTimeout(callback, timeout); 
 
 };
@@ -1521,14 +1524,11 @@ window.onload = function() {
     GHT.setProof(start);
     GHT.actuallySetProof(start);
 */
-    window.setTimeout(
-        function() {
             window.addEventListener(
                 'hashchange', function() {
                     var version = GHT.getVersion();
                     GHT.actuallySetProof(GHT.undoStack[version].proof);
                 }, true);
-        }, 0);
 };
 
 document.getElementById("reset").onclick = function(e) {
