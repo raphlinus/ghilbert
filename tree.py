@@ -192,12 +192,6 @@ delete GHT.DisabledOptions.equivalents;
     goal.put()
     return goal
 #TODO: OO
-def goal_to_html(ghilbert):
-    return ghilbert[6:].replace(
-        "<->", "&#x2194;").replace(
-        "-.", "&#x00ac;").replace(
-        "/\\", "&#x2227;").replace(
-        "->", "&#x2192;")
 
 def get_next_goal(player, stream):
     goals = player.goalTrain.goals
@@ -257,7 +251,7 @@ class Player(db.Model):
         dict = {};
         for k in ("score", "location", "goal", "name"):
             dict[k] = getattr(self,k);
-        dict["goal"] = goal_to_html(dict["goal"])
+
         return "\nGHT.updateUi('player',%s);\n" % simplejson.dumps(dict)
         
 class StatusJs(webapp.RequestHandler):
@@ -269,11 +263,13 @@ class StatusJs(webapp.RequestHandler):
                 player.goalTrain = GoalTrain.get_or_insert(key)
                 player.goalTrain.goals = [
                     "() () (-> A (-> B (-> C (-> D (-> E D)))))",
-                    "() () (-> A (-> B (-> C (-> B))))",
-                    "() () (-> A (-> B B))",
-                    "() () (-> A A)",
+                    "() () (-> A (-> B (-> C B)))",
                     "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
                     "() () (-> (-> A B) (-> (-> B C) (-> A C)))" ,
+                    "() () (-> (-> (-> A B) C) (-> B C))" ,
+                    "() () (-> (-> A B) (-> A A))",
+                    "() () (-> A (-> B B))",
+                    "() () (-> A A)",
                     "() () (-> A (-> (-> A B) B))" ,
                     "() () (-> (-> (-> A A) B) B)" ,
                     "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,

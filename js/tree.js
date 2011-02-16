@@ -624,10 +624,12 @@ GHT.getPos = function(node) {
 };
 // @param pathToNodeMap: if present, this will be populated and can be
 // used to map term-paths to DOM nodes.  TODO: this likely causes memory leaks.
-GHT.makeTable = function(term, path, binding, varMapper, pathToNodeMap) {
+GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
+    pathToNodeMap) {
     var type;
     // Set onclick and mouseover listeners
     function decorate(td) {
+        if (!isInteractive) return;
         var key = JSON.stringify(path);
         if (true) { // experimental auto-menu-open
             var timeoutId;
@@ -714,7 +716,7 @@ GHT.makeTable = function(term, path, binding, varMapper, pathToNodeMap) {
     for (var i = 1; i < term.terms.length; i++) {
         var pathClone = path.slice(0);
         pathClone.push(i);
-        var arg = (GHT.makeTable(term.terms[i], pathClone,
+        var arg = (GHT.makeTable(isInteractive, term.terms[i], pathClone,
                                  binding * op.bindings[i - 1], varMapper, pathToNodeMap));
         if (i == 1) {
             arg.className += " first";
@@ -1319,40 +1321,40 @@ GHT.onTransitionEnd = function(node, callback) {
 
 };
 
-GHT.redecorate = function() {
+GHT.redecorate = function(changed) {
     var div = document.getElementById("tree");
     var oldTable = GHT.theTable;
     var oldPathToNodeMap = GHT.thePathToNodeMap;
     var newPathToNodeMap = {};
-    var newTable =  GHT.makeTable(GHT.theTerm, [], 1, GHT.StableMapper.mapper(),
-                                  newPathToNodeMap);
+    var newTable =  GHT.makeTable(true, GHT.theTerm, [], 1,
+                                  GHT.StableMapper.mapper(), newPathToNodeMap);
     GHT.theTable = newTable;
     GHT.thePathToNodeMap = newPathToNodeMap;
     newTable.style.position = 'absolute';
     newTable.style.top = 0;
     newTable.style.left = 0;
-    newTable.style.opacity = 0;
     GHT.StableMapper.end();
-
-    
     div.appendChild(newTable);
+    newTable.style.opacity = 0;
     try {
         if (oldTable) {
             // Figure out if animations apply, and whether they should go in forward or reverse.
             var animations = null;
             var srcMap, dstMap, forward;
-            if ((GHT.theProof.parentProof == GHT.thePreviousProof)
-                && GHT.theProof.animations) {
+            if (changed) {
+              if ((GHT.theProof.parentProof == GHT.thePreviousProof)
+                  && GHT.theProof.animations) {
                 animations = GHT.theProof.animations;
                 srcMap = oldPathToNodeMap;
                 dstMap = newPathToNodeMap;
                 forward = true;
-            } else if ((GHT.thePreviousProof.parentProof == GHT.theProof)
-                       && GHT.thePreviousProof.animations) {
+              } else if ((GHT.thePreviousProof.parentProof == GHT.theProof)
+                  && GHT.thePreviousProof.animations) {
                 animations = GHT.thePreviousProof.animations;
                 dstMap = oldPathToNodeMap;
                 srcMap = newPathToNodeMap;
                 forward = false;
+              }
             }
             if (animations) {
                 animations.forEach(
@@ -1380,7 +1382,7 @@ GHT.redecorate = function() {
         }
     } catch (x) {
         console.log(x); //XXX
-    } 
+    }
     window.setTimeout( function() { newTable.style.opacity = 100;}, 0);
 };
 GHT.actuallySetProof = function(proof) {
@@ -1393,7 +1395,7 @@ GHT.actuallySetProof = function(proof) {
     GHT.theCloneMap = cloneMap;
     GHT.theVars = term.extractVars();
     GHT.theOnclicks = { };
-    GHT.redecorate();
+    GHT.redecorate(true);
 };
 GHT.getVersion = function() {
     var match = window.location.toString().match(/#(.*)/);
@@ -1500,6 +1502,17 @@ GHT.StableMapper = {
         };
     }
 };
+// TODO: terrible hack. Not tolerant of nonstandard whitespace.  Handles only
+// wffs for now.
+GHT.termFromSexp = function(sexp) {
+  sexp = sexp.replace(/\(/g, 'T(');
+  sexp = sexp.replace(/\)/g, '),');
+  sexp = sexp.replace(/([^()A-Z, ]+)/g, 'O("$1"),');
+  sexp = sexp.replace(/([A-M])/g, 'V("$1".charCodeAt(0)),');
+  sexp = sexp.replace(/,\)/g,')');
+  sexp = sexp.replace(/,$/g,'');
+  return eval(sexp);
+};
 
 GHT.setVersion(0);
 window.onload = function() {
@@ -1515,7 +1528,7 @@ window.onload = function() {
                     var version = GHT.getVersion();
                     GHT.actuallySetProof(GHT.undoStack[version].proof);
                 }, true);
-        }, 10);
+        }, 0);
 };
 
 document.getElementById("reset").onclick = function(e) {

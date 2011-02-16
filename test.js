@@ -1,5 +1,33 @@
 // This test script solves the entire goal-chain test00.
 var steps = [
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('anything'); ",
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('different');",
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('imim2');",
+
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('imim1');",
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['imim1']();",
+"GHT.SaveAs('himp1');",
+
+
 "GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['Simplify']();",
@@ -15,9 +43,6 @@ var steps = [
 "GHT.SaveAs('imim2');",
 
 
-"GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
-"GHT.theOnclicks['[1]']();GHT.theMenu.options['Simplify']();",
-"GHT.SaveAs('imim1');",
 
 "GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['Distribute']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['idd']();",
