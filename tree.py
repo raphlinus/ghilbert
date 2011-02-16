@@ -55,6 +55,7 @@ class Goal(db.Model):
 
 def leaderboard_js(player):
     q = Player.all()
+    q.filter("score !=", 0)
     q.order("-score")
     results = q.fetch(15)
     html = ""
