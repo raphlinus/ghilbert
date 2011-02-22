@@ -71,11 +71,11 @@ GHT.Tip = {
         ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
         ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
-        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Try to make your diagram match the Goal.  To do this first one, apply Simplify on the root (that's the topmost arrow) three times.  Then give your new terminal a name (anything will do) and press Save."
+        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on the topmost arrow below, then click Simplify.  Repeat two more times times and your diagram should match the Goal."
         ,tutorial1: "Great!  Notice that your letters don't have to match the Goal's letters exactly; you just need the same pattern.  This next goal you've already seen, so just hit your browser's BACK button twice to return to it.  Give it different name and press Save."
-        ,tutorial2: "Nice.  You may wonder why it's called 'Simplify' when so far it's only added complexity, but terminals work backwards on blue nodes.  To see this (and get another goal), start with Distribute and use Simplify on its left child."
+        ,tutorial2: "Nice.  You may wonder why it's called 'Simplify' when so far it's only added complexity, but terminals work backwards on blue spots.  To see this (and get another goal), <span class='startwith'>start over with<\/span> Distribute and then use Simplify on its blue left side."
         ,tutorial3: "Rockin'.  Incidentally, it's called 'Distribute' because it works the same way that 2 &times; (3 + 4) = 2 &times; 3 + 2 &times; 4.  Try using Distribute on the root right now, then Simplify the left side again."
-        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try applying the one you just saved to the root of the Simplify diagram."
+        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try it out: <span class='startwith'>start over with<\/span> Simplify, then apply the terminal you just saved to the Root."
         ,tutorial5: "Ok, you're on your own now.  Good luck...."
     },
     randomTips: ["undo", "saving", "arrow", "color", "bindings", "escape"],
@@ -98,11 +98,12 @@ GHT.updateUi = function(nodeBase, obj) {
         var node = document.getElementById(nodeName);
         var val = obj[k];
         if (k === "goal") { // HACK
-          val = GHT.termFromSexp(val);
-          val = GHT.makeTable(false, val, [], 1,
-              GHT.makeVarMapper({}, GHT.goodVarNames));
-          while (node.firstChild) node.removeChild(node.firstChild);
-          node.appendChild(val);
+            GHT.theGoal = val.substring(6);
+            val = GHT.termFromSexp(val);
+            val = GHT.makeTable(false, val, [], 1,
+                                GHT.makeVarMapper({}, GHT.goodVarNames));
+            while (node.firstChild) node.removeChild(node.firstChild);
+            node.appendChild(val);
         } else if (node) {
             if (node.type === "text"){
                 node.value = val;
@@ -172,6 +173,7 @@ GHT.updateUi = function(nodeBase, obj) {
              } else if (xhr.readyState > 4) {
                  console.log("save xhr: " + xhr.readyState);
              }
+             document.getElementById("theorem.name").value = "";
          };
          xhr.open("POST", "/tree/save", true);
          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

@@ -680,6 +680,7 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
         type = term.getType();
         span.className += "tree var type_" + type;
         span.className += " binding_" + GHT.bindings[binding];
+        if (isInteractive) { span.className += " i"; }
         span.innerHTML = varMapper(term, true, isNaN(binding)); // TODO: untested!
         if (pathToNodeMap) {
             pathToNodeMap[path] = span;
@@ -696,6 +697,7 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
     }
 
     wrapper.className = 'tree wrapper';
+    if (isInteractive) { wrapper.className += " i"; }
     var op = term.terms[0];
     if (!(op instanceof Operator)) throw "Tuple starting with non-op " + op;
     type = op.getType();
@@ -708,10 +710,12 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
     wrapper.appendChild(opSpan);
     opSpan.className += "tree operator type_" + type;
     opSpan.className += " binding_" + GHT.bindings[binding];
+    if (isInteractive) { opSpan.className += " i"; }
     opSpan.appendChild(document.createTextNode(op.getName().replace("<","&lt;")));
     decorate(opSpan);
     var argsSpan = document.createElement('span');
     argsSpan.className = "tree args";
+    if (isInteractive) { argsSpan.className += " i"; }
     wrapper.appendChild(argsSpan);
     for (var i = 1; i < term.terms.length; i++) {
         var pathClone = path.slice(0);
@@ -1325,6 +1329,7 @@ GHT.onTransitionEnd = function(node, callback) {
 };
 
 GHT.redecorate = function(changed) {
+    GHT.autoGoal(GHT.theProof);
     var div = document.getElementById("tree");
     var oldTable = GHT.theTable;
     var oldPathToNodeMap = GHT.thePathToNodeMap;
@@ -1399,6 +1404,7 @@ GHT.actuallySetProof = function(proof) {
     GHT.theVars = term.extractVars();
     GHT.theOnclicks = { };
     GHT.redecorate(true);
+    GHT.autoGoal(proof);
 };
 GHT.getVersion = function() {
     var match = window.location.toString().match(/#(.*)/);
@@ -1517,6 +1523,22 @@ GHT.termFromSexp = function(sexp) {
   return eval(sexp);
 };
 
+// Automatic goal assistance.  Check the given proof for matching the
+// current goal, and if it does, give the user a hint that it's time to save.
+GHT.autoGoal = function(proof) {
+    var ghProof = proof.getProof("thmName");
+    var match = ghProof.match(GHT.theGoal.replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
+    var label =document.getElementById("autogoal");
+    label.style.visibility = match ? "visible" : "hidden";
+    label.style.left = match ? 0 : "20em";
+    if (match) {
+        var name = "myTerminal";
+        var i = 0;
+        while (GHT.Thms[name + i]) i++;
+        document.getElementById("theorem.name").value = name + i;
+    }
+};
+
 GHT.setVersion(0);
 window.onload = function() {
 /*
@@ -1527,7 +1549,9 @@ window.onload = function() {
             window.addEventListener(
                 'hashchange', function() {
                     var version = GHT.getVersion();
-                    GHT.actuallySetProof(GHT.undoStack[version].proof);
+                    if (GHT.undoStack[version]) {
+                        GHT.actuallySetProof(GHT.undoStack[version].proof);
+                    }
                 }, true);
 };
 
