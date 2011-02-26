@@ -403,16 +403,25 @@ GHT.newMenu = function(title, x, y) {
         popup.style.left = x;
         popup.style.top = y;
     }
-    popup.innerHTML = title + "<br/>";
+    popup.innerHTML = "";
     var table = document.createElement("table");
     popup.appendChild(table);
+    var header = document.createElement("tr");
+    table.appendChild(header);
+    var th = document.createElement("th");
+    header.appendChild(th);
+    th.innerHTML = title;
+    th = document.createElement("th");
+    header.appendChild(th);
+    th.innerHTML = "Preview";
     GHT.dismiss.popup = popup;
     GHT.theMenu = {
         addOption: function(text, func, preview) {
             if (GHT.DisabledOptions[text]) { return; }
             var key = text;
             while (this.options[key]) key += '~';
-            var tr  = document.createElement("tr");
+            var tr = document.createElement("tr");
+            tr.className = "i";
             var td =  document.createElement("td");
             tr.appendChild(td);
             td.innerHTML = text;
@@ -450,7 +459,7 @@ GHT.newMenu = function(title, x, y) {
 
 GHT.showTerminals = function(path, scheme, callback) {
     return function(event) {
-        var menu = GHT.newMenu("Terminals", event.pageX, event.pageY);
+        var menu = GHT.newMenu("Terminal", event.pageX, event.pageY);
         for (var name in GHT.Thms) {
             menu.addOption(name,
                            GHT.makeApplyFunction(path, 'Terminal', name, scheme, null, callback),
@@ -464,7 +473,7 @@ GHT.showInitials = function(path) {
 };
 GHT.showEquivalents = function(path) {
     return function() {
-        var menu = GHT.newMenu("Equivalents");
+        var menu = GHT.newMenu("Equivalent");
         var term = GHT.theTerm.extract(path.slice(0));
         GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 1, GHT.EquivalenceScheme);
         GHT.makeThmMenu(menu, term, path, GHT.getEquivalence(term.getType()), 2, GHT.EquivalenceScheme);
@@ -516,14 +525,14 @@ GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3, callback)
 };
 GHT.showArrowers = function(path) {
     return function() {
-        var menu = GHT.newMenu("Arrowers");
+        var menu = GHT.newMenu("Arrower");
         var term = GHT.theTerm.extract(path.slice(0));
         GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2, GHT.ArrowScheme);
     };
 };
 GHT.showArrowees = function(path) {
     return function() {
-        var menu = GHT.newMenu("Arrowees");
+        var menu = GHT.newMenu("Arrowee");
         var term = GHT.theTerm.extract(path.slice(0));
         GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1, GHT.ArrowScheme);
     };
@@ -533,7 +542,7 @@ GHT.showArrowees = function(path) {
 
 GHT.showAssertTerminal = function(path) {
     return function() {
-        var menu = GHT.newMenu("Matching Terminals");
+        var menu = GHT.newMenu("Matching Terminal");
         var term = GHT.theTerm.extract(path.slice(0));
         // TODO: share code with makeThmMenu?
         //= function(menu, term, path, op, whichArg, scheme) {
@@ -1206,6 +1215,14 @@ GHT.goodVarNames = {
             ["z", "y", "x", "w", "v", "u", "t",
              "s", "r", "q", "p", "o", "n"]]
 };
+GHT.goalVarNames = {
+    'wff': [["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]],
+    'set': [["!", "@", "#", "$", "%", "&amp;", "*", "(", ")", "-", "="]],
+    'num': [["&alpha;", "&beta;", "&gamma;", "&delta;", "&epsilon;", "&zeta;", "&eta;",
+             "&theta;", "&iota;", "&kappa;", "&lambda;", "&mu;"],
+            ["&omega;", "&chi;", "&xi;", "&phi;", "&upsilon;", "&tau;",
+             "&sigma;", "&rho;", "&pi;", "&omicron;", "&psi;", "&nu;"]]
+};
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
 // Output: a function that takes a varString and returns a human-readable string.
 // If you want yourself added to the varMapper when not found, pass a second true argument.
@@ -1315,8 +1332,9 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
                             newNode.style.visibility = "visible";
                        });
 };
-GHT.onTransitionEnd = function(node, callback) {
-    var transitions = RegExp(" AppleWebKit/").test(navigator.userAgent) ||
+GHT.onTransitionEnd = function(node, callback, forceDelay) {
+    var transitions = forceDelay ||
+        RegExp(" AppleWebKit/").test(navigator.userAgent) ||
         RegExp("Firefox/4").test(navigator.userAgent);
     // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
     // would leave other browsers stuck with the extra children.
@@ -1377,11 +1395,14 @@ GHT.redecorate = function(changed) {
                                             GHT.sendNodeToNode(srcNode, dstNode);
                                         } else {
                                             GHT.sendNodeToNode(dstNode, srcNode);
+                                            dstNode.style.visibility = "hidden";
                                         }
                                     }
                                 });
-                            // Hide the original since the clones are animating away
-                            srcNode.style.visibility = "hidden";
+                            if (forward) {
+                                // Hide the original since the clones are animating away
+                                srcNode.style.visibility = "hidden";
+                            }
                         }
                     });
             }

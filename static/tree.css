@@ -10,12 +10,10 @@ span.i.operator:active+span.args {background-color:#cccccc;}
 span.operator {float:none; border: 1px solid black;}
 span.var {float:left}
 span.i.tree {
-    -webkit-transition: left, top,opacity;    -moz-transition: left, top,opacity;
-    -webkit-transition-duration: 1s; -moz-transition-duration: 1s;
+        transition:left, top, opacity;        transition-duration: 1s;
+-webkit-transition:left, top, opacity;-webkit-transition-duration: 1s;
+   -moz-transition:left, top, opacity;   -moz-transition-duration: 1s;
 }/* HACK: this must be synced with GHT.onTransitionEnd */
-span.animated {
-    -webkit-transition: 
-}
 span.var {padding-left: .5em;padding-right: .5em;}
 .binding_binding {text-decoration:underline;}
 span.binding_terminal {border-top:2px solid blue;}
@@ -23,10 +21,22 @@ span.binding_initial {border-top:2px solid red;}
 span.binding_exact {border-top:2px solid purple;}
 
 #popup {position: absolute; border: 1px solid black; background-color: #eeeeff }
-#popup tr {padding: 0; margin: 0; }
-#popup tr {padding: .6em; margin: 0; cursor:pointer}
-#popup tr:hover {background-color: #ddddff;}
-#popup tr:active {background-color: #ccccff;}
+#popup tr.i {cursor:pointer}
+#popup tr.i:hover {background-color: #ddddff;}
+#popup tr.i:active {background-color: #ccccff;}
+#popup tr.i td {padding-left: .5em;}
 #tip {background-color: #bbbbee; padding: 4px;}
 .startwith {text-transform:uppercase; font-size:80%; color:green;font-family:monospace }
-#autogoal {-webkit-transition: left; position:relative; color:red;-webkit-transition-duration: 1s; }
+#autogoal {position:relative; color:red;
+           transition: left 1s;
+   -webkit-transition: left 1s;
+      -moz-transition: left 1s;
+          }
+
+/* HACK: this must be synced with GHT.Tip */
+#achieved { position:absolute; left: 0; top: 40%; font-size:800%;white-space:nowrap;
+        transition:all 1s ease-out .2s;
+-webkit-transition:all 1s ease-out .2s;
+   -moz-transition:all 1s ease-out .2s;
+}
+#achieved.animated { top: 0; opacity:0; }

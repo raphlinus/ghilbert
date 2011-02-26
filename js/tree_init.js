@@ -38,13 +38,36 @@ GHT.Cookie = {
     }
 };
 GHT.Tip = {
+    goal: function() {
+        var span = document.getElementById("achieved");
+        span.style.display = "inline";
+        window.setTimeout(
+            function() {
+                span.className = "animated";
+            }, 0);
+        window.setTimeout(
+            function() {
+                span.style.display = "none";
+                span.className = "";
+            }, 1200); /* HACK: this must be synced with tree.css */
+    },
+    lock: function(tipKey) {
+        // this HACK gets uglier and uglier and uglier.
+        window.setTimeout(function() {
+                              var score = GHT.UiObjs.player.score;
+                              GHT.Tip.tips["tutorial" + score] = GHT.Tip.tips[tipKey];
+                              GHT.dismiss();
+                          }, 0);
+    },
     set: function(tipKey, tipValue) {
         if (tipValue) {
             this.tips[tipKey] = tipValue;
+        } 
+        if (this.tips[tipKey]) {
+            this.theDiv.innerHTML = this.tips[tipKey];
+            this.theDiv.style.visibility = "visible";
+            this.currentTip = tipKey;
         }
-        this.theDiv.innerHTML = this.tips[tipKey];
-        this.theDiv.style.visibility = "visible";
-        this.currentTip = tipKey;
     },
     clear: function(tipKey) {
         if (this.currentTip && (!tipKey || this.currentTip === tipKey)) {
@@ -56,29 +79,30 @@ GHT.Tip = {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
         ,returned: "Welcome back.  We missed you! (Press ESCAPE to close.)"
-        ,achieved: "Goal Achived! (Press ESCAPE to close.)"
-        ,arrow:'Tip: The tree <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
-        ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subtree can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subtree can be replaced by anything known to arrow it.'
+        ,naming:'Tip: Choosing more descriptive names for the terminals you save will help you find them later when you need to use them.'
+        ,arrow:'Tip: The diagram <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
+        ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subdiagram can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subdiagram can be replaced by anything known to arrow it.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
-        ,saving:'Tip: You can save your tree at any time, with any name you like.  Later you can use that saved tree.  Save when your tree matches the goal to gain points.'
         ,escape:"Tip: The Escape key closes any menu that's in your your way."
-        ,undo:"Tip: You can use your browser's BACK/FORWARD keys to undo/redo all actions."
-        ,notUnlocked:"Goal Achieved!<br/>You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator (<span class='operator'>&#x00ac;<\/span>) and a new terminal (Transpose)."
-        ,con3Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
-        ,andUnlocked:"Goal Achieved!<br/>A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
-        ,anim1Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its left child!"
-        ,anim2Unlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
-        ,biUnlocked:"Goal Achieved!<br/>A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
-        ,equivUnlocked:"Goal Achieved!<br/>Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
+        ,notUnlocked:"You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator, <span class='operator'>&#x00ac;<\/span>) , and a new terminal, Transpose."
+        ,con3Unlocked:"Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
+        ,andUnlocked:"A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
+        ,anim1Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its left child!"
+        ,anim2Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
+        ,biUnlocked:"A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
+        ,equivUnlocked:"Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
         ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
-        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on the topmost arrow below, then click Simplify.  Repeat two more times times and your diagram should match the Goal."
-        ,tutorial1: "Great!  Notice that your letters don't have to match the Goal's letters exactly; you just need the same pattern.  This next goal you've already seen, so just hit your browser's BACK button twice to return to it.  Give it different name and press Save."
-        ,tutorial2: "Nice.  You may wonder why it's called 'Simplify' when so far it's only added complexity, but terminals work backwards on blue spots.  To see this (and get another goal), <span class='startwith'>start over with<\/span> Distribute and then use Simplify on its blue left side."
-        ,tutorial3: "Rockin'.  Incidentally, it's called 'Distribute' because it works the same way that 2 &times; (3 + 4) = 2 &times; 3 + 2 &times; 4.  Try using Distribute on the root right now, then Simplify the left side again."
-        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try it out: <span class='startwith'>start over with<\/span> Simplify, then apply the terminal you just saved to the Root."
-        ,tutorial5: "Ok, you're on your own now.  Good luck...."
+        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on the Roof (that's the topmost arrow below), then click Simplify.  Repeat two more times times so your diagram matches the Goal, then Save it."
+        ,tutorial1: "Great!  It doesn't matter which letter goes with which number, as long as you have the same pattern.  You've already already seen this next goal, so just hit your browser's BACK button twice to return to it.  (BACK/FORWARD lets you undo/redo anytime.  Scrubbing between two diagrams can help show how they relate.)"
+        ,tutorial2: "Nice.  You may wonder why it's called <em>Simplify<\/em> when so far it's only added complexity, but terminals work backwards on blue spots.  To see this (and get another goal), <span class='startwith'>start over with<\/span> Distribute and then use Simplify on its blue left side."
+        ,tutorial3: "Rockin'.  Now let's take Distribute out for a spin. Use it on the Roof right now, then Simplify the left side again.  (Incidentally, it's called <em>Distribute<\/em> because of the way that 2 &times; (3 + 4) = 2 &times; 3 + 2 &times; 4.  Can you see the similarity?)"
+        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try it out: <span class='startwith'>start over with<\/span> Simplify, then apply the terminal you just saved to the Roof."
+        ,tutorial5: "Splendid.  Each terminal transforms part of the diagram in a different way.  Try to develop an intuition for how they all work.  (The previews hint at what will happen; or just try stuff and then Undo.) "
+        ,tutorial6: "You're getting the hang of it now!"
+        ,tutorial7: "Don't stop now; if you can get a few more, you'll level up..."
+        ,tutorial9: "This one requires a tricky process called <em>unification<\/em>.  A terminal may not seem applicable, but you can still use it if replacing a letter with a new subdiagram would make it work."
     },
-    randomTips: ["undo", "saving", "arrow", "color", "bindings", "escape"],
+    randomTips: ["naming", "arrow", "color", "bindings", "escape"],
     randomTipIndex: 0,
     showRandom: function() {
         var score = GHT.UiObjs.player.score;
@@ -86,6 +110,8 @@ GHT.Tip = {
             this.set("tutorial" + score);
         } else if (Math.random() < .1) {
             this.set(this.randomTips[this.randomTipIndex++ % this.randomTips.length]);
+        } else {
+            this.clear();
         }
     },
     theDiv: document.getElementById("tip")
@@ -101,7 +127,7 @@ GHT.updateUi = function(nodeBase, obj) {
             GHT.theGoal = val.substring(6);
             val = GHT.termFromSexp(val);
             val = GHT.makeTable(false, val, [], 1,
-                                GHT.makeVarMapper({}, GHT.goodVarNames));
+                                GHT.makeVarMapper({}, GHT.goalVarNames));
             while (node.firstChild) node.removeChild(node.firstChild);
             node.appendChild(val);
         } else if (node) {

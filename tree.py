@@ -83,18 +83,18 @@ GHT.Operators["-."] = new Operator("-.","\u00ac","wff",["wff"],[Infinity]);
 GHT.Thms["Transpose"] = T(O("->"),T(O("->"),T(O("-."),TV("wff", -560)),T(O("-."),TV("wff", -571))),T(O("->"),TV("wff", -571),TV("wff", -560)));
 GHT.ArrowScheme["-."] = [null];
 """
-            goal.update_js = "GHT.Tip.set('notUnlocked');\n"
+            goal.update_js = "GHT.Tip.lock('notUnlocked');\n"
             goal.new_location = "Outer Procal"
 
         elif (name == "!con3"):
-            goal.update_js = "GHT.Tip.set('con3Unlocked');\n"
+            goal.update_js = "GHT.Tip.lock('con3Unlocked');\n"
             goal.new_js ="""
 // con3
 GHT.Operators["-."].bindings[0] = -1;
 GHT.ArrowScheme["-."][0] = "%s";
 """
         elif (name == "!unlock and"):
-            goal.update_js = "GHT.Tip.set('andUnlocked');\n"
+            goal.update_js = "GHT.Tip.lock('andUnlocked');\n"
             goal.new_js = """
 // %s
 // And
@@ -110,21 +110,21 @@ defthm (Conjoin wff (/\ A B) () ()
 )
 """
         elif (name == "!anim1"):
-            goal.update_js = "GHT.Tip.set('anim1Unlocked');\n"
+            goal.update_js = "GHT.Tip.lock('anim1Unlocked');\n"
             goal.new_js = """
 // anim1
 GHT.Operators["/\\\\"].bindings[0] = 1;
 GHT.ArrowScheme["/\\\\"][0] = "%s";
 """
         elif (name == "!anim2"):
-            goal.update_js = "GHT.Tip.set('anim2Unlocked');\n"
+            goal.update_js = "GHT.Tip.lock('anim2Unlocked');\n"
             goal.new_js = """
 // anim2
 GHT.Operators["/\\\\"].bindings[1] = 1;
 GHT.ArrowScheme["/\\\\"][1] = "%s";
 """
         elif (name == "!unlock bi"):
-            goal.update_js = "GHT.Tip.set('biUnlocked');\n"
+            goal.update_js = "GHT.Tip.lock('biUnlocked');\n"
             goal.new_js = """
 // %s
 // Bi
@@ -183,7 +183,7 @@ GHT.EquivalenceScheme["-."] = ["%s"];
 GHT.Operators["<->"].bindings = [0, 0];
 delete GHT.DisabledOptions.equivalents;
 """
-            goal.update_js = "GHT.Tip.set('equivUnlocked');\n"
+            goal.update_js = "GHT.Tip.lock('equivUnlocked');\n"
 
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
@@ -204,9 +204,10 @@ def get_next_goal(player, stream):
 def check_goal(player, proof, thmName, stream):
     pattern = "thm \([^)]* " + player.goal.replace("\\","\\\\").replace("(","\(").replace(")","\)")
     if re.match(pattern, proof):
+        stream.write("\nGHT.Tip.goal();\n")
         player.score += 1
-        stream.write("GHT.Tip.set('achieved');")
         player.goal = get_next_goal(player, stream)
+        showTip = True;
         while (player.goal[0] == "!"):
             goal = get_goal(player.goal)
             if (goal.new_js):
@@ -222,8 +223,9 @@ def check_goal(player, proof, thmName, stream):
             player.goal = get_next_goal(player, stream)
         player.put()
         stream.write(player.update_js())
-        stream.write(leaderboard_js(player))
+        stream.write("\nGHT.dismiss();\n");
         stream.write("\nGHT.redecorate();\n");
+        stream.write(leaderboard_js(player))
         return True
     else:
         stream.write("GHT.Tip.set('saved'); // %s\n" % player.goal)
@@ -268,17 +270,17 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
                     "() () (-> (-> A B) (-> (-> B C) (-> A C)))" ,
                     "() () (-> (-> (-> A B) C) (-> B C))" ,
+                    "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,
                     "() () (-> (-> A B) (-> A A))",
                     "() () (-> A (-> B B))",
                     "() () (-> A A)",
-                    "() () (-> (-> A (-> B C)) (-> B (-> A C)))" ,
                     "() () (-> A (-> (-> A B) B))" ,
                     "() () (-> (-> (-> A A) B) B)" ,
                     "() () (-> (-> A (-> A B)) (-> A B))",
                     "!unlock not",
                     "() () (-> (-. A) (-> A B))",
-                    "() () (-> A (-. (-. A)))",
                     "() () (-> (-. (-. A)) A)",
+                    "() () (-> A (-. (-. A)))",
                     "() () (-> (-> A B) (-> (-. B) (-. A)))",
                     "!con3",
                     "() () (-> (-. (-> A B)) A)",
