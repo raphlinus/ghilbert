@@ -38,13 +38,16 @@ GHT.Cookie = {
     }
 };
 GHT.levelUp = function() {
-    GHT.Tip.set("levelUp");
     document.getElementById("player.score").style.width = "100%";
     var iframe = document.createElement('iframe');
     iframe.src = "http://gruntle.me";
     iframe.style.width = "100%";
     iframe.style.height = "600px";
-    GHT.Tip.theDiv.appendChild(iframe);
+    window.setTimeout(
+        function() {
+            GHT.Tip.theDiv.innerHTML += "<br/>Congratulations, you <strong>levelled up</strong>!  Look at this cute picture for 10 seconds!<br/>";
+            GHT.Tip.theDiv.appendChild(iframe);
+        }, 500);
     window.setTimeout(
         function() {
             GHT.Tip.theDiv.removeChild(iframe);
