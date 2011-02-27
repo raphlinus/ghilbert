@@ -184,6 +184,13 @@ GHT.Operators["<->"].bindings = [0, 0];
 delete GHT.DisabledOptions.equivalents;
 """
             goal.update_js = "GHT.Tip.lock('equivUnlocked');\n"
+        elif (name == "!enable termsub"):
+            goal.update_js = "GHT.Tip.lock('termsubUnlocked');\n"
+            goal.new_js = """
+// %s
+delete GHT.DisabledOptions['term substitute'];
+GHT.DisabledOptions.nodefthm = 1;
+"""
 
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
@@ -202,7 +209,7 @@ def get_next_goal(player, stream):
     return "UNKNOWN"
 
 def check_goal(player, proof, thmName, stream):
-    pattern = "thm \([^)]* " + player.goal.replace("\\","\\\\").replace("(","\(").replace(")","\)")
+    pattern = ".*thm \(.*" + player.goal.replace("\\","\\\\").replace("(","\(").replace(")","\)") + ".*"
     if re.match(pattern, proof):
         stream.write("\nGHT.Tip.goal();\n")
         player.score += 1
@@ -236,7 +243,7 @@ def check_goal(player, proof, thmName, stream):
         return True
     else:
         stream.write("GHT.Tip.set('saved'); // %s\n" % player.goal)
-        stream.write("/*\n MATCH: " + pattern + " #### AGAINST: " + proof + "\n*/\n")
+        stream.write("/*\n #### MATCH: " + pattern + " \n AGAINST: " + proof + "\n*/\n")
         return False
 
    
@@ -270,7 +277,7 @@ class Player(db.Model):
 class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
         player = Player.get_or_insert(key_name=playerName)
-        if (player.goalTrain is None):
+        if (True or player.goalTrain is None):
             if (random.random() < 1.1):
                 key = "test02"
                 player.goalTrain = GoalTrain.get_or_insert(key)
@@ -347,8 +354,11 @@ class StatusJs(webapp.RequestHandler):
                     "() () (<-> (/\ (/\ A B) C) (/\ A (/\ B C)))",
                     "() () (<-> (-> A (-> B C)) (-> (/\ A B) C))",
                     "() () (<-> (<-> A B) (/\ (-> A B) (-> B A)))",
-
-                    "TODO"
+                    "!enable termsub",
+                    "!level 100",
+                    "() () (<-> (or A B) (-> (-. A) B))",
+                    "() () (-> A (or B A))",
+                    "() () (-> A (or A B))",
                     ]
                 player.goalTrain.put()
         tip = '"returned"';
@@ -448,7 +458,7 @@ stmt (Transpose () () (-> (-> (-. A) (-. B)) (-> B A)))
             player.log += "\n# ERROR\n\n"
         else:
             player.ghilbertText = proofText;
-            player.setupJs += "GHT.Thms['%s'] = %s;\n" % (thmName, self.request.get('source'))
+            player.setupJs += self.request.get('source')
             check_goal(player, newProof, thmName, self.response.out)
         player.put()
 

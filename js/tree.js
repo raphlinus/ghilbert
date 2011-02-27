@@ -90,7 +90,10 @@ function Operator(key, name, type, inputs, bindings) {
     };
 }
 function O(s) {
-    return GHT.Operators[s];
+    var op = GHT.Operators[s];
+    if (op) return op;
+    //HACK to allow goals to prompt defthms
+    return new Operator(s, s, 'wff', ['wff', 'wff', 'wff'], [Infinity, Infinity, Infinity]);
 }
 Operator.prototype = new Term();
 // Transitional function to bridge from the old varMap object to the new varMapper function.
@@ -368,25 +371,7 @@ GHT.bindings = {
     "Infinity":  "unknown",    // "Unknown! No tree ops below this point."
     "-Infinity": "unknown"     // "Unknown! No tree ops below this point."
 };
-function OpList(){}
-OpList.prototype = new Object();
-OpList.prototype.toSource = function() {
-    var s = "{";
-    for (var x in this) {
-        var op = this[x];
-        if (op.toSource) {
-            s += GHT.stringify(x);
-            s += ": new Operator(";
-            s += [op.key, op.getName(), op.getType(), op.inputs, op.bindings].map(
-                GHT.stringify).join(",");
-            s += "),";
-        }
-
-    }
-    s += "}";
-    return s;
-};
-GHT.Operators = new OpList();
+GHT.Operators = {};
 GHT.dismiss = function(notip) {
     if (GHT.dismiss.popup) {
         GHT.dismiss.popup.style.display = 'none';
@@ -821,22 +806,66 @@ GHT.ProofFactory = function() {
             return GHT.combineMappers(mVarMapper,
                                       GHT.makeVarMapper(mTerm.extractVars(), varNames, reset));
         };
-        // Produce a complete ghilbert proof, with the given theorem name.
-        this.getProof = function(thmName) {
-            var theVarMapper = this.getVarMapper(GHILBERT_VAR_NAMES, true);
-            var str = "";
-            function flatten(array) {
-                if (!array) {
-                    str += "*NULL*";
-                } else if (array instanceof Array) {
-                    array.map(flatten);
+        function flatten(array, mapper, delimiter) {
+            function flattenInner(arr) {
+                if (!arr) {
+                    return "*NULL*";
+                } else if (arr instanceof Array) {
+                    return arr.map(flattenInner).join(delimiter ? delimiter : "");
                 } else {
-                    str += array.toString(theVarMapper);
+                    return arr.toString(mapper);
                 }
             }
-            flatten(["thm (", thmName, " (", mDvs, ") () ", mTerm.toString(theVarMapper), "\n", mSteps]);
-            return str + ")";
+            return flattenInner(array);
+        }
+
+        // Produce a complete ghilbert proof, with the given theorem name.
+        this.getProof = function(thmName) {
+            return flatten(["thm (", thmName,
+                            " (", mDvs, ") () ",
+                            mTerm,
+                            "\n", mSteps, ")"],
+                           this.getVarMapper(GHILBERT_VAR_NAMES, true));
         };
+        // Produce ghilbert defthm.  We assume the left child of the root will become the new op,
+        // with variables in appearence-order.  Returns [term, proof, newOperatorSource].
+        this.defthm = function(opName) {
+            var varList = [], typeList = [], bindingList = [];
+            var cloneMap = {};
+            var newTerm = mTerm.clone(cloneMap);
+            var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
+
+            GHT.forEach(
+                newTerm.extractVars(),
+                function(k) {
+                    var vv = VariableFromString(k);
+                    varList.push(vv);
+                    typeList.push(vv.getType());
+                    bindingList.push(Infinity); // TODO: can we autodetect bindings here?
+                });
+            var outType = newTerm.terms[1].getType();
+            var newOp = new Operator(opName, opName, outType, typeList, bindingList);
+            var newOpSource = "GHT.Operators['" + opName + "'] = new Operator('"
+                + opName + "','" + opName + "','" + outType +
+                "',['" + typeList.join("','") + "'],[" + bindingList.join(",") + "]);\n";
+	    GHT.Operators[opName] = newOp;
+            varList.unshift(newOp);
+            newTerm.terms[1] = new Tuple(varList);
+            var mapper = GHT.combineMappers(
+                newVarMapper,
+                GHT.makeVarMapper(newTerm.extractVars(),
+                                  GHILBERT_VAR_NAMES, true));
+
+            varList = flatten(varList.slice(1), mapper, " ");
+            var proof = flatten(["defthm (df-", opName,
+                                 " ", outType,
+                                 " (", opName, " ", varList, ") ",
+                                 " (", mDvs, ") () ", 
+                                 newTerm, "\n", mSteps, ")"],
+                                mapper);
+            return [newTerm, proof, newOpSource];
+        };
+
         this.toString = function() {
             return JSON.stringify({ steps: mSteps,
                                     term: mTerm.toString(),
@@ -1147,7 +1176,7 @@ GHT.ProofFactory = function() {
             //TODO: check DVs here
             var cloneMap = {};
             var newTerm = mTerm.clone(cloneMap);
-            var newVarMap = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
+            var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
             var newSteps = mSteps.slice(0);
             var newVar = new Variable('num');
             newTerm = new Tuple([GHT.Operators['A.'], newVar, newTerm]);
@@ -1247,6 +1276,7 @@ GHT.makeVarMapper = function(vars, varNames) {
     function addNewVar(varObj, isBinding) {
         var type = varObj.getType();
         var index = typeIndices[type][isBinding ? 1 : 0]++;
+        if (type == 'wff') isBinding = false; // HACK: for the case of 0 * Infinity = NaN
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
         varMap[varObj] = name;
@@ -1333,6 +1363,8 @@ GHT.onTransitionEnd = function(node, callback, forceDelay) {
 };
 
 GHT.redecorate = function(changed) {
+    document.getElementById("defthm").style.display = GHT.DisabledOptions.nodefthm ?
+        "inline" : "none";
     GHT.autoGoal(GHT.theProof);
     var div = document.getElementById("tree");
     var oldTable = GHT.theTable;
@@ -1536,7 +1568,8 @@ GHT.termFromSexp = function(sexp) {
 // current goal, and if it does, give the user a hint that it's time to save.
 GHT.autoGoal = function(proof) {
     var ghProof = proof.getProof("thmName");
-    var match = ghProof.match(GHT.theGoal.replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
+    var match = ghProof.match(
+        GHT.theGoal.replace(/\\/g, "\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
     var label =document.getElementById("autogoal");
     label.style.visibility = match ? "visible" : "hidden";
     label.style.left = match ? 0 : "20em";

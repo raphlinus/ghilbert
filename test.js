@@ -371,7 +371,7 @@ var steps = [
 "GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('impexp');",
-
+/*
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['def-bi-1']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['def-bi-2']();",

@@ -111,6 +111,7 @@ GHT.Tip = {
         ,anim2Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on its color to its right child too!"
         ,biUnlocked:"A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
+        ,termsubUnlocked:"Term Substitute unlocked.  You can use this to make definitions... if you can figure out how!"
         ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
         ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on the Roof (that's the topmost arrow below), then click Simplify.  Repeat two more times times so your diagram matches the Goal, then Save it."
         ,tutorial1: "Great!  It doesn't matter which letter goes with which number, as long as you have the same pattern.  You've already already seen this next goal, so just hit your browser's BACK button twice to return to it.  (BACK/FORWARD lets you undo/redo anytime.  Scrubbing between two diagrams can help show how they relate.)"
@@ -199,22 +200,38 @@ GHT.updateUi = function(nodeBase, obj) {
          playerNameField.value = playerName;
          playerNameField.onchange();
      }
-     function submitForm() {
+     function makeSavePacket(isDefThm) {
          var packet = {};
          packet.playerName = encodeURIComponent(GHT.playerName);
          packet.thmName = document.getElementById("theorem.name").value;
-         GHT.Thms[packet.thmName] = GHT.theTerm.clone();
+         var term;
+         if (isDefThm) {
+             var defthm = GHT.getProof().defthm(packet.thmName);
+
+             packet.thmName  = "df-" + packet.thmName;
+             term = defthm[0];
+             packet.proof = defthm[1];
+             packet.source = defthm[2] + 
+                 "\nGHT.Thms['" + packet.thmName + "'] = " + term.toSource() + ";\n";
+         } else {
+             term = GHT.theTerm;
+             packet.proof = GHT.getProof().getProof(packet.thmName);
+             packet.source = "GHT.Thms['" + packet.thmName + "'] = " + term.toSource() + ";\n";
+         }
+         GHT.Thms[packet.thmName] = term.clone();
          GHT.redecorate();
          packet.log = "";
          var vers = GHT.getVersion();
          for (var i = GHT.theFirstStep; i <= vers; i++){
              packet.log += GHT.undoStack[i].step + "\n";
          }
-         packet.source = GHT.theTerm.toSource();
          packet.log += "GHT.SaveAs('" + packet.thmName + "'); // "
              + packet.source + "\n";
          console.log(packet.log);
-         packet.proof = GHT.getProof().getProof(packet.thmName);
+         return packet;
+     }
+     function submitForm(event, isDefThm) {
+         var packet = makeSavePacket(isDefThm);
          var xhr = new XMLHttpRequest();
          xhr.onreadystatechange = function () {
              if (xhr.readyState === 4) {
@@ -226,7 +243,6 @@ GHT.updateUi = function(nodeBase, obj) {
          };
          xhr.open("POST", "/tree/save", true);
          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
          var packetStr = "";
          for (var key in packet) {
              if (packetStr) {
@@ -255,6 +271,12 @@ GHT.updateUi = function(nodeBase, obj) {
          document.getElementById("theorem.name").value = name;
          submitForm();
      };
+     GHT.DefThm = function() {
+         GHT.dismiss();
+         submitForm(null, true);
+     };
+     document.getElementById("defthm").onclick = GHT.DefThm;
+
  })();
 
 GHT.Operators = {};
