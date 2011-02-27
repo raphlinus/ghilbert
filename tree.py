@@ -209,19 +209,26 @@ def check_goal(player, proof, thmName, stream):
         player.goal = get_next_goal(player, stream)
         showTip = True;
         while (player.goal[0] == "!"):
-            goal = get_goal(player.goal)
-            if (goal.new_js):
-                player.setupJs += goal.new_js % thmName
-                stream.write(goal.new_js % thmName);
-            if (goal.new_ghilbert):
-                player.ghilbertText += goal.new_ghilbert % thmName
-            if (goal.update_js):
-                stream.write(goal.update_js)
-            if (goal.new_location):
-                player.location = goal.new_location
-            stream.write("// %s" % player.goal)
+            levelMatch = re.match("^!level (.*)", player.goal)
+            if (levelMatch):
+                player.level += 1;
+                player.lastLevel = player.score;
+                player.nextLevel = player.score + int(levelMatch.group(1))
+                stream.write("\nGHT.levelUp();\n");
+            else:
+                goal = get_goal(player.goal)
+                if (goal.new_js):
+                    player.setupJs += goal.new_js % thmName
+                    stream.write(goal.new_js % thmName);
+                if (goal.new_ghilbert):
+                    player.ghilbertText += goal.new_ghilbert % thmName
+                if (goal.update_js):
+                    stream.write(goal.update_js)
+                if (goal.new_location):
+                    player.location = goal.new_location
+                    stream.write("// %s" % player.goal)
             player.goal = get_next_goal(player, stream)
-        player.put()
+            player.put()
         stream.write(player.update_js())
         stream.write("\nGHT.dismiss();\n");
         stream.write("\nGHT.redecorate();\n");
@@ -237,6 +244,9 @@ class Player(db.Model):
     name = db.StringProperty()
     lastSeen = db.DateTimeProperty(auto_now=True)
     score = db.IntegerProperty(default=0)
+    level = db.IntegerProperty(default=1)
+    lastLevel = db.IntegerProperty(default=0)
+    nextLevel = db.IntegerProperty(default=12)
     location = db.StringProperty()
     goal = db.StringProperty()
     # JS that sets up the tree-proof environment: operators, theorems, arrow schemes
@@ -252,7 +262,7 @@ class Player(db.Model):
     # Javascript for updating the UI to reflect this object's current state
     def update_js(self):
         dict = {};
-        for k in ("score", "location", "goal", "name"):
+        for k in ("score", "location", "goal", "name", "level", "lastLevel", "nextLevel"):
             dict[k] = getattr(self,k);
 
         return "\nGHT.updateUi('player',%s);\n" % simplejson.dumps(dict)
@@ -265,6 +275,7 @@ class StatusJs(webapp.RequestHandler):
                 key = "test02"
                 player.goalTrain = GoalTrain.get_or_insert(key)
                 player.goalTrain.goals = [
+                    #"!level 12",
                     "() () (-> A (-> B (-> C (-> D (-> E D)))))",
                     "() () (-> A (-> B (-> C B)))",
                     "() () (-> (-> A B) (-> (-> C A) (-> C B)))" ,
@@ -277,18 +288,21 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> A (-> (-> A B) B))" ,
                     "() () (-> (-> (-> A A) B) B)" ,
                     "() () (-> (-> A (-> A B)) (-> A B))",
+                    "!level 9",
                     "!unlock not",
                     "() () (-> (-. A) (-> A B))",
                     "() () (-> (-. (-. A)) A)",
                     "() () (-> A (-. (-. A)))",
                     "() () (-> (-> A B) (-> (-. B) (-. A)))",
                     "!con3",
+                    "() () (-> (-. (-> A B)) (-. B))",
                     "() () (-> (-. (-> A B)) A)",
                     "() () (-> A (-> (-. B) (-. (-> A B))))",
                     "() () (-> (-> (-. A) A) A)",
                     "() () (-. (-> (-> A A) (-. (-> B B))))",
+                    "!level 14",
                     "!unlock and",
-                    "() () (-> (/\ A B) (-. (-> A (-. B))))",
+                    "() () (-> (/\\ A B) (-. (-> A (-. B))))",
                     "() () (-> (-. (-> A (-. B))) (/\ A B))",
                     "() () (-> (-> A B) (-> (/\ A C) (/\ B C)))",
                     "!anim1",
@@ -305,6 +319,7 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (/\ A (-> B C)) (-> B (/\ A C)))",
                     "() () (-> (/\ (-> A B) (-> C D)) (-> (/\ A C) (/\ B D)))",
                     "() () (/\ (-> A A) (-> B B))",
+                    "!level 13",
                     "!unlock bi",
                     "() () (-> (<-> A B) (/\ (-> A B) (-> B A)))",
                     "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
@@ -319,6 +334,7 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi",
                     "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))", "!anbi2",
                     "() () (-> (<-> A B) (<-> (-. B) (-. A)))", "!notbi",
+                    "!level 11",
                     "!enable equivalents",
                     "() () (<-> (<-> A B) (<-> B A))",
                     "() () (<-> A A)",

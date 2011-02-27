@@ -387,13 +387,15 @@ OpList.prototype.toSource = function() {
     return s;
 };
 GHT.Operators = new OpList();
-GHT.dismiss = function() {
-    GHT.Tip.clear();
+GHT.dismiss = function(notip) {
     if (GHT.dismiss.popup) {
         GHT.dismiss.popup.style.display = 'none';
         delete GHT.dismiss.popup;
     }
-    GHT.Tip.showRandom();
+    if (!notip) { // HACK
+        GHT.Tip.clear();
+        GHT.Tip.showRandom();
+    }
 };
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");
@@ -1273,23 +1275,7 @@ GHT.setProof = function(proof) {
     GHT.setVersion(vers);
     // This changes the window.location hash, which will call back into actuallySetProof.
 };
-/*
-// Returns the node at the given path, if possible.  If not, returns
-// the deepest node along that lineage.
-GHT.extractNode = function(node, path) {
-    if (path.length == 0) {
-        return node;
-    }
-    var whichChild = path.shift();
-    if (whichChild < node.childElementCount) {
-        var child = node.children[whichChild];
-        if (child.nodeName == "SPAN"){
-            return GHT.extractNode(child, path);
-        }
-    }
-    return node;
-};
-*/
+
 GHT.setLeafOpacity = function(node, opacity) {
     if (node.firstChild.nodeName == "SPAN") {
         for (var i = node.childElementCount - 1; i >= 0; i--) {
@@ -1418,6 +1404,7 @@ GHT.actuallySetProof = function(proof) {
     //console.log("Setting proof: " + proof.toString());
     var cloneMap = {};
     var term = proof.getTerm(cloneMap);
+    GHT.dismiss(true);
     GHT.thePreviousProof = GHT.theProof;
     GHT.theProof = proof;
     GHT.theTerm = term;
@@ -1541,6 +1528,7 @@ GHT.termFromSexp = function(sexp) {
   sexp = sexp.replace(/([A-M])/g, 'V("$1".charCodeAt(0)),');
   sexp = sexp.replace(/,\)/g,')');
   sexp = sexp.replace(/,$/g,'');
+  sexp = sexp.replace(/\\/g,'\\\\');
   return eval(sexp);
 };
 

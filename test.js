@@ -28,6 +28,10 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['imim1']();",
 "GHT.SaveAs('himp1');",
 
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Distribute']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('con12');",
+
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
@@ -52,14 +56,13 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['mp']();",
 "GHT.SaveAs('idie');",
 
-"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Distribute']();",
-"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['Simplify']();",
-"GHT.SaveAs('con12');",
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['mp']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Distribute']();",
 "GHT.SaveAs('contract');",
 
+// Level 2
+/**/
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['Transpose']();",
 "GHT.SaveAs('fie');",
@@ -67,13 +70,14 @@ var steps = [
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['fie']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['Transpose']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['idie']();",
-"GHT.theOnclicks['[]']();GHT.theMenu.options['Transpose']();",
-"GHT.SaveAs('nn2');",
+"GHT.SaveAs('nn1');",
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['fie']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['Transpose']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['idie']();",
-"GHT.SaveAs('nn1');",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['Transpose']();",
+"GHT.SaveAs('nn2');",
+
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Transpose']();",
 "GHT.theOnclicks['[1,2]']();GHT.theMenu.options['nn2']();",
@@ -103,7 +107,9 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['conjnimp']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['nn2']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['idie']();",
+
 "GHT.SaveAs('dfand'); ",
+// Level 3
                                                          
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Conjoin']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['nimp1']();",
@@ -189,6 +195,7 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('dfbi'); ",
 
+// Level 4
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Equivalate']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['andl']();",
 "GHT.SaveAs('def-bi-1'); ",
@@ -281,6 +288,7 @@ var steps = [
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['def-bi-2']();",
 "GHT.SaveAs('notbi')",
 
+// Level 5
 "GHT.redecorate()",
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['bi1']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ancr']();",
@@ -370,8 +378,10 @@ var steps = [
 "GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['def-bi-2']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('dfbi3');",
+// Level 6
+
+    /* */
 ];
-/**/
 GHT.delayTime = speed;
 function callback() {
 

@@ -37,6 +37,22 @@ GHT.Cookie = {
         return null;
     }
 };
+GHT.levelUp = function() {
+    GHT.Tip.set("levelUp");
+    document.getElementById("player.score").style.width = "100%";
+    var iframe = document.createElement('iframe');
+    iframe.src = "http://gruntle.me";
+    iframe.style.width = "100%";
+    iframe.style.height = "600px";
+    GHT.Tip.theDiv.appendChild(iframe);
+    window.setTimeout(
+        function() {
+            GHT.Tip.theDiv.removeChild(iframe);
+            GHT.Tip.theDiv.innerHTML += "Okay, okay, get back to work.";
+        }, 10000);
+
+    //GHT.dismiss.popup = iframe;
+};
 GHT.Tip = {
     goal: function() {
         var span = document.getElementById("achieved");
@@ -78,6 +94,7 @@ GHT.Tip = {
     tips: {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
+        ,levelUp: "Way to go, you levelled up!<br/>"
         ,returned: "Welcome back.  We missed you! (Press ESCAPE to close.)"
         ,naming:'Tip: Choosing more descriptive names for the terminals you save will help you find them later when you need to use them.'
         ,arrow:'Tip: The diagram <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
@@ -85,10 +102,10 @@ GHT.Tip = {
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
         ,escape:"Tip: The Escape key closes any menu that's in your your way."
         ,notUnlocked:"You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator, <span class='operator'>&#x00ac;<\/span>) , and a new terminal, Transpose."
-        ,con3Unlocked:"Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its binding to its only child."
-        ,andUnlocked:"A plot point occurs, and you acquire a new operator (<span class='operator'>&#x2227;<\/span>) and its terminal (Conjoin)."
-        ,anim1Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its left child!"
-        ,anim2Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on binding to its right child too!"
+        ,con3Unlocked:"Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its color to its only child."
+        ,andUnlocked:"A plot point occurs, and you acquire a new operator <span class='operator'>&#x2227;<\/span> and its terminal Conjoin."
+        ,anim1Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on its color to its left child!"
+        ,anim2Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on its color to its right child too!"
         ,biUnlocked:"A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
         ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
@@ -136,9 +153,12 @@ GHT.updateUi = function(nodeBase, obj) {
             } else {
                 node.innerHTML = val;
             }
-        } else {
-            console.log("Node not found: " + nodeName);
         }
+    }
+    if (nodeBase == "player") { // TODO: clean this up.
+        var scoreWidth = 100 * (obj.score - obj.lastLevel) / (obj.nextLevel - obj.lastLevel);
+        scoreWidth = (scoreWidth === 0) ? "" : scoreWidth + "%";
+        document.getElementById("player.score").style.width = scoreWidth;
     }
 };
 
