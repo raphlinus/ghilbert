@@ -1,4 +1,4 @@
-var GHT;
+GHT;
 if (!GHT) {
     GHT = {};
 }
@@ -382,8 +382,26 @@ GHT.dismiss = function(notip) {
         GHT.Tip.showRandom();
     }
 };
+// turn a function into an onmouseout function that handles event bubbling.
+// Stolen from http://www.quirksmode.org/js/events_mouse.html#mouseenter
+GHT.makeOnMouseOut=function(element, callback) {
+  element.onmouseout = function(e) {
+    if (!e) e = window.event;
+    var tg = (window.event) ? e.srcElement : e.target;
+    //if (tg != element) return false;
+    var reltg = (e.relatedTarget) ? e.relatedTarget : e.toElement;
+    while (reltg) {
+      // If the target is a child of the element, this is a bubble-up.
+      if (reltg == element) return false;
+      reltg = reltg.parentNode;
+    }
+    // Mouseout took place when mouse actually left layer
+    return callback(e);
+  };
+};
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");
+    GHT.makeOnMouseOut(popup, GHT.dismiss);
     popup.style.display="block";
     popup.style.position="absolute";
     if (x) {
@@ -418,6 +436,8 @@ GHT.newMenu = function(title, x, y) {
                 var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
                 theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
                 td.innerHTML = preview.toString(theVarMapper);
+                var tree = GHT.makeTable(false, preview, [], 1, theVarMapper);
+                td.appendChild(tree);
             }
             table.appendChild(tr);
             this.options[key] = function(e) {
@@ -1269,7 +1289,8 @@ GHT.makeVarMapper = function(vars, varNames) {
             var type = VariableFromString(varStr).getType();
             var index = typeIndices[type][result.isBinding ? 1 : 0]++;
             var name = varNames[type][result.isBinding ? 1 : 0][index];
-            if (!name) name = varStr;
+            if (!name) name = "RAN_OUT_OF_" + type + "_" + result.isBinding;
+            if (name.toString() === varStr.toString()) throw "loop!";
             varMap[varStr] = name;
             return varMap;
         }, {});
@@ -1280,6 +1301,7 @@ GHT.makeVarMapper = function(vars, varNames) {
         var name = varNames[type][isBinding ? 1 : 0][index];
         if (!name) name = "RAN_OUT_OF_" + type + "_" + isBinding;
         varMap[varObj] = name;
+        if (name.toString() === varObj.toString()) throw "loop!";
         return name;
     };
     return function(inVar, addIfNull, isBinding) {
