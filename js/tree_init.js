@@ -41,7 +41,7 @@ GHT.levelUp = function() {
     document.getElementById("player.score").style.width = "100%";
     var iframe = document.createElement('iframe');
     iframe.src = "http://gruntle.me";
-    iframe.style.width = "100%";
+    iframe.style.width = "80%";
     iframe.style.height = "600px";
     window.setTimeout(
         function() {
@@ -97,7 +97,6 @@ GHT.Tip = {
     tips: {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
-        ,levelUp: "Way to go, you levelled up!<br/>"
         ,returned: "Welcome back.  We missed you! (Press ESCAPE to close.)"
         ,naming:'Tip: Choosing more descriptive names for the terminals you save will help you find them later when you need to use them.'
         ,arrow:'Tip: The diagram <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
@@ -271,11 +270,12 @@ GHT.updateUi = function(nodeBase, obj) {
          document.getElementById("theorem.name").value = name;
          submitForm();
      };
-     GHT.DefThm = function() {
+     GHT.DefThm = function(name) {
+         if (name) document.getElementById("theorem.name").value = name;
          GHT.dismiss();
          submitForm(null, true);
      };
-     document.getElementById("defthm").onclick = GHT.DefThm;
+     document.getElementById("defthm").onclick = function() { GHT.DefThm();}
 
  })();
 

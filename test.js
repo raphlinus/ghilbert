@@ -1,11 +1,11 @@
 // This test script solves the entire goal-chain test00.
-var speed = 1100;
+var speed = 10;
 function setfirst() {
     GHT.theFirstStep = GHT.getVersion();
 }
 
 var steps = [
-
+             /*
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
@@ -62,7 +62,7 @@ var steps = [
 "GHT.SaveAs('contract');",
 
 // Level 2
-/**/
+
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['Transpose']();",
 "GHT.SaveAs('fie');",
@@ -366,12 +366,14 @@ var steps = [
 
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['import']();",
-"GHT.theOnclicks['[1,2,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
-"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Distribute']();",
-"GHT.theOnclicks['[1,2]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
+"GHT.theOnclicks['[2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['def-bi-2']();",
+"GHT.theOnclicks['[1,1]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['imim2']();",
+"GHT.theOnclicks['[1,1,1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['conj']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('impexp');",
-/*
+
+
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['def-bi-1']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['conj']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['def-bi-2']();",
@@ -379,6 +381,25 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('dfbi3');",
 // Level 6
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['biid']();",
+"GHT.theOnclicks['[2]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['→']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['¬']();",
+"GHT.DefThm('or');",
+// GHT.Operators['or'] = new Operator('or','or','wff',['wff','wff'],[Infinity,Infinity]);
+*/
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
+"GHT.SaveAs('or2');",
+ // GHT.Thms['or2'] = T(O("->"),TV("wff", -53792),T(O("or"),TV("wff", -53793),TV("wff", -53792)));
+
+"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['con3bi']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['nnbi~']();",
+"GHT.SaveAs('or1'); ",
 
     /* */
 ];

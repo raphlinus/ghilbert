@@ -401,7 +401,15 @@ GHT.makeOnMouseOut=function(element, callback) {
 };
 GHT.newMenu = function(title, x, y) {
     var popup = document.getElementById("popup");
-    GHT.makeOnMouseOut(popup, GHT.dismiss);
+    var timeoutId;
+    GHT.makeOnMouseOut(popup, function() {
+            window.clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(GHT.dismiss, 750);
+        });
+    popup.onmouseover = function() {
+        window.clearTimeout(timeoutId);
+    }
+
     popup.style.display="block";
     popup.style.position="absolute";
     if (x) {
@@ -1591,7 +1599,7 @@ GHT.termFromSexp = function(sexp) {
 GHT.autoGoal = function(proof) {
     var ghProof = proof.getProof("thmName");
     var match = ghProof.match(
-        GHT.theGoal.replace(/\\/g, "\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
+        "\\(\\) " + GHT.theGoal.replace(/\\/g, "\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
     var label =document.getElementById("autogoal");
     label.style.visibility = match ? "visible" : "hidden";
     label.style.left = match ? 0 : "20em";
