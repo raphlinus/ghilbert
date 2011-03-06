@@ -74,6 +74,7 @@ def get_goal(name):
         if (name == "!unlock not"):
             goal.new_ghilbert = """
 # %s
+
 import (COREPROPCAL CorePropCal (POSPROPCAL) "")
 """
             goal.new_js = """
@@ -85,6 +86,33 @@ GHT.ArrowScheme["-."] = [null];
 """
             goal.update_js = "GHT.Tip.lock('notUnlocked');\n"
             goal.new_location = "Outer Procal"
+
+        if (name == "!unlock pred"):
+            goal.new_ghilbert = """
+# %s
+import (PREDCAL PredCal (POSPROPCAL COREPROPCAL) "")
+tvar (num a b c d e f g h)
+var (num v w x y z v' w' x' y' z')
+"""
+            goal.new_js = """
+// %s
+// PredCal
+GHT.Operators["A."] = new Operator("A.","\u2200","wff",["num","wff"],[NaN,1]);
+GHT.ArrowScheme["A."] = [null, null];
+GHT.EquivalenceScheme["A."] = [null, null];
+GHT.Thms["alnfi"] = T(O("->"),TV("wff", -560),T(O("A."),TV("num", -120),TV("wff", -560)));
+GHT.Thms["ax-4"] = T(O("->"),T(O("A."),TV("num", -120),TV("wff", -560)),TV("wff", -560));
+GHT.Thms["ax-alim"] = T(O("->"),T(O("A."),TV("num", -120),T(O("->"),TV("wff", -560),TV("wff", -571))),T(O("->"),T(O("A."),TV("num", -120),TV("wff", -560)),T(O("A."),TV("num", -120),TV("wff", -571))));
+GHT.Thms["ax-6"] = T(O("->"),T(O("-."),T(O("A."),TV("num", -120),TV("wff", -560))),T(O("A."),TV("num", -120),T(O("-."),T(O("A."),TV("num", -120),TV("wff", -560)))));
+GHT.Thms["ax-7"] = T(O("->"),T(O("A."),TV("num", -120),T(O("A."),TV("num", -121),TV("wff", -560))),T(O("A."),TV("num", -121),T(O("A."),TV("num", -120),TV("wff", -560))));
+GHT.Thms["ax-eqtr"] = T(O("->"),T(O("="),TV("num", -65),TV("num", -66)),T(O("->"),T(O("="),TV("num", -65),TV("num", -67)),T(O("="),TV("num", -66),TV("num", -67))));
+GHT.Thms["ax-tyex"] = T(O("-."),T(O("A."),TV("num", -120),T(O("-."),T(O("="),TV("num", -120),TV("num", -65)))));
+
+delete GHT.DisabledOptions.generify;
+
+"""
+            goal.update_js = "GHT.Tip.lock('predUnlocked');\n"
+            goal.new_location = "Predcal"
 
         elif (name == "!con3"):
             goal.update_js = "GHT.Tip.lock('con3Unlocked');\n"
@@ -299,7 +327,7 @@ class Player(db.Model):
 class StatusJs(webapp.RequestHandler):
     def get(self, playerName):
         player = Player.get_or_insert(key_name=playerName)
-        if (True or player.goalTrain is None):
+        if (True or player.goalTrain is None): #XXX
             if (random.random() < 1.1):
                 key = "test02"
                 player.goalTrain = GoalTrain.get_or_insert(key)
@@ -377,7 +405,7 @@ class StatusJs(webapp.RequestHandler):
                     "() () (<-> (-> A (-> B C)) (-> (/\ A B) C))",
                     "() () (<-> (<-> A B) (/\ (-> A B) (-> B A)))",
                     "!enable termsub",
-                    "!level 100",
+                    "!level 8",
                     "() () (<-> (or A B) (-> (-. A) B))",
                     "() () (-> A (or B A))",
                     "() () (-> A (or A B))",
@@ -386,6 +414,10 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (-> A B) (-> (or C A) (or C B)))", "!orim2",
                     "() () (-> (<-> A B) (<-> (or C A) (or C B)))", "!orbi2",
                     "() () (<-> (or A B) (or B A))",
+                    "!unlock pred",
+                    "!level 20",
+                    "() () (<-> (E. z A) (-. (A. z (-. A))))",
+                    "() () (-> A (E. z A))",
                     ]
                 player.goalTrain.put()
         tip = '"returned"';
@@ -466,6 +498,26 @@ param (POSPROPCAL PosPropCal () "")
 tvar (wff A B C)
 term (wff (-. A))
 stmt (Transpose () () (-> (-> (-. A) (-. B)) (-> B A)))
+""",
+                      'PredCal':"""
+param (POSPROPCAL PosPropCal () "")
+param (COREPROPCAL CorePropCal (POSPROPCAL) "")
+kind (num)
+tvar (wff A B C)
+tvar (num a b c d)
+term (wff (= a b))
+stmt (ax-eqtr () () (-> (= a b) (-> (= a c) (= b c))))
+
+var (num x y z)
+term (wff (A. x A))
+stmt (alnfi ((A x)) () (-> A (A. x A)))
+stmt (gen () (A) (A. x A))
+stmt (ax-4 () () (-> (A. x A) A))
+stmt (ax-alim () () (-> (A. x (-> A B)) (-> (A. x A) (A. x B))))
+stmt (ax-6 () () (-> (-. (A. x A)) (A. x (-. (A. x A)))))
+stmt (ax-7 () () (-> (A. x (A. y A)) (A. y (A. x A))))
+
+stmt (ax-tyex ((a x)) () (-. (A. x (-. (= x a)))))
 """
                       }
         newProof = self.request.get('proof')

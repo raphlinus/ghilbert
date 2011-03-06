@@ -5,7 +5,7 @@ function setfirst() {
 }
 
 var steps = [
-
+/*
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
@@ -416,7 +416,7 @@ var steps = [
 "GHT.theOnclicks['[2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[1,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['nnbi~']();",
 "GHT.SaveAs('orim1');",
-
+*/
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imbi1']();",
 "GHT.theOnclicks['[2,1]']();GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[2,2]']();GHT.theMenu.options['df-or']();",
@@ -440,7 +440,7 @@ var steps = [
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[2,2]']();GHT.theMenu.options['nnbi~']();",
-"GHT.SaveAs('orcom'); ",
+//"GHT.SaveAs('orcom'); ",
     /* */
 ];
 GHT.delayTime = speed;

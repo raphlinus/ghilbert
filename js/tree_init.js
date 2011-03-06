@@ -146,7 +146,8 @@ GHT.updateUi = function(nodeBase, obj) {
         var node = document.getElementById(nodeName);
         var val = obj[k];
         if (k === "goal") { // HACK
-            GHT.theGoal = val.substring(6);
+            val = val.substring(6);
+            GHT.theGoal = val;
             val = GHT.termFromSexp(val);
             val = GHT.makeTable(false, val, [], 1,
                                 GHT.makeVarMapper({}, GHT.goalVarNames));

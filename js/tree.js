@@ -409,7 +409,7 @@ GHT.newMenu = function(title, x, y) {
         });
     popup.onmouseover = function() {
         window.clearTimeout(timeoutId);
-    }
+    };
 
     popup.style.display="block";
     popup.style.position="absolute";
@@ -808,9 +808,9 @@ GHT.ProofFactory = function() {
     var GHILBERT_VAR_NAMES = {
         'wff':[["A", "B", "C", "D", "E", "F", "G", "H"]],
         'set':[["S", "T", "U", "V"]],
-        'num':[["A", "B", "C", "A'", "B'", "C'"],
-               ["v", "w", "x", "y", "z",
-                "v'", "w'", "x'", "y'", "z'"]]
+        'num':[["a", "b", "c", "d", "e", "f", "g", "h"],
+               ["z", "y", "x", "w", "v",
+                "z'", "y'", "x'", "w'", "v'"]]
     };
 
     // This Constructor is private since it must be called with care.  The values passed in must all
@@ -864,14 +864,16 @@ GHT.ProofFactory = function() {
             var cloneMap = {};
             var newTerm = mTerm.clone(cloneMap);
             var newVarMapper = GHT.combineMappers(mVarMapper, GHT.makeWrappingMapper(cloneMap));
-
+            var newTermVars = newTerm.extractVars();
             GHT.forEach(
-                newTerm.extractVars(),
+                newTermVars,
                 function(k) {
                     var vv = VariableFromString(k);
                     varList.push(vv);
                     typeList.push(vv.getType());
-                    bindingList.push(Infinity); // TODO: can we autodetect bindings here?
+                    var binding =
+                        newTermVars[k].isBinding ? NaN : Infinity;
+                    bindingList.push(binding); // TODO: can we autodetect bindings here?
                 });
             var outType = newTerm.terms[1].getType();
             var newOp = new Operator(opName, opName, outType, typeList, bindingList);
@@ -1013,8 +1015,6 @@ GHT.ProofFactory = function() {
                 newStep.push(pushUpThm, "    ", "ax-mp", "\n    ");
                 if (op.bindings[whichChild - 1] == -1) {
                     // This arrowing theorem will switch the order of our mandhyps.
-                    // TODO(PICKUP): This doesn't work right for
-                    // imbi2.  Try to prove orim1 with equivalences.
                     var tmp = headRoot;
                     headRoot = tailRoot;
                     tailRoot = tmp;
@@ -1289,8 +1289,6 @@ GHT.goalVarNames = {
 // Input: a map from vars to isBinding, and one of GHT.*VarNames
 // Output: a function that takes a varString and returns a human-readable string.
 // If you want yourself added to the varMapper when not found, pass a second true argument.
-// TODO: make this whole thing a function instead so we can lazily
-// bind dummy vars. But how to know if they are binding??
 GHT.makeVarMapper = function(vars, varNames) {
     var typeIndices = {
         wff: [0, 0], set: [0, 0], num: [0, 0]
@@ -1340,15 +1338,6 @@ GHT.setProof = function(proof) {
     // This changes the window.location hash, which will call back into actuallySetProof.
 };
 
-GHT.setLeafOpacity = function(node, opacity) {
-    if (node.firstChild.nodeName == "SPAN") {
-        for (var i = node.childElementCount - 1; i >= 0; i--) {
-            GHT.setLeafOpacity(node.children[i], opacity);
-        }
-    } else {
-        node.style.opacity = opacity;
-    }
-};
 GHT.getPos = function(node) {
     var x = 0;
     var y = 0;
@@ -1375,8 +1364,6 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
     clone.className = oldNode.className; // undo HACK
     clone.style.left = newNodeCoords[0];
     clone.style.top = newNodeCoords[1];
-    // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
-    // would leave other browsers stuck with the extra children.
     GHT.onTransitionEnd(clone, function() {
                             document.body.removeChild(clone);
                             newNode.style.visibility = "visible";
@@ -1462,7 +1449,7 @@ GHT.redecorate = function(changed) {
             GHT.onTransitionEnd(oldTable, function(e) { div.removeChild(oldTable); });
         }
     } catch (x) {
-        console.log(x); //XXX
+        console.log(x);
     }
     window.setTimeout( function() { newTable.style.opacity = 100;}, 0);
 };
@@ -1513,7 +1500,7 @@ GHT.getArrow = function(type) {
 // be recycled when all other variable names are used up.
 GHT.StableMapper = {
     end: function() {
-        
+        //TODO: support variable recycling
     },
     mapper:function() {
         var varNames = {
@@ -1585,17 +1572,44 @@ GHT.StableMapper = {
         };
     }
 };
-// TODO: terrible hack. Not tolerant of nonstandard whitespace.  Handles only
-// wffs for now.
+
 GHT.termFromSexp = function(sexp) {
-  sexp = sexp.replace(/\(/g, 'T(');
-  sexp = sexp.replace(/\)/g, '),');
-  sexp = sexp.replace(/([^()A-Z, ]+)/g, 'O("$1"),');
-  sexp = sexp.replace(/([A-M])/g, 'V("$1".charCodeAt(0)),');
-  sexp = sexp.replace(/,\)/g,')');
-  sexp = sexp.replace(/,$/g,'');
-  sexp = sexp.replace(/\\/g,'\\\\');
-  return eval(sexp);
+    var i = 0;
+    function consumeWhitespace() {
+        while (sexp.charAt(i) == ' ') i++;
+    }
+    function consumeToken() {
+        var start = i;
+        while (sexp.charAt(i) != ' ' && sexp.charAt(i) != ')') i++;
+        return sexp.substring(start, i);
+    }
+    function consumeBalanced() {
+        // Assumes sexp.charAt(i) = "(".  moves i past the matching close-parenthesis. returns
+        // the term constructed along they way.
+        i++;
+        var args = [];
+        args.push(O(consumeToken()));
+        var j = 0;
+        while (sexp.charAt(i) != ")") {
+            consumeWhitespace();
+            if (sexp.charAt(i) == "(") {
+                args.push(consumeBalanced());
+            } else {
+                var varName = consumeToken();
+                var type = args[0].inputs[j];
+                var num = 0;
+                for (var k = 0; k < varName.length; k++) {
+                    num += varName.charCodeAt(k);
+                    num *= 256;
+                }
+                args.push(TV(type, num));
+            }
+            j++;
+        }
+        i++;
+        return T(args);
+    }
+    return consumeBalanced();
 };
 
 // Automatic goal assistance.  Check the given proof for matching the

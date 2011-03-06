@@ -1027,7 +1027,8 @@ class InterfaceCtx:
         if subparams != p.params:
             raise VerifyError('Context ' + self.name + \
                    ' changes parameters to parameter interface ' + \
-                   ifname + ' (' + p.name + ')')
+                   ifname + ' (' + p.name + '): '
+                              + str(subparams) + " != " + str(p.params))
 
         self.used_params[ifname] = p
 
