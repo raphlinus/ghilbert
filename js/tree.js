@@ -294,13 +294,6 @@ function T(termArray) {
         return new Tuple(terms);
     }
 }
-function hash(str) {
-    var sum = 0;
-    for (var i = 0; i < str.length; i++) {
-        sum = (sum * 13 + str.charCodeAt(i)) % 1000;
-    }
-    return sum;
-}
 
 /**
  * Asserts that the example term can be an instance of the template term, subject to
@@ -370,6 +363,14 @@ GHT.bindings = {
     "NaN":       "binding",    // "This is a binding variable."
     "Infinity":  "unknown",    // "Unknown! No tree ops below this point."
     "-Infinity": "unknown"     // "Unknown! No tree ops below this point."
+};
+GHT.composeBindings = function(inBinding, opBinding) {
+    // Special case to prevent Infinity * 0 = NaN
+    if (opBinding == Infinity) return Infinity;
+    if (opBinding == -Infinity) return -Infinity;
+    if (inBinding == Infinity) return Infinity;
+    if (inBinding == -Infinity) return -Infinity;
+    return inBinding * opBinding;
 };
 GHT.Operators = {};
 GHT.dismiss = function(notip) {
@@ -745,7 +746,8 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
         var pathClone = path.slice(0);
         pathClone.push(i);
         var arg = (GHT.makeTable(isInteractive, term.terms[i], pathClone,
-                                 binding * op.bindings[i - 1], varMapper, pathToNodeMap));
+                                 GHT.composeBindings(binding, op.bindings[i - 1]),
+                                 varMapper, pathToNodeMap));
         if (i == 1) {
             arg.className += " first";
         }
@@ -1011,6 +1013,8 @@ GHT.ProofFactory = function() {
                 newStep.push(pushUpThm, "    ", "ax-mp", "\n    ");
                 if (op.bindings[whichChild - 1] == -1) {
                     // This arrowing theorem will switch the order of our mandhyps.
+                    // TODO(PICKUP): This doesn't work right for
+                    // imbi2.  Try to prove orim1 with equivalences.
                     var tmp = headRoot;
                     headRoot = tailRoot;
                     tailRoot = tmp;
@@ -1597,6 +1601,7 @@ GHT.termFromSexp = function(sexp) {
 // Automatic goal assistance.  Check the given proof for matching the
 // current goal, and if it does, give the user a hint that it's time to save.
 GHT.autoGoal = function(proof) {
+    if (!GHT.theGoal) return;
     var ghProof = proof.getProof("thmName");
     var match = ghProof.match(
         "\\(\\) " + GHT.theGoal.replace(/\\/g, "\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"));
@@ -1631,7 +1636,7 @@ document.getElementById("reset").onclick = function(e) {
     function callback() {
         GHT.theFirstStep = GHT.getVersion();
     }
-    GHT.theStep = "GHT.showTerminals([], null)({pageX:0,pageY:0});";
+    GHT.theStep = "GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});";
     GHT.showTerminals([], null, callback)(e);
 };
 GHT.theFirstStep = 1;

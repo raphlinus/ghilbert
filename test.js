@@ -5,7 +5,7 @@ function setfirst() {
 }
 
 var steps = [
-             /*
+
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['Simplify']();",
@@ -62,6 +62,7 @@ var steps = [
 "GHT.SaveAs('contract');",
 
 // Level 2
+"GHT.setVersion(0);",
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['Transpose']();",
@@ -110,6 +111,7 @@ var steps = [
 
 "GHT.SaveAs('dfand'); ",
 // Level 3
+"GHT.setVersion(0);",
                                                          
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Conjoin']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['nimp1']();",
@@ -196,6 +198,8 @@ var steps = [
 "GHT.SaveAs('dfbi'); ",
 
 // Level 4
+"GHT.setVersion(0);",
+
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['Equivalate']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['andl']();",
 "GHT.SaveAs('def-bi-1'); ",
@@ -215,8 +219,8 @@ var steps = [
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['def-bi-1']();",
 "GHT.theOnclicks['[2,2]']();GHT.theMenu.options['imim1']();",
 "GHT.theOnclicks['[2,1]']();GHT.theMenu.options['imim1']();",
-"GHT.theOnclicks['[2]']();GHT.theMenu.options['ancom']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['def-bi-2']();",
+
 "GHT.SaveAs('imbi1');",
 
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['def-bi-1']();",
@@ -289,6 +293,8 @@ var steps = [
 "GHT.SaveAs('notbi')",
 
 // Level 5
+"GHT.setVersion(0);",
+
 "GHT.redecorate()",
 "GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['bi1']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['ancr']();",
@@ -381,26 +387,60 @@ var steps = [
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['idie']();",
 "GHT.SaveAs('dfbi3');",
 // Level 6
+"GHT.setVersion(0);",
 
-"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['biid']();",
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['biid']();",
 "GHT.theOnclicks['[2]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['→']();",
 "GHT.theOnclicks['[2,1]']();GHT.theMenu.options['term substitute']();GHT.theMenu.options['¬']();",
 "GHT.DefThm('or');",
 // GHT.Operators['or'] = new Operator('or','or','wff',['wff','wff'],[Infinity,Infinity]);
-*/
-"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
+
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
 "GHT.SaveAs('or2');",
  // GHT.Thms['or2'] = T(O("->"),TV("wff", -53792),T(O("or"),TV("wff", -53793),TV("wff", -53792)));
 
-"GHT.showTerminals([], null)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['df-or']();",
 "GHT.theOnclicks['[]']();GHT.theMenu.options['arrowees']();GHT.theMenu.options['bi2']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['con3bi']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['Simplify']();",
 "GHT.theOnclicks['[1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['nnbi~']();",
 "GHT.SaveAs('or1'); ",
 
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imim2']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['con3bi~']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['con3bi']();",
+"GHT.theOnclicks['[2,2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['nnbi~']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[1,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['nnbi~']();",
+"GHT.SaveAs('orim1');",
+
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imbi1']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['notbi']();",
+"GHT.SaveAs('orbi1');",
+
+"GHT.showTerminals([], null,setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imim2']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['equivalents']();GHT.theMenu.options['df-or']();",
+"GHT.SaveAs('orim2'); ",
+
+"GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imbi1']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['con3bi~']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['con3bi~']();",
+"GHT.theOnclicks['[2,1]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['arrowers']();GHT.theMenu.options['notbi']();",
+"GHT.SaveAs('orbi2'); ",
+
+"GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});GHT.theMenu.options['con3bi']();",
+"GHT.theOnclicks['[2]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[1]']();GHT.theMenu.options['df-or']();",
+"GHT.theOnclicks['[2,2]']();GHT.theMenu.options['nnbi~']();",
+"GHT.SaveAs('orcom'); ",
     /* */
 ];
 GHT.delayTime = speed;

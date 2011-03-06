@@ -167,8 +167,6 @@ thm (_mpbir () (1 A 2 (<-> B A)) B
 """
         elif (name == "!anbi1"):
             goal.new_js = '\n GHT.EquivalenceScheme["/\\\\"][0] = "%s"; \n'
-            goal.next = "anbi2"
-            goal.ghilbert = "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))"
         elif (name == "!anbi2"):
             goal.new_js = """
 GHT.EquivalenceScheme["/\\\\"][1] = "%s";
@@ -191,6 +189,30 @@ delete GHT.DisabledOptions.equivalents;
 delete GHT.DisabledOptions['term substitute'];
 GHT.DisabledOptions.nodefthm = 1;
 """
+        elif (name == "!orim1"):
+            goal.new_js = """
+// orim1
+GHT.ArrowScheme["or"] = ["%s"];
+"""
+        elif (name == "!orbi1"):
+            goal.update_js = "GHT.Tip.lock('orim1Unlocked');\n"
+            goal.new_js = """
+// orim1
+GHT.Operators["or"].bindings[0] = 1;
+GHT.EquivalenceScheme["or"] = ["%s"];
+"""
+        elif (name == "!orim2"):
+            goal.new_js = """
+// orim2
+GHT.ArrowScheme["or"][1] = "%s";
+"""
+        elif (name == "!orbi2"):
+            goal.update_js = "GHT.Tip.lock('orim2Unlocked');\n"
+            goal.new_js = """
+// orim2
+GHT.Operators["or"].bindings[1] = 1;
+GHT.EquivalenceScheme["or"][1] = "%s";
+"""
 
         else:
             goal.html = "Sorry, goal '%s' isn't defined yet.  No one thought you'd make it this far!" % name
@@ -203,10 +225,10 @@ GHT.DisabledOptions.nodefthm = 1;
 
 def get_next_goal(player, stream):
     goals = player.goalTrain.goals
-    for i in range(len(goals)):
+    for i in range(len(goals) - 1):
         if player.goal == goals[i]:
             return goals[i+1]
-    return "UNKNOWN"
+    return goals[len(goals) - 1];
 
 def check_goal(player, proof, thmName, stream):
     pattern = ".*thm \(.*" + player.goal.replace("\\","\\\\").replace("(","\(").replace(")","\)") + ".*"
@@ -332,13 +354,13 @@ class StatusJs(webapp.RequestHandler):
                     "() () (-> (/\ (-> A B) (-> B A)) (<-> A B))",
                     "() () (-> (<-> A B) (-> A B))",
                     "() () (-> (<-> A B) (-> B A))",
-                    "() () (-> (<-> A B) (<-> (-> A C) (-> B C)))", "!imbi1",
+                    "() () (-> (<-> A B) (<-> (-> B C) (-> A C)))", "!imbi1",
                     "() () (-> (<-> A B) (<-> (-> C A) (-> C B)))", "!imbi2",
                     "() () (-> (<-> A B) (<-> (<-> A C) (<-> B C)))", "!bibi1",
                     "() () (-> (<-> A B) (<-> (<-> C A) (<-> C B)))", "!bibi2",
                     "() () (-> A (-> (<-> A B) B))", "!mpbi",
                     "() () (-> A (-> (<-> B A) B))", "!mpbir",
-                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi",
+                    "() () (-> (<-> A B) (<-> (/\ A C) (/\ B C)))", "!anbi1",
                     "() () (-> (<-> A B) (<-> (/\ C A) (/\ C B)))", "!anbi2",
                     "() () (-> (<-> A B) (<-> (-. B) (-. A)))", "!notbi",
                     "!enable equivalents",
@@ -359,6 +381,11 @@ class StatusJs(webapp.RequestHandler):
                     "() () (<-> (or A B) (-> (-. A) B))",
                     "() () (-> A (or B A))",
                     "() () (-> A (or A B))",
+                    "() () (-> (-> A B) (-> (or A C) (or B C)))", "!orim1",
+                    "() () (-> (<-> A B) (<-> (or A C) (or B C)))", "!orbi1",
+                    "() () (-> (-> A B) (-> (or C A) (or C B)))", "!orim2",
+                    "() () (-> (<-> A B) (<-> (or C A) (or C B)))", "!orbi2",
+                    "() () (<-> (or A B) (or B A))",
                     ]
                 player.goalTrain.put()
         tip = '"returned"';

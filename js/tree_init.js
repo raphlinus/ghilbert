@@ -108,6 +108,8 @@ GHT.Tip = {
         ,andUnlocked:"A plot point occurs, and you acquire a new operator <span class='operator'>&#x2227;<\/span> and its terminal Conjoin."
         ,anim1Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on its color to its left child!"
         ,anim2Unlocked:"Operator <span class='operator'>&#x2227;<\/span> now passes on its color to its right child too!"
+        ,orim1Unlocked:"Operator <span class='operator'>or<\/span> now passes on its color to its left child!"
+        ,orim2Unlocked:"Operator <span class='operator'>or<\/span> now passes on its color to its right child too!"
         ,biUnlocked:"A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
         ,termsubUnlocked:"Term Substitute unlocked.  You can use this to make definitions... if you can figure out how!"
@@ -275,7 +277,7 @@ GHT.updateUi = function(nodeBase, obj) {
          GHT.dismiss();
          submitForm(null, true);
      };
-     document.getElementById("defthm").onclick = function() { GHT.DefThm();}
+     document.getElementById("defthm").onclick = function() { GHT.DefThm();};
 
  })();
 
@@ -284,9 +286,9 @@ GHT.Thms = {};
 GHT.DisabledOptions = {};
 
 /*
- // Inferences used to propagate an arrowing up the tree.
- // Inferences[op][n] should be an inference that transforms "x arrow
- // y" into "op(..x..) arrow op(..y..)".  The direction of the arrow
+ // Deductions used to propagate an arrowing up the tree.
+ // ArrowScheme[op][n] should be an arrow from "x arrow
+ // y" to "op(..x..) arrow op(..y..)".  The direction of the arrow
  // may get be reversed if the op.binding[n] is -1.
  // TODO: HACK: Also, each scheme must have an 'mp' property mapping to the
  // appropriate modus-ponens inference.
