@@ -149,6 +149,7 @@ GHT.updateUi = function(nodeBase, obj) {
             val = val.substring(6);
             GHT.theGoal = val;
             val = GHT.termFromSexp(val);
+            GHT.theGoalString = val.toString(GHT.makeVarMapper({}, GHT.goalVarNames));
             val = GHT.makeTable(false, val, [], 1,
                                 GHT.makeVarMapper({}, GHT.goalVarNames));
             while (node.firstChild) node.removeChild(node.firstChild);

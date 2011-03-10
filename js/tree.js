@@ -445,6 +445,12 @@ GHT.newMenu = function(title, x, y) {
                 var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
                 theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
                 td.innerHTML = preview.toString(theVarMapper);
+                // goal-check the preview.  TODO: should check at the
+                // root, not the current node.
+                var previewString = preview.toString(GHT.makeVarMapper({}, GHT.goalVarNames));
+                if (previewString === GHT.theGoalString) {
+                    tr.className += " goalmatch";
+                }
                 var tree = GHT.makeTable(false, preview, [], 1, theVarMapper);
                 td.appendChild(tree);
             }
@@ -880,7 +886,7 @@ GHT.ProofFactory = function() {
             var newOpSource = "GHT.Operators['" + opName + "'] = new Operator('"
                 + opName + "','" + opName + "','" + outType +
                 "',['" + typeList.join("','") + "'],[" + bindingList.join(",") + "]);\n";
-	    GHT.Operators[opName] = newOp;
+            GHT.Operators[opName] = newOp;
             varList.unshift(newOp);
             newTerm.terms[1] = new Tuple(varList);
             var mapper = GHT.combineMappers(
