@@ -405,7 +405,7 @@ GHT.newMenu = function(title, x, y) {
     var timeoutId;
     GHT.makeOnMouseOut(popup, function() {
             window.clearTimeout(timeoutId);
-            timeoutId = window.setTimeout(GHT.dismiss, 750);
+            timeoutId = window.setTimeout(GHT.dismiss, 250);
         });
     popup.onmouseover = function() {
         window.clearTimeout(timeoutId);
@@ -430,7 +430,7 @@ GHT.newMenu = function(title, x, y) {
     th.innerHTML = "Preview";
     GHT.dismiss.popup = popup;
     GHT.theMenu = {
-        addOption: function(text, func, preview) {
+        addOption: function(text, func, preview, previewBinding) {
             if (GHT.DisabledOptions[text]) { return; }
             var key = text;
             while (this.options[key]) key += '~';
@@ -451,7 +451,7 @@ GHT.newMenu = function(title, x, y) {
                 if (previewString === GHT.theGoalString) {
                     tr.className += " goalmatch";
                 }
-                var tree = GHT.makeTable(false, preview, [], 1, theVarMapper);
+                var tree = GHT.makeTable(false, preview, [], previewBinding, theVarMapper);
                 td.appendChild(tree);
             }
             table.appendChild(tr);
@@ -485,7 +485,7 @@ GHT.showTerminals = function(path, scheme, callback) {
         for (var name in GHT.Thms) {
             menu.addOption(name,
                            GHT.makeApplyFunction(path, 'Terminal', name, scheme, null, callback),
-                           GHT.Thms[name]);
+                           GHT.Thms[name], 1);
         }
     };
 };
@@ -517,7 +517,7 @@ GHT.showGenerify = function() {
 // @param path the path to {@param term}.
 // @param op the operator which must be the first term of the tuple.
 // @param whichArg 1 or 2 -- which arg of op do you want the term to unify with?
-GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme) {
+GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme, binding) {
     var example = term;
     for (var name in GHT.Thms) {
         var thm = GHT.Thms[name];
@@ -534,7 +534,7 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme) {
             }
             result = result.substitute(unifyMap);
             menu.addOption(name, GHT.makeApplyFunction(path, 'Arrow', name, whichArg, scheme),
-                          result);
+                           result, binding);
         }
     }
 };
@@ -545,18 +545,18 @@ GHT.makeApplyFunction = function (path, whatToApply, arg1, arg2, arg3, callback)
         if (callback) callback();
     };
 };
-GHT.showArrowers = function(path) {
+GHT.showArrowers = function(path, binding) {
     return function() {
         var menu = GHT.newMenu("Arrower");
         var term = GHT.theTerm.extract(path.slice(0));
-        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2, GHT.ArrowScheme);
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 2, GHT.ArrowScheme, binding);
     };
 };
-GHT.showArrowees = function(path) {
+GHT.showArrowees = function(path, binding) {
     return function() {
         var menu = GHT.newMenu("Arrowee");
         var term = GHT.theTerm.extract(path.slice(0));
-        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1, GHT.ArrowScheme);
+        GHT.makeThmMenu(menu, term, path, GHT.getArrow(term.getType()), 1, GHT.ArrowScheme, binding);
     };
 };
 // Presents a list of terminals which match the given term (assumed to have terminal binding).
@@ -684,12 +684,12 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
             if (binding === 1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
                 menu.addOption("terminals", GHT.showTerminals(path, GHT.ArrowScheme));
-                menu.addOption("arrowees", GHT.showArrowees(path));
+                menu.addOption("arrowees", GHT.showArrowees(path, binding));
             } else if (binding === 0) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
             } else if (binding === -1) {
                 menu.addOption("equivalents", GHT.showEquivalents(path));
-                menu.addOption("arrowers", GHT.showArrowers(path));
+                menu.addOption("arrowers", GHT.showArrowers(path, binding));
                 menu.addOption("initials", GHT.showInitials(path));
                 //TOOD: menu.addOption("assert terminal", GHT.showAssertTerminal(path));
             }
