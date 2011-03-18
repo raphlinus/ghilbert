@@ -375,8 +375,8 @@ GHT.composeBindings = function(inBinding, opBinding) {
 GHT.Operators = {};
 GHT.dismiss = function(notip) {
     if (GHT.dismiss.popup) {
-        GHT.dismiss.popup.style.display = 'none';
-        delete GHT.dismiss.popup;
+        //YYY GHT.dismiss.popup.style.display = 'none';
+        //YYY delete GHT.dismiss.popup;
     }
     if (!notip) { // HACK
         GHT.Tip.clear();
@@ -401,66 +401,58 @@ GHT.makeOnMouseOut=function(element, callback) {
   };
 };
 GHT.newMenu = function(title, x, y) {
-    var popup = document.getElementById("popup");
-    var timeoutId;
-    GHT.makeOnMouseOut(popup, function() {
-            window.clearTimeout(timeoutId);
-            timeoutId = window.setTimeout(GHT.dismiss, 250);
-        });
-    popup.onmouseover = function() {
-        window.clearTimeout(timeoutId);
-    };
-
-    popup.style.display="block";
-    popup.style.position="absolute";
-    if (x) {
-        popup.style.left = x;
-        popup.style.top = y;
-    }
+    var COLUMNS = 5;
+    var WIDTH = "100px";
+    var HEIGHT = WIDTH;
     popup.innerHTML = "";
-    var table = document.createElement("table");
+    var table = document.createElement("span");
     popup.appendChild(table);
-    var header = document.createElement("tr");
-    table.appendChild(header);
-    var th = document.createElement("th");
-    header.appendChild(th);
-    th.innerHTML = title;
-    th = document.createElement("th");
-    header.appendChild(th);
-    th.innerHTML = "Preview";
-    GHT.dismiss.popup = popup;
+    var tr = document.createElement("span");
+    tr.className="tr";
+    table.appendChild(tr);
     GHT.theMenu = {
+	table: table,
+	row: tr,
+	index: 0,
         addOption: function(text, func, preview, previewBinding) {
             if (GHT.DisabledOptions[text]) { return; }
             var key = text;
             while (this.options[key]) key += '~';
-            var tr = document.createElement("tr");
-            tr.className = "i";
-            var td =  document.createElement("td");
-            tr.appendChild(td);
-            td.innerHTML = text;
-            td =  document.createElement("td");
-            tr.appendChild(td);
+            var td =  document.createElement("span");
+            td.className = "i";
+
+
+            this.row.appendChild(td);
             if (preview) {
                 var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
                 theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
-                td.innerHTML = preview.toString(theVarMapper);
                 // goal-check the preview.  TODO: should check at the
                 // root, not the current node.
                 var previewString = preview.toString(GHT.makeVarMapper({}, GHT.goalVarNames));
                 if (previewString === GHT.theGoalString) {
-                    tr.className += " goalmatch";
+                    td.className += " goalmatch";
                 }
                 var tree = GHT.makeTable(false, preview, [], previewBinding, theVarMapper);
                 td.appendChild(tree);
             }
-            table.appendChild(tr);
             this.options[key] = function(e) {
                 GHT.theStep += "GHT.theMenu.options['" + key + "']();";
                 func(e);
             };
             this.options[key].func = func;
-            tr.onclick = this.options[key];
+            td.onclick = this.options[key];
+	    var xRatio = (100 * td.offsetWidth / td.scrollWidth);
+	    var yRatio = (100 * td.offsetHeight / td.scrollHeight);
+	    var ratio = Math.min(xRatio, yRatio);
+	    if (ratio < 100) {
+		td.style['font-size'] = "" + ratio + "%";
+	    }
+	    
+	    if (++this.index % COLUMNS == 0) {
+		this.row = document.createElement('span');
+		this.row.className="tr";
+		this.table.appendChild(this.row);
+	    }
             
         },
         options: {
@@ -1401,9 +1393,14 @@ GHT.redecorate = function(changed) {
                                   GHT.StableMapper.mapper(), newPathToNodeMap);
     GHT.theTable = newTable;
     GHT.thePathToNodeMap = newPathToNodeMap;
-    newTable.style.position = 'absolute';
-    newTable.style.top = 0;
-    newTable.style.left = 0;
+
+    if (oldTable) {
+	// oldTable has position relative, and keeps the div from collapsing.
+	// newTable can be absolute until oldTable disappears.
+	newTable.style.position = 'absolute';
+	newTable.style.top = 0;
+	newTable.style.left = 0;
+    }
     GHT.StableMapper.end();
     div.appendChild(newTable);
     newTable.style.opacity = 0;
@@ -1452,7 +1449,9 @@ GHT.redecorate = function(changed) {
                     });
             }
             oldTable.style.opacity = 0;
-            GHT.onTransitionEnd(oldTable, function(e) { div.removeChild(oldTable); });
+            GHT.onTransitionEnd(oldTable, function(e) {
+				    newTable.style.position = 'relative';
+				    div.removeChild(oldTable); });
         }
     } catch (x) {
         console.log(x);
@@ -1660,3 +1659,6 @@ document.getElementById("reset").onclick = function(e) {
     GHT.showTerminals([], null, callback)(e);
 };
 GHT.theFirstStep = 1;
+    window.setTimeout( function() {
+			   GHT.showTerminals([], null, null)({pageX:0,pageY:0});
+		       }, 1000);
