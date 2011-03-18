@@ -404,25 +404,17 @@ GHT.newMenu = function(title, x, y) {
     var COLUMNS = 5;
     var WIDTH = "100px";
     var HEIGHT = WIDTH;
+    var popup = document.getElementById("popup");
     popup.innerHTML = "";
-    var table = document.createElement("span");
-    popup.appendChild(table);
-    var tr = document.createElement("span");
-    tr.className="tr";
-    table.appendChild(tr);
+    var i = 0;
     GHT.theMenu = {
-	table: table,
-	row: tr,
-	index: 0,
         addOption: function(text, func, preview, previewBinding) {
             if (GHT.DisabledOptions[text]) { return; }
             var key = text;
             while (this.options[key]) key += '~';
             var td =  document.createElement("span");
-            td.className = "i";
-
-
-            this.row.appendChild(td);
+            td.className = "td";
+            popup.appendChild(td);
             if (preview) {
                 var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
                 theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
@@ -432,8 +424,14 @@ GHT.newMenu = function(title, x, y) {
                 if (previewString === GHT.theGoalString) {
                     td.className += " goalmatch";
                 }
-                var tree = GHT.makeTable(false, preview, [], previewBinding, theVarMapper);
+                var leafs = [];
+                var tree = GHT.makeTable(false, preview, [], previewBinding, theVarMapper, null, leafs);
+                var fontsize = "" + (600 / leafs.length) + "%";
+                tree.style.fontSize = fontsize;
+                tree.id = i++;
                 td.appendChild(tree);
+            } else {
+                td.innerHTML = text;
             }
             this.options[key] = function(e) {
                 GHT.theStep += "GHT.theMenu.options['" + key + "']();";
@@ -441,18 +439,6 @@ GHT.newMenu = function(title, x, y) {
             };
             this.options[key].func = func;
             td.onclick = this.options[key];
-	    var xRatio = (100 * td.offsetWidth / td.scrollWidth);
-	    var yRatio = (100 * td.offsetHeight / td.scrollHeight);
-	    var ratio = Math.min(xRatio, yRatio);
-	    if (ratio < 100) {
-		td.style['font-size'] = "" + ratio + "%";
-	    }
-	    
-	    if (++this.index % COLUMNS == 0) {
-		this.row = document.createElement('span');
-		this.row.className="tr";
-		this.table.appendChild(this.row);
-	    }
             
         },
         options: {
@@ -516,7 +502,6 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme, binding) {
         if (thm.terms[0] === op) {
             var template = thm.terms[whichArg];
             var otherArg = 3 - whichArg; // switch 2 and 1
-            var result = thm.terms[otherArg];
             var unifyMap;
             try {
                 unifyMap = unify(template, example);
@@ -524,9 +509,10 @@ GHT.makeThmMenu = function(menu, term, path, op, whichArg, scheme, binding) {
                 //console.log("Could not unify "+ name + ':' + x);
                 continue;
             }
+            var result = thm; //YYY thm.terms[otherArg];
             result = result.substitute(unifyMap);
             menu.addOption(name, GHT.makeApplyFunction(path, 'Arrow', name, whichArg, scheme),
-                           result, binding);
+                           result, 1);
         }
     }
 };
@@ -648,7 +634,7 @@ GHT.getPos = function(node) {
 // @param pathToNodeMap: if present, this will be populated and can be
 // used to map term-paths to DOM nodes.  TODO: this likely causes memory leaks.
 GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
-    pathToNodeMap) {
+                         pathToNodeMap, leafs) {
     var type;
     // Set onclick and mouseover listeners
     function decorate(td) {
@@ -709,6 +695,7 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
             pathToNodeMap[path] = span;
         }
         decorate(span);
+        if (leafs) leafs.push(span);
         return span;
     }
     if (!(term instanceof Tuple)) {
@@ -745,7 +732,7 @@ GHT.makeTable = function(isInteractive, term, path, binding, varMapper,
         pathClone.push(i);
         var arg = (GHT.makeTable(isInteractive, term.terms[i], pathClone,
                                  GHT.composeBindings(binding, op.bindings[i - 1]),
-                                 varMapper, pathToNodeMap));
+                                 varMapper, pathToNodeMap, leafs));
         if (i == 1) {
             arg.className += " first";
         }
@@ -1390,7 +1377,7 @@ GHT.redecorate = function(changed) {
     var oldPathToNodeMap = GHT.thePathToNodeMap;
     var newPathToNodeMap = {};
     var newTable =  GHT.makeTable(true, GHT.theTerm, [], 1,
-                                  GHT.StableMapper.mapper(), newPathToNodeMap);
+                                  GHT.StableMapper.mapper(), newPathToNodeMap, []);
     GHT.theTable = newTable;
     GHT.thePathToNodeMap = newPathToNodeMap;
 
