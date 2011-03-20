@@ -120,15 +120,3 @@ exports.Theory = function() {
     };
 };
 
-// TODO
-exports.Theory.prototype = {
-    // A Binding describes the role of a subterm with respect to an overall proof tree.
-    Binding: {
-        initial: function() {
-            return -1;
-        },
-        terminal: function() {
-            return  1;
-        }
-    }
-};
