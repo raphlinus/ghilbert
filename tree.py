@@ -428,21 +428,22 @@ class StatusJs(webapp.RequestHandler):
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             player.setupJs = """
-GHT.Operators = {};
-GHT.Thms = {};
-GHT.ArrowScheme = {};
-GHT.DisabledOptions = {};
-GHT.Operators["->"] = new Operator("->","\u2192","wff",["wff","wff"],[-1,1]);
-GHT.Thms["Simplify"] = T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -1)));
-GHT.Thms["Distribute"] = T(O("->"),T(O("->"),TV("wff", -1),T(O("->"),TV("wff", -2),TV("wff", -3))),T(O("->"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -1),TV("wff", -3))));
-GHT.ArrowScheme["mp"] = ["ax-mp", "ax-mp"]; //TODO: what does this second ax-mp really mean? why does that work?
-GHT.ArrowScheme["->"] = ["_imim1", "_imim2"];
-GHT.DisabledOptions.generify = 1;
-GHT.DisabledOptions.equivalents = 1;
-GHT.DisabledOptions.initials = 1;
-GHT.DisabledOptions["term substitute"] = 1;
-GHT.DisabledOptions.terminals = 1;
-GHT.setProof((new GHT.ProofFactory()).newProof("Simplify"));
+ var theory = new ORCAT.Theory();
+ var wff = theory.newKind("wff");
+ var implies = theory.newOperator("&rarr;", wff, [wff, wff]);
+ var ui = new ORCAT.Ui(document, theory);
+ ui.reset();
+ ui.addAxiom("Complicate", [implies, 0, [implies, 1, 0]]);
+ ui.addAxiom("Distribute", [implies, [implies, 0, [implies, 1, 2]],
+                                          [implies, [implies, 0, 1], [implies, 0, 2]]]);
+ /*
+ var arrowScheme = new ORCAT.Scheme(implies);
+ arrowScheme.setMP("ax-mp", "ax-mp"); //TODO: what does this second ax-mp really mean? why does that work?
+ arrowScheme.bind(implies, 0, ORCAT.Scheme.INITIAL, "_imim1");
+arrowScheme.bind(implies, 1, ORCAT.Scheme.TERMINAL, "_imim2");
+var proofFactory = new ORCAT.ProofFactory();
+exports.Init(theory, arrowScheme, proofFactory);
+*/
 
 """
             player.ghilbertInterfaces = ["PosPropCal"]

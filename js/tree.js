@@ -1,4 +1,4 @@
-GHT;
+var GHT;
 if (!GHT) {
     GHT = {};
 }
@@ -1646,6 +1646,3 @@ document.getElementById("reset").onclick = function(e) {
     GHT.showTerminals([], null, callback)(e);
 };
 GHT.theFirstStep = 1;
-    window.setTimeout( function() {
-			   GHT.showTerminals([], null, null)({pageX:0,pageY:0});
-		       }, 1000);

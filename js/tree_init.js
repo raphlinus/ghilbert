@@ -145,7 +145,7 @@ GHT.updateUi = function(nodeBase, obj) {
         var nodeName = nodeBase + "." + k;
         var node = document.getElementById(nodeName);
         var val = obj[k];
-        if (k === "goal") { // HACK
+        if (k === "XXXgoal") { // HACK
             val = val.substring(6);
             GHT.theGoal = val;
             val = GHT.termFromSexp(val);
