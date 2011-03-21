@@ -431,16 +431,18 @@ class StatusJs(webapp.RequestHandler):
  var theory = new ORCAT.Theory();
  var wff = theory.newKind("wff");
  var implies = theory.newOperator("&rarr;", wff, [wff, wff]);
- var ui = new ORCAT.Ui(document, theory);
+
+ var scheme = new ORCAT.Scheme(implies, "ax-mp");
+// TODO: can we get off the ground without these?
+ scheme.setBinding(implies, 0, scheme.RIGHT(), "_imim1");
+ scheme.setBinding(implies, 1, scheme.LEFT(), "_imim2");
+
+ var ui = new ORCAT.Ui(document, theory, scheme);
  ui.reset();
  ui.addAxiom("Complicate", [implies, 0, [implies, 1, 0]]);
  ui.addAxiom("Distribute", [implies, [implies, 0, [implies, 1, 2]],
                                           [implies, [implies, 0, 1], [implies, 0, 2]]]);
- /*
- var arrowScheme = new ORCAT.Scheme(implies);
- arrowScheme.setMP("ax-mp", "ax-mp"); //TODO: what does this second ax-mp really mean? why does that work?
- arrowScheme.bind(implies, 0, ORCAT.Scheme.INITIAL, "_imim1");
-arrowScheme.bind(implies, 1, ORCAT.Scheme.TERMINAL, "_imim2");
+/*
 var proofFactory = new ORCAT.ProofFactory();
 exports.Init(theory, arrowScheme, proofFactory);
 */
