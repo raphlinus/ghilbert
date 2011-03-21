@@ -7,7 +7,9 @@ exports.Theory = function() {
             return name;
         };
     }
-    // An Operator corresponds to a ghilbert (term).  No reference to inputs must be retained.
+    // An Operator corresponds to a ghilbert (term).  Each input must be a
+    // kind. No reference to inputs must be retained.  Only one Operator of each
+    // name should exist; Operators can be compared with ===.
     function Operator(name, output, inputs) {
         this.toString = function() { return name; };
         this.numInputs = function() { return inputs.length; };

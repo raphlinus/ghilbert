@@ -57,12 +57,15 @@ exports.Scheme = function(wffArrow, modusPonens) {
 	}
     }
 
-    var arrows = {
-	
-    };
-    var bindings = {
-	
-    };
+    // maps kind to arrow
+    var arrows = {  };
+    // maps kind to {operator, theorem1, theorem2}
+    var equivalences = { };
+    // maps operator x argIndex to {binding, theorem}
+    var bindings = { };
+
+    arrows[wffArrow.input(0)] = wffArrow;
+    
     // ================ Public Methods ================
     this.LEFT = function() { return new Binding(1); }
     this.RIGHT = function() { return new Binding(-1); }
@@ -71,11 +74,22 @@ exports.Scheme = function(wffArrow, modusPonens) {
     this.UNKNOWN = function() { return new Binding(Infinity); }
 
     this.setArrow = function(kind, operator) {
+        arrows[kind] = operator;
     };
+    this.getArrow = function(kind) {
+        return arrows[kind];
+    };
+    
     // @param theorem1 the name of the theorem (-> (operator A B) (arrow A B))
     // @param theorem2 the name of the theorem (-> (operator A B) (arrow B A))
     this.setEquivalence = function(kind, operator, theorem1, theorem2) {
+        equivalences[kind] = {operator:operator, theorem1: theorem1, theorem2: theorem2};
     };
+    this.getEquivalence = function(kind) {
+        if (!equivalences[kind]) return null;
+        return equivalences[kind].operator;
+    };
+    
     // @param theoremName the name of the theorem that proves the
     // appropriate transformation for this binding.
     this.setBinding = function(operator, argIndex, binding, theoremName) {
