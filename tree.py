@@ -428,49 +428,19 @@ class StatusJs(webapp.RequestHandler):
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             player.setupJs = """
- var theory = new ORCAT.Theory();
- var wff = theory.newKind("wff");
- var implies = theory.newOperator("&rarr;", wff, [wff, wff]);
-
- var scheme = new ORCAT.Scheme(implies, "ax-mp");
-// TODO: can we get off the ground without these?
- scheme.setBinding(implies, 0, scheme.RIGHT(), "_imim1");
- scheme.setBinding(implies, 1, scheme.LEFT(), "_imim2");
-
- var ui = new ORCAT.Ui(document, theory, scheme);
- ui.reset();
- ui.addAxiom("Complicate", [implies, 0, [implies, 1, 0]]);
- ui.addAxiom("Distribute", [implies, [implies, 0, [implies, 1, 2]],
-                                          [implies, [implies, 0, 1], [implies, 0, 2]]]);
+ var exports = {};
+ GHT.loadLibrary('js/orcat_PosPropCal.js');
+//PICKUP: async these
+exports.ui.reset();
+exports.ui.addAxiom("Simplify");
+exports.ui.addAxiom("Distribute");
 /*
-var proofFactory = new ORCAT.ProofFactory();
 exports.Init(theory, arrowScheme, proofFactory);
 */
 
 """
             player.ghilbertInterfaces = ["PosPropCal"]
-            player.ghilbertText = """
-import (POSPROPCAL PosPropCal () "")
-tvar (wff A B C D E F G H)
-thm (_imim2 () () (-> (-> A B) (-> (-> C A) (-> C B)))
-  (-> A B) C  Simplify
-    C  A  B Distribute
-      (-> (-> C (-> A B)) (-> (-> C A) (-> C B)))  (-> A B)  Simplify
-    ax-mp
-      (-> A B)  (-> C (-> A B))  (-> (-> C A) (-> C B)) Distribute
-    ax-mp
-  ax-mp
-)
-thm (_imim1 () () (-> (-> A B) (-> (-> B C) (-> A C)))
- (-> A B)  (-> B C)  Simplify
-  B  C  A  _imim2
-    (-> B C)  (-> A B)  (-> A C)  Distribute
-  ax-mp
-  (-> (-> B C) (-> A B))  (-> (-> B C) (-> A C))  (-> A B)  _imim2  ax-mp
- ax-mp
-)
-"""
-
+            player.ghilbertText = ""
             tip = '"newPlayer"'
             player.put()
         self.response.out.write(player.setupJs);
@@ -487,49 +457,18 @@ class SaveHandler(webapp.RequestHandler):
             self.response.out.write("GHT.Tip.set('You need a name if you want your saves to last!');")
         else:
             pass
-        interfaces = {'PosPropCal':"""
-# positive propositional calculus
-kind (wff)
-tvar (wff A B C)
-term (wff (-> A B))
-stmt (Simplify () () (-> A (-> B A)))
-stmt (Distribute () () (-> (-> A (-> B C)) (-> (-> A B) (-> A C))))
-stmt (ax-mp () (A (-> A B)) B)
-""",
-                      'CorePropCal':"""
-param (POSPROPCAL PosPropCal () "")
-tvar (wff A B C)
-term (wff (-. A))
-stmt (Transpose () () (-> (-> (-. A) (-. B)) (-> B A)))
-""",
-                      'PredCal':"""
-param (POSPROPCAL PosPropCal () "")
-param (COREPROPCAL CorePropCal (POSPROPCAL) "")
-kind (num)
-tvar (wff A B C)
-tvar (num a b c d)
-term (wff (= a b))
-stmt (ax-eqtr () () (-> (= a b) (-> (= a c) (= b c))))
-
-var (num x y z)
-term (wff (A. x A))
-stmt (alnfi ((A x)) () (-> A (A. x A)))
-stmt (gen () (A) (A. x A))
-stmt (ax-4 () () (-> (A. x A) A))
-stmt (ax-alim () () (-> (A. x (-> A B)) (-> (A. x A) (A. x B))))
-stmt (ax-6 () () (-> (-. (A. x A)) (A. x (-. (A. x A)))))
-stmt (ax-7 () () (-> (A. x (A. y A)) (A. y (A. x A))))
-
-stmt (ax-tyex ((a x)) () (-. (A. x (-. (= x a)))))
-"""
-                      }
         newProof = self.request.get('proof')
         thmName = self.request.get('thmName')
-        proofText = player.ghilbertText + "\n" + newProof + "\n"
+        #TODO: this is probably broken now
+        pipe = StringIO.StringIO()
+        for line in open('peano/PosPropCal_bootstrap.gh', 'r'):
+            pipe.write(str(line))
+
+        pipe.write(player.ghilbertText + "\n" + newProof + "\n");
         output = StringIO.StringIO();
+        proofText = pipe.getValue();
         output.write("Verifying: \n===\n%s\n===\n" % proofText);
-        interfaces["-"] = proofText;
-        urlctx = verify.DictionaryCtx(interfaces)
+        urlctx = verify.UrlCtx('','-', pipe)
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
         ctx.run(urlctx, '-', ctx, output)
         player.log += "\n# %s\n%s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()),

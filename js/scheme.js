@@ -15,7 +15,7 @@
 // - Right:   this input can be replaced with anything that arrows it
 // - Left:    this input can be replaced with anything that it arrows
 // - Exact:   this input can be replaced with anything it is equivalent to
-// - Alpha:   this input is the tvar of a quantifier, and changing it
+// - Alpha:   this input is the argument of a quantifier, and changing it
 //            requires an alpha transform.
 // - Unknown:this input cannot be changed.  This is the default.
 //

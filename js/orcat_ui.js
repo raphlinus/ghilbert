@@ -41,7 +41,7 @@ exports.Ui = function(doc, theory, scheme) {
         // spans inside the tree.  A Path is like an xpath, an array where at each
         // step -1 means the operator span, 0 means the zeroth arg, etc.
         // @param path the path to this node from the root.  Leave blank to start at
-        // [].  This array will not be modified.
+        // [].  This array will be modified in-place but left as it was found.
         function makeTree(term, binding, pathToNodeMap, path) {
             if (!pathToNodeMap) pathToNodeMap = {};
             if (!path) path = [];
@@ -98,7 +98,8 @@ exports.Ui = function(doc, theory, scheme) {
         var wrapperSpan = doc.createElement("span");
         wrapperSpan.className = "wrapper";
         var pathToNodeMap = {};
-        var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null, pathToNodeMap);
+        var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null, 
+				   pathToNodeMap);
         wrapperSpan.appendChild(theoremSpan);
         theoremSpan.className += " theorem";
         // ================ public methods ================
@@ -144,6 +145,7 @@ exports.Ui = function(doc, theory, scheme) {
         // binding. On failure: changes the UI to gray-out the theorem.
         // On success: changes the UI to show an outline over the to-be-unified
         // child(ren), and retains the possible unification future(s) for interaction.
+	// TODO: where does this belong?
         this.attemptUnify = function(term, binding) {
             var success = false;
             if (binding.isUnknown()) {
@@ -167,10 +169,12 @@ exports.Ui = function(doc, theory, scheme) {
                 } else {
                     throw "Bad binding! " + binding;
                 }
-                // TODO: unify template to term
-                futures.push({node:node, template:template});
-                node.className += " selected";
-                success = true;
+		var unifyMap = template.unifyTerm(term);
+		if (unifyMap) {
+                    futures.push({node:node, template:template});
+                    node.className += " selected";
+                    success = true;
+		}
             }
             if (success) {
                 // TODO: construct future
@@ -189,9 +193,8 @@ exports.Ui = function(doc, theory, scheme) {
     }
     
     // ================ public methods ================
-    this.addAxiom = function(name, termArray) {
-        var axiom = theory.addAxiom(name, termArray);
-        theorems.push(new Theorem(name, axiom));
+    this.addAxiom = function(name) {
+        theorems.push(new Theorem(name, theory.theorem(name)));
     };
     // remove all theorems from the ui.
     this.reset = function() {

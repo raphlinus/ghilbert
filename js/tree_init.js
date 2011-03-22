@@ -81,7 +81,7 @@ GHT.Tip = {
     set: function(tipKey, tipValue) {
         if (tipValue) {
             this.tips[tipKey] = tipValue;
-        } 
+        }
         if (this.tips[tipKey]) {
             this.theDiv.innerHTML = this.tips[tipKey];
             this.theDiv.style.visibility = "visible";
@@ -214,7 +214,7 @@ GHT.updateUi = function(nodeBase, obj) {
              packet.thmName  = "df-" + packet.thmName;
              term = defthm[0];
              packet.proof = defthm[1];
-             packet.source = defthm[2] + 
+             packet.source = defthm[2] +
                  "\nGHT.Thms['" + packet.thmName + "'] = " + term.toSource() + ";\n";
          } else {
              term = GHT.theTerm;
@@ -281,6 +281,13 @@ GHT.updateUi = function(nodeBase, obj) {
      };
      document.getElementById("defthm").onclick = function() { GHT.DefThm();};
 
+     GHT.loadLibrary = function(src) {
+	 var head= document.getElementsByTagName('head')[0];
+	 var script= document.createElement('script');
+	 script.type= 'text/javascript';
+	 script.src= 'helper.js';
+	 head.appendChild(script);
+     };
  })();
 
 GHT.Operators = {};
