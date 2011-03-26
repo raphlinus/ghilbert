@@ -17,21 +17,21 @@ exports.Ui = function(doc, theory, scheme) {
         // else hovering will cause DOM movement.  Hovering the node will also
         // attempt to unify the theorems list. no-op if !binding.
         function makeHoverable(node, term, binding){
-	    if (binding) {
+            if (binding) {
                 node.addEventListener(
-		    'mouseover', function(e) {
+                    'mouseover', function(e) {
                         node.className += " selected";
-		        theorems.forEach(function(t) { t.attemptUnify(term, binding); });
+                        theorems.forEach(function(t) { t.attemptUnify(term, binding); });
                         e.stopPropagation();
-		    }, false);
+                    }, false);
                 node.addEventListener(
-		    'mouseout',
-		    function(e) {
+                    'mouseout',
+                    function(e) {
                         removeClass(node, ' selected');
-		        theorems.forEach(function(t) { t.clearUnification(); });
+                        theorems.forEach(function(t) { t.clearUnification(); });
                         e.stopPropagation();
-		    }, false);
-	    }
+                    }, false);
+            }
         }
 
         // Make a tree out of a term.
@@ -65,11 +65,11 @@ exports.Ui = function(doc, theory, scheme) {
                 tupleSpan.appendChild(argsSpan);
                 var n = op.numInputs();
                 for (var i = 0; i < n; i++) {
-		    var childBinding = null;
-		    if (binding) {
-		        var opBinding = scheme.getBinding(op, i);
-		        childBinding = binding.compose(opBinding);
-		    }
+                    var childBinding = null;
+                    if (binding) {
+                        var opBinding = scheme.getBinding(op, i);
+                        childBinding = binding.compose(opBinding);
+                    }
                     path.push(i);
                     var argSpan = makeTree(term.input(i), childBinding, pathToNodeMap, path);
                     path.pop();
@@ -90,7 +90,7 @@ exports.Ui = function(doc, theory, scheme) {
             }
             var outerSpan = doc.createElement("span");
             outerSpan.appendChild(span);
-	    if (binding) outerSpan.className += " binding_" + binding;
+            if (binding) outerSpan.className += " binding_" + binding;
             return outerSpan;
         }
         
@@ -99,7 +99,7 @@ exports.Ui = function(doc, theory, scheme) {
         wrapperSpan.className = "wrapper";
         var pathToNodeMap = {};
         var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null, 
-				   pathToNodeMap);
+                                   pathToNodeMap);
         wrapperSpan.appendChild(theoremSpan);
         theoremSpan.className += " theorem";
         // ================ public methods ================
@@ -145,7 +145,7 @@ exports.Ui = function(doc, theory, scheme) {
         // binding. On failure: changes the UI to gray-out the theorem.
         // On success: changes the UI to show an outline over the to-be-unified
         // child(ren), and retains the possible unification future(s) for interaction.
-	// TODO: where does this belong?
+        // TODO: where does this belong?
         this.attemptUnify = function(term, binding) {
             var success = false;
             if (binding.isUnknown()) {
@@ -169,12 +169,12 @@ exports.Ui = function(doc, theory, scheme) {
                 } else {
                     throw "Bad binding! " + binding;
                 }
-		var unifyMap = template.unifyTerm(term);
-		if (unifyMap) {
+                var unifyMap = template.unifyTerm(term);
+                if (unifyMap) {
                     futures.push({node:node, template:template});
                     node.className += " selected";
                     success = true;
-		}
+                }
             }
             if (success) {
                 // TODO: construct future

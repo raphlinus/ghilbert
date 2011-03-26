@@ -30,31 +30,31 @@ exports.Scheme = function(wffArrow, modusPonens) {
     // (with the exception of Infinity * 0 = Infinity instead of NaN).
     // Bindings are immutable but may only be compared with their equals().
     function Binding(f) {
-	this.f = function() { return f;}
-	this.isUnknown = function() {
-	    return (!isNaN(f) && !isFinite(f));
-	};
-	this.isAlpha = function() {
-	    return isNaN(f);
-	}
-	this.compose = function(childBinding) {
-	    if (this.isUnknown()) {
-		return scheme.UNKNOWN();
-	    }
-	    return new Binding(this.f() * childBinding.f());
-	};
-	this.toString = function() {
-	    if (f == 0)   return "exact";
-	    if (f == 1)   return "left";
-	    if (f == -1)  return "right";
-	    if (isNaN(f)) return "alpha";
-	    return "unknown";
-	}
-	this.equals = function(otherBinding) {
-	    if (this.isUnknown()) return otherBinding.isUnknown();
-	    if (this.isAlpha()) return otherBinding.isAlpha();
-	    return this.f() == otherBinding.f();
-	}
+        this.f = function() { return f;};
+        this.isUnknown = function() {
+            return (!isNaN(f) && !isFinite(f));
+        };
+        this.isAlpha = function() {
+            return isNaN(f);
+        };
+        this.compose = function(childBinding) {
+            if (this.isUnknown()) {
+                return scheme.UNKNOWN();
+            }
+            return new Binding(this.f() * childBinding.f());
+        };
+        this.toString = function() {
+            if (f == 0)   return "exact";
+            if (f == 1)   return "left";
+            if (f == -1)  return "right";
+            if (isNaN(f)) return "alpha";
+            return "unknown";
+        };
+        this.equals = function(otherBinding) {
+            if (this.isUnknown()) return otherBinding.isUnknown();
+            if (this.isAlpha()) return otherBinding.isAlpha();
+            return this.f() == otherBinding.f();
+        };
     }
 
     // maps kind to arrow
@@ -67,11 +67,11 @@ exports.Scheme = function(wffArrow, modusPonens) {
     arrows[wffArrow.input(0)] = wffArrow;
     
     // ================ Public Methods ================
-    this.LEFT = function() { return new Binding(1); }
-    this.RIGHT = function() { return new Binding(-1); }
-    this.EXACT = function() { return new Binding(0); }
-    this.ALPHA = function() { return new Binding(NaN); }
-    this.UNKNOWN = function() { return new Binding(Infinity); }
+    this.LEFT = function() { return new Binding(1); };
+    this.RIGHT = function() { return new Binding(-1); };
+    this.EXACT = function() { return new Binding(0); };
+    this.ALPHA = function() { return new Binding(NaN); };
+    this.UNKNOWN = function() { return new Binding(Infinity); };
 
     this.setArrow = function(kind, operator) {
         arrows[kind] = operator;
@@ -93,15 +93,15 @@ exports.Scheme = function(wffArrow, modusPonens) {
     // @param theoremName the name of the theorem that proves the
     // appropriate transformation for this binding.
     this.setBinding = function(operator, argIndex, binding, theoremName) {
-	if (!(binding instanceof Binding)) throw "Bad binding " + binding;
-	if ((argIndex < 0) || (argIndex >= operator.numInputs())) {
-	    throw "Bad argIndex" + argIndex;
-	}
-	if (!bindings[operator]) bindings[operator] = [];
-	bindings[operator][argIndex] = {binding: binding, theorem: theoremName};
+        if (!(binding instanceof Binding)) throw "Bad binding " + binding;
+        if ((argIndex < 0) || (argIndex >= operator.numInputs())) {
+            throw "Bad argIndex" + argIndex;
+        }
+        if (!bindings[operator]) bindings[operator] = [];
+        bindings[operator][argIndex] = {binding: binding, theorem: theoremName};
     };
     this.getBinding = function(operator, argIndex) {
-	if (!bindings[operator] || !bindings[operator][argIndex]) return this.UNKNOWN();
-	return bindings[operator][argIndex].binding;
+        if (!bindings[operator] || !bindings[operator][argIndex]) return this.UNKNOWN();
+        return bindings[operator][argIndex].binding;
     };
 };

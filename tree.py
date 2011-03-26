@@ -439,7 +439,7 @@ exports.Init(theory, arrowScheme, proofFactory);
 */
 
 """
-            player.ghilbertInterfaces = ["PosPropCal"]
+            player.ghilbertInterfaces = ["PosPropCal.ghi"]
             player.ghilbertText = ""
             tip = '"newPlayer"'
             player.put()
