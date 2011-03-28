@@ -63,7 +63,7 @@ exports.Ui = function(doc, theory, scheme) {
                 var argsSpan = doc.createElement("span");
                 argsSpan.className = "args";
                 tupleSpan.appendChild(argsSpan);
-                var n = op.numInputs();
+                var n = op.arity();
                 for (var i = 0; i < n; i++) {
                     var childBinding = null;
                     if (binding) {
@@ -85,7 +85,7 @@ exports.Ui = function(doc, theory, scheme) {
                 vSpan.className = " variable";
                 makeHoverable(vSpan, term, binding);
                 pathToNodeMap[path] = vSpan;
-                vSpan.innerHTML = term.toString().replace(/^.*\./,'');
+                vSpan.innerHTML = term.toString().replace(/^.*\./,''); //TODO
                 span = vSpan;
             }
             var outerSpan = doc.createElement("span");
@@ -167,7 +167,7 @@ exports.Ui = function(doc, theory, scheme) {
                     template = tuple.input(1);
                     node = tree.node([1]);
                 } else {
-                    throw "Bad binding! " + binding;
+                    throw new Error("Bad binding! " + binding);
                 }
                 var unifyMap = template.unifyTerm(term);
                 if (unifyMap) {

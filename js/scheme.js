@@ -93,9 +93,9 @@ exports.Scheme = function(wffArrow, modusPonens) {
     // @param theoremName the name of the theorem that proves the
     // appropriate transformation for this binding.
     this.setBinding = function(operator, argIndex, binding, theoremName) {
-        if (!(binding instanceof Binding)) throw "Bad binding " + binding;
-        if ((argIndex < 0) || (argIndex >= operator.numInputs())) {
-            throw "Bad argIndex" + argIndex;
+        if (!(binding instanceof Binding)) throw new Error("Bad binding " + binding);
+        if ((argIndex < 0) || (argIndex >= operator.arity())) {
+            throw new Error("Bad argIndex" + argIndex);
         }
         if (!bindings[operator]) bindings[operator] = [];
         bindings[operator][argIndex] = {binding: binding, theorem: theoremName};

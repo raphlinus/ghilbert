@@ -12,7 +12,7 @@ exports.Theory = function() {
     // name should exist; Operators can be compared with ===.
     function Operator(name, output, inputs) {
         this.toString = function() { return name; };
-        this.numInputs = function() { return inputs.length; };
+        this.arity = function() { return inputs.length; };
         this.input = function(i) { return inputs[i]; };
         this.kind = function() { return output; };
     };
@@ -20,15 +20,16 @@ exports.Theory = function() {
     function Term() {
         this.kind = function() { throw "virtual";};
         this.toString = function() { throw "virtual";};
-        // Attempts to unify the given term with this term as a
-        // template.  On failure, returns null.  On success, returns TODO.
+        // Computes the most general common specification of this term and the
+        // given one. Returns null if none exists, or a unification result
+        // (instructions for specifying this term and that one to the same term).
         this.unifyTerm = function(term) { throw "virtual";};
         // Returns a new Term with the same operators and structure,
         // but a disjoint set of fresh variables.  cloneMap will be
         // populated with a mapping from old variables to new ones.
         this.clone = function(cloneMap) { throw "virtual";};
         // Extracts all variables in this term into the given set.
-        // The varSet key is opaque, but the value is {varObj, paths}.
+        // The varSet key is opaque, but the value is {kind, paths}.
         // paths is an array of xpaths to instances of
         // the variable in this term, each prefixed with inPath.
         this.extractVars = function(varSet, inPath) { throw "virtual";};
@@ -39,7 +40,8 @@ exports.Theory = function() {
     }
     // A Variable has meaning only within a Tuple, and serves to bind operator inputs
     // of the same kind together.  It can have any Kind.  Each new variable is
-    // assigned a unique serial number; they can be compared with ===.
+    // assigned a unique serial number; they can be compared with ===.  Every
+    // variable is in exactly one Tuple Tree.
     var Variable =
         (function() {
              var nextId = 0;
@@ -51,32 +53,34 @@ exports.Theory = function() {
                  this.toString = function() {
                      return kind + "." + id;
                  };
-                 this.clone = function(cloneMap) {
-                     if (cloneMap[this]) return cloneMap[this];
-                     return (cloneMap[this] = new Variable(kind));
-                 };
-                 this.extractVars = function(set, path) {
-                     if (!set) set = ({});
-                     if (!path) path = [];
-                     // If binding is already true, don't mess with it.  But if it's absent, set it to false.
-                     if (!set[this]) {
-                         set[this] = {
-                             varObj: this,
-                             paths: [path.slice()]
-                         };
-                     } else {
-                         set[this].paths.push(path.slice());
-                     }
-                     return set;
-                 };
-                 this.xpath = function(xpath) {
-                     if (xpath.length == 0) return this;
-                     throw "Bad path:" + xpath + " beyond " + this;
-                 };
              };
          })();
-    Variable.prototype = Term;
+    Variable.prototype = new Term;
     
+    Variable.prototype.clone = function(cloneMap) {
+        if (cloneMap[this]) return cloneMap[this];
+        return (cloneMap[this] = new Variable(this.kind()));
+    };
+    Variable.prototype.extractVars = function(set, path) {
+        if (!set) set = ({});
+        if (!path) path = [];
+        // If binding is already true, don't mess with it.  But if
+        // it's absent, set it to false.
+        if (!set[this]) {
+            set[this] = {
+                kind: this.kind(),
+                paths: [path.slice()]
+            };
+        } else {
+            set[this].paths.push(path.slice());
+        }
+        return set;
+    };
+    Variable.prototype.xpath = function(xpath) {
+        if (xpath.length == 0) return this;
+        throw "Bad path:" + xpath + " beyond " + this;
+    };
+
     // A Tuple is an Operator with a list of inputs of appropriate
     // kind.  Its Kind is the kind of its operator.  No
     // outside reference to inputs must be retained.
@@ -88,11 +92,11 @@ exports.Theory = function() {
         if (!(inputs instanceof Array)) {
             throw "Bad inputs " + inputs;
         }
-        if (operator.numInputs() != inputs.length) {
-            throw "Input length mismatch " + operator + " : " + operator.numInputs() +
+        if (operator.arity() != inputs.length) {
+            throw "Input length mismatch " + operator + " : " + operator.arity() +
                 " != " + inputs.length;
         }
-        for (var i = operator.numInputs() - 1; i >= 0; i--) {
+        for (var i = operator.arity() - 1; i >= 0; i--) {
             if (inputs[i].kind() != operator.input(i)) {
                 throw "Bad input kind " + i + ": " + operator.input(i) + " != "  +
                     inputs[i].kind();
@@ -125,7 +129,7 @@ exports.Theory = function() {
             return set;
         };
         this.xpath = function(path) {
-            if (path.length == 0) return this;
+            if (path.length == 0) return this.clone();
             var index = path[0];
             if (index == -1) return operator;
             if (index >= inputs.length) throw "Bad path " + path + " at "+ this;
@@ -133,7 +137,7 @@ exports.Theory = function() {
         };
 
     }
-    Tuple.prototype = Term;
+    Tuple.prototype = new Term;
     
     // Parse a term from a hetereogeneous array. A legal termArray's first element is
     // an operator; each subsequest element is a nonnegative integer (or other key)

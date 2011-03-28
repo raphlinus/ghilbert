@@ -6,6 +6,26 @@
 // must be the same as the available vars in the ghilbert context
 // where our proofs will be evaluated.
 exports.Prover = function(theory, scheme, ghilbertVarNames) {
+    // For now this is identical to the definition in theory.js, but may diverge
+    // in the future.  Variables are implementation details and should not be
+    // shared across interfaces.
+    var Variable =
+        (function() {
+             var nextId = 0;
+             return function(kind) {
+                 var id = nextId++;
+                 this.kind = function() {
+                     return kind;
+                 };
+                 this.toString = function() {
+                     return kind + ":" + id;
+                 };
+             };
+         })();
+    function WrappedTerm(varMap, term) {
+        this.varMap = varMap;
+        this.term = term;
+    }
     // A VarNamer assigns sequential names from a predetermined set to
     // a sequence of variables.
     function VarNamer(varNames) {
@@ -33,11 +53,11 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
 
     // This constructor must be called with care--all values must be
     // consistent, and no reference must be kept to steps.
-    function ProofState(assertion, steps) {
+    function ProofState(wrappedAssertion, steps) {
         // Compute the binding on the subterm at the named path.  Consumes path.
         function bindingAt(path, rTerm, rBinding) {
             if (!rTerm) {
-                rTerm = assertion;
+                rTerm = wrappedAssertion.term;;
                 rBinding = scheme.LEFT();
             }
             if (path.length == 0) return rBinding;
@@ -51,23 +71,31 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         this.proof = function(thmName) {
             var varNamer = new VarNamer(ghilbertVarNames);
             // TODO: collectVariables() to find alpha bindings
-
             // Stringifier that knows how to handle tuples, variables, and steps.
-            function toString(obj) {
+            function stringify(obj, path, pathToVarMap) {
+                if (!path) path = [];
                 var out = '';
                 if (obj.operator) {
                     // obj is a tuple.  Convert to ghilbert sexp.
                     var op = obj.operator();
                     out += "(";
                     out += op.toString().replace(/[^a-z]/g,'');
-                    for (var i = 0, n = op.numInputs(); i < n; i++) {
-                        out += ' ' + toString(obj.input(i));
+                    path.push(0);
+                    for (var i = 0, n = op.arity(); i < n; i++) {
+                        path.splice(path.length - 1, 1, i);
+                        out += ' ' + stringify(obj.input(i), path, pathToVarMap);
                     }
+                    path.pop();
                     out += ")";             
                 } else if (obj.kind) {
                     // obj is a variable.  resolve it fully, then
-                    // convert to a gh var name.
-                    out += varNamer.name(obj);
+                    // convert to a gh var name.aa
+                    var v = pathToVarMap[path];
+                    if (v) {
+                        out += varNamer.name(v);
+                    } else {
+                        out += varNamer.name(obj);
+                    }
                 } else {
                     // obj is a theorem name, or other stringifiable object.
                     out += obj.toString();
@@ -77,8 +105,8 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             return "thm (" + thmName
                 + " () " // DVs not yet handled.
                 + " () " // Hyps not supported.
-                + toString(assertion) +
-                "\n" + steps.map(toString).join(" ") + ")";
+                + stringify(wrappedAssertion.term, [], wrappedAssertion.varMap) +
+                "\n" + steps.map(stringify).join(" ") + ")";
         };
         // Generate a ghilbert defthm.  The left child of the root
         // will become the new op, with variables in appearance-order.
@@ -90,12 +118,12 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         };
         // the term (of kind wff) representing the assertion of this ProofState.
         this.assertion = function() {
-            return assertion;
+            return wrappedAssertion.term;
         };
         // Consider whether the given theorem can be applied at the
         // given xpath.  Returns an array with all the possibilities.
         this.consider = function(path, thmName, thmTerm) {
-            var subterm = assertion.xpath(path);
+            var subterm = wrappedAssertion.term.xpath(path);
             var binding = bindingAt(path.slice());
             if (thmTerm.operator() === scheme.getArrow(subterm.kind())) {
                 var templateArgIndex;
@@ -131,13 +159,16 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
     // ================ public methods ================
     // Begin a new proof starting with the named theorem.
     this.newProof = function(thmName) {
-        var assertion = theory.theorem(thmName).clone();
+        var assertion = theory.theorem(thmName);
         var varSet = assertion.extractVars();
         var steps = [];
+        var varMap = {};
         for (var k in varSet) if (varSet.hasOwnProperty(k)) {
-            steps.push(varSet[k].varObj);
+            var v = new Variable(varSet[k].kind);
+            steps.push(v);
+            varSet[k].paths.forEach(function(path) {varMap[path] = v;});
         }
         steps.push(thmName, "\n");
-        return new ProofState(assertion, steps);
+        return new ProofState(new WrappedTerm(varMap, assertion), steps);
     };
 };
