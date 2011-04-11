@@ -431,9 +431,9 @@ class StatusJs(webapp.RequestHandler):
  var exports = {};
  GHT.loadLibrary('js/orcat_PosPropCal.js');
 //PICKUP: async these
-exports.ui.reset();
-exports.ui.addAxiom("Simplify");
-exports.ui.addAxiom("Distribute");
+//exports.ui.reset();
+//exports.ui.addAxiom("Simplify");
+//exports.ui.addAxiom("Distribute");
 /*
 exports.Init(theory, arrowScheme, proofFactory);
 */

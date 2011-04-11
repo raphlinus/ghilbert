@@ -147,7 +147,8 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                                 return new ProofState();
                             }
                         }];
-            } else if (thmTerm.operator() === scheme.getEquivalence(subterm.kind())) {
+            } else if (thmTerm.operator()
+                       === scheme.getEquivalence(subterm.kind())) {
                 //TODO
                 return [];
             } else {

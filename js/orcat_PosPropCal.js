@@ -2,7 +2,7 @@ var theory = new ORCAT.Theory();
 exports.theory = theory;
 var wff = exports.theory.newKind("wff");
 var implies = exports.theory.newOperator("&rarr;", wff, [wff, wff]);
-
+exports.implies = implies;
 var scheme = new ORCAT.Scheme(implies, "ax-mp");
 exports.scheme = scheme;
 // TODO: can we get off the ground without these?
@@ -23,3 +23,4 @@ exports.ui = new ORCAT.Ui(document, prover, scheme);
 exports.theory.addAxiom("Simplify", [implies, 0, [implies, 1, 0]]);
 exports.theory.addAxiom("Distribute", [implies, [implies, 0, [implies, 1, 2]],
                                [implies, [implies, 0, 1], [implies, 0, 2]]]);
+

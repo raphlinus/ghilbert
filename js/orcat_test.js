@@ -41,3 +41,13 @@ fs.readFile('../orcat/PosPropCal_bootstrap.gh',
 var consideration = proofState.consider([], 'Distribute',
                                         ORCAT.theory.theorem('Distribute'));
 */
+
+var exports = ORCAT;
+var ax1 = exports.theory.theorem('Simplify');
+var ax2 = exports.theory.theorem('Distribute');
+expect(exports.theory.unify(ax2.xpath([0]), ax1));
+expect(exports.theory.unify(ax1.xpath([0]), ax2));
+expect(exports.theory.unify(ax2.xpath([1]), ax1));
+exports.theory.addAxiom("id", [exports.implies, 0, 0]);
+var id = exports.theory.theorem('id');
+expect(!exports.theory.unify(ax1, id));
