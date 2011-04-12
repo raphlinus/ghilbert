@@ -428,12 +428,9 @@ class StatusJs(webapp.RequestHandler):
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             player.setupJs = """
- var exports = {};
+  exports = {};
  GHT.loadLibrary('js/orcat_PosPropCal.js');
-//PICKUP: async these
-//exports.ui.reset();
-//exports.ui.addAxiom("Simplify");
-//exports.ui.addAxiom("Distribute");
+exports.startUi = true;
 /*
 exports.Init(theory, arrowScheme, proofFactory);
 */

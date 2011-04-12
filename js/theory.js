@@ -1,5 +1,6 @@
 // A Theory maintains some kinds, operators, and theorems.
 exports.Theory = function() {
+    var that = this;
     // ================ Private State ================
     // A Kind corresponds to a ghilbert (kind).
     function Kind(name) {
@@ -25,13 +26,17 @@ exports.Theory = function() {
         // paths is an array of xpaths to instances of
         // the variable in this term, each prefixed with inPath.
         this.extractVars = function(varSet, inPath) { throw "virtual";};
+        // Returns a termArray for a new term that is a specification of this
+        // term.  Each key in substSet is an xpath, and each value is a legal
+        // termArray.  pathPrefix, if present, will be added to all
+        // this term's xpaths before comparison.
+        this.specify = function(substSet, pathPrefix) { throw "virtual";};
     }
 
     // A Variable has meaning only within a Tuple, and serves to bind operator inputs
     // of the same kind together.  It can have any Kind.  Each new variable is
     // assigned a unique serial number; they can be compared with ===.  Every
-    // variable is in exactly one Tuple Tree; from outside Theory, distinct
-    // Terms have disjoint Variables.
+    // variable is in exactly one Tuple Tree.
     var Variable =
         (function() {
              var nextId = 0;
@@ -88,13 +93,26 @@ exports.Theory = function() {
         }
         return set;
     };
+    Variable.prototype.specify = function(substSet, path) {
+        if (!path) path = [];
+        if (substSet[path]) return substSet[path];
+        return this;
+    };
+    Variable.prototype.equals = function(otherTerm, varMap) {
+        if (!varMap) varMap = {};
+        if (varMap[this]) {
+            return varMap[this] === otherTerm;
+        }
+        varMap[this] = otherTerm;
+        return true;
+    };
 
     // A Tuple is an Operator with a list of inputs of appropriate
     // kind.  Its Kind is the kind of its operator.  No
     // outside reference to inputs must be retained.
     function Tuple(operator, inputs) {
         if (!(operator instanceof Operator)) {
-            throw "Bad operator " + operator;
+            throw new Error("Bad operator " + operator);
         }
         this.kind = function() { return operator.kind(); };
         if (!(inputs instanceof Array)) {
@@ -146,6 +164,18 @@ exports.Theory = function() {
             }
             return set;
         };
+        // Returns a termArray.
+        this.specify = function(substSet, path) {
+            if (!path) path = [];
+            var termArray = [this.operator()];
+            var n = this.operator().arity();
+            for (var i = 0; i < n; i++) {
+                path.push(i);
+                termArray.push(this.input(i).specify(substSet, path));
+                path.pop();
+            }
+            return termArray;
+        };
     }
     Tuple.prototype = new Term;
 
@@ -179,12 +209,26 @@ exports.Theory = function() {
             return false;
         }
     };
-    
+    Tuple.prototype.equals = function(otherTerm, varMap) {
+        if (!varMap) varMap = {};
+        if (!otherTerm.operator || (otherTerm.operator() != this.operator())) {
+            return false;
+        }
+        var n = this.operator().arity();
+        for (var i = 0; i < n; i++) {
+            if (!this.input(i).equals(otherTerm.input(i), varMap)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     // A Unification object stores (and helps build) the result of unifying one
     // term with another.  Upon a successful call to unify(), the Unification
     // object will hold instructions for specifying the two terms to a common
     // term.
     function Unification(terms) {
+        var unified = terms.slice();
         // implementation of a directed acyclic graph.
         function DAG() {
             var connectedFrom = {};
@@ -238,9 +282,11 @@ exports.Theory = function() {
             return "t" + termIndex + "v" + v;
                  */
         }
-        var steps = [[],[]];
         var varMapping = new Bimap();
-
+        // steps()[i] starts with all the elements of opSplits[i].
+        var opSplits = [[], []];
+        // steps()[i] then includes all values of varJoins[i].
+        var varJoins = [{}, {}];
         // if a var is turned into a term, the term goes in termMapping, and
         // it is connected in termDag to all the operator's arguments.
         var termMapping = {};
@@ -250,6 +296,7 @@ exports.Theory = function() {
         // false if this would violate a distinct-variable assumption or create
         // a cyclic dependency.
         this.mapVarToVar = function(termIndex, xpath, source, newVar) {
+            if (termIndex != 0) throw "only map vars forward.";
             source = prefix(termIndex, source);
             source = varMapping.lookup(source) || source;
             var target = prefix(1 - termIndex, newVar);
@@ -269,7 +316,20 @@ exports.Theory = function() {
                     return false;
                 }
             }
-            steps[termIndex].push([xpath.slice(), target]);
+            for (var i = 0; i < 2; i++) {
+                if (!varJoins[i][target]) {
+                    varJoins[i][target] = {};
+                }
+                var unifiedVarSet = unified[i].extractVars();
+                var allPathsObj = unifiedVarSet[unified[i].xpath(xpath.slice())];
+                if (allPathsObj) {
+                    allPathsObj.paths.forEach(function(path) {
+                                                 varJoins[i][target][path] = target;
+                                             });
+                }
+                unified[i] = that.parseTerm(unified[i].specify(varJoins[i][target]),
+                                            unified[i].kind());
+            }
             return true;
         };
         // term[termIndex] has a variable at path xpath.  We will replace it
@@ -285,6 +345,7 @@ exports.Theory = function() {
                 return null;
             }
             var op = term.operator();
+            var termArray = [op];
             var args = [];
             for (var i = 0; i < op.arity(); i++) {
                 var v = new Variable(op.input(i));
@@ -293,10 +354,19 @@ exports.Theory = function() {
                     return false;
                 }
                 args.push(v);
+                termArray.push(v);
             }
             var t = new Tuple(op, args);
             termMapping[source] = t;
-            steps[termIndex].push([xpath.slice(), op.toString()]);
+            var substSet = {};
+            var unifiedVarSet = unified[termIndex].extractVars();
+            var allPaths = unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(function(path) {
+                    substSet[path] = termArray;
+            });
+            if (substSet)
+            opSplits[termIndex].push(substSet);
+            unified[termIndex] = that.parseTerm(unified[termIndex].specify(substSet),
+                                                unified[termIndex].kind());
             return t;
         };
         // If the given variable (from the indexed term) has already been mapped
@@ -309,6 +379,19 @@ exports.Theory = function() {
         this.toString = function() {
             return JSON.stringify(steps);
         };
+        // Returns the final result of the unification, i.e. a term that is a
+        // common specification of all input terms.
+        this.term = function() {
+            return unified[0];
+        };
+        // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for specify()ing the unified term from term[i].
+        this.steps = function(i) {
+            var steps = opSplits[i].slice();
+            for (var k in varJoins[i]) {
+                steps.push(varJoins[i][k]);
+            }
+            return steps;
+        };
     }
 
 
@@ -316,36 +399,38 @@ exports.Theory = function() {
     // an operator; each subsequest element is a nonnegative integer (or other key)
     // representing a variable, or a legal termArray.  The types must
     // all match or we throw up.
-    function parseTerm(termArray) {
-       var vars = {};
+    this.parseTerm = function(termArray, asKind) {
+        var vars = {};
+        function copy(x) { return x.slice ? x.slice() : x; }
         function parse(input, kind) {
             if (input instanceof Array) {
                 var op = input.shift();
                 if (!(op instanceof Operator)) {
-                    throw "Bad operator: " + op;
+                    throw new Error("Bad operator: " + op);
                 }
                 if (kind && (kind != op.kind())) {
                     throw "kind mismatch: " + op + ": " + kind + "!= " + op.kind();
                 }
                 var inputs = [];
                 for (var i = 0; i < input.length; i++) {
-                    inputs.push(parse(input[i], op.input(i)));
+                    inputs.push(parse(copy(input[i]), op.input(i)));
                 }
                 return new Tuple(op, inputs);
             }
             if (vars[input]) {
                 if (kind && (vars[input].kind() != kind)) {
-                    throw "kind mismatch " + input + ":" + kind + " != " + vars[input].kind();
+                    throw "kind mismatch " + input + ":" + kind + " != "
+                        + vars[input].kind();
                 }
                 return vars[input];
             }
             if (!kind) {
-                throw "unknown kind " + input;
+                throw new Error("unknown kind " + input);
             }
             return (vars[input] = new Variable(kind));
         }
-        return parse(termArray);
-    }
+        return parse(copy(termArray), asKind);
+    };
     var theorems = {    };
     // ================ Public Methods ================
     this.newKind = function(name) {
@@ -356,8 +441,8 @@ exports.Theory = function() {
         _inputs.push.apply(inputs);
         return new Operator(name, output, inputs);
     };
-    this.addAxiom = function(name, termArray) {
-        return (theorems[name] = parseTerm(termArray));
+    this.addAxiom = function(name, term) {
+        theorems[name] = term;
     };
     this.theorem = function(key) {
         return theorems[key];
@@ -370,7 +455,7 @@ exports.Theory = function() {
         if (term1 === term2) {
             return new Unification();
         }
-        return term1.unifyTerm(term2);
+        return term1.unifyTerm(term2.clone());
     };
 
     // Return the subterm named by path.  An xpath is an array; at

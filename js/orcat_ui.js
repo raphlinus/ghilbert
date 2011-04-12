@@ -1,4 +1,4 @@
-exports.Ui = function(doc, theory, scheme) {
+exports.Ui = function(doc, theory, prover, scheme) {
     // ================ private methods ================
     function removeClass(node, className) {
         node.className = node.className.replace(className,'');
@@ -29,6 +29,13 @@ exports.Ui = function(doc, theory, scheme) {
                     function(e) {
                         removeClass(node, ' selected');
                         theorems.forEach(function(t) { t.clearUnification(); });
+                        e.stopPropagation();
+                    }, false);
+                node.addEventListener(
+                    'click', function(e) {
+                        node.className += " selected";
+                        // TODO: will need some way to choose one of two unifications
+                        theorems.forEach(function(t) { t.realizeUnification(0); });
                         e.stopPropagation();
                     }, false);
             }
@@ -85,7 +92,7 @@ exports.Ui = function(doc, theory, scheme) {
                 vSpan.className = " variable";
                 makeHoverable(vSpan, term, binding);
                 pathToNodeMap[path] = vSpan;
-                vSpan.innerHTML = term.toString().replace(/^.*\./,''); //TODO
+                vSpan.innerHTML = term.toString().replace(/^.*\./,''); //TODO: proper var naming
                 span = vSpan;
             }
             var outerSpan = doc.createElement("span");
@@ -93,12 +100,12 @@ exports.Ui = function(doc, theory, scheme) {
             if (binding) outerSpan.className += " binding_" + binding;
             return outerSpan;
         }
-        
+
         // ================ private state ================
         var wrapperSpan = doc.createElement("span");
         wrapperSpan.className = "wrapper";
         var pathToNodeMap = {};
-        var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null, 
+        var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null,
                                    pathToNodeMap);
         wrapperSpan.appendChild(theoremSpan);
         theoremSpan.className += " theorem";
@@ -140,14 +147,14 @@ exports.Ui = function(doc, theory, scheme) {
         // clearUnification or by the realization of one of the futures.
         var futures = [];
         // ================ public methods ================
-        
+
         // Attempt to unify this theorem with the given term at the given
         // binding. On failure: changes the UI to gray-out the theorem.
         // On success: changes the UI to show an outline over the to-be-unified
         // child(ren), and retains the possible unification future(s) for interaction.
         // TODO: where does this belong?
         this.attemptUnify = function(term, binding) {
-            var success = false;
+            var unification;
             if (binding.isUnknown()) {
                 // Nothing can unify to an unknown binding.
             } else if (binding.equals(scheme.ALPHA())) {
@@ -158,27 +165,27 @@ exports.Ui = function(doc, theory, scheme) {
                        !binding.equals(scheme.EXACT())) {
                 // binding Must be LEFT or RIGHT, and that determines which
                 // child will provide the template for unfication.
-                var template; // the subterm we want to unify against
+                var whichArg; // the subterm we want to unify against
                 var node;     // the DOM Node corresponding to that subterm.
+                
                 if (binding.equals(scheme.LEFT())) {
-                    template = tuple.input(0);
+                    whichArg = 0;
                     node = tree.node([0]);
                 } else if (binding.equals(scheme.RIGHT())) {
-                    template = tuple.input(1);
+                    whichArg = 1;
                     node = tree.node([1]);
                 } else {
                     throw new Error("Bad binding! " + binding);
                 }
-                var unifyMap = template.unifyTerm(term);
-                if (unifyMap) {
-                    futures.push({node:node, template:template});
+                unification = theory.unify(tuple.input(whichArg), term);
+                if (unification) {
+                    futures.push({node: node, whichArg: whichArg, unification: unification});
                     node.className += " selected";
-                    success = true;
                 }
             }
-            if (success) {
+            if (unification) {
                 // TODO: construct future
-                return true; 
+                return futures.slice();
             } else {
                 treeNode.className += " disabled";
                 return null;
@@ -189,9 +196,28 @@ exports.Ui = function(doc, theory, scheme) {
         this.clearUnification = function(future) {
             removeClass(treeNode, " disabled");
             futures.forEach(function(f) { removeClass(f.node, " selected"); });
-        };        
+            futures.splice(0, futures.length);
+        };
+        // If the last call to attemptUnify succeeded, this will perform the
+        // specifications on the theorem's term.  TODO: make this more continuationy
+        this.realizeUnification = function(which) {
+            if (which < futures.length) {
+                var path = [futures[which].whichArg];
+                var steps = futures[which].unification.steps(0);
+                function doStep() {
+                    var step = steps.shift();
+                    //TODO: PICKUP
+                    tuple = ORCAT.theory.parseTerm(tuple.specify(step), tuple.kind());
+
+                    if (steps.length > 0) {
+                        window.setTimeout(doStep, 1000);
+                    }
+                }
+                doStep();
+            }
+        };
     }
-    
+
     // ================ public methods ================
     this.addAxiom = function(name) {
         theorems.push(new Theorem(name, theory.theorem(name)));
