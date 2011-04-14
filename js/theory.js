@@ -26,11 +26,6 @@ exports.Theory = function() {
         // paths is an array of xpaths to instances of
         // the variable in this term, each prefixed with inPath.
         this.extractVars = function(varSet, inPath) { throw "virtual";};
-        // Returns a termArray for a new term that is a specification of this
-        // term.  Each key in substSet is an xpath, and each value is a legal
-        // termArray.  pathPrefix, if present, will be added to all
-        // this term's xpaths before comparison.
-        this.specify = function(substSet, pathPrefix) { throw "virtual";};
     }
 
     // A Variable has meaning only within a Tuple, and serves to bind operator inputs
@@ -78,6 +73,12 @@ exports.Theory = function() {
             return unification;
         }
     };
+    // TODO: protected
+    Variable.prototype.specify = function(substSet, path) {
+        if (!path) path = [];
+        if (substSet[path]) return substSet[path];
+        return this;
+    };
     Variable.prototype.extractVars = function(set, path) {
         if (!set) set = ({});
         if (!path) path = [];
@@ -92,11 +93,6 @@ exports.Theory = function() {
             set[this].paths.push(path.slice());
         }
         return set;
-    };
-    Variable.prototype.specify = function(substSet, path) {
-        if (!path) path = [];
-        if (substSet[path]) return substSet[path];
-        return this;
     };
     Variable.prototype.equals = function(otherTerm, varMap) {
         if (!varMap) varMap = {};
@@ -142,6 +138,18 @@ exports.Theory = function() {
             if (index >= inputs.length) throw "Bad path " + path + " at "+ this;
             return inputs[index].xpath(path.slice(1));
         };
+        // TODO: protected
+        this.specify = function(substSet, path) {
+            if (!path) path = [];
+            var termArray = [this.operator()];
+            var n = this.operator().arity();
+            for (var i = 0; i < n; i++) {
+                path.push(i);
+                termArray.push(this.input(i).specify(substSet, path));
+                path.pop();
+            }
+            return termArray;
+        };
 
         // ================ public methods ================
         this.toString = function() {
@@ -163,18 +171,6 @@ exports.Theory = function() {
                 inputs[i].extractVars(set, path);
             }
             return set;
-        };
-        // Returns a termArray.
-        this.specify = function(substSet, path) {
-            if (!path) path = [];
-            var termArray = [this.operator()];
-            var n = this.operator().arity();
-            for (var i = 0; i < n; i++) {
-                path.push(i);
-                termArray.push(this.input(i).specify(substSet, path));
-                path.pop();
-            }
-            return termArray;
         };
     }
     Tuple.prototype = new Term;
@@ -221,6 +217,23 @@ exports.Theory = function() {
             }
         }
         return true;
+    };
+    // Returns a termArray for a new term that is a specification of this
+    // term.  Each key in substSet is an xpath, and each value is a legal
+    // termArray.  pathPrefix, if present, indicates a subterm to which the
+    // paths in substSet are relative.  When a variable is changed, it will
+    // be changed everywhere in the term.
+    Tuple.prototype.specifyAt = function(substSet, xpath) {
+	var varSet = this.extractVars();
+	var newSubst = {};
+	xpath = xpath ? xpath : [];
+	for (var pathStr in substSet) {
+	    var path = xpath.concat(pathStr ? pathStr.split(/,/) : []);
+	    var sourceVar = this.xpath(path);
+	    varSet[sourceVar].paths.forEach(
+		function(p) { newSubst[p] = substSet[pathStr];});
+	}
+	return this.specify(newSubst, []);
     };
 
     // A Unification object stores (and helps build) the result of unifying one
@@ -431,6 +444,14 @@ exports.Theory = function() {
         }
         return parse(copy(termArray), asKind);
     };
+    Tuple.prototype.toTermArray = function(or) {
+	var array = [];
+	array.push(this.operator());
+        for (var i = 0, n = this.operator().arity(); i < n; i++) {
+	    array.push(this.input(i).toTermArray());
+        }
+    };
+
     var theorems = {    };
     // ================ Public Methods ================
     this.newKind = function(name) {

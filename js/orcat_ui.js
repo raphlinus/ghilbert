@@ -139,8 +139,10 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // ================ private state ================
         var tree = new Tree(tuple, false);
         var treeNode = tree.node();
+	var wrapperSpan = doc.createElement("span");
         treeNode.onclick = startProof(tuple); // TODO: move to controller
-        theoremsDiv.appendChild(treeNode);
+        theoremsDiv.appendChild(wrapperSpan);
+	wrapperSpan.appendChild(treeNode);
         // Each Future represents a possible unification.  There can be 0, 1, or
         // 2 (in the case of an equivalence, either side could be unified.)
         // This list is populated by attemptUnify.  It is cleared out by
@@ -167,7 +169,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 // child will provide the template for unfication.
                 var whichArg; // the subterm we want to unify against
                 var node;     // the DOM Node corresponding to that subterm.
-                
+
                 if (binding.equals(scheme.LEFT())) {
                     whichArg = 0;
                     node = tree.node([0]);
@@ -206,8 +208,14 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 var steps = futures[which].unification.steps(0);
                 function doStep() {
                     var step = steps.shift();
+		    console.log("old tuple" + tuple.toString() + " step " + JSON.stringify(step) + " path " + path);
+		    tuple = theory.parseTerm(tuple.specifyAt(step, path), tuple.kind());
+		    console.log(" new wterm: " + tuple.toString() + " steps remaining: " + steps.length);
+		    tree = new Tree(tuple, false);
+		    wrapperSpan.removeChild(treeNode);
+		    treeNode = tree.node();
+		    wrapperSpan.appendChild(treeNode);
                     //TODO: PICKUP
-                    tuple = ORCAT.theory.parseTerm(tuple.specify(step), tuple.kind());
 
                     if (steps.length > 0) {
                         window.setTimeout(doStep, 1000);

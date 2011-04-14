@@ -67,5 +67,9 @@ var ax2 = exports.theory.theorem('Distribute');
 expectUnify(ax2.xpath([0]), ax1);
 expectUnify(ax1.xpath([0]), ax2);
 expectUnify(ax2.xpath([1]), ax1);
+var I = exports.implies;
 expect(!exports.theory.unify(ax1, exports.theory.parseTerm(
-                            [exports.implies, 0, 0])));
+				 [I, 0, 0])));
+var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 0, 1]},[0]));
+var u = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, [I, 0, 1]]]);
+expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString());
