@@ -56,10 +56,6 @@ fs.readFile('../orcat/PosPropCal_bootstrap.gh',
                 verify.stdin.write(ghProof);
                 verify.stdin.end();
             });
-/*
-var consideration = proofState.consider([], 'Distribute',
-                                        ORCAT.theory.theorem('Distribute'));
-*/
 
 var exports = ORCAT;
 var ax1 = exports.theory.theorem('Simplify');

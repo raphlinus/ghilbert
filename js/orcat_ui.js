@@ -7,7 +7,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var theoremsDiv = doc.getElementById("theorems");
     var treeDiv = doc.getElementById("tree");
     var theorems = [];
-
+    var proofTree;
+    var proofTerm;
+    var proofState;
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
     // @param isInteractive whether this is an interactive tree.
@@ -16,12 +18,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // Makes a node hoverable.  Note that it must have no margin, or
         // else hovering will cause DOM movement.  Hovering the node will also
         // attempt to unify the theorems list. no-op if !binding.
-        function makeHoverable(node, term, binding){
+        function makeHoverable(node, term, binding, path){
             if (binding) {
                 node.addEventListener(
                     'mouseover', function(e) {
                         node.className += " selected";
-                        theorems.forEach(function(t) { t.attemptUnify(term, binding); });
+                        theorems.forEach(function(t) { t.attemptUnify(term, binding, path); });
                         e.stopPropagation();
                     }, false);
                 node.addEventListener(
@@ -58,7 +60,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 var tupleSpan = doc.createElement("span");
                 tupleSpan.className += " tuple";
                 tupleSpan.className += " op_" + op.toString().replace(/[^a-z]/g,'');
-                makeHoverable(tupleSpan, term, binding);
+                makeHoverable(tupleSpan, term, binding, path.slice());
                 pathToNodeMap[path] = tupleSpan;
                 var opSpan = doc.createElement("span");
                 opSpan.className += " operator";
@@ -90,9 +92,10 @@ exports.Ui = function(doc, theory, prover, scheme) {
             } else {
                 var vSpan = doc.createElement("span");
                 vSpan.className = " variable";
-                makeHoverable(vSpan, term, binding);
+                makeHoverable(vSpan, term, binding, path.slice());
                 pathToNodeMap[path] = vSpan;
-                vSpan.innerHTML = term.toString().replace(/^.*\./,''); //TODO: proper var naming
+                var str = term.toString(); //TODO: proper var naming
+                vSpan.innerHTML = str[str.length - 1];
                 span = vSpan;
             }
             var outerSpan = doc.createElement("span");
@@ -124,10 +127,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
     }
 
     // Create an onclick handler to start a proof over with an axiom.
-    function startProof(axiom) {
+    function startProof(thmName) {
         return function(e) {
-            treeDiv.innerHTML = "";
-            var proofTree = new Tree(axiom, true);
+            proofState = prover.newProof(thmName);
+            proofTerm = proofState.assertion();
+            if (proofTree) treeDiv.removeChild(proofTree.node());
+            proofTree = new Tree(proofTerm, true);
             treeDiv.appendChild(proofTree.node());
         };
     }
@@ -137,12 +142,21 @@ exports.Ui = function(doc, theory, prover, scheme) {
     // right child against an arbitrary term in the proof-tree.
     function Theorem(name, tuple) {
         // ================ private state ================
-        var tree = new Tree(tuple, false);
-        var treeNode = tree.node();
-	var wrapperSpan = doc.createElement("span");
-        treeNode.onclick = startProof(tuple); // TODO: move to controller
+        var originalTuple = tuple;
+        var tree;
+        var treeNode;
+        var wrapperSpan = doc.createElement("span");
         theoremsDiv.appendChild(wrapperSpan);
-	wrapperSpan.appendChild(treeNode);
+
+        function redraw() {
+            tree = new Tree(tuple, false);
+            if (treeNode) wrapperSpan.removeChild(treeNode);
+            treeNode = tree.node();
+            wrapperSpan.appendChild(treeNode);
+        }
+        redraw();
+        treeNode.onclick = startProof(name); // TODO: move to controller
+
         // Each Future represents a possible unification.  There can be 0, 1, or
         // 2 (in the case of an equivalence, either side could be unified.)
         // This list is populated by attemptUnify.  It is cleared out by
@@ -154,16 +168,17 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // binding. On failure: changes the UI to gray-out the theorem.
         // On success: changes the UI to show an outline over the to-be-unified
         // child(ren), and retains the possible unification future(s) for interaction.
+        // path is the path to the given term as a subterm of the proof term.
         // TODO: where does this belong?
-        this.attemptUnify = function(term, binding) {
+        this.attemptUnify = function(term, binding, path) {
             var unification;
             if (binding.isUnknown()) {
                 // Nothing can unify to an unknown binding.
             } else if (binding.equals(scheme.ALPHA())) {
                 // TODO: handle this.
-            } if (tuple.operator() === scheme.getEquivalence(term.kind())) {
+            } if (originalTuple.operator() === scheme.getEquivalence(term.kind())) {
                 //TODO: handle this.  We may have to create 2 futures.
-            } else if ((tuple.operator() === scheme.getArrow(term.kind())) &&
+            } else if ((originalTuple.operator() === scheme.getArrow(term.kind())) &&
                        !binding.equals(scheme.EXACT())) {
                 // binding Must be LEFT or RIGHT, and that determines which
                 // child will provide the template for unfication.
@@ -179,9 +194,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 } else {
                     throw new Error("Bad binding! " + binding);
                 }
-                unification = theory.unify(tuple.input(whichArg), term);
+                unification = theory.unify(originalTuple.input(whichArg), term);
                 if (unification) {
-                    futures.push({node: node, whichArg: whichArg, unification: unification});
+                    futures.push({node: node, whichArg: whichArg, unification: unification, proofPath:path.slice()});
                     node.className += " selected";
                 }
             }
@@ -199,30 +214,61 @@ exports.Ui = function(doc, theory, prover, scheme) {
             removeClass(treeNode, " disabled");
             futures.forEach(function(f) { removeClass(f.node, " selected"); });
             futures.splice(0, futures.length);
+            tuple = originalTuple;
         };
+        var that = this;
         // If the last call to attemptUnify succeeded, this will perform the
         // specifications on the theorem's term.  TODO: make this more continuationy
         this.realizeUnification = function(which) {
             if (which < futures.length) {
+                var unification = futures[which].unification;
+                var proofPath = futures[which].proofPath;
                 var path = [futures[which].whichArg];
-                var steps = futures[which].unification.steps(0);
+                var steps = unification.steps(0);
                 function doStep() {
-                    var step = steps.shift();
-		    console.log("old tuple" + tuple.toString() + " step " + JSON.stringify(step) + " path " + path);
-		    tuple = theory.parseTerm(tuple.specifyAt(step, path), tuple.kind());
-		    console.log(" new wterm: " + tuple.toString() + " steps remaining: " + steps.length);
-		    tree = new Tree(tuple, false);
-		    wrapperSpan.removeChild(treeNode);
-		    treeNode = tree.node();
-		    wrapperSpan.appendChild(treeNode);
-                    //TODO: PICKUP
-
+                    var isChanged;
+                    do {
+                        var step = steps.shift();
+                        var newTuple = theory.parseTerm(tuple.specifyAt(step, path));
+                        isChanged = !newTuple.equals(tuple);
+                        tuple = newTuple;
+                    } while (steps.length > 0 && !isChanged);
+                    //TODO: animations here.
+                    redraw();
+                    tree.node(path.slice()).className += " selected";
                     if (steps.length > 0) {
                         window.setTimeout(doStep, 1000);
+                    } else {
+                        treeNode.onclick = function() { //TODO: hover
+                            that.realizeUnification2(unification, proofPath);
+                        };
                     }
                 }
                 doStep();
             }
+        };
+        this.realizeUnification2 = function(unification, path) {
+            var steps = unification.steps(1);
+            function doStep() {
+                var isChanged;
+                do {
+                    var step = steps.shift();
+                    var newTuple = theory.parseTerm(proofTerm.specifyAt(step, path));
+                    isChanged = !newTuple.equals(proofTerm);
+                    proofTerm = newTuple;
+                } while (steps.length > 0 && !isChanged);
+                //TODO: animations here.
+                treeDiv.removeChild(proofTree.node());
+                proofTree = new Tree(proofTerm, true);
+                treeDiv.appendChild(proofTree.node());
+                proofTree.node(path.slice()).className += " selected";
+                if (steps.length > 0) {
+                    window.setTimeout(doStep, 1000);
+                } else {
+                    proofState = proofState.PICKUP();
+                }
+            }
+            doStep();
         };
     }
 

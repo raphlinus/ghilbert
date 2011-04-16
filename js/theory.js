@@ -230,6 +230,7 @@ exports.Theory = function() {
 	for (var pathStr in substSet) {
 	    var path = xpath.concat(pathStr ? pathStr.split(/,/) : []);
 	    var sourceVar = this.xpath(path);
+	    if (!sourceVar) throw new Error("No var at " + xpath + " in " + this.toString());
 	    varSet[sourceVar].paths.forEach(
 		function(p) { newSubst[p] = substSet[pathStr];});
 	}
