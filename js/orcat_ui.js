@@ -18,7 +18,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // Makes a node hoverable.  Note that it must have no margin, or
         // else hovering will cause DOM movement.  Hovering the node will also
         // attempt to unify the theorems list. no-op if !binding.
-        function makeHoverable(node, term, binding, path){
+        function makeHoverable(node, term, binding, path) {
             if (binding) {
                 node.addEventListener(
                     'mouseover', function(e) {

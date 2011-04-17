@@ -21,7 +21,7 @@ function expectUnify(a, b, msg) {
             b = ORCAT.theory.parseTerm(b.specify(s), b.kind());
         }
     );
-    msg += " specify to " + a.toString() + "," + b.toString();
+    msg += " specify to " + a.toString() + " and " + b.toString();
     expect(a.equals(b), msg);
 }
 
@@ -40,8 +40,25 @@ ORCAT = require('./orcat_PosPropCal.js');
 var scheme = ORCAT.scheme;
 expect(scheme.LEFT().equals(scheme.RIGHT().compose(scheme.RIGHT())), "r*r=l");
 
+var exports = ORCAT;
+var ax1 = exports.theory.theorem('Simplify');
+var ax2 = exports.theory.theorem('Distribute');
+expectUnify(ax1, ax2.xpath([0]));
+expectUnify(ax2.xpath([0]), ax1);
+expectUnify(ax1.xpath([0]), ax2);
+expectUnify(ax2.xpath([1]), ax1);
+var I = exports.implies;
+expect(!exports.theory.unify(ax1, exports.theory.parseTerm(
+                                 [I, 0, 0])));
+var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 0, 1]},[0]));
+var u = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, [I, 0, 1]]]);
+expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString());
+
+// Verify prover
 var prover = ORCAT.prover;
 var proofState = prover.newProof("Simplify");
+var unification = exports.theory.unify(ax1, ax2.xpath([0]));
+proofState = proofState.applyArrow([], "Distribute", [0], unification);
 var ghProof = proofState.proof('thm1');
 util.puts("verifying proof: " + ghProof);
 var verify = spawn('python', ['../verify.py','--','-'],
@@ -57,15 +74,3 @@ fs.readFile('../orcat/PosPropCal_bootstrap.gh',
                 verify.stdin.end();
             });
 
-var exports = ORCAT;
-var ax1 = exports.theory.theorem('Simplify');
-var ax2 = exports.theory.theorem('Distribute');
-expectUnify(ax2.xpath([0]), ax1);
-expectUnify(ax1.xpath([0]), ax2);
-expectUnify(ax2.xpath([1]), ax1);
-var I = exports.implies;
-expect(!exports.theory.unify(ax1, exports.theory.parseTerm(
-				 [I, 0, 0])));
-var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 0, 1]},[0]));
-var u = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, [I, 0, 1]]]);
-expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString());

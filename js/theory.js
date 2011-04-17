@@ -205,6 +205,8 @@ exports.Theory = function() {
             return false;
         }
     };
+    // If this tuple equals the other tuple, returns true and populates varMap
+    // with the mapping from our vars to their vars.
     Tuple.prototype.equals = function(otherTerm, varMap) {
         if (!varMap) varMap = {};
         if (!otherTerm.operator || (otherTerm.operator() != this.operator())) {
@@ -218,6 +220,7 @@ exports.Theory = function() {
         }
         return true;
     };
+
     // Returns a termArray for a new term that is a specification of this
     // term.  Each key in substSet is an xpath, and each value is a legal
     // termArray.  pathPrefix, if present, indicates a subterm to which the
@@ -287,15 +290,6 @@ exports.Theory = function() {
             };
         }
 
-        // Since variables in the two terms might overlap, we prefix them to
-        // disambiguate.
-        function prefix(termIndex, v) {
-            return v;
-                /*  TODO: just clone the terms before unifying.
-            if (v[0] === "t") return v;
-            return "t" + termIndex + "v" + v;
-                 */
-        }
         var varMapping = new Bimap();
         // steps()[i] starts with all the elements of opSplits[i].
         var opSplits = [[], []];
@@ -311,9 +305,8 @@ exports.Theory = function() {
         // a cyclic dependency.
         this.mapVarToVar = function(termIndex, xpath, source, newVar) {
             if (termIndex != 0) throw "only map vars forward.";
-            source = prefix(termIndex, source);
             source = varMapping.lookup(source) || source;
-            var target = prefix(1 - termIndex, newVar);
+            var target = newVar;
             target = varMapping.lookup(target) || target;
             if (source === target) {
                 return true;
@@ -330,17 +323,26 @@ exports.Theory = function() {
                     return false;
                 }
             }
+
             for (var i = 0; i < 2; i++) {
                 if (!varJoins[i][target]) {
                     varJoins[i][target] = {};
                 }
-                var unifiedVarSet = unified[i].extractVars();
-                var allPathsObj = unifiedVarSet[unified[i].xpath(xpath.slice())];
-                if (allPathsObj) {
-                    allPathsObj.paths.forEach(function(path) {
-                                                 varJoins[i][target][path] = target;
-                                             });
-                }
+		function addVarJoins(allPathsObj) {
+                    if (allPathsObj) {
+			allPathsObj.paths.forEach(function(path) {
+                                                      varJoins[i][target][path] = target;
+						  });
+                    }
+		}
+		addVarJoins(unified[i].extractVars()[unified[i].xpath(xpath.slice())]);
+		// TODO: I originally stopped here.  But since source was
+		// lookup()ed, it could be a var in terms[1].  In that case,
+		// unified[i].xpath will not necessarily match it.  Adding a
+		// second set of varjoins seems to fix it, but I think this
+		// might be missing something.
+		addVarJoins(terms[i].extractVars()[source]);
+
                 unified[i] = that.parseTerm(unified[i].specify(varJoins[i][target]),
                                             unified[i].kind());
             }
@@ -353,7 +355,6 @@ exports.Theory = function() {
         // returns null instead.
         this.mapVarToTerm = function(termIndex, xpath, source, term) {
             var varSet = term.extractVars();
-            source = prefix(termIndex, source);
             source = varMapping.lookup(source) || source;
             if (varSet[source]) {
                 return null;
@@ -363,8 +364,7 @@ exports.Theory = function() {
             var args = [];
             for (var i = 0; i < op.arity(); i++) {
                 var v = new Variable(op.input(i));
-                var pv = prefix(2, v);
-                if (!termDag.connect(source, pv)) {
+                if (!termDag.connect(source, v)) {
                     return false;
                 }
                 args.push(v);
@@ -374,9 +374,10 @@ exports.Theory = function() {
             termMapping[source] = t;
             var substSet = {};
             var unifiedVarSet = unified[termIndex].extractVars();
-            var allPaths = unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(function(path) {
+            var allPaths = unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(
+		function(path) {
                     substSet[path] = termArray;
-            });
+		});
             if (substSet)
             opSplits[termIndex].push(substSet);
             unified[termIndex] = that.parseTerm(unified[termIndex].specify(substSet),
@@ -386,7 +387,7 @@ exports.Theory = function() {
         // If the given variable (from the indexed term) has already been mapped
         // to a term, return that term.  Otherwise, return the variable itself.
         this.lookupVariable = function(termIndex, v) {
-            var source = prefix(termIndex, v);
+            var source = v;
             source = varMapping.lookup(source) || source;
             return termMapping[source] || v;
         };
@@ -445,7 +446,7 @@ exports.Theory = function() {
         }
         return parse(copy(termArray), asKind);
     };
-    Tuple.prototype.toTermArray = function(or) {
+    Tuple.prototype.toTermArray = function() {
 	var array = [];
 	array.push(this.operator());
         for (var i = 0, n = this.operator().arity(); i < n; i++) {
