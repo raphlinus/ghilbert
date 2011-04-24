@@ -1,7 +1,7 @@
 // A Scheme keeps track of which theorems prove various category-level
 // invariants, and is used by a Proof to manipulate terms in a proof
 // tree.
-// 
+//
 // Under a particular Scheme, each kind has a particular operator that
 // serves as its "natural arrow", taking two inputs of that kind
 // and outputing a wff.  The "natural equivalence" is then defined as a
@@ -21,7 +21,7 @@
 //
 // TODO: support/document initial and terminal elements
 
-// @param wffArrow: the natural operator of wff, which ought to be ->.  
+// @param wffArrow: the natural operator of wff, which ought to be ->.
 // @param modusPonens: the name of the inference ((A (-> A B)) B).
 exports.Scheme = function(wffArrow, modusPonens) {
     var scheme = this;
@@ -65,7 +65,7 @@ exports.Scheme = function(wffArrow, modusPonens) {
     var bindings = { };
 
     arrows[wffArrow.input(0)] = wffArrow;
-    
+
     // ================ Public Methods ================
     this.LEFT = function() { return new Binding(1); };
     this.RIGHT = function() { return new Binding(-1); };
@@ -79,7 +79,7 @@ exports.Scheme = function(wffArrow, modusPonens) {
     this.getArrow = function(kind) {
         return arrows[kind];
     };
-    
+
     // @param theorem1 the name of the theorem (-> (operator A B) (arrow A B))
     // @param theorem2 the name of the theorem (-> (operator A B) (arrow B A))
     this.setEquivalence = function(kind, operator, theorem1, theorem2) {
@@ -89,7 +89,7 @@ exports.Scheme = function(wffArrow, modusPonens) {
         if (!equivalences[kind]) return null;
         return equivalences[kind].operator;
     };
-    
+
     // @param theoremName the name of the theorem that proves the
     // appropriate transformation for this binding.
     this.setBinding = function(operator, argIndex, binding, theoremName) {
@@ -103,5 +103,8 @@ exports.Scheme = function(wffArrow, modusPonens) {
     this.getBinding = function(operator, argIndex) {
         if (!bindings[operator] || !bindings[operator][argIndex]) return this.UNKNOWN();
         return bindings[operator][argIndex].binding;
+    };
+    this.modusPonens = function() {
+        return modusPonens;
     };
 };

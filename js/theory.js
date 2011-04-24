@@ -102,6 +102,9 @@ exports.Theory = function() {
         varMap[this] = otherTerm;
         return true;
     };
+    Variable.prototype.toTermArray = function() {
+        return this;
+    };
 
     // A Tuple is an Operator with a list of inputs of appropriate
     // kind.  Its Kind is the kind of its operator.  No
@@ -174,7 +177,14 @@ exports.Theory = function() {
         };
     }
     Tuple.prototype = new Term;
-
+    // TODO: protected
+    // TODO: I have failed in my efforts to get isolation of Variables right.  Perhaps
+    // input(i) should be replaced with xpath([i]) everywhere?
+    Tuple.prototype.extract = function(path) {
+        if (path.length == 0) return this;
+        if (path.length == 1) return this.input(path.shift());
+        return this.input(path.shift()).extract(path);
+    };
     // TODO: protected
     Tuple.prototype.unifyTerm = function(term, unification, path) {
         if (!unification) unification = new Unification([this, term]);
@@ -220,6 +230,38 @@ exports.Theory = function() {
         }
         return true;
     };
+    //TODO: doc this, if it's even right
+    Tuple.prototype.applyArrow = function(xpath, otherTerm, templateArg) {
+        var equalityMap = {};
+        if (!otherTerm.input(templateArg).equals(this.extract(xpath.slice()),
+                                                 equalityMap)) {
+            throw new Error("Subterm not equal");
+        }
+        var otherArray = otherTerm.toTermArray();
+        // use the equalityMap to convert otherTerm's vars to our vars.
+        function performSub(termArray) {
+            for (var i = 1; i < termArray.length; i++) {
+                if (termArray[i] instanceof Array) {
+                    performSub(termArray[i]);
+                } else {
+                    termArray[i] = equalityMap[termArray[i]];
+                }
+            }
+        }
+        performSub(otherArray);
+        otherArray = otherArray[2 - templateArg];
+        var thisArray = this.toTermArray();
+        xpath = xpath.slice();
+        // Swap in the result array.
+        function descend(termArray) {
+            if (xpath.length == 0) return otherArray;
+            var child = xpath.shift();
+            termArray[child] = descend(termArray[child]);
+            return termArray;
+        }
+        var out =  descend(thisArray);
+        return out;
+    };
 
     // Returns a termArray for a new term that is a specification of this
     // term.  Each key in substSet is an xpath, and each value is a legal
@@ -227,17 +269,17 @@ exports.Theory = function() {
     // paths in substSet are relative.  When a variable is changed, it will
     // be changed everywhere in the term.
     Tuple.prototype.specifyAt = function(substSet, xpath) {
-	var varSet = this.extractVars();
-	var newSubst = {};
-	xpath = xpath ? xpath : [];
-	for (var pathStr in substSet) {
-	    var path = xpath.concat(pathStr ? pathStr.split(/,/) : []);
-	    var sourceVar = this.xpath(path);
-	    if (!sourceVar) throw new Error("No var at " + xpath + " in " + this.toString());
-	    varSet[sourceVar].paths.forEach(
-		function(p) { newSubst[p] = substSet[pathStr];});
-	}
-	return this.specify(newSubst, []);
+        var varSet = this.extractVars();
+        var newSubst = {};
+        xpath = xpath ? xpath : [];
+        for (var pathStr in substSet) {
+            var path = xpath.concat(pathStr ? pathStr.split(/,/) : []);
+            var sourceVar = this.xpath(path);
+            if (!sourceVar) throw new Error("No var at " + xpath + " in " + this.toString());
+            varSet[sourceVar].paths.forEach(
+                function(p) { newSubst[p] = substSet[pathStr];});
+        }
+        return this.specify(newSubst, []);
     };
 
     // A Unification object stores (and helps build) the result of unifying one
@@ -323,25 +365,24 @@ exports.Theory = function() {
                     return false;
                 }
             }
-
             for (var i = 0; i < 2; i++) {
                 if (!varJoins[i][target]) {
                     varJoins[i][target] = {};
                 }
-		function addVarJoins(allPathsObj) {
+                function addVarJoins(allPathsObj) {
                     if (allPathsObj) {
-			allPathsObj.paths.forEach(function(path) {
+                        allPathsObj.paths.forEach(function(path) {
                                                       varJoins[i][target][path] = target;
-						  });
+                                                  });
                     }
-		}
-		addVarJoins(unified[i].extractVars()[unified[i].xpath(xpath.slice())]);
-		// TODO: I originally stopped here.  But since source was
-		// lookup()ed, it could be a var in terms[1].  In that case,
-		// unified[i].xpath will not necessarily match it.  Adding a
-		// second set of varjoins seems to fix it, but I think this
-		// might be missing something.
-		addVarJoins(terms[i].extractVars()[source]);
+                }
+                addVarJoins(unified[i].extractVars()[unified[i].xpath(xpath.slice())]);
+                // TODO: I originally stopped here.  But since source was
+                // lookup()ed, it could be a var in terms[1].  In that case,
+                // unified[i].xpath will not necessarily match it.  Adding a
+                // second set of varjoins seems to fix it, but I think this
+                // might be missing something.
+                addVarJoins(terms[i].extractVars()[source]);
 
                 unified[i] = that.parseTerm(unified[i].specify(varJoins[i][target]),
                                             unified[i].kind());
@@ -375,9 +416,9 @@ exports.Theory = function() {
             var substSet = {};
             var unifiedVarSet = unified[termIndex].extractVars();
             var allPaths = unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(
-		function(path) {
+                function(path) {
                     substSet[path] = termArray;
-		});
+                });
             if (substSet)
             opSplits[termIndex].push(substSet);
             unified[termIndex] = that.parseTerm(unified[termIndex].specify(substSet),
@@ -399,7 +440,8 @@ exports.Theory = function() {
         this.term = function() {
             return unified[0];
         };
-        // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for specify()ing the unified term from term[i].
+        // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for
+        // specify()ing to the common unified term from term[i].
         this.steps = function(i) {
             var steps = opSplits[i].slice();
             for (var k in varJoins[i]) {
@@ -447,11 +489,12 @@ exports.Theory = function() {
         return parse(copy(termArray), asKind);
     };
     Tuple.prototype.toTermArray = function() {
-	var array = [];
-	array.push(this.operator());
+        var array = [];
+        array.push(this.operator());
         for (var i = 0, n = this.operator().arity(); i < n; i++) {
-	    array.push(this.input(i).toTermArray());
+            array.push(this.input(i).toTermArray());
         }
+        return array;
     };
 
     var theorems = {    };
