@@ -106,6 +106,55 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             }
             return new WrappedTerm(outTerm, ptvm);
         };
+	// Performs the given substitution and returns a new wrappedTerm.  The
+	// returned term may have new variables; if so, the appropriate mappings
+	// will be stored in outMap.
+	this.specifyAt = function(substSet, xpath, outMap) {
+	    var newTerm = theory.parseTerm(term.specifyAt(substSet, xpath.slice()));
+	    var newPtvm = cloneMap(pathToVarMap);
+	    var termArrayToVarMap = {};
+            for (var p in substSet) if (substSet.hasOwnProperty(p)) {
+                var termArray = substSet[p];
+                p = pathFromString(p);
+                var pathToSubst = xpath.concat(p);
+                var oldVar = newPtvm[pathToSubst];
+                if (!oldVar || !oldVar.kind || oldVar.operator) {
+                    throw new Error("Bad substitution! " + pathToSubst);
+                }
+		if (!(termArray instanceof Array)) {
+		    // A variable is being replaced by another variable.
+		    // Since this just collapses two paths into the same
+		    // variable, no new vars are required.
+		    var newVar = termArrayToVarMap[termArray];
+		    if (!newVar) {
+			termArrayToVarMap[termArray] = oldVar;
+			newVar = oldVar;
+		    } else if (oldVar !== newVar) {
+			outMap[oldVar] = newVar;
+		    }
+		    newPtvm[pathToSubst] = newVar;
+		} else {
+		    // A variable is being replaced by a new term.
+		    // TODO: we are relying on a guarantee about the substSet:
+		    // that when a var is replaced with a termArray, none of the
+		    // termArray's leaves have appeared already in the substSet.
+		    var subTerm = theory.parseTerm(termArray, oldVar.kind());
+                    var subPtvm = {};
+                    var subVars = subTerm.extractVars();
+                    for (var k in subVars) if (subVars.hasOwnProperty(k)) {
+                        var v = new Variable(subVars[k].kind);
+                        varSet[k].paths.forEach(
+                            function(pp) {
+                                subPtvm[pp] = v;
+                                newPtvm[pathToSubst.concat(pp)] = v;
+                            });
+                    }
+                    outMap[oldVar] = new WrappedTerm(subTerm, subPtvm);
+                    delete newPtvm[pathToSubst];
+                }
+	    }
+	    return new WrappedTerm(newTerm, newPtvm);
+	};
     };
     function termToSexp(wrappedTerm, term, path, outArr) {
         if (!outArr) outArr = [];
@@ -205,6 +254,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     return varNamer.name(obj);
                 } else {
                     // obj is a theorem name, parens, or operator
+                    if (varToTermMap[obj]) return stringify(varToTermMap[obj]);
                     return obj.toString();
                 }
             }
@@ -223,7 +273,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             //TODO
         };
         // the term (of kind wff) representing the assertion of this ProofState.
-        this.assertion = function() { return assertion; };
+        this.assertion = function() { return wrappedAssertion.term(); };
         // Returns an extension of this proofstate obtained by applying the
         // given theorem at the given path.  If the named theorem is a
         // unidirectional arrowing, then templateArg=1 means that the subterm
@@ -236,57 +286,18 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         // TODO: this unification should be generated from here, not outside.
         this.applyArrow = function(path, thmName, templateArg, unification) {
             //TODO: check binding and operator
-            var newAssertion = wrappedAssertion.term();
+            var newWrappedAssertion = wrappedAssertion;
             var newVarToTermMap = cloneMap(varToTermMap);
-            var newPathToVarMap = wrappedAssertion.pathToVarMap();
             var newSteps = steps.slice();
             unification.steps(0).forEach(
                 function(s) {
-                    newAssertion = theory.parseTerm(
-                        newAssertion.specifyAt(s, path.slice()));
-                    var termArrayVarToVariableMap = {};
-                    for (var p in s) {
-                        p = pathFromString(p);
-                        var pathToSubst = path.concat(p);
-                        var termArray = s[p];
-                        var oldVar = newPathToVarMap[pathToSubst];
-                        if (!oldVar || !oldVar.kind || oldVar.operator) {
-                            throw new Error("Bad substitution! " + pathToSubst);
-                        }
-                        // A Variable is being replaced.  We need to maintain
-                        // the validity invariant. oldVar will remain in the
-                        // steps array, but instead of being a value in
-                        // newPathToVarMap, it will now be a key in
-                        // newVarToTermMap, with value WT.  The replacing term
-                        // will have some variables, and each of them will need
-                        // an entry in newPathToVarMap, as well as in the
-                        // pathToTermMap of WT.
-                        delete newPathToVarMap[pathToSubst];
-                        var newTerm = theory.parseTerm(termArray, oldVar.kind());
-                        var ptvm = {};
-                        var varSet = newTerm.extractVars();
-                        for (var k in varSet) if (varSet.hasOwnProperty(k)) {
-                            var v = new Variable(varSet[k].kind);
-                            varSet[k].paths.forEach(
-                                function(pp) {
-                                    newPathToVarMap[pathToSubst.concat(pp)] = v;
-                                    ptvm[pp] = v;
-                                });
-                        }
-                        newVarToTermMap[oldVar] = new WrappedTerm(newTerm, ptvm);
-                    }
+                    newWrappedAssertion = newWrappedAssertion.specifyAt(
+			s, path.slice(), newVarToTermMap);
                 }
             );
-            var newWrappedAssertion = new WrappedTerm(newAssertion, newPathToVarMap);
 
             var theorem = theory.theorem(thmName);
             var newTheorem = theorem;
-            unification.steps(1).forEach(
-                function(s) {
-                    newTheorem = theory.parseTerm(
-                        newTheorem.specifyAt(s, [templateArg]));
-                }
-            );
             // For what follows we need newTheorem as a WrappedTerm.  Each var
             // that appears in newTheorem.input(templateArg) will be mapped-to from
             // the corresponding var in the subterm to be replaced.  (This
@@ -298,6 +309,13 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 varSet[kk].paths.forEach(function(pp) { ptvm[pp] = vv; });
             }
             var newWrappedTheorem = new WrappedTerm(newTheorem, ptvm);
+	    var tmpMap = {};
+            unification.steps(1).forEach(
+                function(s) {
+                    newWrappedTheorem = newWrappedTheorem.specifyAt(
+			s, [templateArg], tmpMap);
+                }
+            );
 
             // Each Variable in the original theorem is a mandHyp, but what to
             // put there depends on the final status of newTheorem.
@@ -316,10 +334,10 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             }
             newSteps.push(thmName);
             while (path.length > 0) {
-                throw new Error("// TODO: climb up the tree");
+                throw new Error("// PICKUP: climb up the tree");
             }
-            newSteps.push(scheme.modusPonens());
-
+            newSteps.push(scheme.modusPonens())
+;
             newWrappedAssertion = newWrappedAssertion.applyArrow(
                 path, newWrappedTheorem, templateArg, newVarToTermMap);
             return new ProofState(newWrappedAssertion, newSteps, newVarToTermMap);

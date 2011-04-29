@@ -58,7 +58,11 @@ expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString())
 var prover = ORCAT.prover;
 var proofState = prover.newProof("Simplify");
 var unification = exports.theory.unify(ax1, ax2.xpath([0]));
-proofState = proofState.applyArrow([], "Distribute", [0], unification);
+proofState = proofState.applyArrow([], "Distribute", 0, unification);
+unification = exports.theory.unify(proofState.assertion().xpath([0]), ax1.xpath([1]));
+expect(unification);
+//PICKUP: climbing
+// proofState = proofState.applyArrow([0], "Simplify", 1, unification);
 var ghProof = proofState.proof('thm1');
 util.puts("verifying proof: " + ghProof);
 var verify = spawn('python', ['../verify.py','--','-'],
