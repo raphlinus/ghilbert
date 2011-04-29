@@ -104,7 +104,11 @@ exports.Scheme = function(wffArrow, modusPonens) {
         if (!bindings[operator] || !bindings[operator][argIndex]) return this.UNKNOWN();
         return bindings[operator][argIndex].binding;
     };
-    this.modusPonens = function() {
+    this.getTheorem = function(operator, argIndex) {
+        return bindings[operator][argIndex].theorem;
+    };
+    this.modusPonens = function(direction) {
+        //TODO: direction
         return modusPonens;
     };
 };

@@ -6,6 +6,7 @@
 // must be the same as the available vars in the ghilbert context
 // where our proofs will be evaluated.
 exports.Prover = function(theory, scheme, ghilbertVarNames) {
+    var DEBUG = true;
     // For now this is identical to the definition in theory.js, but may diverge
     // in the future.  Variables are implementation details and should not be
     // shared across interfaces.  The temptation to conflate them is almost
@@ -29,13 +30,13 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         return out;
     }
     function pathFromString(p) {
-        return p ? p.split(/,/) : [];
+        return p ? p.split(/,/).map(Number) : [];
     }
     // A Term, but with each of its var-leaves annotated to one of our own variables.
     function WrappedTerm(term, pathToVarMap) {
         function arrayEquals(a1, a2) {
             if (a1.length != a2.length) return false;
-            for (var i = a1.length; i >= 0; i--) {
+            for (var i = a1.length - 1; i >= 0; i--) {
                 if (a1[i] !== a2[i]) return false;
             }
             return true;
@@ -45,6 +46,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         // path leads to a term, return a new WrappedTerm whose PTVM is consistent with
         // ours.
         this.xpath = function(path) {
+            if (path.length == 0) return this.term();
             if (pathToVarMap[path]) { return pathToVarMap[path]; }
             var outTerm = term.xpath(path.slice());
             var ptvm = {};
@@ -85,6 +87,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                                        templateArg));
             var ptvm = {};
             var varSet = outTerm.extractVars();
+            var that = this;
             for (var k in varSet) if (varSet.hasOwnProperty(k)) {
                 var v = new Variable(varSet[k].kind);
                 varSet[k].paths.forEach(
@@ -99,20 +102,20 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                             if (outMap[oldVar]) oldVar = outMap[oldVar];
                         } else {
                             // variables outside the subterm came from our term.
-                            var oldVar = this.xpath(p);
+                            var oldVar = that.xpath(p);
                         }
                         outMap[oldVar] = v;
                     });
             }
             return new WrappedTerm(outTerm, ptvm);
         };
-	// Performs the given substitution and returns a new wrappedTerm.  The
-	// returned term may have new variables; if so, the appropriate mappings
-	// will be stored in outMap.
-	this.specifyAt = function(substSet, xpath, outMap) {
-	    var newTerm = theory.parseTerm(term.specifyAt(substSet, xpath.slice()));
-	    var newPtvm = cloneMap(pathToVarMap);
-	    var termArrayToVarMap = {};
+        // Performs the given substitution and returns a new wrappedTerm.  The
+        // returned term may have new variables; if so, the appropriate mappings
+        // will be stored in outMap.
+        this.specifyAt = function(substSet, xpath, outMap) {
+            var newTerm = theory.parseTerm(term.specifyAt(substSet, xpath.slice()));
+            var newPtvm = cloneMap(pathToVarMap);
+            var termArrayToVarMap = {};
             for (var p in substSet) if (substSet.hasOwnProperty(p)) {
                 var termArray = substSet[p];
                 p = pathFromString(p);
@@ -121,24 +124,24 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 if (!oldVar || !oldVar.kind || oldVar.operator) {
                     throw new Error("Bad substitution! " + pathToSubst);
                 }
-		if (!(termArray instanceof Array)) {
-		    // A variable is being replaced by another variable.
-		    // Since this just collapses two paths into the same
-		    // variable, no new vars are required.
-		    var newVar = termArrayToVarMap[termArray];
-		    if (!newVar) {
-			termArrayToVarMap[termArray] = oldVar;
-			newVar = oldVar;
-		    } else if (oldVar !== newVar) {
-			outMap[oldVar] = newVar;
-		    }
-		    newPtvm[pathToSubst] = newVar;
-		} else {
-		    // A variable is being replaced by a new term.
-		    // TODO: we are relying on a guarantee about the substSet:
-		    // that when a var is replaced with a termArray, none of the
-		    // termArray's leaves have appeared already in the substSet.
-		    var subTerm = theory.parseTerm(termArray, oldVar.kind());
+                if (!(termArray instanceof Array)) {
+                    // A variable is being replaced by another variable.
+                    // Since this just collapses two paths into the same
+                    // variable, no new vars are required.
+                    var newVar = termArrayToVarMap[termArray];
+                    if (!newVar) {
+                        termArrayToVarMap[termArray] = oldVar;
+                        newVar = oldVar;
+                    } else if (oldVar !== newVar) {
+                        outMap[oldVar] = newVar;
+                    }
+                    newPtvm[pathToSubst] = newVar;
+                } else {
+                    // A variable is being replaced by a new term.
+                    // TODO: we are relying on a guarantee about the substSet:
+                    // that when a var is replaced with a termArray, none of the
+                    // termArray's leaves have appeared already in the substSet.
+                    var subTerm = theory.parseTerm(termArray, oldVar.kind());
                     var subPtvm = {};
                     var subVars = subTerm.extractVars();
                     for (var k in subVars) if (subVars.hasOwnProperty(k)) {
@@ -152,9 +155,9 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     outMap[oldVar] = new WrappedTerm(subTerm, subPtvm);
                     delete newPtvm[pathToSubst];
                 }
-	    }
-	    return new WrappedTerm(newTerm, newPtvm);
-	};
+            }
+            return new WrappedTerm(newTerm, newPtvm);
+        };
     };
     function termToSexp(wrappedTerm, term, path, outArr) {
         if (!outArr) outArr = [];
@@ -221,7 +224,44 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         // needed for construction of the current proofstate but not present in
         // the assertion and never needed again for any possible extension.
         //TODO: how to determine alpha-binding of dummy vars?
-
+        function assertValid(v, ptvm, vttm) {
+            var found = 0;
+            // Check if v is a value in PTVM
+            for (var k in ptvm) if (ptvm.hasOwnProperty(k)) {
+                if (ptvm[k] === v) {
+                    found++;
+                    break;
+                }
+            }
+            // Check if v is a key in vttm
+            if (vttm[v]) {
+                assertVarsValid(vttm[v], ptvm, vttm);
+                found++;
+            }
+            if (found != 1) {
+                throw new Error("Not a valid var: " + v + " found=" + found);
+            }
+        }
+        function assertVarsValid(wt, ptvm, vttm) {
+            if (wt instanceof Variable) {
+                assertValid(wt, ptvm, vttm);
+            } else {
+                var wtptvm = wt.pathToVarMap();
+                for (var p in wtptvm) if (wtptvm.hasOwnProperty(p)) {
+                    assertValid(wtptvm[p], ptvm, vttm);
+                }
+            }
+        }
+        function assertAllValid(ss, ptvm, vttm) {
+            ss.forEach(function(s) {
+                           if (!s.arity && (s.toString() !== s)) {
+                               assertVarsValid(s, ptvm, vttm);
+                           }
+                       });
+        }
+        if (DEBUG) {
+            assertAllValid(steps, wrappedAssertion.pathToVarMap(), varToTermMap);
+        }
         // Compute the binding on the subterm at the named path.  Consumes path.
         function bindingAt(path, rTerm, rBinding) {
             if (!rTerm) {
@@ -243,7 +283,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             function stringify(obj) {
                 if (obj.term) {
                     // obj is a WrappedTerm
-                    return termToSexp(wrappedAssertion).map(stringify).join('');
+                    return termToSexp(obj).map(stringify).join('');
                 } else if (obj.arity) {
                     // obj is an Operator
                     return obj.toString().replace(/[^a-zA-Z]/g, '');
@@ -251,7 +291,9 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     // obj is a variable.  resolve it fully, then
                     // convert to a gh var name.
                     if (varToTermMap[obj]) return stringify(varToTermMap[obj]);
-                    return varNamer.name(obj);
+                    var name = varNamer.name(obj);
+                    varToTermMap[obj] = name;
+                    return name;
                 } else {
                     // obj is a theorem name, parens, or operator
                     if (varToTermMap[obj]) return stringify(varToTermMap[obj]);
@@ -292,28 +334,31 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             unification.steps(0).forEach(
                 function(s) {
                     newWrappedAssertion = newWrappedAssertion.specifyAt(
-			s, path.slice(), newVarToTermMap);
+                        s, path.slice(), newVarToTermMap);
                 }
             );
 
+            if (DEBUG) {
+                assertAllValid(newSteps, newWrappedAssertion.pathToVarMap(), newVarToTermMap);
+            }
             var theorem = theory.theorem(thmName);
             var newTheorem = theorem;
             // For what follows we need newTheorem as a WrappedTerm.  Each var
             // that appears in newTheorem.input(templateArg) will be mapped-to from
             // the corresponding var in the subterm to be replaced.  (This
             // happens below in applyArrow.)
-            varSet = newTheorem.extractVars();
+            var varSet = newTheorem.extractVars();
             var ptvm = {};
             for (var kk in varSet) if (varSet.hasOwnProperty(kk)) {
                 var vv = new Variable(varSet[kk].kind);
                 varSet[kk].paths.forEach(function(pp) { ptvm[pp] = vv; });
             }
             var newWrappedTheorem = new WrappedTerm(newTheorem, ptvm);
-	    var tmpMap = {};
+            var tmpMap = {};
             unification.steps(1).forEach(
                 function(s) {
                     newWrappedTheorem = newWrappedTheorem.specifyAt(
-			s, [templateArg], tmpMap);
+                        s, [templateArg], tmpMap);
                 }
             );
 
@@ -333,13 +378,42 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 newSteps.push.apply(newSteps, termToSexp(mandHyp));
             }
             newSteps.push(thmName);
-            while (path.length > 0) {
-                throw new Error("// PICKUP: climb up the tree");
-            }
-            newSteps.push(scheme.modusPonens())
-;
             newWrappedAssertion = newWrappedAssertion.applyArrow(
                 path, newWrappedTheorem, templateArg, newVarToTermMap);
+
+            // Climb the tree.
+            var myPath = path.slice();
+            var headRoot = (templateArg == 1 ? newWrappedAssertion : wrappedAssertion);
+            var tailRoot = (templateArg == 0 ? newWrappedAssertion : wrappedAssertion);
+            var mpIndex = templateArg;
+            while (myPath.length > 0) {
+                newSteps.push.apply(newSteps,
+                                    termToSexp(headRoot.xpath(myPath.slice())));
+                newSteps.push.apply(newSteps,
+                                    termToSexp(tailRoot.xpath(myPath.slice())));
+                var whichChild = myPath.pop();
+                var op = wrappedAssertion.term().xpath(path.slice()).operator();
+                for (var i = 0; i < op.arity(); i++) {
+                    if (i != whichChild) {
+                        myPath.push(i);
+                        var mandHyp = newWrappedAssertion.xpath(myPath.slice());
+                        myPath.pop();
+                        newSteps.push.apply(newSteps, termToSexp(mandHyp));
+                    }
+                }
+                var pushUpTheorem = scheme.getTheorem(op, whichChild);
+                if (!pushUpTheorem) throw new Error("pushup: " + op + "." + whichChild);
+                newSteps.push(pushUpTheorem);
+                if (scheme.getBinding(op, whichChild) == scheme.RIGHT()) {
+                    // This arrowing theorem will switch the order of our mandhyps.
+                    var tmp = headRoot;
+                    headRoot = tailRoot;
+                    tailRoot = tmp;
+                    mpIndex = 1 - mpIndex;
+                }
+                newSteps.push(scheme.modusPonens(mpIndex), "\n");
+            }
+            newSteps.push(scheme.modusPonens(),"\n");
             return new ProofState(newWrappedAssertion, newSteps, newVarToTermMap);
         };
     }

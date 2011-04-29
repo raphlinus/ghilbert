@@ -256,7 +256,7 @@ exports.Theory = function() {
         function descend(termArray) {
             if (xpath.length == 0) return otherArray;
             var child = xpath.shift();
-            termArray[child] = descend(termArray[child]);
+            termArray[child + 1] = descend(termArray[child + 1]);
             return termArray;
         }
         var out =  descend(thisArray);
