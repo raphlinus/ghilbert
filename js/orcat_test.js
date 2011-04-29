@@ -41,6 +41,7 @@ var scheme = ORCAT.scheme;
 expect(scheme.LEFT().equals(scheme.RIGHT().compose(scheme.RIGHT())), "r*r=l");
 
 var exports = ORCAT;
+var theory = exports.theory;
 var ax1 = exports.theory.theorem('Simplify');
 var ax2 = exports.theory.theorem('Distribute');
 expectUnify(ax1, ax2.xpath([0]));
@@ -56,14 +57,89 @@ expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString())
 
 // Verify prover
 var prover = ORCAT.prover;
-var proofState = prover.newProof("Simplify");
-var unification = exports.theory.unify(ax1, ax2.xpath([0]));
-proofState = proofState.applyArrow([], "Distribute", 0, unification);
-unification = exports.theory.unify(proofState.assertion().xpath([0]), ax1.xpath([1]));
-expect(unification);
-proofState = proofState.applyArrow([0], "Simplify", 1, unification);
-var ghProof = proofState.proof('thm1');
-util.puts("verifying proof: " + ghProof);
+var proofState;
+var ghText = "";
+function startWith(thmName) {
+        proofState = prover.newProof(thmName);
+}
+function applyArrow(xpath, thmName) {
+    proofState = proofState.consider(xpath, thmName)[0].execute();
+}
+function saveAs(thmName) {
+    ghText += proofState.proof(thmName) + "\n";
+    theory.addAxiom(thmName, proofState.assertion());
+}
+startWith("Distribute");
+applyArrow([0], "Simplify");
+saveAs("imim2");
+applyArrow([], "Distribute");
+applyArrow([0], "Simplify");
+saveAs("imim1");
+startWith("Simplify");
+applyArrow([], "imim1");
+saveAs('himp1');
+startWith("Distribute");
+applyArrow([1,0],'Simplify');
+saveAs('con12');
+startWith('Simplify');
+applyArrow([], 'Distribute');
+saveAs('iddlem1');
+applyArrow([0], 'Simplify');
+saveAs('idd');
+applyArrow([], 'idd');
+saveAs('id');
+/*
+startWith('Distribute');
+applyArrow([0], 'idd');
+applyArrow([1,0], 'Simplify');
+saveAs('mpd');
+applyArrow([], 'mpd');
+saveAs('mp');
+startWith('id');
+applyArrow([], 'mp');
+saveAs('idie');
+startWith('mp');
+applyArrow([], 'Distribute');
+saveAs('contract');
+// Level 2
+startWith('Simplify');
+applyArrow([1], 'Transpose');
+saveAs('fie');
+startWith('fie');
+applyArrow([1], 'Transpose');
+applyArrow([1], 'idie');
+saveAs('nn1');
+startWith('fie');
+applyArrow([1], 'Transpose');
+applyArrow([1], 'idie');
+applyArrow([], 'Transpose');
+saveAs('nn2');
+startWith('Transpose');
+applyArrow([0,1], 'nn2');
+applyArrow([0,0], 'nn1');
+saveAs('con3');
+startWith('Simplify');
+applyArrow([], 'con3');
+saveAs('nimp2'); 
+startWith('fie');
+applyArrow([], 'con3');
+applyArrow([1], 'nn1');
+saveAs('nimp1');
+startWith('mp');
+applyArrow([1], 'con3');
+saveAs('conjnimp'); 
+startWith('fie');
+applyArrow([], 'Distribute');
+applyArrow([1], 'Transpose');
+applyArrow([1], 'idie');
+saveAs('contradict');
+startWith('id');
+applyArrow([], 'conjnimp');
+applyArrow([0], 'nn2');
+applyArrow([], 'idie');
+saveAs('dfand'); 
+/**/
+util.puts("verifying proof: " + ghText);
 var verify = spawn('python', ['../verify.py','--','-'],
                    {cwd:__dirname + '/../orcat/'});
 verify.stdout.on('data', util.puts);
@@ -73,7 +149,7 @@ fs.readFile('../orcat/PosPropCal_bootstrap.gh',
             function (err, data) {
                 if (err) throw err;
                 verify.stdin.write(data);
-                verify.stdin.write(ghProof);
+                verify.stdin.write(ghText);
                 verify.stdin.end();
             });
 

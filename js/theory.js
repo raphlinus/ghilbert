@@ -244,7 +244,10 @@ exports.Theory = function() {
                 if (termArray[i] instanceof Array) {
                     performSub(termArray[i]);
                 } else {
-                    termArray[i] = equalityMap[termArray[i]];
+                    var mappedVar = equalityMap[termArray[i]];
+                    if (mappedVar) {
+                        termArray[i] = mappedVar;    
+                    }
                 }
             }
         }
