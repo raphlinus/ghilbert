@@ -38,4 +38,39 @@ if (exports.startUi) {
     exports.ui.addAxiom("Simplify");
     exports.ui.addAxiom("Distribute");
     exports.ui.addAxiom("Transpose");
+
+    var proofState;
+var ghText = "";
+function startWith(thmName) {
+        proofState = prover.newProof(thmName);
+}
+function applyArrow(xpath, thmName) {
+    proofState = proofState.consider(xpath, thmName)[0].execute();
+}
+function saveAs(thmName) {
+    ghText += proofState.proof(thmName) + "\n";
+    theory.addAxiom(thmName, proofState.assertion());
+}
+startWith("Distribute");
+applyArrow([0], "Simplify");
+saveAs("imim2");
+applyArrow([], "Distribute");
+applyArrow([0], "Simplify");
+saveAs("imim1");
+startWith("Simplify");
+applyArrow([], "imim1");
+saveAs('himp1');
+startWith("Distribute");
+applyArrow([1,0],'Simplify');
+saveAs('con12');
+startWith('Simplify');
+applyArrow([], 'Distribute');
+saveAs('iddlem1');
+applyArrow([0], 'Simplify');
+saveAs('idd');
+applyArrow([], 'idd');
+saveAs('id');
+startWith('Distribute');
+applyArrow([0], 'idd');
+    console.log(ghText);
 }

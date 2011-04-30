@@ -44,16 +44,26 @@ var exports = ORCAT;
 var theory = exports.theory;
 var ax1 = exports.theory.theorem('Simplify');
 var ax2 = exports.theory.theorem('Distribute');
+var I = exports.implies;
 expectUnify(ax1, ax2.xpath([0]));
 expectUnify(ax2.xpath([0]), ax1);
 expectUnify(ax1.xpath([0]), ax2);
 expectUnify(ax2.xpath([1]), ax1);
-var I = exports.implies;
+expectUnify(ORCAT.theory.parseTerm([I, 1, [I, 2, 3]]),
+            ORCAT.theory.parseTerm([I, 4, 4]));
+expectUnify(ORCAT.theory.parseTerm([I, [I, 4, 5], [I, [I, 6, 4], [I, 6, 5]]]),
+            ax2.xpath([0]));
 expect(!exports.theory.unify(ax1, exports.theory.parseTerm(
                                  [I, 0, 0])));
 var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 0, 1]},[0]));
 var u = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, [I, 0, 1]]]);
 expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString());
+t = exports.theory.parseTerm([I, 0, [I, 1, 2]]);
+u = exports.theory.parseTerm([I, [I, 1, 2], [I, 1, 2]]);
+expect(!t.equals(u), "A(BC) should not equal (BC)(BC)!");
+t = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, 3]]);
+u = exports.theory.parseTerm([I, [I, 0, 1], [I, 0, 1]]);
+expect(!t.equals(u), "(AB)(CD) should not equal (AB)(AB)!");
 
 // Verify prover
 var prover = ORCAT.prover;
@@ -88,9 +98,9 @@ applyArrow([0], 'Simplify');
 saveAs('idd');
 applyArrow([], 'idd');
 saveAs('id');
-/*
 startWith('Distribute');
 applyArrow([0], 'idd');
+/*
 applyArrow([1,0], 'Simplify');
 saveAs('mpd');
 applyArrow([], 'mpd');
@@ -120,14 +130,14 @@ applyArrow([0,0], 'nn1');
 saveAs('con3');
 startWith('Simplify');
 applyArrow([], 'con3');
-saveAs('nimp2'); 
+saveAs('nimp2');
 startWith('fie');
 applyArrow([], 'con3');
 applyArrow([1], 'nn1');
 saveAs('nimp1');
 startWith('mp');
 applyArrow([1], 'con3');
-saveAs('conjnimp'); 
+saveAs('conjnimp');
 startWith('fie');
 applyArrow([], 'Distribute');
 applyArrow([1], 'Transpose');
@@ -137,7 +147,7 @@ startWith('id');
 applyArrow([], 'conjnimp');
 applyArrow([0], 'nn2');
 applyArrow([], 'idie');
-saveAs('dfand'); 
+saveAs('dfand');
 /**/
 util.puts("verifying proof: " + ghText);
 var verify = spawn('python', ['../verify.py','--','-'],

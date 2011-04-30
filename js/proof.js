@@ -130,13 +130,24 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             var newTerm = theory.parseTerm(term.specifyAt(substSet, xpath.slice()));
             var newPtvm = cloneMap(pathToVarMap);
             var termArrayToVarMap = {};
+            var handledPaths = {};
             for (var p in substSet) if (substSet.hasOwnProperty(p)) {
                 var termArray = substSet[p];
                 p = pathFromString(p);
                 var pathToSubst = xpath.concat(p);
+                if (handledPaths[pathToSubst]) {
+                    // We already handled this var, when another path to the
+                    // same var got substituted for a term.  This represents
+                    // redundant information in the substSet.  We'll just skip
+                    // it and trust that the value is the same.
+                    continue;
+                }
                 var oldVar = newPtvm[pathToSubst];
-                if (!oldVar || !oldVar.kind || oldVar.operator) {
-                    throw new Error("Bad substitution! " + pathToSubst);
+                if (!oldVar) {
+                    // path to a term -- probably because the var at this path was
+                    // already replaced with a term in a previous specify.  For
+                    // convenience, we'll just ignore it.
+                    continue;
                 }
                 if (!(termArray instanceof Array)) {
                     // A variable is being replaced by another variable.
@@ -165,10 +176,12 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                         subVars[k].paths.forEach(
                             function(pp) {
                                 subPtvm[pp] = v;
-                                pathsToSubstitutedVar.forEach(function(ptsv) {
-                                                                  delete newPtvm[ptsv];
-                                                                  newPtvm[ptsv.concat(pp)] = v;
-                                                              });
+                                pathsToSubstitutedVar.forEach(
+                                    function(ptsv) {
+                                        delete newPtvm[ptsv];
+                                        handledPaths[ptsv] = 1;
+                                        newPtvm[ptsv.concat(pp)] = v;
+                                    });
                             });
                     }
                     outMap[oldVar] = new WrappedTerm(subTerm, subPtvm);

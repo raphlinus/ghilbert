@@ -1,5 +1,25 @@
 // A Theory maintains some kinds, operators, and theorems.
 exports.Theory = function() {
+    // implementation of a reversible map between objects.
+    function Bimap() {
+        var forward = {};
+        var backward = {};
+        this.set = function(k, v) {
+            var oldV = backward[forward[k]];
+            if (oldV) {
+                delete oldV[k];
+            }
+            forward[k] = v;
+            if (!backward[v]) backward[v] = {};
+            backward[v][k] = k;
+        };
+        this.lookup = function(k) {
+            return forward[k];
+        };
+        this.lookdown = function(v) {
+            return backward[v];
+        };
+    }
     var that = this;
     // ================ Private State ================
     // A Kind corresponds to a ghilbert (kind).
@@ -95,11 +115,15 @@ exports.Theory = function() {
         return set;
     };
     Variable.prototype.equals = function(otherTerm, varMap) {
+        if (!(otherTerm instanceof Variable)) return false;
         if (!varMap) varMap = {};
-        if (varMap[this]) {
-            return varMap[this] === otherTerm;
+        if (varMap.lookup(this)) {
+            return varMap.lookup(this) === otherTerm;
         }
-        varMap[this] = otherTerm;
+        if (varMap.lookdown(otherTerm)) {
+            return varMap.lookdown(otherTerm) === this;
+        }
+        varMap.set(this, otherTerm);
         return true;
     };
     Variable.prototype.toTermArray = function() {
@@ -195,21 +219,21 @@ exports.Theory = function() {
                 return false;
             }
         };
-        if  (term.operator() === this.operator()) {
-            path.push(0);
+        if (term.operator() === this.operator()) {
             var n = this.operator().arity();
             for (var i = 0; i < n; i++) {
-                path.pop();
                 path.push(i);
                 var arg = this.input(i);
                 if (!arg.operator) arg = unification.lookupVariable(0, arg);
                 var otherArg = term.input(i);
-                if (!otherArg.operator) otherArg = unification.lookupVariable(1, otherArg);
+                if (!otherArg.operator) {
+                    otherArg = unification.lookupVariable(1, otherArg);
+                }
                 if (!arg.unifyTerm(otherArg, unification, path)) {
                     return false;
                 }
+                path.pop();
             }
-            path.pop();
             return unification;
         } else {
             return false;
@@ -218,7 +242,7 @@ exports.Theory = function() {
     // If this tuple equals the other tuple, returns true and populates varMap
     // with the mapping from our vars to their vars.
     Tuple.prototype.equals = function(otherTerm, varMap) {
-        if (!varMap) varMap = {};
+        if (!varMap) varMap = new Bimap();
         if (!otherTerm.operator || (otherTerm.operator() != this.operator())) {
             return false;
         }
@@ -232,7 +256,7 @@ exports.Theory = function() {
     };
     //TODO: doc this, if it's even right
     Tuple.prototype.applyArrow = function(xpath, otherTerm, templateArg) {
-        var equalityMap = {};
+        var equalityMap = new Bimap();
         if (!otherTerm.input(templateArg).equals(this.extract(xpath.slice()),
                                                  equalityMap)) {
             throw new Error("Subterm not equal");
@@ -244,9 +268,9 @@ exports.Theory = function() {
                 if (termArray[i] instanceof Array) {
                     performSub(termArray[i]);
                 } else {
-                    var mappedVar = equalityMap[termArray[i]];
+                    var mappedVar = equalityMap.lookup(termArray[i]);
                     if (mappedVar) {
-                        termArray[i] = mappedVar;    
+                        termArray[i] = mappedVar;
                     }
                 }
             }
@@ -270,7 +294,8 @@ exports.Theory = function() {
     // term.  Each key in substSet is an xpath, and each value is a legal
     // termArray.  pathPrefix, if present, indicates a subterm to which the
     // paths in substSet are relative.  When a variable is changed, it will
-    // be changed everywhere in the term.
+    // be changed everywhere in the term.  If a path points to a term instead of
+    // a variable, this will be a no-op.
     Tuple.prototype.specifyAt = function(substSet, xpath) {
         var varSet = this.extractVars();
         var newSubst = {};
@@ -279,6 +304,12 @@ exports.Theory = function() {
             var path = xpath.concat(pathStr ? pathStr.split(/,/) : []);
             var sourceVar = this.xpath(path);
             if (!sourceVar) throw new Error("No var at " + xpath + " in " + this.toString());
+            if (sourceVar instanceof Tuple) {
+                // path to a term -- probably because the var at this path was
+                // already replaced with a term in a previous specify.  For
+                // convenience, we'll just ignore it.
+                continue;
+            }
             varSet[sourceVar].paths.forEach(
                 function(p) { newSubst[p] = substSet[pathStr];});
         }
@@ -314,26 +345,6 @@ exports.Theory = function() {
                 return JSON.stringify(connectedFrom);
             };
         }
-        // implementation of a reversible map between objects.
-        function Bimap() {
-            var forward = {};
-            var backward = {};
-            this.set = function(k, v) {
-                var oldV = backward[forward[k]];
-                if (oldV) {
-                    delete oldV[k];
-                }
-                forward[k] = v;
-                if (!backward[v]) backward[v] = {};
-                backward[v][k] = k;
-            };
-            this.lookup = function(k) {
-                return forward[k];
-            };
-            this.lookdown = function(v) {
-                return backward[v];
-            };
-        }
 
         var varMapping = new Bimap();
         // steps()[i] starts with all the elements of opSplits[i].
@@ -349,7 +360,6 @@ exports.Theory = function() {
         // false if this would violate a distinct-variable assumption or create
         // a cyclic dependency.
         this.mapVarToVar = function(termIndex, xpath, source, newVar) {
-            if (termIndex != 0) throw "only map vars forward.";
             source = varMapping.lookup(source) || source;
             var target = newVar;
             target = varMapping.lookup(target) || target;
@@ -374,9 +384,10 @@ exports.Theory = function() {
                 }
                 function addVarJoins(allPathsObj) {
                     if (allPathsObj) {
-                        allPathsObj.paths.forEach(function(path) {
-                                                      varJoins[i][target][path] = target;
-                                                  });
+                        allPathsObj.paths.forEach(
+                            function(path) {
+                                varJoins[i][target][path] = target;
+                            });
                     }
                 }
                 addVarJoins(unified[i].extractVars()[unified[i].xpath(xpath.slice())]);
@@ -392,12 +403,13 @@ exports.Theory = function() {
             }
             return true;
         };
-        // term[termIndex] has a variable at path xpath.  We will replace it
-        // with a term starting with the same operator as the given term, and
-        // having brand new vars as its arguments.  Returns the new term.  But
+        // term[termIndex] has a variable at path xpath1.  We need to map it to
+        // term, which appears in term[1-termIndex] at the same path. Returns a new
+        // term, with fresh variables wired up the right way.  (But
         // if the term has variables reachable from the variable to be mapped,
-        // returns null instead.
+        // returns null instead.)
         this.mapVarToTerm = function(termIndex, xpath, source, term) {
+            var preSource = varMapping.lookdown(source);
             var varSet = term.extractVars();
             source = varMapping.lookup(source) || source;
             if (varSet[source]) {
@@ -418,14 +430,57 @@ exports.Theory = function() {
             termMapping[source] = t;
             var substSet = {};
             var unifiedVarSet = unified[termIndex].extractVars();
-            var allPaths = unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(
+            unifiedVarSet[unified[termIndex].xpath(xpath)].paths.forEach(
                 function(path) {
                     substSet[path] = termArray;
                 });
             if (substSet)
-            opSplits[termIndex].push(substSet);
+                opSplits[termIndex].push(substSet);
             unified[termIndex] = that.parseTerm(unified[termIndex].specify(substSet),
                                                 unified[termIndex].kind());
+            for (var j = 0; j < op.arity(); j++) {
+                xpath.push(j);
+                var v = unified[termIndex].xpath(xpath.slice());
+                console.log("XXXX mapping " + v + " in "
+                            + unified[termIndex].toString() +" to " + term.input(j));
+                if (term.input(j) instanceof Variable) {
+                    if (!this.mapVarToVar(termIndex, xpath.slice(), v, term.input(j))) {
+                        return false;
+                    }
+                } else {
+                    // it can wait
+                }
+                xpath.pop();
+            }
+
+            /*XXX
+            // Note: if the variable being mapped had previously been mapped *to*,
+            // we will have to propagate the mapping backwards.
+            if (preSource) for (var v in preSource) if (preSource.hasOwnProperty(v)) {
+                //TODO: this is probably wrong.
+                var origVarSet = terms[1 - termIndex].extractVars();
+                if (origVarSet[v]) {
+                    substSet = {};
+                    origVarSet[v].paths.forEach(
+                        function(path) {
+                            substSet[path] = termArray;
+                        });
+                    origVarSet = unified[1 - termIndex].extractVars();
+                    for (var j = 0; j < op.arity(); j++) {
+                        xpath.push(j);
+                        origVarSet[unified[1 - termIndex].xpath(xpath.slice())]
+                            .paths.forEach(function(path) {
+                                               substSet[path] = termArray[j + 1];
+                                           });
+                        xpath.pop();
+                    }
+                    opSplits[1 - termIndex].push(substSet);
+                    unified[1 - termIndex] = that.parseTerm(
+                        unified[1 - termIndex].specify(substSet),
+                        unified[1 - termIndex].kind());
+                }
+            }
+            */
             return t;
         };
         // If the given variable (from the indexed term) has already been mapped
@@ -440,8 +495,8 @@ exports.Theory = function() {
         };
         // Returns the final result of the unification, i.e. a term that is a
         // common specification of all input terms.
-        this.term = function() {
-            return unified[0];
+        this.term = function(i) {
+            return unified[i];
         };
         // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for
         // specify()ing to the common unified term from term[i].
@@ -451,6 +506,12 @@ exports.Theory = function() {
                 steps.push(varJoins[i][k]);
             }
             return steps;
+        };
+        this.append = function(unification) {
+            // HACK
+            for (var i = 0; i < 2; i++) {
+                opSplits[i].push.apply(opSplits[i], unification.steps(i));
+            }
         };
     }
 
@@ -525,6 +586,19 @@ exports.Theory = function() {
             return new Unification();
         }
         return term1.unifyTerm(term2.clone());
+        /*XXX
+        var unification = result;
+        while (!unification.term(0).equals(unification.term(1))) {
+            // TODO: Even if this works, it will probably cause infinite descent
+            // sometimes
+            unification = unification.term(0).unifyTerm(unification.term(1));
+            result.append(unification);
+            require('util').puts("YYYY " + unification.term(0).toString()
+                                 + " = " + unification.term(1).toString());
+
+        }
+        return result;
+*/
     };
 
     // Return the subterm named by path.  An xpath is an array; at
