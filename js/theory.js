@@ -116,7 +116,7 @@ exports.Theory = function() {
     };
     Variable.prototype.equals = function(otherTerm, varMap) {
         if (!(otherTerm instanceof Variable)) return false;
-        if (!varMap) varMap = {};
+        if (!varMap) varMap = new Bimap();
         if (varMap.lookup(this)) {
             return varMap.lookup(this) === otherTerm;
         }
@@ -351,6 +351,8 @@ exports.Theory = function() {
         var opSplits = [[], []];
         // steps()[i] then includes all values of varJoins[i].
         var varJoins = [{}, {}];
+        // HACK: more steps that are appended by further unification
+        var appendedSteps = [[], []];
         // if a var is turned into a term, the term goes in termMapping, and
         // it is connected in termDag to all the operator's arguments.
         var termMapping = {};
@@ -441,8 +443,6 @@ exports.Theory = function() {
             for (var j = 0; j < op.arity(); j++) {
                 xpath.push(j);
                 var v = unified[termIndex].xpath(xpath.slice());
-                console.log("XXXX mapping " + v + " in "
-                            + unified[termIndex].toString() +" to " + term.input(j));
                 if (term.input(j) instanceof Variable) {
                     if (!this.mapVarToVar(termIndex, xpath.slice(), v, term.input(j))) {
                         return false;
@@ -453,7 +453,6 @@ exports.Theory = function() {
                 xpath.pop();
             }
 
-            /*XXX
             // Note: if the variable being mapped had previously been mapped *to*,
             // we will have to propagate the mapping backwards.
             if (preSource) for (var v in preSource) if (preSource.hasOwnProperty(v)) {
@@ -480,7 +479,7 @@ exports.Theory = function() {
                         unified[1 - termIndex].kind());
                 }
             }
-            */
+
             return t;
         };
         // If the given variable (from the indexed term) has already been mapped
@@ -505,12 +504,13 @@ exports.Theory = function() {
             for (var k in varJoins[i]) {
                 steps.push(varJoins[i][k]);
             }
+            steps.push.apply(steps, appendedSteps[i]);
             return steps;
         };
         this.append = function(unification) {
             // HACK
             for (var i = 0; i < 2; i++) {
-                opSplits[i].push.apply(opSplits[i], unification.steps(i));
+                appendedSteps[i].push.apply(appendedSteps[i], unification.steps(i));
             }
         };
     }
@@ -585,20 +585,18 @@ exports.Theory = function() {
         if (term1 === term2) {
             return new Unification();
         }
-        return term1.unifyTerm(term2.clone());
-        /*XXX
+        var result = term1.unifyTerm(term2.clone());
+        if (!result) return null;
         var unification = result;
         while (!unification.term(0).equals(unification.term(1))) {
             // TODO: Even if this works, it will probably cause infinite descent
             // sometimes
             unification = unification.term(0).unifyTerm(unification.term(1));
+            if (!unification) return null;
             result.append(unification);
-            require('util').puts("YYYY " + unification.term(0).toString()
-                                 + " = " + unification.term(1).toString());
-
         }
         return result;
-*/
+
     };
 
     // Return the subterm named by path.  An xpath is an array; at

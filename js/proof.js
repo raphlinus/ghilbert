@@ -6,7 +6,7 @@
 // must be the same as the available vars in the ghilbert context
 // where our proofs will be evaluated.
 exports.Prover = function(theory, scheme, ghilbertVarNames) {
-    var DEBUG = false; //TODO: this barfs on dead-end vars.
+    var DEBUG = true;
     // For now this is identical to the definition in theory.js, but may diverge
     // in the future.  Variables are implementation details and should not be
     // shared across interfaces.  The temptation to conflate them is almost
@@ -149,6 +149,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     // convenience, we'll just ignore it.
                     continue;
                 }
+                var pathsToSubstitutedVar = varSet[this.term().xpath(pathToSubst.slice())].paths;
                 if (!(termArray instanceof Array)) {
                     // A variable is being replaced by another variable.
                     // Since this just collapses two paths into the same
@@ -160,14 +161,20 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     } else if (oldVar.toString() !== newVar.toString()) {
                         outMap[oldVar] = newVar;
                     }
-                    newPtvm[pathToSubst] = newVar;
+                    // TODO: one of these should work, and be faster:
+                    // newPtvm[pathToSubst] = newVar;
+                    // or pathsToSubstitutedVar.forEach(p -> newPtvm[p] = newVar
+                    for (var k in newPtvm) if (newPtvm.hasOwnProperty(k)) {
+                        if (newPtvm[k] == oldVar) {
+                            newPtvm[k] = newVar;
+                        }
+                    }
                 } else {
                     // A variable is being replaced by a new term.
                     // TODO: we are relying on a guarantee about the substSet:
                     // that when a var is replaced with a termArray, none of the
                     // termArray's leaves have appeared already in the substSet.
                     // We need to update the newPtvm for each occurence of the var.
-                    var pathsToSubstitutedVar = varSet[this.term().xpath(pathToSubst)].paths;
                     var subTerm = theory.parseTerm(termArray, oldVar.kind());
                     var subPtvm = {};
                     var subVars = subTerm.extractVars();
@@ -276,22 +283,15 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         function assertVarsValid(wt, ptvm, vttm) {
             if (wt instanceof Variable) {
                 assertValid(wt, ptvm, vttm);
-            } else {
+            } else if (wt instanceof WrappedTerm) {
                 var wtptvm = wt.pathToVarMap();
                 for (var p in wtptvm) if (wtptvm.hasOwnProperty(p)) {
                     assertValid(wtptvm[p], ptvm, vttm);
                 }
             }
         }
-        function assertAllValid(ss, ptvm, vttm) {
-            ss.forEach(function(s) {
-                           if (!s.arity && (s.toString() !== s)) {
-                               assertVarsValid(s, ptvm, vttm);
-                           }
-                       });
-        }
         if (DEBUG) {
-            assertAllValid(steps, wrappedAssertion.pathToVarMap(), varToTermMap);
+            assertVarsValid(wrappedAssertion, wrappedAssertion.pathToVarMap(), varToTermMap);
         }
         // Compute the binding on the subterm at the named path.  Consumes path.
         function bindingAt(path, rTerm, rBinding) {
@@ -309,6 +309,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
         // Generate a ghilbert-verifiable proof of the assertion.
         this.proof = function(thmName) {
             var varNamer = new VarNamer(ghilbertVarNames);
+            var nameMap = {};
             // TODO: collectVariables() to find alpha bindings
             // Stringifier that knows how to handle tuples, variables, and steps.
             function stringify(obj) {
@@ -322,9 +323,9 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     // obj is a variable.  resolve it fully, then
                     // convert to a gh var name.
                     if (varToTermMap[obj]) return stringify(varToTermMap[obj]);
+                    if (nameMap[obj]) return nameMap[obj];
                     var name = varNamer.name(obj);
-                    if (name == obj) throw new Error("Infinite map");
-                    varToTermMap[obj] = name;
+                    nameMap[obj] = name;
                     return name;
                 } else {
                     // obj is a theorem name, parens, or operator
@@ -371,7 +372,8 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             );
 
             if (DEBUG) {
-                assertAllValid(newSteps, newWrappedAssertion.pathToVarMap(), newVarToTermMap);
+                assertVarsValid(newWrappedAssertion,
+                                newWrappedAssertion.pathToVarMap(), newVarToTermMap);
             }
             var theorem = theory.theorem(thmName);
             var newTheorem = theorem;
@@ -425,7 +427,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 newSteps.push.apply(newSteps,
                                     termToSexp(tailRoot.xpath(myPath.slice())));
                 var whichChild = myPath.pop();
-                var op = wrappedAssertion.term().xpath(path.slice()).operator();
+                var op = wrappedAssertion.term().xpath(myPath.slice()).operator();
                 for (var i = 0; i < op.arity(); i++) {
                     if (i != whichChild) {
                         myPath.push(i);

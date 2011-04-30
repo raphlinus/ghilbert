@@ -105,6 +105,9 @@ exports.Scheme = function(wffArrow, modusPonens) {
         return bindings[operator][argIndex].binding;
     };
     this.getTheorem = function(operator, argIndex) {
+        if (!bindings[operator] || !bindings[operator][argIndex]) {
+            throw new Error("no binding theorem for " + operator + "." + argIndex);
+        }
         return bindings[operator][argIndex].theorem;
     };
     this.modusPonens = function(direction) {
