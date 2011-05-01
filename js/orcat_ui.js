@@ -10,6 +10,11 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var proofTree;
     var proofTerm;
     var proofState;
+    var STATE_ZERO = 0; // no proofpath selected.  clicking a theorem starts over.
+    var STATE_ONE = 1; // proofpath selected. clicking a theorem applies.
+    var STATE_TWO = 2;
+    var state = STATE_ZERO;
+    var Ui = this;
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
     // @param isInteractive whether this is an interactive tree.
@@ -22,23 +27,34 @@ exports.Ui = function(doc, theory, prover, scheme) {
             if (binding) {
                 node.addEventListener(
                     'mouseover', function(e) {
-                        node.className += " selected";
-                        theorems.forEach(function(t) { t.attemptUnify(term, binding, path); });
-                        e.stopPropagation();
+                        if (state == STATE_ZERO) {
+                            node.className += " selected";
+                            theorems.forEach(function(t) { t.attemptUnify(term, binding, path); });
+                            e.stopPropagation();
+                        }
                     }, false);
                 node.addEventListener(
                     'mouseout',
                     function(e) {
-                        removeClass(node, ' selected');
-                        theorems.forEach(function(t) { t.clearUnification(); });
-                        e.stopPropagation();
+                        if (state == STATE_ZERO) {
+                            removeClass(node, ' selected');
+                            theorems.forEach(function(t) { t.clearUnification(); });
+                            e.stopPropagation();
+                        }
                     }, false);
                 node.addEventListener(
                     'click', function(e) {
-                        node.className += " selected";
-                        // TODO: will need some way to choose one of two unifications
-                        theorems.forEach(function(t) { t.realizeUnification(0); });
-                        e.stopPropagation();
+                        if (state == STATE_ZERO) {
+                            node.className += " selected";
+                            // TODO: will need some way to choose one of two unifications
+                            theorems.forEach(function(t) { t.realizeUnification(0); });
+                            e.stopPropagation();
+                            state = STATE_ONE;
+                        } else {
+                            removeClass(node, ' selected');
+                            theorems.forEach(function(t) { t.clearUnification(); });
+                            state = STATE_ZERO;
+                        }
                     }, false);
             }
         }
@@ -125,15 +141,18 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         };
     }
-
+    function setProofState(ps) {
+        proofState = ps;
+        proofTerm = proofState.assertion();
+        if (proofTree) treeDiv.removeChild(proofTree.node());
+        proofTree = new Tree(proofTerm, true);
+        treeDiv.appendChild(proofTree.node());
+        
+    }
     // Create an onclick handler to start a proof over with an axiom.
     function startProof(thmName) {
         return function(e) {
-            proofState = prover.newProof(thmName);
-            proofTerm = proofState.assertion();
-            if (proofTree) treeDiv.removeChild(proofTree.node());
-            proofTree = new Tree(proofTerm, true);
-            treeDiv.appendChild(proofTree.node());
+            setProofState(prover.newProof(thmName));
         };
     }
 
@@ -147,7 +166,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         var treeNode;
         var wrapperSpan = doc.createElement("span");
         theoremsDiv.appendChild(wrapperSpan);
-
+        var selectedNode;
         function redraw() {
             tree = new Tree(tuple, false);
             if (treeNode) wrapperSpan.removeChild(treeNode);
@@ -169,91 +188,69 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // On success: changes the UI to show an outline over the to-be-unified
         // child(ren), and retains the possible unification future(s) for interaction.
         // path is the path to the given term as a subterm of the proof term.
-        // TODO: where does this belong?
         this.attemptUnify = function(term, binding, path) {
-            var unification;
-            if (binding.isUnknown()) {
-                // Nothing can unify to an unknown binding.
-            } else if (binding.equals(scheme.ALPHA())) {
-                // TODO: handle this.
-            } if (originalTuple.operator() === scheme.getEquivalence(term.kind())) {
-                //TODO: handle this.  We may have to create 2 futures.
-            } else if ((originalTuple.operator() === scheme.getArrow(term.kind())) &&
-                       !binding.equals(scheme.EXACT())) {
-                // binding Must be LEFT or RIGHT, and that determines which
-                // child will provide the template for unfication.
-                var whichArg; // the subterm we want to unify against
-                var node;     // the DOM Node corresponding to that subterm.
-
-                if (binding.equals(scheme.LEFT())) {
-                    whichArg = 0;
-                    node = tree.node([0]);
-                } else if (binding.equals(scheme.RIGHT())) {
-                    whichArg = 1;
-                    node = tree.node([1]);
-                } else {
-                    throw new Error("Bad binding! " + binding);
-                }
-                unification = theory.unify(originalTuple.input(whichArg), term);
-                if (unification) {
-                    futures.push({node: node, whichArg: whichArg, unification: unification, proofPath:path.slice()});
-                    node.className += " selected";
-                }
-            }
-            if (unification) {
-                // TODO: construct future
-                return futures.slice();
-            } else {
+            futures = proofState.consider(path.slice(), name);
+            if (futures.length == 0) { 
                 treeNode.className += " disabled";
-                return null;
+            } else {
+                removeClass(treeNode, " disabled");
+                // TODO: consider multiple futures.
+                var f = futures[0];
+                f.proofPath = path.slice();
+                selectedNode = tree.node([f.templateArg]);
+                selectedNode.className += " selected";
             }
         };
 
         // Clears the unification attempt.
         this.clearUnification = function(future) {
             removeClass(treeNode, " disabled");
-            futures.forEach(function(f) { removeClass(f.node, " selected"); });
+            selectedNode = null;
             futures.splice(0, futures.length);
             tuple = originalTuple;
+            redraw();
+            treeNode.onclick = startProof(name); // TODO: move to controller
         };
         var that = this;
         // If the last call to attemptUnify succeeded, this will perform the
         // specifications on the theorem's term.  TODO: make this more continuationy
         this.realizeUnification = function(which) {
             if (which < futures.length) {
-                var unification = futures[which].unification;
+                var future = futures[which];
                 var proofPath = futures[which].proofPath;
-                var path = [futures[which].whichArg];
-                var steps = unification.steps(0);
+                var templatePath = [future.templateArg];
+                var steps = future.unification.steps(1);
                 function doStep() {
                     var isChanged;
                     do {
                         var step = steps.shift();
-                        var newTuple = theory.parseTerm(tuple.specifyAt(step, path));
+                        var newTuple = theory.parseTerm(
+                            tuple.specifyAt(step, templatePath.slice()));
                         isChanged = !newTuple.equals(tuple);
                         tuple = newTuple;
                     } while (steps.length > 0 && !isChanged);
                     //TODO: animations here.
                     redraw();
-                    tree.node(path.slice()).className += " selected";
+                    tree.node(templatePath.slice()).className += " selected";
                     if (steps.length > 0) {
-                        window.setTimeout(doStep, 1000);
+                        window.setTimeout(doStep, isChanged ? 1000 : 0);
                     } else {
                         treeNode.onclick = function() { //TODO: hover
-                            that.realizeUnification2(unification, proofPath);
+                            that.realizeUnification2(future);
                         };
                     }
                 }
                 doStep();
             }
         };
-        this.realizeUnification2 = function(unification, path) {
-            var steps = unification.steps(1);
+        this.realizeUnification2 = function(future) {
+            var steps = future.unification.steps(0);
             function doStep() {
                 var isChanged;
                 do {
                     var step = steps.shift();
-                    var newTuple = theory.parseTerm(proofTerm.specifyAt(step, path));
+                    var newTuple = theory.parseTerm(proofTerm.specifyAt(
+                                                        step, future.proofPath.slice()));
                     isChanged = !newTuple.equals(proofTerm);
                     proofTerm = newTuple;
                 } while (steps.length > 0 && !isChanged);
@@ -261,11 +258,13 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 treeDiv.removeChild(proofTree.node());
                 proofTree = new Tree(proofTerm, true);
                 treeDiv.appendChild(proofTree.node());
-                proofTree.node(path.slice()).className += " selected";
+                proofTree.node(future.proofPath.slice()).className += " selected";
                 if (steps.length > 0) {
-                    window.setTimeout(doStep, 1000);
+                    window.setTimeout(doStep, isChanged ? 1000 : 0);
                 } else {
-                    proofState = proofState.PICKUP();
+                    setProofState(future.execute());
+                    theorems.forEach(function(t) { t.clearUnification(); });
+                    state = STATE_ZERO;
                 }
             }
             doStep();
@@ -280,6 +279,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
     this.reset = function() {
         theorems.splice(0, theorems.length);
         theoremsDiv.innerHTML = "";
+    };
+    doc.getElementById("save").onclick = function() {
+        var thmName = Math.random(); // TODO: thm naming
+        console.log("PROOF: " + proofState.proof(thmName));
+        theory.addAxiom(thmName, proofState.assertion());
+        Ui.addAxiom(thmName);
     };
 
 };

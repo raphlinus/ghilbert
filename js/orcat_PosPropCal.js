@@ -28,45 +28,15 @@ exports.theory.addAxiom(
     "Distribute",
     theory.parseTerm([implies, [implies, 0, [implies, 1, 2]],
                       [implies, [implies, 0, 1], [implies, 0, 2]]]));
+var not = exports.theory.newOperator("not", exports.wff, [exports.wff]);
+exports.not = not;
+exports.theory.addAxiom("Transpose", theory.parseTerm(
+                            [implies, [implies, [not, 0], [not, 1]],
+                             [implies, 1, 0]]));
 
 if (exports.startUi) {
     exports.ui.reset();
     exports.ui.addAxiom("Simplify");
     exports.ui.addAxiom("Distribute");
     exports.ui.addAxiom("Transpose");
-
-    var proofState;
-var ghText = "";
-function startWith(thmName) {
-        proofState = prover.newProof(thmName);
-}
-function applyArrow(xpath, thmName) {
-    proofState = proofState.consider(xpath, thmName)[0].execute();
-}
-function saveAs(thmName) {
-    ghText += proofState.proof(thmName) + "\n";
-    theory.addAxiom(thmName, proofState.assertion());
-}
-startWith("Distribute");
-applyArrow([0], "Simplify");
-saveAs("imim2");
-applyArrow([], "Distribute");
-applyArrow([0], "Simplify");
-saveAs("imim1");
-startWith("Simplify");
-applyArrow([], "imim1");
-saveAs('himp1');
-startWith("Distribute");
-applyArrow([1,0],'Simplify');
-saveAs('con12');
-startWith('Simplify');
-applyArrow([], 'Distribute');
-saveAs('iddlem1');
-applyArrow([0], 'Simplify');
-saveAs('idd');
-applyArrow([], 'idd');
-saveAs('id');
-startWith('Distribute');
-applyArrow([0], 'idd');
-    console.log(ghText);
 }
