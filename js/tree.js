@@ -1346,9 +1346,10 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
     clone.style.left = oldNodeCoords[0];
     clone.style.top = oldNodeCoords[1];
     var newNodeCoords = GHT.getPos(newNode);
-    clone.className = oldNode.className; // undo HACK
+    clone.className = oldNode.className + " animated"; // undo HACK
     clone.style.left = newNodeCoords[0];
     clone.style.top = newNodeCoords[1];
+
     GHT.onTransitionEnd(clone, function() {
                             document.body.removeChild(clone);
                             newNode.style.visibility = "visible";

@@ -1,4 +1,37 @@
+// Caution: This file is a big ball of hacks.
+
 exports.Ui = function(doc, theory, prover, scheme) {
+    function NewNumVarNamer() {
+        var num = 0;
+        var termToName = {};
+        var pathToName = {};
+        var namer = function(xpath, term) {
+            var name = termToName[term] || pathToName[xpath] || ++num;
+            termToName[term] = name;
+            pathToName[xpath] = name;
+            return name;
+        };
+        function cloneMap(map) {
+            var out = {};
+            for (var k in map) out[k] = map[k];
+            return out;
+        }
+        namer.sendPathToPath = function(srcDsts) {
+            var newPathToName = cloneMap(pathToName);
+            srcDsts.forEach(
+                function(srcDst) {
+                    if (pathToName[srcDst.src]) {
+                        newPathToName[srcDst.dst] = pathToName[srcDst.src];
+                    }
+                });
+            pathToName = newPathToName;
+        };
+        return namer;
+    }
+    function pathFromString(p) {
+        return p ? p.split(/,/).map(Number) : [];
+    }
+
     // ================ private methods ================
     function removeClass(node, className) {
         node.className = node.className.replace(className,'');
@@ -15,10 +48,13 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var STATE_TWO = 2;
     var state = STATE_ZERO;
     var Ui = this;
+    var proofNamer;
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
     // @param isInteractive whether this is an interactive tree.
-    function Tree(term, isInteractive) {
+    function Tree(term, isInteractive, varNamer) {
+        // ================ private state ================
+        if (!varNamer) varNamer = NewNumVarNamer();
         // ================ private methods ================
         // Makes a node hoverable.  Note that it must have no margin, or
         // else hovering will cause DOM movement.  Hovering the node will also
@@ -67,7 +103,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // step -1 means the operator span, 0 means the zeroth arg, etc.
         // @param path the path to this node from the root.  Leave blank to start at
         // [].  This array will be modified in-place but left as it was found.
-        function makeTree(term, binding, pathToNodeMap, path) {
+        // @param varNamer: takes (path, var) to var name.
+        function makeTree(term, binding, pathToNodeMap, varNamer, path) {
             if (!pathToNodeMap) pathToNodeMap = {};
             if (!path) path = [];
             var span;
@@ -96,7 +133,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
                         childBinding = binding.compose(opBinding);
                     }
                     path.push(i);
-                    var argSpan = makeTree(term.input(i), childBinding, pathToNodeMap, path);
+                    var argSpan = makeTree(term.input(i), childBinding, pathToNodeMap, varNamer,
+                                           path);
                     path.pop();
                     argSpan.className += " arg";
                     argSpan.className += " argnum" + i;
@@ -110,8 +148,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 vSpan.className = " variable";
                 makeHoverable(vSpan, term, binding, path.slice());
                 pathToNodeMap[path] = vSpan;
-                var str = term.toString(); //TODO: proper var naming
-                vSpan.innerHTML = str[str.length - 1];
+                vSpan.innerHTML = varNamer(path.slice(), term);
                 span = vSpan;
             }
             var outerSpan = doc.createElement("span");
@@ -125,7 +162,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         wrapperSpan.className = "wrapper";
         var pathToNodeMap = {};
         var theoremSpan = makeTree(term, isInteractive ? scheme.LEFT() : null,
-                                   pathToNodeMap);
+                                   pathToNodeMap, varNamer);
         wrapperSpan.appendChild(theoremSpan);
         theoremSpan.className += " theorem";
         // ================ public methods ================
@@ -141,17 +178,41 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         };
     }
-    function setProofState(ps) {
+    function setProofState(ps, optVarTrans, optVarTransBasePath) {
+        function visitVarTrans(visitor) {
+            if (optVarTrans) {
+                for (var k in optVarTrans) if (optVarTrans.hasOwnProperty(k)) {
+                    var oldPath = optVarTransBasePath.concat(pathFromString(k));
+                    optVarTrans[k].forEach(
+                        function(p) {
+                            var newPath = optVarTransBasePath.concat(p);
+                            visitor(oldPath.slice(), newPath.slice());
+                        });
+                }
+            }
+        }
         proofState = ps;
         proofTerm = proofState.assertion();
-        if (proofTree) treeDiv.removeChild(proofTree.node());
-        proofTree = new Tree(proofTerm, true);
-        treeDiv.appendChild(proofTree.node());
-        
+        var srcDsts = [];
+        visitVarTrans(function(oldPath,newPath) {
+                          srcDsts.push({src:oldPath, dst:newPath});
+                      });
+        proofNamer.sendPathToPath(srcDsts);
+        var newProofTree = new Tree(proofTerm, true, proofNamer);
+        treeDiv.appendChild(newProofTree.node());
+        if (proofTree) {
+            visitVarTrans(function(oldPath,newPath) {
+                              GHT.sendNodeToNode(proofTree.node(oldPath),
+                                                 newProofTree.node(newPath));
+                          });
+            treeDiv.removeChild(proofTree.node());
+        }
+        proofTree = newProofTree;
     }
     // Create an onclick handler to start a proof over with an axiom.
     function startProof(thmName) {
         return function(e) {
+            proofNamer = NewNumVarNamer();
             setProofState(prover.newProof(thmName));
         };
     }
@@ -167,8 +228,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
         var wrapperSpan = doc.createElement("span");
         theoremsDiv.appendChild(wrapperSpan);
         var selectedNode;
+        var varNamer = NewNumVarNamer();
         function redraw() {
-            tree = new Tree(tuple, false);
+            tree = new Tree(tuple, false, varNamer);
             if (treeNode) wrapperSpan.removeChild(treeNode);
             treeNode = tree.node();
             wrapperSpan.appendChild(treeNode);
@@ -176,6 +238,35 @@ exports.Ui = function(doc, theory, prover, scheme) {
         redraw();
         treeNode.onclick = startProof(name); // TODO: move to controller
 
+        // Returns a map from paths inside the [templateArg] subterm to paths to
+        // the same var outside that subterm.
+        function getVarTransitions(term, templateArg) {
+            var varSet = term.extractVars();
+            var outMap = {};
+            for (var k in varSet) if (varSet.hasOwnProperty(k)) {
+                var innies = [];
+                var outies = [];
+                varSet[k].paths.forEach(
+                    function(p) {
+                        (p[0] == templateArg ? innies : outies).push(p);
+                    });
+                if (innies.length > 0) {
+                    var outiesPerInnies = Math.floor(outies.length / innies.length + .99);
+                    var outieIndex = 0;
+                    innies.forEach(function(p) {
+                                       for (var i = 0; i < outiesPerInnies; i++) {
+                                           var o = outies[outieIndex++];
+                                           if (o) {
+                                               var key = p.slice(1);
+                                               if (!outMap[key]) outMap[key] = [];
+                                               outMap[key].push(o.slice(1));
+                                           }
+                                       }
+                                   });
+                }
+            }
+            return outMap;
+        }
         // Each Future represents a possible unification.  There can be 0, 1, or
         // 2 (in the case of an equivalence, either side could be unified.)
         // This list is populated by attemptUnify.  It is cleared out by
@@ -233,7 +324,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     redraw();
                     tree.node(templatePath.slice()).className += " selected";
                     if (steps.length > 0) {
-                        window.setTimeout(doStep, isChanged ? 1000 : 0);
+                        window.setTimeout(doStep, isChanged ? 500 : 0);
                     } else {
                         treeNode.onclick = function() { //TODO: hover
                             that.realizeUnification2(future);
@@ -256,13 +347,15 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 } while (steps.length > 0 && !isChanged);
                 //TODO: animations here.
                 treeDiv.removeChild(proofTree.node());
-                proofTree = new Tree(proofTerm, true);
+                proofTree = new Tree(proofTerm, true, proofNamer);
                 treeDiv.appendChild(proofTree.node());
                 proofTree.node(future.proofPath.slice()).className += " selected";
                 if (steps.length > 0) {
-                    window.setTimeout(doStep, isChanged ? 1000 : 0);
+                    window.setTimeout(doStep, isChanged ? 500 : 0);
                 } else {
-                    setProofState(future.execute());
+                    setProofState(future.execute(),
+                                  getVarTransitions(tuple, future.templateArg),
+                                  future.proofPath.slice());
                     theorems.forEach(function(t) { t.clearUnification(); });
                     state = STATE_ZERO;
                 }
