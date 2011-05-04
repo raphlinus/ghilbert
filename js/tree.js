@@ -1339,19 +1339,23 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
     var clone = oldNode.cloneNode(true);
     // Hide the destination until the animator gets there
     newNode.style.visibility = "hidden";
-    document.body.appendChild(clone);
+    var parent = document.body;
+    parent.appendChild(clone);
     clone.style.position = "absolute";
-    clone.className = ""; // HACK: to prevent it from being animated to its starting spot
     var oldNodeCoords = GHT.getPos(oldNode);
     clone.style.left = oldNodeCoords[0];
     clone.style.top = oldNodeCoords[1];
+    clone.style.width = oldNode.offsetWidth;
+    clone.style.height = oldNode.offsetHeight;
     var newNodeCoords = GHT.getPos(newNode);
-    clone.className = oldNode.className + " animated"; // undo HACK
+    clone.className += " animated";
     clone.style.left = newNodeCoords[0];
     clone.style.top = newNodeCoords[1];
+    clone.style.width = newNode.offsetWidth;
+    clone.style.height = newNode.offsetHeight;
 
     GHT.onTransitionEnd(clone, function() {
-                            document.body.removeChild(clone);
+                            parent.removeChild(clone);
                             newNode.style.visibility = "visible";
                        });
 };
@@ -1638,7 +1642,7 @@ window.onload = function() {
                     }
                 }, true);
 };
-
+/*
 document.getElementById("reset").onclick = function(e) {
     function callback() {
         GHT.theFirstStep = GHT.getVersion();
@@ -1646,4 +1650,5 @@ document.getElementById("reset").onclick = function(e) {
     GHT.theStep = "GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});";
     GHT.showTerminals([], null, callback)(e);
 };
+*/
 GHT.theFirstStep = 1;

@@ -17,16 +17,14 @@ span.i.operator:active+span.args {background-color:#cccccc;}
 span.operator.tree {float:none; border: 1px solid black;}
 span.var {float:left}
 .animated {
-        transition:left, top, opacity;        transition-duration: 1s;
--webkit-transition:left, top, opacity;-webkit-transition-duration: 1s;
-   -moz-transition:left, top, opacity;   -moz-transition-duration: 1s;
+        transition:left, top, opacity, width, height;        transition-duration: 1s;
+-webkit-transition:left, top, opacity, width, height;-webkit-transition-duration: 1s;
+   -moz-transition:left, top, opacity, width, height;   -moz-transition-duration: 1s;
 }/* HACK: this must be synced with GHT.onTransitionEnd */
 
 span.var {padding-left: .5em;padding-right: .5em;}
 
-#tree {display:inline-block; margin: 1em; min-height: 9em;}
-#tree>span {position:absolute;}
-
+#tree {display:inline-block; }
 
 #tip {background-color: #bbbbee; padding: 4px;}
 .startwith {text-transform:uppercase; font-size:80%; color:green;font-family:monospace;white-space:nowrap }
@@ -51,33 +49,38 @@ span.var {padding-left: .5em;padding-right: .5em;}
    -moz-transition:all 1s;
 -webkit-transition:all 1s;
 }
-/* Always keep the scrollbar -- this avoids unpleasant resizing when the tree/menu
-   grows and shrinks. */
-html {overflow-y:scroll;}
 
-#theorems .wrapper { background-color: pink; }
+#theorems .wrapper { background-color: pink; min-height: 5em;}
 #theorems .wrapper.disabled { background-color: gray; }
 .wrapper { display:inline-block; width: 12em;margin: 1em; padding:1px; 
            vertical-align:top; }
-.theorem { display:inline-block; width:100%;}
-.theorem span {display:inline-block;
+.wrapper>.theorem { display:inline-block; width:100%;}
+span.theorem {display:inline-block;
                /*XXX vertical-align:top; */
                text-align:center;}
-.theorem .operator {width: 100%; border:1px solid black;}
-.theorem .args {width: 100%;margin:1px}
-.theorem .arg {margin-left: 4%;}
-.theorem .arg.argnum0  {margin-left: 0;}
-.theorem .argof1  {width: 100%;}
-.theorem .argof2.depth0 {font-size:100%;}
-.theorem .argof2.depth1 {font-size:100%;}
-.theorem .argof2.depth2 {font-size:100%;}
-.theorem .argof2  {width: 48%;font-size:48%;}
-.theorem .tuple,.variable {width:100%;}
+.theorem.operator {width: 100%; border:1px solid black;}
+.theorem.args {width: 100%;margin:1px}
+.theorem.arg {margin-left: 4%;}
+.theorem.arg.argnum0  {margin-left: 0;}
+.theorem.argof1  {width: 100%;}
+.theorem.argof2.depth0 {font-size:100%;}
+.theorem.argof2.depth1 {font-size:100%;}
+.theorem.argof2.depth2 {font-size:100%;}
+.theorem.argof2  {width: 48%;font-size:48%;}
+.theorem .tuple,.theorem .variable {width:100%;}
 
-.theorem .selected {border: 4px solid black; margin:-4px;border-radius: 4px;}
+.theorem.selected {border: 4px solid black; margin:-4px;border-radius: 4px;}
+#tree {position:absolute; left: 30%; top: 0; display:inline-block;}
+#tree .wrapper {position:absolute;left:0}
 #tree .binding_alpha {text-decoration:underline;}
 #tree .binding_right {border-top:2px solid blue;}
 #tree .binding_left  {border-top:2px solid red;}
 #tree .binding_exact {border-top:2px solid purple;}
 
-
+body {margin:0;}
+#leftPane {background:#e2e2e2; width: 6em; display:inline-block;position:fixed;height:100%;
+           padding-left:.1em;}
+#centerPane {position:absolute; display:inline-block; width:100%;height:100%;}
+#centerpane>div {margin-left: 6.1em;}
+#centertop {overflow-y:auto;height:30%;display:inline-block;width:100%;}
+#theorems {overflow-y:auto;height:70%;width:100%;}

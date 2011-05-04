@@ -111,11 +111,13 @@ exports.Ui = function(doc, theory, prover, scheme) {
             if (term.operator) {
                 var op = term.operator();
                 var tupleSpan = doc.createElement("span");
+                tupleSpan.className += " theorem";
                 tupleSpan.className += " tuple";
                 tupleSpan.className += " op_" + op.toString().replace(/[^a-z]/g,'');
                 makeHoverable(tupleSpan, term, binding, path.slice());
                 pathToNodeMap[path] = tupleSpan;
                 var opSpan = doc.createElement("span");
+                opSpan.className += " theorem";
                 opSpan.className += " operator";
                 tupleSpan.appendChild(opSpan);
                 opSpan.innerHTML = op.toString();
@@ -123,6 +125,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 pathToNodeMap[path] = opSpan;
                 path.pop();
                 var argsSpan = doc.createElement("span");
+                argsSpan.className += " theorem";
                 argsSpan.className = "args";
                 tupleSpan.appendChild(argsSpan);
                 var n = op.arity();
@@ -145,13 +148,15 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 span = tupleSpan;
             } else {
                 var vSpan = doc.createElement("span");
-                vSpan.className = " variable";
+                vSpan.className += " theorem";
+                vSpan.className += " variable";
                 makeHoverable(vSpan, term, binding, path.slice());
                 pathToNodeMap[path] = vSpan;
                 vSpan.innerHTML = varNamer(path.slice(), term);
                 span = vSpan;
             }
             var outerSpan = doc.createElement("span");
+            outerSpan.className += " theorem";
             outerSpan.appendChild(span);
             if (binding) outerSpan.className += " binding_" + binding;
             return outerSpan;
@@ -226,6 +231,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         var tree;
         var treeNode;
         var wrapperSpan = doc.createElement("span");
+        wrapperSpan.className += " theorem";
         theoremsDiv.appendChild(wrapperSpan);
         var selectedNode;
         var varNamer = NewNumVarNamer();
