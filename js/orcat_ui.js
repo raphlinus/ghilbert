@@ -34,7 +34,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
 
     // ================ private methods ================
     function removeClass(node, className) {
-        node.className = node.className.replace(className,'');
+        while (node.className.match(className)) {
+            node.className = node.className.replace(className,'');
+        }
     }
     // ================ private state ================
     var theoremsDiv = doc.getElementById("theorems");
@@ -42,13 +44,27 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var theorems = [];
     var proofTree;
     var proofTerm;
-    var proofState;
-    var STATE_ZERO = 0; // no proofpath selected.  clicking a theorem starts over.
-    var STATE_ONE = 1; // proofpath selected. clicking a theorem applies.
-    var STATE_TWO = 2;
-    var state = STATE_ZERO;
     var Ui = this;
     var proofNamer;
+    var hoveredPath;
+    var undoIndex = -1;
+    function proofState() {
+        return undoStack[undoIndex].proofState;
+    }
+    function selectedPath() {
+        return undoStack[undoIndex].selectedPath;
+    }
+    function setSelectedPath(path) {
+        if (path == null) {
+            var oldPath = selectedPath();
+            if (oldPath != null) {
+                removeClass(proofTree.node(oldPath), ' selected');
+                theorems.forEach(function(t) { t.clearUnification(); });
+            }
+        }
+        return undoStack[undoIndex].selectedPath = path;
+    }
+
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
     // @param isInteractive whether this is an interactive tree.
@@ -63,33 +79,31 @@ exports.Ui = function(doc, theory, prover, scheme) {
             if (binding) {
                 node.addEventListener(
                     'mouseover', function(e) {
-                        if (state == STATE_ZERO) {
+                        e.stopPropagation();
+                        if (selectedPath() == null) {
                             node.className += " selected";
+                            hoveredPath = path.slice();
                             theorems.forEach(function(t) { t.attemptUnify(term, binding, path); });
-                            e.stopPropagation();
                         }
                     }, false);
                 node.addEventListener(
                     'mouseout',
                     function(e) {
-                        if (state == STATE_ZERO) {
+                        e.stopPropagation();
+                        if (selectedPath() == null) {
                             removeClass(node, ' selected');
                             theorems.forEach(function(t) { t.clearUnification(); });
-                            e.stopPropagation();
+                            hoveredPath = null;
                         }
                     }, false);
                 node.addEventListener(
                     'click', function(e) {
-                        if (state == STATE_ZERO) {
-                            node.className += " selected";
+                        e.stopPropagation();
+                        if (selectedPath() == null) {
                             // TODO: will need some way to choose one of two unifications
+                            node.className += " selected";
                             theorems.forEach(function(t) { t.realizeUnification(0); });
-                            e.stopPropagation();
-                            state = STATE_ONE;
-                        } else {
-                            removeClass(node, ' selected');
-                            theorems.forEach(function(t) { t.clearUnification(); });
-                            state = STATE_ZERO;
+                            setSelectedPath(hoveredPath);
                         }
                     }, false);
             }
@@ -184,6 +198,11 @@ exports.Ui = function(doc, theory, prover, scheme) {
         };
     }
     function setProofState(ps, optVarTrans, optVarTransBasePath) {
+        undoStack.splice(++undoIndex);
+        undoStack[undoIndex] = ({proofState:ps, selectedPath: null});
+        reallySetProofState(optVarTrans, optVarTransBasePath);
+    }
+    function reallySetProofState(optVarTrans, optVarTransBasePath) {
         function visitVarTrans(visitor) {
             if (optVarTrans) {
                 for (var k in optVarTrans) if (optVarTrans.hasOwnProperty(k)) {
@@ -196,8 +215,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 }
             }
         }
-        proofState = ps;
-        proofTerm = proofState.assertion();
+        proofTerm = proofState().assertion();
         var srcDsts = [];
         visitVarTrans(function(oldPath,newPath) {
                           srcDsts.push({src:oldPath, dst:newPath});
@@ -215,10 +233,11 @@ exports.Ui = function(doc, theory, prover, scheme) {
         proofTree = newProofTree;
     }
     // Create an onclick handler to start a proof over with an axiom.
-    function startProof(thmName) {
+    function startProof(thmName, node) {
         return function(e) {
             proofNamer = NewNumVarNamer();
             setProofState(prover.newProof(thmName));
+            GHT.sendNodeToNode(node, proofTree.node());
         };
     }
 
@@ -242,7 +261,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             wrapperSpan.appendChild(treeNode);
         }
         redraw();
-        treeNode.onclick = startProof(name); // TODO: move to controller
+        treeNode.onclick = startProof(name, treeNode); // TODO: move to controller
 
         // Returns a map from paths inside the [templateArg] subterm to paths to
         // the same var outside that subterm.
@@ -286,7 +305,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // child(ren), and retains the possible unification future(s) for interaction.
         // path is the path to the given term as a subterm of the proof term.
         this.attemptUnify = function(term, binding, path) {
-            futures = proofState.consider(path.slice(), name);
+            futures = proofState().consider(path.slice(), name);
             if (futures.length == 0) { 
                 treeNode.className += " disabled";
             } else {
@@ -306,7 +325,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             futures.splice(0, futures.length);
             tuple = originalTuple;
             redraw();
-            treeNode.onclick = startProof(name); // TODO: move to controller
+            treeNode.onclick = startProof(name, treeNode); // TODO: move to controller
         };
         var that = this;
         // If the last call to attemptUnify succeeded, this will perform the
@@ -360,19 +379,23 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     window.setTimeout(doStep, isChanged ? 500 : 0);
                 } else {
                     setProofState(future.execute(),
-                                  getVarTransitions(tuple, future.templateArg),
+                                  getVarTransitions(originalTuple, future.templateArg),
                                   future.proofPath.slice());
                     theorems.forEach(function(t) { t.clearUnification(); });
-                    state = STATE_ZERO;
                 }
             }
             doStep();
+        };
+        this.tree = function() {
+            return tree;
         };
     }
 
     // ================ public methods ================
     this.addAxiom = function(name) {
-        theorems.push(new Theorem(name, theory.theorem(name)));
+        var thm = new Theorem(name, theory.theorem(name));
+        theorems.push(thm);
+        return thm;
     };
     // remove all theorems from the ui.
     this.reset = function() {
@@ -381,9 +404,23 @@ exports.Ui = function(doc, theory, prover, scheme) {
     };
     doc.getElementById("save").onclick = function() {
         var thmName = Math.random(); // TODO: thm naming
-        console.log("PROOF: " + proofState.proof(thmName));
-        theory.addAxiom(thmName, proofState.assertion());
-        Ui.addAxiom(thmName);
+        console.log("PROOF: " + proofState().proof(thmName));
+        theory.addAxiom(thmName, proofState().assertion());
+        var newTree = Ui.addAxiom(thmName).tree();
+        GHT.sendNodeToNode(proofTree.node(), newTree.node());
     };
 
+    var undoStack = [];
+    doc.getElementById("back").onclick = function() {
+        if (selectedPath() == null) {
+            --undoIndex;
+            reallySetProofState();
+        }
+        setSelectedPath(null);
+    };
+    doc.getElementById("forward").onclick = function() {
+        ++undoIndex;
+        reallySetProofState();
+
+    };
 };
