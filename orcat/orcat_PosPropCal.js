@@ -28,15 +28,8 @@ exports.theory.addAxiom(
     "Distribute",
     theory.parseTerm([implies, [implies, 0, [implies, 1, 2]],
                       [implies, [implies, 0, 1], [implies, 0, 2]]]));
-var not = exports.theory.newOperator("not", exports.wff, [exports.wff]);
-exports.not = not;
-exports.theory.addAxiom("Transpose", theory.parseTerm(
-                            [implies, [implies, [not, 0], [not, 1]],
-                             [implies, 1, 0]]));
-
 if (exports.startUi) {
     exports.ui.reset();
     exports.ui.addAxiom("Simplify");
     exports.ui.addAxiom("Distribute");
-    exports.ui.addAxiom("Transpose");
 }

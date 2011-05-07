@@ -80,9 +80,12 @@ import (COREPROPCAL CorePropCal (POSPROPCAL) "")
             goal.new_js = """
 // %s
 // CorePropCal
-GHT.Operators["-."] = new Operator("-.","\u00ac","wff",["wff"],[Infinity]);
-GHT.Thms["Transpose"] = T(O("->"),T(O("->"),T(O("-."),TV("wff", -560)),T(O("-."),TV("wff", -571))),T(O("->"),TV("wff", -571),TV("wff", -560)));
-GHT.ArrowScheme["-."] = [null];
+var not = exports.theory.newOperator("not", exports.wff, [exports.wff]);
+exports.not = not;
+exports.theory.addAxiom("Transpose", exports.theory.parseTerm(
+                            [exports.implies, [exports.implies, [not, 0], [not, 1]],
+                             [exports.implies, 1, 0]]));
+exports.ui.addAxiom("Transpose");
 """
             goal.update_js = "GHT.Tip.lock('notUnlocked');\n"
             goal.new_location = "Outer Procal"
@@ -118,58 +121,59 @@ delete GHT.DisabledOptions.generify;
             goal.update_js = "GHT.Tip.lock('con3Unlocked');\n"
             goal.new_js ="""
 // con3
-GHT.Operators["-."].bindings[0] = -1;
-GHT.ArrowScheme["-."][0] = "%s";
+exports.scheme.setBinding(exports.not, 0, exports.scheme.RIGHT(), "%s");
 """
         elif (name == "!unlock and"):
             goal.update_js = "GHT.Tip.lock('andUnlocked');\n"
             goal.new_js = """
 // %s
 // And
-GHT.Operators["/\\\\"] = new Operator("/\\\\","\u2227","wff",["wff","wff"],[Infinity,Infinity]);
-GHT.Thms["Conjoin"] =  T(O("-."),T(O("->"),T(O("->"),T(O("/\\\\"),TV("wff", -360),TV("wff", -361)),T(O("-."),T(O("->"),TV("wff", -360),T(O("-."),TV("wff", -361))))),T(O("-."),T(O("->"),T(O("-."),T(O("->"),TV("wff", -360),T(O("-."),TV("wff", -361)))),T(O("/\\\\"),TV("wff", -360),TV("wff", -361))))));
-GHT.ArrowScheme["/\\\\"] = [null, null];
+var and = exports.theory.newOperator("and", exports.wff, [exports.wff, exports.wff]);
+exports.and = and;
+var I = exports.implies;
+var not = exports.not;
+exports.theory.addAxiom("Conjoin", exports.theory.parseTerm(
+                            [not, [I, [I, [and, 0, 1], [not, [I, 0, [not, 1]]]],
+                                   [not, [I, [not, [I, 0, [not, 1]]], [and, 0, 1]]]]]));
 """
             goal.new_ghilbert = """
-defthm (Conjoin wff (/\ A B) () ()
-          (-. (-> (-> (/\ A B) (-. (-> A (-. B))))
-                  (-. (-> (-. (-> A (-. B))) (/\ A B)))))
-     (-. (-> A (-. B)))  (-. (-> A (-. B)))  %s
+defthm (Conjoin wff (and A B) () ()
+          (not (rarr (rarr (and A B) (not (rarr A (not B))))
+                  (not (rarr (not (rarr A (not B))) (and A B)))))
+     (not (rarr A (not B)))  (not (rarr A (not B)))  %s
 )
 """
         elif (name == "!anim1"):
             goal.update_js = "GHT.Tip.lock('anim1Unlocked');\n"
             goal.new_js = """
 // anim1
-GHT.Operators["/\\\\"].bindings[0] = 1;
-GHT.ArrowScheme["/\\\\"][0] = "%s";
+exports.scheme.setBinding(and, 0, exports.scheme.LEFT(), "%s");
 """
         elif (name == "!anim2"):
             goal.update_js = "GHT.Tip.lock('anim2Unlocked');\n"
             goal.new_js = """
 // anim2
-GHT.Operators["/\\\\"].bindings[1] = 1;
-GHT.ArrowScheme["/\\\\"][1] = "%s";
+exports.scheme.setBinding(and, 1, exports.scheme.LEFT(), "%s");
 """
         elif (name == "!unlock bi"):
             goal.update_js = "GHT.Tip.lock('biUnlocked');\n"
             goal.new_js = """
 // %s
 // Bi
-GHT.Operators["<->"] = new Operator("<->","\u2194","wff",["wff","wff"],[Infinity,Infinity])
-GHT.Thms["Equivalate"] =  T(O("/\\\\"),T(O("->"),T(O("<->"),TV("wff", -1),TV("wff", -2)),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1)))),T(O("->"),T(O("/\\\\"),T(O("->"),TV("wff", -1),TV("wff", -2)),T(O("->"),TV("wff", -2),TV("wff", -1))),T(O("<->"),TV("wff", -1),TV("wff", -2))));
-GHT.ArrowScheme["<->"] = [null, null];
-GHT.EquivalenceScheme = {};
-GHT.EquivalenceScheme["->"] = [null, null];
-GHT.EquivalenceScheme["<->"] = [null, null];
-GHT.EquivalenceScheme["mp"] = [null, null];
-GHT.EquivalenceScheme["/\\\\"] = [null, null];
+var iff = exports.theory.newOperator("iff", exports.wff, [exports.wff, exports.wff]);
+exports.iff = iff;
+var I = exports.implies;
+var not = exports.not;
+var and = exports.and;
+exports.theory.addAxiom("Equivalate", exports.theory.parseTerm(
+                            [and, [I, [iff, 1, 2], [and, [I, 1, 2], [I, 2, 1]]],
+                             [I, [and, [I, 1, 2], [I, 2, 1]], [iff, 1, 2]]]));
 """
             goal.new_ghilbert = """
-defthm (Equivalate wff (<-> A B) () ()
-     (/\ (-> (<-> A B) (/\ (-> A B) (-> B A)))
-         (-> (/\ (-> A B) (-> B A)) (<-> A B)))
-    (/\ (-> A B) (-> B A))  (/\ (-> A B) (-> B A))  %s
+defthm (Equivalate wff (iff A B) () ()
+     (and (rarr (iff A B) (and (rarr A B) (rarr B A)))
+         (rarr (and (rarr A B) (rarr B A)) (iff A B)))
+    (and (rarr A B) (rarr B A))  (and (rarr A B) (rarr B A))  dfbi
 )
 """
         elif (name == "!imbi1"):
@@ -427,19 +431,13 @@ class StatusJs(webapp.RequestHandler):
             player.goal=player.goalTrain.goals[0]
             player.name = playerName
             player.log = "### Created " + strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
-            player.setupJs = """
-window.exports = {};
- GHT.loadLibrary('js/orcat_PosPropCal.js');
-exports.startUi = true;
-/*
-exports.Init(theory, arrowScheme, proofFactory);
-*/
-
-"""
+            player.setupJs = ""
             player.ghilbertInterfaces = ["PosPropCal.ghi"]
             player.ghilbertText = ""
             tip = '"newPlayer"'
             player.put()
+        self.response.out.write("exports.startUi = true;\n");
+        self.response.out.write(open('orcat/orcat_PosPropCal.js', 'r').read());
         self.response.out.write(player.setupJs);
         self.response.out.write('GHT.Tip.set(%s);\n' % tip);
         self.response.out.write(player.update_js());

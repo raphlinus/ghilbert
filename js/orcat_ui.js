@@ -49,6 +49,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var proofNamer;
     var hoveredPath;
     var undoIndex = -1;
+    var undoStack = [];
+
     function proofState() {
         return undoStack[undoIndex].proofState;
     }
@@ -419,39 +421,43 @@ exports.Ui = function(doc, theory, prover, scheme) {
     };
 
     // ================ doc setup ================
-    doc.getElementById("save").onclick = function() {
-        var thmName = Math.random(); // TODO: thm naming
-        var ghProof = proofState().proof(thmName); // TODO: support defthm
-        var thmTerm = proofState().assertion();  
-        theory.addAxiom(thmName, thmTerm);
-        var newTree = Ui.addAxiom(thmName).tree();
-        GHT.sendNodeToNode(proofTree.node(), newTree.node());
+    if (exports.startUi) {
+        doc.getElementById("save").onclick = function() {
+            autoGoal(false);
+            var thmName = Math.random(); // TODO: thm naming
+            var ghProof = proofState().proof(thmName); // TODO: support defthm
+            var thmTerm = proofState().assertion();  
+            theory.addAxiom(thmName, thmTerm);
+            var newTree = Ui.addAxiom(thmName).tree();
+            GHT.sendNodeToNode(proofTree.node(), newTree.node());
 
-        var packet = {};
-        packet.playerName = encodeURIComponent(GHT.playerName);
-        packet.thmName = thmName;
-        packet.proof = ghProof;
-        packet.source = "exports.theory.addAxiom('" + thmName + "', "
-            + thmTerm.toSource() + ");\n";
-        packet.log = "TODO";
-        GHT.submitPacket(packet);
-        
-    };
+            var packet = {};
+            packet.playerName = encodeURIComponent(GHT.playerName);
+            packet.thmName = thmName;
+            packet.proof = ghProof;
+            var source = "exports.theory.addAxiom('FOO', exports.theory.parseTerm(BAR));exports.ui.addAxiom(FOO);\n";
+            source = source.replace(/FOO/g, thmName);
+            source = source.replace(/BAR/, thmTerm.toSource());
+            packet.source = source;
+            packet.log = "TODO";
+            GHT.submitPacket(packet);
+            
+        };
 
-    var undoStack = [];
-    doc.getElementById("back").onclick = function() {
-        if (selectedPath() == null) {
-            --undoIndex;
+        doc.getElementById("back").onclick = function() {
+            if (selectedPath() == null) {
+                --undoIndex;
+                reallySetProofState();
+            }
+            setSelectedPath(null);
+        };
+        doc.getElementById("forward").onclick = function() {
+            ++undoIndex;
             reallySetProofState();
-        }
-        setSelectedPath(null);
-    };
-    doc.getElementById("forward").onclick = function() {
-        ++undoIndex;
-        reallySetProofState();
 
-    };
-    GHT.redecorate = function(changed) {
-      console.log("XXXX");
-    };
+        };
+        GHT.redecorate = function(changed) {
+            console.log("XXXX");
+        };
+    }
 };

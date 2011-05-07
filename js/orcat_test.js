@@ -36,7 +36,7 @@ ORCAT.Theory = require('./theory.js').Theory;
 ORCAT.Scheme = require('./scheme.js').Scheme;
 ORCAT.Prover = require('./proof.js').Prover;
 ORCAT.Ui = require('./orcat_ui.js').Ui;
-ORCAT = require('./orcat_PosPropCal.js');
+ORCAT = require('../orcat/orcat_PosPropCal.js');
 var scheme = ORCAT.scheme;
 expect(scheme.LEFT().equals(scheme.RIGHT().compose(scheme.RIGHT())), "r*r=l");
 
@@ -69,6 +69,8 @@ expect(!t.equals(u), "A(BC) should not equal (BC)(BC)!");
 t = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, 3]]);
 u = exports.theory.parseTerm([I, [I, 0, 1], [I, 0, 1]]);
 expect(!t.equals(u), "(AB)(CD) should not equal (AB)(AB)!");
+
+expect(u.equals(theory.parseTerm(eval(u.toSource()))));
 
 // Verify prover
 var prover = ORCAT.prover;
@@ -528,4 +530,5 @@ fs.readFile('../orcat/PosPropCal_bootstrap.gh',
                 verify.stdin.write(ghText);
                 verify.stdin.end();
             });
+
 
