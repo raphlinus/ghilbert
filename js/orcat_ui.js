@@ -44,6 +44,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
     var theorems = [];
     var proofTree;
     var proofTerm;
+    var goalTerm;
     var Ui = this;
     var proofNamer;
     var hoveredPath;
@@ -197,6 +198,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         };
     }
+    function autoGoal(match) {
+        var label = document.getElementById("autogoal");
+        label.style.visibility = match ? "visible" : "hidden";
+        label.style.left = match ? 0 : "20em";
+
+    }
     function setProofState(ps, optVarTrans, optVarTransBasePath) {
         undoStack.splice(++undoIndex);
         undoStack[undoIndex] = ({proofState:ps, selectedPath: null});
@@ -231,6 +238,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             treeDiv.removeChild(proofTree.node());
         }
         proofTree = newProofTree;
+        autoGoal(goalTerm && goalTerm.equals(proofTerm));
     }
     // Create an onclick handler to start a proof over with an axiom.
     function startProof(thmName, node) {
@@ -402,12 +410,32 @@ exports.Ui = function(doc, theory, prover, scheme) {
         theorems.splice(0, theorems.length);
         theoremsDiv.innerHTML = "";
     };
+    this.setGoal = function(term) {
+        goalTerm = term;
+        var goalTree = new Tree(term, false, NewNumVarNamer());
+        var goalSpan = doc.getElementById("player.goal");
+        goalSpan.removeChild(goalSpan.firstChild);
+        goalSpan.appendChild(goalTree.node());
+    };
+
+    // ================ doc setup ================
     doc.getElementById("save").onclick = function() {
         var thmName = Math.random(); // TODO: thm naming
-        console.log("PROOF: " + proofState().proof(thmName));
-        theory.addAxiom(thmName, proofState().assertion());
+        var ghProof = proofState().proof(thmName); // TODO: support defthm
+        var thmTerm = proofState().assertion();  
+        theory.addAxiom(thmName, thmTerm);
         var newTree = Ui.addAxiom(thmName).tree();
         GHT.sendNodeToNode(proofTree.node(), newTree.node());
+
+        var packet = {};
+        packet.playerName = encodeURIComponent(GHT.playerName);
+        packet.thmName = thmName;
+        packet.proof = ghProof;
+        packet.source = "exports.theory.addAxiom('" + thmName + "', "
+            + thmTerm.toSource() + ");\n";
+        packet.log = "TODO";
+        GHT.submitPacket(packet);
+        
     };
 
     var undoStack = [];
@@ -422,5 +450,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
         ++undoIndex;
         reallySetProofState();
 
+    };
+    GHT.redecorate = function(changed) {
+      console.log("XXXX");
     };
 };

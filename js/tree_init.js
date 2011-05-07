@@ -145,8 +145,19 @@ GHT.updateUi = function(nodeBase, obj) {
         var nodeName = nodeBase + "." + k;
         var node = document.getElementById(nodeName);
         var val = obj[k];
-        if (k === "XXXgoal") { // HACK
+        if (k === "goal") { // HACK
             val = val.substring(6);
+            function setGoal() {
+                if (window.exports.theory) {
+                    exports.ui.setGoal(window.exports.theory.termFromSexp(val));                
+                } else {
+                    // Hasn't loaded yet
+                    window.setTimeout(setGoal, 50);
+                }
+            }
+            setGoal();
+/*
+ * XXX
             GHT.theGoal = val;
             val = GHT.termFromSexp(val);
             GHT.theGoalString = val.toString(GHT.makeVarMapper({}, GHT.goalVarNames));
@@ -154,6 +165,7 @@ GHT.updateUi = function(nodeBase, obj) {
                                 GHT.makeVarMapper({}, GHT.goalVarNames));
             while (node.firstChild) node.removeChild(node.firstChild);
             node.appendChild(val);
+*/
         } else if (node) {
             if (node.type === "text"){
                 node.value = val;
@@ -234,7 +246,9 @@ GHT.updateUi = function(nodeBase, obj) {
          return packet;
      }
      function submitForm(event, isDefThm) {
-         var packet = makeSavePacket(isDefThm);
+         GHT.submitPacket(makeSavePacket(isDefThm));
+     }
+     GHT.submitPacket = function(packet) {
          var xhr = new XMLHttpRequest();
          xhr.onreadystatechange = function () {
              if (xhr.readyState === 4) {

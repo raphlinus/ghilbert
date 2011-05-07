@@ -334,7 +334,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 }
             }
             return "thm (" + thmName
-                + " () " // DVs not yet handled.
+                + " ()" // DVs not yet handled.
                 + " () " // Hyps not supported.
                 + stringify(wrappedAssertion) +
                 "\n" + steps.map(stringify).join(" ") + ")";

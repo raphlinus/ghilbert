@@ -1372,8 +1372,9 @@ GHT.onTransitionEnd = function(node, callback, forceDelay) {
     window.setTimeout(callback, timeout); 
 
 };
-
+/*
 GHT.redecorate = function(changed) {
+ XXX
     document.getElementById("defthm").style.display = GHT.DisabledOptions.nodefthm ?
         "inline" : "none";
     GHT.autoGoal(GHT.theProof);
@@ -1450,6 +1451,7 @@ GHT.redecorate = function(changed) {
     }
     window.setTimeout( function() { newTable.style.opacity = 100;}, 0);
 };
+*/
 GHT.actuallySetProof = function(proof) {
     //console.log("Setting proof: " + proof.toString());
     var cloneMap = {};

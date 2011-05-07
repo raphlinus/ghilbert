@@ -36,6 +36,7 @@ exports.Theory = function() {
         this.arity = function() { return inputs.length; };
         this.input = function(i) { return inputs[i]; };
         this.kind = function() { return output; };
+        this.toSource = function() { return "exports.theory.operator('" + name + "')"; };
     };
     // A Term is either a Variable or a Tuple, and has a Kind.  All Terms are immutable.
     function Term() {
@@ -63,6 +64,7 @@ exports.Theory = function() {
                  this.toString = function() {
                      return kind + "." + id;
                  };
+                 this.toSource = function() { return "'" + this.toString() + "'"; };
              };
          })();
     Variable.prototype = new Term;
@@ -560,16 +562,32 @@ exports.Theory = function() {
         }
         return array;
     };
-
-    var theorems = {    };
+    Tuple.prototype.toSource = function() {
+        var array = [];
+        array.push(this.operator().toSource());
+        for (var i = 0, n = this.operator().arity(); i < n; i++) {
+            array.push(this.input(i).toSource());
+        }
+        return '[' + array.join(', ') + ']';
+    };
+    var operators = {};
+    var theorems = {};
     // ================ Public Methods ================
     this.newKind = function(name) {
         return new Kind(name);
     };
     this.newOperator = function(name, output, inputs) {
         var _inputs = [];
-        _inputs.push.apply(inputs);
-        return new Operator(name, output, inputs);
+        _inputs.push.apply(_inputs, inputs);
+        var op = new Operator(name, output, _inputs);
+        operators[name] = op;
+        operators[name.replace(/[^a-zA-Z]/g, '')] = op;
+        return op;
+    };
+    this.operator = function(name) {
+        var op = operators[name];
+        if (!op) throw new Error("Unknown operator " + name);
+        return op;
     };
     this.addAxiom = function(name, term) {
         theorems[name] = term;
@@ -605,4 +623,41 @@ exports.Theory = function() {
     this.xpath = function(term, path) {
         return term.xpath(path).clone();
     };
+    
+    // Parses a ghilbert sexp into a term.
+    this.termFromSexp = function(sexp) {
+        var that = this;
+        var i = 0;
+        function consumeWhitespace() {
+            while (sexp.charAt(i) == ' ') i++;
+        }
+        function consumeToken() {
+            var start = i;
+            while (sexp.charAt(i) != ' ' && sexp.charAt(i) != ')') i++;
+            return sexp.substring(start, i);
+        }
+        function consumeBalanced() {
+            // Assumes sexp.charAt(i) = "(".  moves i past the matching close-parenthesis. returns
+            // the termArray constructed along the way.
+            i++;
+            var args = [];
+            args.push(that.operator(consumeToken()));
+            var j = 0;
+            while (sexp.charAt(i) != ")") {
+                consumeWhitespace();
+                if (sexp.charAt(i) == "(") {
+                    args.push(consumeBalanced());
+                } else {
+                    var varName = consumeToken();
+                    args.push(varName);
+                }
+                j++;
+            }
+            i++;
+            return args;
+        }
+        var termArray = consumeBalanced();
+        return this.parseTerm(termArray);
+    };
+
 };
