@@ -32,4 +32,28 @@ if (exports.startUi) {
     exports.ui.reset();
     exports.ui.addAxiom("Simplify");
     exports.ui.addAxiom("Distribute");
+
+
+function expectUnify(a, b, msg) {
+    var u = ORCAT.theory.unify(a, b);
+    msg = msg + " unify: " + a.toString() + " with "  + b.toString();
+    if (!u) throw new Error("no unifcation " + msg);
+    u.steps(0).forEach(
+        function(s) {
+            a = ORCAT.theory.parseTerm(a.specify(s), a.kind());
+        }
+    );
+    u.steps(1).forEach(
+        function(s) {
+            b = ORCAT.theory.parseTerm(b.specify(s), b.kind());
+        }
+    );
+    msg += " specify to " + a.toString() + " and " + b.toString();
+    expect(a.equals(b), msg);
+}
+
+var ax1 = exports.theory.theorem('Simplify');
+var ax2 = exports.theory.theorem('Distribute');
+expectUnify(ax2.xpath([1]), ax1);
+
 }

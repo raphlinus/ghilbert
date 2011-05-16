@@ -8,17 +8,19 @@ function expectEq(a, b, msg) {
     if (a !== b) throw new Error(msg);
 }
 function expectUnify(a, b, msg) {
+    util.puts("XXXX");
+
     var u = ORCAT.theory.unify(a, b);
     msg = msg + " unify: " + a.toString() + " with "  + b.toString();
     if (!u) throw new Error("no unifcation " + msg);
     u.steps(0).forEach(
         function(s) {
-            a = ORCAT.theory.parseTerm(a.specify(s), a.kind());
+            a = ORCAT.theory.parseTerm(a.specifyAt(s), a.kind());
         }
     );
     u.steps(1).forEach(
         function(s) {
-            b = ORCAT.theory.parseTerm(b.specify(s), b.kind());
+            b = ORCAT.theory.parseTerm(b.specifyAt(s), b.kind());
         }
     );
     msg += " specify to " + a.toString() + " and " + b.toString();
@@ -125,6 +127,9 @@ exports.not = not;
 exports.theory.addAxiom("Transpose", theory.parseTerm(
                             [I, [I, [not, 0], [not, 1]],
                              [I, 1, 0]]));
+
+expect(!exports.theory.unify(exports.theory.parseTerm([I, [not, [not, 0]], 0]),
+                             exports.theory.parseTerm([I, 0, [I, 0, 1]])));
 
 startWith('Simplify');
 applyArrow([1], 'Transpose');
