@@ -460,4 +460,5 @@ exports.Ui = function(doc, theory, prover, scheme) {
             console.log("XXXX");
         };
     }
+
 };

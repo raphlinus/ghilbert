@@ -32,6 +32,12 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
     function pathFromString(p) {
         return p ? p.split(/,/).map(Number) : [];
     }
+    function termArrayAccess(termArray, xpath) {
+        if (xpath.length == 0) {
+            return termArray;
+        }
+        return termArrayAccess(termArray[xpath.shift() + 1], xpath);
+    }
     // A Term, but with each of its var-leaves annotated to one of our own variables.
     function WrappedTerm(term, pathToVarMap) {
         if (DEBUG) {
@@ -171,15 +177,18 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                     }
                 } else {
                     // A variable is being replaced by a new term.
-                    // TODO: we are relying on a guarantee about the substSet:
-                    // that when a var is replaced with a termArray, none of the
-                    // termArray's leaves have appeared already in the substSet.
                     // We need to update the newPtvm for each occurence of the var.
                     var subTerm = theory.parseTerm(termArray, oldVar.kind());
                     var subPtvm = {};
                     var subVars = subTerm.extractVars();
                     for (var k in subVars) if (subVars.hasOwnProperty(k)) {
-                        var v = new Variable(subVars[k].kind);
+                        // This key may have been used earlier in this substSet.
+                        var key = termArrayAccess(termArray, subVars[k].paths[0].slice());
+                        var v = termArrayToVarMap[key];
+                        if (!v) {
+                            v = new Variable(subVars[k].kind);
+                            termArrayToVarMap[key] = v;
+                        }
                         subVars[k].paths.forEach(
                             function(pp) {
                                 subPtvm[pp] = v;
@@ -254,7 +263,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
     function ProofState(wrappedAssertion, steps, varToTermMap) {
         // wrappedAssertion is a WrappedTerm containing the assertion of this
         // proof.
-        // steps in an array, whose elements are "valid" vars, theorem-names, or
+        // steps is an array, whose elements are "valid" vars, theorem-names, or
         // parentheses and operators used to compose sexps out of valid vars.
         // A "valid" var is exactly one of: (a) a value in the
         // wrappedAssertion's pathToVarMap; (b) a key in the

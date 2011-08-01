@@ -8,8 +8,6 @@ function expectEq(a, b, msg) {
     if (a !== b) throw new Error(msg);
 }
 function expectUnify(a, b, msg) {
-    util.puts("XXXX");
-
     var u = ORCAT.theory.unify(a, b);
     msg = msg + " unify: " + a.toString() + " with "  + b.toString();
     if (!u) throw new Error("no unifcation " + msg);
@@ -47,6 +45,7 @@ var theory = exports.theory;
 var ax1 = exports.theory.theorem('Simplify');
 var ax2 = exports.theory.theorem('Distribute');
 var I = exports.implies;
+expectUnify(ax2.xpath([1]), ax1);
 expectUnify(ax1, ax2.xpath([0]));
 expectUnify(ax2.xpath([0]), ax1);
 expectUnify(ax1.xpath([0]), ax2);
@@ -124,6 +123,7 @@ saveAs('contract');
 ghText += '\nimport (COREPROPCAL CorePropCal.ghi (POSPROPCAL) "")\n';
 var not = exports.theory.newOperator("not", exports.wff, [exports.wff]);
 exports.not = not;
+//var I = exports.implies;
 exports.theory.addAxiom("Transpose", theory.parseTerm(
                             [I, [I, [not, 0], [not, 1]],
                              [I, 1, 0]]));
@@ -174,6 +174,8 @@ saveAs('dfand');
 // Level 3
 var and = exports.theory.newOperator("and", exports.wff, [exports.wff, exports.wff]);
 exports.and = and;
+expectUnify(ORCAT.theory.parseTerm([I, 1353, [I, [and, 1354, 1355], 1356]]),
+            ORCAT.theory.parseTerm([I, 1357, [I, 1357, 1358]]));
 exports.theory.addAxiom("Conjoin", theory.parseTerm(
                             [not, [I, [I, [and, 0, 1], [not, [I, 0, [not, 1]]]],
                                    [not, [I, [not, [I, 0, [not, 1]]], [and, 0, 1]]]]]));
@@ -208,7 +210,7 @@ applyArrow([0], 'con3');
 saveAs('anim2');
 
 scheme.setBinding(and, 1, scheme.LEFT(), "anim2");
-                                                       
+
 
 startWith('and1');
 applyArrow([1], 'nimp1');
@@ -232,18 +234,18 @@ startWith('and1');
 applyArrow([1,0], 'Transpose');
 applyArrow([1,0,0], 'nn1');
 applyArrow([1], 'and2');
-saveAs('ancom'); 
+saveAs('ancom');
 
 startWith('anim2');
 applyArrow([1,0], 'anid');
-saveAs('ancr'); 
+saveAs('ancr');
 
 startWith('andr');
 applyArrow([], 'imim1');
 applyArrow([], 'imim2');
 applyArrow([1], 'contract');
 applyArrow([0,0], 'andl');
-saveAs('import'); 
+saveAs('import');
 
 startWith('mp');
 applyArrow([], 'import');
@@ -268,7 +270,7 @@ saveAs('prth');
 startWith('id');
 applyArrow([], 'conj');
 applyArrow([], 'idie');
-saveAs('dfbi'); 
+saveAs('dfbi');
 // Level 4
 var iff = exports.theory.newOperator("iff", exports.wff, [exports.wff, exports.wff]);
 exports.iff = iff;
@@ -283,7 +285,7 @@ ghText += "\ndefthm (Equivalate wff (iff A B) () () \
 
 startWith('Equivalate');
 applyArrow([], 'andl');
-saveAs('def-bi-1'); 
+saveAs('def-bi-1');
 
 startWith('Equivalate');
 applyArrow([], 'andr');
@@ -291,11 +293,11 @@ saveAs('def-bi-2');
 
 startWith('def-bi-1');
 applyArrow([1], 'andl');
-saveAs('bi1'); 
+saveAs('bi1');
 
 startWith('def-bi-1');
 applyArrow([1], 'andr');
-saveAs('bi2'); 
+saveAs('bi2');
 
 startWith('def-bi-1');
 applyArrow([1,1], 'imim1');
@@ -359,7 +361,7 @@ startWith('def-bi-1');
 applyArrow([1,0], 'anim1');
 applyArrow([1,1], 'anim1');
 applyArrow([1], 'def-bi-2');
-saveAs('anbi1'); 
+saveAs('anbi1');
 
 startWith('def-bi-1');
 applyArrow([1,0], 'anim2');
@@ -484,7 +486,7 @@ applyArrow([], 'bi2');
 applyArrow([0], 'equivalents, 'con3bi');
 applyArrow([0], 'Simplify');
 applyArrow([0], 'equivalents, 'nnbi~');
-saveAs('or1'); 
+saveAs('or1');
 
 startWith('imim2');
 applyArrow([1,0], 'equivalents, 'con3bi~');
@@ -504,7 +506,7 @@ saveAs('orbi1');
 startWith('imim2');
 applyArrow([1,0], 'equivalents, 'df-or');
 applyArrow([1,1], 'equivalents, 'df-or');
-saveAs('orim2'); 
+saveAs('orim2');
 
 GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});GHT.theMenu.options['imbi1');
 applyArrow([1,0], 'con3bi~');
@@ -512,13 +514,13 @@ applyArrow([1,1], 'con3bi~');
 applyArrow([1,0], 'df-or');
 applyArrow([1,1], 'df-or');
 applyArrow([0], 'notbi');
-saveAs('orbi2'); 
+saveAs('orbi2');
 
 GHT.showTerminals([], null, setfirst)({pageX:0,pageY:0});GHT.theMenu.options['con3bi');
 applyArrow([1], 'df-or');
 applyArrow([0], 'df-or');
 applyArrow([1,1], 'nnbi~');
-saveAs('orcom'); 
+saveAs('orcom');
 
 */
 
