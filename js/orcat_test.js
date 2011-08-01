@@ -87,6 +87,12 @@ function saveAs(thmName) {
     ghText += proofState.proof(thmName) + "\n";
     theory.addAxiom(thmName, proofState.assertion());
 }
+startWith('Simplify');
+applyArrow([], "Simplify");
+applyArrow([], "Simplify");
+applyArrow([], "Simplify");
+saveAs("test");
+/*
 startWith("Distribute");
 applyArrow([0], "Simplify");
 saveAs("imim2");
@@ -402,7 +408,7 @@ applyArrow([], 'conj');
 applyArrow([1], 'def-bi-2');
 applyArrow([0,1], 'nn2');
 applyArrow([], 'idie');
-applyArrow([], 'equivalents, 'bicom~');
+applyArrow([], 'equivalents', 'bicom~');
 saveAs('nnbi');
 
 startWith('Transpose');
@@ -469,9 +475,10 @@ applyArrow([0,1], 'def-bi-2');
 applyArrow([], 'idie');
 saveAs('dfbi3');
 // Level 6
+/*
 startWith('biid');
-applyArrow([1], 'term substitute, '->');
-applyArrow([1,0], 'term substitute, '-.');
+applyArrow([1], 'term substitute', '->');
+applyArrow([1,0], 'term substitute', '-.');
 GHT.DefThm('or');
 // GHT.Operators['or'] = new Operator('or','or','wff',['wff','wff'],[Infinity,Infinity]);
 

@@ -403,7 +403,7 @@ exports.Theory = function() {
 			newSubst[p] = theTerm.toTermArray();
 			terms[1 - termIndex].extract(p, theTerm);});
 		steps[1 - termIndex].push(newSubst);
-	    } 
+	    }
 	    dirty = true;
             return true;
         };
@@ -418,7 +418,7 @@ exports.Theory = function() {
         // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for
         // specify()ing to the common unified term from term[i].
         this.steps = function(i) {
-            return steps[i];
+            return steps[i].slice();
         };
     }
 
