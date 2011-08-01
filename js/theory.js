@@ -1,6 +1,6 @@
 // A Theory maintains some kinds, operators, and theorems.
 exports.Theory = function() {
-    var thisTheory = this; 
+    var thisTheory = this;
     // implementation of a reversible map between objects.
     function Bimap() {
         var forward = {};
@@ -92,7 +92,8 @@ exports.Theory = function() {
     };
     // TODO: protected
     Variable.prototype.unifyTerm = function(term, unification, path) {
-        if (!unification) unification = new Unification([this, term]);
+        //if (!unification) unification = new Unification([this, term]);
+	if (term === this) return true;
         if (!path) path = [];
         return unification.mapVarToTerm(0, path, this, term);
     };
@@ -137,11 +138,17 @@ exports.Theory = function() {
         var toReturn;
         for (var p in substSet) if (substSet.hasOwnProperty(p)) {
             if (p) throw new Error("Bad substSet entry " + p + " past " + this);
-            toReturn = substSet[p]; 
+            toReturn = substSet[p];
         }
-        return toReturn;        
+        return toReturn;
     };
-
+    Variable.prototype.extract = function(path, replacement) {
+	if (path && path.length > 0) {
+	    throw new Error("can't extract past " + this);
+	}
+	if (replacement) throw new Error("can't replace a var " + this);
+	return this;
+    };
     // A Tuple is an Operator with a list of inputs of appropriate
     // kind.  Its Kind is the kind of its operator.  No
     // outside reference to inputs must be retained.
@@ -211,19 +218,27 @@ exports.Theory = function() {
             }
             return set;
         };
+	// TODO: protected
+	// TODO: I have failed in my efforts to get isolation of Variables right.  Perhaps
+	// input(i) should be replaced with xpath([i]) everywhere?
+	// If you call this method with a second argument, this term is forever
+	// radioactive.
+	this.extract = function(path, replacement) {
+            if (path.length == 0) return this;
+            if (path.length == 1) {
+		var i = path.shift();
+		var toReturn = inputs[i];
+		if (replacement) inputs[i] = replacement;
+		return toReturn;
+	    }
+            return this.input(path.shift()).extract(path, replacement);
+	};
+
     }
     Tuple.prototype = new Term;
     // TODO: protected
-    // TODO: I have failed in my efforts to get isolation of Variables right.  Perhaps
-    // input(i) should be replaced with xpath([i]) everywhere?
-    Tuple.prototype.extract = function(path) {
-        if (path.length == 0) return this;
-        if (path.length == 1) return this.input(path.shift());
-        return this.input(path.shift()).extract(path);
-    };
-    // TODO: protected
     Tuple.prototype.unifyTerm = function(term, unification, path) {
-        if (!unification) unification = new Unification([this, term]);
+        //if (!unification) unification = new Unification([this, term]);
         if (!path) path = [];
         if (!term.operator) {
             return unification.mapVarToTerm(1, path, term, this);
@@ -236,7 +251,9 @@ exports.Theory = function() {
             path.push(i);
             if (!this.input(i).unifyTerm(term.input(i), unification, path)) {
                 return false;
-            }
+            } else if (unification.isDirty()) {
+		return true;
+	    }
             path.pop();
         }
         return unification;
@@ -323,106 +340,72 @@ exports.Theory = function() {
     // term with another.  Upon a successful call to unify(), the Unification
     // object will hold instructions for specifying the two terms to a common
     // term.
-    function Unification(terms) {
-        var unified = terms.slice();
-        // implementation of a directed acyclic graph.
-        function DAG() {
-            var connectedFrom = {};
-            var connectedTo = {};
-            // Attempts to add a connection.  Returns false if this would create a cycle.
-            this.connect = function(from, to) {
-                if (from === to) return false;
-                if (connectedFrom[to] && connectedFrom[to][from]) return false;
-                if (!connectedFrom[from]) connectedFrom[from] = {};
-                if (!connectedTo[to]) connectedTo[to] = {};
-                connectedFrom[from][to] = connectedTo[to][from] = 1;
-                for (var f in connectedTo[from]) {
-                    if (!this.connect(f, to)) return false;
-                }
-                for (var t in connectedFrom[to]) {
-                    if (!this.connect(from, t)) return false;
-                }
-                return true;
-            };
-            this.toString = function() {
-                return JSON.stringify(connectedFrom);
-            };
-        }
-
-        var varMapping = new Bimap();
-        // steps()[i] starts with all the elements of opSplits[i].
-        var opSplits = [[], []];
-        // steps()[i] then includes all elements of varJoins.
-        var varJoins = [];
-        // if a var is turned into a term, the term goes in termMapping, and
-        // it is connected in termDag to all the operator's arguments.
-        var termMapping = {};
-        var termDag = new DAG();
-        
+    function Unification(term0, term1) {
+	// These terms are radioactive and must not leave this object.
+	var terms = [term0.clone(), term1.clone()];
+	var steps = [[], []];
+	var dirty = false;
+	this.unify = function() {
+	    // Special case if either term is just a var.
+	    for (var i = 0; i < 2; i++) {
+		if (terms[i] instanceof Variable) {
+		    var newSubst = {};
+		    newSubst[[]] = terms[1 - i].toTermArray();
+		    steps[i].push(newSubst);
+		    return true;
+		}
+	    }
+	    do {
+		dirty = false;
+		if (!terms[0].unifyTerm(terms[1], this)) return false;
+	    } while (dirty);
+	    return true;
+	};
+	this.isDirty = function() {
+	    return dirty;
+	};
         // unified[termIndex] has a variable at path xpath.  We need to map it to
-        // term, which appears in unified[1-termIndex] at the same path. Returns
-        // this on success, false if the action would violate the dv constraints
+        // theTerm, which appears in unified[1-termIndex] at the same path. Returns
+        // true on success, false if the action would violate the dv constraints
         // or create a cyclic dependency,
-        this.mapVarToTerm = function(termIndex, xpath) {
-            var oldSource = unified[termIndex].xpath(xpath.slice());
-            var source = varMapping.endpoint(oldSource);
-            var term = unified[1 - termIndex].xpath(xpath.slice());
-            require('util').puts("XXXX mapVarToTerm " + termIndex + ", " + xpath
-                                 + ": " + oldSource + "/" + source + " -> " + term.toString());
-
-
-            if (!term.operator) {
-                var newVar = new Variable(term.kind());
-                var pathsToJoin = unified[termIndex].extractVars()[oldSource].paths
-                    .concat(unified[1 - termIndex].extractVars()[term].paths);
-                term = varMapping.endpoint(term);
-                var substSet = {};
-                pathsToJoin.forEach(function(p) { substSet[p] = newVar; });
-                varJoins.push(substSet);
-                varMapping.set(source, newVar);
-                if (!termDag.connect(source, newVar)) {
-                    return false;
-                }
-                varMapping.set(term, newVar);
-                if (!termDag.connect(term, newVar)) {
-                    return false;
-                }
-            } else {
-                var varSet = term.extractVars();
-                for (var v in varSet) if (varSet.hasOwnProperty(v)) {
-                    v = varMapping.endpoint(v);
-                    if (!termDag.connect(source, v)) {
-                        return false;
-                    }
-                }
-                var substSet = {};
-                substSet[xpath] = term.toTermArray();
-                opSplits[termIndex].push(substSet);
-                var newUnified = thisTheory.parseTerm(unified[termIndex].specifyAt(substSet));
-                varSet = unified[termIndex].extractVars();
-                for (var v2 in varSet) if (varSet.hasOwnProperty(v2)) {
-                    if (oldSource.toString() != v2.toString()) {
-                        var newVar = newUnified.xpath(varSet[v2].paths[0].slice());
-                        if (!termDag.connect(v2, newVar)) {
-                            return false;
-                        }
-                        varMapping.set(v2, newVar);
-                    }
-                }
-                // Join up all the vars in the new subterm.
-                varSet = unified[1 - termIndex].extractVars();
-                var subVarSet = term.extractVars();
-                substSet = {};
-                for (var v3 in subVarSet) if (subVarSet.hasOwnProperty(v3)) {
-                    var subPath = subVarSet[v3].paths[0];
-                    var superPath = xpath.concat(subPath);
-                    var pathsToJoin = varSet[unified[1 - termIndex].xpath(superPath.slice())].paths;
-                    pathsToJoin.forEach(function(p) { substSet[p] = v3; });
-                }
-                varJoins.push(substSet);
-                unified[termIndex] = thisTheory.parseTerm(newUnified.specifyAt(substSet));
-            }
-            return this;
+        this.mapVarToTerm = function(termIndex, xpath, theVar, theTerm) {
+	    if (theTerm === theVar) return true;
+	    // Check for cyclic dependency
+	    var newTermsVars = theTerm.extractVars();
+	    if (newTermsVars[theVar]) return false;
+	    var oldTermsVars = terms[termIndex].extractVars();
+	    var oppositeTermsVars = terms[1 - termIndex].extractVars();
+	    var newSubst = {};
+	    // If any of the newTermsVars appear in oldTermsVars already, we
+	    // need to add them to the substitution so that the specification is
+	    // valid.
+	    for (var v in newTermsVars) {
+		if (newTermsVars.hasOwnProperty(v) && oldTermsVars.hasOwnProperty(v)) {
+		    oldTermsVars[v].paths.forEach(function(p) { newSubst[p] = v; });
+		}
+	    }
+	    newSubst[xpath] = theTerm.toTermArray();
+	    oldTermsVars[theVar].paths.forEach(
+                function(p) {
+		    terms[termIndex].extract(p, theTerm);});
+	    // Since these terms share vars, this var may also appear in the other term.
+	    steps[termIndex].push(newSubst);
+	    var otherPaths = oppositeTermsVars[theVar];
+	    if (otherPaths) {
+		newSubst = {};
+		for (var w in newTermsVars) {
+		    if (newTermsVars.hasOwnProperty(w) && oppositeTermsVars.hasOwnProperty(w)) {
+			oppositeTermsVars[w].paths.forEach(function(p) { newSubst[p] = w; });
+		    }
+		}
+		otherPaths.paths.forEach(
+                    function(p) {
+			newSubst[p] = theTerm.toTermArray();
+			terms[1 - termIndex].extract(p, theTerm);});
+		steps[1 - termIndex].push(newSubst);
+	    } 
+	    dirty = true;
+            return true;
         };
         this.toString = function() {
             return JSON.stringify(steps);
@@ -435,7 +418,7 @@ exports.Theory = function() {
         // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for
         // specify()ing to the common unified term from term[i].
         this.steps = function(i) {
-            return opSplits[i].concat(varJoins);
+            return steps[i];
         };
     }
 
@@ -522,13 +505,8 @@ exports.Theory = function() {
     // (instructions for specifying the two terms to the same
     // term).
     this.unify = function(term1, term2) {
-        if (term1 === term2) {
-            return new Unification();
-        }
-        var result = term1.unifyTerm(term2.clone());
-        if (!result) return null;
-        return result;
-
+        var result = new Unification(term1, term2);
+	return result.unify() ? result : null;
     };
 
     // Return the subterm named by path.  An xpath is an array; at
@@ -537,7 +515,7 @@ exports.Theory = function() {
     this.xpath = function(term, path) {
         return term.xpath(path).clone();
     };
-    
+
     // Parses a ghilbert sexp into a term.
     this.termFromSexp = function(sexp) {
         var that = this;
