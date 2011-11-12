@@ -21,6 +21,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
             srcDsts.forEach(
                 function(srcDst) {
                     if (pathToName[srcDst.src]) {
+                        delete newPathToName[srcDst.src];
+                    }
+                });
+            srcDsts.forEach(
+                function(srcDst) {
+                    if (pathToName[srcDst.src]) {
                         newPathToName[srcDst.dst] = pathToName[srcDst.src];
                     }
                 });
