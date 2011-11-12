@@ -211,6 +211,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
         undoStack[undoIndex] = ({proofState:ps, selectedPath: null});
         reallySetProofState(optVarTrans, optVarTransBasePath);
     }
+    //NB: these are called VarTrans but really the paths might point to tuples
+    //instead of vars.
     function reallySetProofState(optVarTrans, optVarTransBasePath) {
         function visitVarTrans(visitor) {
             if (optVarTrans) {
@@ -224,10 +226,18 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 }
             }
         }
+        var oldProofTerm = proofTerm;
         proofTerm = proofState().assertion();
         var srcDsts = [];
         visitVarTrans(function(oldPath,newPath) {
-                          srcDsts.push({src:oldPath, dst:newPath});
+                          var varSet = oldProofTerm.xpath(oldPath.slice()).extractVars();
+                          for (var k in varSet) if (varSet.hasOwnProperty(k)) {
+                              varSet[k].paths.forEach(
+                                  function(p) {
+                                      srcDsts.push({src:oldPath.concat(p),
+                                                    dst:newPath.concat(p)});
+                                  });
+                          }
                       });
         proofNamer.sendPathToPath(srcDsts);
         var newProofTree = new Tree(proofTerm, true, proofNamer);
@@ -286,6 +296,10 @@ exports.Ui = function(doc, theory, prover, scheme) {
                         (p[0] == templateArg ? innies : outies).push(p);
                     });
                 if (innies.length > 0) {
+                    // A variable may appear any number of times as an innie and
+                    // any number as an outie.  For the most pleasing animation, we
+                    // try to distribute the destinations evenly amongst the
+                    // sources.
                     var outiesPerInnies = Math.floor(outies.length / innies.length + .99);
                     var outieIndex = 0;
                     innies.forEach(function(p) {

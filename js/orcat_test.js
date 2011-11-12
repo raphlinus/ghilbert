@@ -92,7 +92,7 @@ applyArrow([], "Simplify");
 applyArrow([], "Simplify");
 applyArrow([], "Simplify");
 saveAs("test");
-/*
+
 startWith("Distribute");
 applyArrow([0], "Simplify");
 saveAs("imim2");
@@ -402,7 +402,7 @@ startWith('dfbi');
 applyArrow([], 'def-bi-2');
 saveAs('biid');
 
-/*
+/* NB: equivalents not implemented yet
 startWith('nn1');
 applyArrow([], 'conj');
 applyArrow([1], 'def-bi-2');
