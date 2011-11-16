@@ -191,7 +191,7 @@ function Tuple(terms) {
             if (i > 0 && isNaN(this.terms[0].bindings[i - 1])) {
                 isBinding = true; // TODO: untested!
             }
-            str.push(this.terms[i].toString(varMapper, isBinding)); 
+            str.push(this.terms[i].toString(varMapper, isBinding));
         }
         return "(" + str.join(' ') + ")";
     };
@@ -417,7 +417,7 @@ GHT.newMenu = function(title, x, y) {
             popup.appendChild(td);
             if (preview) {
                 var theVarMapper = GHT.StableMapper.mapper(GHT.theCloneMap);
-                theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice 
+                theVarMapper.__niceOperators__ = 1; // HACK for previews to look nice
                 // goal-check the preview.  TODO: should check at the
                 // root, not the current node.
                 var previewString = preview.toString(GHT.makeVarMapper({}, GHT.goalVarNames));
@@ -439,7 +439,7 @@ GHT.newMenu = function(title, x, y) {
             };
             this.options[key].func = func;
             td.onclick = this.options[key];
-            
+
         },
         options: {
         },
@@ -761,7 +761,7 @@ GHT.combineMappers = function(mapper1, mapper2) {
         while (outVar) {
             answer = outVar;
             outVar = mapper1(outVar) || mapper2(outVar);
-        } 
+        }
         memoized[inVar] = true;
         memoizer[inVar] = answer;
         return answer;
@@ -775,7 +775,7 @@ GHT.combineMappers = function(mapper1, mapper2) {
         while (outVar) {
             answer = outVar;
             outVar = mapper1.reverse(outVar) || mapper2.reverse(outVar);
-        } 
+        }
         reverseMemoized[inVar] = true;
         reverseMemoizer[inVar] = answer;
         return answer;
@@ -877,7 +877,7 @@ GHT.ProofFactory = function() {
             var proof = flatten(["defthm (df-", opName,
                                  " ", outType,
                                  " (", opName, " ", varList, ") ",
-                                 " (", mDvs, ") () ", 
+                                 " (", mDvs, ") () ",
                                  newTerm, "\n", mSteps, ")"],
                                 mapper);
             return [newTerm, proof, newOpSource];
@@ -1362,14 +1362,15 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
 GHT.onTransitionEnd = function(node, callback, forceDelay) {
     var transitions = forceDelay ||
         RegExp(" AppleWebKit/").test(navigator.userAgent) ||
-        RegExp("Firefox/4").test(navigator.userAgent);
-    // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and 
+        RegExp("Firefox/4").test(navigator.userAgent) ||
+        RegExp("Fennec").test(navigator.userAgent);
+    // TODO: perhaps this should use webkitTransitionEnd, but that seemed to be buggy, and
     // would leave other browsers stuck with the extra children.
 //Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.04 (lucid) Firefox/3.6.13
     var timeout = transitions
         ? 1000 // HACK: this must be synced with CSS -webkit-transition-duration
         : 0; //XXX
-    window.setTimeout(callback, timeout); 
+    window.setTimeout(callback, timeout);
 
 };
 /*
@@ -1388,11 +1389,11 @@ GHT.redecorate = function(changed) {
     GHT.thePathToNodeMap = newPathToNodeMap;
 
     if (oldTable) {
-	// oldTable has position relative, and keeps the div from collapsing.
-	// newTable can be absolute until oldTable disappears.
-	newTable.style.position = 'absolute';
-	newTable.style.top = 0;
-	newTable.style.left = 0;
+        // oldTable has position relative, and keeps the div from collapsing.
+        // newTable can be absolute until oldTable disappears.
+        newTable.style.position = 'absolute';
+        newTable.style.top = 0;
+        newTable.style.left = 0;
     }
     GHT.StableMapper.end();
     div.appendChild(newTable);
@@ -1443,8 +1444,8 @@ GHT.redecorate = function(changed) {
             }
             oldTable.style.opacity = 0;
             GHT.onTransitionEnd(oldTable, function(e) {
-				    newTable.style.position = 'relative';
-				    div.removeChild(oldTable); });
+                                    newTable.style.position = 'relative';
+                                    div.removeChild(oldTable); });
         }
     } catch (x) {
         console.log(x);
@@ -1530,7 +1531,7 @@ GHT.StableMapper = {
                 cloneMap = {};
                 term = GHT.undoStack[i].proof.getTerm(cloneMap);
             }
-            var vars = term.extractVars(); 
+            var vars = term.extractVars();
             runningVarMap = GHT.forEach(
                 vars,
                 function(newVarStr, result, varMap) {

@@ -1,7 +1,60 @@
 // Caution: This file is a big ball of hacks.
 
 exports.Ui = function(doc, theory, prover, scheme) {
-    function NewNumVarNamer() {
+    function NewAlphaVarNamer() {
+        return NewNumVarNamer(function(x) {return String.fromCharCode(64+x);});
+    }
+    /**
+     * @param newTerm the term we will be naming variables in
+     * @param newPath the path to a subterm of newTerm which will be "The Template"
+     * @param oldTerm the term whose namer we will be maintaining compatability with
+     * @param oldPath the path to a subterm of oldTerm which will be compatible with "The Template"
+     * @param oldNamer the namer of oldTerm we will be compatible with
+     */
+    function CompatibleVarNamer(newTerm, newPath, oldTerm, oldPath, oldNamer) {
+        var pathToVarMap = {};
+        var varToNameMap = {};
+        var num = oldNamer.getNum();
+        var newVarSet = newTerm.extractVars();
+        function isInTemplate(xpath) {
+            if (xpath.length < newPath.length) return false;
+            for (var i = 0; i < newPath.length; i++) {
+                if (xpath[i] != newPath[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        for (var k in newVarSet) if (newVarSet.hasOwnProperty(k)) {
+            newVarSet[k].paths.forEach(
+                function(p) {
+                    pathToVarMap[p] = k;
+                    if (isInTemplate(p)) {
+                        var oldP = oldPath.concat(p.slice(newPath.length));
+                        var oldName = oldNamer.pathToName(oldP);
+                        if (oldName) {
+                            if (varToNameMap[k] && (varToNameMap[k] < oldName)) {
+                                // NB: The old namer had two names for the same
+                                // var.  This means that the Theorem's side of
+                                // the unification will be unioning these two
+                                // variables.  It ought to take the
+                                // alphabetically first one for both. (...?)
+                                oldName = varToNameMap[k];
+                            }
+                            varToNameMap[k] = oldName;
+                        }
+                    }
+                });
+            if (!varToNameMap[k]) {
+                varToNameMap[k] = ++num;
+            }
+        }
+        return function(xpath, term) {
+            return varToNameMap[pathToVarMap[xpath]];
+        };
+    }
+
+    function NewNumVarNamer(translator) {
         var num = 0;
         var termToName = {};
         var pathToName = {};
@@ -9,7 +62,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             var name = termToName[term] || pathToName[xpath] || ++num;
             termToName[term] = name;
             pathToName[xpath] = name;
-            return name;
+            return translator ? translator(name) : name;
         };
         function cloneMap(map) {
             var out = {};
@@ -32,6 +85,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 });
             pathToName = newPathToName;
         };
+        namer.getNum = function() { return num; };
+        namer.pathToName = function(path) { return pathToName[path];};
         return namer;
     }
     function pathFromString(p) {
@@ -279,8 +334,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
         wrapperSpan.className += " theorem";
         theoremsDiv.appendChild(wrapperSpan);
         var selectedNode;
-        var varNamer = NewNumVarNamer();
-        function redraw() {
+        var varNamer;
+        function redraw(newVarNamer) {
+            varNamer = newVarNamer || NewAlphaVarNamer();
             tree = new Tree(tuple, false, varNamer);
             if (treeNode) wrapperSpan.removeChild(treeNode);
             treeNode = tree.node();
@@ -336,7 +392,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         // path is the path to the given term as a subterm of the proof term.
         this.attemptUnify = function(term, binding, path) {
             futures = proofState().consider(path.slice(), name);
-            if (futures.length == 0) { 
+            if (futures.length == 0) {
                 treeNode.className += " disabled";
             } else {
                 removeClass(treeNode, " disabled");
@@ -376,7 +432,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                         tuple = newTuple;
                     } while (steps.length > 0 && !isChanged);
                     //TODO: animations here.
-                    redraw();
+                    redraw(CompatibleVarNamer(tuple, templatePath.slice(), proofTerm, proofPath.slice(), proofNamer));
                     tree.node(templatePath.slice()).className += " selected";
                     if (steps.length > 0) {
                         window.setTimeout(doStep, isChanged ? 500 : 0);
@@ -434,7 +490,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
     };
     this.setGoal = function(term) {
         goalTerm = term;
-        var goalTree = new Tree(term, false, NewNumVarNamer());
+        var goalTree = new Tree(term, false, NewAlphaVarNamer());
         var goalSpan = doc.getElementById("player.goal");
         goalSpan.removeChild(goalSpan.firstChild);
         goalSpan.appendChild(goalTree.node());
@@ -446,7 +502,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             autoGoal(false);
             var thmName = Math.random(); // TODO: thm naming
             var ghProof = proofState().proof(thmName); // TODO: support defthm
-            var thmTerm = proofState().assertion();  
+            var thmTerm = proofState().assertion();
             theory.addAxiom(thmName, thmTerm);
             var newTree = Ui.addAxiom(thmName).tree();
             GHT.sendNodeToNode(proofTree.node(), newTree.node());
@@ -461,7 +517,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             packet.source = source;
             packet.log = "TODO";
             GHT.submitPacket(packet);
-            
+
         };
 
         doc.getElementById("back").onclick = function() {
@@ -477,7 +533,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
 
         };
         GHT.redecorate = function(changed) {
-            console.log("XXXX");
+            //console.log("XXXX");
         };
     }
 

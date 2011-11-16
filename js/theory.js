@@ -415,7 +415,7 @@ exports.Theory = function() {
         this.term = function(i) {
             return unified[i];
         };
-        // steps()[i] is a sequence of substSets ({xpath: termArray,...}) for
+        // steps(i) is a sequence of substSets ({xpath: termArray,...}) for
         // specify()ing to the common unified term from term[i].
         this.steps = function(i) {
             return steps[i].slice();
