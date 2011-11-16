@@ -488,7 +488,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
                 addPossibility(1, theory.unify(wrappedAssertion.term().xpath(xpath.slice()),
                                             thmTerm.xpath([1])));
             } else {
-                throw new Error("TOOD: add more bindings: " + binding);
+                throw new Error("TODO: add more bindings: " + binding);
             }
             return possibilities;
         };

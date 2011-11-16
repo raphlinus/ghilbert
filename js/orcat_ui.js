@@ -4,6 +4,14 @@ exports.Ui = function(doc, theory, prover, scheme) {
     function NewAlphaVarNamer() {
         return NewNumVarNamer(function(x) {return String.fromCharCode(64+x);});
     }
+    function isSpecificationListNontrivial(term, steps, path) {
+        while (steps.length > 0) {
+            var newTerm = theory.parseTerm(term.specifyAt(steps.shift(), path));
+            if (!newTerm.equals(term)) return true;
+            term = newTerm;
+        }
+        return false;
+    }
     /**
      * @param newTerm the term we will be naming variables in
      * @param newPath the path to a subterm of newTerm which will be "The Template"
@@ -401,6 +409,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 f.proofPath = path.slice();
                 selectedNode = tree.node([f.templateArg]);
                 selectedNode.className += " selected";
+                if (isSpecificationListNontrivial(proofTerm, f.unification.steps(0).slice(), f.proofPath.slice())) {
+                    selectedNode.className += " unificationNeeded";
+                }
             }
         };
 
@@ -421,7 +432,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 var future = futures[which];
                 var proofPath = futures[which].proofPath;
                 var templatePath = [future.templateArg];
-                var steps = future.unification.steps(1);
+                var steps = future.unification.steps(1).slice();
                 function doStep() {
                     var isChanged;
                     do {
@@ -433,7 +444,13 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     } while (steps.length > 0 && !isChanged);
                     //TODO: animations here.
                     redraw(CompatibleVarNamer(tuple, templatePath.slice(), proofTerm, proofPath.slice(), proofNamer));
-                    tree.node(templatePath.slice()).className += " selected";
+                    var selectedNode = tree.node(templatePath.slice());
+                    selectedNode.className += " selected";
+                    if (isSpecificationListNontrivial(proofTerm, future.unification.steps(0).slice(),
+                                                      future.proofPath.slice())) {
+                        selectedNode.className += " unificationNeeded";
+                    }
+
                     if (steps.length > 0) {
                         window.setTimeout(doStep, isChanged ? 500 : 0);
                     } else {
@@ -446,7 +463,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         };
         this.realizeUnification2 = function(future) {
-            var steps = future.unification.steps(0);
+            var steps = future.unification.steps(0).slice();
             function doStep() {
                 var isChanged;
                 do {
