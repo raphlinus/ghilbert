@@ -492,6 +492,40 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             }
             return possibilities;
         };
+	// Specify one of the variables in the current assertion.
+	// @param path must point to a variable in the current assertion.
+	// @param opt either an Operator (whose kind must match the kind of the
+	// variable being specified), or a path to another variable in the
+	// prooftree (whose kind must likewise match).
+	// @return a proofState with the same steps, but different mandhyps.
+	// Its assertion will be a specification of the current one.
+	this.specify = function(path, opt) {
+	    var variable = wrappedAssertion.xpath(path.slice());
+	    var kind = variable.kind();
+	    var substSet = {};
+	    if (opt.arity) {
+		if (opt.kind() != kind) {
+		    throw new Error("Kind mismatch: Cannot replace var at path " + path + " with operator  " + opt);
+		}
+		var termArray = [opt];
+		for (var i = 0; i < opt.arity(); i++) {
+		    termArray.push(i + 1);
+		}
+		substSet[path] = termArray;
+	    } else {
+		if (!opt.slice) throw new Error("specify opt not an Operator or an xpath:" + opt);
+		var otherVar = wrappedAssertion.xpath(opt.slice());
+		if (otherVar.arity) throw new Error("target variable path " + opt + " pointed to operator " + otherVar);
+		if (otherVar.kind() != kind) throw new Error("Kind mismatch: between vars at " + path + " and " + opt);
+		substSet[path] = 0;
+		substSet[opt] = 0;
+	    }
+	    var newWrappedAssertion = wrappedAssertion;
+            var newVarToTermMap = cloneMap(varToTermMap);
+            var newSteps = steps.slice();
+            newWrappedAssertion = newWrappedAssertion.specifyAt(substSet, [], newVarToTermMap);
+	    return new ProofState(newWrappedAssertion, newSteps, newVarToTermMap);
+	};
     }
 
     // ================ public methods ================

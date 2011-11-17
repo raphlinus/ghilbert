@@ -100,7 +100,7 @@ exports.Theory = function() {
     // TODO: protected
     Variable.prototype.specify = function(substSet, path) {
         if (!path) path = [];
-        if (substSet[path]) return substSet[path];
+        if (substSet.hasOwnProperty(path)) return substSet[path];
         return this;
     };
     Variable.prototype.extractVars = function(set, path) {
@@ -423,10 +423,10 @@ exports.Theory = function() {
     }
 
 
-    // Parse a term from a hetereogeneous array. A legal termArray's first element is
-    // an operator; each subsequest element is a nonnegative integer (or other key)
-    // representing a variable, or a legal termArray.  The types must
-    // all match or we throw up.
+    // Parse a term from a hetereogeneous array. A legal termArray is either an
+    // opaque true key (representing a variable), or an array whose first element is
+    // an operator and whose subsequest elements are legal termArray.  The types
+    // and arities must all match or we throw up.
     this.parseTerm = function(termArray, asKind) {
         var vars = {};
         function copy(x) { return x.slice ? x.slice() : x; }
@@ -485,14 +485,22 @@ exports.Theory = function() {
         var _inputs = [];
         _inputs.push.apply(_inputs, inputs);
         var op = new Operator(name, output, _inputs);
-        operators[name] = op;
         operators[name.replace(/[^a-zA-Z]/g, '')] = op;
         return op;
     };
     this.operator = function(name) {
-        var op = operators[name];
+        var op = operators[name.replace(/[^a-zA-Z]/g, '')];
         if (!op) throw new Error("Unknown operator " + name);
         return op;
+    };
+    this.operators = function(optKindFilter) {
+	var ops = [];
+	for (var k in operators) if (operators.hasOwnProperty(k)) {
+	    if (!optKindFilter || operators[k].kind() == optKindFilter) {
+		ops.push(operators[k]);
+	    }
+	}
+	return ops;
     };
     this.addAxiom = function(name, term) {
         theorems[name] = term;

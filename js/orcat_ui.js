@@ -134,9 +134,43 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 theorems.forEach(function(t) { t.clearUnification(); });
             }
         }
-        return undoStack[undoIndex].selectedPath = path;
+        undoStack[undoIndex].selectedPath = path;
+	setSpecifyVisibility(path && !proofTerm.xpath(path.slice()).arity);
     }
 
+    // Show/hide the Specify list.  When shown, it gets populated with all
+    // variables in the term and all operators in the theory which have the
+    // correct kind.
+    function setSpecifyVisibility(show) {
+	console.log("XXXX " + show);
+	doc.getElementById('specify').style.display = show ? 'block' : 'none';
+	var opts = doc.getElementById('specifyOpts');
+	var path = selectedPath().slice();
+	if (path != null) {
+	    while (opts.firstChild) opts.removeChild(firstChild);
+	    var kind = theory.xpath(proofTerm, path.slice()).kind();
+	    function addButton(name, opt) {
+		var button = doc.createElement('button');
+		button.innerHTML = name;
+		button.style.width = '3em';
+		button.onclick = function() {
+		    setProofState(proofState().specify(path, opt));
+		};
+		opts.appendChild(button);
+	    }
+	    theory.operators(kind).forEach(
+		function(opt) {
+		    addButton(opt.toString(), opt);
+		});
+	    var varSet = proofTerm.extractVars();
+	    for (var k in varSet) if (varSet.hasOwnProperty(k)) {
+		if (varSet[k].kind != kind) continue;
+		var newPath = varSet[k].paths[0];
+		var name = proofNamer(newPath.slice(), proofTerm.xpath(newPath.slice()));
+		addButton(name, newPath);
+	    }
+	}
+    }
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
     // @param isInteractive whether this is an interactive tree.
@@ -270,7 +304,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
         };
     }
     function autoGoal(match) {
-        var label = document.getElementById("autogoal");
+        var label = doc.getElementById("autogoal");
         label.style.visibility = match ? "visible" : "hidden";
         label.style.left = match ? 0 : "20em";
 

@@ -61,14 +61,14 @@ expectUnify(ORCAT.theory.parseTerm([I, [I, 0, 1], 1]),
             ORCAT.theory.parseTerm([I, 1, 2]));
 expect(!exports.theory.unify(ax1, exports.theory.parseTerm(
                                  [I, 0, 0])));
-var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 0, 1]},[0]));
-var u = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, [I, 0, 1]]]);
+var t = exports.theory.parseTerm(ax1.specifyAt({"":[I, 1, 2]},[0]));
+var u = exports.theory.parseTerm([I, [I, 1, 2,], [I, 3, [I, 1, 2]]]);
 expect(t.equals(u), "specify: wanted "  + u.toString() + " got " + t.toString());
-t = exports.theory.parseTerm([I, 0, [I, 1, 2]]);
+t = exports.theory.parseTerm([I, 1, [I, 2, 3]]);
 u = exports.theory.parseTerm([I, [I, 1, 2], [I, 1, 2]]);
 expect(!t.equals(u), "A(BC) should not equal (BC)(BC)!");
-t = exports.theory.parseTerm([I, [I, 0, 1], [I, 2, 3]]);
-u = exports.theory.parseTerm([I, [I, 0, 1], [I, 0, 1]]);
+t = exports.theory.parseTerm([I, [I, 4, 1], [I, 2, 3]]);
+u = exports.theory.parseTerm([I, [I, 4, 1], [I, 4, 1]]);
 expect(!t.equals(u), "(AB)(CD) should not equal (AB)(AB)!");
 
 expect(u.equals(theory.parseTerm(eval(u.toSource()))));
@@ -83,6 +83,9 @@ function startWith(thmName) {
 function applyArrow(xpath, thmName) {
     proofState = proofState.consider(xpath, thmName)[0].execute();
 }
+function specify(xpath, opt) {
+    proofState = proofState.specify(xpath, opt);
+}
 function saveAs(thmName) {
     ghText += proofState.proof(thmName) + "\n";
     theory.addAxiom(thmName, proofState.assertion());
@@ -92,6 +95,18 @@ applyArrow([], "Simplify");
 applyArrow([], "Simplify");
 applyArrow([], "Simplify");
 saveAs("test");
+
+startWith('Simplify');
+specify([0], [1,0]);
+console.log(proofState.assertion().toString());
+expect(proofState.assertion().equals(exports.theory.parseTerm(
+					 [I, 1, [I, 1, 1]])));
+saveAs("test1");
+startWith('Simplify');
+specify([0], I);
+expect(proofState.assertion().equals(exports.theory.parseTerm(
+					 [I, [I, 2, 3], [I, 1, [I, 2, 3]]])));
+saveAs("test2");
 
 startWith("Distribute");
 applyArrow([0], "Simplify");
