@@ -56,6 +56,7 @@ exports.Theory = function() {
         // paths is an array of xpaths to instances of
         // the variable in this term, each prefixed with inPath.
         this.extractVars = function(varSet, inPath) { throw "virtual";};
+        this.getTheory = function() {return thisTheory;};
     }
 
     // A Variable has meaning only within a Tuple, and serves to bind operator inputs
@@ -93,7 +94,7 @@ exports.Theory = function() {
     // TODO: protected
     Variable.prototype.unifyTerm = function(term, unification, path) {
         //if (!unification) unification = new Unification([this, term]);
-	if (term === this) return true;
+        if (term === this) return true;
         if (!path) path = [];
         return unification.mapVarToTerm(0, path, this, term);
     };
@@ -143,11 +144,11 @@ exports.Theory = function() {
         return toReturn;
     };
     Variable.prototype.extract = function(path, replacement) {
-	if (path && path.length > 0) {
-	    throw new Error("can't extract past " + this);
-	}
-	if (replacement) throw new Error("can't replace a var " + this);
-	return this;
+        if (path && path.length > 0) {
+            throw new Error("can't extract past " + this);
+        }
+        if (replacement) throw new Error("can't replace a var " + this);
+        return this;
     };
     // A Tuple is an Operator with a list of inputs of appropriate
     // kind.  Its Kind is the kind of its operator.  No
@@ -218,21 +219,21 @@ exports.Theory = function() {
             }
             return set;
         };
-	// TODO: protected
-	// TODO: I have failed in my efforts to get isolation of Variables right.  Perhaps
-	// input(i) should be replaced with xpath([i]) everywhere?
-	// If you call this method with a second argument, this term is forever
-	// radioactive.
-	this.extract = function(path, replacement) {
+        // TODO: protected
+        // TODO: I have failed in my efforts to get isolation of Variables right.  Perhaps
+        // input(i) should be replaced with xpath([i]) everywhere?
+        // If you call this method with a second argument, this term is forever
+        // radioactive.
+        this.extract = function(path, replacement) {
             if (path.length == 0) return this;
             if (path.length == 1) {
-		var i = path.shift();
-		var toReturn = inputs[i];
-		if (replacement) inputs[i] = replacement;
-		return toReturn;
-	    }
+                var i = path.shift();
+                var toReturn = inputs[i];
+                if (replacement) inputs[i] = replacement;
+                return toReturn;
+            }
             return this.input(path.shift()).extract(path, replacement);
-	};
+        };
 
     }
     Tuple.prototype = new Term;
@@ -252,8 +253,8 @@ exports.Theory = function() {
             if (!this.input(i).unifyTerm(term.input(i), unification, path)) {
                 return false;
             } else if (unification.isDirty()) {
-		return true;
-	    }
+                return true;
+            }
             path.pop();
         }
         return unification;
@@ -341,70 +342,71 @@ exports.Theory = function() {
     // object will hold instructions for specifying the two terms to a common
     // term.
     function Unification(term0, term1) {
-	// These terms are radioactive and must not leave this object.
-	var terms = [term0.clone(), term1.clone()];
-	var steps = [[], []];
-	var dirty = false;
-	this.unify = function() {
-	    // Special case if either term is just a var.
-	    for (var i = 0; i < 2; i++) {
-		if (terms[i] instanceof Variable) {
-		    var newSubst = {};
-		    newSubst[[]] = terms[1 - i].toTermArray();
-		    steps[i].push(newSubst);
-		    return true;
-		}
-	    }
-	    do {
-		dirty = false;
-		if (!terms[0].unifyTerm(terms[1], this)) return false;
-	    } while (dirty);
-	    return true;
-	};
-	this.isDirty = function() {
-	    return dirty;
-	};
+        var origTerms = [term0.clone(), term1.clone()];
+        // These terms are radioactive and must not leave this object.
+        var radioactiveTerms = [term0.clone(), term1.clone()];
+        var steps = [[], []];
+        var dirty = false;
+        this.unify = function() {
+            // Special case if either term is just a var.
+            for (var i = 0; i < 2; i++) {
+                if (radioactiveTerms[i] instanceof Variable) {
+                    var newSubst = {};
+                    newSubst[[]] = radioactiveTerms[1 - i].toTermArray();
+                    steps[i].push(newSubst);
+                    return true;
+                }
+            }
+            do {
+                dirty = false;
+                if (!radioactiveTerms[0].unifyTerm(radioactiveTerms[1], this)) return false;
+            } while (dirty);
+            return true;
+        };
+        this.isDirty = function() {
+            return dirty;
+        };
         // unified[termIndex] has a variable at path xpath.  We need to map it to
         // theTerm, which appears in unified[1-termIndex] at the same path. Returns
         // true on success, false if the action would violate the dv constraints
         // or create a cyclic dependency,
         this.mapVarToTerm = function(termIndex, xpath, theVar, theTerm) {
-	    if (theTerm === theVar) return true;
-	    // Check for cyclic dependency
-	    var newTermsVars = theTerm.extractVars();
-	    if (newTermsVars[theVar]) return false;
-	    var oldTermsVars = terms[termIndex].extractVars();
-	    var oppositeTermsVars = terms[1 - termIndex].extractVars();
-	    var newSubst = {};
-	    // If any of the newTermsVars appear in oldTermsVars already, we
-	    // need to add them to the substitution so that the specification is
-	    // valid.
-	    for (var v in newTermsVars) {
-		if (newTermsVars.hasOwnProperty(v) && oldTermsVars.hasOwnProperty(v)) {
-		    oldTermsVars[v].paths.forEach(function(p) { newSubst[p] = v; });
-		}
-	    }
-	    newSubst[xpath] = theTerm.toTermArray();
-	    oldTermsVars[theVar].paths.forEach(
+            if (theTerm === theVar) return true;
+            // Check for cyclic dependency
+            var newTermsVars = theTerm.extractVars();
+            if (newTermsVars[theVar]) return false;
+            var oldTermsVars = radioactiveTerms[termIndex].extractVars();
+            var oppositeTermsVars = radioactiveTerms[1 - termIndex].extractVars();
+            var newSubst = {};
+            // If any of the newTermsVars appear in oldTermsVars already, we
+            // need to add them to the substitution so that the specification is
+            // valid.
+            for (var v in newTermsVars) {
+                if (newTermsVars.hasOwnProperty(v) && oldTermsVars.hasOwnProperty(v)) {
+                    oldTermsVars[v].paths.forEach(function(p) { newSubst[p] = v; });
+                }
+            }
+            newSubst[xpath] = theTerm.toTermArray();
+            oldTermsVars[theVar].paths.forEach(
                 function(p) {
-		    terms[termIndex].extract(p, theTerm);});
-	    // Since these terms share vars, this var may also appear in the other term.
-	    steps[termIndex].push(newSubst);
-	    var otherPaths = oppositeTermsVars[theVar];
-	    if (otherPaths) {
-		newSubst = {};
-		for (var w in newTermsVars) {
-		    if (newTermsVars.hasOwnProperty(w) && oppositeTermsVars.hasOwnProperty(w)) {
-			oppositeTermsVars[w].paths.forEach(function(p) { newSubst[p] = w; });
-		    }
-		}
-		otherPaths.paths.forEach(
+                    radioactiveTerms[termIndex].extract(p, theTerm);});
+            // Since these terms share vars, this var may also appear in the other term.
+            steps[termIndex].push(newSubst);
+            var otherPaths = oppositeTermsVars[theVar];
+            if (otherPaths) {
+                newSubst = {};
+                for (var w in newTermsVars) {
+                    if (newTermsVars.hasOwnProperty(w) && oppositeTermsVars.hasOwnProperty(w)) {
+                        oppositeTermsVars[w].paths.forEach(function(p) { newSubst[p] = w; });
+                    }
+                }
+                otherPaths.paths.forEach(
                     function(p) {
-			newSubst[p] = theTerm.toTermArray();
-			terms[1 - termIndex].extract(p, theTerm);});
-		steps[1 - termIndex].push(newSubst);
-	    }
-	    dirty = true;
+                        newSubst[p] = theTerm.toTermArray();
+                        radioactiveTerms[1 - termIndex].extract(p, theTerm);});
+                steps[1 - termIndex].push(newSubst);
+            }
+            dirty = true;
             return true;
         };
         this.toString = function() {
@@ -419,6 +421,19 @@ exports.Theory = function() {
         // specify()ing to the common unified term from term[i].
         this.steps = function(i) {
             return steps[i].slice();
+        };
+        // Returns true if origTerms[i] will be a different term after applying all
+        // of steps(i); false if it unifies as-is.  TODO: move to prototype,
+        // make efficient
+        this.isMutation = function(i) {
+            var tempTerm = origTerms[i];
+            var tempSteps = this.steps(i);
+            while (tempSteps.length > 0) {
+                var newTerm = tempTerm.getTheory().parseTerm(tempTerm.specifyAt(tempSteps.shift(), []), tempTerm.kind());
+                if (!newTerm.equals(tempTerm)) return true;
+                tempTerm = newTerm;
+            }
+            return false;
         };
     }
 
@@ -494,13 +509,13 @@ exports.Theory = function() {
         return op;
     };
     this.operators = function(optKindFilter) {
-	var ops = [];
-	for (var k in operators) if (operators.hasOwnProperty(k)) {
-	    if (!optKindFilter || operators[k].kind() == optKindFilter) {
-		ops.push(operators[k]);
-	    }
-	}
-	return ops;
+        var ops = [];
+        for (var k in operators) if (operators.hasOwnProperty(k)) {
+            if (!optKindFilter || operators[k].kind() == optKindFilter) {
+                ops.push(operators[k]);
+            }
+        }
+        return ops;
     };
     this.addAxiom = function(name, term) {
         theorems[name] = term;
@@ -514,7 +529,7 @@ exports.Theory = function() {
     // term).
     this.unify = function(term1, term2) {
         var result = new Unification(term1, term2);
-	return result.unify() ? result : null;
+        return result.unify() ? result : null;
     };
 
     // Return the subterm named by path.  An xpath is an array; at

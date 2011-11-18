@@ -4,14 +4,6 @@ exports.Ui = function(doc, theory, prover, scheme) {
     function NewAlphaVarNamer() {
         return NewNumVarNamer(function(x) {return String.fromCharCode(64+x);});
     }
-    function isSpecificationListNontrivial(term, steps, path) {
-        while (steps.length > 0) {
-            var newTerm = theory.parseTerm(term.specifyAt(steps.shift(), path));
-            if (!newTerm.equals(term)) return true;
-            term = newTerm;
-        }
-        return false;
-    }
     /**
      * @param newTerm the term we will be naming variables in
      * @param newPath the path to a subterm of newTerm which will be "The Template"
@@ -135,43 +127,44 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         }
         undoStack[undoIndex].selectedPath = path;
-	setSpecifyVisibility(path && !proofTerm.xpath(path.slice()).operator);
-    }
+        setSpecifyVisibility(path);
+   }
 
     // Show/hide the Specify list.  When shown, it gets populated with all
     // variables in the term and all operators in the theory which have the
     // correct kind.
-    function setSpecifyVisibility(show) {
-	doc.getElementById('specify').style.display = show ? 'block' : 'none';
-	var opts = doc.getElementById('specifyOpts');
-	var path = selectedPath();
-	if (path != null) {
-	    path = path.slice();
-	    while (opts.firstChild) opts.removeChild(firstChild);
-	    var kind = theory.xpath(proofTerm, path.slice()).kind();
-	    function addButton(name, opt) {
-		var button = doc.createElement('button');
-		button.innerHTML = name;
-		button.style.width = '3em';
-		button.onclick = function() {
-		    setProofState(proofState().specify(path, opt));
-		    theorems.forEach(function(t) { t.clearUnification(); });
-		    setSelectedPath(null);
-		};
-		opts.appendChild(button);
-	    }
-	    theory.operators(kind).forEach(
-		function(opt) {
-		    addButton(opt.toString(), opt);
-		});
-	    var varSet = proofTerm.extractVars();
-	    for (var k in varSet) if (varSet.hasOwnProperty(k)) {
-		if (varSet[k].kind != kind) continue;
-		var newPath = varSet[k].paths[0];
-		var name = proofNamer(newPath.slice(), proofTerm.xpath(newPath.slice()));
-		addButton(name, newPath);
-	    }
-	}
+    function setSpecifyVisibility(path) {
+        var show = path && !proofTerm.xpath(path.slice()).operator;
+        doc.getElementById('specify').style.display = show ? 'block' : 'none';
+        var opts = doc.getElementById('specifyOpts');
+        while (opts.firstChild) opts.removeChild(opts.firstChild);
+        if (show) {
+            var kind = theory.xpath(proofTerm, path.slice()).kind();
+            function addButton(name, xpath, opt) {
+                var button = doc.createElement('button');
+                button.innerHTML = name;
+                button.style.width = '3em';
+                button.onclick = function() {
+                    try {
+                        setProofState(proofState().specify(xpath, opt));
+                        theorems.forEach(function(t) { t.clearUnification(); });
+                        setSelectedPath(null);
+                    } catch(e) {console.log(e); console.log(e.stack);}
+                };
+                opts.appendChild(button);
+            }
+            theory.operators(kind).forEach(
+                function(opt) {
+                    addButton(opt.toString(), path.slice(), opt);
+                });
+            var varSet = proofTerm.extractVars();
+            for (var k in varSet) if (varSet.hasOwnProperty(k)) {
+                if (varSet[k].kind != kind) continue;
+                var newPath = varSet[k].paths[0];
+                var name = proofNamer(newPath.slice(), proofTerm.xpath(newPath.slice()));
+                addButton(name, path.slice(), newPath.slice());
+            }
+        }
     }
     // A Tree is a UI widget representing a term.
     // @param term the term to graph
@@ -445,7 +438,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 f.proofPath = path.slice();
                 selectedNode = tree.node([f.templateArg]);
                 selectedNode.className += " selected";
-                if (isSpecificationListNontrivial(proofTerm, f.unification.steps(0).slice(), f.proofPath.slice())) {
+                if (f.unification.isMutation(0)) {
                     selectedNode.className += " unificationNeeded";
                 }
             }
@@ -474,7 +467,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     do {
                         var step = steps.shift();
                         var newTuple = theory.parseTerm(
-                            tuple.specifyAt(step, templatePath.slice()));
+                            tuple.specifyAt(step, templatePath.slice()), tuple.kind());
                         isChanged = !newTuple.equals(tuple);
                         tuple = newTuple;
                     } while (steps.length > 0 && !isChanged);
@@ -482,11 +475,9 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     redraw(CompatibleVarNamer(tuple, templatePath.slice(), proofTerm, proofPath.slice(), proofNamer));
                     var selectedNode = tree.node(templatePath.slice());
                     selectedNode.className += " selected";
-                    if (isSpecificationListNontrivial(proofTerm, future.unification.steps(0).slice(),
-                                                      future.proofPath.slice())) {
+                    if (future.unification.isMutation(0)) {
                         selectedNode.className += " unificationNeeded";
                     }
-
                     if (steps.length > 0) {
                         window.setTimeout(doStep, isChanged ? 500 : 0);
                     } else {
@@ -505,7 +496,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                 do {
                     var step = steps.shift();
                     var newTuple = theory.parseTerm(proofTerm.specifyAt(
-                                                        step, future.proofPath.slice()));
+                                                        step, future.proofPath.slice()), proofTerm.kind());
                     isChanged = !newTuple.equals(proofTerm);
                     proofTerm = newTuple;
                 } while (steps.length > 0 && !isChanged);
