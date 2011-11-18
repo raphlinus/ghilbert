@@ -500,7 +500,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
 	// @return a proofState with the same steps, but different mandhyps.
 	// Its assertion will be a specification of the current one.
 	this.specify = function(path, opt) {
-	    var variable = wrappedAssertion.xpath(path.slice());
+	    var variable = wrappedAssertion.term().xpath(path.slice());
 	    var kind = variable.kind();
 	    var substSet = {};
 	    if (opt.arity) {
@@ -515,7 +515,7 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
 	    } else {
 		if (!opt.slice) throw new Error("specify opt not an Operator or an xpath:" + opt);
 		var otherVar = wrappedAssertion.xpath(opt.slice());
-		if (otherVar.arity) throw new Error("target variable path " + opt + " pointed to operator " + otherVar);
+		if (otherVar.operator) throw new Error("target variable path " + opt + " pointed to tuple " + otherVar);
 		if (otherVar.kind() != kind) throw new Error("Kind mismatch: between vars at " + path + " and " + opt);
 		substSet[path] = 0;
 		substSet[opt] = 0;

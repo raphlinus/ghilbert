@@ -1335,7 +1335,7 @@ GHT.getPos = function(node) {
 // Makes a deep clone of @param oldNode, positions it on top of the original,
 // then animates it to the position of @param newNode.  When the clone gets
 // there, it will be removed.
-GHT.sendNodeToNode = function(oldNode, newNode) {
+GHT.sendNodeToNode = function(oldNode, newNode, callback) {
     var clone = oldNode.cloneNode(true);
     // Hide the destination until the animator gets there
     newNode.style.visibility = "hidden";
@@ -1357,6 +1357,7 @@ GHT.sendNodeToNode = function(oldNode, newNode) {
     GHT.onTransitionEnd(clone, function() {
                             parent.removeChild(clone);
                             newNode.style.visibility = "visible";
+			    if (callback) callback();
                        });
 };
 GHT.onTransitionEnd = function(node, callback, forceDelay) {

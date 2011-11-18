@@ -135,18 +135,18 @@ exports.Ui = function(doc, theory, prover, scheme) {
             }
         }
         undoStack[undoIndex].selectedPath = path;
-	setSpecifyVisibility(path && !proofTerm.xpath(path.slice()).arity);
+	setSpecifyVisibility(path && !proofTerm.xpath(path.slice()).operator);
     }
 
     // Show/hide the Specify list.  When shown, it gets populated with all
     // variables in the term and all operators in the theory which have the
     // correct kind.
     function setSpecifyVisibility(show) {
-	console.log("XXXX " + show);
 	doc.getElementById('specify').style.display = show ? 'block' : 'none';
 	var opts = doc.getElementById('specifyOpts');
-	var path = selectedPath().slice();
+	var path = selectedPath();
 	if (path != null) {
+	    path = path.slice();
 	    while (opts.firstChild) opts.removeChild(firstChild);
 	    var kind = theory.xpath(proofTerm, path.slice()).kind();
 	    function addButton(name, opt) {
@@ -155,6 +155,8 @@ exports.Ui = function(doc, theory, prover, scheme) {
 		button.style.width = '3em';
 		button.onclick = function() {
 		    setProofState(proofState().specify(path, opt));
+		    theorems.forEach(function(t) { t.clearUnification(); });
+		    setSelectedPath(null);
 		};
 		opts.appendChild(button);
 	    }
