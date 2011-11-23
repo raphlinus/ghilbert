@@ -45,13 +45,13 @@ GHT.levelUp = function() {
     iframe.style.height = "600px";
     window.setTimeout(
         function() {
-            GHT.Tip.theDiv.innerHTML += "<br/>Congratulations, you <strong>levelled up</strong>!  Look at this cute picture for 10 seconds!<br/>";
-            GHT.Tip.theDiv.appendChild(iframe);
+            GHT.Tip.tipSpan.innerHTML += "<br/>Congratulations, you <strong>levelled up</strong>!  Look at this cute picture for 10 seconds!<br/>";
+            GHT.Tip.tipSpan.appendChild(iframe);
         }, 500);
     window.setTimeout(
         function() {
-            GHT.Tip.theDiv.removeChild(iframe);
-            GHT.Tip.theDiv.innerHTML += "Okay, okay, get back to work.";
+            GHT.Tip.tipSpan.removeChild(iframe);
+            GHT.Tip.tipSpan.innerHTML += "Okay, okay, get back to work.";
         }, 10000);
 
     //GHT.dismiss.popup = iframe;
@@ -82,27 +82,28 @@ GHT.Tip = {
         if (tipValue) {
             this.tips[tipKey] = tipValue;
         }
+        if (this.currentTip == tipKey) return;
         if (this.tips[tipKey]) {
-            this.theDiv.innerHTML = this.tips[tipKey];
-            this.theDiv.style.visibility = "visible";
+            var that = this;
+            that.tipSpan.innerHTML = that.tips[tipKey];
+            this.tipContainer.className = "unhidden";
             this.currentTip = tipKey;
         }
     },
     clear: function(tipKey) {
         if (this.currentTip && (!tipKey || this.currentTip === tipKey)) {
-            this.theDiv.style.visibility = "hidden";
+            this.tipContainer.className = "hidden";
             delete this.currentTip;
         }
     },
     tips: {
         login: "Welcome, anonymous guest!  Please enter a nickname so we can save your progress."
         ,saved: "Saved."
-        ,returned: "Welcome back.  We missed you! (Press ESCAPE to close.)"
+        ,returned: "Welcome back.  We missed you!"
         ,naming:'Tip: Choosing more descriptive names for the terminals you save will help you find them later when you need to use them.'
         ,arrow:'Tip: The diagram <div><span class="tree wrapper arg"><span class="tree operator type_wff binding_initial">&#x2192;<\/span><span class="tree args"><span class="tree var type_wff binding_terminal first arg">A<\/span><span class="tree var type_wff binding_initial arg">B<\/span><\/span><\/span><\/div><br style="clear:both"/> is written "(&#x2192; A B)" and pronounced "A arrows B."'
         ,color:'Tip: A <span style="border-top:2px solid red">red<\/span> subdiagram can be replaced by anything it is known to arrow.  A <span style="border-top:2px solid blue">blue<\/span> subdiagram can be replaced by anything known to arrow it.'
         ,bindings:'Tip: The operator <span class="operator">&#x2192;<\/span> bequeaths its same color to its right child, and the opposite color to its left child.'
-        ,escape:"Tip: The Escape key closes any menu that's in your your way."
         ,notUnlocked:"You've discovered a new location!<br/>As you arrive in Outer Procal, you pick up a new operator, <span class='operator'>&#x00ac;<\/span>) , and a new terminal, Transpose."
         ,con3Unlocked:"Operator <span class='operator'>&#x00ac;<\/span> now passes on the opposite of its color to its only child."
         ,andUnlocked:"A plot point occurs, and you acquire a new operator <span class='operator'>&#x2227;<\/span> and its terminal Conjoin."
@@ -113,16 +114,16 @@ GHT.Tip = {
         ,biUnlocked:"A new operator appears! Your new terminal Equivalate just says that <span class='operator'>&#x2194;<\/span> is like <span class='operator'>&#x2192;<\/span> going in both directions."
         ,equivUnlocked:"Operator <span class='operator'>&#x2194;<\/span> now passes a <span style='border-top:2px solid purple'>purple<\/span> status to its children, which can only be equivalated."
         ,termsubUnlocked:"Term Substitute unlocked.  You can use this to make definitions... if you can figure out how!"
-        ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press ESCAPE on your keyboard to begin."
-        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on the Roof (that's the topmost arrow below), then click Simplify.  Repeat two more times times so your diagram matches the Goal, then Save it."
-        ,tutorial1: "Great!  It doesn't matter which letter goes with which number, as long as you have the same pattern.  You've already already seen this next goal, so just hit your browser's BACK button twice to return to it.  (BACK/FORWARD lets you undo/redo anytime.  Scrubbing between two diagrams can help show how they relate.)"
-        ,tutorial2: "Nice.  You may wonder why it's called <em>Simplify<\/em> when so far it's only added complexity, but terminals work backwards on blue spots.  To see this (and get another goal), <span class='startwith'>start over with<\/span> Distribute and then use Simplify on its blue left side."
-        ,tutorial3: "Rockin'.  Now let's take Distribute out for a spin. Use it on the Roof right now, then Simplify the left side again.  (Incidentally, it's called <em>Distribute<\/em> because of the way that 2 &times; (3 + 4) = 2 &times; 3 + 2 &times; 4.  Can you see the similarity?)"
-        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try it out: <span class='startwith'>start over with<\/span> Simplify, then apply the terminal you just saved to the Roof."
+        ,newPlayer: "Welcome to the playtest!  Please excuse the shoddy graphics and lack of a storyline.  Those will come later.  Right now I just want to see if you can solve the puzzles.  Press OK to begin."
+        ,tutorial0: "You start with two terminals: Simplify, and Distribute.  Let's see how Simplify works.  Click on it to start a new workspace.  Then click on the topmost arrow of the workspace, then click Simplify to apply it.  Apply it two more times times so your diagram matches the Goal, then Save it."
+        ,tutorial1: "Great!  It doesn't matter which letter goes with which number, as long as you have the same pattern.  You've already already seen this next goal, so just hit the BACK button twice to return to it.  (BACK/FORWARD lets you undo/redo anytime.  Scrubbing between two diagrams can help show how they relate.)"
+        ,tutorial2: "Nice.  You may wonder why it's called <em>Simplify<\/em> when so far it's only added complexity, but terminals work backwards on blue spots.  To see this (and get another goal), click Distribute to start a new workspace, and then apply Simplify on its blue left side."
+        ,tutorial3: "Rockin'.  Now let's take Distribute out for a spin. Apply it to the top of your workspace right now, then Simplify the left side again.  (Incidentally, it's called <em>Distribute<\/em> because of the way that 2 &times; (3 + 4) = 2 &times; 3 + 2 &times; 4.  Can you see the similarity?)"
+        ,tutorial4: "Sweet!  You can apply any terminal you previously saved (either to get a goal or because it looked handy).  Try it out: start over with Simplify, then apply the terminal you just saved to the top."
         ,tutorial5: "Splendid.  Each terminal transforms part of the diagram in a different way.  Try to develop an intuition for how they all work.  (The previews hint at what will happen; or just try stuff and then Undo.) "
         ,tutorial6: "You're getting the hang of it now!"
         ,tutorial7: "Don't stop now; if you can get a few more, you'll level up..."
-        ,tutorial9: "This one requires a tricky process called <em>unification<\/em>.  A terminal may not seem applicable, but you can still use it if replacing a letter with a new subdiagram would make it work."
+        ,tutorial9: "This one requires a tricky process called <em>unification<\/em>.  When unification is possible, you'll see a dashed box on the terminal.  Click on the letters in the workspace and replace them with operators (or other letters) to match the dashed box."
     },
     randomTips: ["naming", "arrow", "color", "bindings", "escape"],
     randomTipIndex: 0,
@@ -136,7 +137,8 @@ GHT.Tip = {
             this.clear();
         }
     },
-    theDiv: document.getElementById("tip")
+    tipSpan: document.getElementById("tip"),
+    tipContainer: document.getElementById("tipContainer")
 };
 GHT.UiObjs = {};
 GHT.updateUi = function(nodeBase, obj) {
@@ -149,7 +151,7 @@ GHT.updateUi = function(nodeBase, obj) {
             val = val.substring(6);
             function setGoal() {
                 if (window.exports.theory) {
-                    exports.ui.setGoal(window.exports.theory.termFromSexp(val));                
+                    exports.ui.setGoal(window.exports.theory.termFromSexp(val));
                 } else {
                     // Hasn't loaded yet
                     window.setTimeout(setGoal, 50);

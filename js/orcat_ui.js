@@ -312,6 +312,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
     //NB: these are called VarTrans but really the paths might point to tuples
     //instead of vars.
     function reallySetProofState(optVarTrans, optVarTransBasePath) {
+        GHT.dismiss();
         function visitVarTrans(visitor) {
             if (optVarTrans) {
                 for (var k in optVarTrans) if (optVarTrans.hasOwnProperty(k)) {
@@ -481,9 +482,13 @@ exports.Ui = function(doc, theory, prover, scheme) {
                     if (steps.length > 0) {
                         window.setTimeout(doStep, isChanged ? 500 : 0);
                     } else {
-                        treeNode.onclick = function() { //TODO: hover
-                            that.realizeUnification2(future);
-                        };
+                        if (future.unification.isMutation(0)) {
+                            treeNode.className += " disabled";
+                        } else {
+                            treeNode.onclick = function() { //TODO: hover
+                                that.realizeUnification2(future);
+                            };
+                        }
                     }
                 }
                 doStep();
@@ -564,6 +569,12 @@ exports.Ui = function(doc, theory, prover, scheme) {
 
         };
 
+        doc.getElementById("hideTip").onclick = function() {
+            GHT.dismiss();
+        };
+        doc.getElementById("showTip").onclick = function() {
+            document.getElementById("tipContainer").className = "unhidden";
+        };
         doc.getElementById("back").onclick = function() {
             if (selectedPath() == null) {
                 --undoIndex;
