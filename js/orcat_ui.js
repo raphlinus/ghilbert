@@ -87,6 +87,17 @@ exports.Ui = function(doc, theory, prover, scheme) {
         };
         namer.getNum = function() { return num; };
         namer.pathToName = function(path) { return pathToName[path];};
+        // cleans pathToName by removing all entries which no longer point to a term.
+        // TODO: this probably shouldn't be necessary.
+        namer.gc = function(term) {
+            for (var k in pathToName) if (pathToName.hasOwnProperty(k)) {
+                try {
+                    term.xpath(k.split(/,/));
+                } catch (x) {
+                    delete pathToName[k];
+                }
+            }
+        };
         return namer;
     }
     function pathFromString(p) {
@@ -340,6 +351,7 @@ exports.Ui = function(doc, theory, prover, scheme) {
                       });
         proofNamer.sendPathToPath(srcDsts);
         var newProofTree = new Tree(proofTerm, true, proofNamer);
+        if (proofNamer.gc) proofNamer.gc(proofTerm);
         treeDiv.appendChild(newProofTree.node());
         if (proofTree) {
             visitVarTrans(function(oldPath,newPath) {

@@ -481,7 +481,9 @@ exports.Prover = function(theory, scheme, ghilbertVarNames) {
             }
             var thmTerm = theory.theorem(thmName);
             var binding = bindingAt(xpath.slice());
-            if (binding.equals(scheme.LEFT())) {
+            if (binding.equals(scheme.UNKNOWN())) {
+                // Nothing is possible with an unknown binding.
+            } else if (binding.equals(scheme.LEFT())) {
                 addPossibility(0, theory.unify(wrappedAssertion.term().xpath(xpath.slice()),
                                             thmTerm.xpath([0])));
             } else if (binding.equals(scheme.RIGHT())) {
