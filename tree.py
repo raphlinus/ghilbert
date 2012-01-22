@@ -135,6 +135,7 @@ var not = exports.not;
 exports.theory.addAxiom("Conjoin", exports.theory.parseTerm(
                             [not, [I, [I, [and, 0, 1], [not, [I, 0, [not, 1]]]],
                                    [not, [I, [not, [I, 0, [not, 1]]], [and, 0, 1]]]]]));
+exports.ui.addAxiom("Conjoin");
 """
             goal.new_ghilbert = """
 defthm (Conjoin wff (and A B) () ()
@@ -168,6 +169,7 @@ var and = exports.and;
 exports.theory.addAxiom("Equivalate", exports.theory.parseTerm(
                             [and, [I, [iff, 1, 2], [and, [I, 1, 2], [I, 2, 1]]],
                              [I, [and, [I, 1, 2], [I, 2, 1]], [iff, 1, 2]]]));
+exports.ui.addAxiom("Equivalate");
 """
             goal.new_ghilbert = """
 defthm (Equivalate wff (iff A B) () ()
