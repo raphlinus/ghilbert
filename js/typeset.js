@@ -28,24 +28,24 @@ GH.stringslug = function(str) {
 GH.spaceslug = function(sp) {
     var em = sp * .06;
     if (em < .05) {
-	return GH.stringslug('\u200b')
+	return GH.stringslug('\u200b');
     } else if (em < .133) {
-	return GH.stringslug('\u200a')
+	return GH.stringslug('\u200a');
     } else if (em < .208) {
-	return GH.stringslug('\u2006')
+	return GH.stringslug('\u2006');
     } else if (em < .292) {
-	return GH.stringslug('\u2005')
+	return GH.stringslug('\u2005');
     } else if (em < .417) {
-	return GH.stringslug('\u2004')
+	return GH.stringslug('\u2004');
     } else if (em < .75) {
-	return GH.stringslug('\u2002')
+	return GH.stringslug('\u2002');
     } else {
-	return GH.stringslug('\u2003')
+	return GH.stringslug('\u2003');
     }
 };
 
 GH.combineslugs = function(slugs, prec, prsp) {
-    str = '';
+    var str = '';
     for (var i = 0; i < slugs.length; i++) {
 	str += slugs[i].str;
     }
@@ -53,8 +53,8 @@ GH.combineslugs = function(slugs, prec, prsp) {
 };
 
 GH.parenthesize = function(slug) {
-    lparen_slug = GH.stringslug('(');
-    rparen_slug = GH.stringslug(')');
+    var lparen_slug = GH.stringslug('(');
+    var rparen_slug = GH.stringslug(')');
     return GH.combineslugs([lparen_slug, slug, rparen_slug], 9999);
 };
 
@@ -112,7 +112,7 @@ GH.typesetbinder = function(term, prec, op) {
     var op_slug = GH.stringslug(op);
     var var_slug = GH.typeset(term[1]);
     var body_slug = GH.typeset(term[2]);
-    sp_slug = GH.spaceslug(1 + body_slug.prsp);
+    var sp_slug = GH.spaceslug(1 + body_slug.prsp);
     var slugs = [op_slug, var_slug, sp_slug, body_slug];
     return GH.combineslugs(slugs, prec);
 };
@@ -124,8 +124,8 @@ GH.typesetsubst = function(term, prec) {
     var x_slug = GH.typeset(term[2]);
     var close_slug = GH.stringslug(']');
     var ph_slug = GH.typeset(term[3]);
-    sp_slug = GH.spaceslug(1 + ph_slug.prsp);
-    slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, 
+    var sp_slug = GH.spaceslug(1 + ph_slug.prsp);
+    var slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, 
 	     sp_slug, ph_slug];
     return GH.combineslugs(slugs, prec);
 				    
@@ -137,12 +137,23 @@ GH.typesetclab = function(term) {
     var slash_slug = GH.stringslug('|');
     var ph_slug = GH.typeset(term[2]);
     var close_slug = GH.stringslug('}');
-    slugs = [open_slug, x_slug, slash_slug, ph_slug, close_slug];
+    var slugs = [open_slug, x_slug, slash_slug, ph_slug, close_slug];
+    return GH.combineslugs(slugs, 9999);
+};
+
+GH.typesetop = function(term) {
+    var open_slug = GH.stringslug('\u27e8');
+    var x_slug = GH.typeset(term[1]);
+    var comma_slug = GH.stringslug(',');
+    var y_slug = GH.typeset(term[2]);
+    var sp_slug = GH.spaceslug(1 + y_slug.prsp);
+    var close_slug = GH.stringslug('\u27e9');
+    var slugs = [open_slug, x_slug, comma_slug, sp_slug, y_slug, close_slug];
     return GH.combineslugs(slugs, 9999);
 };
 
 GH.typeset = function(sexp) {
-    if (typeof sexp == 'string') {
+    if (GH.typeOf(sexp) == 'string') {
 	var trans = { et: '\u03b7',
 	    th: '\u03b8',
 	    ta: '\u03c4',
@@ -179,7 +190,7 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == '<->') {
 	return GH.typesetinfix(sexp, 'n', 100, '\u2194');
     } else if (sexp[0] == '-.') {
-	if (typeof sexp[1] != 'string') {
+	if (GH.typeOf(sexp[1]) != 'string') {
 	    if (sexp[1][0] == '=') {
 		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
 	    } else if (sexp[1][0] == '=_') {
@@ -219,6 +230,8 @@ GH.typeset = function(sexp) {
 	return GH.typesetinfix(sexp, 'n', 3500, '\u2229');
     } else if (sexp[0] == 'u.') {
 	return GH.typesetinfix(sexp, 'n', 3500, '\u222a');
+    } else if (sexp[0] == '<,>') {
+	return GH.typesetop(sexp);
     } else {
 	var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
 	for (var i = 1; i < sexp.length; i++) {
@@ -227,5 +240,5 @@ GH.typeset = function(sexp) {
 	}
 	slugs.push(GH.stringslug(')'));
 	return GH.combineslugs(slugs, 9999);
-    }
+    } 
 };

@@ -64,6 +64,8 @@ def get_all_proofs(replacing=None, below=None):
             else:
                 pipe.write(str(proof.content))
                 pipe.write("\n")
+    if not written:
+        pipe.write(str(replacing.content))
     pipe.seek(0)
     return pipe
 
@@ -98,7 +100,6 @@ class RecentPage(webapp.RequestHandler):
                 content = ""
             else:
                 content = cgi.escape(proof.content)
-        
             newcontent = []
             for line in content.rstrip().split('\n'):
                 sline = line.lstrip()
@@ -155,7 +156,19 @@ class EditPage(webapp.RequestHandler):
                 number = float(1)
 
 
-        self.response.out.write("""<title>Ghilbert</title>
+        self.response.out.write("""<head>
+<title>Ghilbert</title>
+<style type="text/css">
+    #panel tr.headerRow {background-color: #ccc}
+    #panel tr.clickableRow {cursor: pointer}
+    #panel tr.clickableRow:hover {background-color: #eee}
+    #panel tr.clickableRow:active {background-color: #ddd}
+    table#panel { border: 1px solid black; border-collapse:collapse;}
+    #panel tr { border: 1px solid black; }
+    #panel td {padding: .3em; }
+
+</style>
+</head>
         
 
 <body>
@@ -167,15 +180,31 @@ class EditPage(webapp.RequestHandler):
 <script src="/js/inputlayer.js" type="text/javascript"></script>
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
+<script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
 <p>
-<label for="number">number: </label><input type="text" id="number" value="%s"/><br/>
-<canvas id="canvas" width="640" height="480" tabindex="0"></canvas><br/>
-<canvas id="stack" width="640" height="240" tabindex="0"></canvas>
-
-<div id="output">(output goes here)</div>
-
+<div style="display:block;float:left">
+  <label for="number">number: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
+<br/>
+  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/>
+  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/>
+  <span id="saving"></span>
+<br/>
+  <a href="#" id="autounify" style="display:none">autounify</a><br/>
+  <canvas id="stack" width="800" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
+</div>
+<div width="400" height="800" style="display:block;float:left">
+  <button id="inferences">Inference</button>
+  <button id="deductions">Deduction</button>
+  <button id="unified">Unified</button>
+  <label for="filter">filter: </label><input type="text" id="filter"/>
+  <br/>
+  <table id="panel" border="1" style="border:1px solid;">
+  </table>
+</div>
+<div id="output" style="clear:left;">(output goes here)</div>
 <script type="text/javascript">
 
 name = %s;
@@ -186,7 +215,8 @@ uc = new GH.XhrUrlCtx('/', url);
 v = new GH.VerifyCtx(uc, run);
 run(uc, '/proofs_upto/%f', v);
 
-var mainpanel = GH.CanvasEdit.init();
+var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
+//var mainpanel = GH.CanvasEdit.init();
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
 var number = document.getElementById('number');
@@ -198,11 +228,11 @@ number.onchange = function() {
     window.direct.vg = v;
     text.dirty();
 };
+var panel = new GH.Panel(window.direct.vg);
 """ % (number, `name`, number));
         if proof:
             result = json_dumps(proof.content.split('\n'))
-            self.response.out.write('mainpanel.text = %s;\n' % result)
-            self.response.out.write('mainpanel.dirty();\n');
+            self.response.out.write('mainpanel.setLines(%s);\n' % result)
         self.response.out.write('</script>\n')
 
 from google.appengine.ext import webapp
@@ -218,6 +248,7 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
 
 class AllProofsPage(webapp.RequestHandler):
     def get(self, number):
+        self.response.headers.add_header('content-type', 'text/plain')
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
         
 class StaticPage(webapp.RequestHandler):
