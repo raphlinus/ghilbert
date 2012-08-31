@@ -28,6 +28,8 @@ GH.cursormax = function(c1, c2) {
 
 GH.TextareaEdit = function(textarea) {
     var self = this;
+    textarea.focus();
+
     // Stack of [before,func] pairs for ctrl-z.  If empty, use regular undo.
     this.undoStack = [];
     self.restore_excursion = function() {};
@@ -53,10 +55,10 @@ GH.TextareaEdit = function(textarea) {
     };
     textarea.onkeyup = function(event) {
         window.onbeforeunload = function() { return "Are you sure you want to leave?";};
-        if (event.keyCode === 48 && event.shiftKey) {
-            // Shift-0: Electric parens
-            var cursor = textarea.selectionEnd;
-            var i = cursor - 1;
+        var cursor = textarea.selectionEnd;
+        var i = cursor - 1;
+        if (event.keyCode === 48 && (textarea.value[i] == ')')) {
+            // Electric parens
             var parenCount = 0;
             while (true) {
                 if (textarea.value[i] == ')') {

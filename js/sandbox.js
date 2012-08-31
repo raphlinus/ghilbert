@@ -27,7 +27,7 @@ function run(urlctx, url, ctx) {
 	    if (cmd == null) {
 		return true;
 	    }
-	    if (typeof cmd != 'string') {
+	    if (GH.typeOf(cmd) != 'string') {
 		throw 'Cmd must be atom';
 	    }
 	    var arg = GH.read_sexp(s);
