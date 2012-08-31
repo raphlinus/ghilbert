@@ -5579,5 +5579,190 @@ syl
 syl
 )   
 
+# number 171.3
+thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B))) 
+  (=_ (lambda x A) (lambda y B))
+ x eqid
+  x  A  z  df-lambda
+  (= x x) a1i
+    h1    A  B  x  opeq2    syl  
+    x  y  B  opeq1    eqtrd
+    z  eqeq2d 
+    exalpha    bicomi 
+    z  gen
+      z  (E. y (= z (<,> y B)))  (E. x (= z (<,> x A)))  abeq2    
+    ax-mp
+  syl6seqr
+    y  B  z  df-lambda
+  syl6seqr
+ ax-mp
+) 
+# number 171.4
+thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
+    S  T  (<,> (beta x y) (beta x (S y)))  eleq2
+    (< y A)  imbi2d
+    y  19.21ai
+    19.15d
+    (= (beta x A) C)  anbi2d
+    (= (beta x (0)) B)  anbi2d
+    x  exbid
+      S  A  B  C  x  y  df-recursep
+    syl5bb
+      T  A  B  C  x  y  df-recursep
+    syl6bbr
+)
 
+
+# number 172.0
+thm (df-exp-just ((A w x y z) (B x z)) () (=
+  (iota ({|} x (recursep (lambda y (* y A)) B (1) x)))
+  (iota ({|} z (recursep (lambda w (* w A)) B (1) z))))
+
+ x  z  (lambda w (* w A))  B  (1)  recursepeq4
+  y  w  A  muleq1  
+  lambdaeq1
+  (lambda y (* y A))  (lambda w (* w A))  B  (1)  x  recursepeq1    ax-mp
+ syl5bb
+ abeq
+ ({|} x (recursep (lambda y (* y A)) B (1) x))  ({|} z (recursep (lambda w (* w A)) B (1) z))  ax-iotaeq    ax-mp
+)
+
+# NOTE(abliss): this entails 0^0 = 1.  Maybe a bad choice we'll pay for later?
+defthm (df-exp num (exp A B) ((A x y) (B x)) () 
+  (= (exp A B) (iota ({|} x (recursep (lambda y (* y A)) B (1) x))))
+  x'  y'  A  B  x  y  df-exp-just)
+
+# number 173.0
+thm (recursep0 () () (recursep S (0) A A)
+  
+  A  eqid
+z  A  recursive.2.1
+  A  A  (beta z (0)) eqeq2   (= (beta z (0)) A)  anbi2d   (= (beta z (0)) A)  anidm    syl6bb
+    y nn0nlt0   (e. (<,> (beta z y) (beta z (S y))) S)  pm2.21i    y gen
+   (= (beta z (0)) A)  biantru
+   (= (beta z (0)) A)  anbi2i
+  syl5bbr
+  z  exbid
+mpbiri
+ ax-mp
+ S  (0)  A  A  z  y  df-recursep
+ mpbir
+) 
+
+# number 174.0
+thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
+  S  z  A  B  recursive
+    S  A  B  z  x  recursep-uniq
+    com12  ex  com13  com23
+    imp    x  19.21ai    ex
+    z  19.21ai
+  jca
+  ancomd
+   z  (-> (recursep S A B z) (A. x (-> (recursep S A B x) (= z x))))  (recursep S A B z)  19.29   syl 
+    (recursep S A B z)  (A. x (-> (recursep S A B x) (= z x)))  pm3.35    
+  (recursep S A B z)  (-> (recursep S A B z) (A. x (-> (recursep S A B x) (= z x))))  (A. x (-> (recursep S A B x) (= z x)))  pm5.3    mpbi
+  ancoms    
+  z  19.22i    
+  syl
+ 
+    x  (recursep S A B z)  (-> (recursep S A B x) (= z x))  alan1    
+    z  exbii 
+  sylibr
+
+
+    z  x  S  A  B  recursepeq4 
+    biimpd    com12    (-> (recursep S A B x) (= z x))  anim1i
+    (= z x)  (recursep S A B x)  dfbi2    sylibr    bicomd    z  x  eqcom syl6bb
+    x  19.20i
+    z  19.22i
+  syl
+
+  x  (recursep S A B x)  z  df-eu   sylibr
+)
+
+# number 175.0
+thm (exp0 () () (= (exp A (0)) (1))
+
+    x  (1)  tyeu
+      (lambda y (* y A))  (1)  recursep0
+      x  (1)  (lambda y (* y A))  (0)  (1)  recursepeq4  mpbiri
+
+    (lambda y (* y A))  (1)  recursep0        
+          y  z  A  muleq1    funlambda
+          (lambda y (* y A))  (0)  (1)  (1)  x  recursep-uniq    ax-mp
+        ex    ax-mp    eqcomd
+      impbii
+      x  eubii
+    mpbi
+    x  (recursep (lambda y (* y A)) (0) (1) x)  iotacl2    ax-mp
+   
+
+
+      A  (0)  x  y  df-exp
+      (exp A (0))  (iota ({|} x (recursep (lambda y (* y A)) (0) (1) x)))  ({|} x (recursep (lambda y (* y A)) (0) (1) x))  ax-eleq1  ax-mp
+    mpbir
+
+      x  (exp A (0))    (lambda y (* y A))  (0)  (1)  recursepeq4
+      elab
+    mpbi
+    
+
+        (lambda y (* y A))  (1)  recursep0        
+          y  z  A  muleq1    funlambda
+          (lambda y (* y A))  (0)  (1)  (1)  (exp A (0))  recursep-uniq    ax-mp
+        ex    ax-mp    eqcomd
+    ax-mp
+)
+
+# number 176.0
+thm (expsuc () () (= (exp A (S B)) (* A (exp A B)))
+  
+y  z  A  muleq1    funlambda
+(lambda y (* y A))  x  (S B)  (1)  eurecursep    ax-mp
+x  (recursep (lambda y (* y A)) (S B) (1) x)  iotacl2    ax-mp
+
+  A  (S B)  x  y  df-exp
+    (exp A (S B))  (iota ({|} x (recursep (lambda y (* y A)) (S B) (1) x)))  ({|} x (recursep (lambda y (* y A)) (S B) (1) x))  ax-eleq1
+  ax-mp
+
+mpbir
+ 
+x  (exp A (S B))  (lambda y (* y A))  (S B)  (1)  recursepeq4  elab    mpbi
+
+
+  (lambda y (* y A))  B  (1)  (exp A (S B))  x  recursepsuc
+ax-mp
+  
+  y  x  A  muleq1  lambdaeq1
+  (lambda y (* y A))  (lambda x (* x A))  (<,> x (exp A (S B)))  eleq2    ax-mp
+  x  z  A  muleq1  (exp A (S B))  ellambda    bitri
+  x  A  mulcom    (exp A (S B))  eqeq2i    bitri
+  (recursep (lambda y (* y A)) B (1) x)  anbi2i
+  x  exbii    
+mpbi
+
+
+
+y  z  A  muleq1    funlambda
+(lambda y (* y A))  x  B  (1)  eurecursep    ax-mp
+x  (recursep (lambda y (* y A)) B (1) x)  iotacl2    ax-mp
+  A  B  x  y  df-exp
+    (exp A B)  (iota ({|} x (recursep (lambda y (* y A)) B (1) x)))  ({|} x (recursep (lambda y (* y A)) B (1) x))  ax-eleq1
+  ax-mp
+mpbir
+x  (exp A B)  (lambda y (* y A))  B  (1)  recursepeq4  elab    mpbi
+
+
+y  z  A  muleq1  funlambda
+  (lambda y (* y A))  B  (1)  (exp A B)  x  recursep-uniq    ax-mp
+mpan
+(= (exp A (S B)) (* A x))  anim1i
+
+  (exp A B)  x  A  muleq2    (= (exp A (S B)) (* A x))  anim1i  
+    (* A x)  (exp A (S B))  (* A (exp A B))  ax-eqtr  ex    eqcoms    com12    eqcoms   imp    syl
+  syl
+x  19.22i    ax-mp
+
+x  (= (exp A (S B)) (* A (exp A B)))  ex-nf    ax-mp
+)
 
