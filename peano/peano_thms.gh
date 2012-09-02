@@ -48,6 +48,8 @@ thm (19.8a () ()
   x ph df-ex sylibr
 )
 
+thm (19.8ai () (hyp ph) (E. x ph) hyp ph x 19.8a ax-mp )
+
 thm (19.2 () ()
   (-> (A. x ph) (E. x ph))
   x ph ax-4 ph x 19.8a syl
@@ -59,6 +61,13 @@ thm (19.9 ((ph x))
 
   x (-. ph) 19.3
   x ph alnex bitr3i con4bii bicomi
+)
+
+thm (19.9d ((ps x)) (h (-> ph (E. x ps)))
+  (-> ph ps)
+  h
+  x ps 19.9
+  sylib
 )
 
 thm (19.15 () ()
@@ -98,7 +107,8 @@ thm (alex () ()
 thm (19.20i ()
   (hyp (-> ph ps))
   (-> (A. x ph) (A. x ps))
-  hyp x gen x ph ps ax-alim ax-mp)
+  x ph ps ax-alim hyp mpg
+)
 
 thm (19.21 ((ph x))
   ()
@@ -137,7 +147,8 @@ thm (19.22 () ()
 thm (19.22i ()
   (hyp (-> ph ps))
   (-> (E. x ph) (E. x ps))
-  hyp x gen x ph ps 19.22 ax-mp)
+  x ph ps 19.22 hyp mpg
+)
 
 thm (19.22d ((ph x))
   (hyp (-> ph (-> ps ch)))
@@ -164,6 +175,16 @@ thm (exbid ((ph x))
   hyp x 19.21ai x ps ch 19.18 syl
 )
 
+thm (19.26 () ()
+  (<-> (A. x (/\ ph ps)) (/\ (A. x ph) (A. x ps)))
+  ph ps pm3.26 x 19.20i
+    ph ps pm3.27 x 19.20i
+  jca
+    ph ps pm3.2 x 19.20i x ps  (/\ ph ps) ax-alim syl
+    imp
+  impbii
+)
+
 thm (19.29 () ()
   (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps)))
   x ph (-. ps) ax-alim
@@ -175,6 +196,11 @@ thm (19.29 () ()
   3imtr4i
     ph ps df-an x exbii
   sylibr
+)
+
+thm (19.29r () ()
+  (-> (/\ (E. x ph) (A. x ps)) (E. x (/\ ph ps)))
+  x ps ph 19.29 ancoms ps ph ancom x exbii sylib
 )
 
 thm (19.32 ((ph x))
@@ -224,7 +250,56 @@ thm (19.41 ((ps x)) ()
   bitr4i
 )
 
-# Predicate calculus with equality
+thm (19.41l ((ph x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+
+thm (19.41r ((ph x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+
+thm (albiim () ()
+  (<-> (A. x (<-> ph ps)) (/\ (A. x (-> ph ps)) (A. x (-> ps ph))))
+  ph ps dfbi2 x albii
+  x (-> ph ps) (-> ps ph) 19.26 bitri
+)
+
+# 19.28
+thm (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps)))
+  x ph ps 19.26
+    x ph 19.3 (A. x ps) anbi1i
+  bitri
+)
+
+# 19.27
+thm (alan2 ((ps x)) () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) ps))
+  ph  ps  ancom     x  albii    x  ps  ph  alan1  bitri  
+  ps  (A. x ph)  ancom    bitri
+)
+
+thm (exor2 ((ps x)) () (<-> (E. x (\/ ph ps)) (\/ (E. x ph) ps))    
+x  (\/ ph ps)  df-ex
+  ph  ps  ioran    x  albii  notbii 
+    x (-. ph)  (-. ps)  alan2  notbii    
+  bitri
+  (A. x (-. ph))  ps  pm4.53    bitri
+bitri
+x  ph  df-ex    ps  orbi1i  bitr4i
+)
+
+thm (aaan ((ph y) (ps x)) ()
+  (<-> (A. x (A. y (/\ ph ps))) (/\ (A. x ph) (A. y ps)))
+  y ph ps alan1 x albii
+  x ph (A. y ps) alan2 bitri
+)
+
+# Predicat#e calculus with equality
 
 thm (tyex ((A x)) ()
   (E. x (= x A))
@@ -486,7 +561,7 @@ thm (exlem1 ((ph x)) () (-> (E. x ph) (E. x (/\ (= x y) ph)))
 
 thm (exalpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))
      (-> (E. x ph) (E. y ps))
-     y x eqcom 1 sylbi com12 y 19.21ai
+     1 eqcoms com12 y 19.21ai
        y x tyex
          y (= y x) ps mpexax
        ax-mp
@@ -497,6 +572,310 @@ thm (exalpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps)))
     1 biimpd exalpha1
     y x eqcom 1 sylbi biimprd exalpha1
     impbii)
+
+thm (alpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))  
+     (-> (A. x ph) (A. y ps))
+  1 eqcoms con3d exalpha1 con3i
+    x ph alex y ps alex
+  3imtr4i
+)
+
+thm (alpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps))) 
+  (<-> (A. x ph) (A. y ps))
+    1  biimpd alpha1
+    1  eqcoms biimprd alpha1  
+  impbii
+)
+
+# substitution thms
+
+thm (df-subst-just ((A z y) (ph z y)) ()
+      (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph))))
+          (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
+     y z A eqeq1
+       y z x eqeq2 ph anbi1d x exbid
+     anbi12d exalpha
+     )
+
+defthm (df-subst wff ([/] A x ph) ((A z) (ph z)) ()
+         (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
+         y A x ph z df-subst-just)
+
+defthm (df-rwff wff (rwff x ph) () ()
+        (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph))))
+      (A. x (<-> ph ([/] x x ph))) biid)
+
+thm (dfsbcq () ()
+  (-> (= A B) (<-> ([/] A x ph) ([/] B x ph)))
+  A B y eqeq2 (E. x (/\ (= x y) ph)) anbi1d y exbid
+  A x ph y df-subst B x ph y df-subst bibi12i sylibr
+)
+
+thm (a4sbc () ()
+  (-> (A. x ph) ([/] A x ph))
+
+  x y tyex x ph (= x y) 19.29 mpan2
+  ph (= x y) ancom x exbii sylib
+  y 19.21ai
+    y A tyex (A. x ph) a1i
+  jca
+  y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
+  (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
+  A x ph y df-subst sylibr
+)
+
+thm (ceqsex ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (E. x (/\ (= x A) ph)) ps)
+
+  hyp pm5.32i x exbii
+  x (= x A) ps 19.41 bitri
+  x A tyex mpbiran
+)
+
+thm (sbc5 ((A x)) ()
+  (<-> ([/] A x ph) (E. x (/\ (= x A) ph)))
+
+  A x ph y df-subst
+    y A x eqeq2 ph anbi1d
+    x exbid
+    ceqsex
+  bitri
+)
+
+thm (sbcco ((ph y) (A y)) ()
+  (<-> ([/] A y ([/] y x ph)) ([/] A x ph))
+
+  A y ([/] y x ph) sbc5
+    y x ph sbc5
+      (= y A) anbi2i y exbii
+    bitri
+  A x ph y df-subst bitr4i
+)
+
+thm (sbcie ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> ([/] A x ph) ps)
+
+  A x ph sbc5
+  hyp ceqsex bitri
+)
+
+thm (cla4g ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (-> (A. x ph) ps)
+  x ph A a4sbc hyp sbcie sylib
+)
+
+thm (sbcbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> ([/] A x ps) ([/] A x ch)))
+
+  hyp (= x y) anbi2d x exbid
+  (= y A) anbi2d y exbid
+    A x ps y df-subst
+      A x ch y df-subst
+  3bitr4g
+)
+
+thm (sbcbii ()
+  (hyp (<-> ph ps))
+  (<-> ([/] A x ph) ([/] A x ps))
+  (0) eqid
+    hyp (= (0) (0)) a1i A x sbcbid
+  ax-mp
+)
+thm (sbceq12 () (h (rwff x ph))
+  (-> (= x A) (<-> ph ([/] A x ph)))
+  x A x ph dfsbcq
+    h x ph df-rwff mpbi a4i
+  syl5bb
+)
+
+thm (sb6rf ((ph y)) (h (rwff x ph))
+  (<-> ph (A. y (-> (= y x) ([/] y x ph))))
+  h x ph df-rwff mpbi a4i
+    y x x ph dfsbcq
+    ceqsal
+  bitr4i
+)
+
+thm (rwffi ((ps x) (ph y))
+  (hyp (-> (= x y) (<-> ph ps)))
+  (rwff x ph)
+  hyp sbcie x y sbcbii
+  hyp x y eqcom ph ps bicom imbi12i mpbi sbcie bitri
+
+  x y x ph sbcco
+  bitr3i x gen
+  x ph df-rwff mpbir
+)
+
+# Exists unique
+
+defthm (df-eu wff (E! x ph) ((ph y)) ()
+          (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
+       z y x eqeq2 ph bibi2d x 19.21ai 19.15d exalpha)
+
+thm (eubid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E! x ps) (E! x ch)))
+  hyp   (= x z)  bibi1d    
+  x  19.21ai       19.15d     z  exbid    
+  x  ps  z  df-eu   syl5bb    
+  x  ch  z  df-eu      syl6bbr    
+)
+
+thm (eubii () (h (<-> ph ps)) (<-> (E! x ph) (E! x ps))
+  y eqid
+    h  (= y y)  a1i   x  eubid
+  ax-mp
+)
+
+thm (eualpha ((ph y) (ps x)) (h1 (-> (= x y) (<-> ph ps)))
+     (<-> (E! x ph) (E! y ps))
+    h1
+      x  y  z  eqeq1
+    bibi12d    alpha
+    z  exbii
+        x  ph  z  df-eu
+          y  ps  z  df-eu
+        bibi12i    biimpri
+    ax-mp
+)
+
+thm (euex () () (-> (E! x ph) (E. x ph))
+  x  ph  z  df-eu  biimpi
+  
+    x  z  tyex  z  gen    jctil  z  (E. x (= x z))  (A. x (<-> ph (= x z)))  19.29  syl
+    x  (<-> ph (= x z))  (= x z)  19.29  ancoms  z  19.22i  syl 
+      ph  (= x z)  bi2    (= x z)  anim1i
+  (= x z)  ph  pm3.35  ancoms  syl  x  19.22i  z  19.22i  syl  
+  z  (E. x ph)  19.9  sylib
+)
+
+thm (eumo0 ((ph y)) ()
+  (-> (E! x ph) (E. y (A. x (-> ph (= x y)))))
+  x ph y df-eu biimpi
+    ph (= x y) bi1 x 19.20i y 19.22i
+  syl
+)
+
+thm (sb8eu ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (E! y ([/] y x ph)))
+  h x ph df-rwff mpbi a4i x eubii
+  x y x ph dfsbcq eualpha bitri
+)
+
+thm (mo ((ph y)) (h (rwff x ph))
+  (<-> (E. y (A. x (-> ph (= x y)))) (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y)))))
+  z y x eqeq2
+  ph imbi2d
+  x 19.21ai 19.15d # albidv
+  exalpha
+    h y sbceq12 biimprd
+      x y z eqeq1 biimpd
+    imim12d alpha1
+    ancli
+      x y (-> ph (= x z)) (-> ([/] y x ph) (= y z)) aaan
+    sylibr
+      ph (= x z) ([/] y x ph) (= y z) prth
+        y z x eqeq2 biimprd impcom
+      syl6
+      y 19.20i x 19.20i
+    syl z 19.23ai
+  sylbir
+
+    y x (-> ([/] y x ph) (-> ph (= x y))) 19.5
+    x ([/] y x ph) (-> ph (= x y)) ax-alim y 19.20i sylbir  # having a7s would shorten slightly
+    y (A. x ([/] y x ph)) (A. x (-> ph (= x y))) 19.22 syl
+      ([/] y x ph) x alnfi y 19.22i
+    syl5com
+      ph ([/] y x ph) (= x y) impexp
+      ph ([/] y x ph) (= x y) bi2.04 bitri
+      y albii x albii
+    syl5ib
+      y ([/] y x ph) alnex
+        h y sbceq12 biimpd eqcoms con3d alpha1
+        ph (= x y) pm2.21 x 19.20i syl
+        (A. x (-> ph (= x y))) y 19.8a syl
+      sylbir
+      (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y)))) a1d
+    pm2.61i
+  impbii
+)
+
+thm (eu1 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (E. x (/\ ph (A. y (-> ([/] y x ph) (= x y))))))
+  h y sb8eu
+  y ([/] y x ph) x df-eu bitri
+    x y eqcom ([/] y x ph) imbi2i y albii
+      h y sb6rf
+    anbi12i
+      ph (A. y (-> ([/] y x ph) (= x y))) ancom
+        y ([/] y x ph) (= y x) albiim
+    3bitr4i x exbii
+  bitr4i
+)
+
+thm (eu2 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y))))))
+  x ph euex
+    x ph y eumo0
+    h y mo sylib
+  jca
+    x ph (A. y (-> (/\ ph ([/] y x ph)) (= x y))) 19.29r
+      ph ([/] y x ph) (= x y) impexp y albii
+      y ph (-> ([/] y x ph) (= x y)) 19.21 bitri ph anbi2i
+      ph (A. y (-> ([/] y x ph) (= x y))) abai bitr4i x exbii
+    sylib
+    h y eu1 sylibr
+  impbii
+)
+
+thm (eu3 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (E. y (A. x (-> ph (= x y))))))
+  h y eu2 h y mo (E. x ph) anbi2i bitr4i
+)
+
+# Exists at most one
+
+defthm (df-mo wff (E* x ph) () ()
+  (<-> (E* x ph) (-> (E. x ph) (E! x ph)))
+  (-> (E. x ph) (E! x ph)) biid
+)
+
+thm (mo2 ((ph y)) (h (rwff x ph))
+  (<-> (E* x ph) (E. y (A. x (-> ph (= x y)))))
+  x ph df-mo
+    x ph alnex
+      ph (= x y) pm2.21 x 19.20i
+      (A. x (-> ph (= x y))) y 19.8a syl
+    sylbir
+    x ph y eumo0 ja
+      h y eu3 biimpri expcom
+    impbii
+  bitri
+)
+
+thm (mo4 ((ph y) (ps x))  (h (-> (= x y) (<-> ph ps)))
+  (<-> (E* x ph) (A. x (A. y (-> (/\ ph ps) (= x y)))))
+  h rwffi y mo2 h rwffi y mo bitri  # same as mo3, but shouldn't need it as a separate thm
+    h sbcie ph anbi2i (= x y) imbi1i y albii x albii
+  bitri
+)
+
+thm (eu5 () (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (E* x ph)))
+  h y eu3
+  h y mo2 (E. x ph) anbi2i bitr4i
+)
+
+thm (eu4 ((ph y) (ps x))
+  (h (-> (= x y) (<-> ph ps)))
+  (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ps) (= x y))))))
+  h rwffi eu5 h mo4 (E. x ph) anbi2i bitri
+)
 
 # Peano arithmetic
 
@@ -1044,120 +1423,6 @@ thm (lemul2 () ()
   sylibr
 )
 
-# substitution thms
-
-thm (df-subst-just ((A z y) (ph z y)) ()
-      (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph))))
-          (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
-     y z A eqeq1
-       y z x eqeq2 ph anbi1d x exbid
-     anbi12d exalpha
-     )
-
-defthm (df-subst wff ([/] A x ph) ((A z) (ph z)) ()
-         (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
-         y A x ph z df-subst-just)
-
-defthm (df-rwff wff (rwff x ph) () ()
-        (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph))))
-      (A. x (<-> ph ([/] x x ph))) biid)
-
-thm (dfsbcq () ()
-  (-> (= A B) (<-> ([/] A x ph) ([/] B x ph)))
-  A B y eqeq2 (E. x (/\ (= x y) ph)) anbi1d y exbid
-  A x ph y df-subst B x ph y df-subst bibi12i sylibr
-)
-
-thm (a4sbc () ()
-  (-> (A. x ph) ([/] A x ph))
-
-  x y tyex x ph (= x y) 19.29 mpan2
-  ph (= x y) ancom x exbii sylib
-  y 19.21ai
-    y A tyex (A. x ph) a1i
-  jca
-  y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
-  (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
-  A x ph y df-subst sylibr
-)
-
-thm (ceqsex ((ps x) (A x))
-  (hyp (-> (= x A) (<-> ph ps)))
-  (<-> (E. x (/\ (= x A) ph)) ps)
-
-  hyp pm5.32i x exbii
-  x (= x A) ps 19.41 bitri
-  x A tyex mpbiran
-)
-
-thm (sbc5 ((A x)) ()
-  (<-> ([/] A x ph) (E. x (/\ (= x A) ph)))
-
-  A x ph y df-subst
-    y A x eqeq2 ph anbi1d
-    x exbid
-    ceqsex
-  bitri
-)
-
-thm (sbcco ((ph y) (A y)) ()
-  (<-> ([/] A y ([/] y x ph)) ([/] A x ph))
-
-  A y ([/] y x ph) sbc5
-    y x ph sbc5
-      (= y A) anbi2i y exbii
-    bitri
-  A x ph y df-subst bitr4i
-)
-
-thm (sbcie ((A x) (ps x))
-  (hyp (-> (= x A) (<-> ph ps)))
-  (<-> ([/] A x ph) ps)
-
-  A x ph sbc5
-  hyp ceqsex bitri
-)
-
-thm (cla4g ((ps x) (A x))
-  (hyp (-> (= x A) (<-> ph ps)))
-  (-> (A. x ph) ps)
-  x ph A a4sbc hyp sbcie sylib
-)
-
-thm (sbcbid ((ph x))
-  (hyp (-> ph (<-> ps ch)))
-  (-> ph (<-> ([/] A x ps) ([/] A x ch)))
-
-  hyp (= x y) anbi2d x exbid
-  (= y A) anbi2d y exbid
-    A x ps y df-subst
-      A x ch y df-subst
-  3bitr4g
-)
-
-thm (sbcbii ()
-  (hyp (<-> ph ps))
-  (<-> ([/] A x ph) ([/] A x ps))
-  (0) eqid
-    hyp (= (0) (0)) a1i A x sbcbid
-  ax-mp
-)
-
-thm (rwffi ((ps x) (ph y))
-  (hyp (-> (= x y) (<-> ph ps)))
-  (rwff x ph)
-  hyp sbcie x y sbcbii
-  hyp x y eqcom ph ps bicom imbi12i mpbi sbcie bitri
-
-  x y x ph sbcco
-  bitr3i x gen
-  x ph df-rwff mpbir
-)
-
-defthm (df-eu wff (E! x ph) ((ph y)) ()
-          (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
-       z y x eqeq2 ph bibi2d x 19.21ai 19.15d exalpha)
-
 export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
 
 # Some naive set theory
@@ -1260,15 +1525,6 @@ thm (snid () ()
 
 # Proofs in progress:
 
-# thm stmt (opth () ()
-#    (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
-# ?)
-
-
-# thm (iotacl () ()
-#   (-> (E! x (e. x S)) (e. (iota S) S))
-# ?)
-
 # Would it be cleaner to write (-> (-. (=_ S ({/})))) for the antecedent?
 # thm (mincl ((S x)) ()
 #   (-> (E. x (e. x S)) (e. (min S) S))
@@ -1305,8 +1561,6 @@ thm (opth1 () ()
   addeq12d
   A B df-op C D df-op 3eqtr4g
 )
-# number 2.0
-thm (19.8ai () (hyp ph) (E. x ph) hyp ph x 19.8a ax-mp )
 
 # number 2.5
 thm (nalexi () (hyp (-. (A. x (-. ph)))) (E. x ph)
@@ -1476,13 +1730,6 @@ thm (ancomd () (h (-> ph (/\ ps ch)))
   ps ch ancom 
 
  sylib
-)
-# number 23.0
-thm (19.9d ((ps x)) (h (-> ph (E. x ps)))
-  (-> ph ps)
-  h
-  x ps 19.9
-  sylib
 )
 # number 24.0
 thm (sqrtlem6 () ()
@@ -1756,9 +2003,7 @@ thm (opth () ()
 )
 # number 33.5
 thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
-  x ph df-ex biimpi 
-    (-. ph) x alnfi con1i
-  syl
+  x ph 19.9 biimpi
 )
 # number 34.0
 thm (iotacl ((S x)) ()
@@ -1781,37 +2026,6 @@ thm (iotacl ((S x)) ()
   syl
 )
  
-# number 35.0
-thm (alpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))  
-     (-> (A. x ph) (A. y ps))
- (A. x ph) y alnfi
-
-    x ph y a4sbc
-    y x ph z df-subst 
-  sylib
-
-  x (/\ (= x z) ph) (= z y) 19.41
-  biimpri   ancoms   (/\ (= x z) ph) (= z y) ancom x exbii     sylib  z 19.22i
- syl
-
-    (= z y) (= x z) ph anass
-      z y x ax-eqtr    z x eqcom  sylan2br  eqcomd
-    ph anim1i
-  sylbir
-  x 19.22i z 19.22i syl
-
-  z (E. x (/\ (= x y) ph)) 19.9    sylib
-  1 imp x  19.22i   syl  x ps 19.9   sylib
-  
-  y 19.20i   syl
-)
-# number 36.0
-thm (alpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps))) 
-  (<-> (A. x ph) (A. y ps))
-    1  biimpd alpha1
-    1  eqcoms biimprd alpha1  
-  impbii
-)
 # number 36.5
 thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
        (<-> (E. x (= (* A x) B)) (E. y (= (* A y) B)))
@@ -2822,20 +3036,6 @@ defthm  (df-head num (head A) ((A x) (A y')) ()
   (= (head A)  (iota ({|} x (E. y' (= (<,> x  y') A)))))
   z  y  A  x  y'  df-head-just)
  
-# number 82.0
-thm (19.41l ((ph x)) ()
-  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
-  ph  ps  ancom    x  exbii
-  x  ps  ph  19.41    bitri
-  (E. x ps)  ph  ancom    bitri
-)
-# number 82.0
-thm (19.41r ((ph x)) ()
-  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
-  ph  ps  ancom    x  exbii
-  x  ps  ph  19.41    bitri
-  (E. x ps)  ph  ancom    bitri
-)
 # number 83.0
 thm (headop () () (= (head (<,> A B)) A)
   (<,> A B)  x  z  df-head
@@ -2851,27 +3051,6 @@ thm (headop () () (= (head (<,> A B)) A)
   A  ax-iota    eqtr
 )
 
-# number 84.0
-thm (eualpha ((ph y) (ps x)) (h1 (-> (= x y) (<-> ph ps)))
-     (<-> (E! x ph) (E! y ps))
-    h1
-      x  y  z  eqeq1
-    bibi12d    alpha
-    z  exbii
-        x  ph  z  df-eu
-          y  ps  z  df-eu
-        bibi12i    biimpri
-    ax-mp
-)
-# number 85.0
-thm (eubid ((ph x))
-  (hyp (-> ph (<-> ps ch)))
-  (-> ph (<-> (E! x ps) (E! x ch)))
-  hyp   (= x z)  bibi1d    
-  x  19.21ai       19.15d     z  exbid    
-  x  ps  z  df-eu   syl5bb    
-  x  ch  z  df-eu      syl6bbr    
-)
 # number 86.0
 thm (df-fun-just ((S x y x' y')) ()
   (<-> (/\ (A. x  (E! y  (e. (<,> x  y ) S))) (A. x (-> (e. x S) (E. y (E. z (= x (<,> y z)))))))
@@ -3081,28 +3260,6 @@ y  A  S  ax-eleq1
   (= y A)  id    (min S)  leeq2d    (e. (min S) S) anbi2d
   imbi12d    
 ) 
-# number 94.0
-thm (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps)))
-    ph  ps  pm3.26 x  19.20i    x  ph  19.3    sylib
-    ph  ps  pm3.27  x  19.20i   jca       
-      ph  ps  ibar   x  19.21ai       19.15d         biimpa    
-    impbii
-)
-# number 95.0
-thm (alan2 ((ps x)) () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) ps))
-  ph  ps  ancom     x  albii    x  ps  ph  alan1  bitri  
-  ps  (A. x ph)  ancom    bitri
-)
-# number 97.0
-thm (exor2 ((ps x)) () (<-> (E. x (\/ ph ps)) (\/ (E. x ph) ps))    
-x  (\/ ph ps)  df-ex
-  ph  ps  ioran    x  albii  notbii 
-    x (-. ph)  (-. ps)  alan2  notbii    
-  bitri
-  (A. x (-. ph))  ps  pm4.53    bitri
-bitri
-x  ph  df-ex    ps  orbi1i  bitr4i
-)
 
 # number 102.0
 thm (minex.2.1 ((A w) (S w) (B w)) () 
@@ -4462,16 +4619,6 @@ S  v  w  A  maxex
   v  19.21ai  v  (A. w (-> (/\ (< (head w) A) (e. w S)) (<= (tail w) v)))  (A. w (-> (/\ (< (head w) A) (e. w S)) (<= w (<,> A v))))  19.22  syl
 mpd
 )
-# number 144.0
-thm (euex () () (-> (E! x ph) (E. x ph))
-  x  ph  z  df-eu  biimpi
-  
-    x  z  tyex  z  gen    jctil  z  (E. x (= x z))  (A. x (<-> ph (= x z)))  19.29  syl
-    x  (<-> ph (= x z))  (= x z)  19.29  ancoms  z  19.22i  syl 
-      ph  (= x z)  bi2    (= x z)  anim1i
-  (= x z)  ph  pm3.35  ancoms  syl  x  19.22i  z  19.22i  syl  
-  z  (E. x ph)  ex-nf  syl
-)
 # number 145.0
 #!thm (beta.5 () () ph
 #!
@@ -4740,13 +4887,6 @@ thm (recursive.2.1 ((A x)) () (E. x (= (beta x (0)) A))
 
 ax-mp
 )
-# number 153.5
-thm (eubii () (h (<-> ph ps)) (<-> (E! x ph) (E! x ps))
-  y eqid
-    h  (= y y)  a1i   x  eubid
-  ax-mp
-)
-
 # number 155.0
 
 # We may define a function by 3 cases: [0,A), {A}, (A, infty)
@@ -5651,33 +5791,10 @@ mpbiri
 
 # number 174.0
 thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
-  S  z  A  B  recursive
-    S  A  B  z  x  recursep-uniq
-    com12  ex  com13  com23
-    imp    x  19.21ai    ex
-    z  19.21ai
+  S x A B recursive
+    S A B x y recursep-uniq y 19.21ai x 19.21ai
   jca
-  ancomd
-   z  (-> (recursep S A B z) (A. x (-> (recursep S A B x) (= z x))))  (recursep S A B z)  19.29   syl 
-    (recursep S A B z)  (A. x (-> (recursep S A B x) (= z x)))  pm3.35    
-  (recursep S A B z)  (-> (recursep S A B z) (A. x (-> (recursep S A B x) (= z x))))  (A. x (-> (recursep S A B x) (= z x)))  pm5.3    mpbi
-  ancoms    
-  z  19.22i    
-  syl
- 
-    x  (recursep S A B z)  (-> (recursep S A B x) (= z x))  alan1    
-    z  exbii 
-  sylibr
-
-
-    z  x  S  A  B  recursepeq4 
-    biimpd    com12    (-> (recursep S A B x) (= z x))  anim1i
-    (= z x)  (recursep S A B x)  dfbi2    sylibr    bicomd    z  x  eqcom syl6bb
-    x  19.20i
-    z  19.22i
-  syl
-
-  x  (recursep S A B x)  z  df-eu   sylibr
+  x y S A B recursepeq4 eu4 sylibr
 )
 
 # number 175.0
