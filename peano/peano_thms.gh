@@ -5883,3 +5883,225 @@ x  19.22i    ax-mp
 x  (= (exp A (S B)) (* A (exp A B)))  ex-nf    ax-mp
 )
 
+
+
+thm (seqcom () () (<-> (=_ S T) (=_ T S))
+  S  T  x  df-seq
+    (e. x T)  (e. x S)  bicom
+    x albii
+  bitr4i
+  T  S  x  df-seq
+  bitr4i
+)
+thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
+    A  B  x  opeq2    y  eqeq2d    x  19.20i
+    x  (= y (<,> x A))  (= y (<,> x B))  19.18    syl
+    y  19.21ai    
+    y  (E. x (= y (<,> x A)))  (E. x (= y (<,> x B)))  abeq2    syl
+    x  B  y  df-lambda    syl6seqr
+    ({|} y (E. x (= y (<,> x A))))  (lambda x B)  seqcom   sylib
+    x  A  y  df-lambda    syl6seqr
+    (lambda x B)  (lambda x A)  seqcom    sylib
+)
+
+thm (expeq1 () () (-> (= A B) (= (exp A C) (exp B C)))
+  (= A B)  y  alnfi
+    A  B  y  muleq2
+    y  19.20i
+    y  (* y A)  (* y B)  lambdaeq2   syl
+    (lambda y (* y A))  (lambda y (* y B))  C  (1)  x  recursepeq1    syl
+    x  19.21ai
+    x  (recursep (lambda y (* y A)) C (1) x)  (recursep (lambda y (* y B)) C (1) x)  abeq2    syl
+    ({|} x (recursep (lambda y (* y A)) C (1) x))  ({|} x (recursep (lambda y (* y B)) C (1) x))  ax-iotaeq    syl
+    B  C  x  y  df-exp    syl6eqr
+    A  C  x  y  df-exp    syl5eq
+  syl
+)
+
+thm (expeq2 () () (-> (= A B) (= (exp C A) (exp C B)))
+  (= A B)  x  alnfi
+    A  B  (lambda y (* y C))  (1)  x  recursepeq2
+    x  19.20i
+    x  (recursep (lambda y (* y C)) A (1) x)  (recursep (lambda y (* y C)) B (1) x)  abeq2    syl
+    ({|} x (recursep (lambda y (* y C)) A (1) x))  ({|} x (recursep (lambda y (* y C)) B (1) x))  ax-iotaeq    syl
+    C  B  x  y  df-exp    syl6eqr
+    C  A  x  y  df-exp    syl5eq
+  syl
+)
+
+thm (expmul.1 () () (-> (= x D) (<->
+  (= (exp (* A B) x) (* (exp A x) (exp B x)))
+  (= (exp (* A B) D) (* (exp A D) (exp B D)))))
+  
+  x  D  (* A B)  expeq2
+    x  D  A  expeq2
+      x  D  B  expeq2
+    muleq12d
+  eqeq12d
+)
+
+thm (expmul () () (= (exp (* A B) C) (* (exp A C) (exp B C)))
+
+x  (0)  A  B  expmul.1
+x  y  A  B  expmul.1
+x  (S y)  A  B  expmul.1
+x  C  A  B  expmul.1
+
+# base case
+(* A B)  exp0
+  A  exp0
+    B  exp0
+  muleq12i         
+  (1)  mulid  eqtr
+eqtr4
+
+# inductive step
+(exp (* A B) y)  (* (exp A y) (exp B y))  (* A B)  muleq2
+(* A B)  y  expsuc  syl5eq
+  A  y  expsuc
+    B  y  expsuc
+  muleq12i  
+  (* A (exp A y))  B  (exp B y)  mulass   eqtr4
+    A  (exp A y)  B  mulass  (exp A y)  B  mulcom   (* (exp A y) B)  (* B (exp A y))  A  muleq2  ax-mp  eqtr
+    A  B  (exp A y)  mulass  eqtr4
+    (exp B y)  muleq1i
+  eqtr
+  (* A B)  (exp A y)  (exp B y)  mulass  eqtr
+  syl6eqr
+
+finds
+)  
+    
+
+thm (expadd.1 () () (-> (= x B) (<->
+  (= (exp A (+ x C)) (* (exp A x) (exp A C)))
+  (= (exp A (+ B C)) (* (exp A B) (exp A C)))))
+
+x  B  C  addeq1
+(+ x C)  (+ B C)  A  expeq2  syl
+  x  B  A  expeq2
+  (exp A C)  muleq1d
+eqeq12d
+)
+
+thm (expadd () () (= (exp A (+ B C)) (* (exp A B) (exp A C)))
+
+x  (0)  A  C  expadd.1
+x  y  A  C  expadd.1
+x  (S y)  A  C  expadd.1
+x  B  A  C  expadd.1
+
+# base case
+C  pa_ax3r
+(+ (0) C)  C  A  expeq2    ax-mp
+  A  exp0
+  (exp A C)  muleq1i
+  (1)  (exp A C)  mulcom     (exp A C)  mulid  eqtr  eqtr
+eqtr4
+
+# inductive step
+(exp A (+ y C))  (* (exp A y) (exp A C))  A  muleq2
+  y  C  pa_ax4r
+    (+ (S y) C)  (S (+ y C))  A  expeq2  ax-mp
+  A  (+ y C)  expsuc  eqtr
+syl5eq
+  A  y  expsuc    (exp A C)  muleq1i
+  A  (exp A y)  (exp A C)  mulass    eqtr
+syl6eqr
+
+finds
+)  
+
+thm (expexp.1 () () (-> (= x C) (<-> 
+ (= (exp (exp A B) x) (exp A (* B x)))
+ (= (exp (exp A B) C) (exp A (* B C)))))
+
+x  C  (exp A B)  expeq2
+  x  C  B  muleq2
+  (* B x)  (* B C)  A  expeq2    syl
+eqeq12d
+)
+
+thm (expexp () () (= (exp (exp A B) C) (exp A (* B C)))
+
+x  (0)    A  B  expexp.1
+x  y      A  B  expexp.1
+x  (S y)  A  B  expexp.1
+x  C      A  B  expexp.1
+
+# base case
+(exp A B)  exp0
+  B  pa_ax5    (* B (0))  (0)  A  expeq2    ax-mp
+  A  exp0    eqtr
+eqtr4
+
+# inductive step
+(exp (exp A B) y)  (exp A (* B y))  (exp A B)  muleq2
+  (exp A B)  y  expsuc
+    B  y  pa_ax6    (* B (S y))  (+ (* B y) B)  A  expeq2    ax-mp
+    A  (* B y)  B  expadd    eqtr
+    (exp A (* B y))  (exp A B)  mulcom   eqtr
+  eqeq12i
+sylibr
+
+finds
+)
+
+
+thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (= 
+  (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))))
+  (iota ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))))
+
+  x  y  A  eqeq1
+  ph  anbi2d
+    x  y  B  eqeq1
+    (-. ph)  anbi2d
+  orbi12d
+  abeq
+  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))  ax-iotaeq    ax-mp
+)
+
+defthm (df-ifn num (ifn ph A B) ((ph x) (A x) (B x)) ()
+  (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
+  y  ph  A  B  x  df-ifn-just)
+
+thm (ifn1 () () (-> ph (= (ifn ph A B) A))
+     ph  (= x A)  iba    
+     ph  (= x A)  ancom    syl6bbr
+       (-. ph)  (= x B)  pm3.26    con2i
+       (/\ (-. ph) (= x B))  (/\ ph (= x A))  biorf    syl
+         (/\ (-. ph) (= x B))  (/\ ph (= x A))  orcom      
+       syl6rbb       
+     bitr4d    
+     x  19.21ai
+       x  (= x A)  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  abeq2    
+     syl
+     ({|} x (= x A))  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ax-iotaeq    syl
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        A  x  df-sn   
+          ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp
+        syl6eqr
+      A  ax-iota    syl6eq
+)
+
+thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
+     (-. ph)  (= x B)  iba    
+     (-. ph)  (= x B)  ancom    syl6bbr
+       ph  (= x A)  pm3.26    con3i 
+       (/\ ph (= x A))  (/\ (-. ph) (= x B))  biorf    syl
+       bitr2d       
+       x  19.21ai
+         x  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  (= x B)  abeq2    
+       syl
+     ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} x (= x B))  ax-iotaeq    syl
+     eqcomd
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        B  x  df-sn   
+          ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp
+        syl6eqr
+      B  ax-iota    syl6eq
+)
