@@ -20,6 +20,7 @@ import logging
 import StringIO
 
 import verify
+import showthm
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -125,7 +126,7 @@ class SaveHandler(webapp.RequestHandler):
         url = '-'
         urlctx = verify.UrlCtx('','peano/peano_thms.gh', pipe)
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
-        ctx.run(urlctx, url, ctx,self.response.out)
+        ctx.run(urlctx, url, ctx, self.response.out)
         # Accept or reject
         if ctx.error_count > 0:
             self.response.out.write("\nCannot save; %d errors\n" % ctx.error_count)
@@ -250,7 +251,7 @@ class AllProofsPage(webapp.RequestHandler):
     def get(self, number):
         self.response.headers.add_header('content-type', 'text/plain')
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
-        
+
 class StaticPage(webapp.RequestHandler):
     def get(self, filename):
         try:
@@ -290,6 +291,7 @@ application = webapp.WSGIApplication(
                                       ('/proofs_upto/(.*)', AllProofsPage),
                                       ('/edit/(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
+                                      ('/showthm/(.*)', showthm.ShowThmPage),
                                       ('/save', SaveHandler)],
                                      debug=True)
 

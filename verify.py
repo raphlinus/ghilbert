@@ -1252,7 +1252,7 @@ class ExportCtx(InterfaceCtx):
                 (tkind, targkinds, tfreemap) = self.verify.terms[termname]
             except KeyError:
                 raise VerifyError('The term symbol ' + termname +
-                                  '%s does not exist in the verify context.')
+                                  ' does not exist in the verify context.')
 
             # Check that ther term from the verify context agrees with that
             # declared in the export context.
