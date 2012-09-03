@@ -141,6 +141,14 @@ GH.typesetclab = function(term) {
     return GH.combineslugs(slugs, 9999);
 };
 
+GH.typesetsingleton = function(term) {
+    var open_slug = GH.stringslug('{');
+    var A_slug = GH.typeset(term[1]);
+    var close_slug = GH.stringslug('}');
+    var slugs = [open_slug, A_slug, close_slug];
+    return GH.combineslugs(slugs, 9999);
+};
+
 GH.typesetop = function(term) {
     var open_slug = GH.stringslug('\u27e8');
     var x_slug = GH.typeset(term[1]);
@@ -220,6 +228,8 @@ GH.typeset = function(sexp) {
         return GH.typesetsubst(sexp, 40);
     } else if (sexp[0] == '{|}') {
 	return GH.typesetclab(sexp);
+    } else if (sexp[0] == '{}') {
+	return GH.typesetsingleton(sexp);
     } else if (sexp[0] == 'e.') {
 	return GH.typesetinfix(sexp, 'n', 1050, '\u2208');
     } else if (sexp[0] == 'C_') {
