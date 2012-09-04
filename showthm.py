@@ -1,5 +1,6 @@
 # license
 
+import logging
 import urllib
 
 import verify
@@ -8,50 +9,141 @@ import ghapp  # TODO: circular dep is not clean
 
 from google.appengine.ext import webapp
 
-def write_proof_line(out, line):
-    line = line.rstrip()
-    out.write('<div class="code">' + cgi.escape(line) + '</div>')
 
-def write_intermediate_line(out, line, indent):
-    line = line.rstrip()
-    indent_em = 1.0 * indent
-    out.write('<div style="margin-left: %gem"><span class="intermediate">' % indent_em + cgi.escape(line) + '</span></div>')
+class ProofFormatter:
+    def __init__(self, out):
+        self.out = out
+        self.out_buf = []
+        self.space_indent = 8  # in px units; em is not consistent across fonts
 
+    def header(self, thmname):
+        o = self.out
+        o.write('<html><head><title>Proof of %s</title>\n' % cgi.escape(thmname))
+        o.write('<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
+        o.write('</head>\n')
+        o.write('<body><h1>Proof of %s</h1>\n' % cgi.escape(thmname))
+    def write_proof_line(self, line):
+        line = line.rstrip()
+        sline = line.lstrip()
+        indent_px = (len(line) - len(sline)) * self.space_indent
+        self.out.write('<div style="margin-left: %gpx" class="code">' % indent_px + sline + '</div>\n')
+    def write_proof_tokens(self, tokens):
+        self.out_buf.append(cgi.escape(''.join(tokens)))
+    def proof_newline(self):
+        self.write_proof_line(''.join(self.out_buf))
+        self.out_buf = []
+    def write_proof_step(self, step, is_linkable):
+        if is_linkable:
+            url = '/showthm/' + urllib.quote(step)
+            self.out_buf.append('<a href="%s">%s</a>' % (url, cgi.escape(step)))
+        else:
+            self.out_buf.append(cgi.escape(step))
+    def write_intermediate_line(self, line, indent):
+        line = line.rstrip()
+        indent_px = self.space_indent * 2 * indent
+        self.out.write('<div style="margin-left: %gpx"><span class="intermediate">' % indent_px + cgi.escape(line) + '</span></div>\n')
+    def done(self):
+        line = ''.join(self.out_buf)
+        if len(line):
+            self.write_proof_line(line)
+        self.out.write(
+'''<script src="/js/verify.js" type="text/javascript"></script>
+<script src="/js/showthm.js" type="text/javascript"></script>
+<script src="/js/typeset.js" type="text/javascript"></script>
+<script type="text/javascript">
+GH.typeset_intermediates()
+</script>
+''')
+
+def display_404(response, thmname):
+    response.set_status(404)
+    response.out.write(
+'''<html><head><title>Not found</title></head>
+<body>
+<h1>Not found</h1>
+<p>The theorem %s was not found, sorry.</p>
+''' % cgi.escape(thmname))
+    
 class ShowThmScanner:
     def __init__(self, instream):
         self.instream = instream
         self.lineno = 0
-        self.toks = []
-        self.tokix = 0
-        self.notify_line = None
+        self.line = ''
+        self.ix = 0
+        self.listener = None
         self.linestash = []
+    def next_tok(self, ix):
+        len_line = len(self.line)
+        while ix < len_line:
+            c = self.line[ix]
+            if c.isspace():
+                ix += 1
+            elif c == '#':
+                return len_line
+            else:
+                return ix
+        return ix
     def get_tok(self):
-        while len(self.toks) == self.tokix:
-            line = self.instream.readline()
-            self.linestash.append(line)
-            if self.notify_line: self.notify_line.notify_line(line)
+        listener = self.listener
+        start_ix = self.ix
+        ix = self.next_tok(start_ix)
+        while len(self.line) == ix:
+            if listener:
+                if ix > start_ix:
+                    listener.notify_whitespace(self.line[start_ix:ix])
+                listener.notify_newline()
+            self.line = self.instream.readline()
             self.lineno += 1
-            if line == '':
+            if self.line == '':
                 return None
-            line = line.split('#')[0]
-            line = line.replace('(', ' ( ')
-            line = line.replace(')', ' ) ')
-            self.toks = line.split()
-            self.tokix = 0
-        result = self.toks[self.tokix]
-        self.tokix += 1
-        return result
+            self.linestash.append(self.line)
+            start_ix = 0
+            ix = self.next_tok(start_ix)
+        if listener and ix > start_ix:
+            listener.notify_whitespace(self.line[start_ix:ix])
+        c = self.line[ix]
+        end_ix = ix + 1
+        if not c in '()':
+            len_line = len(self.line)
+            while end_ix < len_line:
+                c = self.line[end_ix]
+                if c.isspace() or c in '()#':
+                    break
+                end_ix += 1
+        self.ix = end_ix
+        tok = self.line[ix:end_ix]
+        if listener: listener.notify_tok(tok)
+        return tok
+
+    def start_recording(self, listener):
+        self.listener = listener
+
     def clear_linestash(self):
         self.linestash = []
-    def start_recording(self, notify_line):
-        self.notify_line = notify_line
+
+    # Gets the linestash up to the current index, i.e. if you do this at
+    # the same time as start_recording, then the two will be contiguous.
+    def get_linestash(self):
+        if len(self.linestash):
+            self.linestash[-1] = self.linestash[-1][:self.ix]
+        return self.linestash
 
 class ShowThm:
-    def __init__(self, s, out):
+    def __init__(self, s, out, linkable_thms):
         self.s = s
         self.out = out
+        self.linkable_thms = linkable_thms
         self.proofctx = None
         self.tos_fresh = False
+        self.accum = []  # tokens of raw proof to accumulate
+        self.formatter = ProofFormatter(out)
+
+    def header(self, thmname):
+        self.formatter.header(thmname)
+    def write_linestash(self, linestash):
+        for i in range(len(linestash) - 1):
+            self.formatter.write_proof_line(linestash[i])
+        self.formatter.out_buf.append(linestash[-1])
 
     # assume thm name has already been consumed
     def run(self, verifyctx):
@@ -106,7 +198,7 @@ class ShowThm:
                 else:
                     sexpstack[-1].append(tok)
             if state == 4:
-                self.out.write('dv list: ' + verify.sexp_to_string(thestep) + '\n')
+                #self.out.write('dv list: ' + verify.sexp_to_string(thestep) + '\n')
                 label = None  # doesn't seem to be needed
                 fvmap = {}   # won't check these
                 varmap = {}
@@ -116,42 +208,55 @@ class ShowThm:
                 proofctx.varlist = varlist
                 self.proofctx = proofctx
             elif state == 6:
-                self.out.write('hyps: ' + verify.sexp_to_string(thestep) + '\n')
+                #self.out.write('hyps: ' + verify.sexp_to_string(thestep) + '\n')
                 hypmap = {}
                 for i in range(0, len(thestep), 2):
                     hypmap[thestep[i]] = thestep[i + 1]
                     pass
             elif state == 8 and concl is None:
-                self.out.write('concl: ' + verify.sexp_to_string(thestep) + '\n')
+                #self.out.write('concl: ' + verify.sexp_to_string(thestep) + '\n')
                 concl = thestep
             elif state == 8:
                 #self.out.write('step: ' + verify.sexp_to_string(thestep) + '\n')
                 verifyctx.check_proof_step(hypmap, thestep, proofctx)
                 if len(proofctx.mandstack) == 0:
+                    self.accum.pop()
+                    self.output_accum()
+                    is_linkable = thestep in self.linkable_thms
+                    self.formatter.write_proof_step(thestep, is_linkable)
                     self.tos_fresh = True
                 #self.out.write('proofctx stack len = %d\n' % len(proofctx.stack))
             elif state == 10:
-                self.out.write('end of proof\n')
+                self.output_accum()
+                self.formatter.done()
                 break
-
-    def notify_line(self, line):
+    def notify_whitespace(self, whitespace):
+        self.accum.append(whitespace)
+    def notify_tok(self, tok):
+        self.accum.append(tok)
+    def notify_newline(self):
+        self.output_accum()
+        self.formatter.proof_newline()
         if self.tos_fresh:
             tos_str = verify.sexp_to_string(self.proofctx.stack[-1])
-            write_intermediate_line(self.out, tos_str, len(self.proofctx.stack))
+            self.formatter.write_intermediate_line(tos_str, len(self.proofctx.stack))
             self.tos_fresh = False
-        write_proof_line(self.out, line)
+    def output_accum(self):
+        self.formatter.write_proof_tokens(self.accum)
+        self.accum = []
 
 class ShowThmRunner:
-    def __init__(self, thmname, thmout):
+    def __init__(self, thmname, response):
         self.thmname = thmname
-        self.thmout = thmout
+        self.response = response
+        self.linkable_thms = set()
     def run(self, urlctx, url, ctx, out):
         s = ShowThmScanner(urlctx.resolve(url))
         try:
             while 1:
                 cmd = verify.read_sexp(s)
                 if cmd is None:
-                    # if we get here, we didn't find the thm
+                    display_404(self.response, self.thmname)
                     return True
                 if type(cmd) != str:
                     raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
@@ -161,13 +266,14 @@ class ShowThmRunner:
                         raise SyntaxError('expected thm start')
                     tok = s.get_tok()
                     if tok == self.thmname:
-                        for line in s.linestash:
-                            write_proof_line(self.thmout, line)
-                        show_thm = ShowThm(s, self.thmout)
+                        show_thm = ShowThm(s, self.response.out, self.linkable_thms)
+                        show_thm.header(self.thmname)
+                        show_thm.write_linestash(s.get_linestash())
                         s.start_recording(show_thm)
                         show_thm.run(ctx)
                         return True
                     else:
+                        self.linkable_thms.add(tok)
                         arg = [tok]
                         while True:
                             sexp = verify.read_sexp(s)
@@ -191,13 +297,8 @@ class DevNull():
 
 class ShowThmPage(webapp.RequestHandler):
     def get(self, thmname):
-        runner = ShowThmRunner(thmname, self.response.out)
+        runner = ShowThmRunner(thmname, self.response)
         self.response.headers.add_header('content-type', 'text/html')
-        o = self.response.out
-        o.write('<html><head><title>Proof of %s</title>\n' % cgi.escape(thmname))
-        o.write('<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
-        o.write('</head>\n')
-        o.write('<body><h1>Proof of %s</h1>\n' % cgi.escape(thmname))
         pipe = ghapp.get_all_proofs()
         url = '-'
         urlctx = verify.UrlCtx('', 'peano/peano_thms.gh', pipe)
@@ -205,10 +306,4 @@ class ShowThmPage(webapp.RequestHandler):
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
         runner.run(urlctx, url, ctx, DevNull())
-        o.write('''<script src="/js/verify.js" type="text/javascript"></script>
-<script src="/js/showthm.js" type="text/javascript"></script>
-<script src="/js/typeset.js" type="text/javascript"></script>
-<script type="text/javascript">
-GH.typeset_intermediates()
-</script>
-''')
+
