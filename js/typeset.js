@@ -28,26 +28,26 @@ GH.stringslug = function(str) {
 GH.spaceslug = function(sp) {
     var em = sp * .06;
     if (em < .05) {
-	return GH.stringslug('\u200b');
+        return GH.stringslug('\u200b');
     } else if (em < .133) {
-	return GH.stringslug('\u200a');
+        return GH.stringslug('\u200a');
     } else if (em < .208) {
-	return GH.stringslug('\u2006');
+        return GH.stringslug('\u2006');
     } else if (em < .292) {
-	return GH.stringslug('\u2005');
+        return GH.stringslug('\u2005');
     } else if (em < .417) {
-	return GH.stringslug('\u2004');
+        return GH.stringslug('\u2004');
     } else if (em < .75) {
-	return GH.stringslug('\u2002');
+        return GH.stringslug('\u2002');
     } else {
-	return GH.stringslug('\u2003');
+        return GH.stringslug('\u2003');
     }
 };
 
 GH.combineslugs = function(slugs, prec, prsp) {
     var str = '';
     for (var i = 0; i < slugs.length; i++) {
-	str += slugs[i].str;
+        str += slugs[i].str;
     }
     return {str: str, prec: prec, prsp: prsp || 0};
 };
@@ -65,24 +65,24 @@ GH.typesetinfix = function(term, assoc, prec, op) {
     var lprec = left_slug.prec;
     if (assoc == 'l') { lprec += 1; }
     if (prec >= lprec) {
-	left_slug = GH.parenthesize(left_slug);
-	lprsp = 3;
+        left_slug = GH.parenthesize(left_slug);
+        lprsp = 3;
     } else if (prec + 1 == lprec) {
-	lprsp = left_slug.prsp;
+        lprsp = left_slug.prsp;
     } else {
-	lprsp = left_slug.prsp + 2;
+        lprsp = left_slug.prsp + 2;
     }
     var op_slug = GH.stringslug(op);
     var right_slug = GH.typeset(term[2]);
     var rprec = right_slug.prec;
     if (assoc == 'r') { rprec += 1; }
     if (prec >= rprec) {
-	right_slug = GH.parenthesize(right_slug);
-	rprsp = 3;
+        right_slug = GH.parenthesize(right_slug);
+        rprsp = 3;
     } else if (prec + 1 == rprec) {
-	rprsp = right_slug.prsp;
+        rprsp = right_slug.prsp;
     } else {
-	rprsp = right_slug.prsp + 2;
+        rprsp = right_slug.prsp + 2;
     }
     var prsp = GH.max(lprsp, GH.max(op_slug.prsp, rprsp));
     var sp_slug = GH.spaceslug(GH.max(0, prsp));
@@ -94,7 +94,7 @@ GH.typesetunary = function(term, prec, op) {
     var op_slug = GH.stringslug(op);
     var right_slug = GH.typeset(term[1]);
     if (prec > right_slug.prec) {
-	right_slug = GH.parenthesize(right_slug);
+        right_slug = GH.parenthesize(right_slug);
     }
     return GH.combineslugs([op_slug, right_slug], prec, 1);
 };
@@ -103,7 +103,7 @@ GH.typesetpostfix = function(term, prec, op) {
     var op_slug = GH.stringslug(op);
     var right_slug = GH.typeset(term[1]);
     if (prec > right_slug.prec) {
-	right_slug = GH.parenthesize(right_slug);
+        right_slug = GH.parenthesize(right_slug);
     }
     return GH.combineslugs([right_slug, op_slug], prec, 1);
 };
@@ -126,9 +126,9 @@ GH.typesetsubst = function(term, prec) {
     var ph_slug = GH.typeset(term[3]);
     var sp_slug = GH.spaceslug(1 + ph_slug.prsp);
     var slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, 
-	     sp_slug, ph_slug];
+             sp_slug, ph_slug];
     return GH.combineslugs(slugs, prec);
-				    
+                                    
 };
 
 GH.typesetclab = function(term) {
@@ -162,93 +162,97 @@ GH.typesetop = function(term) {
 
 GH.typeset = function(sexp) {
     if (GH.typeOf(sexp) == 'string') {
-	var trans = { et: '\u03b7',
-	    th: '\u03b8',
-	    ta: '\u03c4',
-	    ph: '\u03c6',
-	    ch: '\u03c7',
-	    ps: '\u03c8'};
-	if (sexp in trans) {
-	    return GH.stringslug(trans[sexp]);
-	} else {
-	    return GH.stringslug(sexp);
-	}
+        var trans = { et: '\u03b7',
+            th: '\u03b8',
+            ta: '\u03c4',
+            ph: '\u03c6',
+            ch: '\u03c7',
+            ps: '\u03c8'};
+        if (sexp in trans) {
+            return GH.stringslug(trans[sexp]);
+        } else {
+            return GH.stringslug(sexp);
+        }
     } else if (sexp[0] == '0') {
-	return GH.stringslug('0');
+        return GH.stringslug('0');
     } else if (sexp[0] == '1') {
-	return GH.stringslug('1');
+        return GH.stringslug('1');
     } else if (sexp[0] == '+') {
-	return GH.typesetinfix(sexp, 'l', 2200, '+');
+        return GH.typesetinfix(sexp, 'l', 2200, '+');
     } else if (sexp[0] == '*') {
-	return GH.typesetinfix(sexp, 'l', 2300, '\u2219');
+        return GH.typesetinfix(sexp, 'l', 2300, '\u2219');
     } else if (sexp[0] == 'S') {
-	return GH.typesetpostfix(sexp, 9999, '\u2032');
+        return GH.typesetpostfix(sexp, 9999, '\u2032');
     } else if (sexp[0] == '=') {
-	return GH.typesetinfix(sexp, 'n', 1050, '=');
+        return GH.typesetinfix(sexp, 'n', 1050, '=');
     } else if (sexp[0] == '=_') {
-	// Note: at present, this isn't distinguished visually in any way
+        // Note: at present, this isn't distinguished visually in any way
         // from '='. We should probably do something, like subtle color.
-	return GH.typesetinfix(sexp, 'n', 1050, '=');
+        return GH.typesetinfix(sexp, 'n', 1050, '=');
     } else if (sexp[0] == '<=') {
-	return GH.typesetinfix(sexp, 'n', 1050, '\u2264');
+        return GH.typesetinfix(sexp, 'n', 1050, '\u2264');
     } else if (sexp[0] == '<') {
-	return GH.typesetinfix(sexp, 'n', 1050, '<');
+        return GH.typesetinfix(sexp, 'n', 1050, '<');
+    } else if (sexp[0] == '|') {
+        return GH.typesetinfix(sexp, 'n', 1050, '|');
     } else if (sexp[0] == '->') {
-	return GH.typesetinfix(sexp, 'r', 250, '\u2192');
+        return GH.typesetinfix(sexp, 'r', 250, '\u2192');
     } else if (sexp[0] == '<->') {
-	return GH.typesetinfix(sexp, 'n', 100, '\u2194');
+        return GH.typesetinfix(sexp, 'n', 100, '\u2194');
     } else if (sexp[0] == '-.') {
-	if (GH.typeOf(sexp[1]) != 'string') {
-	    if (sexp[1][0] == '=') {
-		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
-	    } else if (sexp[1][0] == '=_') {
-		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
-	    } else if (sexp[1][0] == 'e.') {
-		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2209');
-	    } else if (sexp[1][0] == 'C_') {
-		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2288');
-	    } else if (sexp[1][0] == 'C.') {
-		return GH.typesetinfix(sexp[1], 'n', 1050, '\u2284');
-	    }
-	}
-	return GH.typesetunary(sexp, 1000, '\u00ac');  // TODO: 2000?
+        if (GH.typeOf(sexp[1]) != 'string') {
+            if (sexp[1][0] == '=') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
+            } else if (sexp[1][0] == '=_') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '\u2260');
+            } else if (sexp[1][0] == 'e.') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '\u2209');
+            } else if (sexp[1][0] == 'C_') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '\u2288');
+            } else if (sexp[1][0] == 'C.') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '\u2284');
+            }
+        }
+        return GH.typesetunary(sexp, 1000, '\u00ac');  // TODO: 2000?
     } else if (sexp[0] == '/\\') {
-	return GH.typesetinfix(sexp, 'r', 400, '\u2227');
+        return GH.typesetinfix(sexp, 'r', 400, '\u2227');
     } else if (sexp[0] == '\\/') {
-	return GH.typesetinfix(sexp, 'r', 300, '\u2228');
+        return GH.typesetinfix(sexp, 'r', 300, '\u2228');
     } else if (sexp[0] == 'A.') {
-	return GH.typesetbinder(sexp, 40, '\u2200');
+        return GH.typesetbinder(sexp, 40, '\u2200');
     } else if (sexp[0] == 'E.') {
-	return GH.typesetbinder(sexp, 40, '\u2203');
+        return GH.typesetbinder(sexp, 40, '\u2203');
     } else if (sexp[0] == 'E!') {
-	return GH.typesetbinder(sexp, 40, '\u2203!');
+        return GH.typesetbinder(sexp, 40, '\u2203!');
     } else if (sexp[0] == 'E*') {
-	return GH.typesetbinder(sexp, 40, '\u2203*');
+        return GH.typesetbinder(sexp, 40, '\u2203*');
+    } else if (sexp[0] == 'lambda') {
+        return GH.typesetbinder(sexp, 40, '\u03bb');
     } else if (sexp[0] == '[/]') {
         return GH.typesetsubst(sexp, 40);
     } else if (sexp[0] == '{|}') {
-	return GH.typesetclab(sexp);
+        return GH.typesetclab(sexp);
     } else if (sexp[0] == '{}') {
-	return GH.typesetsingleton(sexp);
+        return GH.typesetsingleton(sexp);
     } else if (sexp[0] == 'e.') {
-	return GH.typesetinfix(sexp, 'n', 1050, '\u2208');
+        return GH.typesetinfix(sexp, 'n', 1050, '\u2208');
     } else if (sexp[0] == 'C_') {
-	return GH.typesetinfix(sexp, 'n', 1050, '\u2286');
+        return GH.typesetinfix(sexp, 'n', 1050, '\u2286');
     } else if (sexp[0] == 'C.') {
-	return GH.typesetinfix(sexp, 'n', 1050, '\u2282');
+        return GH.typesetinfix(sexp, 'n', 1050, '\u2282');
     } else if (sexp[0] == 'i^i') {
-	return GH.typesetinfix(sexp, 'n', 3500, '\u2229');
+        return GH.typesetinfix(sexp, 'n', 3500, '\u2229');
     } else if (sexp[0] == 'u.') {
-	return GH.typesetinfix(sexp, 'n', 3500, '\u222a');
+        return GH.typesetinfix(sexp, 'n', 3500, '\u222a');
     } else if (sexp[0] == '<,>') {
-	return GH.typesetop(sexp);
+        return GH.typesetop(sexp);
     } else {
-	var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
-	for (var i = 1; i < sexp.length; i++) {
-	    slugs.push(GH.stringslug(' '));
-	    slugs.push(GH.typeset(sexp[i]));
-	}
-	slugs.push(GH.stringslug(')'));
-	return GH.combineslugs(slugs, 9999);
+        var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
+        for (var i = 1; i < sexp.length; i++) {
+            slugs.push(GH.stringslug(' '));
+            slugs.push(GH.typeset(sexp[i]));
+        }
+        slugs.push(GH.stringslug(')'));
+        return GH.combineslugs(slugs, 9999);
     } 
 };
