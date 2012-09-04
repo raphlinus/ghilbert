@@ -128,6 +128,14 @@ class ShowThmScanner:
             self.linestash[-1] = self.linestash[-1][:self.ix]
         return self.linestash
 
+# Remove saved drafts, they're not actually part of the description
+def trim_description(lines):
+    i = len(lines)
+    while i > 0:
+        if lines[i - 1].startswith('#!'): break
+        i -= 1
+    return lines[i:]
+
 class ShowThm:
     def __init__(self, s, out, linkable_thms):
         self.s = s
@@ -141,9 +149,10 @@ class ShowThm:
     def header(self, thmname):
         self.formatter.header(thmname)
     def write_linestash(self, linestash):
-        for i in range(len(linestash) - 1):
-            self.formatter.write_proof_line(linestash[i])
-        self.formatter.out_buf.append(linestash[-1])
+        description = trim_description(linestash)
+        for i in range(len(description) - 1):
+            self.formatter.write_proof_line(description[i])
+        self.formatter.out_buf.append(description[-1])
 
     # assume thm name has already been consumed
     def run(self, verifyctx):
@@ -306,4 +315,63 @@ class ShowThmPage(webapp.RequestHandler):
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
         runner.run(urlctx, url, ctx, DevNull())
+
+# This is a separate page but is in this module because so much of the
+# functionality is similar.
+class ListThmsPage(webapp.RequestHandler):
+    def get(self, arg):
+        o = self.response.out
+        o.write(
+'''<html><head><title>List ot theorems</title></head>
+<body>
+<h1>List of theorems</h1>
+<p>A list of all theorems (currently just the peano module):</p>
+''')
+        pipe = ghapp.get_all_proofs()
+        runner = ListThmsRunner()
+        url = '-'
+        urlctx = verify.UrlCtx('', 'peano/peano_thms.gh', pipe)
+        # We use the standard runner for imports and exports, but our own
+        # special one for the topmost context.
+        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        runner.run(urlctx, url, ctx, DevNull())
+        for thm, lines in runner.thmlist:
+            lines = trim_description(lines)
+            description = []
+            for i in range(len(lines)):
+                line = lines[i].strip()
+                if line.startswith('#'):
+                    description.append(line[1:].lstrip())
+                elif len(line) != 0:
+                    break
+            descstr = ' '.join(description)
+            if len(descstr) > 80:
+                descstr = descstr[:78] + '...'
+            url = '/showthm/' + urllib.quote(thm)
+            o.write('<div><a href="%s">%s</a> %s</div>\n' % \
+                (url, cgi.escape(thm), cgi.escape(descstr)))
+
+class ListThmsRunner:
+    def __init__(self):
+        self.thmlist = []
+    def run(self, urlctx, url, ctx, out):
+        s = ShowThmScanner(urlctx.resolve(url))
+        try:
+            while 1:
+                cmd = verify.read_sexp(s)
+                if cmd is None:
+                    return True
+                if type(cmd) != str:
+                    raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
+                arg = verify.read_sexp(s)
+                if cmd == 'thm' and len(arg):
+                    self.thmlist.append((arg[0], s.get_linestash()))
+                ctx.do_cmd(cmd, arg, out)
+                s.clear_linestash()
+        except verify.VerifyError, x:
+            out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
+        except SyntaxError, x:
+            out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
+        ctx.countError()
+        return False
 

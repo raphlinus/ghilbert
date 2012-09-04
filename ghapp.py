@@ -134,7 +134,6 @@ class SaveHandler(webapp.RequestHandler):
             proof.put()
             self.response.out.write("\nsave ok\n")
 
-
 class EditPage(webapp.RequestHandler):
     def get(self, name):
         if name == '':
@@ -277,6 +276,8 @@ proofs.</p>
 is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 
 <p><a href="/recent">Recent saves</a></p>
+
+<p><a href="/listthms">List of all theorems</a></p>
 """)
         user = users.get_current_user()
         if user:
@@ -292,6 +293,7 @@ application = webapp.WSGIApplication(
                                       ('/edit/(.*)', EditPage),
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/showthm/(.*)', showthm.ShowThmPage),
+                                      ('/listthms(/.*)?', showthm.ListThmsPage),
                                       ('/save', SaveHandler)],
                                      debug=True)
 
