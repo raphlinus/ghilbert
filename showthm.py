@@ -236,7 +236,7 @@ class ShowThm:
                     self.tos_fresh = True
                 #self.out.write('proofctx stack len = %d\n' % len(proofctx.stack))
             elif state == 10:
-                self.output_accum()
+                self.notify_newline()
                 self.formatter.done()
                 break
     def notify_whitespace(self, whitespace):
