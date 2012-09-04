@@ -4696,7 +4696,6 @@ mpd
 # beta(z, x) = S(x).
 # This allows us to encode finite sequences in a quantifiable way,
 # which is necessary to deal with recursive functions.
-
 thm (beta ((S x z) (A x z)) ()
   (-> (fun S)
       (E. z (A. x (-> (< x A) (e. (<,> x (beta z x)) S))))) 
@@ -4810,6 +4809,7 @@ z  (fun S)  (A. x (-> (< x A) (e. (<,> x (beta z x)) S)))  eximp1  syl
 
 
 # number 148.0
+# Second equality identity for beta
 thm (betaeq2 () () (-> (= A B) (= (beta C A) (beta C B)))
   A  B  x  opeq1  suceqd  (tail C)  muleq1d  suceqd  
   (S (* (S (<,> A x)) (tail C)))  (S (* (S (<,> B x)) (tail C)))  (head C)  divideseq1  syl  
@@ -4820,6 +4820,7 @@ thm (betaeq2 () () (-> (= A B) (= (beta C A) (beta C B)))
   C  B  x  df-beta  syl6eqr
 )
 # number 150.0
+# There is exactly one number equal to a given number.
 thm (tyeu ((A x)) () (E! x (= x A))
   y  A  tyex
     y  A  x  eqeq2  bicomd  x  19.21ai  y  19.22i  ax-mp
@@ -4827,6 +4828,7 @@ thm (tyeu ((A x)) () (E! x (= x A))
 )
 
 # number 151.0
+# Commutativity of existential operators
 thm (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph)))
   y  ph  df-ex  x  exbii
   x  (-. (A. y (-. ph)))  df-ex  bitri
@@ -4889,7 +4891,8 @@ ax-mp
 )
 # number 155.0
 
-# We may define a function by 3 cases: [0,A), {A}, (A, infty)
+# Definition of the lambda operator, which creates a functional set from an
+# expression in one variable.
 thm (df-lambda-just ((A x x')) () 
   (=_ ({|} x (E. y (= x (<,> y A)))) ({|} x' (E. y (= x' (<,> y A)))))
   x  x'  (<,> y A) eqeq1  y  exbid
@@ -4916,6 +4919,7 @@ defthm  (df-lambda set (lambda y A) ((A x)) ()
 #!  eqcoms vtocle
 #!)
 # number 156.0
+# Asserts that lambda constructs are actually functions.
 thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
 #(A. y (E! v (e. (<,> y v) (lambda x A))))
 v  B  tyeu  z eqid 
@@ -4959,7 +4963,10 @@ orbi12d
 bitrd
 elab
 )
+
 # number 157.0
+# Given two functions S, T and a discriminator ph, we can assemble a piecewise
+# function which mimics S when ph is true and T otherwise.
 thm (piecewisefun ((S x') (T x')) () (-> (/\ (fun S) (fun T)) (fun ({|} x' (\/ (/\ ([/] (head x') x' ph)  (e. x' S))
                                                                          (/\ (-. ([/] (head x') x' ph)) (e. x' T))))))
 
@@ -5006,6 +5013,8 @@ mpd
 
 )
 # number 157.5
+# Definition of "apply" to apply a function (reperesented by a set S) to an
+# input.
 thm (df-apply-just ((A y) (S y) (A z) (S z)) () 
   (= (iota ({|} z (e. (<,> A z) S)))
      (iota ({|} y (e. (<,> A y) S))))
@@ -5029,6 +5038,7 @@ thm (betaeq1 () () (-> (= A B) (= (beta A C) (beta B C)))
   A  C  x  df-beta    syl5eq
 )
 # number 157.6
+# Definition of recursion, using a predicate.
 # (recursep S A B C) will mean that S^A(B) = C
 thm (df-recursep-just ( (A y) (S y) (A x) (S x) (A z) (C z) (B z) (S z) (A w) (C w) (B w) (S w)) () 
   (<-> (E. z (/\ (= (beta z (0)) B) (/\ (= (beta z A) C)
@@ -5057,6 +5067,7 @@ defthm  (df-recursep wff (recursep S A B C) ((A y) (S y) (A z) (S z) (B z) (C z)
   w B A C x S z y df-recursep-just)
 
 # number 157.7
+# Fourth equality identity for recursep.
 thm (recursepeq4 () () (-> (= A B) (<-> (recursep S C D A) (recursep S C D B)))
   A  B  (beta x C)  eqeq2  (A. y (-> (< y C) (e. (<,> (beta x y) (beta x (S y))) S)))  anbi1d  (= (beta x (0)) D)  anbi2d  x  exbid
     S  C  D  A  x  y  df-recursep
@@ -5064,7 +5075,9 @@ thm (recursepeq4 () () (-> (= A B) (<-> (recursep S C D A) (recursep S C D B)))
     S  C  D  B  x  y  df-recursep
   syl6bbr
 )
+
 # number 158.0
+# Equality identity for fun
 thm (funeq () () (-> (=_ S T) (<-> (fun S) (fun T)))
   S  T  (<,> x y)  eleq2  y eubid  
   x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
@@ -5074,7 +5087,9 @@ thm (funeq () () (-> (=_ S T) (<-> (fun S) (fun T)))
   S  x  y  z  df-fun  syl5bb
   T  x  y  z  df-fun  syl6bbr
 )
+
 # number 159.0
+# Asserts that membership in functional set of a lambda works the way you'd expect.
 thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
      (<-> (e. (<,> x A) (lambda x B)) (= A B))
   x  B  z  df-lambda  (<,> x A) eleq2i  
@@ -5092,7 +5107,10 @@ thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
     bitri
   B  A  eqcom  bitri
 )
+
 # number 159.4
+# Another iota utility theorem.  Asserts that if exactly one x has the property
+# ph, then that x can be found using iota.
 thm (iotacl2 () ()
    (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
 x  ph  y  df-eu   biimpi  
@@ -5126,7 +5144,9 @@ x  ph  y  df-eu   biimpi
  y  19.22i  syl
  y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
 )
+
 # number 159.5
+# apply actually works (assuming S is a function).
 thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
 #      y  x  (e. (<,> A x) S)  ax-elab  
   S  w  x  z  df-fun  biimpi     pm3.26d    
@@ -5449,19 +5469,7 @@ thm (recursive.3 ((A x) (S x))
   ex
 )
 
-# number 162.0
-#!
-#!thm (import () () (-> (-> ph (-> ps ch)) (-> (/\ ph ps) ch))
-#!zi ps pm3.27
-#! ( /\   zi   ps ) ps ch imim1 ax-mp 
-#! ( ->   ps   ch ) ( ->   ( /\   D   ps )   ch ) (/\ ph ps) imim2 ax-mp 
-#! ( /\   ph   ps ) ch contract ( ->   (/\ ph ps)   ( ->   ( /\   D   ps )   ch ) ) ( ->   ( /\   ph   ps )   ch ) ( ->   ( /\   ph   ps )   ( ->   ps   ch ) ) _imim2 ax-mp 
-#! ax-mp 
-#! ph ps /\l ( /\   ph   ps ) ph ( ->   ps   ch ) _imim1 ax-mp 
-#! ( ->   ph   ( ->   ps   ch ) ) ( ->   ( /\   ph   ps )   ( ->   ps   ch ) ) ( ->   ( /\   ph   ps )   ch ) _imim1 ax-mp 
-#! ax-mp 
-#!)
-#!
+
 # number 163.0
 thm (recursive.1 ((B x)) ()
   (-> (= w B) 
@@ -5525,7 +5533,9 @@ impbii
 
   S  (0)  A  x  z  y  df-recursep    x  exbii     (fun S)  imbi2i   mpbir    
 )
+
 # number 165.0
+# Existence of the result of a recursion operation.
 thm (recursive ((A w) (S w) (B w)) () (-> (fun S) (E. w (recursep S A B w)))
 
    x  (0)    S  w  B  recursive.1
@@ -5561,7 +5571,9 @@ bicomi
 B  A  eqcom  bitri
 (fun S)  a1i
 )
+
 # number 167.0
+# Recursing "one more time" works as expected
 thm (recursepsuc ((A x) (B x) (C x) (S x)) () 
  # (-> (fun S) 
      (-> (recursep S (S A) B C) (E. x (/\ (recursep S A B x) (e. (<,> x C) S))))
@@ -5659,6 +5671,7 @@ thm (recursep-uniq.2 ((S z z') (A z z')) ()
 
 
 # number 169.0
+# Second equality identitiy for recursep.
 thm (recursepeq2 () () (-> (= A B) (<-> (recursep S A C D) (recursep S B C D)))
 
     A  B  x  betaeq2    D  eqeq1d
@@ -5687,7 +5700,9 @@ thm (recursep-uniq.3 ((B z z')) () (-> (= x B) (<->
   z'  19.21ai  19.15d    z  19.21ai    19.15d
   (fun S)  imbi2d
 )
+
 # number 171.0
+# Uniqueness of the result of a recursion operation.
 thm (recursep-uniq () () (-> (fun S) (-> (/\ (recursep S A B C)  (recursep S A B D)) (= C D)))
 
   x  (0)  S  z  z'  B  recursep-uniq.3
@@ -5720,6 +5735,7 @@ syl
 )   
 
 # number 171.3
+# First equality identitiy for lambda.
 thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B))) 
   (=_ (lambda x A) (lambda y B))
  x eqid
@@ -5736,8 +5752,10 @@ thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))
     y  B  z  df-lambda
   syl6seqr
  ax-mp
-) 
+)
+
 # number 171.4
+# First equality identity of recursep.
 thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
     S  T  (<,> (beta x y) (beta x (S y)))  eleq2
     (< y A)  imbi2d
@@ -5754,6 +5772,8 @@ thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
 
 
 # number 172.0
+# Definition of exponentiation in terms of recursed multiplication.
+# NOTE(abliss): this entails 0^0 = 1.  Maybe a bad choice we'll pay for later?
 thm (df-exp-just ((A w x y z) (B x z)) () (=
   (iota ({|} x (recursep (lambda y (* y A)) B (1) x)))
   (iota ({|} z (recursep (lambda w (* w A)) B (1) z))))
@@ -5767,12 +5787,12 @@ thm (df-exp-just ((A w x y z) (B x z)) () (=
  ({|} x (recursep (lambda y (* y A)) B (1) x))  ({|} z (recursep (lambda w (* w A)) B (1) z))  ax-iotaeq    ax-mp
 )
 
-# NOTE(abliss): this entails 0^0 = 1.  Maybe a bad choice we'll pay for later?
 defthm (df-exp num (exp A B) ((A x y) (B x)) () 
   (= (exp A B) (iota ({|} x (recursep (lambda y (* y A)) B (1) x))))
   x'  y'  A  B  x  y  df-exp-just)
 
 # number 173.0
+# Recursing zero times doesn't go anywhere.
 thm (recursep0 () () (recursep S (0) A A)
   
   A  eqid
@@ -5790,6 +5810,8 @@ mpbiri
 ) 
 
 # number 174.0
+# There exists a unique answer to recursing the function S exactly B times
+# starting at A.
 thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
   S x A B recursive
     S A B x y recursep-uniq y 19.21ai x 19.21ai
@@ -5798,6 +5820,14 @@ thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
 )
 
 # number 175.0
+# Exponent zero.
+#
+# Together with expsuc, this provides a "working definition" of exponentiation
+# similar to what pa_ax3/pa_ax4 provide for addition and what pa_ax5/pa_ax6
+# provide for multiplication.  If you want an interface that includes
+# exponentiation, you should be able to import only these two (along with the
+# equality identities expeq1 and expeq2); no knowledge of the recursep / beta
+# framework should be required.
 thm (exp0 () () (= (exp A (0)) (1))
 
     x  (1)  tyeu
@@ -5832,6 +5862,7 @@ thm (exp0 () () (= (exp A (0)) (1))
 )
 
 # number 176.0
+# Successor of exponent.  See exp0 for more notes.
 thm (expsuc () () (= (exp A (S B)) (* A (exp A B)))
   
 y  z  A  muleq1    funlambda
@@ -5883,8 +5914,7 @@ x  19.22i    ax-mp
 x  (= (exp A (S B)) (* A (exp A B)))  ex-nf    ax-mp
 )
 
-
-
+# Commutativity of set equality
 thm (seqcom () () (<-> (=_ S T) (=_ T S))
   S  T  x  df-seq
     (e. x T)  (e. x S)  bicom
@@ -5893,6 +5923,8 @@ thm (seqcom () () (<-> (=_ S T) (=_ T S))
   T  S  x  df-seq
   bitr4i
 )
+
+# Second equality identity for lambda
 thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
     A  B  x  opeq2    y  eqeq2d    x  19.20i
     x  (= y (<,> x A))  (= y (<,> x B))  19.18    syl
@@ -5904,6 +5936,7 @@ thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
     (lambda x B)  (lambda x A)  seqcom    sylib
 )
 
+# First equality identity for exponentiation
 thm (expeq1 () () (-> (= A B) (= (exp A C) (exp B C)))
   (= A B)  y  alnfi
     A  B  y  muleq2
@@ -5918,6 +5951,7 @@ thm (expeq1 () () (-> (= A B) (= (exp A C) (exp B C)))
   syl
 )
 
+# Second equality identity for exponentiation
 thm (expeq2 () () (-> (= A B) (= (exp C A) (exp C B)))
   (= A B)  x  alnfi
     A  B  (lambda y (* y C))  (1)  x  recursepeq2
@@ -5940,6 +5974,7 @@ thm (expmul.1 () () (-> (= x D) (<->
   eqeq12d
 )
 
+# Multiplying of exponents
 thm (expmul () () (= (exp (* A B) C) (* (exp A C) (exp B C)))
 
 x  (0)  A  B  expmul.1
@@ -5972,7 +6007,6 @@ eqtr4
 finds
 )  
     
-
 thm (expadd.1 () () (-> (= x B) (<->
   (= (exp A (+ x C)) (* (exp A x) (exp A C)))
   (= (exp A (+ B C)) (* (exp A B) (exp A C)))))
@@ -5984,6 +6018,7 @@ x  B  C  addeq1
 eqeq12d
 )
 
+# Adding of exponents
 thm (expadd () () (= (exp A (+ B C)) (* (exp A B) (exp A C)))
 
 x  (0)  A  C  expadd.1
@@ -6022,6 +6057,7 @@ x  C  (exp A B)  expeq2
 eqeq12d
 )
 
+# Exponentiation over exponentiation yields multiplication.
 thm (expexp () () (= (exp (exp A B) C) (exp A (* B C)))
 
 x  (0)    A  B  expexp.1
@@ -6048,6 +6084,7 @@ finds
 )
 
 
+# Ternary expressions for naturals: (ph ? A : B)
 thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (= 
   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))))
   (iota ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))))
@@ -6065,6 +6102,7 @@ defthm (df-ifn num (ifn ph A B) ((ph x) (A x) (B x)) ()
   (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
   y  ph  A  B  x  df-ifn-just)
 
+# First branch of ternary expression.
 thm (ifn1 () () (-> ph (= (ifn ph A B) A))
      ph  (= x A)  iba    
      ph  (= x A)  ancom    syl6bbr
@@ -6086,6 +6124,7 @@ thm (ifn1 () () (-> ph (= (ifn ph A B) A))
       A  ax-iota    syl6eq
 )
 
+# Second branch of ternary expression.
 thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
      (-. ph)  (= x B)  iba    
      (-. ph)  (= x B)  ancom    syl6bbr

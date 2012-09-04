@@ -10,7 +10,7 @@ GH.Table = function(tableElement) {
         collection.forEach(function(rowObj) {table.removeChild(rowMap[rowObj.name]);});
         collection.sort(function(a, b) {
                             return (a.cells[index] < b.cells[index])
-                                ?  -1 : 1;
+                                ?  1 : -1;
                         });
         collection.forEach(function(rowObj) {table.appendChild(rowMap[rowObj.name]);});
     }
