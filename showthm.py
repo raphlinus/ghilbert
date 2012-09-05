@@ -7,12 +7,14 @@ import verify
 import cgi
 import ghapp  # TODO: circular dep is not clean
 
+import django.utils.simplejson as json
+
 from google.appengine.ext import webapp
 
-
 class ProofFormatter:
-    def __init__(self, out):
+    def __init__(self, out, style):
         self.out = out
+        self.style = style
         self.out_buf = []
         self.space_indent = 8  # in px units; em is not consistent across fonts
 
@@ -33,11 +35,12 @@ class ProofFormatter:
         self.write_proof_line(''.join(self.out_buf))
         self.out_buf = []
     def write_proof_step(self, step, is_linkable):
+        step_html = '<span class="step">' + cgi.escape(step) + '</span>'
         if is_linkable:
             url = '/showthm/' + urllib.quote(step)
-            self.out_buf.append('<a href="%s">%s</a>' % (url, cgi.escape(step)))
+            self.out_buf.append('<a href="%s">%s</a>' % (url, step_html))
         else:
-            self.out_buf.append(cgi.escape(step))
+            self.out_buf.append(step_html)
     def write_intermediate_line(self, line, indent):
         line = line.rstrip()
         indent_px = self.space_indent * 2 * indent
@@ -54,6 +57,14 @@ class ProofFormatter:
 GH.typeset_intermediates()
 </script>
 ''')
+    def write_trace(self, trace):
+        o = self.out
+        o.write('<script type="text/javascript">\n')
+        o.write('var trace = ' + json.dumps(trace) + '\n')
+        o.write('</script>\n')
+        o.write('<script src="/js/showthmstep.js" type="text/javascript"></script>\n')
+        o.write('<div id="stack">Stack</div>\n')
+
 
 def display_404(response, thmname):
     response.set_status(404)
@@ -137,14 +148,15 @@ def trim_description(lines):
     return lines[i:]
 
 class ShowThm:
-    def __init__(self, s, out, linkable_thms):
+    def __init__(self, s, out, linkable_thms, style):
         self.s = s
         self.out = out
         self.linkable_thms = linkable_thms
+        self.style = style
         self.proofctx = None
         self.tos_fresh = False
         self.accum = []  # tokens of raw proof to accumulate
-        self.formatter = ProofFormatter(out)
+        self.formatter = ProofFormatter(out, style)
 
     def header(self, thmname):
         self.formatter.header(thmname)
@@ -156,6 +168,7 @@ class ShowThm:
 
     # assume thm name has already been consumed
     def run(self, verifyctx):
+        trace = []
         state = 3  # to match the state numbers in direct.js
         sexpstack = []
         concl = None
@@ -227,8 +240,13 @@ class ShowThm:
                 concl = thestep
             elif state == 8:
                 #self.out.write('step: ' + verify.sexp_to_string(thestep) + '\n')
+                stack_len_before = len(proofctx.stack)
                 verifyctx.check_proof_step(hypmap, thestep, proofctx)
                 if len(proofctx.mandstack) == 0:
+                    if self.style == 'step':
+                        n_popped = stack_len_before - len(proofctx.stack) + 1
+                        step_string = verify.sexp_to_string(proofctx.stack[-1])
+                        trace.append([n_popped, step_string])
                     self.accum.pop()
                     self.output_accum()
                     is_linkable = thestep in self.linkable_thms
@@ -238,6 +256,8 @@ class ShowThm:
             elif state == 10:
                 self.notify_newline()
                 self.formatter.done()
+                if self.style == 'step':
+                    self.formatter.write_trace(trace)
                 break
     def notify_whitespace(self, whitespace):
         self.accum.append(whitespace)
@@ -248,17 +268,19 @@ class ShowThm:
         self.formatter.proof_newline()
         if self.tos_fresh:
             tos_str = verify.sexp_to_string(self.proofctx.stack[-1])
-            self.formatter.write_intermediate_line(tos_str, len(self.proofctx.stack))
+            if self.style == 'interleaved':
+                self.formatter.write_intermediate_line(tos_str, len(self.proofctx.stack))
             self.tos_fresh = False
     def output_accum(self):
         self.formatter.write_proof_tokens(self.accum)
         self.accum = []
 
 class ShowThmRunner:
-    def __init__(self, thmname, response):
+    def __init__(self, thmname, response, style):
         self.thmname = thmname
         self.response = response
         self.linkable_thms = set()
+        self.style = style
     def run(self, urlctx, url, ctx, out):
         s = ShowThmScanner(urlctx.resolve(url))
         try:
@@ -275,7 +297,7 @@ class ShowThmRunner:
                         raise SyntaxError('expected thm start')
                     tok = s.get_tok()
                     if tok == self.thmname:
-                        show_thm = ShowThm(s, self.response.out, self.linkable_thms)
+                        show_thm = ShowThm(s, self.response.out, self.linkable_thms, self.style)
                         show_thm.header(self.thmname)
                         show_thm.write_linestash(s.get_linestash())
                         s.start_recording(show_thm)
@@ -306,7 +328,8 @@ class DevNull():
 
 class ShowThmPage(webapp.RequestHandler):
     def get(self, thmname):
-        runner = ShowThmRunner(thmname, self.response)
+        style = self.request.get('style', 'interleaved') 
+        runner = ShowThmRunner(thmname, self.response, style)
         self.response.headers.add_header('content-type', 'text/html')
         pipe = ghapp.get_all_proofs()
         url = '-'
