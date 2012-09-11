@@ -11,6 +11,6 @@ GH.typeset_intermediates = function() {
         var e = elements[i];
         var sexp_str = e.firstChild.nodeValue;
         var scanner = new GH.Scanner([sexp_str]);
-        e.firstChild.nodeValue = GH.sexptounicode(GH.read_sexp(scanner));
+        e.innerHTML = GH.sexptohtml(GH.read_sexp(scanner));
     }
 }

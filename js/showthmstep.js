@@ -1,9 +1,3 @@
-GH.escapeHtml = function(s) {
-    return s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-}
 GH.gotostep = function(num) {
     var elements = document.getElementsByClassName('step');
     for (var i = 0; i < elements.length; i++) {
@@ -24,8 +18,8 @@ GH.gotostep = function(num) {
     var html = [];
     for (var i = 0; i < stack.length; i++) {
         var scanner = new GH.Scanner([stack[i]]);
-        var typeset = GH.sexptounicode(GH.read_sexp(scanner));
-        html.push('<div>' + GH.escapeHtml(typeset) + '</div>\n');
+        var typeset = GH.sexptohtml(GH.read_sexp(scanner));
+        html.push('<div>' + typeset + '</div>\n');
     }
     document.getElementById('stack').innerHTML = html.join('');
         

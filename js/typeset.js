@@ -15,10 +15,23 @@
 // Laying out mathematics into typeset form.
 
 
-// Conversion to a simple unicode string. This is useful both as a simple
-// display method and also for cut-and-paste interoperation.
-GH.sexptounicode = function(sexp) {
+// Conversion to a simple HTML unicode string. This is useful both as a
+// simple display method and also for cut-and-paste interoperation.
+GH.sexptohtml = function(sexp) {
     return GH.typeset(sexp).str;
+};
+
+GH.sexptounicode = GH.sexptohtml; // TODO: get rid of
+
+GH.escapeHtml = function(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+};
+
+GH.min = function(x, y) {
+    return x < y ? x : y;
 };
 
 GH.stringslug = function(str) {
@@ -160,6 +173,18 @@ GH.typesetop = function(term) {
     return GH.combineslugs(slugs, 9999);
 };
 
+GH.typesetexp = function(term, prec) {
+    var x_slug = GH.typeset(term[1]);
+    if (prec >= x_slug.prec) {
+        x_slug = GH.parenthesize(x_slug);
+    }
+    var sup_slug = GH.stringslug('<sup>');
+    var y_slug = GH.typeset(term[2]);
+    var endsup_slug = GH.stringslug('</sup>');
+    var slugs = [x_slug, sup_slug, y_slug, endsup_slug];
+    return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
+};
+
 GH.typeset = function(sexp) {
     if (GH.typeOf(sexp) == 'string') {
         var trans = { et: '\u03b7',
@@ -171,7 +196,7 @@ GH.typeset = function(sexp) {
         if (sexp in trans) {
             return GH.stringslug(trans[sexp]);
         } else {
-            return GH.stringslug(sexp);
+            return GH.stringslug(GH.escapeHtml(sexp));
         }
     } else if (sexp[0] == '0') {
         return GH.stringslug('0');
@@ -192,7 +217,7 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == '<=') {
         return GH.typesetinfix(sexp, 'n', 1050, '\u2264');
     } else if (sexp[0] == '<') {
-        return GH.typesetinfix(sexp, 'n', 1050, '<');
+        return GH.typesetinfix(sexp, 'n', 1050, '&lt;');
     } else if (sexp[0] == '|') {
         return GH.typesetinfix(sexp, 'n', 1050, '|');
     } else if (sexp[0] == '->') {
@@ -246,11 +271,13 @@ GH.typeset = function(sexp) {
         return GH.typesetinfix(sexp, 'n', 3500, '\u222a');
     } else if (sexp[0] == '<,>') {
         return GH.typesetop(sexp);
+    } else if (sexp[0] == 'exp') {
+        return GH.typesetexp(sexp, 2500);
     } else {
         var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
         for (var i = 1; i < sexp.length; i++) {
             slugs.push(GH.stringslug(' '));
-            slugs.push(GH.typeset(sexp[i]));
+            slugs.push(GH.typeset(GH.escapeHtml(sexp[i])));
         }
         slugs.push(GH.stringslug(')'));
         return GH.combineslugs(slugs, 9999);
