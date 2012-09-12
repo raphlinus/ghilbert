@@ -3,6 +3,8 @@ import os
 import struct
 import zlib
 
+obj_types = [None, 'commit', 'tree', 'blob', 'tag']
+
 def get_delta_hdr_size(data, offset):
     byte = ord(data[offset])
     offset += 1
@@ -17,21 +19,22 @@ def get_delta_hdr_size(data, offset):
 
 def patch_delta(ref, delta):
     src_size, offset = get_delta_hdr_size(delta, 0)
-    if src_size != len(ref): raise ValueError('size mismatch')
+    data_off = ref.find('\x00') + 1
+    if src_size != len(ref) - data_off: raise ValueError('size mismatch')
     result_size, offset = get_delta_hdr_size(delta, offset)
     size_remaining = result_size
-    result = []
+    result = [obj_type(ref) + ' ' + str(result_size) + '\x00']
     while offset < len(delta):
         oo = offset
         cmd = ord(delta[offset])
         offset += 1
         if cmd & 0x80:
             # copy from reference
-            copy_off = 0
+            copy_off = data_off
             copy_size = 0
             for i in range(4):
                 if cmd & (1 << i):
-                    copy_off |= ord(delta[offset]) << (i << 3)
+                    copy_off += ord(delta[offset]) << (i << 3)
                     offset += 1
             for i in range(3):
                 if cmd & (0x10 << i):
@@ -55,19 +58,21 @@ def patch_delta(ref, delta):
     return ''.join(result)
 
 class FsStore:
-    def __init__(self, basedir = '.git'):
+    def __init__(self, basedir = '_git'):
         self.basedir = basedir
         self.packs = None
-    def getblob(self, sha):
+    def getobj(self, sha):
         path = os.path.join(self.basedir, 'objects', sha[:2], sha[2:])
         if os.path.exists(path):
             f = file(path)
             blob = zlib.decompress(f.read())
         else:
-            return self.get_blob_from_packs(sha)
+            blob = self.get_blob_from_packs(sha)
         if hashlib.sha1(blob).hexdigest() != sha:
-            print 'shas don\'t match'
+            raise ValueError('shas don\'t match')
         return blob
+    def getinforefs(self):
+        return '3e31b270c8d188dc1cc655cecfcebea433a74ba0\trefs/heads/master\n'
     def getpacks(self):
         if self.packs is None:
             self.packs = self.readpacks()
@@ -82,7 +87,7 @@ class FsStore:
                 packs.append((idx, packfn))
         return packs
     def get_blob_from_packs(self, sha):
-        print 'fetching', sha, 'from pack'
+        #print 'fetching', sha, 'from pack'
         firstbyte = int(sha[:2], 16)
         binaryhash = from_hex(sha)
         for idx, fn in self.getpacks():
@@ -104,8 +109,8 @@ class FsStore:
                 n_objs, = struct.unpack('>I', idx[1028:1032])
                 off = 1032 + 24 * n_objs + 4 * found_ix
                 pack_off, = struct.unpack('>I', idx[off:off + 4])
-                print 'found, ix =', ix, 'pack_off =', pack_off
-                return self.get_pack_blob(fn, pack_off)
+                #print 'found, ix =', ix, 'pack_off =', pack_off
+                return self.get_pack_obj(fn, pack_off)
     def read_zlib(self, f, size):
         result = []
         d = zlib.decompressobj()
@@ -115,12 +120,13 @@ class FsStore:
             result.append(block)
             sizeremaining -= len(block)
         return ''.join(result)
-    def get_pack_blob(self, packfn, offset):
+    def get_pack_obj(self, packfn, offset):
         f = file(packfn)
         f.seek(offset)
         t, size = self.get_type_and_size(f)
         if t < 5:
-            return self.read_zlib(f, size)
+            hdr = obj_types[t] + ' ' + str(size) + '\x00'
+            return hdr + self.read_zlib(f, size)
         elif t == 6:  # OBJ_OFS_DELTA
             byte = ord(f.read(1))
             off = byte & 0x7f
@@ -129,13 +135,13 @@ class FsStore:
                 off = ((off + 1) << 7) + (byte & 0x7f)
             ref_offset = offset - off
             delta = self.read_zlib(f, size)
-            ref = self.get_pack_blob(packfn, ref_offset)
+            ref = self.get_pack_obj(packfn, ref_offset)
             return patch_delta(ref, delta)
         elif t == 7:  # OBJ_REF_DELTA
             ref_sha = to_hex(f.read(20))
-            print ref_sha
+            #print ref_sha
             delta = self.read_zlib(f, size)
-            return patch_delta(self.getblob(ref_sha), delta)
+            return patch_delta(self.getobj(ref_sha), delta)
         else:
             print 'can\'t handle type =', t
 
@@ -150,8 +156,8 @@ class FsStore:
             shift += 7
         return (t, size)
 
-def blob_type(blob):
-    return blob[:4]
+def obj_type(obj):
+    return obj[:obj.find(' ')]
 
 def to_hex(binary_data):
     return ''.join(['%02x' % ord(x) for x in binary_data])
@@ -161,7 +167,7 @@ def from_hex(hex_data):
     return struct.pack(n * 'B', *[int(hex_data[i*2:i*2+2], 16) for i in range(n)])
 
 def parse_tree(blob):
-    if blob_type(blob) != 'tree': raise ValueError('wrong blob type')
+    if obj_type(blob) != 'tree': raise ValueError('wrong blob type')
     ix = blob.find('\x00') + 1
     if ix == 0: raise ValueError('missing nul')
     result = []
@@ -176,16 +182,51 @@ def parse_tree(blob):
 
 rootref = '03ae5eecc1935f3ab3af4c519a177044ce136181'
 s = FsStore()
-b = s.getblob(rootref)
+b = s.getobj(rootref)
 
 def ls(store, sha, prefix = ''):
-    blob = store.getblob(sha)
+    blob = store.getobj(sha)
     if blob is None:
         return
-    t = blob_type(blob)
+    t = obj_type(blob)
     if t == 'tree':
         for mode, name, child_sha in parse_tree(blob):
-            print prefix + '/' + name
+            print mode, prefix + '/' + name
             ls(store, child_sha, prefix + '/' + name)
 
-ls(s, rootref)
+#ls(s, rootref)
+#import sys
+#sys.stdout.write(s.getobj('7e85906bee679d31506d1b9402aef71eb562a7bd'))
+
+class MemStore():
+    def __init__(self):
+        self.store = {}
+    def getobj(self, sha):
+        return self.store[sha]
+    def getinforefs(self):
+        return self.inforefs
+    def putobj(self, sha, value):
+        self.store[sha] = value
+    def put(self, t, data):
+        raw = t + ' ' + str(len(data)) + '\x00' + data
+        sha = hashlib.sha1(raw).hexdigest()
+        self.putobj(sha, raw)
+        return sha
+
+def pack_tree(triples):
+    result = []
+    for mode, name, sha in triples:
+        result.append(mode + ' ' + name + '\x00' + from_hex(sha))
+    return ''.join(result)
+
+m = MemStore()
+f0 = m.put('blob', 'hello, world\n')
+d0 = m.put('tree', pack_tree([('100644', 'hello', f0)]))
+c0 = m.put('commit', 'tree ' + d0 + '''
+author Raph <raph> 1346820538 -0400
+committer Raph <raph> 1346820538 -0400
+
+Test of "hello world"
+''')
+m.inforefs = c0 + '\trefs/heads/master\n'
+

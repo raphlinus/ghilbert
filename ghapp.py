@@ -21,6 +21,7 @@ import StringIO
 
 import verify
 import showthm
+import babygit.web
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -249,7 +250,7 @@ class PrintEnvironmentHandler(webapp.RequestHandler):
 
 class AllProofsPage(webapp.RequestHandler):
     def get(self, number):
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
 
 class StaticPage(webapp.RequestHandler):
@@ -259,7 +260,7 @@ class StaticPage(webapp.RequestHandler):
         except IOError, x:
             self.error(404)
             return
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain'
         for line in lines:
             self.response.out.write(line)
 
@@ -295,6 +296,7 @@ application = webapp.WSGIApplication(
                                       ('/env(/.*)?', PrintEnvironmentHandler),
                                       ('/showthm/(.*)', showthm.ShowThmPage),
                                       ('/listthms(/.*)?', showthm.ListThmsPage),
+                                      ('/git/(.*)', babygit.web.handler),
                                       ('/save', SaveHandler)],
                                      debug=True)
 
