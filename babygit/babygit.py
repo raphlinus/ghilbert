@@ -212,6 +212,8 @@ class MemStore():
         sha = hashlib.sha1(raw).hexdigest()
         self.putobj(sha, raw)
         return sha
+    def setinforefs(self, inforefs):
+        self.inforefs = inforefs
 
 def pack_tree(triples):
     result = []
@@ -219,14 +221,14 @@ def pack_tree(triples):
         result.append(mode + ' ' + name + '\x00' + from_hex(sha))
     return ''.join(result)
 
-m = MemStore()
-f0 = m.put('blob', 'hello, world\n')
-d0 = m.put('tree', pack_tree([('100644', 'hello', f0)]))
-c0 = m.put('commit', 'tree ' + d0 + '''
+def put_test_repo(store):
+    f0 = store.put('blob', 'hello, world\n')
+    d0 = store.put('tree', pack_tree([('100644', 'hello', f0)]))
+    c0 = store.put('commit', 'tree ' + d0 + '''
 author Raph <raph> 1346820538 -0400
 committer Raph <raph> 1346820538 -0400
 
 Test of "hello world"
 ''')
-m.inforefs = c0 + '\trefs/heads/master\n'
+    store.setinforefs({'refs/heads/master': c0})
 
