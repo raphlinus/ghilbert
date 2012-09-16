@@ -105,9 +105,9 @@ GH.Panel = function(ctx) {
                     sym[2].map(GH.sexp_to_string).join(" ") + " "
                     + GH.sexp_to_string(sym[3]),
                 onclick: addStep(symName, sym),
-                cells: [symName,
-                        sym[2].map(GH.sexptounicode).join("<br/>"),
-                        GH.sexptounicode(sym[3])]});
+                cells: [GH.escapeHtml(symName),
+                        sym[2].map(GH.sexptohtml).join("<br/>"),
+                        GH.sexptohtml(sym[3])]});
     }
     document.getElementById('inferences').onclick = function() {
         self.table.setContents(inferenceCollection);
@@ -135,7 +135,7 @@ GH.Panel = function(ctx) {
                                 + GH.sexp_to_string(result),
                             onclick: addStep(symName, sym),
                             cells: [symName, sym[2].length,
-                                    GH.sexptounicode(result)]});
+                                    GH.sexptohtml(result)]});
                 } catch (e) {
                     // cannot unify.
                     return;

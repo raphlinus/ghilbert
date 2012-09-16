@@ -7,8 +7,7 @@ GH.Direct = function(text, stack) {
     var self = this;
     this.text = text;
     this.text.clearImtrans();  // todo: hack
-    this.stack = new GH.CanvasEdit(stack);
-    this.stack.cursorvisible = false;
+    this.stack = stack;
     this.text.addListener(function() { self.update(); });
 };
 
@@ -61,7 +60,7 @@ GH.Direct.replace_thmname = function (newname) {
 GH.Direct.prototype.update = function() {
     var auLink = document.getElementById("autounify");
     auLink.style.display='none';
-    this.stack.text = [];
+    var stext = [];
     var thmctx = new GH.DirectThm(this.vg);
     this.thmctx = thmctx;
     var status = null;
@@ -112,36 +111,49 @@ GH.Direct.prototype.update = function() {
 	    }
 	}
     }
-    var stext = this.stack.text;
 
     //stext.push('state: ' + thmctx.state);
     //stext.push('ss: ' + GH.sexp_to_string(thmctx.sexpstack));
+    sp = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     if (thmctx.hyps != null) {
         for (i = 0; i < thmctx.hyps.length; i += 2) {
-	    stext.push(GH.sexptounicode(thmctx.hyps[i+1]) + 
-					'      # ' + thmctx.hyps[i]);
+	    stext.push(GH.sexptohtml(thmctx.hyps[i+1]) + 
+                                    sp + '# ' + GH.escapeHtml(thmctx.hyps[i]));
 	}
     }
     if (thmctx.concl != null) {
-        stext.push(GH.sexptounicode(thmctx.concl) + '      # WTS');
+        stext.push(GH.sexptohtml(thmctx.concl) + sp + '# WTS');
     }
     if (thmctx.proofctx) {
 	var pstack = thmctx.proofctx.stack;
 	for (i = 0; i < pstack.length; i++) {
-	    stext.push(GH.sexptounicode(pstack[i]));
+	    stext.push(GH.sexptohtml(pstack[i]));
 	}
 	pstack = thmctx.proofctx.mandstack;
 	if (pstack.length > 0) {
 	    for (i = 0; i < pstack.length; i++) {
-	        stext.push(GH.sexptounicode(pstack[i][1]) + '      # W' + i);
+	        stext.push(GH.sexptohtml(pstack[i][1]) + sp + '# W' + i);
 	    }
 	}
     }
-    if (status) {
-	this.stack.text.push(loc + ' ' + status);
+    // keep height from bouncing around in common case
+    while (stext.length < 10) {
+        stext.push('&nbsp;')
     }
-    this.stack.dirty();
+    if (status) {
+	stext.push(loc + ' ' + status);
+    }
+    GH.updatemultiline(stext, this.stack);
 };
+
+// Update an element so each HTML string is a separate child div
+GH.updatemultiline = function(strings, element) {
+    var html = [];
+    for (var i = 0; i < strings.length; i++) {
+        html.push('<div>', strings[i], '</div>\n');
+    }
+    element.innerHTML = html.join('');
+}
 
 GH.DirectThm = function(vg) {
     this.vg = vg;

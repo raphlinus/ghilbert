@@ -193,7 +193,7 @@ class EditPage(webapp.RequestHandler):
   <span id="saving"></span>
 <br/>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
-  <canvas id="stack" width="800" height="240" tabindex="0" style="border:1px solid black"></canvas><br/>
+  <div id="stack">...</div>
 </div>
 <div width="400" height="800" style="display:block;float:left">
   <button id="inferences">Inference</button>
@@ -204,11 +204,12 @@ class EditPage(webapp.RequestHandler):
   <table id="panel" border="1" style="border:1px solid;">
   </table>
 </div>
-<div id="output" style="clear:left;">(output goes here)</div>
+<div id="output" style="clear:left;"></div>
 <script type="text/javascript">
 
 name = %s;
 GH.Direct.replace_thmname(name);
+GH.updatemultiline([], document.getElementById('stack'));
 
 url = '/peano/peano_thms.gh';
 uc = new GH.XhrUrlCtx('/', url);

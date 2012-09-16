@@ -21,8 +21,6 @@ GH.sexptohtml = function(sexp) {
     return GH.typeset(sexp).str;
 };
 
-GH.sexptounicode = GH.sexptohtml; // TODO: get rid of
-
 GH.escapeHtml = function(s) {
     return s
       .replace(/&/g, '&amp;')
@@ -274,10 +272,10 @@ GH.typeset = function(sexp) {
     } else if (sexp[0] == 'exp') {
         return GH.typesetexp(sexp, 2500);
     } else {
-        var slugs = [GH.stringslug('('), GH.stringslug(sexp[0])];
+        var slugs = [GH.stringslug('('), GH.stringslug(GH.escapeHtml(sexp[0]))];
         for (var i = 1; i < sexp.length; i++) {
             slugs.push(GH.stringslug(' '));
-            slugs.push(GH.typeset(GH.escapeHtml(sexp[i])));
+            slugs.push(GH.typeset(sexp[i]));
         }
         slugs.push(GH.stringslug(')'));
         return GH.combineslugs(slugs, 9999);
