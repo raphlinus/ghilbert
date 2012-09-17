@@ -1,11 +1,14 @@
 import hashlib
 import logging
+import zlib
 
 from google.appengine.api import files
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import blobstore_handlers
+
+import store
 
 class Obj(db.Model):
     # key is the sha hash
@@ -15,8 +18,8 @@ class Ref(db.Model):
     # key is the refname (eg 'refs/heads/master')
     sha = db.StringProperty()
 
-class AEStore:
-    def getobj(self, sha):
+class AEStore(store.Store):
+    def getlooseobj(self, sha):
         obj = Obj.get_by_key_name(sha)
         if not obj:
             return None
@@ -33,19 +36,12 @@ class AEStore:
             return
         fn = files.blobstore.create(mime_type='application/octet-stream')
         f = files.open(fn, 'a')
-        f.write(value)
+        f.write(zlib.compress(value))
         f.close()
         files.finalize(fn)
         blobinfo = blobstore.get(files.blobstore.get_blob_key(fn))
         obj = Obj(key_name=sha, blob = blobinfo)
         obj.put()
-
-    # Wondering if there should be an abstract Store class this lives in
-    def put(self, t, data):
-        raw = t + ' ' + str(len(data)) + '\x00' + data
-        sha = hashlib.sha1(raw).hexdigest()
-        self.putobj(sha, raw)
-        return sha
 
     def getinforefs(self):
         q = Ref.all()

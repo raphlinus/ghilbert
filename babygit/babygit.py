@@ -3,7 +3,7 @@ import os
 import struct
 import zlib
 
-obj_types = [None, 'commit', 'tree', 'blob', 'tag']
+import store
 
 def get_delta_hdr_size(data, offset):
     byte = ord(data[offset])
@@ -57,22 +57,18 @@ def patch_delta(ref, delta):
     if size_remaining: raise ValueError('didn\'t fill output buffer')
     return ''.join(result)
 
-class FsStore:
+class FsStore(store.Store):
     def __init__(self, basedir = '_git'):
         self.basedir = basedir
         self.packs = None
-    def getobj(self, sha):
+    def getlooseobj(self, sha):
         path = os.path.join(self.basedir, 'objects', sha[:2], sha[2:])
         if os.path.exists(path):
             f = file(path)
-            blob = zlib.decompress(f.read())
-        else:
-            blob = self.get_blob_from_packs(sha)
-        if hashlib.sha1(blob).hexdigest() != sha:
-            raise ValueError('shas don\'t match')
-        return blob
+            return f.read()
     def getinforefs(self):
-        return '3e31b270c8d188dc1cc655cecfcebea433a74ba0\trefs/heads/master\n'
+        return {'refs/heads/master':
+            '3e31b270c8d188dc1cc655cecfcebea433a74ba0'}
     def getpacks(self):
         if self.packs is None:
             self.packs = self.readpacks()
@@ -86,7 +82,7 @@ class FsStore:
                 packfn = os.path.join(packpath, fn[:-4] + '.pack')
                 packs.append((idx, packfn))
         return packs
-    def get_blob_from_packs(self, sha):
+    def get_obj_from_pack(self, sha):
         #print 'fetching', sha, 'from pack'
         firstbyte = int(sha[:2], 16)
         binaryhash = from_hex(sha)
@@ -125,7 +121,7 @@ class FsStore:
         f.seek(offset)
         t, size = self.get_type_and_size(f)
         if t < 5:
-            hdr = obj_types[t] + ' ' + str(size) + '\x00'
+            hdr = store.obj_types[t] + ' ' + str(size) + '\x00'
             return hdr + self.read_zlib(f, size)
         elif t == 6:  # OBJ_OFS_DELTA
             byte = ord(f.read(1))
@@ -166,6 +162,7 @@ def from_hex(hex_data):
     n = len(hex_data) >> 1
     return struct.pack(n * 'B', *[int(hex_data[i*2:i*2+2], 16) for i in range(n)])
 
+# todo: delete (it's in repo)
 def parse_tree(blob):
     if obj_type(blob) != 'tree': raise ValueError('wrong blob type')
     ix = blob.find('\x00') + 1
@@ -180,38 +177,22 @@ def parse_tree(blob):
         ix = nul_ix + 21
     return result
 
-rootref = '03ae5eecc1935f3ab3af4c519a177044ce136181'
-s = FsStore()
-b = s.getobj(rootref)
-
-def ls(store, sha, prefix = ''):
-    blob = store.getobj(sha)
-    if blob is None:
-        return
-    t = obj_type(blob)
-    if t == 'tree':
-        for mode, name, child_sha in parse_tree(blob):
-            print mode, prefix + '/' + name
-            ls(store, child_sha, prefix + '/' + name)
 
 #ls(s, rootref)
 #import sys
 #sys.stdout.write(s.getobj('7e85906bee679d31506d1b9402aef71eb562a7bd'))
 
-class MemStore():
+class MemStore(store.Store):
     def __init__(self):
         self.store = {}
     def getobj(self, sha):
         return self.store[sha]
+    def getlooseobj(self, sha):
+        return zlib.compress(self.store[sha])
     def getinforefs(self):
         return self.inforefs
     def putobj(self, sha, value):
         self.store[sha] = value
-    def put(self, t, data):
-        raw = t + ' ' + str(len(data)) + '\x00' + data
-        sha = hashlib.sha1(raw).hexdigest()
-        self.putobj(sha, raw)
-        return sha
     def setinforefs(self, inforefs):
         self.inforefs = inforefs
 
