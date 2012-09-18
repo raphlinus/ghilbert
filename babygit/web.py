@@ -7,9 +7,9 @@ import repo
 
 from google.appengine.ext import webapp
 
-#s = appengine.AEStore()
-s = babygit.FsStore()
-#babygit.put_test_repo(s)
+s = appengine.AEStore()
+#s = babygit.FsStore()
+babygit.put_test_repo(s)
 
 class handler(webapp.RequestHandler):
     def __init__(self):

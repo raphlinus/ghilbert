@@ -13,6 +13,9 @@ obj_types = [None, 'commit', 'tree', 'blob', 'tag']
 class Store:
     # This is the usual public api. An actual store can override this.
     def getobj(self, sha, verify = False):
+        return self.getobjimpl(sha, verify)
+
+    def getobjimpl(self, sha, verify):
         compressed = self.getlooseobj(sha)
         if compressed:
             raw = zlib.decompress(compressed)

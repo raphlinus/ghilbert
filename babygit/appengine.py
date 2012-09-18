@@ -3,6 +3,7 @@ import logging
 import zlib
 
 from google.appengine.api import files
+from google.appengine.api import memcache
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -14,11 +15,23 @@ class Obj(db.Model):
     # key is the sha hash
     blob = blobstore.BlobReferenceProperty(indexed=False)
 
+class Pack(db.Model):
+    idx = db.BlobProperty()
+    blob = blobstore.BlobReferenceProperty(indexed=False)
+
 class Ref(db.Model):
     # key is the refname (eg 'refs/heads/master')
     sha = db.StringProperty()
 
 class AEStore(store.Store):
+    def getobj(self, sha, verify = False):
+        obj = memcache.get(sha, namespace='obj')
+        if obj is not None:
+            return obj
+        result = self.getobjimpl(sha, verify)
+        if result and len(result) < 1048576:
+            memcache.add(sha, result, namespace='obj')
+
     def getlooseobj(self, sha):
         obj = Obj.get_by_key_name(sha)
         if not obj:
@@ -27,7 +40,6 @@ class AEStore(store.Store):
         blob_reader = blobstore.BlobReader(obj.blob, buffer_size = buffer_size)
         result = blob_reader.read()
         blob_reader.close()
-        # Should we verify sha here? Could cost cpu...
         return result
 
     def putobj(self, sha, value):
@@ -42,6 +54,8 @@ class AEStore(store.Store):
         blobinfo = blobstore.get(files.blobstore.get_blob_key(fn))
         obj = Obj(key_name=sha, blob = blobinfo)
         obj.put()
+        if len(value) < 1048576:
+            memcache.add(sha, value, namespace='obj')
 
     def getinforefs(self):
         q = Ref.all()
