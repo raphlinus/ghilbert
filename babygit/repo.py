@@ -8,9 +8,13 @@ import babygit
 class Repo:
     def __init__(self, store):
         self.store = store
-    def getroot(self):  # todo: handle more heads
+    def gethead(self, head = 'refs/heads/master'):
         inforefs = self.store.getinforefs()
-        obj = self.store.getobj(inforefs['refs/heads/master'])
+        return inforefs[head]  # todo: handle abbreviations, do search path
+    def getroot(self, commitsha = None):
+        if commitsha is None:
+            commitsha = self.gethead()
+        obj = self.store.getobj(commitsha)
         if babygit.obj_type(obj) != 'commit':
             raise ValueError('expected commit obj type')
         commitlines = obj[obj.find('\x00') + 1:].split('\n')
@@ -35,3 +39,40 @@ class Repo:
         for mode, n, sha in parsed_tree:
             if n == name:
                 return mode, sha
+
+    # Note: this mutates the parsed tree in place
+    def set_in_tree(self, parsed_tree, mode, name, sha):
+        for i in range(len(parsed_tree)):
+            m, n, s = parsed_tree[i]
+            if n == name:
+                parsed_tree[i] = (mode, name, sha)
+                return
+            elif n > name:
+                parsed_tree.insert(i, (mode, name, sha))
+                return
+        parsed_tree.append((mode, name, sha))
+
+    # Get an object (tree or blob) corresponding to a path. Returns the obj
+    # (ie string with type and length prepended in git style)
+    def traverse(self, path, root = None):
+        if root is None:
+            root = self.getroot()
+        splitpath = path.split('/')
+        if splitpath[-1] == '': splitpath.pop()
+        sha = root
+        obj = self.store.getobj(sha)
+        for i in range(len(splitpath)):
+            if babygit.obj_type(obj) != 'tree':
+                raise ValueError('expected tree')
+            ptree = self.parse_tree(obj)
+            mode_sha = self.find_in_tree(ptree, splitpath[i])
+            if mode_sha is None:
+                return None
+            obj = self.store.getobj(mode_sha[1])
+            t = babygit.obj_type(obj)
+        return obj
+
+    # just proxy these through so clients don't have to deal with the low-level
+    # store directly
+    def getobj(self, sha, verify = False):
+        return self.store.getobj(sha, verify)
