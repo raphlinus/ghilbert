@@ -1,6 +1,8 @@
 import hashlib
 import logging
 import zlib
+import time
+import datetime
 
 from google.appengine.api import files
 from google.appengine.api import memcache
@@ -16,12 +18,18 @@ class Obj(db.Model):
     blob = blobstore.BlobReferenceProperty(indexed=False)
 
 class Pack(db.Model):
-    idx = db.BlobProperty()
+    idx = blobstore.BlobReferenceProperty(indexed=False)
     blob = blobstore.BlobReferenceProperty(indexed=False)
 
 class Ref(db.Model):
     # key is the refname (eg 'refs/heads/master')
     sha = db.StringProperty()
+
+class Stage(db.Model):
+    # the key should probably be the userid
+    parentcommit = db.StringProperty()
+    tree = db.StringProperty()
+    date = db.DateTimeProperty(auto_now=True)
 
 class AEStore(store.Store):
     def getobj(self, sha, verify = False):
@@ -56,6 +64,18 @@ class AEStore(store.Store):
         obj.put()
         if len(value) < 1048576:
             memcache.add(sha, value, namespace='obj')
+
+    def getstage(self):
+        stage = Stage.get_by_key_name('stage')
+        if stage is None:
+            return None
+        date = time.mktime(stage.date.timetuple())
+        return {'parent': stage.parentcommit, 'tree': stage.tree, 'date': date}
+
+    def putstage(self, stagedict):
+        dt = datetime.datetime.fromtimestamp(stagedict['date'])
+        stage = Stage(key_name='stage', parentcommit=stagedict['parent'], tree=stagedict['tree'], date=dt)
+        stage.put()
 
     def getinforefs(self):
         q = Ref.all()

@@ -14,12 +14,13 @@ s = appengine.AEStore()
 babygit.put_test_repo(s)
 
 r = repo.Repo(s)
-parent = r.gethead()
-tree = r.getroot(parent)
-tree = stage.save(r, 'dir/newfile', 'This is a new file!', tree)
-tree = stage.save(r, 'dir/anotherfile', 'This is another new file!', tree)
-tree = stage.save(r, 'dir/newfile', 'Replace contents', tree)
-stage.commit(r, parent, tree, 'Test adding a new file\n')
+stage.checkout(r) 
+tree = stage.getroot(r)
+tree = stage.save(r, 'dir/newfile', 'This is a new file!\n', tree)
+tree = stage.save(r, 'dir/anotherfile', 'This is another new file!\n', tree)
+tree = stage.save(r, 'dir/newfile', 'Replace contents\n', tree)
+stage.add(r, tree)
+stage.commit(r, 'Author <author@ghilbert.org>', 'Test adding a new file\n')
 
 class handler(webapp.RequestHandler):
     def __init__(self):

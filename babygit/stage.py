@@ -6,12 +6,23 @@
 
 import babygit
 import logging
+import time
 
 def pack_tree(parsed_tree):
     raw = []
     for mode, name, sha in parsed_tree:
         raw.append(mode + ' ' + name + '\x00' + babygit.from_hex(sha))
     return ''.join(raw)
+
+def checkout(repo, head = 'refs/heads/master'):
+    headcommit = repo.gethead(head)
+    tree = repo.getroot(headcommit)
+    now = time.time()
+    stagedict = {'parent': headcommit, 'tree': tree, 'date': now}
+    repo.store.putstage(stagedict)
+
+def getroot(repo):
+    return repo.store.getstage()['tree']
 
 # Replace (or add) the file at the path with the new contents. The return
 # value is the new tree sha. Stores the blob, and any intermediate tree
@@ -50,12 +61,19 @@ def save(repo, path, contents, root = None):
         mode = '40000'
     return savesha
 
-def commit(repo, parent, newtree, msg):
+def add(repo, tree):
+    stagedict = repo.store.getstage()
+    stagedict['tree'] = tree
+    stagedict['date'] = time.time()
+    repo.store.putstage(stagedict)
+
+def commit(repo, author, msg):
+    stagedict = repo.store.getstage()
     commitobj = []
-    commitobj.append('tree ' + newtree + '\n')
-    commitobj.append('parent ' + parent + '\n')
-    commitobj.append('author Raph Levien <raph@google.com> 1346650520 -0700\n')    
-    commitobj.append('committer Raph Levien <raph@google.com> 1346650520 -0700\n')    
+    commitobj.append('tree ' + stagedict['tree'] + '\n')
+    commitobj.append('parent ' + stagedict['parent'] + '\n')
+    commitobj.append('author ' +  author + ' ' + str(int(stagedict['date'])) + ' -0700\n')
+    commitobj.append('committer ' + author + ' ' + str(int(time.time())) + ' -0700\n')
     commitobj.append('\n')
     commitobj.append(msg)
     logging.debug(''.join(commitobj))
