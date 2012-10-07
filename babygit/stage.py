@@ -89,7 +89,7 @@ def commit(repo, author, msg):
     commitobj.append('\n')
     commitobj.append(msg)
     logging.debug(''.join(commitobj))
-    commitsha = repo.store.put('commit', ''.join(commitobj))
+    commitsha = repo.store.put('commit', ''.join(commitobj).encode('utf-8'))
     logging.debug(commitsha)
     repo.store.setinforefs({'refs/heads/master': commitsha})
     return commitsha

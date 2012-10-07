@@ -22,6 +22,7 @@ import StringIO
 import verify
 import showthm
 import babygit.web
+import app.wiki
 
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -287,18 +288,26 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         self.response.out.write('<p><a href="%s">login</a>' %
                                 users.create_login_url('/'))
 
-application = webapp.WSGIApplication(
-                                     [('/', MainPage),
-                                      ('/recent', RecentPage),
-                                      ('/peano/(.*)', StaticPage),
-                                      ('/proofs_upto/(.*)', AllProofsPage),
-                                      ('/edit/(.*)', EditPage),
-                                      ('/env(/.*)?', PrintEnvironmentHandler),
-                                      ('/showthm/(.*)', showthm.ShowThmPage),
-                                      ('/listthms(/.*)?', showthm.ListThmsPage),
-                                      ('/git/(.*)', babygit.web.handler),
-                                      ('/save', SaveHandler)],
-                                     debug=True)
+urlmap = [
+    ('/', MainPage),
+    ('/recent', RecentPage),
+    ('/peano/(.*\.gh)', StaticPage),
+    ('/peano/(.*\.ghi)', StaticPage),
+    ('/proofs_upto/(.*)', AllProofsPage),
+    ('/edit/(.*)', EditPage),
+    ('/env(/.*)?', PrintEnvironmentHandler),
+    ('/showthm/(.*)', showthm.ShowThmPage),
+    ('/listthms(/.*)?', showthm.ListThmsPage),
+    ('/git/(.*)', babygit.web.handler),
+    ('/wiki(/.*)?', app.wiki.Handler),
+    ('/save', SaveHandler),
+
+     # TODO: actually plumb namespace
+    ('/peano/(.*)', showthm.ShowThmPage),
+]
+
+
+application = webapp.WSGIApplication(urlmap, debug=True)
 
 def main():
     run_wsgi_app(application)
