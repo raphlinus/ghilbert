@@ -26,6 +26,7 @@ import babygit.repo
 import babygit.stage
 
 s = babygit.appengine.AEStore()
+babygit.babygit.ensure_repo(s)
 
 class Handler(webapp.RequestHandler):
     def __init__(self):
@@ -97,8 +98,8 @@ class Handler(webapp.RequestHandler):
         o.write('Succesfully saved <a href="' + url + '">' + cgi.escape(path) + '</a>')
 
     def get(self, arg):
-        if arg == '' or arg == '/':
-            path = 'hello'
+        if arg is None or arg == '' or arg == '/':
+            path = 'MainPage'
         else:
             path = arg[1:]
         if path.startswith('edit/'):

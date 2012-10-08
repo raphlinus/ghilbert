@@ -230,3 +230,14 @@ Test of "hello world"
 ''')
     store.setinforefs({'refs/heads/master': c0})
 
+def ensure_repo(store):
+    if not store.getinforefs().has_key('refs/heads/master'):
+        d = store.put('tree', pack_tree([]))
+        author = 'Webapp user <anonymous@ghilbert.org>'
+        c = store.put('commit', 'tree ' + d + '''
+author ''' + author + ''' 1346820538 -0400 
+committer ''' + author + ''' 1346820538 -0400 
+
+Initial empty repo
+''')
+        store.setinforefs({'refs/heads/master': c})
