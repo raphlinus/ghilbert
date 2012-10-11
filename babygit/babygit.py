@@ -169,6 +169,9 @@ class FsStore(store.Store):
 def obj_type(obj):
     return obj[:obj.find(' ')]
 
+def obj_size(obj):
+    return int(obj[obj.find(' ') + 1:obj.find('\x00')])
+
 def obj_contents(obj):
     return obj[obj.find('\x00') + 1:]
 

@@ -15,6 +15,8 @@
 # Utilities for manipulating a repo. This layers on top of a store to provide
 # raw object storage
 
+import logging
+
 import babygit
 
 class Repo:
@@ -88,3 +90,33 @@ class Repo:
     # store directly
     def getobj(self, sha, verify = False):
         return self.store.getobj(sha, verify)
+
+    # Return a set of (sha, data) tuples from walking the graph. Note that
+    # this would be place to optimize getting the zlib-compressed data, to
+    # avoid having to recompress, but that's for future.
+    def walk(self, wants, haves):
+        result = []
+        done = set()
+        queue = set(wants)
+        while queue:
+            sha = queue.pop()
+            if sha in done or sha in haves:
+                continue
+            obj = self.store.getobj(sha)
+            if obj is None:
+                logging.debug('walk, can\'t find ' + `sha`)
+                break
+            result.append((sha, obj))
+            done.add(sha)
+            t = babygit.obj_type(obj)
+            if t == 'commit':
+                for l in babygit.obj_contents(obj).split('\n'):
+                    if l == '':
+                        break
+                    elif l.startswith('tree ') or l.startswith('parent '):
+                        queue.add(l.rstrip('\n').split(' ')[1])
+            elif t == 'tree':
+                for mode, name, sha in self.parse_tree(obj):
+                    queue.add(sha)
+        return result
+

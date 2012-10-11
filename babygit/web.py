@@ -17,6 +17,9 @@ import zlib
 import logging
 import cgi
 import urllib
+import hashlib
+import zlib
+import struct
 
 import babygit
 import repo
@@ -40,16 +43,35 @@ def init_test_repo():
     stage.add(r, tree)
     stage.commit(r, 'Author <author@ghilbert.org>', 'Test adding a new file\n')
 
+def packetstr(payload):
+    return '%04x' % (len(payload) + 4) + payload
+
 class handler(webapp.RequestHandler):
     def __init__(self):
         self.store = s
         self.repo = repo.Repo(s)
+
+    def smart_upload_pack(self):
+        response = [packetstr('# service=git-upload-pack\n')]
+        response.append('0000')
+        caps = 'thin-pack ofs-delta no-progress'
+        inforefs = s.getinforefs()
+        head_sha = inforefs['refs/heads/master']
+        response.append(packetstr(head_sha + ' HEAD\x00' + caps + '\n'))
+        for ref, sha in inforefs.iteritems():
+            response.append(packetstr(sha + ' ' + ref + '\n'))
+        response.append('0000')
+        self.response.headers['Content-Type'] = 'application/x-git-upload-pack-advertisement'
+        self.response.out.write(''.join(response))
+
     def get(self, arg):
         if arg == 'HEAD':
             self.response.out.write('ref: refs/heads/master\n')
         elif arg == 'info/refs':
+            service = self.request.get('service')
+            if service == 'git-upload-pack':
+                return self.smart_upload_pack()
             inforefs = s.getinforefs()
-            logging.debug(`inforefs`)
             infostr = ''.join(['%s\t%s\n' % (sha, ref) for
                 ref, sha in inforefs.iteritems()])
             self.response.out.write(infostr)
@@ -94,7 +116,66 @@ class handler(webapp.RequestHandler):
                     html.append('<li><a href="' + fn + '">' + fn + '</a></li>\n')
                 self.response.out.write(''.join(html))
 
+    def parse_pktlines(self, data):
+        i = 0
+        result = []
+        while i < len(data):
+            size = int(data[i:i+4], 16)
+            if size == 0:
+                result.append(None)
+                i += 4
+            else:
+                result.append(data[i+4:i+size])
+                i += size
+        return result
+
+    obj_types = {'commit': 1, 'tree': 2, 'blob': 3, 'tag': 4}
+    def encode_type_and_size(self, t, size):
+        t_num = self.obj_types[t]
+        if size > 16: hibit = 0x80
+        else: hibit = 0
+        result = [chr(hibit | (t_num << 4) | (size & 15))]
+        size >>= 4
+        while size:
+            if size > 128: hibit = 0x80
+            else: hibit = 0
+            result.append(chr(hibit | (size & 127)))
+            size >>= 7
+        return ''.join(result)
+
+    def send_packfile(self, objs, out):
+        m = hashlib.sha1()
+        header = 'PACK' + struct.pack('>II', 2, len(objs))
+        out.write(header)
+        m.update(header)
+        for ref, obj in objs:
+            t = babygit.obj_type(obj)
+            s = babygit.obj_size(obj)
+            #if s != len(babygit.obj_contents(obj)):
+            #    logging.debug('size mismatch')
+            enc_t_s = self.encode_type_and_size(t, s)
+            out.write(enc_t_s)
+            m.update(enc_t_s)
+            compressed = zlib.compress(babygit.obj_contents(obj))
+            out.write(compressed)
+            m.update(compressed)
+        out.write(m.digest())
+
     def post(self, arg):
+        if arg == 'git-upload-pack':
+            lines = self.parse_pktlines(self.request.body)
+            wants = set()
+            haves = set()
+            for l in lines:
+                if l is None:
+                    break
+                if l.startswith('want '):
+                    wants.add(l.rstrip('\n').split(' ')[1])
+            objs = self.repo.walk(wants, haves)
+            self.response.headers['Content-Type'] = 'application/x-git-upload-pack-result'
+            o = self.response.out
+            o.write(packetstr('NAK\n'))
+            self.send_packfile(objs, o)
         if arg.startswith('save/'):
             editurl = arg[5:]
             stage.checkout(self.repo)
@@ -105,3 +186,4 @@ class handler(webapp.RequestHandler):
             msg = 'Commit from wiki\n'
             commitsha = stage.commit(self.repo, author, msg)
             self.response.out.write('saved ' + cgi.escape(editurl) + ' with commit ' + commitsha + '\n')
+
