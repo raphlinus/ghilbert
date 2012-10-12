@@ -39,14 +39,18 @@ class AEStore(store.Store):
         result = self.getobjimpl(sha, verify)
         if result and len(result) < 1048576:
             memcache.add(sha, result, namespace='obj')
+        return result
 
     def getlooseobj(self, sha):
         obj = Obj.get_by_key_name(sha)
         if not obj:
+            logging.debug('get of ' + sha + ' failed')
             return None
         buffer_size = min(1048576, obj.blob.size)
         blob_reader = blobstore.BlobReader(obj.blob, buffer_size = buffer_size)
         result = blob_reader.read()
+        if result is None:
+            logging.debug('blob read of ' + sha + ' failed')
         blob_reader.close()
         return result
 

@@ -164,6 +164,7 @@ class handler(webapp.RequestHandler):
     def post(self, arg):
         if arg == 'git-upload-pack':
             lines = self.parse_pktlines(self.request.body)
+            #logging.debug(`lines`)
             wants = set()
             haves = set()
             for l in lines:
