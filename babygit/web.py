@@ -24,6 +24,7 @@ import struct
 import babygit
 import repo
 import stage
+import store
 
 from google.appengine.ext import webapp
 
@@ -51,17 +52,21 @@ class handler(webapp.RequestHandler):
         self.store = s
         self.repo = repo.Repo(s)
 
-    def smart_upload_pack(self):
-        response = [packetstr('# service=git-upload-pack\n')]
+    def smart_upload_pack(self, service):
+        response = [packetstr('# service=' + service + '\n')]
         response.append('0000')
-        caps = 'thin-pack ofs-delta no-progress'
-        inforefs = s.getinforefs()
+        if service == 'git-upload-pack':
+            caps = 'thin-pack no-progress'
+        elif service == 'git-receive-pack':
+            caps = 'report-status delete-refs'
+        inforefs = self.store.getinforefs()
         head_sha = inforefs['refs/heads/master']
         response.append(packetstr(head_sha + ' HEAD\x00' + caps + '\n'))
         for ref, sha in inforefs.iteritems():
             response.append(packetstr(sha + ' ' + ref + '\n'))
         response.append('0000')
-        self.response.headers['Content-Type'] = 'application/x-git-upload-pack-advertisement'
+        mimetype = 'application/x-' + service + '-advertisement'
+        self.response.headers['Content-Type'] = mimetype
         self.response.out.write(''.join(response))
 
     def get(self, arg):
@@ -69,15 +74,15 @@ class handler(webapp.RequestHandler):
             self.response.out.write('ref: refs/heads/master\n')
         elif arg == 'info/refs':
             service = self.request.get('service')
-            if service == 'git-upload-pack':
-                return self.smart_upload_pack()
-            inforefs = s.getinforefs()
+            if service in ('git-upload-pack', 'git-receive-pack'):
+                return self.smart_upload_pack(service)
+            inforefs = self.store.getinforefs()
             infostr = ''.join(['%s\t%s\n' % (sha, ref) for
                 ref, sha in inforefs.iteritems()])
             self.response.out.write(infostr)
         elif arg.startswith('objects/') and arg[10] == '/':
             sha = arg[8:10] + arg[11:49]
-            compressed = s.getobjz(sha)
+            compressed = self.store.getobjz(sha)
             self.response.headers['Content-Type'] = 'application/octet-stream'
             self.response.out.write(compressed)
         elif arg.startswith('edit/'):
@@ -129,6 +134,17 @@ class handler(webapp.RequestHandler):
                 i += size
         return result
 
+    # parse up through the first flush (useful for receive-pack)
+    def parse_pktlist(self, data):
+        i = 0
+        result = []
+        while i < len(data):
+            size = int(data[i:i+4], 16)
+            if size == 0:
+                return result, i + 4
+            result.append(data[i+4:i+size])
+            i += size
+
     obj_types = {'commit': 1, 'tree': 2, 'blob': 3, 'tag': 4}
     def encode_type_and_size(self, t, size):
         t_num = self.obj_types[t]
@@ -161,6 +177,63 @@ class handler(webapp.RequestHandler):
             m.update(compressed)
         out.write(m.digest())
 
+    def parse_type_and_size(self, data, offset):
+        byte = ord(data[offset])
+        offset += 1
+        t = (byte >> 4) & 7
+        size = (byte & 15)
+        shift = 4
+        while byte & 0x80:
+            byte = ord(data[offset])
+            offset += 1
+            size += (byte & 0x7f) << shift
+            shift += 7
+        return t, size, offset
+
+    def read_zlib(self, data, offset):
+        result = []
+        max_block_size = 4096
+        d = zlib.decompressobj()
+        while True:
+            block_size = min(max_block_size, len(data) - offset)
+            block = d.decompress(data[offset:offset + block_size])
+            offset += block_size
+            result.append(block)
+            unused = d.unused_data
+            if unused:
+                offset -= len(unused)
+                break
+        return ''.join(result), offset
+
+    def process_packfile(self, data, offset):
+        if data[offset:offset+4] != 'PACK':
+            return 'bad header'
+        version, n_objs = struct.unpack('>II', data[offset+4:offset+12])
+        if version != 2:
+            return 'unknown version ' + `version`
+        offset += 12
+        for i in range(n_objs):
+            t, s, offset = self.parse_type_and_size(data, offset)
+            if t < 5:
+                raw, offset = self.read_zlib(data, offset)
+                if s != len(raw):
+                    return 'size mismatch'
+                #logging.debug(`(t, raw)`)
+                self.store.put(store.obj_types[t], raw)
+            elif t == 7:  # OBJ_REF_DELTA
+                refsha = babygit.to_hex(data[offset:offset + 20])
+                offset += 20
+                refobj = self.store.getobj(refsha)
+                if not refobj:
+                    return 'reference obj ' + refsha + ' not found'
+                delta, offset = self.read_zlib(data, offset)
+                obj = babygit.patch_delta(refobj, delta)
+                sha = hashlib.sha1(obj).hexdigest()
+                self.store.putobj(sha, obj)
+            else:
+                return 'delta type ' + `t` + ' nyi'
+        return 'ok'
+
     def post(self, arg):
         if arg == 'git-upload-pack':
             lines = self.parse_pktlines(self.request.body)
@@ -170,6 +243,7 @@ class handler(webapp.RequestHandler):
             for l in lines:
                 if l is None:
                     break
+                # TODO: parse have's
                 if l.startswith('want '):
                     wants.add(l.rstrip('\n').split(' ')[1])
             objs = self.repo.walk(wants, haves)
@@ -177,7 +251,25 @@ class handler(webapp.RequestHandler):
             o = self.response.out
             o.write(packetstr('NAK\n'))
             self.send_packfile(objs, o)
-        if arg.startswith('save/'):
+        elif arg == 'git-receive-pack':
+            # NOTE: must do authentication here, otherwise spam
+            lines, offset = self.parse_pktlist(self.request.body)
+            #logging.debug(`lines` + ' offset=' + `offset`)
+            self.response.headers['Content-Type'] = 'application/x-git-upload-pack-result'
+            o = self.response.out
+            status = self.process_packfile(self.request.body, offset)
+            o.write(packetstr('unpack ' + status + '\n'))
+            if status == 'ok':
+                for l in lines:
+                    l = l.rstrip('\n').split('\x00')[0]
+                    oldsha, newsha, name = l.split(' ')
+                    success = self.store.updateref(oldsha, newsha, name)
+                    if success:
+                        o.write(packetstr('ok ' + name + '\n'))
+                    else:
+                        o.write(packetstr('ng ' + name + ' fail\n'))
+            o.write('0000')
+        elif arg.startswith('save/'):
             editurl = arg[5:]
             stage.checkout(self.repo)
             tree = stage.getroot(self.repo)

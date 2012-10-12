@@ -126,7 +126,7 @@ class FsStore(store.Store):
         d = zlib.decompressobj()
         sizeremaining = size
         while sizeremaining > 0:
-            block = d.decompress(f.read(16))
+            block = d.decompress(f.read(4096))
             result.append(block)
             sizeremaining -= len(block)
         return ''.join(result)

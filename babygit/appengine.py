@@ -44,13 +44,10 @@ class AEStore(store.Store):
     def getlooseobj(self, sha):
         obj = Obj.get_by_key_name(sha)
         if not obj:
-            logging.debug('get of ' + sha + ' failed')
             return None
         buffer_size = min(1048576, obj.blob.size)
         blob_reader = blobstore.BlobReader(obj.blob, buffer_size = buffer_size)
         result = blob_reader.read()
-        if result is None:
-            logging.debug('blob read of ' + sha + ' failed')
         blob_reader.close()
         return result
 
@@ -92,3 +89,23 @@ class AEStore(store.Store):
         for ref, sha in inforefs.iteritems():
             refs.append(Ref(key_name=ref, sha=sha))
         db.put(refs)
+
+    zerosha = '0' * 40
+
+    # Return true on success
+    def updateref(self, oldsha, newsha, name):
+        # todo: make transactional
+        oldref = Ref.get_by_key_name(name)
+        if oldref:
+            actual_oldsha = oldref.sha
+        else:
+            actual_oldsha = self.zerosha
+        if actual_oldsha != oldsha:
+            return False
+        if newsha == self.zerosha:
+            oldref.delete()
+        else:
+            newref = Ref(key_name=name, sha=newsha)
+            newref.put()
+        return True
+
