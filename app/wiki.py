@@ -86,6 +86,7 @@ class Handler(webapp.RequestHandler):
 
     def serve_save(self, path, content, msg):
         babygit.stage.checkout(self.repo)
+        content = content.replace('\r', '')
         if isinstance(content, unicode): content = content.encode('utf-8')
         git_path = self.git_path(path)
         tree = babygit.stage.save(self.repo, git_path, content)
