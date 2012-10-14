@@ -22,6 +22,7 @@ import StringIO
 import verify
 import showthm
 import babygit.web
+import app.users
 import app.wiki
 
 from google.appengine.api import users
@@ -301,6 +302,7 @@ urlmap = [
     ('/git/(.*)', babygit.web.handler),
     ('/wiki(/.*)?', app.wiki.Handler),
     ('/save', SaveHandler),
+    ('/account/(.*)', app.users.AccountHandler),
 
      # TODO: actually plumb namespace
     ('/peano/(.*)', showthm.ShowThmPage),
@@ -314,3 +316,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
