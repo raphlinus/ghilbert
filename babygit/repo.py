@@ -15,6 +15,7 @@
 # Utilities for manipulating a repo. This layers on top of a store to provide
 # raw object storage
 
+import binascii
 import logging
 
 import babygit
@@ -44,7 +45,7 @@ class Repo:
             nul_ix = obj.find('\x00', ix)
             mode_and_name = obj[ix:nul_ix]
             mode, name = mode_and_name.split(' ', 1)
-            sha = babygit.to_hex(obj[nul_ix + 1:nul_ix + 21])
+            sha = binascii.hexlify(obj[nul_ix + 1:nul_ix + 21])
             result.append((mode, name, sha))
             ix = nul_ix + 21
         return result

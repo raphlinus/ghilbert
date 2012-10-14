@@ -17,12 +17,11 @@
 import re
 import os
 import hashlib
+import binascii
 import logging
-
-import babygit.babygit  # for to_hex
+import webapp2
 
 from google.appengine.ext import db
-from google.appengine.ext import webapp
 
 import common
 
@@ -33,7 +32,7 @@ class User(db.Model):
     pwsalt = db.StringProperty()
     pwhash = db.StringProperty()
 
-class AccountHandler(webapp.RequestHandler):
+class AccountHandler(webapp2.RequestHandler):
     def serve_createaccount(self):
         o = self.response.out
         common.header(o, 'Create account')
@@ -87,7 +86,7 @@ it doesn't strictly have to be a valid, deliverable address).</p>
             return self.errmsg('account ' + username + ' already exists')
         user = User(key_name = username)
         user.identity = identity
-        salt = babygit.babygit.to_hex(os.urandom(16))
+        salt = binascii.hexlify(os.urandom(16))
         user.pwsalt = salt
         user.pwhash = hashlib.sha1(salt + passwd).hexdigest()
         user.put()

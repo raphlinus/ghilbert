@@ -15,13 +15,12 @@
 import logging
 import urllib
 
+import webapp2
+from webapp2_extras import json
+
 import verify
 import cgi
 import ghapp  # TODO: circular dep is not clean
-
-import django.utils.simplejson as json
-
-from google.appengine.ext import webapp
 
 class ProofFormatter:
     def __init__(self, out, style):
@@ -72,7 +71,7 @@ GH.typeset_intermediates()
     def write_trace(self, trace):
         o = self.out
         o.write('<script type="text/javascript">\n')
-        o.write('var trace = ' + json.dumps(trace) + '\n')
+        o.write('var trace = ' + json.encode(trace) + '\n')
         o.write('</script>\n')
         o.write('<script src="/js/showthmstep.js" type="text/javascript"></script>\n')
         o.write('<div id="stack">Stack</div>\n')
@@ -338,7 +337,7 @@ class DevNull():
     def write(self, s):
         pass
 
-class ShowThmPage(webapp.RequestHandler):
+class ShowThmPage(webapp2.RequestHandler):
     def get(self, thmname):
         style = self.request.get('style', 'interleaved') 
         runner = ShowThmRunner(thmname, self.response, style)
@@ -353,7 +352,7 @@ class ShowThmPage(webapp.RequestHandler):
 
 # This is a separate page but is in this module because so much of the
 # functionality is similar.
-class ListThmsPage(webapp.RequestHandler):
+class ListThmsPage(webapp2.RequestHandler):
     def get(self, arg):
         o = self.response.out
         o.write(

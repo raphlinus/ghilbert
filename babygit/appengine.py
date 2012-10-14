@@ -8,7 +8,6 @@ from google.appengine.api import files
 from google.appengine.api import memcache
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
-from google.appengine.ext import webapp
 from google.appengine.ext.webapp import blobstore_handlers
 
 import store

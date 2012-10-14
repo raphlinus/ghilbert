@@ -14,7 +14,7 @@
 
 # Web handlers for wiki interaction - rendering, editing, etc
 
-from google.appengine.ext import webapp
+import webapp2
 
 import cgi
 import urllib
@@ -28,8 +28,9 @@ import babygit.stage
 s = babygit.appengine.AEStore()
 babygit.babygit.ensure_repo(s)
 
-class Handler(webapp.RequestHandler):
-    def __init__(self):
+class Handler(webapp2.RequestHandler):
+    def __init__(self, request, response):
+	self.initialize(request, response)
         self.store = s
         self.repo = babygit.repo.Repo(s)
 

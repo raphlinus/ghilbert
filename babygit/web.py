@@ -26,7 +26,7 @@ import repo
 import stage
 import store
 
-from google.appengine.ext import webapp
+import webapp2
 
 #s = babygit.FsStore()
 
@@ -47,8 +47,9 @@ def init_test_repo():
 def packetstr(payload):
     return '%04x' % (len(payload) + 4) + payload
 
-class handler(webapp.RequestHandler):
-    def __init__(self):
+class handler(webapp2.RequestHandler):
+    def __init__(self, request, response):
+	self.initialize(request, response)
         self.store = s
         self.repo = repo.Repo(s)
 
@@ -221,7 +222,7 @@ class handler(webapp.RequestHandler):
                 #logging.debug(`(t, raw)`)
                 self.store.put(store.obj_types[t], raw)
             elif t == 7:  # OBJ_REF_DELTA
-                refsha = babygit.to_hex(data[offset:offset + 20])
+                refsha = binascii.hexlify(data[offset:offset + 20])
                 offset += 20
                 refobj = self.store.getobj(refsha)
                 if not refobj:

@@ -16,6 +16,7 @@ import hashlib
 import os
 import struct
 import zlib
+import binascii
 
 import store
 
@@ -99,7 +100,7 @@ class FsStore(store.Store):
     def get_obj_from_pack(self, sha):
         #print 'fetching', sha, 'from pack'
         firstbyte = int(sha[:2], 16)
-        binaryhash = from_hex(sha)
+        binaryhash = binascii.unhexlify(sha)
         for idx, fn in self.getpacks():
             if firstbyte == 0:
                 indexlo = 0
@@ -148,7 +149,7 @@ class FsStore(store.Store):
             ref = self.get_pack_obj(packfn, ref_offset)
             return patch_delta(ref, delta)
         elif t == 7:  # OBJ_REF_DELTA
-            ref_sha = to_hex(f.read(20))
+            ref_sha = binascii.hexlify(f.read(20))
             #print ref_sha
             delta = self.read_zlib(f, size)
             return patch_delta(self.getobj(ref_sha), delta)
@@ -175,13 +176,6 @@ def obj_size(obj):
 def obj_contents(obj):
     return obj[obj.find('\x00') + 1:]
 
-def to_hex(binary_data):
-    return ''.join(['%02x' % ord(x) for x in binary_data])
-
-def from_hex(hex_data):
-    n = len(hex_data) >> 1
-    return struct.pack(n * 'B', *[int(hex_data[i*2:i*2+2], 16) for i in range(n)])
-
 # todo: delete (it's in repo)
 def parse_tree(blob):
     if obj_type(blob) != 'tree': raise ValueError('wrong blob type')
@@ -192,7 +186,7 @@ def parse_tree(blob):
         nul_ix = blob.find('\x00', ix)
         mode_and_name = blob[ix:nul_ix]
         mode, name = mode_and_name.split(' ', 1)
-        sha = to_hex(blob[nul_ix + 1:nul_ix + 21])
+        sha = binascii.hexlify(blob[nul_ix + 1:nul_ix + 21])
         result.append((mode, name, sha))
         ix = nul_ix + 21
     return result
@@ -219,7 +213,7 @@ class MemStore(store.Store):
 def pack_tree(triples):
     result = []
     for mode, name, sha in triples:
-        result.append(mode + ' ' + name + '\x00' + from_hex(sha))
+        result.append(mode + ' ' + name + '\x00' + binascii.unhexlify(sha))
     return ''.join(result)
 
 def put_test_repo(store):
