@@ -103,11 +103,17 @@ it doesn't strictly have to be a valid, deliverable address).</p>
         if not user:
             return self.errmsg('no such user exists')
         logging.debug(`(user.pwhash, hashlib.sha1(user.pwsalt + passwd))`)
-        if user.pwhash != hashlib.sha1(user.pwsalt + passwd).hexdigest():
+        if not check_user_pass(user, passwd):
             return self.errmsg('password doesn\'t match')
         o.write('Login ok!')
 
     def get(self, arg):
+        if not request_secure_enough(self.request):
+            url = self.request.url
+            if url.startswith('http:'):
+                return self.redirect('https:' + url[5:])
+            else:
+                return None
         if arg == 'CreateAccount':
             self.serve_createaccount()
         elif arg == 'Login':
@@ -117,4 +123,18 @@ it doesn't strictly have to be a valid, deliverable address).</p>
             self.serve_createaction()
         elif arg == 'login':
             self.serve_loginaction()
+
+def check_pass(username, passwd):
+    user = User.get_by_key_name(username)
+    if not user:
+        return False
+    return check_user_pass(user, passwd)
+
+def check_user_pass(user, passwd):
+    return user.pwhash == hashlib.sha1(user.pwsalt + passwd).hexdigest()
+
+# Allow http requests from the dev server, require https otherwise
+def request_secure_enough(request):
+    return request.environ['SERVER_SOFTWARE'].startswith('Development') or \
+        request.environ.get('HTTPS') == 'on'
 

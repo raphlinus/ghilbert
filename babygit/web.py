@@ -20,6 +20,7 @@ import urllib
 import hashlib
 import zlib
 import struct
+import binascii
 
 import babygit
 import repo
@@ -27,6 +28,8 @@ import stage
 import store
 
 import webapp2
+
+import app.users  # for authentication
 
 #s = babygit.FsStore()
 
@@ -253,7 +256,10 @@ class handler(webapp2.RequestHandler):
             o.write(packetstr('NAK\n'))
             self.send_packfile(objs, o)
         elif arg == 'git-receive-pack':
-            # NOTE: must do authentication here, otherwise spam
+            # Do authentication here, as this is the risky transaction
+            if not self.authenticate():
+                return
+
             lines, offset = self.parse_pktlist(self.request.body)
             #logging.debug(`lines` + ' offset=' + `offset`)
             self.response.headers['Content-Type'] = 'application/x-git-upload-pack-result'
@@ -281,3 +287,26 @@ class handler(webapp2.RequestHandler):
             commitsha = stage.commit(self.repo, author, msg)
             self.response.out.write('saved ' + cgi.escape(editurl) + ' with commit ' + commitsha + '\n')
 
+
+    def authenticate(self):
+        if not app.users.request_secure_enough(self.request):
+            self.error(403)
+            return False
+
+        authorization = self.request.headers.get('Authorization')
+        if not authorization:
+            realm = 'ghilbert'
+            self.error(401)
+            self.response.headers['WWW-Authenticate'] = 'Basic realm="' + realm + '"'
+            return False
+        method, cookie = authorization.split(' ')
+        if method != 'Basic':
+            self.error(401)
+            return False
+        username, passwd = binascii.a2b_base64(cookie).split(':', 1)
+        if not app.users.check_pass(username, passwd):
+            self.error(401)
+            return False
+
+        logging.debug('authorization succeeded: ' + username)
+        return True
