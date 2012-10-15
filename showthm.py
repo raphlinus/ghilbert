@@ -1,4 +1,5 @@
 # license
+# encoding: utf-8
 
 import logging
 import urllib
@@ -344,6 +345,9 @@ class ShowThmPage(webapp.RequestHandler):
 class ListThmsPage(webapp.RequestHandler):
     def get(self, arg):
         o = self.response.out
+        style = self.request.get('style', 'interleaved')
+        formatter = ProofFormatter(o, style)
+
         o.write(
 '''<html><head><title>List ot theorems</title></head>
 <body>
@@ -358,7 +362,7 @@ class ListThmsPage(webapp.RequestHandler):
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
         runner.run(urlctx, url, ctx, DevNull())
-        for thm, lines in runner.thmlist:
+        for thm_name, hypotheses, conclusion, lines in runner.thmlist:
             lines = trim_description(lines)
             description = []
             for i in range(len(lines)):
@@ -368,11 +372,25 @@ class ListThmsPage(webapp.RequestHandler):
                 elif len(line) != 0:
                     break
             descstr = ' '.join(description)
-            if len(descstr) > 80:
-                descstr = descstr[:78] + '...'
-            url = '/showthm/' + urllib.quote(thm)
-            o.write('<div><a href="%s">%s</a> %s</div>\n' % \
-                (url, cgi.escape(thm), cgi.escape(descstr)))
+            url = '/showthm/' + urllib.quote(thm_name)
+            o.write('<div style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-top: 5px; background-color: #f0f0ff"><a href="%s">%s</a> %s</div>\n' % \
+                (url, cgi.escape(thm_name), cgi.escape(descstr)))
+            if len(hypotheses) > 0:
+                prefix = ''
+                for hypothesis in hypotheses[1::2]:
+                    o.write(prefix)
+                    o.write('<span class="intermediate">%s</span>' % cgi.escape(verify.sexp_to_string(hypothesis)))
+                    prefix = ', '
+                o.write(' ⊢ ')
+            o.write('<span class="intermediate">%s</span>' % cgi.escape(verify.sexp_to_string(conclusion)))
+        o.write(
+'''<script src="/js/verify.js" type="text/javascript"></script>
+<script src="/js/showthm.js" type="text/javascript"></script>
+<script src="/js/typeset.js" type="text/javascript"></script>
+<script type="text/javascript">
+GH.typeset_intermediates()
+</script>
+''')
 
 class ListThmsRunner:
     def __init__(self):
@@ -388,7 +406,7 @@ class ListThmsRunner:
                     raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
                 arg = verify.read_sexp(s)
                 if cmd == 'thm' and len(arg):
-                    self.thmlist.append((arg[0], s.get_linestash()))
+                    self.thmlist.append((arg[0], arg[2], arg[3], s.get_linestash()))
                 ctx.do_cmd(cmd, arg, out)
                 s.clear_linestash()
         except verify.VerifyError, x:
