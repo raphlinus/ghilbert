@@ -18,27 +18,19 @@ import cgi
 import urllib
 import logging
 import StringIO
+import os
 
 import verify
 import showthm
+import babygit.web
+import app.users
+import app.wiki
+
+import webapp2
+from webapp2_extras import json
 
 from google.appengine.api import users
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
-
-from django.utils import simplejson
-
-# Only supports strings and lists now.
-def json_dumps(obj):
-    if type(obj) in (str, unicode):
-        obj = obj.replace('\\', '\\\\')
-        obj = obj.replace('"', '\\"')
-        return '"' + obj + '"'
-    elif type(obj) == list:
-        return "[" + ", ".join(map(json_dumps, obj)) + "]"
-    else:
-        return 'null'
 
 # Return a stream over all proofs in the repository, including the base peano set.
 # The proofs are ordered by number.  Optionally, you may provide one proof to be replaced.
@@ -82,7 +74,7 @@ class Greeting(db.Model):
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
 
-class RecentPage(webapp.RequestHandler):
+class RecentPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write("""<html><body>
 <p>Recent saves:</p>""")
@@ -108,7 +100,7 @@ class RecentPage(webapp.RequestHandler):
             content = '<br />'.join(newcontent)
             self.response.out.write('<blockquote>%s</blockquote>' % content)
 
-class SaveHandler(webapp.RequestHandler):
+class SaveHandler(webapp2.RequestHandler):
     def post(self):
         # Note, the following line gets the un-url-encoded name.
         name = self.request.get('name')
@@ -134,7 +126,7 @@ class SaveHandler(webapp.RequestHandler):
             proof.put()
             self.response.out.write("\nsave ok\n")
 
-class EditPage(webapp.RequestHandler):
+class EditPage(webapp2.RequestHandler):
     def get(self, name):
         if name == '':
             name = 'new%20theorem'
@@ -232,38 +224,37 @@ number.onchange = function() {
 var panel = new GH.Panel(window.direct.vg);
 """ % (number, `name`, number));
         if proof:
-            result = json_dumps(proof.content.split('\n'))
+            result = json.encode(proof.content.split('\n'))
             self.response.out.write('mainpanel.setLines(%s);\n' % result)
         self.response.out.write('</script>\n')
 
-from google.appengine.ext import webapp
-import os
-
-class PrintEnvironmentHandler(webapp.RequestHandler):
+class PrintEnvironmentHandler(webapp2.RequestHandler):
     def get(self, arg):
-        self.response.out.write(simplejson.dumps([1, 2]) + "\n")
+        self.response.out.write(json.encode([1, 2]) + "\n")
         if arg is not None:
             print 'arg = ' + arg + '<br />\n'
-        for name in os.environ.keys():
-            self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
+	environ = self.request.environ
 
-class AllProofsPage(webapp.RequestHandler):
+        for name in environ.keys():
+            self.response.out.write("%s = %s<br />\n" % (name, environ[name]))
+
+class AllProofsPage(webapp2.RequestHandler):
     def get(self, number):
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
 
-class StaticPage(webapp.RequestHandler):
+class StaticPage(webapp2.RequestHandler):
     def get(self, filename):
         try:
             lines = open('peano/%s' % filename)
         except IOError, x:
             self.error(404)
             return
-        self.response.headers.add_header('content-type', 'text/plain')
+        self.response.headers['Content-Type'] = 'text/plain'
         for line in lines:
             self.response.out.write(line)
 
-class MainPage(webapp.RequestHandler):
+class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write("""<title>Ghilbert web app</title>
 <body>
@@ -286,20 +277,38 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
         self.response.out.write('<p><a href="%s">login</a>' %
                                 users.create_login_url('/'))
 
-application = webapp.WSGIApplication(
-                                     [('/', MainPage),
-                                      ('/recent', RecentPage),
-                                      ('/peano/(.*)', StaticPage),
-                                      ('/proofs_upto/(.*)', AllProofsPage),
-                                      ('/edit/(.*)', EditPage),
-                                      ('/env(/.*)?', PrintEnvironmentHandler),
-                                      ('/showthm/(.*)', showthm.ShowThmPage),
-                                      ('/listthms(/.*)?', showthm.ListThmsPage),
-                                      ('/save', SaveHandler)],
-                                     debug=True)
+urlmap = [
+    ('/', MainPage),
+    ('/recent', RecentPage),
+    ('/peano/(.*\.gh)', StaticPage),
+    ('/peano/(.*\.ghi)', StaticPage),
+    ('/proofs_upto/(.*)', AllProofsPage),
+    ('/edit/(.*)', EditPage),
+    ('/env(/.*)?', PrintEnvironmentHandler),
+    ('/showthm/(.*)', showthm.ShowThmPage),
+    ('/listthms(/.*)?', showthm.ListThmsPage),
+    ('/git/(.*)', babygit.web.handler),
+    ('/wiki(/.*)?', app.wiki.Handler),
+    ('/save', SaveHandler),
+    ('/account/(.*)', app.users.AccountHandler),
+
+     # TODO: actually plumb namespace
+    ('/peano/(.*)', showthm.ShowThmPage),
+]
+
+config = {}
+config['webapp2_extras.sessions'] = {
+    # we use datastore session store, so doesn't need to be protected
+    'secret_key': 'not very secret',
+}
+if not os.environ.get('SERVER_SOFTWARE').startswith('Development'):
+    config['webapp2_extras.sessions']['cookie_args'] = {'secure': True}
+
+application = webapp2.WSGIApplication(urlmap, debug=True, config=config)
 
 def main():
-    run_wsgi_app(application)
+    application.run()
 
 if __name__ == "__main__":
     main()
+

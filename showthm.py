@@ -1,16 +1,26 @@
-# license
-# encoding: utf-8
+# Copyright 2012 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import logging
 import urllib
 
+import webapp2
+from webapp2_extras import json
+
 import verify
 import cgi
 import ghapp  # TODO: circular dep is not clean
-
-import django.utils.simplejson as json
-
-from google.appengine.ext import webapp
 
 class ProofFormatter:
     def __init__(self, out, style):
@@ -61,7 +71,7 @@ GH.typeset_intermediates()
     def write_trace(self, trace):
         o = self.out
         o.write('<script type="text/javascript">\n')
-        o.write('var trace = ' + json.dumps(trace) + '\n')
+        o.write('var trace = ' + json.encode(trace) + '\n')
         o.write('</script>\n')
         o.write('<script src="/js/showthmstep.js" type="text/javascript"></script>\n')
         o.write('<div id="stack">Stack</div>\n')
@@ -327,7 +337,7 @@ class DevNull():
     def write(self, s):
         pass
 
-class ShowThmPage(webapp.RequestHandler):
+class ShowThmPage(webapp2.RequestHandler):
     def get(self, thmname):
         style = self.request.get('style', 'interleaved') 
         runner = ShowThmRunner(thmname, self.response, style)
@@ -342,7 +352,7 @@ class ShowThmPage(webapp.RequestHandler):
 
 # This is a separate page but is in this module because so much of the
 # functionality is similar.
-class ListThmsPage(webapp.RequestHandler):
+class ListThmsPage(webapp2.RequestHandler):
     def get(self, arg):
         o = self.response.out
         style = self.request.get('style', 'interleaved')
