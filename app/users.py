@@ -32,6 +32,9 @@ class User(db.Model):
     pwsalt = db.StringProperty()
     pwhash = db.StringProperty()
 
+    # None/empty for new users, "write", or "super"
+    perms = db.StringProperty()
+
 class AccountHandler(webapp2.RequestHandler):
     def serve_createaccount(self):
         o = self.response.out
@@ -129,6 +132,14 @@ def check_pass(username, passwd):
     if not user:
         return False
     return check_user_pass(user, passwd)
+
+def check_perms(username, desired_perms):
+    user = User.get_by_key_name(username)
+    if not user or not user.perms:
+        return False
+    if user.perms == 'super':
+        return True
+    return user.perms == desired_perms
 
 def check_user_pass(user, passwd):
     return user.pwhash == hashlib.sha1(user.pwsalt + passwd).hexdigest()

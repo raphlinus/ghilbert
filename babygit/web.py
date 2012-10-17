@@ -307,6 +307,9 @@ class handler(webapp2.RequestHandler):
         if not app.users.check_pass(username, passwd):
             self.error(401)
             return False
+        if not app.users.check_perms(username, 'write'):
+            self.error(403)
+            return False
 
         logging.debug('authorization succeeded: ' + username)
         return True
