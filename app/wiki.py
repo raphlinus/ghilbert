@@ -19,7 +19,10 @@ import webapp2
 import cgi
 import urllib
 
+import common
 import ghmarkup
+import users
+
 import babygit.babygit
 import babygit.appengine
 import babygit.repo
@@ -28,7 +31,7 @@ import babygit.stage
 s = babygit.appengine.AEStore()
 babygit.babygit.ensure_repo(s)
 
-class Handler(webapp2.RequestHandler):
+class Handler(users.AuthenticatedHandler):
     def __init__(self, request, response):
 	self.initialize(request, response)
         self.store = s
@@ -51,11 +54,16 @@ class Handler(webapp2.RequestHandler):
 <h1>Ghilbert wiki: %s</h1>
 ''' % (cgi.escape(arg), cgi.escape(arg)))
             o.write(ghmarkup.process_ghmarkup(contents, '/'))
-            o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
+            if self.has_write_perm:
+                o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
+            else:
+                o.write('<div><a href="/account/Login">Login to edit</a></div>\n')
         else:
             o.write('<p>No page yet for ' + cgi.escape(arg) + ', but you can <a href="' + editurl + '">create</a> one.</p>')
 
     def serve_edit(self, editurl, preview = None):
+        if not self.has_write_perm:
+            return common.error_403(self)
         if preview is None:
             obj = self.repo.traverse(self.git_path(editurl))
             if obj is None:
@@ -86,13 +94,16 @@ class Handler(webapp2.RequestHandler):
         # TODO: include last commit sha (this is basically a checkout)
 
     def serve_save(self, path, content, msg):
+        if not self.has_write_perm:
+            return common.error_403(self)
+
         babygit.stage.checkout(self.repo)
         content = content.replace('\r', '')
         if isinstance(content, unicode): content = content.encode('utf-8')
         git_path = self.git_path(path)
         tree = babygit.stage.save(self.repo, git_path, content)
         babygit.stage.add(self.repo, tree)
-        author = 'Webapp user <anonymous@ghilbert.org>'
+        author = self.userobj.identity
         msg = msg.rstrip() + '\n'
         commitsha = babygit.stage.commit(self.repo, author, msg)
         o = self.response.out

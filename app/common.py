@@ -19,3 +19,8 @@ def header(o, name):
     o.write('<body><h1>' + name + '</h1>')
     # todo: stylesheet, etc
 
+def error_403(handler):
+    handler.error(403)
+    header(handler.response.out, 'Forbidden')
+    handler.response.out.write('Sorry, you\'re not authorized. Maybe <a href="/account/Login">login</a>?')
+

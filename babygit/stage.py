@@ -16,6 +16,8 @@
 # can then be committed). However, we're not going to do it as a big index
 # file like git, it's just going to be a tree like any other.
 
+import binascii
+
 import babygit
 import logging
 import time
@@ -23,7 +25,7 @@ import time
 def pack_tree(parsed_tree):
     raw = []
     for mode, name, sha in parsed_tree:
-        raw.append(mode + ' ' + name + '\x00' + babygit.from_hex(sha))
+        raw.append(mode + ' ' + name + '\x00' + binascii.unhexlify(sha))
     return ''.join(raw)
 
 def checkout(repo, head = 'refs/heads/master'):

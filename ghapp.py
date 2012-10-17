@@ -18,6 +18,7 @@ import cgi
 import urllib
 import logging
 import StringIO
+import os
 
 import verify
 import showthm
@@ -29,7 +30,6 @@ import webapp2
 from webapp2_extras import json
 
 from google.appengine.api import users
-from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 
 # Return a stream over all proofs in the repository, including the base peano set.
@@ -296,11 +296,18 @@ urlmap = [
     ('/peano/(.*)', showthm.ShowThmPage),
 ]
 
+config = {}
+config['webapp2_extras.sessions'] = {
+    # we use datastore session store, so doesn't need to be protected
+    'secret_key': 'not very secret',
+}
+if not os.environ.get('SERVER_SOFTWARE').startswith('Development'):
+    config['webapp2_extras.sessions']['cookie_args'] = {'secure': True}
 
-application = webapp2.WSGIApplication(urlmap, debug=True)
+application = webapp2.WSGIApplication(urlmap, debug=True, config=config)
 
 def main():
-    run_wsgi_app(application)
+    application.run()
 
 if __name__ == "__main__":
     main()

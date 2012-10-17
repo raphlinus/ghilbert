@@ -29,6 +29,7 @@ import store
 
 import webapp2
 
+import app.common
 import app.users  # for authentication
 
 #s = babygit.FsStore()
@@ -50,7 +51,7 @@ def init_test_repo():
 def packetstr(payload):
     return '%04x' % (len(payload) + 4) + payload
 
-class handler(webapp2.RequestHandler):
+class handler(app.users.AuthenticatedHandler):
     def __init__(self, request, response):
 	self.initialize(request, response)
         self.store = s
@@ -90,6 +91,8 @@ class handler(webapp2.RequestHandler):
             self.response.headers['Content-Type'] = 'application/octet-stream'
             self.response.out.write(compressed)
         elif arg.startswith('edit/'):
+            if not self.has_write_perm:
+                return app.common.error_403(self)
             editurl = arg[5:]
             obj = self.repo.traverse(editurl)
             if obj is None:
@@ -277,17 +280,21 @@ class handler(webapp2.RequestHandler):
                         o.write(packetstr('ng ' + name + ' fail\n'))
             o.write('0000')
         elif arg.startswith('save/'):
+            if not self.has_write_perm:
+                return app.common.error_403(self)
             editurl = arg[5:]
             stage.checkout(self.repo)
             tree = stage.getroot(self.repo)
             tree = stage.save(self.repo, editurl, self.request.get('content'))
             stage.add(self.repo, tree)
-            author = 'Author <author@ghilbert.org>'
+            author = self.userobj.identity
             msg = 'Commit from wiki\n'
             commitsha = stage.commit(self.repo, author, msg)
             self.response.out.write('saved ' + cgi.escape(editurl) + ' with commit ' + commitsha + '\n')
 
 
+    # This is authentication with basic auth, for git clients. Web access
+    # uses cookies instead (see app/users.py)
     def authenticate(self):
         if not app.users.request_secure_enough(self.request):
             self.error(403)

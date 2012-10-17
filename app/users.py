@@ -22,6 +22,7 @@ import logging
 import webapp2
 
 from google.appengine.ext import db
+from webapp2_extras import sessions
 
 import common
 
@@ -35,7 +36,45 @@ class User(db.Model):
     # None/empty for new users, "write", or "super"
     perms = db.StringProperty()
 
-class AccountHandler(webapp2.RequestHandler):
+class AuthenticatedHandler(webapp2.RequestHandler):
+    def dispatch(self):
+        self.session_store = sessions.get_store(request=self.request)
+        try:
+            webapp2.RequestHandler.dispatch(self)
+        finally:
+            self.session_store.save_sessions(self.response)
+
+    @webapp2.cached_property
+    def session(self):
+        return self.session_store.get_session(backend='datastore')
+
+    @webapp2.cached_property
+    def username(self):
+        session = self.session
+        if not session:
+            return None
+        return session.get('uid')
+
+    @webapp2.cached_property
+    def userobj(self):
+        username = self.username
+        if not username:
+            return None
+        return User.get_by_key_name(username)
+
+    @webapp2.cached_property
+    def perms(self):
+        user = self.userobj
+        if not user:
+            return None
+        return user.perms
+
+    @webapp2.cached_property
+    def has_write_perm(self):
+        perms = self.perms
+        return perms and perms == 'super' or perms == 'write'
+
+class AccountHandler(AuthenticatedHandler):
     def serve_createaccount(self):
         o = self.response.out
         common.header(o, 'Create account')
@@ -64,7 +103,15 @@ it doesn't strictly have to be a valid, deliverable address).</p>
 <div>Username: <input type="text" name="username"></div>
 <div>Password: <input type="password" name="password"></div>
 <input type="submit" value="Login">
+<div>Or <a href="/account/CreateAccount">create an account</a> if you don't have one.</div>
 ''')
+
+    def serve_logout(self):
+        o = self.response.out
+        common.header(o, 'Logged out')
+        o.write('successfully logged out')
+        if 'uid' in self.session:
+            del self.session['uid']
 
     def errmsg(self, msg):
         self.response.out.write('error: ' + msg)
@@ -108,6 +155,7 @@ it doesn't strictly have to be a valid, deliverable address).</p>
         logging.debug(`(user.pwhash, hashlib.sha1(user.pwsalt + passwd))`)
         if not check_user_pass(user, passwd):
             return self.errmsg('password doesn\'t match')
+        self.session['uid'] = username
         o.write('Login ok!')
 
     def get(self, arg):
@@ -121,6 +169,8 @@ it doesn't strictly have to be a valid, deliverable address).</p>
             self.serve_createaccount()
         elif arg == 'Login':
             self.serve_login()
+        elif arg == 'Logout':
+            self.serve_logout()
     def post(self, arg):
         if arg == 'create':
             self.serve_createaction()
