@@ -91,7 +91,7 @@ class AccountHandler(AuthenticatedHandler):
 storing it in your .netrc anyway. Please don't use one that is easily
 guessable, or shared with other accounts.</p>
 
-<p>Your Git identity should be of the form "Name <email@addr>", and is
+<p>Your Git identity should be of the form "Name &lt;email@addr&gt;", and is
 public. Choose an email address that's good at filtering spam (although
 it doesn't strictly have to be a valid, deliverable address).</p>
 ''')
