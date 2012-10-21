@@ -19,6 +19,7 @@ import os
 import hashlib
 import binascii
 import logging
+import urllib
 import webapp2
 
 from google.appengine.ext import db
@@ -78,23 +79,30 @@ class AccountHandler(AuthenticatedHandler):
     def serve_createaccount(self):
         o = self.response.out
         common.header(o, 'Create account')
+        invitecode = self.request.get('invite')
+        entropy = binascii.b2a_base64(os.urandom(18))
         o.write('''<form method="post" action="/account/create">\n
 <div>Username: <input type="text" name="username"></div>
 <div>Password: <input type="password" name="password"></div>
 <div>Password again: <input type="password" name="password2"></div>
 <div>Git identity: <input type="text" name="identity"></div>
+<input type="hidden" name="invite" value="%s">
 <input type="submit" value="Create">
 <p>Some notes:</p>
 <p>Username must be alphanumeric, with _ also allowed.</p>
 
 <p>Ideally use a random generator for your password. You will likely be
 storing it in your .netrc anyway. Please don't use one that is easily
-guessable, or shared with other accounts.</p>
+guessable, or shared with other accounts.
+Here's 144 bits of quality entropy you can use:</p>
+
+<pre>%s</pre>
 
 <p>Your Git identity should be of the form "Name &lt;email@addr&gt;", and is
 public. Choose an email address that's good at filtering spam (although
 it doesn't strictly have to be a valid, deliverable address).</p>
-''')
+
+''' % (urllib.quote(invitecode), entropy))
 
     def serve_login(self):
         o = self.response.out
@@ -139,8 +147,15 @@ it doesn't strictly have to be a valid, deliverable address).</p>
         salt = binascii.hexlify(os.urandom(16))
         user.pwsalt = salt
         user.pwhash = hashlib.sha1(salt + passwd).hexdigest()
+        invite_salt = 'c1e3d755b19119fb'
+        invitecode = self.request.get('invite')
+        invite_hash = 'fd88b74e489c03fcfbf799a1b6d1b00169f6f24b'
+        if hashlib.sha1(invite_salt + invitecode).hexdigest() == invite_hash:
+            user.perms = 'write'
+            o.write('<p>Invite code is valid, congratulations!</p>\n')
         user.put()
-        o.write('Account ' + username + ' created.')
+        o.write('Account ' + username + ' created.\n')
+        self.session['uid'] = username
 
     def serve_loginaction(self):
         o = self.response.out
