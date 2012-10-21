@@ -81,13 +81,27 @@ class AEStore(store.Store):
         q = Ref.all()
         result = {}
         for ref in q:
-            result[ref.key().name()] = ref.sha
+            name = ref.key().name()
+            sha = ref.sha
+            memcache.set(name, sha, namespace='ref')
+            result[name] = sha
         return result
+
+    # deprecated
     def setinforefs(self, inforefs):
         refs = []
-        for ref, sha in inforefs.iteritems():
-            refs.append(Ref(key_name=ref, sha=sha))
+        for name, sha in inforefs.iteritems():
+            memcache.set(name, sha, namespace='ref')
+            refs.append(Ref(key_name=name, sha=sha))
         db.put(refs)
+
+    def getref(self, name):
+        sha = memcache.get(name, namespace='ref')
+        if sha: return sha
+        ref = Ref.get_by_key_name(name)
+        if ref:
+            memcache.set(name, sha, namespace='ref')
+            return ref.sha
 
     zerosha = '0' * 40
 
@@ -103,8 +117,10 @@ class AEStore(store.Store):
             return False
         if newsha == self.zerosha:
             oldref.delete()
+            memcache.delete(name, namespace='ref')
         else:
             newref = Ref(key_name=name, sha=newsha)
             newref.put()
+            memcache.set(name, newsha, namespace='ref')
         return True
 
