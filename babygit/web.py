@@ -71,7 +71,7 @@ class handler(app.users.AuthenticatedHandler):
             response.append(packetstr(sha + ' ' + ref + '\n'))
         response.append('0000')
         mimetype = 'application/x-' + service + '-advertisement'
-        self.response.headers['Content-Type'] = mimetype
+        self.response.headers['Content-Type'] = str(mimetype)
         self.response.out.write(''.join(response))
 
     def get(self, arg):
@@ -120,6 +120,10 @@ class handler(app.users.AuthenticatedHandler):
                 contents = babygit.obj_contents(obj)
                 self.response.out.write(contents)
             else:
+                if len(arg) and not arg.endswith('/'):
+                    url = self.request.url + '/'
+                    self.redirect(url)
+                    return
                 ptree = self.repo.parse_tree(obj)
                 html = ['<html><ul>']
                 for mode, name, sha in ptree:

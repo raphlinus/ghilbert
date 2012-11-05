@@ -40,7 +40,7 @@ class Handler(users.AuthenticatedHandler):
     def git_path(self, wiki_path):
         while wiki_path.startswith('/'):
             wiki_path = wiki_path[1:]
-        return 'wiki/' + wiki_path
+        return 'wiki/' + wiki_path + '.ghm'
 
     def get_wiki(self, arg):
         editurl = '/wiki/edit/' + arg

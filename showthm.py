@@ -22,7 +22,8 @@ from webapp2_extras import json
 
 import verify
 import cgi
-import ghapp  # TODO: circular dep is not clean
+
+import app.read
 
 class ProofFormatter:
     def __init__(self, out, style):
@@ -344,9 +345,8 @@ class ShowThmPage(webapp2.RequestHandler):
         style = self.request.get('style', 'interleaved') 
         runner = ShowThmRunner(thmname, self.response, style)
         self.response.headers.add_header('content-type', 'text/html')
-        pipe = ghapp.get_all_proofs()
-        url = '-'
-        urlctx = verify.UrlCtx('', 'peano/peano_thms.gh', pipe)
+        url = '/peano/peano_thms.gh'  # TODO: make a parameter
+        urlctx = app.read.UrlCtx(url)
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
@@ -361,15 +361,14 @@ class ListThmsPage(webapp2.RequestHandler):
         formatter = ProofFormatter(o, style)
 
         o.write(
-'''<html><head><title>List ot theorems</title></head>
+'''<html><head><title>List of theorems</title></head>
 <body>
 <h1>List of theorems</h1>
 <p>A list of all theorems (currently just the peano module):</p>
 ''')
-        pipe = ghapp.get_all_proofs()
+        url = arg
+        urlctx = app.read.UrlCtx(url)
         runner = ListThmsRunner()
-        url = '-'
-        urlctx = verify.UrlCtx('', 'peano/peano_thms.gh', pipe)
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
