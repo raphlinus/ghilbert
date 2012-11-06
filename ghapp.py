@@ -23,6 +23,7 @@ import os
 import verify
 import showthm
 import babygit.web
+import app.edit
 import app.users
 import app.wiki
 
@@ -233,7 +234,7 @@ class PrintEnvironmentHandler(webapp2.RequestHandler):
         self.response.out.write(json.encode([1, 2]) + "\n")
         if arg is not None:
             print 'arg = ' + arg + '<br />\n'
-	environ = self.request.environ
+        environ = self.request.environ
 
         for name in environ.keys():
             self.response.out.write("%s = %s<br />\n" % (name, environ[name]))
@@ -282,8 +283,8 @@ urlmap = [
     ('/recent', RecentPage),
     ('/peano/(.*\.gh)', StaticPage),
     ('/peano/(.*\.ghi)', StaticPage),
-    ('/proofs_upto/(.*)', AllProofsPage),
-    ('/edit/(.*)', EditPage),
+    ('/proofs_upto/(.*)', app.edit.UptoHandler),
+    ('/edit/(.*)', app.edit.EditHandler),
     ('/env(/.*)?', PrintEnvironmentHandler),
     ('/showthm/(.*)', showthm.ShowThmPage),
     ('/listthms(/.*)?', showthm.ListThmsPage),

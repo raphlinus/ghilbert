@@ -35,7 +35,7 @@ def tokenize(line):
     line = line.replace(')', ' ) ')
     return line.split()
 
-# Returns a list of (name, startline, endline) tuples, where lines are
+# Returns a list of (name, (startline, endline)) tuples, where lines are
 # 0-based, and exclusive of endline. Ignore comment blocks for now
 def split_gh_file(lines):
     level = 0
@@ -57,7 +57,7 @@ def split_gh_file(lines):
                     startline = i + 1
         level += delta
         if name is not None and level == 0:
-            result.append((name, startline, i + 1))
+            result.append((name, (startline, i + 1)))
             name = None
             startline = i + 1
     return result
@@ -71,10 +71,10 @@ if __name__ == '__main__':
     ix = 0
     pref = ''
     for i, line in enumerate(lines):
-        if ix < len(annot) and i == annot[ix][2]:
+        if ix < len(annot) and i == annot[ix][1][1]:
             pref = ''
             ix += 1
-        if ix < len(annot) and i == annot[ix][1]:
+        if ix < len(annot) and i == annot[ix][1][0]:
             pref = annot[ix][0] + ':'
         print '%10s %s' % (pref, line)
 

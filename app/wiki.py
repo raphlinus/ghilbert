@@ -33,7 +33,7 @@ babygit.babygit.ensure_repo(s)
 
 class Handler(users.AuthenticatedHandler):
     def __init__(self, request, response):
-	self.initialize(request, response)
+        self.initialize(request, response)
         self.store = s
         self.repo = babygit.repo.Repo(s)
 

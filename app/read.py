@@ -26,20 +26,20 @@ s = babygit.appengine.AEStore()
 repo = babygit.repo.Repo(s)
 
 class UrlCtx:
-	def __init__(self, basefn):
-		logging.debug('basefn = ' + basefn)
-		self.base = os.path.split(basefn)[0]
-		if self.base.startswith('/'):
-			self.base = self.base[1:]
-	def resolve(self, url):
-		if url.startswith('/'):
-			fn = url[1:]
-		else:
-			fn = os.path.join(self.base, url)
-		logging.debug('opening: ' + fn)
-		obj = repo.traverse(fn)
-		if obj is None:
-			return None
-		return StringIO.StringIO(babygit.babygit.obj_contents(obj))
+    def __init__(self, basefn):
+        logging.debug('basefn = ' + basefn)
+        self.base = os.path.split(basefn)[0]
+        if self.base.startswith('/'):
+            self.base = self.base[1:]
+    def resolve(self, url):
+        if url.startswith('/'):
+            fn = url[1:]
+        else:
+            fn = os.path.join(self.base, url)
+        logging.debug('opening: ' + fn)
+        obj = repo.traverse(fn)
+        if obj is None:
+            return None
+        return StringIO.StringIO(babygit.babygit.obj_contents(obj))
 
 # todo: proofs "upto" functionality, based on split_gh_file

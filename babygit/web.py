@@ -53,7 +53,7 @@ def packetstr(payload):
 
 class handler(app.users.AuthenticatedHandler):
     def __init__(self, request, response):
-	self.initialize(request, response)
+        self.initialize(request, response)
         self.store = s
         self.repo = repo.Repo(s)
 

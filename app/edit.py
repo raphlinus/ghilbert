@@ -1,0 +1,170 @@
+# Copyright 2012 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Handlers for editing proofs
+
+import urllib
+import logging
+
+import webapp2
+from webapp2_extras import json
+
+import read
+import textutils
+import users
+
+import babygit.appengine
+import babygit.repo
+
+s = babygit.appengine.AEStore()
+
+# Retrieves a prefix of a proof file, up to the named theorem. This logic is
+# likely to move into the client, but for now it's a fairly straightforward
+# adaptation of the older logic.
+class UptoHandler(webapp2.RequestHandler):
+    def __init__(self, request, response):
+        self.initialize(request, response)
+        self.store = s
+        self.repo = babygit.repo.Repo(s)
+
+    def get(self, arg):
+        o = self.response.out
+        asplit = arg.rsplit('/', 1)
+        if len(asplit) < 2:
+            o.write('error: expected proof_file.gh/thmname')
+            return
+        url = '/' + asplit[0]
+        thmname = asplit[1]
+        urlctx = read.UrlCtx(url)
+        text = urlctx.resolve(url)
+        if text is None:
+            o.write('error: didn\'t find url: ' + url)
+            return
+        lines = text.readlines()
+        digest = textutils.split_gh_file(lines)
+        digestd = dict(digest)
+        if digestd.has_key(thmname):
+            start, end = digestd[thmname]
+            lines = lines[:start]
+        self.response.headers['Content-Type'] = 'text/plain'
+        o.write(''.join(lines))
+
+class EditHandler(users.AuthenticatedHandler):
+    def __init__(self, request, response):
+        self.initialize(request, response)
+        self.store = s
+        self.repo = babygit.repo.Repo(s)
+
+    def get(self, arg):
+        o = self.response.out
+        o.write('get handler, arg=' + arg + '\n')
+        asplit = arg.rsplit('/', 1)
+        if len(asplit) < 2:
+            o.write('expected proof_file.gh/thmname')
+            return
+        url = '/' + asplit[0]
+        thmname = asplit[1]
+        urlctx = read.UrlCtx(url)
+        text = urlctx.resolve(url)
+        if text is None:
+            o.write('Well, didn\'t find url: ' + url)
+            return
+        lines = text.readlines()
+        digest = textutils.split_gh_file(lines)
+        digestd = dict(digest)
+        logging.debug(`(thmname, json.encode(thmname), urllib.quote(arg))`)
+        o.write("""<head>
+<title>Ghilbert</title>
+<style type="text/css">
+    #panel tr.headerRow {background-color: #ccc}
+    #panel tr.clickableRow {cursor: pointer}
+    #panel tr.clickableRow:hover {background-color: #eee}
+    #panel tr.clickableRow:active {background-color: #ddd}
+    table#panel { border: 1px solid black; border-collapse:collapse;}
+    #panel tr { border: 1px solid black; }
+    #panel td {padding: .3em; }
+
+</style>
+</head>
+        
+
+<body>
+<a href="/">Home</a> <a href="/recent">Recent</a>
+<h1>Ghilbert - editing <em id="thmname"></em></h1>
+
+<script src="/js/verify.js" type="text/javascript"></script>
+<script src="/js/sandbox.js" type="text/javascript"></script>
+<script src="/js/inputlayer.js" type="text/javascript"></script>
+<script src="/js/edit.js" type="text/javascript"></script>
+<script src="/js/direct.js" type="text/javascript"></script>
+<script src="/js/panel.js" type="text/javascript"></script>
+<script src="/js/typeset.js" type="text/javascript"></script>
+
+<p>
+<div style="display:block;float:left">
+  <label for="number">number: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
+<br/>
+  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/>
+  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/>
+  <span id="saving"></span>
+<br/>
+  <a href="#" id="autounify" style="display:none">autounify</a><br/>
+  <div id="stack">...</div>
+</div>
+<div width="400" height="800" style="display:block;float:left">
+  <button id="inferences">Inference</button>
+  <button id="deductions">Deduction</button>
+  <button id="unified">Unified</button>
+  <label for="filter">filter: </label><input type="text" id="filter"/>
+  <br/>
+  <table id="panel" border="1" style="border:1px solid;">
+  </table>
+</div>
+<div id="output" style="clear:left;"></div>
+<script type="text/javascript">
+
+name = %s;
+GH.Direct.replace_thmname(name);
+GH.updatemultiline([], document.getElementById('stack'));
+
+url = %s;
+// TODO: better handling of raw urls (ideally draw from a specific commit)
+uc = new GH.XhrUrlCtx('/', '/git' + url);
+v = new GH.VerifyCtx(uc, run);
+run(uc, '/proofs_upto/%s', v);
+
+var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
+//var mainpanel = GH.CanvasEdit.init();
+window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
+window.direct.vg = v;
+// TODO: this update isn't really working yet
+var number = document.getElementById('number');
+number.onchange = function() {
+    var url = '../peano/peano_thms.gh';
+    var uc = new GH.XhrUrlCtx('../', url);
+    var v = new GH.VerifyCtx(uc, run);
+    run(uc, '../proofs_upto/' + number.value, v);
+    window.direct.vg = v;
+    text.dirty();
+};
+var panel = new GH.Panel(window.direct.vg);
+""" % (thmname, json.encode(thmname), json.encode(url), urllib.quote(arg)))
+        if digestd.has_key(thmname):
+            start, end = digestd[thmname]
+            thmbody = lines[start:end]
+            thmbody = [l.rstrip() for l in thmbody]
+            result = json.encode(thmbody)
+            o.write('mainpanel.setLines(%s);\n' % result)
+        o.write('</script>\n')
