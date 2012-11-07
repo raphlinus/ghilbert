@@ -14,18 +14,24 @@
 
 # Handlers for editing proofs
 
-import urllib
+import cgi
 import logging
+import StringIO
+import urllib
 
 import webapp2
 from webapp2_extras import json
 
+import verify
+
+import common
 import read
 import textutils
 import users
 
 import babygit.appengine
 import babygit.repo
+import babygit.stage
 
 s = babygit.appengine.AEStore()
 
@@ -68,7 +74,6 @@ class EditHandler(users.AuthenticatedHandler):
 
     def get(self, arg):
         o = self.response.out
-        o.write('get handler, arg=' + arg + '\n')
         asplit = arg.rsplit('/', 1)
         if len(asplit) < 2:
             o.write('expected proof_file.gh/thmname')
@@ -84,6 +89,14 @@ class EditHandler(users.AuthenticatedHandler):
         digest = textutils.split_gh_file(lines)
         digestd = dict(digest)
         logging.debug(`(thmname, json.encode(thmname), urllib.quote(arg))`)
+        if self.userobj:
+            auth = 'Logged in as ' + cgi.escape(self.userobj.identity)
+            if self.has_write_perm:
+                auth += ', ok to save.'
+            else:
+                auth += ', but no save permissions.'
+        else:
+            auth = 'Not logged in, save won\'t work.'
         o.write("""<head>
 <title>Ghilbert</title>
 <style type="text/css">
@@ -133,6 +146,7 @@ class EditHandler(users.AuthenticatedHandler):
   </table>
 </div>
 <div id="output" style="clear:left;"></div>
+<p>%s</p>
 <script type="text/javascript">
 
 name = %s;
@@ -160,7 +174,7 @@ number.onchange = function() {
     text.dirty();
 };
 var panel = new GH.Panel(window.direct.vg);
-""" % (thmname, json.encode(thmname), json.encode(url), urllib.quote(arg)))
+""" % (thmname, auth, json.encode(thmname), json.encode(url), urllib.quote(arg)))
         if digestd.has_key(thmname):
             start, end = digestd[thmname]
             thmbody = lines[start:end]
@@ -168,3 +182,85 @@ var panel = new GH.Panel(window.direct.vg);
             result = json.encode(thmbody)
             o.write('mainpanel.setLines(%s);\n' % result)
         o.write('</script>\n')
+
+def skip_blank_lines(index, lines):
+    while index < len(lines) and lines[index].rstrip() == '':
+        index += 1
+    return index
+
+class SaveHandler(users.AuthenticatedHandler):
+    def __init__(self, request, response):
+        self.initialize(request, response)
+        self.store = s
+        self.repo = babygit.repo.Repo(s)
+
+    def post(self):
+        if not self.has_write_perm:
+            return common.error_403(self)
+
+        name = self.request.get('name')
+        content = self.request.get('content')
+        number = self.request.get('number')
+        url = '/peano/peano_thms.gh'  # TODO: plumb through editor
+
+        # TODO: validate the name a bit more (no / or space)
+
+        # Edit the content into the theorem text. This is probably best done
+        # client-side, but for now we'll stick with the way it worked before.
+
+        logging.debug(`(name, content, number)`)
+        urlctx = read.UrlCtx(url)
+        text = urlctx.resolve(url)
+        if text is None:
+            lines = []
+        else:
+            lines = text.readlines()
+        digest = textutils.split_gh_file(lines)
+        digestd = dict(digest)
+        # Insert after number, or at end of file if not found
+        if len(digest) == 0:
+            insertpt = len(lines)
+        else:
+            if not digestd.has_key(number):
+                number = digest[-1][0]
+            insertpt = skip_blank_lines(digestd[number][1], lines)
+        if digestd.has_key(name):
+            start, end = digestd[name]
+            end = skip_blank_lines(end, lines)
+            lines[start:end] = []
+            if insertpt >= end:
+                insertpt -= end - start
+        contentlines = content.split('\n')
+        while len(contentlines) > 0 and contentlines[-1].rstrip() == '':
+            contentlines.pop()
+        if len(contentlines) > 0:
+            contentlines.append('')
+        lines[insertpt:insertpt] = contentlines
+        lines = [line.rstrip() for line in lines]
+        newcontent = '\n'.join(lines)
+        if isinstance(newcontent, unicode): newcontent = newcontent.encode('utf-8')
+
+        o = self.response.out
+
+        # Verify
+        pipe = StringIO.StringIO(newcontent)
+        urlctx = read.UrlCtx(url, pipe)
+        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        tmpout = StringIO.StringIO()
+        ctx.run(urlctx, '-', ctx, tmpout)
+        logging.debug(`tmpout.getvalue()`)
+        if ctx.error_count > 0:
+            # TODO: plumb actual error message
+            o.write(json.encode("error"))
+            return
+
+        # Now save the new text
+        git_path = url
+        if git_path.startswith('/'): git_path = git_path[1:]
+        babygit.stage.checkout(self.repo)
+        tree = babygit.stage.save(self.repo, git_path, newcontent)
+        babygit.stage.add(self.repo, tree)
+        author = self.userobj.identity
+        msg = 'Commit from web thm editor: save ' + name + '\n'
+        commitsha = babygit.stage.commit(self.repo, author, msg)
+        o.write(json.encode('successfully saved ' + name))

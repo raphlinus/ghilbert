@@ -280,7 +280,7 @@ class VerifyCtx:
             raise VerifyError('term ' + exp[0] + ' not known')
         # term is (kind, argkinds, freemap)
         if len(exp) - 1 != len(term[1]):
-            print exp, term
+            #print exp, term
             raise VerifyError('arity mismatch: ' + exp[0] + ' has arity ' +
                               str(len(term[1])) + ' but was given ' +
                               str(len(exp) - 1) + ' arguments')

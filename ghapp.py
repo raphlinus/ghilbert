@@ -290,7 +290,7 @@ urlmap = [
     ('/listthms(/.*)?', showthm.ListThmsPage),
     ('/git/(.*)', babygit.web.handler),
     ('/wiki(/.*)?', app.wiki.Handler),
-    ('/save', SaveHandler),
+    ('/save', app.edit.SaveHandler),
     ('/account/(.*)', app.users.AccountHandler),
 
      # TODO: actually plumb namespace

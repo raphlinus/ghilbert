@@ -26,14 +26,17 @@ s = babygit.appengine.AEStore()
 repo = babygit.repo.Repo(s)
 
 class UrlCtx:
-    def __init__(self, basefn):
+    def __init__(self, basefn, instream = None):
         logging.debug('basefn = ' + basefn)
         self.base = os.path.split(basefn)[0]
         if self.base.startswith('/'):
             self.base = self.base[1:]
+        self.instream = instream
     def resolve(self, url):
         if url.startswith('/'):
             fn = url[1:]
+        elif url == '-':
+            return self.instream
         else:
             fn = os.path.join(self.base, url)
         logging.debug('opening: ' + fn)
