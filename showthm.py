@@ -26,9 +26,10 @@ import cgi
 import app.read
 
 class ProofFormatter:
-    def __init__(self, out, style):
+    def __init__(self, out, style, url):
         self.out = out
         self.style = style
+        self.url = url
         self.out_buf = []
         self.space_indent = 8  # in px units; em is not consistent across fonts
 
@@ -51,7 +52,7 @@ class ProofFormatter:
     def write_proof_step(self, step, is_linkable):
         step_html = '<span class="step">' + cgi.escape(step) + '</span>'
         if is_linkable:
-            url = '/showthm/' + urllib.quote(step)
+            url = '/showthm' + urllib.quote(self.url + '/' + step)
             self.out_buf.append('<a href="%s">%s</a>' % (url, step_html))
         else:
             self.out_buf.append(step_html)
@@ -162,7 +163,7 @@ def trim_description(lines):
     return lines[i:]
 
 class ShowThm:
-    def __init__(self, s, out, linkable_thms, style):
+    def __init__(self, s, out, linkable_thms, style, url):
         self.s = s
         self.out = out
         self.linkable_thms = linkable_thms
@@ -170,7 +171,7 @@ class ShowThm:
         self.proofctx = None
         self.tos_fresh = False
         self.accum = []  # tokens of raw proof to accumulate
-        self.formatter = ProofFormatter(out, style)
+        self.formatter = ProofFormatter(out, style, url)
 
     def header(self, thmname):
         self.formatter.header(thmname)
@@ -290,11 +291,12 @@ class ShowThm:
         self.accum = []
 
 class ShowThmRunner:
-    def __init__(self, thmname, response, style):
+    def __init__(self, thmname, response, style, url):
         self.thmname = thmname
         self.response = response
         self.linkable_thms = set()
         self.style = style
+        self.url = url
     def run(self, urlctx, url, ctx, out):
         s = ShowThmScanner(urlctx.resolve(url))
         try:
@@ -311,7 +313,7 @@ class ShowThmRunner:
                         raise SyntaxError('expected thm start')
                     tok = s.get_tok()
                     if tok == self.thmname:
-                        show_thm = ShowThm(s, self.response.out, self.linkable_thms, self.style)
+                        show_thm = ShowThm(s, self.response.out, self.linkable_thms, self.style, self.url)
                         show_thm.header(self.thmname)
                         show_thm.write_linestash(s.get_linestash())
                         s.start_recording(show_thm)
@@ -341,11 +343,15 @@ class DevNull():
         pass
 
 class ShowThmPage(webapp2.RequestHandler):
-    def get(self, thmname):
+    def get(self, arg):
         style = self.request.get('style', 'interleaved') 
-        runner = ShowThmRunner(thmname, self.response, style)
         self.response.headers.add_header('content-type', 'text/html')
-        url = '/peano/peano_thms.gh'  # TODO: make a parameter
+        asplit = arg.rsplit('/', 1)
+        if len(asplit) < 2:
+            self.response.out.write('error: expected proof_file.gh/thmname')
+        url = '/' + asplit[0]
+        thmname = asplit[1]
+        runner = ShowThmRunner(thmname, self.response, style, url)
         urlctx = app.read.UrlCtx(url)
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
@@ -358,7 +364,8 @@ class ListThmsPage(webapp2.RequestHandler):
     def get(self, arg):
         o = self.response.out
         style = self.request.get('style', 'interleaved')
-        formatter = ProofFormatter(o, style)
+        url = arg
+        formatter = ProofFormatter(o, style, url)
 
         o.write(
 '''<html><head><title>List of theorems</title></head>
@@ -366,7 +373,6 @@ class ListThmsPage(webapp2.RequestHandler):
 <h1>List of theorems</h1>
 <p>A list of all theorems (currently just the peano module):</p>
 ''')
-        url = arg
         urlctx = app.read.UrlCtx(url)
         runner = ListThmsRunner()
         # We use the standard runner for imports and exports, but our own
@@ -383,9 +389,9 @@ class ListThmsPage(webapp2.RequestHandler):
                 elif len(line) != 0:
                     break
             descstr = ' '.join(description)
-            url = '/showthm/' + urllib.quote(thm_name)
+            thmurl = '/showthm' + urllib.quote(url + '/' + thm_name)
             o.write('<div style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-top: 5px; background-color: #f0f0ff"><a href="%s">%s</a> %s</div>\n' % \
-                (url, cgi.escape(thm_name), cgi.escape(descstr)))
+                (thmurl, cgi.escape(thm_name), cgi.escape(descstr)))
             if len(hypotheses) > 0:
                 prefix = ''
                 for hypothesis in hypotheses[1::2]:

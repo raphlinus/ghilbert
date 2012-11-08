@@ -375,13 +375,15 @@ GH.CanvasEdit.prototype.deleteselection = function() {
     this.setcursor(cmin);
 };
 
-GH.save = function(content) {
+GH.save = function(content, url) {
     // TODO(abliss): properly handle button presses while xhr in flight
     var saving = document.getElementById("saving");
     var req = new XMLHttpRequest();
+    var number = document.getElementById('number').value;
     var text = ('name=' + encodeURIComponent(name) +
-                '&number=' + document.getElementById('number').value +
-		'&content=' + encodeURIComponent(content));
+                '&number=' + encodeURIComponent(number) +
+		'&content=' + encodeURIComponent(content) +
+        '&url=' + encodeURIComponent(url));
     req.onreadystatechange = function () {
         if (req.readyState == 4) {
             var lines = req.responseText.split("\n");

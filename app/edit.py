@@ -129,7 +129,7 @@ class EditHandler(users.AuthenticatedHandler):
   <label for="number">number: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
 <br/>
   <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
-  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value)" name="save" value="save"/>
+  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value, url)" name="save" value="save"/>
   <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/>
   <span id="saving"></span>
 <br/>
@@ -201,7 +201,8 @@ class SaveHandler(users.AuthenticatedHandler):
         name = self.request.get('name')
         content = self.request.get('content')
         number = self.request.get('number')
-        url = '/peano/peano_thms.gh'  # TODO: plumb through editor
+        url = self.request.get('url')
+        logging.debug(`url`)
 
         # TODO: validate the name a bit more (no / or space)
 

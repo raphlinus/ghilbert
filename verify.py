@@ -572,10 +572,6 @@ class VerifyCtx:
             proofctx.defterm = t
         for step in proof:
             #print 'step:', step
-            if step == '?':
-                for x in proofctx.stack:
-                    print sexp_to_string(x)
-                continue
             try:
                 self.check_proof_step(hypmap, step, proofctx)
             except VerifyError, x:
