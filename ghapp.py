@@ -21,9 +21,9 @@ import StringIO
 import os
 
 import verify
-import showthm
 import babygit.web
 import app.edit
+import app.showthm
 import app.users
 import app.wiki
 
@@ -281,20 +281,17 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 urlmap = [
     ('/', MainPage),
     ('/recent', RecentPage),
-    ('/peano/(.*\.gh)', StaticPage),
-    ('/peano/(.*\.ghi)', StaticPage),
     ('/proofs_upto/(.*)', app.edit.UptoHandler),
     ('/edit/(.*)', app.edit.EditHandler),
     ('/env(/.*)?', PrintEnvironmentHandler),
-    ('/showthm/(.*)', showthm.ShowThmPage),
-    ('/listthms(/.*)?', showthm.ListThmsPage),
     ('/git/(.*)', babygit.web.handler),
     ('/wiki(/.*)?', app.wiki.Handler),
     ('/save', app.edit.SaveHandler),
     ('/account/(.*)', app.users.AccountHandler),
+    ('/(.*\.gh/.*)', app.showthm.ShowThmPage),
+    ('/(.*\.gh)', app.showthm.ListThmsPage),
 
-     # TODO: actually plumb namespace
-    ('/peano/(.*)', showthm.ShowThmPage),
+    ('/(.*)', app.showthm.ThmBrowser),
 ]
 
 config = {}

@@ -16,14 +16,22 @@
 
 import logging
 import urllib
+import cgi
 
 import webapp2
 from webapp2_extras import json
 
-import verify
-import cgi
+import babygit.appengine
+import babygit.babygit
+import babygit.repo
 
-import app.read
+import verify
+
+import common
+import read
+
+s = babygit.appengine.AEStore()
+repo = babygit.repo.Repo(s)
 
 class ProofFormatter:
     def __init__(self, out, style, url):
@@ -52,7 +60,7 @@ class ProofFormatter:
     def write_proof_step(self, step, is_linkable):
         step_html = '<span class="step">' + cgi.escape(step) + '</span>'
         if is_linkable:
-            url = '/showthm' + urllib.quote(self.url + '/' + step)
+            url = urllib.quote(self.url + '/' + step)
             self.out_buf.append('<a href="%s">%s</a>' % (url, step_html))
         else:
             self.out_buf.append(step_html)
@@ -352,7 +360,7 @@ class ShowThmPage(webapp2.RequestHandler):
         url = '/' + asplit[0]
         thmname = asplit[1]
         runner = ShowThmRunner(thmname, self.response, style, url)
-        urlctx = app.read.UrlCtx(url)
+        urlctx = read.UrlCtx(url)
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, False)
@@ -364,16 +372,12 @@ class ListThmsPage(webapp2.RequestHandler):
     def get(self, arg):
         o = self.response.out
         style = self.request.get('style', 'interleaved')
-        url = arg
+        url = '/' + arg
         formatter = ProofFormatter(o, style, url)
 
-        o.write(
-'''<html><head><title>List of theorems</title></head>
-<body>
-<h1>List of theorems</h1>
-<p>A list of all theorems (currently just the peano module):</p>
-''')
-        urlctx = app.read.UrlCtx(url)
+        common.header(o, 'List of theorems')
+        o.write('<p>List of theorems in ' + cgi.escape(arg) + ':</p>\n')
+        urlctx = read.UrlCtx(url)
         runner = ListThmsRunner()
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
@@ -389,7 +393,7 @@ class ListThmsPage(webapp2.RequestHandler):
                 elif len(line) != 0:
                     break
             descstr = ' '.join(description)
-            thmurl = '/showthm' + urllib.quote(url + '/' + thm_name)
+            thmurl = urllib.quote(url + '/' + thm_name)
             o.write('<div style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-top: 5px; background-color: #f0f0ff"><a href="%s">%s</a> %s</div>\n' % \
                 (thmurl, cgi.escape(thm_name), cgi.escape(descstr)))
             if len(hypotheses) > 0:
@@ -433,3 +437,34 @@ class ListThmsRunner:
         ctx.countError()
         return False
 
+# This basically functions as a raw filesystem browser, for the stuff that isn't
+# caught by the main browsing handlers.
+class ThmBrowser(webapp2.RequestHandler):
+    def __init__(self, request, response):
+        self.initialize(request, response)
+        self.store = s
+        self.repo = repo
+
+    def get(self, arg):
+        o = self.response.out
+        o.write('ThmBrowser, arg = ' + arg)
+        obj = self.repo.traverse(arg)
+        if obj is None:
+            self.error(404)
+            self.response.out.write('404 not found')
+            return
+        elif babygit.babygit.obj_type(obj) == 'blob':
+            self.response.headers['Content-Type'] = 'text/plain'
+            o.write(babygit.babygit.obj_contents(obj))
+        else:
+            if len(arg) and not arg.endswith('/'):
+                url = self.request.url + '/'
+                self.redirect(url)
+                return
+            common.header(o, cgi.escape('Contents of ' + arg))
+            o.write('<ul>')
+            for mode, name, sha in self.repo.parse_tree(obj):
+                fn = name
+                # Todo: get header from file contents
+                if mode == '40000': fn += '/'
+                o.write('<li><a href="' + urllib.quote(fn) + '">' + cgi.escape(fn) + '</a></li>')
