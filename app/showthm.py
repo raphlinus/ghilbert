@@ -67,7 +67,7 @@ class ProofFormatter:
     def write_intermediate_line(self, line, indent):
         line = line.rstrip()
         indent_px = self.space_indent * 2 * indent
-        self.out.write('<div style="margin-left: %gpx"><span class="intermediate">' % indent_px + cgi.escape(line) + '</span></div>\n')
+        self.out.write('<div style="margin-left: %gpx" class="intermediate"><span class="sexp">' % indent_px + cgi.escape(line) + '</span></div>\n')
     def done(self):
         line = ''.join(self.out_buf)
         if len(line):
@@ -343,7 +343,7 @@ class ShowThmRunner:
             out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
         except SyntaxError, x:
             out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
-        ctx.countError()
+        # TODO: report error?
         return False
 
 class DevNull():
@@ -363,7 +363,8 @@ class ShowThmPage(webapp2.RequestHandler):
         urlctx = read.UrlCtx(url)
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
-        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        error_handler = lambda label, msg: True
+        ctx = verify.VerifyCtx(urlctx, verify.run, error_handler)
         runner.run(urlctx, url, ctx, DevNull())
 
 # This is a separate page but is in this module because so much of the
@@ -375,15 +376,18 @@ class ListThmsPage(webapp2.RequestHandler):
         url = '/' + arg
         formatter = ProofFormatter(o, style, url)
 
-        common.header(o, 'List of theorems')
+        stylesheet = '<link rel=stylesheet href="/static/showthm.css" type="text/css">\n'
+        common.header(o, 'List of theorems', stylesheet)
         o.write('<p>List of theorems in ' + cgi.escape(arg) + ':</p>\n')
         urlctx = read.UrlCtx(url)
         runner = ListThmsRunner()
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
-        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        ctx = verify.VerifyCtx(urlctx, verify.run, runner.error_handler)
+        logging.debug(`urlctx.resolve(url).readline`)
         runner.run(urlctx, url, ctx, DevNull())
-        for thm_name, hypotheses, conclusion, lines in runner.thmlist:
+        logging.debug(`runner.thmlist`)
+        for error, thm_name, hypotheses, conclusion, lines in runner.thmlist:
             lines = trim_description(lines)
             description = []
             for i in range(len(lines)):
@@ -394,16 +398,19 @@ class ListThmsPage(webapp2.RequestHandler):
                     break
             descstr = ' '.join(description)
             thmurl = urllib.quote(url + '/' + thm_name)
-            o.write('<div style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-top: 5px; background-color: #f0f0ff"><a href="%s">%s</a> %s</div>\n' % \
-                (thmurl, cgi.escape(thm_name), cgi.escape(descstr)))
+            errstr = ''
+            if error:
+                errstr = '<a href="/edit' + thmurl + '" class="error_indicator">●</a> '
+            o.write('<div class="listthmline" ">%s<a href="%s">%s</a> %s</div>\n' % \
+                (errstr, thmurl, cgi.escape(thm_name), cgi.escape(descstr)))
             if len(hypotheses) > 0:
                 prefix = ''
                 for hypothesis in hypotheses[1::2]:
                     o.write(prefix)
-                    o.write('<span class="intermediate">%s</span>' % cgi.escape(verify.sexp_to_string(hypothesis)))
+                    o.write('<span class="sexp">%s</span>\n' % cgi.escape(verify.sexp_to_string(hypothesis)))
                     prefix = ', '
                 o.write(' ⊢ ')
-            o.write('<span class="intermediate">%s</span>' % cgi.escape(verify.sexp_to_string(conclusion)))
+            o.write('<span class="sexp">%s</span>\n' % cgi.escape(verify.sexp_to_string(conclusion)))
         o.write(
 '''<script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/showthm.js" type="text/javascript"></script>
@@ -426,16 +433,20 @@ class ListThmsRunner:
                 if type(cmd) != str:
                     raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
                 arg = verify.read_sexp(s)
-                if cmd == 'thm' and len(arg):
-                    self.thmlist.append((arg[0], arg[2], arg[3], s.get_linestash()))
+                self.error = False
                 ctx.do_cmd(cmd, arg, out)
+                if cmd == 'thm' and len(arg):
+                    self.thmlist.append((self.error, arg[0], arg[2], arg[3], s.get_linestash()))
                 s.clear_linestash()
         except verify.VerifyError, x:
             out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
         except SyntaxError, x:
             out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
-        ctx.countError()
+        # TODO: report error
         return False
+    def error_handler(self, label, msg):
+        self.error = True
+        return True
 
 # This basically functions as a raw filesystem browser, for the stuff that isn't
 # caught by the main browsing handlers.
@@ -447,7 +458,6 @@ class ThmBrowser(webapp2.RequestHandler):
 
     def get(self, arg):
         o = self.response.out
-        o.write('ThmBrowser, arg = ' + arg)
         obj = self.repo.traverse(arg)
         if obj is None:
             self.error(404)

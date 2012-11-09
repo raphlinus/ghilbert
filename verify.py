@@ -108,17 +108,15 @@ class ProofCtx:
         self.defterm = None
 
 class VerifyCtx:
-    def __init__(self, urlctx, run, fail_continue=False):
+    # error_handler(label, msg) -> true means continue
+    def __init__(self, urlctx, run, error_handler = None):
         self.kinds = {}
         self.terms = {}
         self.syms = {}
         self.interfaces = {}
         self.urlctx = urlctx
         self.run = run
-        self.error_count = 0
-        self.fail_continue = fail_continue
-    def countError(self):
-        self.error_count = self.error_count + 1
+        self.error_handler = error_handler
     def add_sym(self, label, val):
         if self.syms.has_key(label):
             raise VerifyError('Symbol ' + label + ' already defined')
@@ -308,21 +306,26 @@ class VerifyCtx:
             out.write('thm %s\n' % label)
             proof = arg[4:]
             try:
-                proofctx = self.check_proof(label, fv, hyps, conc, proof)
+                proofctx, fvmap, hypmap = self.setup_proof(label, fv, hyps, conc)
+            except VerifyError, x:
+                msg = 'error in thm ' + label + ': '
+                out.write(msg + '\n')
+                if self.error_handler is not None: self.error_handler(label, x.why)
+                raise x
+
+            try:
+                self.check_proof(proofctx, proof, fvmap, hypmap)
                 if proofctx.stack[0] != conc:
                     raise VerifyError('\nwanted ' + sexp_to_string(conc), label,
                                       proofctx.stack)
             except VerifyError, x:
                 msg = 'error in thm ' + label + ': '
-                if self.fail_continue:
-                    msg = msg + x.why
-                out.write(msg)
+                out.write(msg + '\n')
                 if x.stack != None:
                     for i in xrange(len(x.stack)):
-                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]))
-                if not self.fail_continue:
+                        out.write('P' + str(i) + ': ' + sexp_to_string(x.stack[i]) + '\n')
+                if self.error_handler is None or not self.error_handler(label, x.why):
                     raise x
-                self.countError()
 
             self.add_assertion('thm', label, fv, hyps[1::2], conc,
                                proofctx.varlist, proofctx.num_hypvars,
@@ -338,8 +341,9 @@ class VerifyCtx:
             out.write('defthm %s\n' % label)
             proof = arg[6:]
             try:
-                proofctx = self.check_proof(label, fv, hyps, conc, proof,
+                proofctx, fvmap, hypmap = self.setup_proof(label, fv, hyps, conc,
                                             dkind, dsig)
+                self.check_proof(proofctx, proof, fvmap, hypmap)
             except VerifyError, x:
                 out.write('Error in defthm ' + label + ': ' + x.why)
                 if x.stack != None:
@@ -468,12 +472,12 @@ class VerifyCtx:
                               "' occurred in proof file context.")
         else:
             msg = "Unknown command '" + cmd + "' in verify context."
-            if self.fail_continue:
-                out.write(msg)
-            else:
+            if self.error_handler is None or not self.error_handler('', msg):
                 raise VerifyError(msg)
+            else:
+                out.write(msg)
 
-    def check_proof(self, label, fv, hyps, stmt, proof,
+    def setup_proof(self, label, fv, hyps, stmt,
                     dkind=None, dsig=None):
         if type(label) != type('label') or \
            type(fv) != type([]) or \
@@ -567,9 +571,11 @@ class VerifyCtx:
         proofctx.varmap = varmap
         proofctx.num_hypvars = num_hypvars
         proofctx.num_nondummies = num_nondummies
-
         if dkind is not None:
             proofctx.defterm = t
+        return proofctx, fvmap, hypmap
+
+    def check_proof(self, proofctx, proof, fvmap, hypmap):
         for step in proof:
             #print 'step:', step
             try:
@@ -932,10 +938,7 @@ class InterfaceCtx:
         # also kinds made available via param commands.
         self.kinds = {}
         self.mykinds = {}
-        self.error_count = 0
-
-    def countError(self):
-        self.error_count = self.error_count + 1
+        self.error_handler = None
 
     def get_kind(self, rawkind):
         try:
@@ -1384,10 +1387,10 @@ class ExportCtx(InterfaceCtx):
             # after earlier uses of the two separate kinds, and means that
             # kind comparisons throughout the verifier need to be
             # careful to recognize the equivalence.
-            print 'interface kindbind: TODO!'
+            out.write('interface kindbind: TODO!\n')
         else:
-            print '*** Warning: unrecognized command ' + cmd + \
-                  ' seen in export context. ***'
+            out.write('*** Warning: unrecognized command ' + cmd + \
+                  ' seen in export context. ***\n')
 
 def run(urlctx, url, ctx, out):
     s = Scanner(urlctx.resolve(url))
@@ -1401,15 +1404,25 @@ def run(urlctx, url, ctx, out):
             arg = read_sexp(s)
             ctx.do_cmd(cmd, arg, out)
     except VerifyError, x:
-        out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
+        out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why) + '\n')
+        if ctx.error_handler is not None:
+            ctx.error_handler('', x.why)
     except SyntaxError, x:
-        out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)))
-    ctx.countError()
+        out.write('Syntax error at line %s:%d:\n%s' % (url, s.lineno, str(x)) + '\n')
+        if ctx.error_handler is not None:
+            ctx.error_handler('', str(x))
     return False
 
 if __name__ == '__main__':
     i = 1
     fail_continue = False
+    class ErrorCounter:
+        def __init__(self):
+            self.count = 0
+        def error_handler(self, label, msg):
+            self.count += 1
+            return fail_continue
+    error_counter = ErrorCounter()
     while i < len(sys.argv):
         arg = sys.argv[i]
         if arg[0] != '-':
@@ -1425,13 +1438,13 @@ if __name__ == '__main__':
         
     fn = sys.argv[i]
     urlctx = UrlCtx('', fn, sys.stdin)
-    ctx = VerifyCtx(urlctx, run, fail_continue)
+    ctx = VerifyCtx(urlctx, run, error_counter.error_handler)
     if fn == '-':
         url = fn
     else :
         url = 'file://' + fn        
     ctx.run(urlctx, url, ctx, sys.stdout)
-    if ctx.error_count != 0:
-        print 'Number of errors: %d' % ctx.error_count
+    if error_counter.count != 0:
+        print 'Number of errors: %d' % error_counter.count
         sys.exit(1)
 

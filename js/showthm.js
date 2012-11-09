@@ -5,7 +5,7 @@ GH.max = function(x, y) {
 };
 
 GH.typeset_intermediates = function() {
-    var elements = document.getElementsByClassName('intermediate');
+    var elements = document.getElementsByClassName('sexp');
     var n = elements.length;
     for (var i = 0; i < n; i++) {
         var e = elements[i];

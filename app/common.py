@@ -14,9 +14,11 @@
 
 # Stuff common to most pages on the webapp (includes hardcoded templates)
 
-def header(o, name):
+def header(o, name, stylesheet = None):
     o.write('<html><head><title>' + name + '</title>\n')
-    o.write('<body><h1>' + name + '</h1>')
+    if stylesheet:
+    	o.write(stylesheet)
+    o.write('<body><h1>' + name + '</h1>\n')
     # todo: stylesheet, etc
 
 def error_403(handler):

@@ -188,6 +188,13 @@ def skip_blank_lines(index, lines):
         index += 1
     return index
 
+class ErrorHandler:
+    def __init__(self):
+        self.first_error = None
+    def error_handler(self, label, msg):
+        if self.first_error is None:
+            self.first_error = (label, msg)
+
 class SaveHandler(users.AuthenticatedHandler):
     def __init__(self, request, response):
         self.initialize(request, response)
@@ -246,17 +253,18 @@ class SaveHandler(users.AuthenticatedHandler):
         # Verify
         pipe = StringIO.StringIO(newcontent)
         urlctx = read.UrlCtx(url, pipe)
-        ctx = verify.VerifyCtx(urlctx, verify.run, False)
+        error_handler = ErrorHandler()
+        ctx = verify.VerifyCtx(urlctx, verify.run, error_handler.error_handler)
         tmpout = StringIO.StringIO()
         ctx.run(urlctx, '-', ctx, tmpout)
         logging.debug(`tmpout.getvalue()`)
-        if ctx.error_count > 0:
+        if error_handler.first_error is not None:
             # TODO: plumb actual error message
-            o.write(json.encode("error"))
+            o.write(json.encode("error " + error_handler.first_error[1]))
             return
 
         # Now save the new text
-        git_path = url
+        git_path = str(url)
         if git_path.startswith('/'): git_path = git_path[1:]
         babygit.stage.checkout(self.repo)
         tree = babygit.stage.save(self.repo, git_path, newcontent)
