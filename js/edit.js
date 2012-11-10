@@ -386,9 +386,9 @@ GH.save = function(content, url) {
                 '&url=' + encodeURIComponent(url));
     req.onreadystatechange = function () {
         if (req.readyState == 4) {
-            var lines = req.responseText.split("\n");
-            this.result = lines.splice(lines.length - 4).join("\n");
-            if (req.responseText.indexOf("save ok") >= 0) {
+            var result = JSON.parse(req.responseText)
+            this.result = result[1];
+            if (this.result[0] === "ok") {
                 window.onbeforeunload = function() { };
             }
         }

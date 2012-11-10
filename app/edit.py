@@ -157,7 +157,9 @@ url = %s;
 // TODO: better handling of raw urls (ideally draw from a specific commit)
 uc = new GH.XhrUrlCtx('/', '/git' + url);
 v = new GH.VerifyCtx(uc, run);
+v.set_suppress_errors(true);
 run(uc, '/proofs_upto/%s', v);
+v.set_suppress_errors(false);
 
 var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
 //var mainpanel = GH.CanvasEdit.init();
@@ -191,9 +193,15 @@ def skip_blank_lines(index, lines):
 class ErrorHandler:
     def __init__(self):
         self.first_error = None
+        self.fatal_error = False
     def error_handler(self, label, msg):
         if self.first_error is None:
             self.first_error = (label, msg)
+        if label == '':
+            # Errors that happen inside theorem contexts can be recovered. This roughly
+            # corresponds to being able to continue (-c in the command line).
+            self.fatal_error = True
+        return True
 
 class SaveHandler(users.AuthenticatedHandler):
     def __init__(self, request, response):
@@ -258,9 +266,9 @@ class SaveHandler(users.AuthenticatedHandler):
         tmpout = StringIO.StringIO()
         ctx.run(urlctx, '-', ctx, tmpout)
         logging.debug(`tmpout.getvalue()`)
-        if error_handler.first_error is not None:
+        if error_handler.fatal_error:
             # TODO: plumb actual error message
-            o.write(json.encode("error " + error_handler.first_error[1]))
+            o.write(json.encode(['error', error_handler.first_error[1]]))
             return
 
         # Now save the new text
@@ -272,4 +280,4 @@ class SaveHandler(users.AuthenticatedHandler):
         author = self.userobj.identity
         msg = 'Commit from web thm editor: save ' + name + '\n'
         commitsha = babygit.stage.commit(self.repo, author, msg)
-        o.write(json.encode('successfully saved ' + name))
+        o.write(json.encode(['ok', 'successfully saved ' + name]))
