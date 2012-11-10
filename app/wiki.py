@@ -61,7 +61,7 @@ class Handler(users.AuthenticatedHandler):
         else:
             o.write('<p>No page yet for ' + cgi.escape(arg) + ', but you can <a href="' + editurl + '">create</a> one.</p>')
 
-    def serve_edit(self, editurl, preview = None):
+    def serve_edit(self, editurl, preview = None, msg = None):
         if not self.has_write_perm:
             return common.error_403(self)
         if preview is None:
@@ -87,7 +87,10 @@ class Handler(users.AuthenticatedHandler):
             o.write(cgi.escape(line) + '\n')
         o.write('</textarea>\n')
         o.write('<br >\n')
-        o.write('Commit msg: <input type="text" name="msg" size="65">\n')
+        o.write('Commit msg: <input type="text" name="msg" size="65"')
+        if msg is not None:
+            o.write(' value="' + cgi.escape(msg, True) + '"')
+        o.write('>\n')
         o.write('<br >\n')
         o.write('<input type="submit" name="preview" value="Preview">\n')
         o.write('<input type="submit" name="save" value="Save">\n')
@@ -122,7 +125,7 @@ class Handler(users.AuthenticatedHandler):
     def post(self, arg):
         if arg.startswith('/save/'):
             if self.request.get('preview'):
-                return self.serve_edit(arg[6:], self.request.get('content'))
+                return self.serve_edit(arg[6:], self.request.get('content'), self.request.get('msg'))
             if self.request.get('save'):
                 return self.serve_save(arg[6:], self.request.get('content'), self.request.get('msg'))
 
