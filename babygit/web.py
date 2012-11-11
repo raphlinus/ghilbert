@@ -61,7 +61,7 @@ class handler(app.users.AuthenticatedHandler):
         response = [packetstr('# service=' + service + '\n')]
         response.append('0000')
         if service == 'git-upload-pack':
-            caps = 'thin-pack no-progress'
+            caps = 'multi_ack_detailed thin-pack no-progress'
         elif service == 'git-receive-pack':
             caps = 'report-status delete-refs'
         inforefs = self.store.getinforefs()
@@ -247,20 +247,45 @@ class handler(app.users.AuthenticatedHandler):
 
     def post(self, arg):
         if arg == 'git-upload-pack':
+            o = self.response.out
             lines = self.parse_pktlines(self.request.body)
-            #logging.debug(`lines`)
+            logging.debug(`lines`)
             wants = set()
             haves = set()
+            in_haves = False
+            ready = False
+            common = None
             for l in lines:
                 if l is None:
-                    break
+                    if in_haves:
+                        o.write(packetstr('NAK\n'))
+                        logging.debug('NAK')
+                        return
+                    else:
+                        in_haves = True
                 # TODO: parse have's
-                if l.startswith('want '):
+                elif l.startswith('want '):
                     wants.add(l.rstrip('\n').split(' ')[1])
+                elif l.startswith('have '):
+                    sha = l.rstrip('\n').split(' ')[1]
+                    obj = self.repo.store.getobj(sha)
+                    if obj is not None:
+                        haves.add(sha)
+                        common = sha
+                        if not ready:
+                            o.write(packetstr('ACK ' + sha + ' common\n'))
+                            ready = False  # TODO: actually compute
+                            if ready:
+                                o.write(packetstr('ACK ' + sha + ' ready\n'))
+                                logging.debug('ACK ' + sha + ' ready')
             objs = self.repo.walk(wants, haves)
             self.response.headers['Content-Type'] = 'application/x-git-upload-pack-result'
-            o = self.response.out
-            o.write(packetstr('NAK\n'))
+            if common is None:
+                o.write(packetstr('NAK\n'))
+                logging.debug('NAK')
+            else:
+                o.write(packetstr('ACK ' + common + '\n'))
+                logging.debug('ACK ' + common)
             self.send_packfile(objs, o)
         elif arg == 'git-receive-pack':
             # Do authentication here, as this is the risky transaction
