@@ -232,8 +232,8 @@ def ensure_repo(store):
         d = store.put('tree', pack_tree([]))
         author = 'Webapp user <anonymous@ghilbert.org>'
         c = store.put('commit', 'tree ' + d + '''
-author ''' + author + ''' 1346820538 -0400 
-committer ''' + author + ''' 1346820538 -0400 
+author ''' + author + ''' 1346820538 -0400
+committer ''' + author + ''' 1346820538 -0400
 
 Initial empty repo
 ''')

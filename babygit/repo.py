@@ -37,7 +37,7 @@ class Repo:
             if l.startswith('tree'):
                 return l.split(' ')[1]
     def parse_tree(self, obj):
-        if babygit.obj_type(obj) != 'tree': raise ValueError('wrong blob type')
+        if babygit.obj_type(obj) != 'tree': raise ValueError('wrong obj type')
         ix = obj.find('\x00') + 1
         if ix == 0: raise ValueError('missing nul')
         result = []
@@ -66,6 +66,25 @@ class Repo:
                 parsed_tree.insert(i, (mode, name, sha))
                 return
         parsed_tree.append((mode, name, sha))
+
+    def parse_commit(self, obj):
+        result = {}
+        result['parents'] = []
+        if babygit.obj_type(obj) != 'commit': raise ValueError('wrong obj type')
+        lines = babygit.obj_contents(obj).split('\n')
+        for i, l in enumerate(lines):
+            if l.startswith('tree '):
+                result['tree'] = l.split(' ')[1]
+            elif l.startswith('parent '):
+                result['parents'].append(l.split(' ')[1])
+            elif l.startswith('author '):
+                result['author'] = l.split(' ', 1)[1]
+            elif l.startswith('committer '):
+                result['committer'] = l.split(' ', 1)[1]
+            elif l == '':
+                result['msg'] = '\n'.join(lines[i+1:])
+                break
+        return result
 
     # Get an object (tree or blob) corresponding to a path. Returns the obj
     # (ie string with type and length prepended in git style)
@@ -121,3 +140,53 @@ class Repo:
                     queue.add(sha)
         return result
 
+    # return value is a list of tuples (path, change), where change is one of
+    # 'add', 'delete', 'change'. May be extended to finer grained diffing later.
+    # Arguments are tree object names. (Use getroot to resolve commits)
+    def diff_tree(self, tree1, tree2):
+        result = []
+        self.diff_tree_recurse(tree1, tree2, result, '')
+        return result
+
+    def diff_tree_recurse(self, tree1, tree2, result, prefix):
+        treeobj1 = self.store.getobj(tree1)
+        if treeobj1 is None:
+            logging.debug('missing tree1 ' + tree1)
+            return
+        ptree1 = self.parse_tree(treeobj1)
+        treeobj2 = self.store.getobj(tree2)
+        if treeobj2 is None:
+            logging.debug('missing tree2 ' + tree2)
+            return
+        ptree2 = self.parse_tree(treeobj2)
+        i = 0
+        j = 0
+        while i < len(ptree1) or j < len(ptree2):
+            if j == len(ptree2) or (i < len(ptree1) and ptree1[i][1] < ptree2[j][1]):
+                self.obj_enumerate(ptree1[i], result, prefix, 'delete')
+                i += 1
+            elif i == len(ptree1) or ptree1[i][1] > ptree2[j][1]:
+                self.obj_enumerate(ptree2[j], result, prefix, 'add')
+                j += 1
+            else:
+                name = ptree1[i][1]
+                if ptree1[i][0] == '40000' and ptree2[j][0] == '40000':
+                    if ptree1[i][2] != ptree2[j][2]:
+                        self.diff_tree_recurse(ptree1[i][2], ptree2[j][2], result, prefix + name + '/')
+                else:
+                    if ptree1[i][2] != ptree2[j][2]:
+                        result.append((prefix + name, 'change'))
+                # ignore corner cases where it's a blob in one tree and a dir in another
+                i += 1
+                j += 1
+
+    def obj_enumerate(self, mode_name_sha, result, prefix, change):
+        mode, name, sha = mode_name_sha
+        if mode == '40000':
+            treeobj = self.store.getobj(sha)
+            if treeobj is None:
+                return
+            for m_n_s in self.parse_tree(treeobj):
+                self.obj_enumerate(m_n_s, result, prefix + name + '/', change)
+        else:
+            result.append((prefix + name, change))
