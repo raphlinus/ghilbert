@@ -388,7 +388,7 @@ GH.save = function(content, url) {
         if (req.readyState == 4) {
             var result = JSON.parse(req.responseText)
             this.result = result[1];
-            if (this.result[0] === "ok") {
+            if (result[0] === "ok") {
                 window.onbeforeunload = function() { };
             }
         }

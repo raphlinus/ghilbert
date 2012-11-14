@@ -51,7 +51,7 @@ def split_gh_file(lines):
                 startline = i + 1
             else:
                 toks = tokenize(line)
-                if len(toks) >= 3 and toks[0] == 'thm' and toks[1] == '(':
+                if len(toks) >= 3 and toks[0] in ('thm', 'defthm') and toks[1] == '(':
                     name = toks[2]
                 elif level + delta == 0 and len(toks) and toks[-1] == ')':
                     startline = i + 1

@@ -23,6 +23,7 @@ import os
 import verify
 import babygit.web
 import app.edit
+import app.recent
 import app.showthm
 import app.users
 import app.wiki
@@ -280,7 +281,6 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
 
 urlmap = [
     ('/', MainPage),
-    ('/recent', RecentPage),
     ('/proofs_upto/(.*)', app.edit.UptoHandler),
     ('/edit/(.*)', app.edit.EditHandler),
     ('/env(/.*)?', PrintEnvironmentHandler),
@@ -288,6 +288,7 @@ urlmap = [
     ('/wiki(/.*)?', app.wiki.Handler),
     ('/save', app.edit.SaveHandler),
     ('/account/(.*)', app.users.AccountHandler),
+    ('/recent', app.recent.RecentChangesPage),
     ('/(.*\.gh/.*)', app.showthm.ShowThmPage),
     ('/(.*\.gh)', app.showthm.ListThmsPage),
 

@@ -168,12 +168,13 @@ window.direct.vg = v;
 // TODO: this update isn't really working yet
 var number = document.getElementById('number');
 number.onchange = function() {
-    var url = '../peano/peano_thms.gh';
-    var uc = new GH.XhrUrlCtx('../', url);
+    var uc = new GH.XhrUrlCtx('/', '/git' + url);
     var v = new GH.VerifyCtx(uc, run);
-    run(uc, '../proofs_upto/' + number.value, v);
+    v.set_suppress_errors(true);
+    run(uc, '/proofs_upto' + url + '/' + number.value, v);
+    v.set_suppress_errors(false);
     window.direct.vg = v;
-    text.dirty();
+    window.direct.update();
 };
 var panel = new GH.Panel(window.direct.vg);
 """ % (thmname, auth, json.encode(thmname), json.encode(url), urllib.quote(arg)))
