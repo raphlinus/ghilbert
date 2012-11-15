@@ -126,7 +126,7 @@ class EditHandler(users.AuthenticatedHandler):
 
 <p>
 <div style="display:block;float:left">
-  <label for="number">number: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
+  <label for="number">before: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
 <br/>
   <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
   <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value, url)" name="save" value="save"/>
@@ -165,7 +165,6 @@ var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
 //var mainpanel = GH.CanvasEdit.init();
 window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
-// TODO: this update isn't really working yet
 var number = document.getElementById('number');
 number.onchange = function() {
     var uc = new GH.XhrUrlCtx('/', '/git' + url);
@@ -234,13 +233,13 @@ class SaveHandler(users.AuthenticatedHandler):
             lines = text.readlines()
         digest = textutils.split_gh_file(lines)
         digestd = dict(digest)
-        # Insert after number, or at end of file if not found
+        # Insert before number, or at end of file if not found
         if len(digest) == 0:
             insertpt = len(lines)
+        elif digestd.has_key(number):
+            insertpt = digestd[number][0]
         else:
-            if not digestd.has_key(number):
-                number = digest[-1][0]
-            insertpt = skip_blank_lines(digestd[number][1], lines)
+            insertpt = skip_blank_lines(digest[-1][1][1], lines)
         if digestd.has_key(name):
             start, end = digestd[name]
             end = skip_blank_lines(end, lines)
@@ -251,6 +250,8 @@ class SaveHandler(users.AuthenticatedHandler):
         while len(contentlines) > 0 and contentlines[-1].rstrip() == '':
             contentlines.pop()
         if len(contentlines) > 0:
+            if insertpt > 0 and lines[insertpt - 1].rstrip() != '':
+                contentlines.insert(0, '\n')
             contentlines.append('')
         lines[insertpt:insertpt] = contentlines
         lines = [line.rstrip() for line in lines]
