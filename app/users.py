@@ -26,6 +26,7 @@ from google.appengine.ext import db
 from webapp2_extras import sessions
 
 import common
+import gitcontent
 
 class User(db.Model):
     # key_name is userid
@@ -88,21 +89,11 @@ class AccountHandler(AuthenticatedHandler):
 <div>Git identity: <input type="text" name="identity"></div>
 <input type="hidden" name="invite" value="%s">
 <input type="submit" value="Create">
-<p>Some notes:</p>
-<p>Username must be alphanumeric, with _ also allowed.</p>
-
-<p>Ideally use a random generator for your password. You will likely be
-storing it in your .netrc anyway. Please don't use one that is easily
-guessable, or shared with other accounts.
-Here's 144 bits of quality entropy you can use:</p>
-
-<pre>%s</pre>
-
-<p>Your Git identity should be of the form "Name &lt;email@addr&gt;", and is
-public. Choose an email address that's good at filtering spam (although
-it doesn't strictly have to be a valid, deliverable address).</p>
-
-''' % (urllib.quote(invitecode), entropy))
+''' % urllib.quote(invitecode))
+        templ = gitcontent.get_wiki_html('CreateAccountTempl')
+        if templ is None:
+            templ = "[Warning: CreateAccountTempl is missing]"
+        o.write(templ.replace('$entropy', entropy))
 
     def serve_login(self):
         o = self.response.out

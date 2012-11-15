@@ -21,6 +21,7 @@ import urllib
 
 import common
 import ghmarkup
+import gitcontent
 import users
 
 import babygit.babygit
@@ -28,24 +29,15 @@ import babygit.appengine
 import babygit.repo
 import babygit.stage
 
-s = babygit.appengine.AEStore()
-babygit.babygit.ensure_repo(s)
-
 class Handler(users.AuthenticatedHandler):
     def __init__(self, request, response):
         self.initialize(request, response)
-        self.store = s
-        self.repo = babygit.repo.Repo(s)
-
-    def git_path(self, wiki_path):
-        while wiki_path.startswith('/'):
-            wiki_path = wiki_path[1:]
-        return 'wiki/' + wiki_path + '.ghm'
+        self.repo = gitcontent.get_repo()
 
     def get_wiki(self, arg):
         editurl = '/wiki/edit/' + arg
         o = self.response.out
-        obj = self.repo.traverse(self.git_path(arg))
+        obj = self.repo.traverse(gitcontent.wiki_to_git_path(arg))
         if obj is not None:
             contents = babygit.babygit.obj_contents(obj)
             o.write('''<html><head>
@@ -65,7 +57,7 @@ class Handler(users.AuthenticatedHandler):
         if not self.has_write_perm:
             return common.error_403(self)
         if preview is None:
-            obj = self.repo.traverse(self.git_path(editurl))
+            obj = self.repo.traverse(gitcontent.wiki_to_git_path(editurl))
             if obj is None:
                 action = 'Creating'
                 contents = ''
@@ -103,7 +95,7 @@ class Handler(users.AuthenticatedHandler):
         babygit.stage.checkout(self.repo)
         content = content.replace('\r', '')
         if isinstance(content, unicode): content = content.encode('utf-8')
-        git_path = self.git_path(path)
+        git_path = gitcontent.wiki_to_git_path(path)
         tree = babygit.stage.save(self.repo, git_path, content)
         babygit.stage.add(self.repo, tree)
         author = self.userobj.identity
