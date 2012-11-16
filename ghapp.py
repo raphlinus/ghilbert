@@ -280,7 +280,7 @@ is hosted at <a href="http://ghilbert.googlecode.com/">Google Code</a>.</p>
                                 users.create_login_url('/'))
 
 urlmap = [
-    ('/', MainPage),
+    ('/', app.users.FrontPageHandler),
     ('/proofs_upto/(.*)', app.edit.UptoHandler),
     ('/edit/(.*)', app.edit.EditHandler),
     ('/env(/.*)?', PrintEnvironmentHandler),

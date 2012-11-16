@@ -205,3 +205,17 @@ def request_secure_enough(request):
     return request.environ['SERVER_SOFTWARE'].startswith('Development') or \
         request.environ.get('HTTPS') == 'on'
 
+# The front page (/) is in this module because it's sensitive to login state
+class FrontPageHandler(AuthenticatedHandler):
+    def get(self):
+        o = self.response.out
+        common.header(o, 'Ghilbert home')
+        userobj = self.userobj
+        if userobj is not None:
+            template = 'FrontPageLogged'
+        else:
+            template = 'FrontPage'
+        content = gitcontent.get_wiki_html(template)
+        if content is None: content = '[wiki template for ' + template + ' is missing]'
+        o.write(content)
+

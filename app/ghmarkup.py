@@ -115,7 +115,11 @@ def wikilink(str, path='', exists = None, ispreblock = False, ctx = None):
     return '<a ' + aclass + 'href="' + urlquote(url) + '">' + htmlquote(body) + langtext+'</a>'
 
 def wikiurl(page):
-    return '/' + wikiwhat(page)
+    wikipath = wikiwhat(page)
+    if wikipath.startswith('/'):
+        return wikipath
+    else:
+        return '/' + wikipath
 
 def wikigh(str, ispreblock):
     return '<span class="sexp">' + htmlquote(str) + '</span>'
