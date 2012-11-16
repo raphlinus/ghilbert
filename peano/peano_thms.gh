@@ -6232,3 +6232,542 @@ thm (halfminusid () () (= (.- A A) (0))
   A pa_ax3r eqcomi eqtr
   (.- A A) A (0) addcan mpbi
 )
+
+# number 0.5
+thm (lincomgcd () () (lincom (S A) B (gcd (S A) B))
+x  (gcd (S A) B)  tyex
+  A  B  x  gcddiv1.2
+  pm3.27d
+  eqcoms 
+  x  (gcd (S A) B)  (S A)  B  lincomeq3    mpbid    
+  x  exani 
+ax-mp 
+)
+# number 0.9
+thm (dividesadd12 () () (-> (/\ (| A B) (| A C)) (| A (+ B C)))
+  A  B  x  df-divides    biimpi
+    A  C  y  df-divides    biimpi
+  anim12i
+  x  (= (* A x) B)  y  (= (* A y) C)  exey    syl
+   z  (+ x y)  tyex
+    (* A x)  B  (* A y)  C  addeq12
+    A  x  y  distr    (+ B C)  eqeq1i    sylibr  
+      z  (+ x y)  A  muleq2
+      (+ B C)  eqeq1d
+      biimprd
+      com12
+      z  19.22d
+    syl  
+   mpi
+   y  exani
+   x  exani
+  syl  
+    A  (+ B C)  z  df-divides
+  sylibr
+)
+# number 0.95
+thm (divideslincom () () (-> (/\ (| (S A) B) (| (S A) C)) (-> (lincom B C D) (| (S A) D)))
+B  C  D  w  x  y  z  df-lincom
+  (S A)  B  w  dividesmul
+  B  w  mulcom  (* B w)  (* w B)  (S A)  divideseq2    ax-mp   sylib
+    (S A)  C  x  dividesmul
+    C  x  mulcom  (* C x)  (* x C)  (S A)  divideseq2    ax-mp   sylib
+  anim12i
+  (S A)  (* w B)  (* x C)  dividesadd12    syl
+    (+ (* w B) (* x C))  (+ (+ (* y B) (* z C)) D)  (S A)  divideseq2    biimpd  
+  mpan9
+  ex    com12
+
+ (S A)  B  y  dividesmul
+  B  y  mulcom  (* B y)  (* y B)  (S A)  divideseq2    ax-mp   sylib
+    (S A)  C  z  dividesmul
+    C  z  mulcom  (* C z)  (* z C)  (S A)  divideseq2    ax-mp   sylib
+  anim12i
+  (S A)  (* y B)  (* z C)  dividesadd12    syl
+
+  A  (+ (* y B) (* z C))  D  dividesadd.2    syl
+  
+  sylcom    
+
+  z  exani    y  exani    x  exani    w  exani    sylbi
+  com12
+)
+# number 1.0
+thm (gcd () () (-> (/\ (| (S A) (S B)) (| (S A) C)) (| (S A) (gcd (S B) C)))
+  B  C  lincomgcd
+  A  (S B)  C  (gcd (S B) C)  divideslincom
+mpi
+)
+# number 2.5
+thm (lincomcom () () (<-> (lincom A B C) (lincom B A C))
+  A  B  C  w  x  y  z  df-lincom
+    (* w A)  (* x B)  addcom
+      (* y A)  (* z B)  addcom    C  addeq1i
+    eqeq12i
+    z  exbii
+    y  exbii
+    y  z  (= (+ (* x B) (* w A)) (+ (+ (* z B) (* y A)) C))  excom    bitri
+    x  exbii
+    w  exbii
+    w  x  (E. z (E. y (= (+ (* x B) (* w A)) (+ (+ (* z B) (* y A)) C))))  excom    bitri
+  bitri
+    B  A  C  x  w  z  y  df-lincom
+  bitr4i
+)
+# number 3.0
+#!thm (gcdcom () () (= (gcd A B) (gcd B A)
+# number 4.0
+thm (gcdcom () () (= (gcd A B) (gcd B A))
+  A  B  x  df-gcd
+    A  B  x  lincomcom
+    (-. (= x (0)))  anbi2i
+    x  gen
+    x  (/\ (-. (= x (0))) (lincom A B x))  (/\ (-. (= x (0))) (lincom B A x))  abeq2    ax-mp
+    ({|} x (/\ (-. (= x (0))) (lincom A B x)))  ({|} x (/\ (-. (= x (0))) (lincom B A x)))  mineq    ax-mp
+  eqtr
+  B  A  x  df-gcd   eqtr4
+) 
+# number 7.0
+thm (primegcd () () (-> (prime (S A)) (\/ (| (S A) (S B)) (= (gcd (S A) (S B)) (1))))
+A  (S B)  gcddiv1
+  (S A)  x  df-prime    biimpi
+    x  (gcd (S A) (S B))  (S A)    divideseq1
+      x  (gcd (S A) (S B))  (1)  eqeq1
+      x  (gcd (S A) (S B))  (S A)  eqeq1  orbi12d
+    imbi12d
+    cla4g
+  syl    
+mpi
+
+B  (S A)  gcddiv1
+  (S A)  (S B)  gcdcom    (S A)  eqeq1i     biimpi
+  (gcd (S B) (S A))  (S A)  (S B)  divideseq1    biimpd  syl
+mpi
+
+(= (gcd (S A) (S B)) (1)) orim2i    syl
+
+(= (gcd (S A) (S B)) (1))  (| (S A) (S B))  orcom    sylib
+)
+# number 7.1
+thm (divides0 () () (| A (0))
+  x  (0)  tyex
+    x  (0)  A  muleq2
+    A  pa_ax5    syl6eq
+  x  19.22i    ax-mp
+  A  (0)  x  df-divides  mpbir
+)
+# number 7.2
+thm (0divides () () (<-> (| (0) A) (= (0) A))
+  (0)  A  x  df-divides
+    x  pa_ax5r    A  eqeq1i    
+    x  exbii
+  bitri
+  x  (= (0) A)   19.9    bitri
+)    
+# number 7.3
+thm (0primeideal () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0))))
+  A  (0)  B  muleq1
+  B  pa_ax5r    syl6eq
+    B  (0)  A  muleq2
+    A  pa_ax5    syl6eq
+  jaoi    
+
+    A  x  lefoo
+    x  a1suc    x  (1)  addcom  eqtr    A  eqeq1i  biimpri
+    B  muleq1d
+    (0)  eqeq1d   biimprd
+      x  B  mul0
+    syl6
+    x  exani    (= A (0))    orim2i    ax-mp
+    ori    com12    orrd
+  impbii    
+  bicomi
+)
+# number 7.4
+thm (0notprime () () (-. (prime (0)))
+
+
+x  (S (1))  tyex
+  (S (1))  divides0
+    x  (S (1))  (0)  divideseq1    biimprd
+  mpi
+    (1)  pa_ax1    (0)  (S (1))  eqcom    biimpri  con3i   ax-mp
+    x  (S (1))  (0)  eqeq1    biimpd    con3d    mpi
+      (0)  pa_ax1    
+        df-1    (0)  eqeq2i    biimpi    con3i    ax-mp
+        (0)  (1)  pa_ax2    biimpri   con3i  ax-mp 
+        df-1    (S (1))  eqeq1i    biimpi   eqcoms  con3i     ax-mp
+        x  (S (1))  (1)  eqeq1   biimpd    con3d    mpi
+      jca    ancomd
+      (= x (1))  (= x (0))  pm4.56    sylib
+    jca
+    (| x (0))  (\/ (= x (1)) (= x (0)))  annim     sylib
+    x  19.22i
+    ax-mp   
+
+
+  x  (-. (-> (| x (0)) (\/ (= x (1)) (= x (0)))))  df-ex
+  (-> (| x (0)) (\/ (= x (1)) (= x (0))))  notnot    x  albii    notbii    bitr4i
+  (0)  x  df-prime  biimpi    con3i  sylbi
+ax-mp
+)
+# number 7.5
+# Euclid's lemma, assuming A and B are not 0.
+thm (euclidlem.1 () () (-> (prime (S A)) (-> (| (S A) (* (S B) C)) (\/ (| (S A) (S B)) (| (S A) C))))
+   A  B  primegcd  ord
+      A  (S B)  lincomgcd
+      (gcd (S A) (S B))  (1)  (S A)  (S B)  lincomeq3    mpbii
+   syl6
+   (S A)  (S B)  (1)  w  x  y  z  df-lincom    syl6ib   
+
+
+       (S A)  dividessym  (S A)  (S A)  (* w C)  dividesmul    ax-mp
+         (S A)  w  mulcom    C  muleq1i   (S A)  w  C  mulass  eqtr3 
+         (* (* w (S A)) C)  (* (S A) (* w C))  (S A)  divideseq2    ax-mp  
+       mpbir
+         (S A)  (* (S B) C)  x  dividesmul    (* (S B) C)  x  mulcom   x  (S B)  C  mulass    eqtr4   (* (* (S B) C) x)  (* (* x (S B)) C)  (S A)  divideseq2    ax-mp    sylib
+      jctilb    
+      (S A)  (* (* w (S A)) C)  (* (* x (S B)) C)  dividesadd12    syl
+
+     (+ (* w (S A))  (* x (S B)))  (+ (+ (* y (S A))  (* z (S B))) (1))   C  muleq1
+     (* w (S A))  (* x (S B))  C  distl    syl5eqr 
+     (+ (* y (S A)) (* z (S B)))  (1)  C  distl    syl6eq
+     (* y (S A))  (* z (S B))  C  distl    (* (1) C)  addeq1i    syl6eq
+
+     (+ (* (* w (S A)) C) (* (* x (S B)) C))  (+ (+ (* (* y (S A)) C) (* (* z (S B)) C)) (* (1) C))  (S A)  divideseq2    syl    biimpd   
+
+     mpan9    
+     ex     
+
+       (S A)  dividessym  (S A)  (S A)  (* y C)  dividesmul    ax-mp
+         (S A)  y  mulcom    C  muleq1i   (S A)  y  C  mulass  eqtr3 
+         (* (* y (S A)) C)  (* (S A) (* y C))  (S A)  divideseq2    ax-mp  
+       mpbir
+         (S A)  (* (S B) C)  z  dividesmul    (* (S B) C)  z  mulcom   z  (S B)  C  mulass    eqtr4   (* (* (S B) C) z)  (* (* z (S B)) C)  (S A)  divideseq2    ax-mp    sylib
+       jctilb    
+       (S A)  (* (* y (S A)) C)  (* (* z (S B)) C)  dividesadd12    syl
+ 
+       A  (+ (* (* y (S A)) C) (* (* z (S B)) C))  (* (1) C)  dividesadd.2    syl
+
+       C  mulid    C  (1)  mulcom    eqtr3    C  (* (1) C)  (S A)  divideseq2    ax-mp
+    syl6ibr
+
+    syld   
+    com12
+       
+  z  19.22i    y   19.22i    x  19.22i    w  19.22i    syl6
+  z  (-> (| (S A) (* (S B) C)) (| (S A) C))  19.9    biimpi    y  exani    x  exani    w  exani    syl6
+  com23
+  imp
+  orrd
+  ex
+)
+# number 7.6
+# Removes one of the S marks from euclidlem.1 by considering the case A=0.
+# The other S mark will be removed in euclidlem by considering B=0.
+thm (euclidlem.2 () () (-> (prime A) (-> (| A (* (S B) C)) (\/ (| A (S B)) (| A C))))
+0notprime
+(0)  A  primeeq    biimprd    con3d    mpi
+con2i
+A  (0)  eqcom    notbii  sylibr
+A  x  lefoo    ori    syl
+  x  a1suc    x  (1)  addcom  eqtr     A  eqeq1i    biimpri
+x  19.22i    syl
+  (S x)  A  primeeq    biimprd   
+  (S x)  A  (* (S B) C)  divideseq1   biimprd    anim12d
+  x  B  C  euclidlem.1    imp    syl6
+    (S x)  A  (S B)  divideseq1    
+    (S x)  A  C  divideseq1    orbi12d
+  sylibd    
+x  exani    syl
+anabsi5
+ex
+)
+# number 8.0
+# Euclid's lemma.
+thm (euclidlem () () (-> (prime A) (-> (| A (* B C)) (\/ (| A B) (| A C))))
+  B  x  lefoo
+    A  divides0
+    B  (0)  A  divideseq2    biimprd    mpi
+    (| A C)  orcd    (| A (* B C))  a1d    (prime A)  a1d
+
+      x a1suc    x  (1)  addcom    (S x)  eqeq2i    mpbi
+      B  eqeq1i     biimpri
+       A  x  C  euclidlem.2
+        (S x)  B  C  muleq1
+        (* (S x) C)  (* B C)  A  divideseq2    syl    
+          (S x)  B  A  divideseq2    (| A C)  orbi1d
+        imbi12d  biimpd 
+       mpan9    
+      ancoms   ex    syl
+      x  exani
+    jaoi 
+  ax-mp
+)
+# number 9.0
+# primes(A B) shall mean that the first A elements of the list represented by
+# the beta-numeral B are all prime.
+thm (df-primes-just ((A x y) (B x y)) () (<->
+  (A. x (-> (< x A) (prime (beta B x))))
+  (A. y (-> (< y A) (prime (beta B y))))) 
+
+  (= x y)  id    A  lteq1d
+    x  y  B  betaeq2
+    (beta B x)  (beta B y)  primeeq    syl
+  imbi12d
+  alpha
+)
+
+defthm (df-primes wff (primes A B) ((A x) (B x)) ()
+    (<-> (primes A B)    (A. x (-> (< x A) (prime (beta B x)))))
+  y  A  B  x  df-primes-just) 
+# number 10.0
+# nondecr(A B) shall mean that the first A elements of the list represented by
+# the beta-numeral B are nondecreasing.
+thm (df-nondecr-just ((A x y) (B x y)) () (<->
+  (A. x (-> (< (S x) A) (<= (beta B x) (beta B (S x)))))
+  (A. y (-> (< (S y) A) (<= (beta B y) (beta B (S y))))))
+  (= x y)  id    suceqd    A  lteq1d
+
+    x  y  B  betaeq2
+    (beta B (S x))  leeq1d  
+
+      (= x y)  id    suceqd
+      (S x)  (S y)  B  betaeq2    syl
+      (beta B y)  leeq2d 
+    bitr2d
+    bicomd
+
+  imbi12d
+  alpha
+)
+
+defthm (df-nondecr wff (nondecr A B) ((A x) (B x)) ()
+    (<-> (nondecr A B)   (A. x (-> (< (S x) A) (<= (beta B x) (beta B (S x))))))
+  y  A  B  x  df-nondecr-just)
+
+
+# number 11.0
+# partprod(A B C) shall mean that the first A elements of the sequence in
+# beta-numeral B have their partial products in the beta-numeral C.
+# May act funky if A == 0.
+thm (df-partprod-just ((A x y) (B x y) (C x y)) () (<->
+  (/\ (= (beta B (0)) (beta C (0)))
+      (A. x (-> (< (S x) A) (= (beta C (S x)) (* (beta C x) (beta B x))))))
+  (/\ (= (beta B (0)) (beta C (0)))
+      (A. y (-> (< (S y) A) (= (beta C (S y)) (* (beta C y) (beta B y)))))))
+
+  (= x y)  id    suceqd    A  lteq1d
+
+    (= x y)  id    suceqd
+    (S x)  (S y)  C  betaeq2    syl
+      x  y  C  betaeq2
+        x  y  B  betaeq2
+      muleq12d 
+     eqeq12d 
+   imbi12d
+  alpha
+  (= (beta B (0)) (beta C (0)))  anbi2i
+)
+
+defthm (df-partprod wff (partprod A B C) ((A x) (B x) (C x)) ()
+    (<-> (partprod A B C) 
+      (/\ (= (beta B (0)) (beta C (0)))
+        (A. x (-> (< (S x) A) (= (beta C (S x)) (* (beta C x) (beta B x)))))))
+  B  C  y  A  x  df-partprod-just)
+
+# number 12.0
+# factorization(A, B, C, D) shall mean that D has been factored into A' primes,
+# which are listed nondecreasingly in the beta-numeral B.  The beta-numeral C
+# shall list the partial products alongside. 
+defthm (df-factorization  wff (factorization A B C D) () ()
+  (<-> (factorization A B C D)
+  (/\ (primes (S A) B)
+      (/\ (nondecr (S A) B)
+          (/\ (partprod (S A) B C)
+              (= D (beta C A))))))
+
+  (/\ (primes (S A) B)
+      (/\ (nondecr (S A) B)
+          (/\ (partprod (S A) B C)
+              (= D (beta C A)))))  biid
+)
+
+  
+# number 13.0
+# Any prime number has a trivial length-1 factorization.
+thm (exfactorization.0 ((A x)) () 
+  (-> (prime A) (E. x (factorization (0) x x A)))
+
+# x will be the beta-numeral of the length-1 list [A].
+  x  A  recursive.2.1
+# 1. primes [A]
+    (beta x (0))  A  primeeq    biimprd
+        z  (0)  lesuc    z  eq0le0    bitr4i    z  (0)  x  betaeq2    sylbi
+        (beta x z)  (beta x (0))  primeeq    syl    biimprcd    
+    syl6
+    imp
+    z  19.21ai
+    (S (0))  x  z  df-primes    sylibr
+    #ex
+
+# 2. nondecr 0' x  (for any x)
+      y  pa_ax1    (S y)  (0)    lesuc    (S y)  eq0le0    bitr4i    biimpi   eqcomd     con3i   ax-mp
+      (<= (beta x y) (beta x (S y)))  pm2.21i
+      y  gen
+        (S (0))  x  y  df-nondecr
+      biimpri  ax-mp
+      
+# 3. partprod 0' x x  (for any x)
+        (beta x (0))  eqid
+          y  pa_ax1    (S y)  (0)    lesuc    (S y)  eq0le0    bitr4i    biimpi   eqcomd     con3i   ax-mp
+          (= (beta x (S y)) (* (beta x y) (beta x y)))  pm2.21i
+          y  gen
+        pm3.2i           
+        (S (0))  x  x  y  df-partprod    mpbir
+
+# assemble
+          (beta x (0))  A  eqcom    biimpi    (prime A)  adantr       
+        jctilb
+      jctilb
+    jca
+
+    ex
+    com12
+    x  19.22d
+  mpi    
+
+    (0)  x  x  A  df-factorization    x  exbii
+  sylibr
+)
+# number 14.0
+# Third equality identity for factorization
+thm (factorizationeq3 () () (-> (= C C') (<-> (factorization A B C D) (factorization A B C' D)))
+
+  
+# just proving partprodeq3 in-place
+    C  C'  (0)  betaeq1    (beta B (0))  eqeq2d
+      C  C'  (S x)  betaeq1
+      C  C'  x  betaeq1    (beta B x)  muleq1d    eqeq12d
+      (< (S x) (S A))  imbi2d
+      x  19.21ai            19.15d    
+    anbi12d
+    (S A)  B  C  x  df-partprod    syl5bb
+    (S A)  B  C'  x  df-partprod    syl6bbr
+    
+  
+  C  C'  A  betaeq1
+  D  eqeq2d
+      
+  anbi12d  
+  (nondecr (S A) B)  anbi2d
+  (primes (S A) B)  anbi2d
+
+
+  A  B  C  D  df-factorization    syl5bb 
+  A  B  C'  D  df-factorization    syl6bbr
+)
+# number 14.0
+# Fourth equality identity for factorization
+thm (factorizationeq4 () () (-> (= A B) (<-> (factorization D C C' A) (factorization D C C' B)))
+
+  A  B  (beta C' D)  eqeq1
+  (partprod (S D) C C')  anbi2d
+  (nondecr (S D) C)  anbi2d
+  (primes (S D) C)  anbi2d
+  D  C  C'  B  df-factorization    syl6bbr 
+  D  C  C'  A  df-factorization    syl5bb
+)
+# number 14.5
+# First equality identity for factorization
+thm (factorizationeq1 () () (-> (= A B) (<-> (factorization A C C' D) 
+(factorization B C C' D)))
+
+# primeseq1
+A  B  pa_ax2    biimpi
+x  lteq2d    (prime (beta C x))  imbi1d    x  19.21ai    19.15d
+(S A)  C  x  df-primes    syl5bb
+(S B)  C  x  df-primes    syl6bbr
+
+
+# nondecreq1
+A  B  pa_ax2    biimpi
+(S x)  lteq2d    (<= (beta C x) (beta C (S x)))  imbi1d    x  19.21ai    19.15d
+(S A)  C  x  df-nondecr    syl5bb
+(S B)  C  x  df-nondecr    syl6bbr
+
+
+# partprodeq1
+  A  B  pa_ax2    biimpi
+  (S x)  lteq2d    (= (beta C' (S x)) (* (beta C' x) (beta C x)))  imbi1d    x  19.21ai    19.15d
+  (= (beta C (0)) (beta C' (0)))  anbi2d
+    (S A)  C  C'  x  df-partprod    syl5bb
+    (S B)  C  C'  x  df-partprod    syl6bbr
+    
+  
+  A  B  C'   betaeq2
+  D  eqeq2d
+
+#assemble
+  anbi12d  
+  anbi12d
+  anbi12d
+
+  A  C  C'  D  df-factorization    syl5bb 
+  B  C  C'  D  df-factorization    syl6bbr
+)
+# number 15.0
+thm (exfactorization.1 ((A y) (A z) (A w)) () (-> (= x A) 
+  (<-> (E. w (E. y (E. z (factorization w y z (S (S x))))))
+       (E. w (E. y (E. z (factorization w y z (S (S A))))))))
+(= x A)  id    suceqd    suceqd
+  (S (S x))  (S (S A))  w  y  z  factorizationeq4
+  z  exbid    y  exbid    w  exbid
+syl
+)
+# number 16.0
+# Existence of a factorization for any number bigger than 1.
+thm (exfactorization () () (E. x (E. y (E. y' (factorization x y y' (S (S A))))))
+
+# setup  
+w  (0)  x  y  y'  exfactorization.1
+w  (S z)  x  y  y'  exfactorization.1
+w  A  x  y  y'  exfactorization.1
+
+# base case: 2, being prime, has a factorization
+2prime
+  (1)  a1suc    df-1   (1)  (S (0))  pa_ax2  mpbi    eqtr3
+(+ (1) (1))  (S (S (0)))  primeeq    ax-mp  mpbi
+(S (S (0)))  y  exfactorization.0    ax-mp
+  y'  y  tyex
+    y'  y  (0)  y  (S (S (0)))  factorizationeq3
+    biimprd    y' 19.22i   ax-mp  
+    y  gen
+  pm3.2i    
+  y  (factorization (0) y y (S (S (0))))  (E. y' (-> (factorization (0) y y (S (S (0)))) (factorization (0) y y' (S (S (0))))))  19.29r    ax-mp
+  y'  (factorization (0) y y (S (S (0))))  (-> (factorization (0) y y (S (S (0)))) (factorization (0) y y' (S (S (0)))))  19.41l    biimpri   (factorization (0) y y (S (S (0))))  (factorization (0) y y' (S (S (0))))  pm3.35    y'  19.22i    syl    y  19.22i    ax-mp
+  x  gen  
+
+  x  (0)  tyex
+  x  (0)  y  y'  (S (S (0)))  factorizationeq1    biimprd    y'  19.22d  y  19.22d    x  19.22i    ax-mp
+pm3.2i
+
+x  (E. y (E. y' (factorization (0) y y' (S (S (0))))))  (-> (E. y (E. y' (factorization (0) y y' (S (S (0)))))) (E. y (E. y' (factorization x y y' (S (S (0)))))))  19.29   (E. y (E. y' (factorization (0) y y' (S (S (0))))))  (E. y (E. y' (factorization x y y' (S (S (0))))))  pm3.35    x  19.22i    syl    ax-mp
+
+
+
+# Strong induction step
+v  (S z)  primedivisor
+
+(S (S v))  (S (S z))  dividesle    (S (S v))  (S (S (S z)))  lefoo3  sylib
+(prime (S (S v)))  anim2i
+
+(=  w v)  id    z  leeq1d    
+  w  v  pa_ax2    biimpi    suceqd
+  (S (S w))  (S (S v))  x  y  y'  factorizationeq4    syl   
+  y'  exbid    y  exbid    x  exbid
+imbi12d
+cla4g
+ 
+  ?
+)
