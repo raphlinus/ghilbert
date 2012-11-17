@@ -47,6 +47,8 @@ class ProofFormatter:
         o.write('<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
         o.write('</head>\n')
         o.write('<body><h1>Proof of %s</h1>\n' % cgi.escape(thmname))
+    def write_header(self, header):
+        self.out.write('<h2>' + cgi.escape(header) + '</h2>\n')
     def write_proof_line(self, line):
         line = line.rstrip()
         sline = line.lstrip()
@@ -167,8 +169,23 @@ def trim_description(lines):
     i = len(lines)
     while i > 0:
         if lines[i - 1].startswith('#!'): break
+        if lines[i - 1].startswith('# =='): break
         i -= 1
     return lines[i:]
+
+def get_header_from_description(lines):
+    i = len(lines)
+    while i > 0:
+        line = lines[i - 1]
+        if line.startswith('#!'): break
+        if line.startswith('# == '):
+            line = line[5:]
+            line = line.rstrip()
+            if line.endswith(' =='):
+                line = line[:-3]
+            return line.strip()
+        i -= 1
+    return None
 
 class ShowThm:
     def __init__(self, s, out, linkable_thms, style, url):
@@ -387,7 +404,10 @@ class ListThmsPage(webapp2.RequestHandler):
         runner.run(urlctx, url, ctx, DevNull())
         logging.debug(`runner.thmlist`)
         for error, thm_name, hypotheses, conclusion, lines in runner.thmlist:
-            lines = trim_description(lines)
+            header = get_header_from_description(lines)
+            if header is not None:
+                formatter.write_header(header)
+                lines = trim_description(lines)
             description = []
             for i in range(len(lines)):
                 line = lines[i].strip()
