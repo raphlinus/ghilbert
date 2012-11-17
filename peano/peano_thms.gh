@@ -1,8 +1,5 @@
 # Building up theorems of peano arithmetic.
 
-# until param is working...
-#import (COMBINED combined.ghi () "")
-
 import (PROP prop.ghi () "")
 import (PEANO_MIN peano_min.ghi (PROP) "")
 
@@ -12,7 +9,7 @@ tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C')
 var (nat v w x y z v' w' x' y' z')
 
-# Pure predicate calculus
+# == Pure predicate calculus ==
 
 thm (a4i ()
   (hyp (A. x ph))
@@ -185,6 +182,11 @@ thm (19.26 () ()
   impbii
 )
 
+# 19.26 with reversed
+thm (alan12 () () (-> (/\ (A. x ph) (A. x ps)) (A. x (/\ ph ps)))
+  x ph ps 19.26 biimpri
+)
+
 thm (19.29 () ()
   (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps)))
   x ph (-. ps) ax-alim
@@ -299,7 +301,71 @@ thm (aaan ((ph y) (ps x)) ()
   x ph (A. y ps) alan2 bitri
 )
 
-# Predicat#e calculus with equality
+thm (ex6 () () (-> (E. x ph) (A. x (E. x ph)))
+     x ph df-ex
+       x (-. ph) ax-6
+     sylbi
+       x ph df-ex x albii
+     sylibr)
+
+thm (axex () () (<-> (A. x (E. x ph)) (E. x ph))
+     x (E. x ph) ax-4
+     x ph ex6
+     impbii)
+
+thm (exax1 () () (-> (E. x (A. x ph)) (A. x ph))
+     x (A. x ph) df-ex
+       x ph ax-6 con1i
+     sylbi)
+
+thm (exax () () (<-> (E. x (A. x ph)) (A. x ph))
+     x ph exax1
+     (A. x ph) x 19.8a
+     impbii)
+
+thm (exax1d () (1 (-> ph (E. x (A. x ps)))) (-> ph (A. x ps))
+     1 x ps exax1 syl)
+
+thm (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps)))
+     ph ps pm2.27 x 19.20i
+       x (-> ph ps) ps 19.22
+     syl com12)
+
+thm (eximp1d () (1 (-> ph (E. x (-> ps ch)))) (-> ph (-> (A. x ps) (E. x ch)))
+     1 x ps ch eximp1 syl)
+
+thm (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps)))
+     ph ps pm2.27 x 19.22i eximp1d
+     )
+
+thm (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps))))
+     x ph (/\ ph ps) mpexax
+       ph ps ancl x 19.20i
+     syl5
+     )
+
+# Commutativity of existential operators
+thm (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph)))
+  y  ph  df-ex  x  exbii
+  x  (-. (A. y (-. ph)))  df-ex  bitri
+  (A. y (-. ph)) notnot  x  albii  notbii  bitr4i
+  x  y  (-. ph)  ax-7  y  x  (-. ph)  ax-7  impbii  notbii  bitri
+
+    x  ph  df-ex  y  exbii
+    y  (-. (A. x (-. ph)))  df-ex  bitri
+    (A. x (-. ph)) notnot  y  albii  notbii  bitr4i
+  bitr4i
+)
+
+# A variant of 19.37
+thm (imex ((ph x)) () (<-> (-> ph (E. x ps)) (E. x (-> ph ps)))
+   ph  (E. x ps)  imor    (-. ph) (E. x ps) orcom  bitri
+
+   x  ps  (-. ph)  exor2   bitr4i
+  ph  ps   imor  (-. ph)  ps  orcom  bitri x  exbii  bitr4i
+)
+
+# == Predicate calculus with equality ==
 
 thm (tyex ((A x)) ()
   (E. x (= x A))
@@ -481,6 +547,15 @@ thm (ceqsal ((A x) (ps x))
   x A tyex ps a1bi bitr4i
 )
 
+thm (ceqsex ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (E. x (/\ (= x A) ph)) ps)
+
+  hyp pm5.32i x exbii
+  x (= x A) ps 19.41 bitri
+  x A tyex mpbiran
+)
+
 thm (substex ((ph x y) (ps y) (ch x) (A y))
   (hyp (-> (/\ ph (/\ (= y A) ps)) ch))
   (-> (/\ ph (E. x ps)) (E. y ch))
@@ -492,31 +567,6 @@ thm (substex ((ph x y) (ps y) (ch x) (A y))
   x ps (E. y ch) 19.23 sylib imp
 )
 
-thm (ex6 () () (-> (E. x ph) (A. x (E. x ph)))
-     x ph df-ex
-       x (-. ph) ax-6
-     sylbi
-       x ph df-ex x albii
-     sylibr)
-
-thm (axex () () (<-> (A. x (E. x ph)) (E. x ph))
-     x (E. x ph) ax-4
-     x ph ex6
-     impbii)
-
-thm (exax1 () () (-> (E. x (A. x ph)) (A. x ph))
-     x (A. x ph) df-ex
-       x ph ax-6 con1i
-     sylbi)
-
-thm (exax () () (<-> (E. x (A. x ph)) (A. x ph))
-     x ph exax1
-     (A. x ph) x 19.8a
-     impbii)
-
-thm (exax1d () (1 (-> ph (E. x (A. x ps)))) (-> ph (A. x ps))
-     1 x ps exax1 syl)
-
 # Version of ax-11 using E.
 #thm (ex11 () () (-> (= x y) (-> (E. x (/\ (= x y) ph)) (E. y ph)))
 #     x y (-. ph) ax-11
@@ -526,24 +576,6 @@ thm (exax1d () (1 (-> ph (E. x (A. x ps)))) (-> ph (A. x ps))
 #     syl6 con4d
 #       (= x y) ph df-an x exbii biimpi
 #     syl5)
-
-
-thm (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps)))
-     ph ps pm2.27 x 19.20i
-       x (-> ph ps) ps 19.22
-     syl com12)
-
-thm (eximp1d () (1 (-> ph (E. x (-> ps ch)))) (-> ph (-> (A. x ps) (E. x ch)))
-     1 x ps ch eximp1 syl)
-
-thm (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps)))
-     ph ps pm2.27 x 19.22i eximp1d
-     )
-thm (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps))))
-     x ph (/\ ph ps) mpexax
-       ph ps ancl x 19.20i
-     syl5
-     )
 
 thm (sbaxex () () (-> (A. x (-> (= x y) ph)) (E. x (/\ (= x y) ph)))
      x y tyex
@@ -587,7 +619,7 @@ thm (alpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps)))
   impbii
 )
 
-# substitution thms
+# == Substitution thms ==
 
 thm (df-subst-just ((A z y) (ph z y)) ()
       (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph))))
@@ -622,15 +654,6 @@ thm (a4sbc () ()
   y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
   (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
   A x ph y df-subst sylibr
-)
-
-thm (ceqsex ((ps x) (A x))
-  (hyp (-> (= x A) (<-> ph ps)))
-  (<-> (E. x (/\ (= x A) ph)) ps)
-
-  hyp pm5.32i x exbii
-  x (= x A) ps 19.41 bitri
-  x A tyex mpbiran
 )
 
 thm (sbc5 ((A x)) ()
@@ -711,7 +734,7 @@ thm (rwffi ((ps x) (ph y))
   x ph df-rwff mpbir
 )
 
-# Exists unique
+# == Existential uniqueness ==
 
 defthm (df-eu wff (E! x ph) ((ph y)) ()
           (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
@@ -838,6 +861,13 @@ thm (eu3 ((ph y)) (h (rwff x ph))
   h y eu2 h y mo (E. x ph) anbi2i bitr4i
 )
 
+# There is exactly one number equal to a given number.
+thm (tyeu ((A x)) () (E! x (= x A))
+  y  A  tyex
+    y  A  x  eqeq2  bicomd  x  19.21ai  y  19.22i  ax-mp
+    x  (= x A)  y  df-eu  mpbir
+)
+
 # Exists at most one
 
 defthm (df-mo wff (E* x ph) () ()
@@ -877,11 +907,10 @@ thm (eu4 ((ph y) (ps x))
   h rwffi eu5 h mo4 (E. x ph) anbi2i bitri
 )
 
-# Peano arithmetic
+# == Basic Peano arithmetic ==
 
 defthm (df-1 num (1) () () (= (1) (S (0)))
         (S (0)) eqid)
-
 
 thm (addeq1 () ()
   (-> (= A B) (= (+ A C) (+ B C)))
@@ -890,19 +919,6 @@ thm (addeq1 () ()
 thm (addeq2 () ()
   (-> (= A B) (= (+ C A) (+ C B)))
   C eqid C C A B addeq12 mpan)
-
-thm (df-le-just ((A x) (B x) (A y) (B y)) ()
-       (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
-      x y A addeq2 B eqeq1d exalpha)
-
-# Definition of less than or equal to.
-defthm (df-le wff (<= A B) ((A x) (B x)) ()
-        (<-> (<= A B) (E. x (= (+ A x) B)))
-        # WTS (<-> (E. y (= (+ A y) B)) (E. x (= (+ A x) B)))
-        y A B x df-le-just)
-
-defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
-        (/\ (<= A B) (-. (= A B))) biid)
 
 thm (addeq12i ()
   (hyp1 (= A B)
@@ -1121,6 +1137,7 @@ thm (add4 () ()
   (+ A C) B D addass eqtr
 )
 
+# Distribution of addition through multiplication
 thm (distr () ()
   (= (* A (+ B C)) (+ (* A B) (* A C)))
 
@@ -1139,6 +1156,20 @@ thm (distr () ()
   finds
 )
 
+# Distribution of addition through multiplication, left argument
+thm (distl () ()
+  (= (* (+ A B) C) (+ (* A C) (* B C)))
+
+   (+ A B) C mulcom C A B distr eqtr
+   C A mulcom C B mulcom addeq12i eqtr)
+
+# Distribution of addition through multiplication, both arguments
+thm (distrl () ()
+  (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
+  (+ A B) C D distr
+    A B C distl A B D distl addeq12i eqtr)
+
+# Multiplication is associative
 thm (mulass () ()
   (= (* (* A B) C) (* A (* B C)))
 
@@ -1158,6 +1189,7 @@ thm (mulass () ()
   finds
 )
 
+# Cancellation of addition
 thm (addcan () ()
   (<-> (= (+ B A) (+ C A)) (= B C))
   x (0) B addeq2 x (0) C addeq2 eqeq12d (= B C) bibi1d
@@ -1172,11 +1204,25 @@ thm (addcan () ()
   finds
 )
 
+# Cancellation of addition, left argument
 thm (addcan2 () ()
   (<-> (= (+ A B) (+ A C)) (= B C))
   A B addcom A C addcom eqeq12i
     B A C addcan bitri
 )
+
+thm (df-le-just ((A x) (B x) (A y) (B y)) ()
+       (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
+      x y A addeq2 B eqeq1d exalpha)
+
+# Definition of less than or equal to.
+defthm (df-le wff (<= A B) ((A x) (B x)) ()
+        (<-> (<= A B) (E. x (= (+ A x) B)))
+        # WTS (<-> (E. y (= (+ A y) B)) (E. x (= (+ A x) B)))
+        y A B x df-le-just)
+
+defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
+        (/\ (<= A B) (-. (= A B))) biid)
 
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
@@ -1425,7 +1471,7 @@ thm (lemul2 () ()
 
 export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
 
-# Some naive set theory
+# == Some naive set theory ==
 
 import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
 
@@ -1436,6 +1482,22 @@ thm (eqri ((S x) (T x))
   (hyp (<-> (e. x S) (e. x T)))
   (=_ S T)
   hyp x gen S T x df-seq mpbir
+)
+
+# Set equality is reflexive
+thm (seqid () () (=_ S S)
+  (e. x S)  biid  x gen
+  S  S  x  df-seq  biimpri  ax-mp
+)
+
+# Commutativity of set equality
+thm (seqcom () () (<-> (=_ S T) (=_ T S))
+  S  T  x  df-seq
+    (e. x T)  (e. x S)  bicom
+    x albii
+  bitr4i
+  T  S  x  df-seq
+  bitr4i
 )
 
 thm (eleq2 () ()
@@ -1523,6 +1585,41 @@ thm (snid () ()
   mpbir
 )
 
+# Alpha conversion for set abstraction
+thm (abeq ((ph y) (ps x))
+  (h1 (-> (= x y) (<-> ph ps)))
+  (=_ ({|} x ph) ({|} y ps))
+  z  x  ph  ax-elab
+  z  x  ph  y' df-subst    bitri
+      z  y  ps  ax-elab
+      z  y  ps  y' df-subst    bitri
+          x  y  y'  ax-eqtr    ex
+          y  x  y'  ax-eqtr    ex    eqcoms  impbid
+          h1    anbi12d
+          exalpha
+          (= y' z)  anbi2i
+          y'  exbii
+      bitr4i
+  bitr4i
+  eqri
+)
+
+# Equality theorem for set abstraction
+thm (abeq2 () ()
+    (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
+    x  (<-> ph ps)  ax-4
+    y  x  sbcbid
+    y  x  ph  ax-elab    syl5bb
+    y  x  ps  ax-elab    syl6bbr
+    y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
+)
+
+# Equality inference for set abstraction
+thm (abeq2i () (h (<-> ph ps))
+  (=_ ({|} x ph) ({|} x ps))
+  h x gen x ph ps abeq2 ax-mp
+)
+
 # Proofs in progress:
 
 # Would it be cleaner to write (-> (-. (=_ S ({/})))) for the antecedent?
@@ -1550,7 +1647,9 @@ thm (snid () ()
 # thm (divcan4 () ()
 #   (-> (< 0 B) (= (div (* A B) B) A))
 # ?)
+#!
 
+# == Ordered pair ==
 
 # number 1.0
 thm (opth1 () ()
@@ -1564,24 +1663,12 @@ thm (opth1 () ()
 
 # number 2.5
 thm (nalexi () (hyp (-. (A. x (-. ph)))) (E. x ph)
-  hyp x ph df-ex bicomi mpbi)
-# number 3.0
-#!thm (test () () (E. x (= x (0)))
-#!  x (0) ax-tyex nalexi)
+  hyp x ph df-ex mpbir)
+
 # number 4.0
 thm (impexpi  () (hyp (-> (/\ ph ps) ch)) (-> ps (-> ph ch))
   hyp ancoms ps ph ch impexp mpbi)
-# number 5.0
-thm (distl () ()
-  (= (* (+ A B) C) (+ (* A C) (* B C)))
 
-   (+ A B) C mulcom C A B distr eqtr
-   C A mulcom C B mulcom addeq12i eqtr)
-# number 6.0
-thm (distrl () ()
-  (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
-  (+ A B) C D distr
-    A B C distl A B D distl addeq12i eqtr)
 # number 7.0
 thm (lemul3lem1 () (hyp (-> ph (= (+ A B) C))) (-> ph (<= A C))
   A B addge01t
@@ -1631,7 +1718,8 @@ thm (addassrli () (h (= A (+ B (+ C D))))
    (= A (+ (+ B C) D))
    h
    B C D addass eqtr4)
-# number 13.0
+
+# One is an identity of multiplication
 thm (mulid () ()
   (= (* A (1)) A)
     df-1  (1) (S (0)) A muleq2 ax-mp
@@ -1639,9 +1727,9 @@ thm (mulid () ()
       A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3
     eqtr
   eqtr)
-# number 14.0
+
 thm (ltmul () () (
-  -> (/\(< A B) (< C D)) (< (* A C) (* B D)))
+  -> (/\ (< A B) (< C D)) (< (* A C) (* B D)))
   A B nnltp1let C D nnltp1let anbi12i
   (+ A (1)) B (+ C (1)) D lemul3 sylbi
 
@@ -1655,7 +1743,8 @@ thm (ltmul () () (
   jctil
   (+ (* A C) (1)) (* (+ A (1)) (+ C (1))) (* B D) letr syl
   (* A C) (* B D) nnltp1let sylibr)
-# number 15.0
+
+# Squaring (of nonnegative numbers) is monotonic
 thm (sqle () ()
   (<-> (<= A B) (<= (* A A) (* B B)))
   A B A B lemul3 anidms
@@ -1673,6 +1762,7 @@ thm (lteq1d () (hyp (-> ph (= A B)))
  sylib
  con4bid
 )
+
 # number 17.0
 thm (muleq12d ()
   (hyp1 (-> ph (= A B))
@@ -1708,7 +1798,8 @@ thm (sqrtlem1 ((A x)) ()
   (= y A) id (* (S x) (S x)) lteq1d
   anbi12d x exbid
 )
-# number 20.0
+
+# Transitive law
 thm (lelttr () ()
   (-> (/\ (<= A B) (< B C)) (< A C))
   A B (1) leadd1
@@ -1723,7 +1814,8 @@ thm (lelttr () ()
 thm (lteq1i () (h (= A B))
   (<-> (< A C) (< B C))
   h (= A B) id C lteq1d ax-mp)
-# number 22.0
+
+# Commutation of conjuncts in consequent
 thm (ancomd () (h (-> ph (/\ ps ch)))
   (-> ph (/\ ch ps))
   h
@@ -1731,6 +1823,7 @@ thm (ancomd () (h (-> ph (/\ ps ch)))
 
  sylib
 )
+
 # number 24.0
 thm (sqrtlem6 () ()
   (-> (E. x (/\ (<= (* x x) y) (< y (* (S x) (S x)))))
@@ -1825,7 +1918,7 @@ thm (sqrtlem6 () ()
   anbi12d exalpha sylib
 )
 
-# number 25.0
+# Square root
 thm (sqrt ((A x)) ()
    (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
   z (0) x sqrtlem1
@@ -1836,7 +1929,8 @@ thm (sqrt ((A x)) ()
   x y sqrtlem6
   finds
 )
-# number 26.0
+
+# Square root is monotonic
 thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
   B A sqle
   notbii
@@ -1848,7 +1942,8 @@ thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
   bitr3i
   (< A B) notnot bicomi bitri bicomi
 )
-# number 27.0
+
+# Trichotomy law (may be a poor choice of name)
 thm (lesym () ()
   (<-> (= A B) (/\ (<= A B) (<= B A)))
   # A=B -> A<=B
@@ -1877,8 +1972,8 @@ thm (lesuc () ()
    B a1suc   (+ A (1)) leeq2i bitri
    A B (1) leadd1 bicomi bitri
 )
-# number 29.0
 
+# Square root is unique
 thm (sqrtuniq () ()
    (-> (/\ (/\ (<= (* A A) B) (< B (* (S A) (S A))))
            (/\ (<= (* C C) B) (< B (* (S C) (S C)))))
@@ -1980,7 +2075,8 @@ thm (opthlem3 () ()
   (* (+ C D) (+ C D)) B D addcan2
   sylib
 )
-# number 33.0
+
+# Ordered pair theorem
 thm (opth () ()
     (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
   A B C D opthlem2
@@ -2001,11 +2097,102 @@ thm (opth () ()
 
  impbii
 )
-# number 33.5
+
+# number 78.0
+thm (opeq2 () () (-> (= A B) (= (<,> C A) (<,> C B)))
+  A  B  C  addeq2
+  A  B  C  addeq2  jca
+  (+ C A)  (+ C B)  (+ C A)  (+ C B)  muleq12    syl
+  ancri
+  (* (+ C A) (+ C A))  (* (+ C B) (+ C B))  A  B  addeq12    syl
+  C  A  df-op       syl5eq
+  C  B  df-op       syl6eqr
+)
+# number 78.5
+thm (opeq1 () () (-> (= A B) (= (<,> A C) (<,> B C)))
+    A  B  C  addeq1    A  B  C  addeq1    jca
+    (+ A C) (+ B C) (+ A C) (+ B C) muleq12    syl
+    C  addeq1d
+        A  C  df-op
+    syl5eq
+    B  C  df-op   syl6eqr
+)
+# number 79.0
+thm (df-tail-just ((A x) (A y') (A y) (A z)) ()
+    (= (iota ({|} x (E. y (= (<,> y x) A))))
+       (iota ({|} z (E. y' (= (<,> y' z) A)))))
+  x  z  y  opeq2  A  eqeq1d    y  exbid
+  y  y'  z  opeq1    A  eqeq1d   exalpha   syl6bb    abeq
+  ({|} x (E. y (= (<,> y x) A)))  ({|} z (E. y' (= (<,> y' z) A)))    ax-iotaeq    ax-mp
+)
+defthm  (df-tail num (tail A) ((A x) (A y')) ()
+  (= (tail A)  (iota ({|} x (E. y' (= (<,> y' x) A)))))
+  z  y  A  x  y'  df-tail-just)
+
+# number 80.0
+thm (tailop () () (= (tail (<,> A B)) B)
+  (<,> A B)  x  z  df-tail
+    z  x  A  B  opth    z  exbii
+    z  (= z A)  (= x B)  19.41   bitri
+    z  A  tyex    (E. z (= z A))  (= x B)  ibar    ax-mp    bitr4i
+    x  gen    x  (E. z (= (<,> z x) (<,> A B)))  (= x B)  abeq2    ax-mp
+    ({|} x (E. z (= (<,> z x) (<,> A B))))  ({|} x (= x B))  ax-iotaeq    ax-mp
+  eqtr
+  B  x df-sn    ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp    eqtr4
+  B  ax-iota    eqtr
+)
+# number 81.0
+thm (df-head-just ((A x) (A y') (A y) (A z)) ()
+    (= (iota ({|} x (E. y (= (<,> x y) A))))
+       (iota ({|} z (E. y' (= (<,> z y') A)))))
+  x  z  y  opeq1  A  eqeq1d    y  exbid
+  y  y'  z  opeq2    A  eqeq1d   exalpha   syl6bb    abeq
+  ({|} x (E. y (= (<,> x y) A)))  ({|} z (E. y' (= (<,> z y') A)))   ax-iotaeq    ax-mp
+)
+defthm  (df-head num (head A) ((A x) (A y')) ()
+  (= (head A)  (iota ({|} x (E. y' (= (<,> x  y') A)))))
+  z  y  A  x  y'  df-head-just)
+
+# number 83.0
+thm (headop () () (= (head (<,> A B)) A)
+  (<,> A B)  x  z  df-head
+
+
+    x  z  A  B  opth    z  exbii
+    z  (= x A)  (= z B)  19.41r   bitri
+    z  B  tyex    (E. z (= z B))  (= x A)  iba    ax-mp    bitr4i
+    x  gen    x  (E. z (= (<,> x z) (<,> A B)))  (= x A)  abeq2    ax-mp
+    ({|} x (E. z (= (<,> x z) (<,> A B))))  ({|} x (= x A))  ax-iotaeq    ax-mp
+  eqtr
+  A  x df-sn    ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp    eqtr4
+  A  ax-iota    eqtr
+)
+
+# Equality theorem for head
+thm (headeq () () (-> (= A B) (= (head A) (head B)))
+  A  B  (<,> x y)  eqeq2  y  exbid   x  19.21ai
+  x  (E. y (= (<,> x y) A))  (E. y (= (<,> x y) B))  abeq2    syl
+  ({|} x (E. y (= (<,> x y) A)))  ({|} x (E. y (= (<,> x y) B)))  ax-iotaeq  syl
+  A  x  y  df-head  syl5eq
+  B  x  y  df-head  syl6eqr
+)
+
+# Equality theorem for tail
+thm (taileq () () (-> (= A B) (= (tail A) (tail B)))
+  A  B  (<,> y x)  eqeq2  y  exbid  x  19.21ai
+  x (E. y (= (<,> y x) A))  (E. y (= (<,> y x) B))  abeq2  syl
+  ({|} x (E. y (= (<,> y x) A)))  ({|} x (E. y (= (<,> y x) B)))  ax-iotaeq  syl
+  A  x  y  df-tail  syl5eq
+  B  x  y  df-tail  syl6eqr
+)
+
+# == Iota ==
+
 thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
   x ph 19.9 biimpi
 )
-# number 34.0
+
+# Existential uniqueness implies iota is a member
 thm (iotacl ((S x)) ()
    (-> (E! x (e. x S)) (e. (iota S) S))
   x (e. x S) y df-eu biimpi
@@ -2025,6 +2212,52 @@ thm (iotacl ((S x)) ()
     y (e. (iota S) S) ex-nf
   syl
 )
+
+# Another iota utility theorem.  Asserts that if exactly one x has the property
+# ph, then that x can be found using iota.
+thm (iotacl2 () ()
+   (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
+x  ph  y  df-eu   biimpi
+  x  ph  (= x y)  abeq2
+    ({|} x ph)  ({|} x (= x y))  ax-iotaeq
+      y  x  df-sn    ({} y)  ({|} x (= x y))  ax-iotaeq  ax-mp
+  y  ax-iota       eqtr3     (iota ({|} x ph))  eqeq2i  biimpi    syl  syl
+   (iota ({|} x ph))  y  x  ph  dfsbcq   biimprd  syl
+   (iota ({|} x ph))  x  ph  ax-elab   syl6ibr
+    ph  (= x y)  bi2  x  19.20i
+    x  (-> (= x y) ph)  y  a4sbc    syl
+
+    y  x  (-> (= x y) ph)  z  df-subst   sylib
+    x  (= z y)  (/\ (= x z) (-> (= x y) ph))  19.41l   biimpri  z  19.22i    #syl
+      # ugh.
+      (= z y)  (= x z)  (-> (= x y) ph)  anass
+        (= z y)  (= x z)  (-> (= x y) ph)  anass
+          (= z y)  (= x z)  (-> (= x y) ph)  anass
+          z  y  x  ax-eqtr   z  x  eqcom        sylan2br   (-> (= x y) ph)  anim1i     sylbir
+          y  x  eqcom    biimpi    (-> (= x y) ph)  anim1i  syl
+         (= x y)  ph  pm3.35    syl
+        sylbi  (/\ (= z y) (= x z))  (-> (= x y) ph)  ph  pm5.3      mpbi
+       sylbir
+      (= z y)  (= x z)  ph  anass  sylib
+     x  19.22i  z  19.22i  syl
+    x  (= z y)  (/\ (= x z)  ph)  19.41l  biimpi  z  19.22i  syl
+   syl
+   y  x  ph  z  df-subst    sylibr
+ jca
+ ([/] y x ph)  (e. (iota ({|} x ph)) ({|} x ph))  pm3.35  ancoms  syl
+ y  19.22i  syl
+ y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
+)
+
+# Basic identity for iota
+thm (iotaeq () ()
+  (= (iota ({|} x (= x A))) A)
+  A x df-sn
+  ({} A) ({|} x (= x A)) ax-iotaeq ax-mp eqcomi
+  A ax-iota eqtr
+)
+
+# == Division, primality ==
 
 # number 36.5
 thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
@@ -2469,7 +2702,9 @@ thm (exfactoriallem3 () ()
     exalpha1
   syl
 )
-# number 55.0
+
+# There exists a number that is divided all numbers up to #(S A)#. While factorial is
+# certainly one such, it's not the only, so perhaps this is not an ideal name.
 thm (exfactorial ((A x) (A y)) ()
     (E. x (A. y (-> (<= (S y) (S A))
                      (| (S y) (S (S x))))))
@@ -2481,7 +2716,8 @@ thm (exfactorial ((A x) (A y)) ()
     x y y' exfactorial.3
     finds
 )
-# number 56.0
+
+# Equality theorem for primeness
 thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
     A B x divideseq2
       A B x eqeq2
@@ -2547,7 +2783,7 @@ thm (sindlem1 ()
 
   ph  pm1.2    syl8
 )
-# number 59.0
+
 # Strong Induction.
 thm (sind ((A x) (ta x) (ph y))                    # ph(x) is some term in x; ph(A) is to be proved
   (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
@@ -2603,7 +2839,7 @@ hyp4
 vtocl
 )
 
-# number 59.5
+# Zero doesn't divide any positive number
 thm (not0divides () () (-. (| (0) (S A)))
   A pa_ax1
     (0)  (S A)  x  df-divides    biimpi
@@ -2693,7 +2929,8 @@ thm (lesuc1 () ()
   A  a1suc    (+ B (1))  leeq1i    bitr4i
   B  a1suc    (S A)  leeq2i    bitr4i
 )
-# number 63.0
+
+# The "divides" relation is transitive
 thm (dividestr () ()
   (-> (/\ (| A B) (| B C)) (| A C))
     A  B  x  df-divides    biimpi
@@ -2885,7 +3122,7 @@ thm (infprime.1 ((A x)) () (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x)))))
     y  (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x)))))  19.9    mpbi
 )
 
-# number 71.0
+# Primes are infinite
 thm (infprime ((A x)) () (E. x (/\ (< A x) (prime x)))
 
 y  A  infprime.1
@@ -2906,7 +3143,8 @@ y  (E. x (/\ (< (S (S A)) x) (prime x)))  19.9  mpbi
     (prime x)  anim1i
 x  19.22i    ax-mp
 )
-# number 72.0
+
+# Existential uniqueness of sqrt
 thm (sqrteu ((A x)) () (E! x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
     y  A  sqrt
         y  A  x  sqrtuniq    ex    y  x  eqcom    syl6ib
@@ -2918,24 +3156,7 @@ thm (sqrteu ((A x)) () (E! x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
         x  (/\ (<= (* x x) A) (< A (* (S x) (S x))))  y  df-eu    biimpri
     ax-mp
 )
-# number 73.0
-thm (abeq ((ph y) (ps x))
-  (h1 (-> (= x y) (<-> ph ps)))
-  (=_ ({|} x ph) ({|} y ps))
-  z  x  ph  ax-elab
-  z  x  ph  y' df-subst    bitri
-      z  y  ps  ax-elab
-      z  y  ps  y' df-subst    bitri
-          x  y  y'  ax-eqtr    ex
-          y  x  y'  ax-eqtr    ex    eqcoms  impbid
-          h1    anbi12d
-          exalpha
-          (= y' z)  anbi2i
-          y'  exbii
-      bitr4i
-  bitr4i
-  eqri
-)
+
 # number 74.0
 thm (df-sqrt-just ((A x) (A y)) ()
 (= (iota ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x))))))
@@ -2945,24 +3166,12 @@ thm (df-sqrt-just ((A x) (A y)) ()
     anbi12d    bicomd    #  rwffi    abid
    abeq    ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))  ({|} y (/\ (<= (* y y) A) (< A (* (S y) (S y)))))  ax-iotaeq     ax-mp
 )
+
 defthm  (df-sqrt num (sqrt A) ((A x)) ()
   (= (sqrt A)  (iota ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))))
   y  A  x  df-sqrt-just)
-# number 75.0
-thm (abeq2 () ()
-    (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
-    x  (<-> ph ps)  ax-4
-    y  x  sbcbid
-    y  x  ph  ax-elab    syl5bb
-    y  x  ps  ax-elab    syl6bbr
-    y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
-)
-thm (iotaeq () ()
-  (= (iota ({|} x (= x A))) A)
-  A x df-sn
-  ({} A) ({|} x (= x A)) ax-iotaeq ax-mp eqcomi
-  A ax-iota eqtr
-)
+
+
 
 # number 76.0
 thm (syl6seqr ()
@@ -2976,11 +3185,6 @@ thm (syl6seqr ()
   x  19.21ai
   S  U  x  df-seq       sylibr
 )
-# Equality inference for abstraction
-thm (abeq2i () (h (<-> ph ps))
-  (=_ ({|} x ph) ({|} x ps))
-  h x gen x ph ps abeq2 ax-mp
-)
 
 # number 77.0
 thm (sqrteq () () (-> (= A B) (= (sqrt A) (sqrt B)))
@@ -2992,76 +3196,6 @@ thm (sqrteq () () (-> (= A B) (= (sqrt A) (sqrt B)))
 
   B  x  df-sqrt  syl6eqr
   A  x  df-sqrt  syl5eq
-)
-
-# number 78.0
-thm (opeq2 () () (-> (= A B) (= (<,> C A) (<,> C B)))
-  A  B  C  addeq2
-  A  B  C  addeq2  jca
-  (+ C A)  (+ C B)  (+ C A)  (+ C B)  muleq12    syl
-  ancri
-  (* (+ C A) (+ C A))  (* (+ C B) (+ C B))  A  B  addeq12    syl
-  C  A  df-op       syl5eq
-  C  B  df-op       syl6eqr
-)
-# number 78.5
-thm (opeq1 () () (-> (= A B) (= (<,> A C) (<,> B C)))
-    A  B  C  addeq1    A  B  C  addeq1    jca
-    (+ A C) (+ B C) (+ A C) (+ B C) muleq12    syl
-    C  addeq1d
-        A  C  df-op
-    syl5eq
-    B  C  df-op   syl6eqr
-)
-# number 79.0
-thm (df-tail-just ((A x) (A y') (A y) (A z)) ()
-    (= (iota ({|} x (E. y (= (<,> y x) A))))
-       (iota ({|} z (E. y' (= (<,> y' z) A)))))
-  x  z  y  opeq2  A  eqeq1d    y  exbid
-  y  y'  z  opeq1    A  eqeq1d   exalpha   syl6bb    abeq
-  ({|} x (E. y (= (<,> y x) A)))  ({|} z (E. y' (= (<,> y' z) A)))    ax-iotaeq    ax-mp
-)
-defthm  (df-tail num (tail A) ((A x) (A y')) ()
-  (= (tail A)  (iota ({|} x (E. y' (= (<,> y' x) A)))))
-  z  y  A  x  y'  df-tail-just)
-
-# number 80.0
-thm (tailop () () (= (tail (<,> A B)) B)
-  (<,> A B)  x  z  df-tail
-    z  x  A  B  opth    z  exbii
-    z  (= z A)  (= x B)  19.41   bitri
-    z  A  tyex    (E. z (= z A))  (= x B)  ibar    ax-mp    bitr4i
-    x  gen    x  (E. z (= (<,> z x) (<,> A B)))  (= x B)  abeq2    ax-mp
-    ({|} x (E. z (= (<,> z x) (<,> A B))))  ({|} x (= x B))  ax-iotaeq    ax-mp
-  eqtr
-  B  x df-sn    ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp    eqtr4
-  B  ax-iota    eqtr
-)
-# number 81.0
-thm (df-head-just ((A x) (A y') (A y) (A z)) ()
-    (= (iota ({|} x (E. y (= (<,> x y) A))))
-       (iota ({|} z (E. y' (= (<,> z y') A)))))
-  x  z  y  opeq1  A  eqeq1d    y  exbid
-  y  y'  z  opeq2    A  eqeq1d   exalpha   syl6bb    abeq
-  ({|} x (E. y (= (<,> x y) A)))  ({|} z (E. y' (= (<,> z y') A)))   ax-iotaeq    ax-mp
-)
-defthm  (df-head num (head A) ((A x) (A y')) ()
-  (= (head A)  (iota ({|} x (E. y' (= (<,> x  y') A)))))
-  z  y  A  x  y'  df-head-just)
-
-# number 83.0
-thm (headop () () (= (head (<,> A B)) A)
-  (<,> A B)  x  z  df-head
-
-
-    x  z  A  B  opth    z  exbii
-    z  (= x A)  (= z B)  19.41r   bitri
-    z  B  tyex    (E. z (= z B))  (= x A)  iba    ax-mp    bitr4i
-    x  gen    x  (E. z (= (<,> x z) (<,> A B)))  (= x A)  abeq2    ax-mp
-    ({|} x (E. z (= (<,> x z) (<,> A B))))  ({|} x (= x A))  ax-iotaeq    ax-mp
-  eqtr
-  A  x df-sn    ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp    eqtr4
-  A  ax-iota    eqtr
 )
 
 # number 86.0
@@ -3424,7 +3558,8 @@ impexpi
 
 syl
 )
-# number 105.0
+
+# The minimum of a nonempty set exists
 thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
                                 (<= (min S) A)))
   x  (0)  S  minex.1
@@ -3437,11 +3572,6 @@ thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
         jcad    ax-mp
           x  y  S  minex.2
   sind
-)
-# number 106.0
-thm (seqid () () (=_ S S)
-  (e. x S)  biid  x gen
-  S  S  x  df-seq  biimpri  ax-mp
 )
 
 # number 107.0
@@ -3482,6 +3612,7 @@ thm (modmin ((A x) (B x) (C x)) () (-> (E. x (= (+ (* A x) B) C)) (<= (mod C A) 
     B  ({|} y (E. x (= (+ (* A x) y) C)))  minex  syl  pm3.27d
           C  A  y  x  df-mod    B  leeq1i  biimpri  syl
 )
+
 # number 110.0
 thm (modlt2 () () (< (mod A (S B)) (S B))
 B  pa_ax1
@@ -3558,7 +3689,8 @@ thm (gcddiv1.2 ((A z) (B z)) () (-> (= (gcd (S A) B) z) (/\ (-. (= z (0))) (linc
       z  z'  (S A) B  lincomeq3
   anbi12d  rwffi  abid    sylib
 )
-# number 111.7
+
+# Equality theorem for mod
 thm (modeq2 () () (-> (= A B) (= (mod C A) (mod C B)))
   A  B  y  muleq1  x  addeq1d   C  eqeq1d   y  exbid x  19.21ai
   x  (E. y (= (+ (* A y) x) C))  (E. y (= (+ (* B y) x) C))  abeq2  syl
@@ -3566,7 +3698,8 @@ thm (modeq2 () () (-> (= A B) (= (mod C A) (mod C B)))
   C  A  x  y  df-mod  syl5eq
   C  B  x  y  df-mod  syl6eqr
 )
-# number 111.8
+
+# Divides relation is equivalent to zero remainder
 thm (dividesmod () () (<-> (| A B) (= (mod B A) (0)))
   A  B  x  df-divides
     (* A x)  pa_ax3  B  eqeq1i  x  exbii  bitr4i
@@ -3643,14 +3776,6 @@ mpd
 (gcd (S A) B)  z  (S A)  modeq2  (0)  eqeq1d  biimprd  mpd
 (gcd (S A) B)  (S A)  dividesmod  sylibr  eqcoms  z  exani  ax-mp
 )
-# number 113.0
-thm (headeq () () (-> (= A B) (= (head A) (head B)))
-  A  B  (<,> x y)  eqeq2  y  exbid   x  19.21ai
-  x  (E. y (= (<,> x y) A))  (E. y (= (<,> x y) B))  abeq2    syl
-  ({|} x (E. y (= (<,> x y) A)))  ({|} x (E. y (= (<,> x y) B)))  ax-iotaeq  syl
-  A  x  y  df-head  syl5eq
-  B  x  y  df-head  syl6eqr
-)
 
 # number 114.0
 #!# (sequence-set-just A S) will mean that S is a set of pairs defining an
@@ -3668,6 +3793,7 @@ thm (headeq () () (-> (= A B) (= (head A) (head B)))
 #!    (= v v')  id  A  leeq1d
 #!      v  v'  w opeq1
 #!      (<,> v w)  (<,> v' w)  S  ax-eleq1  syl
+
 # number 115.0
 thm (divideseq12 () () (-> (/\ (= A B) (= C D))  (-> (| A C) (| B D)))
    (= A B) z alnfi
@@ -3687,20 +3813,9 @@ thm (divideseq12 () () (-> (/\ (= A B) (= C D))  (-> (| A C) (| B D)))
 A  C  z  df-divides  syl5ib
 B  D  z  df-divides  syl6ibr
 )
-# number 115.5
-thm (imex ((ph x)) () (<-> (-> ph (E. x ps)) (E. x (-> ph ps)))
-   ph  (E. x ps)  imor    (-. ph) (E. x ps) orcom  bitri
 
-   x  ps  (-. ph)  exor2   bitr4i
-  ph  ps   imor  (-. ph)  ps  orcom  bitri x  exbii  bitr4i
-)
-# number 115.6
-thm (alan12 () () (-> (/\ (A. x ph) (A. x ps)) (A. x (/\ ph ps)))
-  x ph ps 19.26 biimpri
-)
+# == Godel's Beta Function ==
 
-# number 116.0
-# number 116.0
 # A development of Godel's Beta Function, following Shoenfield(1967).
 thm (df-beta-just ((A x x') (B x x')) ()
 (=  (min ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A))))
@@ -3782,15 +3897,6 @@ v'  (E. x (A. y (-> (/\ (e. y S) (= (head y) A)) (= x y))))  ex-nf  syl
 
 (e. y S)  (= (head y) A)  ancom  x  y  eqcom  imbi12i  y  albii  x  exbii  sylib
 )
-# number 116.17
-thm (taileq () () (-> (= A B) (= (tail A) (tail B)))
-  A  B  (<,> y x)  eqeq2  y  exbid  x  19.21ai
-  x (E. y (= (<,> y x) A))  (E. y (= (<,> y x) B))  abeq2  syl
-  ({|} x (E. y (= (<,> y x) A)))  ({|} x (E. y (= (<,> y x) B)))  ax-iotaeq  syl
-  A  x  y  df-tail  syl5eq
-  B  x  y  df-tail  syl6eqr
-)
-# number 116.2
 
 thm (maxex.2 ((S x y)) ()
 (-> (-> (fun S)
@@ -3860,7 +3966,7 @@ y  19.20i  x  19.22i  w  19.22i  syl
   (= v x)  id    (tail y)  leeq2d  (/\ (< (head y) (S z)) (e. y S))  imbi2d  y  19.21ai    19.15d  exalpha  sylib
 ex
 )
-# number 116.5
+
 thm (maxex ((A x y) (S x y)) ()
   (-> (fun S)
       (E. x (A. y (-> (/\ (< (head y) A) (e. y S)) (<= (tail y) x)))))
@@ -3875,8 +3981,7 @@ thm (maxex ((A x y) (S x y)) ()
 
   finds
 )
-# number 118.0
-# A development of Godel's Beta Function, following Shoenfield(1967).
+
 thm (df-relprim-just ((A x x') (B x x')) ()
   (<-> (A. x (-> (| B (* A x)) (| B x)))
        (A. x' (-> (| B (* A x')) (| B x'))))
@@ -3886,6 +3991,7 @@ thm (df-relprim-just ((A x x') (B x x')) ()
   alpha
 )
 
+# Definition of "relatively prime"
 defthm  (df-relprim wff (relprim A B) ((A x) (B x)) ()
         (<-> (relprim A B) (A. x (-> (| B (* A x)) (| B x))))
           x' B A x df-relprim-just)
@@ -3929,7 +4035,8 @@ z  (1)  tyex
 ax-mp
 (A. x (A. y (-> (/\ (e. x S) (e. y T)) (relprim x y))))  a1i
 )
-# number 123.0
+
+# Equality theorem for relative primeness, second argument
 thm (relprimeq2 () () (-> (= A B) (<-> (relprim C A) (relprim C B)))
   A  B  (* C x)  divideseq1
   A  B  x  divideseq1
@@ -3938,14 +4045,15 @@ thm (relprimeq2 () () (-> (= A B) (<-> (relprim C A) (relprim C B)))
   C  A  x  df-relprim  syl5bb
   C  B  x  df-relprim  syl6bbr
 )
-# number 124.0
+
+# Equality theorem for relative primeness, first argument
 thm (relprimeq1 () () (-> (= A B) (<-> (relprim A C) (relprim B C)))
   A  B   x  muleq1  (* A x)  (* B x)  C  divideseq2    syl    (| C x)  imbi1d
   x  19.21ai  19.15d
   A  C  x  df-relprim  syl5bb
   B  C  x  df-relprim  syl6bbr
 )
-# number 125.0
+
 # induction step for relprimex
 thm (relprimex.3 ((S x y z) (T x y z) (A x y z)) ()
 (->
@@ -4044,6 +4152,7 @@ thm (relprimex ((S x y z) (T x y z) (A y z)) ()
             x  y  S  T  z  y'     relprimex.3
   finds
 )
+
 # number 127.1
 thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
 x  (* A B)  tyex
@@ -4056,7 +4165,7 @@ B  (0)  x  df-le  sylibr
 B  eq0le0        sylibr
 )
 
-# number 127.2
+# Less than or equal is a total relationship
 thm (letot () () (\/ (<= A B) (<= B A))
 (< B A)  id   (< B A)  (< B A)  imor    mpbi
    A  B  lenltt  biimpri
@@ -4066,9 +4175,7 @@ orim12i
 ax-mp
 )
 
-# number 127.3
-#!thm (addcan12 () () (-> (= (+ A B) (+ C D)) (-> (= A C) (= B D)))
-# number 127.4
+# Cancellation for multiplication (over nonzero multiplicand)
 thm (mulcan2.1 () () (-> (<= A B) (-> (= (* (S C) A) (* (S C) B)) (= A B)))
   A  B  x  df-le  biimpi
     (+ A x)  B  (S C)  muleq2
@@ -4116,6 +4223,7 @@ y  19.21ai
 
 (S B)  A  y  df-relprim  sylibr
 )
+
 # number 128.5
 thm (beta.1.1 () () (relprim (S A) (S (* B (S A))))
   (* B (S A))  x  pa_ax6r
@@ -4127,6 +4235,7 @@ thm (beta.1.1 () () (relprim (S A) (S (* B (S A))))
   (S (* B (S A)))  (S A)  x  df-relprim  mpbir
   (S (* B (S A)))  A  relprimcom  ax-mp
 )
+
 # number 128.6
 thm (dividesmul12 () () (-> (| A B) (| (* A C) (* B C)))
   A  B  x  df-divides
@@ -4413,10 +4522,12 @@ x'  19.22i  x'  (< (1) x)  ex-nf  syl
 
 sylbi
 )
+
 # number 137.6
 thm (lesuc12 () () (<-> (<= A B) (<= (S A) (S B)))
 A  B   (1)  leadd1  A  a1suc  (+ B (1)) leeq1i  bitr4i  B  a1suc  (S A)  leeq2i  bitr4i
 )
+
 # number 138.0
 # A development of Godel's Beta Function, following Shoenfield(1967).
 thm (beta.3 ((A w x y x' y' z') (B w x y x' y') (ph y z') (ps x z') (S x y x' y')) (
@@ -4590,7 +4701,9 @@ x'  19.20i  z'  19.22i  w  19.22i  ax-mp
 
   z'  (E. z (A. x' (-> (<= x' A) (<-> (e. x' S) (| (S (* (S x') (tail z))) (head z))))))  ex-nf  ax-mp
 )
-# number 142.0
+
+# An ordering theorem on ordered pairs. Note that this breaks the abstraction somewhat,
+# but if necessary we could define a special ordering rather than reusing <=.
 thm (leop12 () () (-> (/\ (<= A C) (<= B D)) (<= (<,> A B) (<,> C D)))
   A  C  B   leadd1
   B  D  C   leadd2  anbi12i  (+ A B)  (+ C B)  (+ C D)  letr  sylbi
@@ -4601,6 +4714,7 @@ thm (leop12 () () (-> (/\ (<= A C) (<= B D)) (<= (<,> A B) (<,> C D)))
   A  B  df-op  (+ (* (+ C D) (+ C D)) D)  leeq1i  sylibr
   C  D  df-op  (<,> A B)  leeq2i  sylibr
 )
+
 # number 143.0
 thm (maxex2 ((A v w) (S v w)) ()
   (-> (fun S)
@@ -4625,76 +4739,7 @@ S  v  w  A  maxex
   v  19.21ai  v  (A. w (-> (/\ (< (head w) A) (e. w S)) (<= (tail w) v)))  (A. w (-> (/\ (< (head w) A) (e. w S)) (<= w (<,> A v))))  19.22  syl
 mpd
 )
-# number 145.0
-#!thm (beta.5 () () ph
-#!
-#!  (/\ (< (head w) A) (e. w S))  (<= w (<,> A v))  (<-> (e. w S) (| (S (* (S w) (tail z))) (head z)))
-#!pm3.33    ancoms
-#!  (e. w S)  (| (S (* (S w) (tail z))) (head z))  bi1  (/\ (< (head w) A) (e. w S))  imim2i     (< (head w) A)  (e. w S)  (-> (e. w S) (| (S (* (S w) (tail z))) (head z)))  impexp  biimpi  syl  (e. w S) (| (S (* (S w) (tail z))) (head z))  pm2.43  syl6   syl
-#!  w  19.20i
-#!
-#!    w  (<,> x y)  tyex
-#!      w  (<,> x y)  headeq  x  y  headop  syl6eq  A  lteq1d
-#!        w  (<,> x y)  S  ax-eleq1
-#!          (= w (<,> x y))  id  suceqd  (tail z)  muleq1d  suceqd
-#!          (S (* (S w) (tail z)))  (S (* (S (<,> x y)) (tail z)))  (head z)  divideseq1  syl
-#!        imbi12d
-#!      imbi12d  biimpd  imp  imp  y  19.21ai  ex  x  19.21ai  ex
-#!    w  19.22i  ax-mp
-#!  jctir
-#!  w  (-> (< (head w) A) (-> (e. w S) (| (S (* (S w) (tail z))) (head z))))  (-> (-> (< (head w) A) (-> (e. w S) (| (S (* (S w) (tail z))) (head z)))) (A. x (-> (< x A) (A. y (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z)))))))  19.29  syl
-#!  (-> (< (head w) A) (-> (e. w S) (| (S (* (S w) (tail z))) (head z))))  (A. x (-> (< x A) (A. y (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z))))))  pm3.35  w  19.22i  syl
-#!  w  (A. x (-> (< x A) (A. y (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z))))))  ex-nf  syl
-#!
-#!    S  x  y  z  df-fun  biimpi  pm3.26d
-#!      y  (e. (<,> x y) S)  euex  x  19.20i  syl
-#!  anim12i
-#!  x  (-> (< x A) (A. y (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z)))))  (E. y (e. (<,> x y) S))  alan12  syl
-#!     (E. y (e. (<,> x y) S))  (< x A)  (A. y (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z))))  anim3   ancoms    y  (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z)))  (e. (<,> x y) S)  19.29   ancoms syl6
-#!  (e. (<,> x y) S)  pm4.24   biimpi  (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z)))  anim2i  (-> (e. (<,> x y) S) (| (S (* (S (<,> x y)) (tail z))) (head z)))  (e. (<,> x y) S)  (e. (<,> x y) S)  anass sylibr
-#!
-#!   (e. (<,> x y) S)  (| (S (* (S (<,> x y)) (tail z))) (head z))  pm3.35  ancoms  (e. (<,> x y) S) anim1i  syl
-#!
-#! y  19.22i
-#!
-#!syl6  x  19.20i  syl
-#!
-#!    w  (<,> x y)  tyex
-#!    (A. w (/\ (-> (<= w (<,> A v)) (<-> (e. w S) (| (S (* (S w) (tail z))) (head z)))) (-> (/\ (< (head w) A) (e. w S)) (<= w (<,> A v)))
-#!))  (fun S)  pm3.26  (-> (<= w (<,> A v)) (<-> (e. w S) (| (S (* (S w) (tail z))) (head z))))  (-> (/\ (< (head w) A) (e. w S)) (<= w (<,> A v))) pm3.27  w  19.20i  syl   (E. w (= w (<,> x y)))  biantrurd   biimpd  mpi
-#!    w  (-> (/\ (< (head w) A) (e. w S)) (<= w (<,> A v)))  (= w (<,> x y))  19.29  syl
-#!      w  (<,> x y)  headeq   x  y  headop  syl6eq  A  lteq1d
-#!      w  (<,> x y)  S  ax-eleq1  anbi12d
-#!      (= w (<,> x y))  id  (<,> A v)  leeq1d    imbi12d  biimpd  com12  imp
-#!    w  19.22i  syl  w  (-> (/\ (< x A) (e. (<,> x y) S)) (<= (<,> x y) (<,> A v)))  ex-nf  syl
-#!    (< x A)  (e. (<,> x y) S) (<= (<,> x y) (<,> A v))  impexp  biimpi  syl
-#!    imp  y  19.21ai  ex  x  19.21ai
-#!  jca
-#!  x  (-> (< x A) (E. y (/\ (| (S (* (S (<,> x y)) (tail z))) (head z)) (e. (<,> x y) S))))  (-> (< x A) (A. y (-> (e. (<,> x y) S) (<= (<,> x y) (<,> A v)))))  alan12  syl
-#!  (< x A)  (E. y (/\ (| (S (* (S (<,> x y)) (tail z))) (head z)) (e. (<,> x y) S)))  (A. y (-> (e. (<,> x y) S) (<= (<,> x y) (<,> A v))))  pm3.43    x  19.20i  syl
-#!    y  (-> (e. (<,> x y) S) (<= (<,> x y) (<,> A v)))  (/\ (| (S (* (S (<,> x y)) (tail z))) (head z)) (e. (<,> x y) S))  19.29  ancoms
-#!    (| (S (* (S (<,> x y)) (tail z))) (head z))  (e. (<,> x y) S)  (-> (e. (<,> x y) S) (<= (<,> x y) (<,> A v)))  anass  (e. (<,> x y) S)  (<= (<,> x y) (<,> A v))  pm3.35  (| (S (* (S (<,> x y)) (tail z))) (head z))  anim2i sylbi  ancoms
-#!  y  19.22i  syl
-#!(< x A)  imim2i  x  19.20i  syl
-#!
-#!
-#!
-#!
-#!  y  y'  x  opeq2  suceqd  (tail z)  muleq1d  suceqd   (S (* (S (<,> x y)) (tail z)))  (S (* (S (<,> x y')) (tail z)))  (head z) divideseq1  syl  rwffi  abid  biimpri
-#!  y  ({|} y (| (S (* (S (<,> x y)) (tail z))) (head z)))  minex  syl
-#!    z  x  y df-beta  (beta z x)  (min ({|} y (| (S (* (S (<,> x y)) (tail z))) (head z))))  ({|} y (| (S (* (S (<,> x y)) (tail z))) (head z)))  ax-eleq1  ax-mp
-#!  (<= (min ({|} y (| (S (* (S (<,> x y)) (tail z))) (head z)))) y)  anbi1i  sylibr
-#!  z  x  y df-beta   y  leeq1i  (e. (beta z x) ({|} y (| (S (* (S (<,> x y)) (tail z))) (head z))))  anbi2i  sylibr
-#!    (beta z x)  y (| (S (* (S (<,> x y)) (tail z))) (head z))  ax-elab  (beta z x)  y  (| (S (* (S (<,> x y)) (tail z))) (head z))  sbc5  bitri
-#!    y  (beta z x)  x  opeq2  suceqd  (tail z)  muleq1d  suceqd   (S (* (S (<,> x y)) (tail z)))  (S (* (S (<,> x (beta z x))) (tail z)))  (head z) divideseq1  syl  biimpd  imp  y  19.22i  sylbi  y  (| (S (* (S (<,> x (beta z x))) (tail z))) (head z))  ex-nf  syl   (<= (beta z x) y)  anim1i
-#!  syl
-#!  x  leid  x  x  (beta z x)  y  leop12  mpan  (<,> x (beta z x))  (<,> x y)  (<,> A v)  letr  ex  syl  (| (S (* (S (<,> x (beta z x))) (tail z))) (head z))  anim2i  syl
-#!  (<= (<,> x y) (<,> A v))  anim1i  (| (S (* (S (<,> x (beta z x))) (tail z))) (head z))  (-> (<= (<,> x y) (<,> A v)) (<= (<,> x (beta z x)) (<,> A v)))  (<= (<,> x y) (<,> A v))  anass sylib
-#!  (<= (<,> x y) (<,> A v))  (<= (<,> x (beta z x)) (<,> A v))  pm3.35  ancoms  (| (S (* (S (<,> x (beta z x))) (tail z))) (head z))  anim2i  syl
-#!  y  19.22i    y  (/\ (| (S (* (S (<,> x (beta z x))) (tail z))) (head z)) (<= (<,> x (beta z x)) (<,> A v)))  ex-nf syl
-#!(< x A)  imim2i  x  19.20i  syl
-#!ph  id  syl
-#!
+
 # number 146.0
 # A development of Godel's Beta Function, following Shoenfield(1967).
 # If S is a functional set defining a sequence {S(0), S(1), ..., S(A), ...}:
@@ -4813,9 +4858,21 @@ z  (fun S)  (A. x (-> (< x A) (e. (<,> x (beta z x)) S)))  eximp1  syl
 
 )
 
+# Equality theorem for beta, first argument
+thm (betaeq1 () () (-> (= A B) (= (beta A C) (beta B C)))
+  A  B  headeq   (head A)  (head B)  (S (* (S (<,> C x)) (tail A)))  divideseq2  syl
+   A  B  taileq  (tail A)  (tail B)  (S (<,> C x))  muleq2  syl  suceqd
+   (S (* (S (<,> C x)) (tail A)))  (S (* (S (<,> C x)) (tail B)))  (head B)  divideseq1  syl
+  bitrd    x  19.21ai
+  x (| (S (* (S (<,> C x)) (tail A))) (head A))  (| (S (* (S (<,> C x)) (tail B))) (head B))  abeq2   syl
+  ({|} x (| (S (* (S (<,> C x)) (tail A))) (head A)))  ({|} x (| (S (* (S (<,> C x)) (tail B))) (head B)))  mineq    syl
 
-# number 148.0
-# Second equality identity for beta
+
+  B  C  x  df-beta    syl6eqr
+  A  C  x  df-beta    syl5eq
+)
+
+# Equality theorem for beta, second argument
 thm (betaeq2 () () (-> (= A B) (= (beta C A) (beta C B)))
   A  B  x  opeq1  suceqd  (tail C)  muleq1d  suceqd
   (S (* (S (<,> A x)) (tail C)))  (S (* (S (<,> B x)) (tail C)))  (head C)  divideseq1  syl
@@ -4824,27 +4881,6 @@ thm (betaeq2 () () (-> (= A B) (= (beta C A) (beta C B)))
   ({|} x (| (S (* (S (<,> A x)) (tail C))) (head C)))  ({|} x (| (S (* (S (<,> B x)) (tail C))) (head C)))  mineq  syl
   C  A  x  df-beta  syl5eq
   C  B  x  df-beta  syl6eqr
-)
-# number 150.0
-# There is exactly one number equal to a given number.
-thm (tyeu ((A x)) () (E! x (= x A))
-  y  A  tyex
-    y  A  x  eqeq2  bicomd  x  19.21ai  y  19.22i  ax-mp
-    x  (= x A)  y  df-eu  mpbir
-)
-
-# number 151.0
-# Commutativity of existential operators
-thm (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph)))
-  y  ph  df-ex  x  exbii
-  x  (-. (A. y (-. ph)))  df-ex  bitri
-  (A. y (-. ph)) notnot  x  albii  notbii  bitr4i
-  x  y  (-. ph)  ax-7  y  x  (-. ph)  ax-7  impbii  notbii  bitri
-
-    x  ph  df-ex  y  exbii
-    y  (-. (A. x (-. ph)))  df-ex  bitri
-    (A. x (-. ph)) notnot  y  albii  notbii  bitr4i
-  bitr4i
 )
 
 # number 152.0
@@ -4895,7 +4931,8 @@ thm (recursive.2.1 ((A x)) () (E. x (= (beta x (0)) A))
 
 ax-mp
 )
-# number 155.0
+
+# == Lambda and function application ==
 
 # Definition of the lambda operator, which creates a functional set from an
 # expression in one variable.
@@ -4905,7 +4942,6 @@ thm (df-lambda-just ((A x x')) ()
 #  y  y'  A  opeq1  x'  eqeq2d % exalpha  syl6bb
   abeq
 )
-
 
 defthm  (df-lambda set (lambda y A) ((A x)) ()
         (=_ (lambda y A) ({|} x (E. y (= x (<,> y A)))))
@@ -4925,6 +4961,7 @@ defthm  (df-lambda set (lambda y A) ((A x)) ()
 #!  eqcoms vtocle
 #!)
 # number 156.0
+
 # Asserts that lambda constructs are actually functions.
 thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
 #(A. y (E! v (e. (<,> y v) (lambda x A))))
@@ -5026,24 +5063,88 @@ thm (df-apply-just ((A y) (S y) (A z) (S z)) ()
      (iota ({|} y (e. (<,> A y) S))))
    z  y  A  opeq2     (<,> A z)  (<,> A y)  S  ax-eleq1    syl   abeq     ({|} z (e. (<,> A z) S))  ({|} y (e. (<,> A y) S))  ax-iotaeq    ax-mp)
 
-
+# Definition of function application
 defthm  (df-apply num (apply S A) ( (A z) (S z)) ()
   (= (apply S A) (iota ({|} z (e. (<,> A z) S))))
   y A S z df-apply-just)
-# number 157.55
-thm (betaeq1 () () (-> (= A B) (= (beta A C) (beta B C)))
-  A  B  headeq   (head A)  (head B)  (S (* (S (<,> C x)) (tail A)))  divideseq2  syl
-   A  B  taileq  (tail A)  (tail B)  (S (<,> C x))  muleq2  syl  suceqd
-   (S (* (S (<,> C x)) (tail A)))  (S (* (S (<,> C x)) (tail B)))  (head B)  divideseq1  syl
-  bitrd    x  19.21ai
-  x (| (S (* (S (<,> C x)) (tail A))) (head A))  (| (S (* (S (<,> C x)) (tail B))) (head B))  abeq2   syl
-  ({|} x (| (S (* (S (<,> C x)) (tail A))) (head A)))  ({|} x (| (S (* (S (<,> C x)) (tail B))) (head B)))  mineq    syl
 
-
-  B  C  x  df-beta    syl6eqr
-  A  C  x  df-beta    syl5eq
+# Equality identity for fun
+thm (funeq () () (-> (=_ S T) (<-> (fun S) (fun T)))
+  S  T  (<,> x y)  eleq2  y eubid
+  x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
+    S  T  x  eleq2  (E. y (E. z (= x (<,> y z))))  imbi1d
+    x  19.21ai  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  19.15  syl
+  anbi12d
+  S  x  y  z  df-fun  syl5bb
+  T  x  y  z  df-fun  syl6bbr
 )
-# number 157.6
+
+# Asserts that membership in functional set of a lambda works the way you'd expect.
+thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
+     (<-> (e. (<,> x A) (lambda x B)) (= A B))
+  x  B  z  df-lambda  (<,> x A) eleq2i
+    h1  B  C  x  opeq2  syl  z  eqeq2d
+    x  y  C  opeq1  z  eqeq2d  bitrd  exalpha
+    z  gen  z  (E. x (= z (<,> x B)))  (E. y (= z (<,> y C)))  abeq2  ax-mp
+  (<,> x A)  eleq2i  bitri
+  z  (<,> x A)  (<,> y C)  eqeq1  y  exbid  elab  bitri
+    x  A  y  C  opth  y  exbii bitri
+      h1  (= A C)  anim1i
+        C  B  A ax-eqtr  ex  eqcoms  com12  eqcoms  com12  imp  syl  y  19.22i  y  (= B A)  ex-nf  syl
+          y  x  tyex  h1     ancli    eqcoms
+        B  A  C ax-eqtr  ex  (= x y)  anim2d   mpan9    ancoms  ex  y  19.22d  mpi
+      impbii
+    bitri
+  B  A  eqcom  bitri
+)
+
+# number 159.5
+# apply actually works (assuming S is a function).
+thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
+#      y  x  (e. (<,> A x) S)  ax-elab
+  S  w  x  z  df-fun  biimpi     pm3.26d
+  w  (E! x (e. (<,> w x) S))  A  a4sbc    syl
+  w  A  x  opeq1    (<,> w x)  (<,> A x)  S  ax-eleq1  syl  x  eubid    sbcie   sylib
+  x  (e. (<,> A x) S)   iotacl2  syl
+  S  A  x  df-apply  (apply S A)  (iota ({|} x (e. (<,> A x) S)))  ({|} x (e. (<,> A x) S))  ax-eleq1  ax-mp  sylibr
+  (apply S A)  x  (e. (<,> A x) S)  ax-elab    sylib
+    x  (apply S A)  A  opeq2   (<,> A x)  (<,> A (apply S A))  S  ax-eleq1  syl
+  sbcie  sylib
+)
+
+# First equality identity for lambda.
+thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))
+  (=_ (lambda x A) (lambda y B))
+ x eqid
+  x  A  z  df-lambda
+  (= x x) a1i
+    h1    A  B  x  opeq2    syl
+    x  y  B  opeq1    eqtrd
+    z  eqeq2d
+    exalpha    bicomi
+    z  gen
+      z  (E. y (= z (<,> y B)))  (E. x (= z (<,> x A)))  abeq2
+    ax-mp
+  syl6seqr
+    y  B  z  df-lambda
+  syl6seqr
+ ax-mp
+)
+
+# Second equality identity for lambda
+thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
+    A  B  x  opeq2    y  eqeq2d    x  19.20i
+    x  (= y (<,> x A))  (= y (<,> x B))  19.18    syl
+    y  19.21ai
+    y  (E. x (= y (<,> x A)))  (E. x (= y (<,> x B)))  abeq2    syl
+    x  B  y  df-lambda    syl6seqr
+    ({|} y (E. x (= y (<,> x A))))  (lambda x B)  seqcom   sylib
+    x  A  y  df-lambda    syl6seqr
+    (lambda x B)  (lambda x A)  seqcom    sylib
+)
+
+# == Recursive functions ==
+
 # Definition of recursion, using a predicate.
 # (recursep S A B C) will mean that S^A(B) = C
 thm (df-recursep-just ( (A y) (S y) (A x) (S x) (A z) (C z) (B z) (S z) (A w) (C w) (B w) (S w)) ()
@@ -5082,88 +5183,6 @@ thm (recursepeq4 () () (-> (= A B) (<-> (recursep S C D A) (recursep S C D B)))
   syl6bbr
 )
 
-# number 158.0
-# Equality identity for fun
-thm (funeq () () (-> (=_ S T) (<-> (fun S) (fun T)))
-  S  T  (<,> x y)  eleq2  y eubid
-  x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
-    S  T  x  eleq2  (E. y (E. z (= x (<,> y z))))  imbi1d
-    x  19.21ai  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  19.15  syl
-  anbi12d
-  S  x  y  z  df-fun  syl5bb
-  T  x  y  z  df-fun  syl6bbr
-)
-
-# number 159.0
-# Asserts that membership in functional set of a lambda works the way you'd expect.
-thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
-     (<-> (e. (<,> x A) (lambda x B)) (= A B))
-  x  B  z  df-lambda  (<,> x A) eleq2i
-    h1  B  C  x  opeq2  syl  z  eqeq2d
-    x  y  C  opeq1  z  eqeq2d  bitrd  exalpha
-    z  gen  z  (E. x (= z (<,> x B)))  (E. y (= z (<,> y C)))  abeq2  ax-mp
-  (<,> x A)  eleq2i  bitri
-  z  (<,> x A)  (<,> y C)  eqeq1  y  exbid  elab  bitri
-    x  A  y  C  opth  y  exbii bitri
-      h1  (= A C)  anim1i
-        C  B  A ax-eqtr  ex  eqcoms  com12  eqcoms  com12  imp  syl  y  19.22i  y  (= B A)  ex-nf  syl
-          y  x  tyex  h1     ancli    eqcoms
-        B  A  C ax-eqtr  ex  (= x y)  anim2d   mpan9    ancoms  ex  y  19.22d  mpi
-      impbii
-    bitri
-  B  A  eqcom  bitri
-)
-
-# number 159.4
-# Another iota utility theorem.  Asserts that if exactly one x has the property
-# ph, then that x can be found using iota.
-thm (iotacl2 () ()
-   (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
-x  ph  y  df-eu   biimpi
-  x  ph  (= x y)  abeq2
-    ({|} x ph)  ({|} x (= x y))  ax-iotaeq
-      y  x  df-sn    ({} y)  ({|} x (= x y))  ax-iotaeq  ax-mp
-  y  ax-iota       eqtr3     (iota ({|} x ph))  eqeq2i  biimpi    syl  syl
-   (iota ({|} x ph))  y  x  ph  dfsbcq   biimprd  syl
-   (iota ({|} x ph))  x  ph  ax-elab   syl6ibr
-    ph  (= x y)  bi2  x  19.20i
-    x  (-> (= x y) ph)  y  a4sbc    syl
-
-    y  x  (-> (= x y) ph)  z  df-subst   sylib
-    x  (= z y)  (/\ (= x z) (-> (= x y) ph))  19.41l   biimpri  z  19.22i    #syl
-      # ugh.
-      (= z y)  (= x z)  (-> (= x y) ph)  anass
-        (= z y)  (= x z)  (-> (= x y) ph)  anass
-          (= z y)  (= x z)  (-> (= x y) ph)  anass
-          z  y  x  ax-eqtr   z  x  eqcom        sylan2br   (-> (= x y) ph)  anim1i     sylbir
-          y  x  eqcom    biimpi    (-> (= x y) ph)  anim1i  syl
-         (= x y)  ph  pm3.35    syl
-        sylbi  (/\ (= z y) (= x z))  (-> (= x y) ph)  ph  pm5.3      mpbi
-       sylbir
-      (= z y)  (= x z)  ph  anass  sylib
-     x  19.22i  z  19.22i  syl
-    x  (= z y)  (/\ (= x z)  ph)  19.41l  biimpi  z  19.22i  syl
-   syl
-   y  x  ph  z  df-subst    sylibr
- jca
- ([/] y x ph)  (e. (iota ({|} x ph)) ({|} x ph))  pm3.35  ancoms  syl
- y  19.22i  syl
- y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
-)
-
-# number 159.5
-# apply actually works (assuming S is a function).
-thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
-#      y  x  (e. (<,> A x) S)  ax-elab
-  S  w  x  z  df-fun  biimpi     pm3.26d
-  w  (E! x (e. (<,> w x) S))  A  a4sbc    syl
-  w  A  x  opeq1    (<,> w x)  (<,> A x)  S  ax-eleq1  syl  x  eubid    sbcie   sylib
-  x  (e. (<,> A x) S)   iotacl2  syl
-  S  A  x  df-apply  (apply S A)  (iota ({|} x (e. (<,> A x) S)))  ({|} x (e. (<,> A x) S))  ax-eleq1  ax-mp  sylibr
-  (apply S A)  x  (e. (<,> A x) S)  ax-elab    sylib
-    x  (apply S A)  A  opeq2   (<,> A x)  (<,> A (apply S A))  S  ax-eleq1  syl
-  sbcie  sylib
-)
 # number 160.0
 thm (recursive.3.1 ((A y) (ph y) (S y) (A z) (C z) (B z) (S z) (A v) (S v) (B v) (C v) (C y))
 (h2 (<-> ph (/\ (A. y (-> (<= y (S A)) (\/ (/\ (<= y A) (= (beta z y) (beta v y))) (/\ (= y (S A)) (= (beta z y) (apply S C))))))  (/\ (= (beta v (0)) B) (/\ (= (beta v A) C) (A. y (-> (< y A) (e. (<,> (beta v y) (beta v (S y))) S))))))))
@@ -5475,8 +5494,6 @@ thm (recursive.3 ((A x) (S x))
   ex
 )
 
-
-# number 163.0
 thm (recursive.1 ((B x)) ()
   (-> (= w B)
      (<-> (-> (fun S) (E. x (recursep S w A x)))
@@ -5496,7 +5513,7 @@ thm (recursive.1 ((B x)) ()
     S w A x z y df-recursep    x  exbii   (fun S)  imbi2i   syl5rbb
     S B A x z y df-recursep    x  exbii   (fun S)  imbi2i   syl5rbb
 )
-# number 164.0
+
 # Base case
 thm (recursive.2 ((A x z)) () (-> (fun S) (E! x (E. z (/\ (= (beta z (0)) A) (/\ (= (beta z (0)) x)
                     (A. y (-> (< y (0)) (e. (<,> (beta x y) (beta x (S y))) S))))))))
@@ -5517,7 +5534,7 @@ impbii
  (= v v)  a1i  x  eubid  ax-mp  mpbi
 (fun S) a1i
 )
-# number 164.0
+
 # Base case
 thm (recursive.2a ((A x)) () (-> (fun S) (E. x (recursep S (0) A x)))
 x  A  tyex
@@ -5540,7 +5557,6 @@ impbii
   S  (0)  A  x  z  y  df-recursep    x  exbii     (fun S)  imbi2i   mpbir
 )
 
-# number 165.0
 # Existence of the result of a recursion operation.
 thm (recursive ((A w) (S w) (B w)) () (-> (fun S) (E. w (recursep S A B w)))
 
@@ -5578,7 +5594,6 @@ B  A  eqcom  bitri
 (fun S)  a1i
 )
 
-# number 167.0
 # Recursing "one more time" works as expected
 thm (recursepsuc ((A x) (B x) (C x) (S x)) ()
  # (-> (fun S)
@@ -5675,8 +5690,6 @@ thm (recursep-uniq.2 ((S z z') (A z z')) ()
   z'  19.21ai    z  19.21ai    ex
 )
 
-
-# number 169.0
 # Second equality identitiy for recursep.
 thm (recursepeq2 () () (-> (= A B) (<-> (recursep S A C D) (recursep S B C D)))
 
@@ -5693,7 +5706,6 @@ thm (recursepeq2 () () (-> (= A B) (<-> (recursep S A C D) (recursep S B C D)))
     syl6bbr
 )
 
-
 # number 170.0
 thm (recursep-uniq.3 ((B z z')) () (-> (= x B) (<->
   (-> (fun S) (A. z (A. z' (-> (/\ (recursep S x A z) (recursep S x A z')) (= z z')))))
@@ -5707,7 +5719,6 @@ thm (recursep-uniq.3 ((B z z')) () (-> (= x B) (<->
   (fun S)  imbi2d
 )
 
-# number 171.0
 # Uniqueness of the result of a recursion operation.
 thm (recursep-uniq () () (-> (fun S) (-> (/\ (recursep S A B C)  (recursep S A B D)) (= C D)))
 
@@ -5740,27 +5751,6 @@ syl
 syl
 )
 
-# number 171.3
-# First equality identitiy for lambda.
-thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))
-  (=_ (lambda x A) (lambda y B))
- x eqid
-  x  A  z  df-lambda
-  (= x x) a1i
-    h1    A  B  x  opeq2    syl
-    x  y  B  opeq1    eqtrd
-    z  eqeq2d
-    exalpha    bicomi
-    z  gen
-      z  (E. y (= z (<,> y B)))  (E. x (= z (<,> x A)))  abeq2
-    ax-mp
-  syl6seqr
-    y  B  z  df-lambda
-  syl6seqr
- ax-mp
-)
-
-# number 171.4
 # First equality identity of recursep.
 thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
     S  T  (<,> (beta x y) (beta x (S y)))  eleq2
@@ -5776,28 +5766,6 @@ thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
     syl6bbr
 )
 
-
-# number 172.0
-# Definition of exponentiation in terms of recursed multiplication.
-# NOTE(abliss): this entails 0^0 = 1.  Maybe a bad choice we'll pay for later?
-thm (df-exp-just ((A w x y z) (B x z)) () (=
-  (iota ({|} x (recursep (lambda y (* y A)) B (1) x)))
-  (iota ({|} z (recursep (lambda w (* w A)) B (1) z))))
-
- x  z  (lambda w (* w A))  B  (1)  recursepeq4
-  y  w  A  muleq1
-  lambdaeq1
-  (lambda y (* y A))  (lambda w (* w A))  B  (1)  x  recursepeq1    ax-mp
- syl5bb
- abeq
- ({|} x (recursep (lambda y (* y A)) B (1) x))  ({|} z (recursep (lambda w (* w A)) B (1) z))  ax-iotaeq    ax-mp
-)
-
-defthm (df-exp num (exp A B) ((A x y) (B x)) ()
-  (= (exp A B) (iota ({|} x (recursep (lambda y (* y A)) B (1) x))))
-  x'  y'  A  B  x  y  df-exp-just)
-
-# number 173.0
 # Recursing zero times doesn't go anywhere.
 thm (recursep0 () () (recursep S (0) A A)
 
@@ -5825,7 +5793,27 @@ thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
   x y S A B recursepeq4 eu4 sylibr
 )
 
-# number 175.0
+# == Exponentiation ==
+
+# Definition of exponentiation in terms of recursed multiplication.
+# NOTE(abliss): this entails 0^0 = 1.  Maybe a bad choice we'll pay for later?
+thm (df-exp-just ((A w x y z) (B x z)) () (=
+  (iota ({|} x (recursep (lambda y (* y A)) B (1) x)))
+  (iota ({|} z (recursep (lambda w (* w A)) B (1) z))))
+
+ x  z  (lambda w (* w A))  B  (1)  recursepeq4
+  y  w  A  muleq1
+  lambdaeq1
+  (lambda y (* y A))  (lambda w (* w A))  B  (1)  x  recursepeq1    ax-mp
+ syl5bb
+ abeq
+ ({|} x (recursep (lambda y (* y A)) B (1) x))  ({|} z (recursep (lambda w (* w A)) B (1) z))  ax-iotaeq    ax-mp
+)
+
+defthm (df-exp num (exp A B) ((A x y) (B x)) ()
+  (= (exp A B) (iota ({|} x (recursep (lambda y (* y A)) B (1) x))))
+  x'  y'  A  B  x  y  df-exp-just)
+
 # Exponent zero.
 #
 # Together with expsuc, this provides a "working definition" of exponentiation
@@ -5867,8 +5855,7 @@ thm (exp0 () () (= (exp A (0)) (1))
     ax-mp
 )
 
-# number 176.0
-# Successor of exponent.  See exp0 for more notes.
+# Successor of exponent.  See [exp0] for more notes.
 thm (expsuc () () (= (exp A (S B)) (* A (exp A B)))
 
 y  z  A  muleq1    funlambda
@@ -5918,28 +5905,6 @@ mpan
 x  19.22i    ax-mp
 
 x  (= (exp A (S B)) (* A (exp A B)))  ex-nf    ax-mp
-)
-
-# Commutativity of set equality
-thm (seqcom () () (<-> (=_ S T) (=_ T S))
-  S  T  x  df-seq
-    (e. x T)  (e. x S)  bicom
-    x albii
-  bitr4i
-  T  S  x  df-seq
-  bitr4i
-)
-
-# Second equality identity for lambda
-thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
-    A  B  x  opeq2    y  eqeq2d    x  19.20i
-    x  (= y (<,> x A))  (= y (<,> x B))  19.18    syl
-    y  19.21ai
-    y  (E. x (= y (<,> x A)))  (E. x (= y (<,> x B)))  abeq2    syl
-    x  B  y  df-lambda    syl6seqr
-    ({|} y (E. x (= y (<,> x A))))  (lambda x B)  seqcom   sylib
-    x  A  y  df-lambda    syl6seqr
-    (lambda x B)  (lambda x A)  seqcom    sylib
 )
 
 # First equality identity for exponentiation
@@ -6089,6 +6054,7 @@ sylibr
 finds
 )
 
+# == Ternary conditional for naturals ==
 
 # Ternary expressions for naturals: (ph ? A : B)
 thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (=
@@ -6178,6 +6144,8 @@ thm (ifneq2 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B)))
   pm2.61i
 )
 
+# == Subtraction over natural numbers ==
+
 # Justification for definition of halfminus
 thm (df-halfminus-just ((A x y) (B x y)) ()
   (= (ifn (< A B) (0) (iota ({|} x (= A (+ B x)))))
@@ -6232,6 +6200,8 @@ thm (halfminusid () () (= (.- A A) (0))
   A pa_ax3r eqcomi eqtr
   (.- A A) A (0) addcan mpbi
 )
+
+# == Unique factorization ==
 
 # number 0.5
 thm (lincomgcd () () (lincom (S A) B (gcd (S A) B))
@@ -6292,13 +6262,14 @@ B  C  D  w  x  y  z  df-lincom
   z  exani    y  exani    x  exani    w  exani    sylbi
   com12
 )
-# number 1.0
+
 thm (gcd () () (-> (/\ (| (S A) (S B)) (| (S A) C)) (| (S A) (gcd (S B) C)))
   B  C  lincomgcd
   A  (S B)  C  (gcd (S B) C)  divideslincom
 mpi
 )
-# number 2.5
+
+# Linear combination is commutative
 thm (lincomcom () () (<-> (lincom A B C) (lincom B A C))
   A  B  C  w  x  y  z  df-lincom
     (* w A)  (* x B)  addcom
@@ -6314,9 +6285,8 @@ thm (lincomcom () () (<-> (lincom A B C) (lincom B A C))
     B  A  C  x  w  z  y  df-lincom
   bitr4i
 )
-# number 3.0
-#!thm (gcdcom () () (= (gcd A B) (gcd B A)
-# number 4.0
+
+# Greatest common denominator is commutative
 thm (gcdcom () () (= (gcd A B) (gcd B A))
   A  B  x  df-gcd
     A  B  x  lincomcom
@@ -6327,6 +6297,7 @@ thm (gcdcom () () (= (gcd A B) (gcd B A))
   eqtr
   B  A  x  df-gcd   eqtr4
 ) 
+
 # number 7.0
 thm (primegcd () () (-> (prime (S A)) (\/ (| (S A) (S B)) (= (gcd (S A) (S B)) (1))))
 A  (S B)  gcddiv1
@@ -6383,6 +6354,7 @@ thm (0primeideal () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0))))
   impbii    
   bicomi
 )
+
 # number 7.4
 thm (0notprime () () (-. (prime (0)))
 
@@ -6411,7 +6383,7 @@ x  (S (1))  tyex
   (0)  x  df-prime  biimpi    con3i  sylbi
 ax-mp
 )
-# number 7.5
+
 # Euclid's lemma, assuming A and B are not 0.
 thm (euclidlem.1 () () (-> (prime (S A)) (-> (| (S A) (* (S B) C)) (\/ (| (S A) (S B)) (| (S A) C))))
    A  B  primegcd  ord
@@ -6462,9 +6434,9 @@ thm (euclidlem.1 () () (-> (prime (S A)) (-> (| (S A) (* (S B) C)) (\/ (| (S A) 
   orrd
   ex
 )
-# number 7.6
-# Removes one of the S marks from euclidlem.1 by considering the case A=0.
-# The other S mark will be removed in euclidlem by considering B=0.
+
+# Removes one of the S marks from [euclidlem.1] by considering the case A=0.
+# The other S mark will be removed in [euclidlem] by considering B=0.
 thm (euclidlem.2 () () (-> (prime A) (-> (| A (* (S B) C)) (\/ (| A (S B)) (| A C))))
 0notprime
 (0)  A  primeeq    biimprd    con3d    mpi
@@ -6504,7 +6476,7 @@ thm (euclidlem () () (-> (prime A) (-> (| A (* B C)) (\/ (| A B) (| A C))))
     jaoi 
   ax-mp
 )
-# number 9.0
+
 # primes(A B) shall mean that the first A elements of the list represented by
 # the beta-numeral B are all prime.
 thm (df-primes-just ((A x y) (B x y)) () (<->
@@ -6547,7 +6519,6 @@ defthm (df-nondecr wff (nondecr A B) ((A x) (B x)) ()
   y  A  B  x  df-nondecr-just)
 
 
-# number 11.0
 # partprod(A B C) shall mean that the first A elements of the sequence in
 # beta-numeral B have their partial products in the beta-numeral C.
 # May act funky if A == 0.
@@ -6576,7 +6547,6 @@ defthm (df-partprod wff (partprod A B C) ((A x) (B x) (C x)) ()
         (A. x (-> (< (S x) A) (= (beta C (S x)) (* (beta C x) (beta B x)))))))
   B  C  y  A  x  df-partprod-just)
 
-# number 12.0
 # factorization(A, B, C, D) shall mean that D has been factored into A' primes,
 # which are listed nondecreasingly in the beta-numeral B.  The beta-numeral C
 # shall list the partial products alongside. 
@@ -6594,7 +6564,6 @@ defthm (df-factorization  wff (factorization A B C D) () ()
 )
 
   
-# number 13.0
 # Any prime number has a trivial length-1 factorization.
 thm (exfactorization.0 ((A x)) () 
   (-> (prime A) (E. x (factorization (0) x x A)))
@@ -6640,7 +6609,7 @@ thm (exfactorization.0 ((A x)) ()
     (0)  x  x  A  df-factorization    x  exbii
   sylibr
 )
-# number 14.0
+
 # Third equality identity for factorization
 thm (factorizationeq3 () () (-> (= C C') (<-> (factorization A B C D) (factorization A B C' D)))
 
