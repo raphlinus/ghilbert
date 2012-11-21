@@ -928,9 +928,15 @@ thm (addeq12i ()
 )
 
 thm (addeq1d ()
-  (hyp (-> ph (= A B)))
+  (h (-> ph (= A B)))
   (-> ph (= (+ A C) (+ B C)))
-  hyp C eqid A B C C addeq12 mpan2 syl
+  h A B C addeq1 syl
+)
+
+thm (addeq2d ()
+  (h (-> ph (= A B)))
+  (-> ph (= (+ C A) (+ C B)))
+  h A B C addeq2 syl
 )
 
 thm (addeq12d ()
@@ -943,7 +949,7 @@ thm (addeq12d ()
 thm (addeq1i ()
   (hyp (= A B))
   (= (+ A C) (+ B C))
-  hyp C eqid A B C C addeq12 mp2an
+  hyp A B C addeq1 ax-mp
 )
 
 thm (addeq2i ()
@@ -976,7 +982,12 @@ thm (muleq1d ()
 thm (muleq1i ()
   (hyp (= A B))
   (= (* A C) (* B C))
-  hyp C eqid A B C C muleq12 mp2an
+  hyp A B C muleq1 ax-mp
+)
+
+thm (muleq2i () (hyp (= A B))
+  (= (* C A) (* C B))
+  hyp A B C muleq2 ax-mp
 )
 
 thm (suceqd ()
@@ -1123,6 +1134,16 @@ thm (mulcom () ()
   finds
 )
 
+# One is an identity of multiplication
+thm (mulid () ()
+  (= (* A (1)) A)
+    df-1  (1) (S (0)) A muleq2 ax-mp
+    A (0) pa_ax6
+      A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3
+    eqtr
+  eqtr)
+
+
 thm (add23 () ()
   (= (+ (+ A B) C) (+ (+ A C) B))
   A B C addass
@@ -1211,6 +1232,14 @@ thm (addcan2 () ()
     B A C addcan bitri
 )
 
+# Successor is equivalent to adding one
+thm (a1suc () ()
+  (= (S A) (+ A (1)))
+  df-1 A addeq2i
+  A (0) pa_ax4 eqtr
+  A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr eqcomi
+)
+
 thm (df-le-just ((A x) (B x) (A y) (B y)) ()
        (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
       x y A addeq2 B eqeq1d exalpha)
@@ -1224,6 +1253,7 @@ defthm (df-le wff (<= A B) ((A x) (B x)) ()
 defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
         (/\ (<= A B) (-. (= A B))) biid)
 
+# Equality deduction for less than or equal relation
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= A C) (<= B C)))
@@ -1234,12 +1264,7 @@ thm (leeq1d ()
   syl
 )
 
-thm (leeq1i ()
-  (hyp (= A B))
-  (<-> (<= A C) (<= B C))
-  hyp (= A B) id C leeq1d ax-mp
-)
-
+# Equality deduction for less than or equal relation
 thm (leeq2d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= C A) (<= C B)))
@@ -1250,10 +1275,86 @@ thm (leeq2d ()
   syl
 )
 
+# Equality inference for less than or equal relation
+thm (leeq1i ()
+  (hyp (= A B))
+  (<-> (<= A C) (<= B C))
+  hyp (= A B) id C leeq1d ax-mp
+)
+
+# Equality inference for less than or equal relation
 thm (leeq2i ()
   (hyp (= A B))
   (<-> (<= C A) (<= C B))
   hyp (= A B) id C leeq2d ax-mp
+)
+
+# Addition is strictly monotonic in the first addend
+thm (leadd1 () ()
+  (<-> (<= A B) (<= (+ A C) (+ B C)))
+  (+ A x) C B addcan
+  A x C add23 (+ B C) eqeq1i bitr3i
+  x exbii
+    A B x df-le
+      (+ A C) (+ B C) x df-le
+  3bitr4i
+)
+
+# Addition is strictly monotonic in the second addend
+thm (leadd2 () ()
+  (<-> (<= A B) (<= (+ C A) (+ C B)))
+  A B C leadd1
+  A C addcom (+ B C) leeq1i bitri
+  B C addcom (+ C A) leeq2i bitri
+)
+
+thm (1nle0 () ()
+  (-. (<= (1) (0)))
+  x pa_ax1 (0) (S x) eqcom mtbi
+  x a1suc x (1) addcom eqtr (0) eqeq1i mtbi
+  x gen x (= (+ (1) x) (0)) alnex mpbi
+  (1) (0) x df-le mtbir
+)
+
+thm (lteq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (< C A) (< C B)))
+  hyp C leeq2d
+  hyp C eqeq2d notbid anbi12d
+    C A df-lt
+      C B df-lt
+  3bitr4g
+)
+
+thm (lteq2i ()
+  (hyp (= A B))
+  (<-> (< C A) (< C B))
+  hyp (= A B) id C lteq2d ax-mp
+)
+
+thm (addge01t () ()
+  (<= A (+ A B))
+  x B tyex x B A addeq2 x 19.22i ax-mp
+  A (+ A B) x df-le mpbir
+)
+
+thm (addge02t () ()
+  (<= A (+ B A))
+  A B addge01t A B addcom A leeq2i mpbi
+)
+
+# Less than or equal is a reflexive relation
+thm (leid () ()
+  (<= A A)
+  A (0) addge01t
+  A pa_ax3 A leeq2i mpbi
+)
+
+thm (lenlttlem () ()
+  (-. (<= (+ A (1)) A))
+  1nle0 (1) (0) A leadd1 mtbi
+  (1) A addcom (+ (0) A) leeq1i mtbi
+  A pa_ax3r (+ A (1)) leeq2i mtbi
 )
 
 thm (letr () ()
@@ -1268,49 +1369,6 @@ thm (letr () ()
     B C y df-le anbi12i
     A C z df-le imbi12i
   mpbir
-)
-
-thm (addge01t () ()
-  (<= A (+ A B))
-  x B tyex x B A addeq2 x 19.22i ax-mp
-  A (+ A B) x df-le mpbir
-)
-
-thm (leid () ()
-  (<= A A)
-  A (0) addge01t
-  A pa_ax3 A leeq2i mpbi
-)
-
-thm (leadd1 () ()
-  (<-> (<= A B) (<= (+ A C) (+ B C)))
-  (+ A x) C B addcan
-  A x C add23 (+ B C) eqeq1i bitr3i
-  x exbii
-    A B x df-le
-      (+ A C) (+ B C) x df-le
-  3bitr4i
-)
-
-thm (a1suc () ()
-  (= (S A) (+ A (1)))
-  df-1 A addeq2i
-  A (0) pa_ax4 eqtr
-  A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr eqcomi
-)
-
-thm (0ne1 () ()
-  (-. (= (0) (1)))
-  (0) pa_ax1
-  df-1 (0) eqeq2i mtbir
-)
-
-thm (1nle0 () ()
-  (-. (<= (1) (0)))
-  x pa_ax1 (0) (S x) eqcom mtbi
-  x a1suc x (1) addcom eqtr (0) eqeq1i mtbi
-  x gen x (= (+ (1) x) (0)) alnex mpbi
-  (1) (0) x df-le mtbir
 )
 
 thm (lefoo ((A z)) ()
@@ -1351,13 +1409,6 @@ thm (lefoo3 () ()
   impbii
 )
 
-thm (lenlttlem () ()
-  (-. (<= (+ A (1)) A))
-  1nle0 (1) (0) A leadd1 mtbi
-  (1) A addcom (+ (0) A) leeq1i mtbi
-  A pa_ax3r (+ A (1)) leeq2i mtbi
-)
-
 thm (nnltp1let () ()
   (<-> (< A B) (<= (+ A (1)) B))
   A B df-lt
@@ -1372,33 +1423,12 @@ thm (nnltp1let () ()
   bitr4i
 )
 
-thm (addge02t () ()
-  (<= A (+ B A))
-  A B addge01t A B addcom A leeq2i mpbi
-)
-
 thm (nn0nlt0 () ()
   (-. (< A (0)))
     1nle0 (1) A addge02t
     (1) (+ A (1)) (0) letr mpan
   mto
   A (0) nnltp1let mtbir
-)
-
-thm (lteq2d ()
-  (hyp (-> ph (= A B)))
-  (-> ph (<-> (< C A) (< C B)))
-  hyp C leeq2d
-  hyp C eqeq2d notbid anbi12d
-    C A df-lt
-      C B df-lt
-  3bitr4g
-)
-
-thm (lteq2i ()
-  (hyp (= A B))
-  (<-> (< C A) (< C B))
-  hyp (= A B) id C lteq2d ax-mp
 )
 
 thm (lenltt () ()
@@ -1432,6 +1462,47 @@ thm (lenltt () ()
   finds
 )
 
+# Equality deduction for less than relation
+thm (lteq1d () (hyp (-> ph (= A B)))
+  (-> ph (<-> (< A C) (< B C)))
+  hyp C leeq2d
+  C A lenltt
+  C B lenltt
+ bibi12i
+ sylib
+ con4bid
+)
+
+# Equality inference for less than relation
+thm (lteq1i () (h (= A B))
+  (<-> (< A C) (< B C))
+  h (= A B) id C lteq1d ax-mp)
+
+thm (0ne1 () ()
+  (-. (= (0) (1)))
+  (0) pa_ax1
+  df-1 (0) eqeq2i mtbir
+)
+
+# Transitive law
+thm (lelttr () ()
+  (-> (/\ (<= A B) (< B C)) (< A C))
+  A B (1) leadd1
+  B C nnltp1let
+  anbi12i
+  (+ A (1)) (+ B (1)) C letr sylbi
+  A C nnltp1let
+  sylibr
+)
+
+# Transitive law
+thm (lelttr2 () ()
+  (-> (/\ (< A B) (<= B C)) (< A C))
+  A B nnltp1let (<= B C) anbi1i
+  (+ A (1)) B C letr sylbi
+  A C nnltp1let sylibr
+)
+
 thm (axlttri () ()
   (<-> (< A B) (-. (\/ (= A B) (< B A))))
   A B df-lt
@@ -1453,6 +1524,7 @@ thm (ltadd1 () ()
   3bitr4i
 )
 
+# Multiplication is monotonic in its second argument
 thm (lemul2 () ()
   (-> (<= A B) (<= (* C A) (* C B)))
 
@@ -1467,6 +1539,178 @@ thm (lemul2 () ()
   sylbi
     (* C A) (* C B) y df-le
   sylibr
+)
+
+thm (lemul4 () ()
+  (-> (<= (* A (S C)) (* B (S C)))  (<= A B))
+  A  B  lenltt    biimpri   con1i
+  B  A  df-lt    sylib
+  B  A  x  df-le    biimpi    (-. (= B A)) anim1i    syl
+  x  (= (+ B x) A)  (-. (= B A))  19.41    biimpri    syl
+      x  (0)  B  addeq2    B  pa_ax3    syl6eq    A  eqeq1d    biimpd    com12    con3d
+      (= (+ B x) A)  (-. (= B A))  (-. (= x (0)))    pm3.31    ax-mp
+        (+ B x)  A  (S C)  muleq1
+        (+ B x)  (S C)  mulcom    (S C)  B  x  distr   eqtr
+        (S C)  B  mulcom    (* (S C) x)  addeq1i    eqtr    syl5eqr
+        (-. (= B A)) adantr
+      jca
+      x  y  lefoo      ori
+          z  (* (1) C)tyex
+            z  (* (1) C)  (1) addeq2
+            (1)  C  pa_ax6    (1)  (S C)  mulcom    eqtr3    (* (1) C)  (1)  addcom    eqtr3  eqcomi    syl6eq
+          z  19.22i    ax-mp
+          (1)  (* (S C) (1))  z  df-le    mpbir
+          (1)  (* (S C) (1))  (* (S C) y)  leadd1    mpbi
+            (+ (1) y)  x  (S C)  muleq2    (S C)  (1)  y  distr    syl5eqr
+            (+ (1) (* (S C) y))  leeq2d    biimpd
+          mpi
+            (1)  (* (S C) y)  addge01t    (1)  (+ (1) (* (S C) y))  (* (S C) x)  letr
+            (<= (1) (+ (1) (* (S C) y)))  (<= (+ (1) (* (S C) y)) (* (S C) x))  (<= (1) (* (S C) x))  pm3.3    ax-mp    ax-mp
+          syl
+      y  19.22i    syl    y  (<= (1) (* (S C) x))  19.9    sylib
+      (1)  (* (S C) x)  (* B (S C))  leadd2    sylib
+      (= (+ (* B (S C)) (* (S C) x)) (* A (S C)))  id    (+ (* B (S C)) (1))  leeq2d    biimpd    anim12i
+     (<= (+ (* B (S C)) (1)) (+ (* B (S C)) (* (S C) x)))  (<= (+ (* B (S C)) (1)) (* A (S C)))  pm3.35    syl
+    syl
+  x  19.22i    syl    x  (<= (+ (* B (S C)) (1)) (* A (S C)))  19.9    sylib
+  (* B (S C))  (* A (S C))  nnltp1let    biimpri    syl
+  (* A (S C))  (* B (S C))  lenltt    biimpi    con2i    syl
+  con4i
+)
+
+# Multiplication is strictly monotonic when the other multiplicand is nonzero
+thm (ltmul1 () ()
+  (-> (< (0) A) (-> (< B C) (< (* A B) (* A C))))
+  (0) A (* A B) ltadd1
+  (* A B) pa_ax3r (+ A (* A B)) lteq1i bitri
+  A (* A B) addcom (* A B) lteq2i bitri
+    A B (1) distr
+    A mulid (* A B) addeq2i eqtr
+    (* A B) lteq2i
+  bitr4i biimpi
+    B C nnltp1let
+    (+ B (1)) C A lemul2 sylbi
+  anim12i
+  (* A B) (* A (+ B (1))) (* A C) lelttr2 syl ex
+)
+
+# Multiplication is strictly monotonic with nonzero multiplicand
+thm (lemul5 () ()
+  (<-> (<= (* A (S C)) (* B (S C))) (<= A B))
+  A C B lemul4
+    A B (S C) lemul2
+    (S C) A mulcom (* (S C) B) leeq1i sylib
+    (S C) B mulcom (* A (S C)) leeq2i sylib
+  impbii
+)
+
+# Trichotomy law (may be a poor choice of name)
+thm (lesym () ()
+  (<-> (= A B) (/\ (<= A B) (<= B A)))
+  # A=B -> A<=B
+  B leid    (= A B) id B leeq1d    mpbiri
+  # A=B -> B<=A
+  A leid    (= A B) id A leeq1d    mpbii
+  jca
+
+  A B lenltt
+  B A df-lt
+  notbii   bitri
+  (<= B A) (-. (= B A)) ianor
+  bitri biimpi
+
+  (<= B A) (-. (-. (= B A))) imor bicomi biimpi syl  imp
+  (= B A) notnot2 syl
+  eqcomd
+
+  impbii
+)
+
+# For naturals, equal to zero is equivalent to less than or equal to zero
+thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
+     A (0) lesym
+     # 0 <= A
+     (0) A addge01t    A pa_ax3r (0) leeq2i     mpbi
+   mpbiran2
+)
+
+# Less than or equal is a total relationship
+thm (letot () () (\/ (<= A B) (<= B A))
+(< B A)  id   (< B A)  (< B A)  imor    mpbi
+   A  B  lenltt  biimpri
+   B  A  df-lt    biimpi  pm3.26d
+orim12i
+
+ax-mp
+)
+
+# If a product of a nonzero number and some other number is zero, that number is zero
+thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
+x  (* A B)  tyex
+  x (* A B)  B  addeq1
+  A  B  pa_ax6r        syl6eqr
+  (0)  eqeq1d    biimprd  com12    x  B  addcom  (0)  eqeq1i   syl6ib
+  x  19.22d
+mpi
+B  (0)  x  df-le  sylibr
+B  eq0le0        sylibr
+)
+
+# Multiplication cancellation with nonzero multiplicand
+thm (mulcan () ()
+  (<-> (= (* A (S C)) (* B (S C))) (= A B))
+  (* A (S C)) (* B (S C)) lesym
+    A C B lemul5
+      B C A lemul5
+    anbi12i
+  bitri
+    A B lesym
+  bitr4i
+)
+
+# Cancellation for multiplication (over nonzero multiplicand)
+thm (mulcan2.1 () () (-> (<= A B) (-> (= (* (S C) A) (* (S C) B)) (= A B)))
+  A  B  x  df-le  biimpi
+    (+ A x)  B  (S C)  muleq2
+    (S C)  A  x  distr  (* (S C) B)  eqeq1i  sylib  eqcomd
+      (* (S C) A)  pa_ax3
+      (* (S C) B)  eqeq1i  biimpri  eqcomd
+      anim12i    (* (S C) B)  (+ (* (S C) A) (* (S C) x))  (+ (* (S C) A) (0))  ax-eqtr  syl
+      (* (S C) A)  (* (S C) x)  (0)  addcan2  sylib
+      C  x  mul0  syl     A   addeq2d
+      ex  anc2li    (+ A x)  B  (+ A (0))  ax-eqtr  syl6   A  pa_ax3  B   eqeq2i  biimpi  eqcomd syl6
+    x  19.22i  syl
+       19.9d
+)
+
+# number 127.5
+thm (mulcan2 () () (-> (= (* (S A) B) (* (S A) C)) (= B C))
+  B  C  letot
+    B  C  A  mulcan2.1
+      C  B  A  mulcan2.1
+      (* (S A) C)  (* (S A) B)  eqcom  (= C B)   imbi1i  sylib
+      imp  eqcomd  ex
+
+    jaoi
+  ax-mp
+)
+
+thm (mulcant () ()
+  (-> (< (0) C) (<-> (= (* A C) (* B C)) (= A B)))
+
+  (0) C axlttri C nn0nlt0 (= (0) C) biorfi  (0) C eqcom bitr3i notbii bitri
+  C x lefoo ori sylbi
+  x a1suc x (1) addcom eqtr C eqeq1i x exbii sylibr
+
+    (S x) C A muleq2 (S x) C B muleq2 eqeq12d
+    A x B mulcan syl5rbbr x 19.23ai
+  syl
+)
+
+thm (mulcant2 () ()
+  (-> (< (0) C) (<-> (= (* C A) (* C B)) (= A B)))
+  C A B mulcant
+  A C mulcom B C mulcom eqeq12i syl5bbr
 )
 
 export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
@@ -1620,6 +1864,12 @@ thm (abeq2i () (h (<-> ph ps))
   h x gen x ph ps abeq2 ax-mp
 )
 
+# Equality deduction for set abstraction
+thm (abeq2d ((ph x)) (h (-> ph (<-> ps ch)))
+  (-> ph (=_ ({|} x ps) ({|} x ch)))
+  h x 19.21ai x ps ch abeq2 syl
+)
+
 # Proofs in progress:
 
 # Would it be cleaner to write (-> (-. (=_ S ({/})))) for the antecedent?
@@ -1719,15 +1969,6 @@ thm (addassrli () (h (= A (+ B (+ C D))))
    h
    B C D addass eqtr4)
 
-# One is an identity of multiplication
-thm (mulid () ()
-  (= (* A (1)) A)
-    df-1  (1) (S (0)) A muleq2 ax-mp
-    A (0) pa_ax6
-      A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3
-    eqtr
-  eqtr)
-
 thm (ltmul () () (
   -> (/\ (< A B) (< C D)) (< (* A C) (* B D)))
   A B nnltp1let C D nnltp1let anbi12i
@@ -1751,17 +1992,6 @@ thm (sqle () ()
   (* A A) (* B B) lenltt
     B A B A ltmul anidms con3i sylbi A B lenltt sylibr
   impbii)
-
-# number 16.0
-thm (lteq1d () (hyp (-> ph (= A B)))
-  (-> ph (<-> (< A C) (< B C)))
-  hyp C leeq2d
-  C A lenltt
-  C B lenltt
- bibi12i
- sylib
- con4bid
-)
 
 # number 17.0
 thm (muleq12d ()
@@ -1798,22 +2028,6 @@ thm (sqrtlem1 ((A x)) ()
   (= y A) id (* (S x) (S x)) lteq1d
   anbi12d x exbid
 )
-
-# Transitive law
-thm (lelttr () ()
-  (-> (/\ (<= A B) (< B C)) (< A C))
-  A B (1) leadd1
-  B C nnltp1let
-  anbi12i
-  (+ A (1)) (+ B (1)) C letr sylbi
-  A C nnltp1let
-  sylibr
-)
-
-# number 21.0
-thm (lteq1i () (h (= A B))
-  (<-> (< A C) (< B C))
-  h (= A B) id C lteq1d ax-mp)
 
 # Commutation of conjuncts in consequent
 thm (ancomd () (h (-> ph (/\ ps ch)))
@@ -1941,28 +2155,6 @@ thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
   B A lenltt notbii
   bitr3i
   (< A B) notnot bicomi bitri bicomi
-)
-
-# Trichotomy law (may be a poor choice of name)
-thm (lesym () ()
-  (<-> (= A B) (/\ (<= A B) (<= B A)))
-  # A=B -> A<=B
-  B leid    (= A B) id B leeq1d    mpbiri
-  # A=B -> B<=A
-  A leid    (= A B) id A leeq1d    mpbii
-  jca
-
-  A B lenltt
-  B A df-lt
-  notbii   bitri
-  (<= B A) (-. (= B A)) ianor
-  bitri biimpi
-
-  (<= B A) (-. (-. (= B A))) imor bicomi biimpi syl  imp
-  (= B A) notnot2 syl
-  eqcomd
-
- impbii
 )
 
 # number 28.0
@@ -2323,13 +2515,7 @@ thm (0orpos () () (\/ (= A (0)) (<= (1) A))
     (1) A z df-le    (= A (0)) orbi2i
   mpbir
 )
-# number 41.0
-thm (leadd2 () ()
-  (<-> (<= A B) (<= (+ C A) (+ C B)))
-  A B C leadd1
-  A C addcom (+ B C) leeq1i bitri
-  B C addcom (+ C A) leeq2i bitri
-)
+
 # number 42.0
 thm (0ne2 () () (-. (= (0) (+ (1) (1))))
     (1) pa_ax1  (1) a1suc (0) eqeq2i  mtbi #  (= (* x y) (+ (1) (1)))  mt2bi bicomi
@@ -2476,13 +2662,6 @@ thm (divideseq2 () ()
   impbid
 )
 
-# number 50.0
-thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
-     A (0) lesym
-     # 0 <= A
-     (0) A addge01t    A pa_ax3r (0) leeq2i     mpbi
-   mpbiran2
-)
 # number 51.0
 thm (dividessym () () (| A A)
     x (1) tyex
@@ -2986,43 +3165,6 @@ x' (0)  x  primedivisor.2
         sind
 )
 
-# number 65.0
-thm (lemul4 () ()
-  (-> (<= (* A (S C)) (* B (S C)))  (<= A B))
-  A  B  lenltt    biimpri   con1i
-  B  A  df-lt    sylib
-  B  A  x  df-le    biimpi    (-. (= B A)) anim1i    syl
-  x  (= (+ B x) A)  (-. (= B A))  19.41    biimpri    syl
-      x  (0)  B  addeq2    B  pa_ax3    syl6eq    A  eqeq1d    biimpd    com12    con3d
-      (= (+ B x) A)  (-. (= B A))  (-. (= x (0)))    pm3.31    ax-mp
-        (+ B x)  A  (S C)  muleq1
-        (+ B x)  (S C)  mulcom    (S C)  B  x  distr   eqtr
-        (S C)  B  mulcom    (* (S C) x)  addeq1i    eqtr    syl5eqr
-        (-. (= B A)) adantr
-      jca
-      x  y  lefoo      ori
-          z  (* (1) C)tyex
-            z  (* (1) C)  (1) addeq2
-            (1)  C  pa_ax6    (1)  (S C)  mulcom    eqtr3    (* (1) C)  (1)  addcom    eqtr3  eqcomi    syl6eq
-          z  19.22i    ax-mp
-          (1)  (* (S C) (1))  z  df-le    mpbir
-          (1)  (* (S C) (1))  (* (S C) y)  leadd1    mpbi
-            (+ (1) y)  x  (S C)  muleq2    (S C)  (1)  y  distr    syl5eqr
-            (+ (1) (* (S C) y))  leeq2d    biimpd
-          mpi
-            (1)  (* (S C) y)  addge01t    (1)  (+ (1) (* (S C) y))  (* (S C) x)  letr
-            (<= (1) (+ (1) (* (S C) y)))  (<= (+ (1) (* (S C) y)) (* (S C) x))  (<= (1) (* (S C) x))  pm3.3    ax-mp    ax-mp
-          syl
-      y  19.22i    syl    y  (<= (1) (* (S C) x))  19.9    sylib
-      (1)  (* (S C) x)  (* B (S C))  leadd2    sylib
-      (= (+ (* B (S C)) (* (S C) x)) (* A (S C)))  id    (+ (* B (S C)) (1))  leeq2d    biimpd    anim12i
-     (<= (+ (* B (S C)) (1)) (+ (* B (S C)) (* (S C) x)))  (<= (+ (* B (S C)) (1)) (* A (S C)))  pm3.35    syl
-    syl
-  x  19.22i    syl    x  (<= (+ (* B (S C)) (1)) (* A (S C)))  19.9    sylib
-  (* B (S C))  (* A (S C))  nnltp1let    biimpri    syl
-  (* A (S C))  (* B (S C))  lenltt    biimpi    con2i    syl
-  con4i
-)
 # number 66.0
 thm (dividesadd.1 () ()
     (-> (| (S A) (+ (* (S A) B) C)) (| (S A) C))
@@ -3258,6 +3400,206 @@ thm (mineq () () (-> (=_ S T) (= (min S) (min T)))
   S  x  y  df-min    syl5eq
   T  x  y  df-min    syl6eqr
 )
+thm (minex.1 () ()
+  (-> (= y A)
+    (<->
+      (-> (e. y S) (/\ (e. (min S) S)
+                                (<= (min S) y)))
+      (-> (e. A S) (/\ (e. (min S) S)
+                                 (<= (min S) A)))))
+
+y  A  S  ax-eleq1
+  (= y A)  id    (min S)  leeq2d    (e. (min S) S) anbi2d
+  imbi12d
+)
+
+# number 102.0
+thm (minex.2.1 ((A w) (S w) (B w)) ()
+  (-> (/\ (e. B S) (A. w (-> (e. w S) (<= A w)))) (<= A B))
+
+w  (e. B S)  (-> (e. w S) (<= A w))  alan1    biimpri
+
+w  B  tyex
+
+  B  w  S ax-eleq1
+    (= B w) id    A leeq2d
+  imbi12d
+  eqcoms
+  biimprd
+  imp3a
+  ancomsd
+w  19.22i    ax-mp
+w  (/\ (e. B S) (-> (e. w S) (<= A w)))  (<= A B)  eximp1    ax-mp
+
+syl
+w  (<= A B)  ex-nf   syl
+)
+
+# number 103.0
+thm (anim3 () () (-> (/\ ph (-> ps ch)) (-> ps (/\ ph ch)))
+
+ ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch)  pm3.27 syl
+ ph  ps  ch  impexp  sylib
+  com23
+ ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch) pm3.26  syl
+   jctild
+  ph  (-> ph ch)  pm3.26
+  ph  ch  pm3.35       jca
+ syl6
+)
+
+thm (minex.2.2 ((S w) (A w)) () (-> (/\ (e. A S) (A. w (-> (e. w S) (<= A w)))) (= A (min S)))
+    x  A  S  ax-eleq1
+      (= x A)  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
+      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= A w))  19.15    syl
+    anbi12d    biimprcd
+      (e. A S)  (A. w (-> (e. w S) (<= A w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= A w)))  (e. A S)  an4    bitri       biimpi
+      A  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= A w))))  anim2i   syl
+      x  S  w A minex.2.1  (<= x A)  anim1i    syl
+      A  x  lesym   sylibr    eqcomd       expcom
+    impbid
+
+    x  19.21ai
+    x  (= x A)  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abeq2    syl
+    ({|} x (= x A))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
+    S  x  w  df-min     syl6eqr
+    A x  df-sn  ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp       syl5eq
+    A  ax-iota    syl5eqr
+)
+
+thm (minex2.2 ((S w)) () (-> (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (= w' (min S)))
+    x  w'  S  ax-eleq1
+      (= x w')  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
+      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w))  19.15    syl
+    anbi12d    biimprcd
+      (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= w' w)))  (e. w' S)  an4    bitri       biimpi
+      w'  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= w' w))))  anim2i   syl
+      x  S  w w' minex.2.1  (<= x w')  anim1i    syl
+      w'  x  lesym   sylibr    eqcomd       expcom
+    impbid
+
+    x  19.21ai
+    x  (= x w')  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abeq2    syl
+    ({|} x (= x w'))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
+    S  x  w  df-min     syl6eqr
+    w' x  df-sn  ({} w')  ({|} x (= x w'))  ax-iotaeq    ax-mp       syl5eq
+    w'  ax-iota    syl5eqr
+)
+
+thm (minex.2 ((S w)) ()
+    (-> (A. w (-> (<= w z)
+      (-> (e. w S) (/\ (e. (min S) S)
+                                (<= (min S) w)))))
+      (-> (e. (S z) S) (/\ (e. (min S) S)
+                                (<= (min S) (S z)))))
+### Please excuse this bit of time-travel.
+(<= w z) (e. w S)  (/\ (e. (min S) S) (<= (min S) w))  imdistan  biimpi
+  (<= w z)  (/\ (e. (min S) S) (<= (min S) w))  ancom  biimpi z  (1)  addge01t    z  a1suc  z  leeq2i   mpbir
+w  z  (S z)  letr  ancoms  mpan  (/\ (e. (min S) S) (<= (min S) w))  anim2i  syl  syl6  ancomsd
+w 19.20i
+###
+
+
+# Case 1:  z' is in fact  min S.  This one is easy.
+#  S  y  z  df-min    (S z)  eqeq2i    biimpi  (e. (S z) S)  a1d
+(S z)  (min S)  S  ax-eleq1  biimpd
+    (S z)  leid    (= (S z) (min S)) id  (S z)  leeq1d    mpbii    (e. (S z) S)  a1d
+jcad
+# Tack this on for later
+(-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  orcd
+
+# Case 2: z' is in S but NOT the min.
+# What follows would be a lot more readable without all the mandhyps!
+  S  x  w  df-min  (S z)  eqeq2i  notbii   biimpi
+  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (S z))  ax-iotaeq    (S z)  ax-iota   syl6eq   eqcomd   con3i    syl
+  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (S z))  w'  df-seq  notbii    biimpi   syl
+  (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (S z))))  notnot    biimpri    w'  19.20i   con3i    syl
+  w'  (-. (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (S z)))))  df-ex    biimpri    syl
+  w'  (S z)  elsnc    (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))))  bibi2i    notbii   w'  exbii    sylib
+    x  w'  S   ax-eleq1
+      (= x  w')  id    w  leeq1d    (e. w S)  imbi2d     w  19.21ai    w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w)) 19.15   syl
+  anbi12d    elab    (= w' (S z))  bibi1i    notbii  w'  exbii  sylib
+  (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (S z))  xor     w'  exbii    sylib
+    # We now have z' != min S -> (case A) \/ (case B).  Let's reduce case B to something we like.
+    w'  (S z)  S  ax-eleq1
+      (= w' (S z))  id  w  leeq1d   (e. w S)  imbi2d     w  19.21ai    19.15d       anbi12d    notbid  biimpd
+      (e. (S z) S)  (A. w (-> (e. w S) (<= (S z) w)))  pm3.13    syl6   imp
+      (e. (S z) S)  (-. (A. w (-> (e. w S) (<= (S z) w))))  imor    sylibr
+        (-> (e. w S) (<= (S z) w))  notnot2  w  19.20i  con3i  w  (-. (-> (e. w S) (<= (S z) w)))  df-ex      sylibr
+        (e. w S)  (<= (S z) w)  pm4.61    biimpi  (S z)  w  lenltt       con2bii    biimpri   w  z  lesuc    sylib  (e. w S)  anim2i    syl   w  19.22i    syl
+      syl6
+    (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (S z))))  orim2i    w'  19.22i       w'  (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (S z))))  (-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  exor2    sylib  syl
+    # Okay, now let's work with case A.  First show that w' is in fact min S.
+    w'  S  w  minex.2.2
+    # Ok, now work out the consequences of w' = min S
+    (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (min S))  anidmdbi    mpbir
+    (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  (/\ (= w' (min S)) (= w' (min S)))  pm5.3    mpbi
+    (e. w' S)  (= w' (min S))  (= w' (min S))  anass    sylibr
+    w'  (min S)  S ax-eleq1   biimpac    (= w' (min S))  anim1i    syl
+    pm4.71ri  biimpi   (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  pm3.27   (/\ (e. (min S) S) (= w' (min S)))  anim2i      syl
+    (e. (min S) S)  (= w' (min S))  (A. w (-> (e. w S) (<= w' w)))  anass  sylib
+      (= w' (min S))  id    w leeq1d  (e. w S)  imbi2d    w  19.21ai    19.15d    biimpd   imp
+    (S z) S  w  (min S)  minex.2.1     impexpi    syl       (e. (min S) S)  anim2i    syl
+    (e. (min S) S)  (e. (S z) S)  (<= (min S) (S z))  anim3  syl
+  (-. (= w' (S z))) adantr   w'  exani   (-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  orim1i  syl
+
+# Great, now we can join up the two cases!
+pm2.61i
+# Pull out the common hypothesis
+(e. (S z) S)  (/\ (e. (min S) S) (<= (min S) (S z)))  (E. w (/\ (e. w S) (<= w z)))  pm4.78    mpbi
+
+# Almost there; just need to apply the IHOP to case 2B.
+
+# Introduce the new antecedent and polish up the new conclusion
+  w  (/\ (e. w S) (<= w z))  (/\ (/\ (e. (min S) S) (<= (min S) w)) (<= w (S z))) 19.22
+    (e. (min S) S)  (<= (min S) w)  (<= w (S z))  anass     (min S)  w  (S z)  letr   (e. (min S) S)  anim2i    sylbi  w 19.22i
+    w  (/\ (e. (min S) S) (<= (min S) (S z)))  ex-nf  syl
+  syl6
+(/\ (e. (min S) S) (<= (min S) (S z)))  orim2d     mpan9
+(/\ (e. (min S) S) (<= (min S) (S z)))  pm1.2    syl
+impexpi
+
+syl
+)
+
+# The minimum of a nonempty set exists
+thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
+                                (<= (min S) A)))
+  x  (0)  S  minex.1
+    x  (S y)  S  minex.1
+      x  A  S  minex.1
+        (0)  x  addge01t x  pa_ax3r    (0)  leeq2i    mpbi  (e. x S)  a1i   x  gen
+        (0)  S  x  minex.2.2  ancoms  mpan
+          (0)  (min S)  S  ax-eleq1  biimpd    com12                a2i
+            (0)  leid    (= (0) (min S))  id   (0) leeq1d  mpbii    (e. (0) S) imim2i
+        jcad    ax-mp
+          x  y  S  minex.2
+  sind
+)
+
+# The minimum of a (nonempty) set is in the set
+thm (mincl ((S x)) ()
+  (-> (E. x (e. x S)) (e. (min S) S))
+  x S minex pm3.26d x 19.23ai
+)
+
+# Equality deduction for set minimum
+thm (mineqd () (h (-> ph (=_ S T)))
+  (-> ph (= (min S) (min T)))
+  h S T mineq syl
+)
+
+# If any number satisfies a predicate, the minimum does
+thm (minel ((ps x)) (
+  h1 (rwff x ph)
+  h2 (-> (= x (min ({|} x ph))) (<-> ph ps))
+  ) (-> (E. x ph) ps)
+
+  h1 abid x exbii
+  x ({|} x ph) mincl sylbir
+  h2 elab sylib
+)
+
 # number 89.0
 thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
   (= (min ({|} x (E. y (= (+ (* B y) x) A))))
@@ -3274,11 +3616,14 @@ defthm  (df-mod num (mod A B) ((A x y) (B x y)) ()
         (= (mod A B) (min ({|} x (E. y (= (+ (* B y) x) A)))))
           x'  y'  B  A  x  y df-mod-just)
 
-# number 90.0
-thm (addeq2d () (h (-> ph (= A B))) (-> ph (= (+ C A) (+ C B)))
-    h
-    A  B  C  addeq2  syl
+thm (modeq1 () () (-> (= A B) (= (mod A C) (mod B C)))
+  A B (+ (* C y) x) eqeq2 y exbid
+  x abeq2d mineqd
+    A C x y df-mod
+      B C x y df-mod
+  3eqtr4g
 )
+
 # number 90.1
 
 # (lincom A B C) means that C is a linear (integer) combination of A and B.
@@ -3392,187 +3737,6 @@ defthm  (df-gcd num (gcd A B) ((A z) (B z)) ()
         (= (gcd A B) (min ({|} z (/\ (-. (= z (0)))
                 (lincom A B z)))))
           z'  A B z df-gcd-just)
-
-# number 92.0
-
-thm (minex.1 () ()
-  (-> (= y A)
-    (<->
-      (-> (e. y S) (/\ (e. (min S) S)
-                                (<= (min S) y)))
-      (-> (e. A S) (/\ (e. (min S) S)
-                                 (<= (min S) A)))))
-
-y  A  S  ax-eleq1
-  (= y A)  id    (min S)  leeq2d    (e. (min S) S) anbi2d
-  imbi12d
-)
-
-# number 102.0
-thm (minex.2.1 ((A w) (S w) (B w)) ()
-  (-> (/\ (e. B S) (A. w (-> (e. w S) (<= A w)))) (<= A B))
-
-w  (e. B S)  (-> (e. w S) (<= A w))  alan1    biimpri
-
-w  B  tyex
-
-  B  w  S ax-eleq1
-    (= B w) id    A leeq2d
-  imbi12d
-  eqcoms
-  biimprd
-  imp3a
-  ancomsd
-w  19.22i    ax-mp
-w  (/\ (e. B S) (-> (e. w S) (<= A w)))  (<= A B)  eximp1    ax-mp
-
-syl
-w  (<= A B)  ex-nf   syl
-)
-
-
-# number 103.0
-thm (anim3 () () (-> (/\ ph (-> ps ch)) (-> ps (/\ ph ch)))
-
- ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch)  pm3.27 syl
- ph  ps  ch  impexp  sylib
-  com23
- ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch) pm3.26  syl
-   jctild
-  ph  (-> ph ch)  pm3.26
-  ph  ch  pm3.35       jca
- syl6
-)
-
-# number 103.5
-thm (minex.2.2 ((S w) (A w)) () (-> (/\ (e. A S) (A. w (-> (e. w S) (<= A w)))) (= A (min S)))
-    x  A  S  ax-eleq1
-      (= x A)  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
-      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= A w))  19.15    syl
-    anbi12d    biimprcd
-      (e. A S)  (A. w (-> (e. w S) (<= A w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= A w)))  (e. A S)  an4    bitri       biimpi
-      A  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= A w))))  anim2i   syl
-      x  S  w A minex.2.1  (<= x A)  anim1i    syl
-      A  x  lesym   sylibr    eqcomd       expcom
-    impbid
-
-    x  19.21ai
-    x  (= x A)  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abeq2    syl
-    ({|} x (= x A))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
-    S  x  w  df-min     syl6eqr
-    A x  df-sn  ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp       syl5eq
-    A  ax-iota    syl5eqr
-)
-# number 103.5
-thm (minex2.2 ((S w)) () (-> (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (= w' (min S)))
-    x  w'  S  ax-eleq1
-      (= x w')  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
-      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w))  19.15    syl
-    anbi12d    biimprcd
-      (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= w' w)))  (e. w' S)  an4    bitri       biimpi
-      w'  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= w' w))))  anim2i   syl
-      x  S  w w' minex.2.1  (<= x w')  anim1i    syl
-      w'  x  lesym   sylibr    eqcomd       expcom
-    impbid
-
-    x  19.21ai
-    x  (= x w')  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abeq2    syl
-    ({|} x (= x w'))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
-    S  x  w  df-min     syl6eqr
-    w' x  df-sn  ({} w')  ({|} x (= x w'))  ax-iotaeq    ax-mp       syl5eq
-    w'  ax-iota    syl5eqr
-)
-# number 104.0
-thm (minex.2 ((S w)) ()
-    (-> (A. w (-> (<= w z)
-      (-> (e. w S) (/\ (e. (min S) S)
-                                (<= (min S) w)))))
-      (-> (e. (S z) S) (/\ (e. (min S) S)
-                                (<= (min S) (S z)))))
-### Please excuse this bit of time-travel.
-(<= w z) (e. w S)  (/\ (e. (min S) S) (<= (min S) w))  imdistan  biimpi
-  (<= w z)  (/\ (e. (min S) S) (<= (min S) w))  ancom  biimpi z  (1)  addge01t    z  a1suc  z  leeq2i   mpbir
-w  z  (S z)  letr  ancoms  mpan  (/\ (e. (min S) S) (<= (min S) w))  anim2i  syl  syl6  ancomsd
-w 19.20i
-###
-
-
-# Case 1:  z' is in fact  min S.  This one is easy.
-#  S  y  z  df-min    (S z)  eqeq2i    biimpi  (e. (S z) S)  a1d
-(S z)  (min S)  S  ax-eleq1  biimpd
-    (S z)  leid    (= (S z) (min S)) id  (S z)  leeq1d    mpbii    (e. (S z) S)  a1d
-jcad
-# Tack this on for later
-(-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  orcd
-
-# Case 2: z' is in S but NOT the min.
-# What follows would be a lot more readable without all the mandhyps!
-  S  x  w  df-min  (S z)  eqeq2i  notbii   biimpi
-  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (S z))  ax-iotaeq    (S z)  ax-iota   syl6eq   eqcomd   con3i    syl
-  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (S z))  w'  df-seq  notbii    biimpi   syl
-  (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (S z))))  notnot    biimpri    w'  19.20i   con3i    syl
-  w'  (-. (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (S z)))))  df-ex    biimpri    syl
-  w'  (S z)  elsnc    (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))))  bibi2i    notbii   w'  exbii    sylib
-    x  w'  S   ax-eleq1
-      (= x  w')  id    w  leeq1d    (e. w S)  imbi2d     w  19.21ai    w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w)) 19.15   syl
-  anbi12d    elab    (= w' (S z))  bibi1i    notbii  w'  exbii  sylib
-  (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (S z))  xor     w'  exbii    sylib
-    # We now have z' != min S -> (case A) \/ (case B).  Let's reduce case B to something we like.
-    w'  (S z)  S  ax-eleq1
-      (= w' (S z))  id  w  leeq1d   (e. w S)  imbi2d     w  19.21ai    19.15d       anbi12d    notbid  biimpd
-      (e. (S z) S)  (A. w (-> (e. w S) (<= (S z) w)))  pm3.13    syl6   imp
-      (e. (S z) S)  (-. (A. w (-> (e. w S) (<= (S z) w))))  imor    sylibr
-        (-> (e. w S) (<= (S z) w))  notnot2  w  19.20i  con3i  w  (-. (-> (e. w S) (<= (S z) w)))  df-ex      sylibr
-        (e. w S)  (<= (S z) w)  pm4.61    biimpi  (S z)  w  lenltt       con2bii    biimpri   w  z  lesuc    sylib  (e. w S)  anim2i    syl   w  19.22i    syl
-      syl6
-    (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (S z))))  orim2i    w'  19.22i       w'  (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (S z))))  (-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  exor2    sylib  syl
-    # Okay, now let's work with case A.  First show that w' is in fact min S.
-    w'  S  w  minex.2.2
-    # Ok, now work out the consequences of w' = min S
-    (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (min S))  anidmdbi    mpbir
-    (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  (/\ (= w' (min S)) (= w' (min S)))  pm5.3    mpbi
-    (e. w' S)  (= w' (min S))  (= w' (min S))  anass    sylibr
-    w'  (min S)  S ax-eleq1   biimpac    (= w' (min S))  anim1i    syl
-    pm4.71ri  biimpi   (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  pm3.27   (/\ (e. (min S) S) (= w' (min S)))  anim2i      syl
-    (e. (min S) S)  (= w' (min S))  (A. w (-> (e. w S) (<= w' w)))  anass  sylib
-      (= w' (min S))  id    w leeq1d  (e. w S)  imbi2d    w  19.21ai    19.15d    biimpd   imp
-    (S z) S  w  (min S)  minex.2.1     impexpi    syl       (e. (min S) S)  anim2i    syl
-    (e. (min S) S)  (e. (S z) S)  (<= (min S) (S z))  anim3  syl
-  (-. (= w' (S z))) adantr   w'  exani   (-> (e. (S z) S) (E. w (/\ (e. w S) (<= w z))))  orim1i  syl
-
-# Great, now we can join up the two cases!
-pm2.61i
-# Pull out the common hypothesis
-(e. (S z) S)  (/\ (e. (min S) S) (<= (min S) (S z)))  (E. w (/\ (e. w S) (<= w z)))  pm4.78    mpbi
-
-# Almost there; just need to apply the IHOP to case 2B.
-
-# Introduce the new antecedent and polish up the new conclusion
-  w  (/\ (e. w S) (<= w z))  (/\ (/\ (e. (min S) S) (<= (min S) w)) (<= w (S z))) 19.22
-    (e. (min S) S)  (<= (min S) w)  (<= w (S z))  anass     (min S)  w  (S z)  letr   (e. (min S) S)  anim2i    sylbi  w 19.22i
-    w  (/\ (e. (min S) S) (<= (min S) (S z)))  ex-nf  syl
-  syl6
-(/\ (e. (min S) S) (<= (min S) (S z)))  orim2d     mpan9
-(/\ (e. (min S) S) (<= (min S) (S z)))  pm1.2    syl
-impexpi
-
-syl
-)
-
-# The minimum of a nonempty set exists
-thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
-                                (<= (min S) A)))
-  x  (0)  S  minex.1
-    x  (S y)  S  minex.1
-      x  A  S  minex.1
-        (0)  x  addge01t x  pa_ax3r    (0)  leeq2i    mpbi  (e. x S)  a1i   x  gen
-        (0)  S  x  minex.2.2  ancoms  mpan
-          (0)  (min S)  S  ax-eleq1  biimpd    com12                a2i
-            (0)  leid    (= (0) (min S))  id   (0) leeq1d  mpbii    (e. (0) S) imim2i
-        jcad    ax-mp
-          x  y  S  minex.2
-  sind
-)
 
 # number 107.0
 thm (modle1 () () (<= (mod A B) A)
@@ -3812,6 +3976,40 @@ thm (divideseq12 () () (-> (/\ (= A B) (= C D))  (-> (| A C) (| B D)))
  (E. z (= (* A z) C))  (E. z (= (* B z) C))  (E. z (= (* B z) D))  pm3.33    syl
 A  C  z  df-divides  syl5ib
 B  D  z  df-divides  syl6ibr
+)
+
+# Definition of division using set minimum instead of iota
+thm (df-div-just ((A x y) (B x y)) ()
+  (= (min ({|} x (= (+ (* B x) (mod A B)) A)))
+    (min ({|} y (= (+ (* B y) (mod A B)) A))))
+  x y B muleq2 (mod A B) addeq1d A eqeq1d abeq
+  ({|} x (= (+ (* B x) (mod A B)) A)) ({|} y (= (+ (* B y) (mod A B)) A)) mineq ax-mp
+)
+
+defthm (df-div num (div A B) ((A x) (B x)) ()
+  (= (div A B) (min ({|} x (= (+ (* B x) (mod A B)) A))))
+  y B A x df-div-just
+)
+
+# Main theorem about division
+thm (div () () (= (+ (* B (div A B)) (mod A B)) A)
+   x B A modex
+    x y B muleq2 (mod A B) addeq1d A eqeq1d rwffi
+    A B x df-div x eqeq2i biimpri x (div A B) B muleq2 syl (mod A B) addeq1d A eqeq1d
+    minel
+  ax-mp
+)
+
+thm (muldiv () ()
+  (-> (< (0) B) (= (div (* B A) B) A))
+
+  (* B (div (* B A) B)) pa_ax3
+    B dividessym B B A dividesmul ax-mp
+    B (* B A) dividesmod mpbi
+    (* B (div (* B A) B)) addeq2i
+    B (* B A) div eqtr3
+  eqtr3
+  B (div (* B A) B) A mulcant2 mpbii
 )
 
 # == Godel's Beta Function ==
@@ -4151,55 +4349,6 @@ thm (relprimex ((S x y z) (T x y z) (A y z)) ()
           x  y  S  T  z  relprimex.2
             x  y  S  T  z  y'     relprimex.3
   finds
-)
-
-# number 127.1
-thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
-x  (* A B)  tyex
-  x (* A B)  B  addeq1
-  A  B  pa_ax6r        syl6eqr
-  (0)  eqeq1d    biimprd  com12    x  B  addcom  (0)  eqeq1i   syl6ib
-  x  19.22d
-mpi
-B  (0)  x  df-le  sylibr
-B  eq0le0        sylibr
-)
-
-# Less than or equal is a total relationship
-thm (letot () () (\/ (<= A B) (<= B A))
-(< B A)  id   (< B A)  (< B A)  imor    mpbi
-   A  B  lenltt  biimpri
-   B  A  df-lt    biimpi  pm3.26d
-orim12i
-
-ax-mp
-)
-
-# Cancellation for multiplication (over nonzero multiplicand)
-thm (mulcan2.1 () () (-> (<= A B) (-> (= (* (S C) A) (* (S C) B)) (= A B)))
-  A  B  x  df-le  biimpi
-    (+ A x)  B  (S C)  muleq2
-    (S C)  A  x  distr  (* (S C) B)  eqeq1i  sylib  eqcomd
-      (* (S C) A)  pa_ax3
-      (* (S C) B)  eqeq1i  biimpri  eqcomd
-      anim12i    (* (S C) B)  (+ (* (S C) A) (* (S C) x))  (+ (* (S C) A) (0))  ax-eqtr  syl
-      (* (S C) A)  (* (S C) x)  (0)  addcan2  sylib
-      C  x  mul0  syl     A   addeq2d
-      ex  anc2li    (+ A x)  B  (+ A (0))  ax-eqtr  syl6   A  pa_ax3  B   eqeq2i  biimpi  eqcomd syl6
-    x  19.22i  syl
-       19.9d
-)
-
-# number 127.5
-thm (mulcan2 () () (-> (= (* (S A) B) (* (S A) C)) (= B C))
-  B  C  letot
-    B  C  A  mulcan2.1
-      C  B  A  mulcan2.1
-      (* (S A) C)  (* (S A) B)  eqcom  (= C B)   imbi1i  sylib
-      imp  eqcomd  ex
-
-    jaoi
-  ax-mp
 )
 
 # number 128.0
@@ -6052,6 +6201,84 @@ eqtr4
 sylibr
 
 finds
+)
+
+thm (explt1 () ()
+  (-> (< (0) A) (<= (1) (exp A B)))
+  x (0) A expeq2 (1) leeq2d (< (0) A) imbi2d
+    x y A expeq2 (1) leeq2d (< (0) A) imbi2d
+      x (S y) A expeq2 (1) leeq2d (< (0) A) imbi2d
+        x B A expeq2 (1) leeq2d (< (0) A) imbi2d
+
+  # Base case
+  (1) leid A exp0 (1) leeq2i mpbir (< (0) A) a1i
+
+  # Induction step
+  (0) A nnltp1let (1) pa_ax3r A leeq1i bitri
+    (1) A (exp A y) lemul2
+    (exp A y) mulid (* (exp A y) A) leeq1i sylib
+    A y expsuc A (exp A y) mulcom eqtr (exp A y) leeq2i sylibr
+  sylbi
+  (1) (exp A y) (exp A (S y)) letr ancoms ex syl a2i
+
+  finds
+)
+
+thm (explt2 () ()
+  (-> (< (0) A) (-> (<= B C) (<= (exp A B) (exp A C))))
+  B C x df-le
+    A x explt1 (1) (exp A x) (exp A B) lemul2 syl
+    (exp A B) mulid (* (exp A B) (exp A x)) leeq1i sylib
+      (+ B x) C A expeq2
+      A B x expadd syl5eqr
+      (exp A B) leeq2d
+      (< (0) A) imbi2d
+    mpbii x 19.23ai
+  sylbi com12
+)
+
+thm (explt.3 () ()
+  (-> (< (1) A) (-> (< B C) (< (exp A B) (exp A C))))
+  (0) leid (0) (0) lesuc mpbir df-1 (0) lteq2i mpbir
+  (0) (1) A lttr mpan
+  A (+ B (1)) C explt2
+  B C nnltp1let
+  syl5ib
+
+    A B expsuc eqcomi
+    B a1suc (S B) (+ B (1)) A expeq2 ax-mp eqtr
+    (exp A C) leeq1i
+  syl6ibr (< (1) A) adantr
+  A B explt1 (0) (exp A B) nnltp1let (1) pa_ax3r (exp A B) leeq1i bitri sylibr
+  (exp A B) (1) A ltmul1 syl imp
+  (exp A B) mulid (* (exp A B) A) lteq1i
+  sylib
+  (exp A B) A mulcom (exp A B) lteq2i sylib
+   (exp A B) (* A (exp A B)) (exp A C) lelttr2 ex syl
+  syld ex com12
+  mpd
+)
+
+# Exponentation is strictly monotonic with base of two or greater
+thm (exple () ()
+  (-> (< (1) A) (<-> (<= B C) (<= (exp A B) (exp A C))))
+  (0) leid (0) (0) lesuc mpbir df-1 (0) lteq2i mpbir (0) (1) A lttr mpan
+  A B C explt2 syl
+    A C B explt.3
+      B C lenltt con2bii
+        (exp A B) (exp A C) lenltt con2bii
+    3imtr3g
+    con4d
+  impbid
+)
+
+# Exponentation is strictly monotonic with base of two or greater
+thm (explt () ()
+  (-> (< (1) A) (<-> (< B C) (< (exp A B) (exp A C))))
+  A C B exple
+    C B lenltt
+      (exp A C) (exp A B) lenltt
+  3bitr3g con4bid
 )
 
 # == Ternary conditional for naturals ==
