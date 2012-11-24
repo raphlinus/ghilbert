@@ -74,6 +74,7 @@ class EditHandler(users.AuthenticatedHandler):
 
     def get(self, arg):
         o = self.response.out
+        useAce = self.request.get("ace")
         asplit = arg.rsplit('/', 1)
         if len(asplit) < 2:
             o.write('expected proof_file.gh/thmname')
@@ -108,7 +109,21 @@ class EditHandler(users.AuthenticatedHandler):
     #panel tr { border: 1px solid black; }
     #panel td {padding: .3em; }
 
+""")
+        if useAce: o.write("""    .ace_marker-layer .gh_error {
+        position: absolute;
+        z-index: 4;
+        background-color: #fcc;
+    }
 </style>
+<style type="text/css" media="screen">
+    #canvas { 
+        position: relative;
+        width: 600px;
+        height: 400px;
+    }
+""")
+        o.write("""</style>
 </head>
         
 
@@ -128,9 +143,17 @@ class EditHandler(users.AuthenticatedHandler):
 <div style="display:block;float:left">
   <label for="number">before: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
 <br/>
-  <textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>
-  <input type="button" id="save" onclick="GH.save(document.getElementById('canvas').value, url)" name="save" value="save"/>
-  <input type="button" id="saveDraft" onclick="GH.saveDraft(document.getElementById('canvas').value)" name="save draft" value="save draft"/>
+""" % thmname)
+        if useAce: o.write("""<div id="canvas"></div>
+<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  var editor = ace.edit("canvas");
+  </script>
+""")
+        else:
+            o.write('<textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>\n')
+        o.write("""  <br/>
+  <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
   <span id="saving"></span>
 <br/>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
@@ -161,9 +184,12 @@ v.set_suppress_errors(true);
 run(uc, '/proofs_upto/%s', v);
 v.set_suppress_errors(false);
 
-var mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));
-//var mainpanel = GH.CanvasEdit.init();
-window.direct = new GH.Direct(mainpanel, document.getElementById('stack'));
+""" % (auth, json.encode(thmname), json.encode(url), urllib.quote(arg)))
+        if useAce:
+            o.write('window.mainpanel = new GH.AceEdit(editor);\n')
+        else:
+            o.write("window.mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));\n")
+        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'));
 window.direct.vg = v;
 var number = document.getElementById('number');
 number.onchange = function() {
@@ -176,13 +202,13 @@ number.onchange = function() {
     window.direct.update();
 };
 var panel = new GH.Panel(window.direct.vg);
-""" % (thmname, auth, json.encode(thmname), json.encode(url), urllib.quote(arg)))
+""")
         if digestd.has_key(thmname):
             start, end = digestd[thmname]
             thmbody = lines[start:end]
             thmbody = [l.rstrip() for l in thmbody]
             result = json.encode(thmbody)
-            o.write('mainpanel.setLines(%s);\n' % result)
+            o.write('window.mainpanel.setLines(%s);\n' % result)
         o.write('</script>\n')
 
 def skip_blank_lines(index, lines):

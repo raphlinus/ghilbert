@@ -9,6 +9,7 @@ GH.Direct = function(text, stack) {
     this.text.clearImtrans();  // todo: hack
     this.stack = stack;
     this.text.addListener(function() { self.update(); });
+    this.marker = null;
 };
 
 GH.splitrange = function(str, offset) {
@@ -58,90 +59,109 @@ GH.Direct.replace_thmname = function (newname) {
 };
 
 GH.Direct.prototype.update = function() {
-    var auLink = document.getElementById("autounify");
-    auLink.style.display='none';
-    var stext = [];
-    var thmctx = new GH.DirectThm(this.vg);
-    this.thmctx = thmctx;
-    var status = null;
-    var i, loc;
-    var offset = 0;
-    for (i = 0; i < this.text.numLines() && status == null; i++) {
-	var spl = GH.splitrange(this.text.getLine(i), offset);
-	offset += this.text.getLine(i).length + 1;
-	for (var j = 0; j < spl.length; j++) {
-	    try {
-		status = thmctx.tok(spl[j]);	
-	    } catch (ex) {
-		if (ex.found && (ex.found.beg)) {
-		    auLink.style.display = 'inline';
-		    auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
-			+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
-		    var that = this;
-		    auLink.onclick = function() {
-                        if (auLink.onmouseout) {
-                            auLink.onmouseout();
-                        }
-			that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
-			that.update();
-			if (auLink.style.display != 'none') {
-			    auLink.onmouseover();
-                        }
-			return false;
-		    };
-		    var textarea = document.getElementById("canvas");
-		    if (textarea.setSelectionRange) {
-			auLink.onmouseover = function() {
-			    var cursor = textarea.selectionEnd;
-			    auLink.onmouseout = function() {
-				textarea.setSelectionRange(cursor, cursor);
-				delete auLink.onmouseout;
-			    };
-			    textarea.setSelectionRange(ex.found.beg,
-						       ex.found.end);
-			};			  
-		    }
-
-		}
-		status = "! " + ex;
-	    }
-	    if (status) {
-		loc = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end;
-		break;
-	    }
+	var session = this.text.getSession();  // for ACE editing
+	if (session && this.marker !== null) {
+		session.removeMarker(this.marker);
+		this.marker = null;
 	}
-    }
+	var auLink = document.getElementById("autounify");
+	auLink.style.display='none';
+	var stext = [];
+	var thmctx = new GH.DirectThm(this.vg);
+	this.thmctx = thmctx;
+	var status = null;
+	var i, loc;
+	var offset = 0;
+	for (i = 0; i < this.text.numLines() && status == null; i++) {
+		var line = this.text.getLine(i);
+		var spl = GH.splitrange(line, offset);
+		for (var j = 0; j < spl.length; j++) {
+			try {
+				status = thmctx.tok(spl[j]);	
+			} catch (ex) {
+				if (ex.found && (ex.found.beg)) {
+					auLink.style.display = 'inline';
+					auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
+					+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
+					var that = this;
+					auLink.onclick = function() {
+						if (auLink.onmouseout) {
+							auLink.onmouseout();
+						}
+						that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
+						that.update();
+						if (auLink.style.display != 'none') {
+							auLink.onmouseover();
+						}
+						return false;
+					};
+					var textarea = document.getElementById("canvas");
+					if (textarea.setSelectionRange) {
+						auLink.onmouseover = function() {
+							var cursor = textarea.selectionEnd;
+							auLink.onmouseout = function() {
+								textarea.setSelectionRange(cursor, cursor);
+								delete auLink.onmouseout;
+							};
+							textarea.setSelectionRange(ex.found.beg,
+								ex.found.end);
+						};			  
+					}
+
+				}
+				status = "! " + ex;
+			}
+			if (status) {
+				if (session) {
+					var range = new this.text.Range(i, spl[j].beg-offset, i, spl[j].end-offset);
+					var text = status;
+					if (text.slice(0, 2) === '! ') {
+						text = text.slice(2);
+					}
+				    this.marker = session.addMarker(range, "gh_error", "text", false);
+				    session.setAnnotations([{row:i, column:spl[j].beg-offset, text:text, type:"error"}]);
+				}
+				loc = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end;
+				break;
+			}
+		}
+		offset += line.length + 1;
+	}
 
     //stext.push('state: ' + thmctx.state);
     //stext.push('ss: ' + GH.sexp_to_string(thmctx.sexpstack));
     sp = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     if (thmctx.hyps != null) {
-        for (i = 0; i < thmctx.hyps.length; i += 2) {
-	    stext.push(GH.sexptohtml(thmctx.hyps[i+1]) + 
-                                    sp + '# ' + GH.escapeHtml(thmctx.hyps[i]));
-	}
+    	for (i = 0; i < thmctx.hyps.length; i += 2) {
+    		stext.push(GH.sexptohtml(thmctx.hyps[i+1]) + 
+    			sp + '# ' + GH.escapeHtml(thmctx.hyps[i]));
+    	}
     }
     if (thmctx.concl != null) {
-        stext.push(GH.sexptohtml(thmctx.concl) + sp + '# WTS');
+    	stext.push(GH.sexptohtml(thmctx.concl) + sp + '# WTS');
     }
     if (thmctx.proofctx) {
-	var pstack = thmctx.proofctx.stack;
-	for (i = 0; i < pstack.length; i++) {
-	    stext.push(GH.sexptohtml(pstack[i]));
-	}
-	pstack = thmctx.proofctx.mandstack;
-	if (pstack.length > 0) {
-	    for (i = 0; i < pstack.length; i++) {
-	        stext.push(GH.sexptohtml(pstack[i][1]) + sp + '# W' + i);
-	    }
-	}
+    	var pstack = thmctx.proofctx.stack;
+    	for (i = 0; i < pstack.length; i++) {
+    		stext.push(GH.sexptohtml(pstack[i]));
+    	}
+    	pstack = thmctx.proofctx.mandstack;
+    	if (pstack.length > 0) {
+    		for (i = 0; i < pstack.length; i++) {
+    			stext.push(GH.sexptohtml(pstack[i][1]) + sp + '# W' + i);
+    		}
+    	}
     }
     // keep height from bouncing around in common case
     while (stext.length < 10) {
-        stext.push('&nbsp;')
+    	stext.push('&nbsp;');
     }
     if (status) {
-	stext.push(loc + ' ' + status);
+    	stext.push(loc + ' ' + status);
+    } else {
+    	if (session) {
+    		session.setAnnotations([]);
+    	}
     }
     GH.updatemultiline(stext, this.stack);
 };
