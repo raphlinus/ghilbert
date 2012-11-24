@@ -116,7 +116,7 @@ class handler(app.users.AuthenticatedHandler):
             if obj is None:
                 self.response.out.write('404 not found')
             elif babygit.obj_type(obj) == 'blob':
-                self.response.headers['Content-Type'] = 'text/plain';
+                self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
                 contents = babygit.obj_contents(obj)
                 self.response.out.write(contents)
             else:

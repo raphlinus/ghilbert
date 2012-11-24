@@ -242,7 +242,7 @@ class PrintEnvironmentHandler(webapp2.RequestHandler):
 
 class AllProofsPage(webapp2.RequestHandler):
     def get(self, number):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
         self.response.out.write(get_all_proofs(below=float(number)).getvalue())
 
 class StaticPage(webapp2.RequestHandler):
@@ -252,7 +252,7 @@ class StaticPage(webapp2.RequestHandler):
         except IOError, x:
             self.error(404)
             return
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
         for line in lines:
             self.response.out.write(line)
 
