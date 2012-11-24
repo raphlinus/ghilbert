@@ -63,7 +63,7 @@ class UptoHandler(webapp2.RequestHandler):
         if digestd.has_key(thmname):
             start, end = digestd[thmname]
             lines = lines[:start]
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
         o.write(''.join(lines))
 
 class EditHandler(users.AuthenticatedHandler):

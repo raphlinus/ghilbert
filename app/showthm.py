@@ -483,7 +483,7 @@ class ThmBrowser(webapp2.RequestHandler):
             self.response.out.write('404 not found')
             return
         elif babygit.babygit.obj_type(obj) == 'blob':
-            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
             o.write(babygit.babygit.obj_contents(obj))
         else:
             if len(arg) and not arg.endswith('/'):
