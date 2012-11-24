@@ -407,7 +407,7 @@ class ListThmsPage(webapp2.RequestHandler):
             header = get_header_from_description(lines)
             if header is not None:
                 formatter.write_header(header)
-                lines = trim_description(lines)
+            lines = trim_description(lines)
             description = []
             for i in range(len(lines)):
                 line = lines[i].strip()
