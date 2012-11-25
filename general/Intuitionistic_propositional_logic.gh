@@ -595,23 +595,43 @@ thm (swapBiconditional () (H (↔ p q)) (↔ q p)
 
 thm (BiconditionalTransitivity () () (→ (∧ (↔ p q) (↔ q r)) (↔ p r))
         (↔ p q) (↔ q r) ConjunctionRightElimination
+        p q Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
         (→ p q) (→ q p) ConjunctionRightElimination
         applySyllogism
 
         (↔ p q) (↔ q r) ConjunctionLeftElimination
+        q r Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
         (→ q r) (→ r q) ConjunctionRightElimination
         applySyllogism
         applySyllogismInConsequent
 
         (↔ p q) (↔ q r) ConjunctionLeftElimination
+        q r Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
         (→ q r) (→ r q) ConjunctionLeftElimination
         applySyllogism
 
         (↔ p q) (↔ q r) ConjunctionRightElimination
+        p q Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
         (→ p q) (→ q p) ConjunctionLeftElimination
         applySyllogism
         applySyllogismInConsequent
         composeConjunction
+
+        p r Biconditional
+        eliminateLeftConjunct
+        applySyllogism
  )
 
 thm (applyBiconditionalTransitivity () (H1 (↔ p q) H2 (↔ q r)) (↔ p r)
