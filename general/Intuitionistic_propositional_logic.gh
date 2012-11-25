@@ -496,28 +496,44 @@ thm (disjoinRR () (H (→ p q)) (→ (∨ p r) (∨ q r))
         p q r DisjunctionSummationRR
         applyModusPonens
  )
-term (formula (↔ p q))
 thm (introduceBiconditionalFromImplications () 
   (HFORWARD (→ p q) HREVERSE (→ q p)) 
   (↔ p q)
         HFORWARD
         HREVERSE
         introduceConjunction
+
+        p q Biconditional
+        eliminateLeftConjunct
+
+        applyModusPonens
  )
 thm (BiconditionalForwardElimination () () (→ (↔ p q) (→ q p))
+        p q Biconditional
+        eliminateRightConjunct
+
         (→ p q) (→ q p) ConjunctionLeftElimination
+        applySyllogism
  )
 
 thm (BiconditionalReverseElimination () () (→ (↔ p q) (→ p q))
+        p q Biconditional
+        eliminateRightConjunct
+
         (→ p q) (→ q p) ConjunctionRightElimination
+        applySyllogism
  )
 
 thm (eliminateBiconditionalForward () (H (↔ p q)) (→ q p)
-        H eliminateLeftConjunct
+        H
+        p q BiconditionalForwardElimination
+        applyModusPonens
  )
 
 thm (eliminateBiconditionalReverse () (H (↔ p q)) (→ p q)
-        H eliminateRightConjunct
+        H
+        p q BiconditionalReverseElimination
+        applyModusPonens
  )
 thm (AntecedentDistribution () () (↔ (→ p (→ q r)) (→ (→ p q) (→ p r)))
         p q r Frege
