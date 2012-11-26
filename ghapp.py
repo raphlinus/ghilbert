@@ -300,8 +300,9 @@ config['webapp2_extras.sessions'] = {
     # we use datastore session store, so doesn't need to be protected
     'secret_key': 'not very secret',
 }
+config['webapp2_extras.sessions']['cookie_args'] = {'max_age': 365 * 86400}
 if not os.environ.get('SERVER_SOFTWARE').startswith('Development'):
-    config['webapp2_extras.sessions']['cookie_args'] = {'secure': True}
+    config['webapp2_extras.sessions']['cookie_args']['secure'] = True
 
 application = webapp2.WSGIApplication(urlmap, debug=True, config=config)
 
