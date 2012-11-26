@@ -191,7 +191,7 @@ def process_ghmarkup(str, path):
         ''', re.VERBOSE)
     repls = {'<': '&lt;', '>': '&gt;', '&': '&amp;',
              '--': '&#x2013;', '---': '&#x2014;'}
-    emphs = {'_': 'i', '*' : 'b', '//': 'em', '**': 'strong'}
+    emphs = {'_': 'em', '*' : 'strong', '//': 'em', '**': 'strong'}
     def my_wikilink(str, ispreblock = False):
         return wikilink(str, path, ispreblock = False)
     embeds = {'[': (r'\]', my_wikilink), '[[': (r'\]\]', my_wikilink), 
@@ -249,6 +249,9 @@ def process_ghmarkup(str, path):
                     rline += line[pos:pos2] + stack[-1][1]
                     pos = pos2 + len(stack[-1][0])
                     del stack[-1]
+                    if pclose.startswith('</h'):
+                        rline += pclose
+                        pclose = None
                     continue
             if m:
                 rline += line[pos:m.start()]
