@@ -1428,6 +1428,11 @@ thm (buildImplication () (HPQ (↔ p q) HRS (↔ r s)) (↔ (→ p r) (→ q s))
         applyModusPonens
  )
 thm (BiconditionalFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (↔ p r) (↔ q s)))
+        # We will need (p ↔ r) ↔ (p → r) ∧ (r → p) later.
+        p r BiconditionalImplication
+        (∧ (↔ p q) (↔ r s)) introduceAntecedent
+
+        # The main part of the proof applies the implication and conjunction builders
         p q r s ImplicationFunction
 
         (↔ p q) (↔ r s) ConjunctionCommutativity
@@ -1438,6 +1443,19 @@ thm (BiconditionalFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (↔ p r) (
         composeConjunction
 
         (→ p r) (→ q s) (→ r p) (→ s q) ConjunctionFunction
+        applySyllogism
+
+        # Now we turn (p → r) ∧ (r → p) into p ↔ r
+        composeConjunction
+        (↔ p r) (∧ (→ p r) (→ r p)) (∧ (→ q s) (→ s q)) BiconditionalTransitivity
+        applySyllogism
+
+        # Now we just need to turn q → s ∧ s → q into q ↔ s
+        q s BiconditionalImplication
+        swapBiconditional
+        (∧ (↔ p q) (↔ r s)) introduceAntecedent
+        composeConjunction
+        (↔ p r) (∧ (→ q s) (→ s q)) (↔ q s) BiconditionalTransitivity
         applySyllogism
  )
 
