@@ -893,12 +893,24 @@ thm (buildConjunction () (H1 (↔ p q) H2 (↔ r s))
         applyModusPonens
  )
 thm (DisjunctionFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (∨ p r) (∨ q s))) # *4.39
+        p q Biconditional
+        eliminateRightConjunct
+
+        r s Biconditional
+        eliminateRightConjunct
+        conjoin
+
         (→ p q) (→ q p) (→ r s) (→ s r) ConjunctionFunction-1
-        
+
         p q r s DisjunctionSummation
         q p s r DisjunctionSummation
         conjoin
 
+        applySyllogism
+        applySyllogism
+
+        (∨ p r) (∨ q s) Biconditional
+        eliminateLeftConjunct
         applySyllogism
  )
 
