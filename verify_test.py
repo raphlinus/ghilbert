@@ -1,3 +1,4 @@
+#encoding: utf-8
 import sys
 import verify
 
@@ -115,6 +116,27 @@ stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
                               'hyp', 'x', '19.21ai'], out)
      print verifyctx.syms
 
+def TestExport(out):
+     urlctx = TestUrlCtx()
+     urlctx.add('in.ghi',
+"""kind (formula)
+tvar (formula p q)
+term (formula (→ p q))
+stmt (AntecedentIntroduction () () (→ p (→ q p)))
+""")     
+     urlctx.add('out.ghi',
+"""kind (formula)
+tvar (formula p q)
+term (formula (→ p q))
+stmt (AntecedentIntroduction () () (→ q (→ p q)))
+""")     
+     verifyctx = verify.VerifyCtx(urlctx, run_regression)
+     verifyctx.do_cmd('import', ['IN', 'in.ghi', [], '""'], out)
+     verifyctx.do_cmd('tvar', ['formula', 'p', 'q'], out)
+     verifyctx.do_cmd('export', ['OUT', 'out.ghi', [], '""'], out)
+     print verifyctx.syms
+
+
 # Version of run loop tuned for regression testing
 def run_regression(urlctx, url, ctx, out):
     s = verify.Scanner(urlctx.resolve(url))
@@ -163,5 +185,6 @@ verbose = 1
 TestFv(sys.stdout)
 TestStmt(sys.stdout)
 TestThm(sys.stdout)
+TestExport(sys.stdout)
 if len(sys.argv) > 1:
      regression(sys.argv[1], sys.stdout)

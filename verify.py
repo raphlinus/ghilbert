@@ -1195,7 +1195,13 @@ class ExportCtx(InterfaceCtx):
                     return False
                 # Check binding vs. term var and kinds
                 vv = self.verify.syms[vexp]
-                if v != vv:
+                binding_v = v[0]
+                binding_vv = vv[0]
+                if binding_v != binding_vv:
+                    return False
+                kind_v = v[1]
+                kind_vv = vv[1]
+                if kind_v != kind_vv:
                     return False
                 if vexp in invmap:
                     return False
