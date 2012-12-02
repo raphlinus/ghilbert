@@ -43,10 +43,8 @@ class ProofFormatter:
 
     def header(self, thmname):
         o = self.out
-        o.write('<html><head><title>Proof of %s</title>\n' % cgi.escape(thmname))
-        o.write('<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
-        o.write('</head>\n')
-        o.write('<body><h1>Proof of %s</h1>\n' % cgi.escape(thmname))
+        common.header(o, "Proof of " + thmname,
+            '<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
     def write_header(self, header):
         self.out.write('<h2>' + cgi.escape(header) + '</h2>\n')
     def write_proof_line(self, line):

@@ -14,12 +14,18 @@
 
 # Stuff common to most pages on the webapp (includes hardcoded templates)
 
+import cgi
+
 def header(o, name, stylesheet = None):
-    o.write('<html><head><title>' + name + '</title>\n')
+    o.write('<html><head><title>' + cgi.escape(name) + '</title>\n')
     if stylesheet:
     	o.write(stylesheet)
-    o.write('<body><h1>' + name + '</h1>\n')
-    # todo: stylesheet, etc
+    o.write('<link rel=stylesheet href="/static/common.css" type="text/css">\n')
+    o.write('<body>\n')
+    o.write('<div class="header">')
+    o.write('<a href="/"><img src="/static/favicon.ico"/></a> <a href="/">Ghilbert</a>')
+    o.write('</div>')
+    o.write('<h1>' + cgi.escape(name) + '</h1>\n')
 
 def error_403(handler):
     handler.error(403)

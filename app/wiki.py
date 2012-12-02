@@ -40,11 +40,7 @@ class Handler(users.AuthenticatedHandler):
         obj = self.repo.traverse(gitcontent.wiki_to_git_path(arg))
         if obj is not None:
             contents = babygit.babygit.obj_contents(obj)
-            o.write('''<html><head>
-<title>Ghilbert wiki: %s</title>
-<body>
-<h1>Ghilbert wiki: %s</h1>
-''' % (cgi.escape(arg), cgi.escape(arg)))
+            common.header(o, "Ghilbert wiki: " + arg)
             o.write(ghmarkup.process_ghmarkup(contents, '/'))
             if self.has_write_perm:
                 o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
