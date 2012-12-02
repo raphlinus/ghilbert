@@ -1595,48 +1595,63 @@ thm (TruthBiconditional () () (→ (∧ p q) (↔ p q)) # *5.1
         applySyllogism
  )
 
-thm (TautologyId () () (↔ (→ p p) (⊤))
-        p Id
-        q NoContradiction
+thm (Truth () () (↔ (⊤) (¬ (∧ p (¬ p))))
+        True
+        p NoContradiction
         introduceConjunction
 
-        (→ p p) (¬ (∧ q (¬ q))) TruthBiconditional
+        (⊤) (¬ (∧ p (¬ p))) TruthBiconditional
         applyModusPonens
+)
 
-        q Truth
-        swapBiconditional
-        applyBiconditionalTransitivity
+thm (TautologyId () () (↔ (→ p p) (⊤))
+        p Id
+        True
+        introduceConjunction
+
+        (→ p p) (⊤) TruthBiconditional
+        applyModusPonens
  )
-thm (ContradictionLemma () () (→ (∧ p (¬ p)) (∧ q (¬ q)))
-        p (∧ q (¬ q)) Explosion
+
+defthm (df-falsity formula (⊥) () () (↔ (⊥) (¬ (⊤)))
+        (¬ (⊤)) BiconditionalReflexivity
+ )
+thm (NotFalse () () (¬ (⊥))
+        True
+        introduceDoubleNegation
+
+        df-falsity
+        eliminateBiconditionalReverse
+        introduceTransposition
+
+        applyModusPonens
+ )
+
+thm (ContradictionForward () () (→ (∧ p (¬ p)) (⊥))
+        p (⊥) Explosion
         import
  )
 
+thm (ContradictionReverse () () (→ (⊥) (∧ p (¬ p)))
+# First prove ⊥ → ⊥ ∧ ¬ ⊥  (because ¬ ⊥ is a theorem)
+        (⊥) ImplicationReflexivity
+
+        NotFalse
+        (⊥) introduceAntecedent
+
+        composeConjunction
+# Now ⊥ ∧ ¬ ⊥ → p ∧ ¬ p by explosion
+        (⊥) (∧ p (¬ p)) Explosion
+        import
+        applySyllogism
+ )
+
 thm (Contradiction () () (↔ (∧ p (¬ p)) (⊥))
-        p q ContradictionLemma
-        q p ContradictionLemma
+        p ContradictionForward
+        p ContradictionReverse
         introduceBiconditionalFromImplications
-
-        q Falsity
-        swapBiconditional
-        applyBiconditionalTransitivity
- )
-thm (True () () (⊤)
-        p NoContradiction
-
-        p Truth
-        eliminateBiconditionalForward
-        applyModusPonens
  )
 
-thm (NotFalse () () (¬ (⊥))
-        p NoContradiction
-
-        p Falsity
-        addNegation
-        eliminateBiconditionalForward
-        applyModusPonens
- )
 thm (NegationImplicationForward () () (→ (¬ p) (→ p (⊥)))
         (¬ p) p ConjunctionCommutativity
         eliminateBiconditionalReverse
