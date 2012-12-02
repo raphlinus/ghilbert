@@ -418,6 +418,7 @@ class ListThmsPage(webapp2.RequestHandler):
             descstr = ' '.join(description)
             thmurl = urllib.quote(url + '/' + thm_name)
             errstr = ''
+            o.write('<div class="listthm">')
             if error:
                 errstr = '<a href="/edit' + thmurl + '" class="error_indicator">●</a> '
             o.write('<div class="listthmline" ">%s<a href="%s">%s</a> %s</div>\n' % \
@@ -430,6 +431,7 @@ class ListThmsPage(webapp2.RequestHandler):
                     prefix = ', '
                 o.write(' ⊢ ')
             o.write('<span class="sexp">%s</span>\n' % cgi.escape(verify.sexp_to_string(conclusion)))
+            o.write('</div>')
         o.write(
 '''<script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/showthm.js" type="text/javascript"></script>
