@@ -586,10 +586,10 @@ class VerifyCtx:
                 raise x
         if len(proofctx.mandstack) != 0:
             raise VerifyError('extra mand hyps on stack at and of proof',
-                              label)
+                              proofctx.label)
         if len(proofctx.stack) != 1:
             raise VerifyError('stack must have one term at end of proof',
-                              label, proofctx.stack)
+                              proofctx.label, proofctx.stack)
         extra = ''
         missing = ''
         for v in fvmap:
