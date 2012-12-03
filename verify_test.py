@@ -150,6 +150,9 @@ def run_regression(urlctx, url, ctx, out):
          ctx.do_cmd(cmd, arg, out)
 
 def regression(fn, out):
+     tests = 0
+     failures = 0
+
      urlctx = TestUrlCtx()
      lineno = 0
      for l in file(fn).xreadlines():
@@ -164,6 +167,7 @@ def regression(fn, out):
                elif cmd[0] in ('!accept', '!reject'):
                     verifyctx = verify.VerifyCtx(urlctx, run_regression)
                     error = None
+                    tests += 1
                     try:
                          run_regression(urlctx, cmd[1], verifyctx, out)
                     except verify.VerifyError, x:
@@ -171,8 +175,10 @@ def regression(fn, out):
                     except SyntaxError, x:
                          error = "SyntaxError: " + str(x)
                     if error is None and cmd[0] == '!reject':
+                         failures += 1
                          print str(lineno) + ': FAIL, expected error: ' + ' '.join(cmd[2:])
                     elif error and cmd[0] == '!accept':
+                         failures += 1
                          print str(lineno) + ': FAIL, got unexpected ' + error
                     if verbose >= 1 and error and cmd[0] == '!reject':
                          print str(lineno) + ': ok ' + error
@@ -180,6 +186,7 @@ def regression(fn, out):
                          urlctx.revert()
           elif l.strip() and not l.startswith('#'):
                urlctx.append_current(l)
+     return [tests, failures]
 
 verbose = 1
 TestFv(sys.stdout)
@@ -187,4 +194,7 @@ TestStmt(sys.stdout)
 TestThm(sys.stdout)
 TestExport(sys.stdout)
 if len(sys.argv) > 1:
-     regression(sys.argv[1], sys.stdout)
+     tests, failures = regression(sys.argv[1], sys.stdout)
+     print
+     print tests, 'tests run, ', failures, 'failures'
+     exit(0 if failures == 0 else 1)
