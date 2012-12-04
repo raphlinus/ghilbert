@@ -68,21 +68,17 @@ stmt (ProofByContradiction () () (→ (→ p q) (→ (→ p (¬ q)) (¬ p)))) # 
 # From a contradiction, anything follows. This is also known as the [[w:Principle of explosion|principle of explosion]]. The presence of this axiom distinguishes intuitionistic logic from [[w:Minimal logic|minimal logic]].
 stmt (Explosion () () (→ p (→ (¬ p) q))) # *2.24 in Principia
 #
-# == Biconditional ==
-#
-# The biconditional p ↔ q is defined as (p → q) ∧ (q → p). However, ghilbert's defthm definition mechanism
-# probably cannot be used here, as it wants the biconditional to already exist. Therefore, we adopt
-# an additional axiom which serves to define the biconditional. We take this axiom from dfbi in metamath's
-# set.mm, http://us.metamath.org/mpeuni/dfbi.html
-term (formula (↔ p q))
-stmt (Biconditional () () (∧ (→ (↔ p q) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (↔ p q))))
-#
 # == Truth ==
 #
 # Although ghilbert can, basically, define truth and falsity in terms of the above concepts, it doesn't appear to have the ability to give a notation for truth (⊤) or falsity (⊥) without an additional axiom. We adopt an axiom that asserts that ⊤ holds, which is enough (⊥ can be defined in terms of ⊤).
 term (formula (⊤))
 stmt (True () () (⊤))
 # 
+# == Biconditional ==
+# Note that biconditional can be defined in terms of conjunction and implication, so an axiom
+# is not necessary to introduce it; Ghilbert's defthm mechanism is powerful enough. See
+# [BiconditionalJust] for the theorem justifying the definition.
+#
 # == References ==
 # <references/>
 # 

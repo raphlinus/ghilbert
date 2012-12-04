@@ -496,6 +496,25 @@ thm (disjoinRR () (H (→ p q)) (→ (∨ p r) (∨ q r))
         p q r DisjunctionSummationRR
         applyModusPonens
  )
+
+# Justification for the definition of biconditional.
+thm (BiconditionalJust () ()
+        (∧ (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))))
+        (∧ (→ p q) (→ q p)) ImplicationReflexivity
+        (∧ (→ p q) (→ q p)) ImplicationReflexivity
+        introduceConjunction
+)
+
+# The biconditional p ↔ q is defined as (p → q) ∧ (q → p). If we already had biconditional,
+# it would be fairly straightforward to define it using [BiconditionalReflexivity]. But
+# since we don't, what we'll prove instead is the expanded form of that defintion.
+# The defthm mechanism will then match the p ↔ q term against its expansion. This is
+# quite similar to dfbi in metamath's set.mm, [http://us.metamath.org/mpeuni/dfbi.html]
+defthm (Biconditional formula (↔ p q) () ()
+        (∧ (→ (↔ p q) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (↔ p q)))
+        p q BiconditionalJust
+)
+
 thm (introduceBiconditionalFromImplications () 
   (HFORWARD (→ p q) HREVERSE (→ q p)) 
   (↔ p q)
