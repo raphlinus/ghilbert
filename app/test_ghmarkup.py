@@ -34,6 +34,18 @@ two
 </li>
 </ul>""", ghmarkup.ghmarkup("* one\n* two\n"))
 
+  def test_no_blank_line_before_bullet(self):
+    self.assertEqual("""<p>
+Animals:
+</p>
+<ul>
+<li>
+<div>
+dog
+</div>
+</li>
+</ul>""", ghmarkup.ghmarkup("Animals:\n* dog"))
+
   def test_math(self):
     self.assertEqual(u'<p>\n<span class="sexp">(→ p q)</span>\n</p>', ghmarkup.ghmarkup("#(→ p q)#"))
 

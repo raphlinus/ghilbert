@@ -208,7 +208,7 @@ def process_ghmarkup(str, path):
     while i < len(lines):
         line = lines[i]
         i += 1
-        if pclose in ('</div>', None):
+        if pclose in ('</div>', '</p>', None):
             bullet_m = bullet_re.match(line)
         else:
             bullet_m = None
