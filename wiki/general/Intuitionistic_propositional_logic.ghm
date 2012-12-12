@@ -190,6 +190,9 @@ We could prove the <code>DisjunctionSummationLL</code>, <code>DisjunctionSummati
 
 We define the biconditional as the conjunction of two implications:
 
+* #(∧ (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalJust | BiconditionalJust])
+* defthm Biconditional
+
 And one way to prove a biconditional is to prove both of the implications:
 * #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromImplications | introduceBiconditionalFromImplications])
 
@@ -459,22 +462,18 @@ Since a suitably negated disjunction implies an implication, the antecedent of t
 * #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromDisjunctions | introduceBiconditionalFromDisjunctions])
 
 == True and false connectives ==
-We define true (⊤) as a theorem (any theorem would do), and false (⊥) as a statement whose negation is a theorem.
-
-
-Proving <code>TautologyId</code> is straightforward; the proof from [[Principia Mathematica propositional logic]] works with only the obvious changes for the difference between <code>Tautology</code> and <code>TautologyId</code>.
+We already defined true (⊤) in [Axioms of intuitionistic propositional logic]. We define false (⊥) as ¬ ⊤.
 
 * #(→ (∧ p q) (→ p q))# ([/general/Intuitionistic_propositional_logic.gh/*3.4 | *3.4])
+* #(↔ (⊤) (¬ (∧ p (¬ p))))# ([/general/Intuitionistic_propositional_logic.gh/Truth | Truth])
 * #(→ (∧ p q) (↔ p q))# ([/general/Intuitionistic_propositional_logic.gh/TruthBiconditional | TruthBiconditional])
 * #(↔ (→ p p) (⊤))# ([/general/Intuitionistic_propositional_logic.gh/TautologyId | TautologyId])
-
-The <code>Contradiction</code> theorem also holds.  To prove it the same way as <code>TautologyId</code> would require <code>¬ p ∧ ¬ q → (p ↔ q)</code> (*5.21 in [[Principia Mathematica propositional logic]]). Since we don't have that, we can prove it in an even more direct way: a contradiction implies anything, including the consequent of each of the implications in this theorem.
-* #(→ (∧ p (¬ p)) (∧ q (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/ContradictionLemma | ContradictionLemma])
-* #(↔ (∧ p (¬ p)) (⊥))# ([/general/Intuitionistic_propositional_logic.gh/Contradiction | Contradiction])
-
-The next two are trivial.
-* #(⊤)# ([/general/Intuitionistic_propositional_logic.gh/True | True])
 * #(¬ (⊥))# ([/general/Intuitionistic_propositional_logic.gh/NotFalse | NotFalse])
+
+The <code>Contradiction</code> theorem also holds.  To prove it the same way as <code>TautologyId</code> would require <code>¬ p ∧ ¬ q → (p ↔ q)</code> (*5.21 in [[Principia Mathematica propositional logic]]). We don't have that, but <code>Contradiction</code> follows without too much trouble from <code>Explosion</code>.
+* #(→ (∧ p (¬ p)) (⊥))# ([/general/Intuitionistic_propositional_logic.gh/ContradictionForward | ContradictionForward])
+* #(→ (⊥) (∧ p (¬ p)))# ([/general/Intuitionistic_propositional_logic.gh/ContradictionReverse | ContradictionReverse])
+* #(↔ (∧ p (¬ p)) (⊥))# ([/general/Intuitionistic_propositional_logic.gh/Contradiction | Contradiction])
 
 === Negation and ⊥ ===
 
