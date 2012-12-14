@@ -22,12 +22,12 @@ Some proofs are taken from metamath's set.mm.  In particular, metamath's section
 === Rule for antecedent distribution ===
 
 It will be convenient to have the ''Frege'' axiom as a rule:
-* #(→ (→ p q) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeAntecedent | distributeAntecedent])
+* #(→ p (→ q r))# ⊢ #(→ (→ p q) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeAntecedent | distributeAntecedent])
 
 === Syllogism ===
 
 Next we derive the syllogism, which allows us to combine several implications.
-* #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/applySyllogism | applySyllogism])
+* #(→ p q)#, #(→ q r)# ⊢ #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/applySyllogism | applySyllogism])
 
 === Implication reflexivity ===
 
@@ -37,15 +37,15 @@ Any proposition implies itself:
 
 === More common operations ===
 Given a nested implication we often want to exchange the two antecedents:
-* #(→ q (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/applyComm | applyComm])
+* #(→ p (→ q r))# ⊢ #(→ q (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/applyComm | applyComm])
 
 If we have an implication, adding a common term to the antecedent and the consequent yields a new theorem:
 * #(→ (→ p q) (→ (→ r p) (→ r q)))# ([/general/Intuitionistic_propositional_logic.gh/CommonAntecedentAddition | CommonAntecedentAddition])
-* #(→ (→ r p) (→ r q))# ([/general/Intuitionistic_propositional_logic.gh/addCommonAntecedent | addCommonAntecedent])
+* #(→ p q)# ⊢ #(→ (→ r p) (→ r q))# ([/general/Intuitionistic_propositional_logic.gh/addCommonAntecedent | addCommonAntecedent])
 
 The analogous operation adding consequents swaps the initial antecedent and consequent:
 * #(→ (→ p q) (→ (→ q r) (→ p r)))# ([/general/Intuitionistic_propositional_logic.gh/CommonConsequentAddition | CommonConsequentAddition])
-* #(→ (→ q r) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/addCommonConsequent | addCommonConsequent])
+* #(→ p q)# ⊢ #(→ (→ q r) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/addCommonConsequent | addCommonConsequent])
 
 Here's a theorem form of <code>applyComm</code>:
 * #(→ (→ p (→ q r)) (→ q (→ p r)))# ([/general/Intuitionistic_propositional_logic.gh/Comm | Comm])
@@ -54,32 +54,32 @@ Here's a theorem form of <code>applyComm</code>:
 
 We can absorb a redundant antecedent:
 * #(→ (→ p (→ p q)) (→ p q))# ([/general/Intuitionistic_propositional_logic.gh/RedundantAntecedentAbsorption | RedundantAntecedentAbsorption])
-* #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/absorbRedundantAntecedent | absorbRedundantAntecedent])
+* #(→ p (→ p q))# ⊢ #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/absorbRedundantAntecedent | absorbRedundantAntecedent])
 
 === Antecedent introduction ===
 We provide another name and a rule form for the <code>Simp</code> axiom:
 * #(→ p (→ q p))# ([/general/Intuitionistic_propositional_logic.gh/AntecedentIntroduction | AntecedentIntroduction])
-* #(→ q p)# ([/general/Intuitionistic_propositional_logic.gh/introduceAntecedent | introduceAntecedent])
+* #p# ⊢ #(→ q p)# ([/general/Intuitionistic_propositional_logic.gh/introduceAntecedent | introduceAntecedent])
 
 === Converse of antecedent distribution ===
 The converse of the <code>Frege</code> axiom also holds.<ref>[http://us.metamath.org/mpeuni/pm2.86.html pm2.86] in metamath's set.mm, accessed May 14, 2010</ref>
 * #(→ (→ (→ p q) (→ p r)) (→ p (→ q r)))# ([/general/Intuitionistic_propositional_logic.gh/FregeConverse | FregeConverse])
-* #(→ p (→ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectAntecedent | collectAntecedent])
+* #(→ (→ p q) (→ p r))# ⊢ #(→ p (→ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectAntecedent | collectAntecedent])
 
 === Syllogism in the consequent ===
 This theorem is similar to syllogism, but where each piece has a common antecedent.
 * #(→ (→ p (→ q r)) (→ (→ p (→ r s)) (→ p (→ q s))))# ([/general/Intuitionistic_propositional_logic.gh/SyllogismInConsequent | SyllogismInConsequent])
-* #(→ p (→ q s))# ([/general/Intuitionistic_propositional_logic.gh/applySyllogismInConsequent | applySyllogismInConsequent])
+* #(→ p (→ q r))#, #(→ p (→ r s))# ⊢ #(→ p (→ q s))# ([/general/Intuitionistic_propositional_logic.gh/applySyllogismInConsequent | applySyllogismInConsequent])
 
 == Conjunction ==
 
 === Rules ===
 If we can prove two propositions, the conjunction of the two follows (this is just a rule form of the <code>ConjunctionRightIntroduction</code> axiom):
-* #(∧ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceConjunction | introduceConjunction])
+* #p#, #q# ⊢ #(∧ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceConjunction | introduceConjunction])
 
 Here are rules for the <code>ConjunctionLeftElimination</code> and <code>ConjunctionRightElimination</code> axioms:
-* #('q')# ([/general/Intuitionistic_propositional_logic.gh/eliminateLeftConjunct | eliminateLeftConjunct])
-* #('p')# ([/general/Intuitionistic_propositional_logic.gh/eliminateRightConjunct | eliminateRightConjunct])
+* #(∧ p q)# ⊢ #q# ([/general/Intuitionistic_propositional_logic.gh/eliminateLeftConjunct | eliminateLeftConjunct])
+* #(∧ p q)# ⊢ #p# ([/general/Intuitionistic_propositional_logic.gh/eliminateRightConjunct | eliminateRightConjunct])
 
 === Left introduction ===
 Most of the introduction and elimination statements we need to provide are axioms, but this one is a simple consequence of the axioms:
@@ -88,25 +88,25 @@ Most of the introduction and elimination statements we need to provide are axiom
 === Conjunction composition ===
 Our first major theorem relating conjunction to implication is composition: from <code>p → q</code> and <code>p → r</code>, we can conclude <code>p → (q ∧ r)</code>.
 * #(→ (→ p q) (→ (→ p r) (→ p (∧ q r))))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionComposition1 | ConjunctionComposition1])
-* #(→ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/composeConjunction | composeConjunction])
+* #(→ p q)#, #(→ p r)# ⊢ #(→ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/composeConjunction | composeConjunction])
 
 We also prove a version of the converse:
 * #(→ (→ p (∧ q r)) (∧ (→ p q) (→ p r)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionCompositionReverse | ConjunctionCompositionReverse])
-* #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/extractLeftConjunction | extractLeftConjunction])
-* #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/extractRightConjunction | extractRightConjunction])
+* #(→ p (∧ q r))# ⊢ #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/extractLeftConjunction | extractLeftConjunction])
+* #(→ p (∧ q r))# ⊢ #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/extractRightConjunction | extractRightConjunction])
 
 === Export and import ===
 The import and export theorems from classical propositional logic also hold in intuitionistic logic. We start with export, <code>(p ∧ q → r) → (p → (q → r))</code>. The proof is based around a variant of CommonConsequentAddition which has two antecedents, rather than one.
 
 * #(→ (→ p (→ q r)) (→ (→ r common) (→ p (→ q common))))# ([/general/Intuitionistic_propositional_logic.gh/CommonConsequentAdditionToNestedImplication | CommonConsequentAdditionToNestedImplication])
 * #(→ (→ (∧ p q) r) (→ p (→ q r)))# ([/general/Intuitionistic_propositional_logic.gh/Exportation | Exportation])
-* #(→ p (→ q r))# ([/general/Intuitionistic_propositional_logic.gh/export | export])
+* #(→ (∧ p q) r)# ⊢ #(→ p (→ q r))# ([/general/Intuitionistic_propositional_logic.gh/export | export])
 
 The proof of export was based around having a conjunction as a consequent, that is <code>p → (q → p ∧ q)</code>.  The proof of import is based around <code>p ∧ q → p</code> (and likewise for <code>q</code>). The following lemma is what we'll use to glue together the different parts of the proof, and is basically a gussied up variant of applySyllogism:
 
-* #(→ P (→ Q r))# ([/general/Intuitionistic_propositional_logic.gh/ImportLemma | ImportLemma])
+* #(→ P (→ Q R))#, #(→ R (→ Q r))# ⊢ #(→ P (→ Q r))# ([/general/Intuitionistic_propositional_logic.gh/ImportLemma | ImportLemma])
 * #(→ (→ p (→ q r)) (→ (∧ p q) r))# ([/general/Intuitionistic_propositional_logic.gh/Importation | Importation])
-* #(→ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/import | import])
+* #(→ p (→ q r))# ⊢ #(→ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/import | import])
 
 === Implication transitivity and other consequences of import ====
 The form of the syllogism in [[Interface:Intuitionistic propositional logic]] is easy now that we have import:
@@ -118,7 +118,7 @@ Likewise, we restate <code>ConjunctionComposition1</code> using the new tool:
 
 === Commutativity ===
 * #(→ (∧ p q) (∧ q p))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionCommutativityImplication | ConjunctionCommutativityImplication])
-* #(∧ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapConjunction | swapConjunction])
+* #(∧ p q)# ⊢ #(∧ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapConjunction | swapConjunction])
 
 === Builders ===
 
@@ -129,34 +129,34 @@ Our first major builder lets us add a common conjunct to both sides of an implic
 * #(→ (→ p q) (→ (∧ p common) q))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationRX-q | ConjunctionMultiplicationRX-q])
 * #(→ (→ p q) (→ (∧ p common) common))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationRX-common | ConjunctionMultiplicationRX-common])
 * #(→ (→ p q) (→ (∧ p common) (∧ q common)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationRR | ConjunctionMultiplicationRR])
-* #(→ (∧ p r) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/conjoinRR | conjoinRR])
+* #(→ p q)# ⊢ #(→ (∧ p r) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/conjoinRR | conjoinRR])
 
 ==== Other builders ====
 The rest of the <code>ConjunctionMultiplication</code> variants follow from the first one, just like in [[Principia Mathematica propositional logic]].
 
 * #(→ (∧ (→ p r) (→ q s)) (→ (∧ p q) (∧ r s)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplication | ConjunctionMultiplication])
-* #(→ (∧ p q) (∧ r s))# ([/general/Intuitionistic_propositional_logic.gh/conjoin | conjoin])
+* #(→ p r)#, #(→ q s)# ⊢ #(→ (∧ p q) (∧ r s))# ([/general/Intuitionistic_propositional_logic.gh/conjoin | conjoin])
 * #(→ (→ p q) (→ (∧ r p) (∧ r q)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationLL | ConjunctionMultiplicationLL])
 * #(→ (→ p q) (→ (∧ r p) (∧ q r)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationLR | ConjunctionMultiplicationLR])
 * #(→ (→ p q) (→ (∧ p r) (∧ r q)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionMultiplicationRL | ConjunctionMultiplicationRL])
-* #(→ (∧ r p) (∧ r q))# ([/general/Intuitionistic_propositional_logic.gh/conjoinLL | conjoinLL])
-* #(→ (∧ r p) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/conjoinLR | conjoinLR])
-* #(→ (∧ p r) (∧ r q))# ([/general/Intuitionistic_propositional_logic.gh/conjoinRL | conjoinRL])
+* #(→ p q)# ⊢ #(→ (∧ r p) (∧ r q))# ([/general/Intuitionistic_propositional_logic.gh/conjoinLL | conjoinLL])
+* #(→ p q)# ⊢ #(→ (∧ r p) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/conjoinLR | conjoinLR])
+* #(→ p q)# ⊢ #(→ (∧ p r) (∧ r q))# ([/general/Intuitionistic_propositional_logic.gh/conjoinRL | conjoinRL])
 
 == Disjunction ==
 We provide a variation of the disjunction composition axiom, and a rule form:
 * #(→ (→ (∨ p q) r) (∧ (→ p r) (→ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionCompositionReverse | DisjunctionCompositionReverse])
-* #(→ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/composeDisjunction | composeDisjunction])
+* #(→ p r)#, #(→ q r)# ⊢ #(→ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/composeDisjunction | composeDisjunction])
 
 Here are a few other rules corresponding to axioms.
-* #(∨ q p)# ([/general/Intuitionistic_propositional_logic.gh/introduceLeftDisjunction | introduceLeftDisjunction])
-* #(∨ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceRightDisjunction | introduceRightDisjunction])
-* #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/extractLeftDisjunction | extractLeftDisjunction])
-* #(→ q r)# ([/general/Intuitionistic_propositional_logic.gh/extractRightDisjunction | extractRightDisjunction])
+* #p# ⊢ #(∨ q p)# ([/general/Intuitionistic_propositional_logic.gh/introduceLeftDisjunction | introduceLeftDisjunction])
+* #p# ⊢ #(∨ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceRightDisjunction | introduceRightDisjunction])
+* #(→ (∨ p q) r)# ⊢ #(→ p r)# ([/general/Intuitionistic_propositional_logic.gh/extractLeftDisjunction | extractLeftDisjunction])
+* #(→ (∨ p q) r)# ⊢ #(→ q r)# ([/general/Intuitionistic_propositional_logic.gh/extractRightDisjunction | extractRightDisjunction])
 
 === Commutativity ===
 * #(→ (∨ p q) (∨ q p))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionCommutativityImplication | DisjunctionCommutativityImplication])
-* #(∨ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapDisjunction | swapDisjunction])
+* #(∨ p q)# ⊢ #(∨ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapDisjunction | swapDisjunction])
 
 === Builders ===
 
@@ -167,14 +167,14 @@ Our first disjunction builder is proved analogously to <code>ConjunctionMultipli
 * #(→ (→ p q) (→ p (∨ common q)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationXL-p | DisjunctionSummationXL-p])
 * #(→ (→ p q) (→ common (∨ common q)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationXL-common | DisjunctionSummationXL-common])
 * #(→ (→ p q) (→ (∨ p common) (∨ common q)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationRL | DisjunctionSummationRL])
-* #(→ (∨ p r) (∨ r q))# ([/general/Intuitionistic_propositional_logic.gh/disjoinRL | disjoinRL])
+* #(→ p q)# ⊢ #(→ (∨ p r) (∨ r q))# ([/general/Intuitionistic_propositional_logic.gh/disjoinRL | disjoinRL])
 
 ==== DisjunctionSummation ====
 
 This theorem follows exactly as <code>ConjunctionMultiplication</code>, except that we use <code>DisjunctionSummationRL</code> instead of <code>ConjunctionMultiplicationRR</code> and <code>ConjunctionCommutativity</code>.
 
 * #(→ (∧ (→ p r) (→ q s)) (→ (∨ p q) (∨ r s)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummation | DisjunctionSummation])
-* #(→ (∨ p q) (∨ r s))# ([/general/Intuitionistic_propositional_logic.gh/disjoin | disjoin])
+* #(→ p r)#, #(→ q s)# ⊢ #(→ (∨ p q) (∨ r s))# ([/general/Intuitionistic_propositional_logic.gh/disjoin | disjoin])
 
 ==== DisjunctionSummation variations ====
 We could prove the <code>DisjunctionSummationLL</code>, <code>DisjunctionSummationRR</code>, and <code>DisjunctionSummationLR</code> the same way that we proved <code>DisjunctionSummationRL</code>, but here we prove them as special cases of <code>DisjunctionSummation</code>.
@@ -182,22 +182,22 @@ We could prove the <code>DisjunctionSummationLL</code>, <code>DisjunctionSummati
 * #(→ (→ p q) (→ (∨ r p) (∨ r q)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationLL | DisjunctionSummationLL])
 * #(→ (→ p q) (→ (∨ r p) (∨ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationLR | DisjunctionSummationLR])
 * #(→ (→ p q) (→ (∨ p r) (∨ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionSummationRR | DisjunctionSummationRR])
-* #(→ (∨ r p) (∨ r q))# ([/general/Intuitionistic_propositional_logic.gh/disjoinLL | disjoinLL])
-* #(→ (∨ r p) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/disjoinLR | disjoinLR])
-* #(→ (∨ p r) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/disjoinRR | disjoinRR])
+* #(→ p q)# ⊢ #(→ (∨ r p) (∨ r q))# ([/general/Intuitionistic_propositional_logic.gh/disjoinLL | disjoinLL])
+* #(→ p q)# ⊢ #(→ (∨ r p) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/disjoinLR | disjoinLR])
+* #(→ p q)# ⊢ #(→ (∨ p r) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/disjoinRR | disjoinRR])
 
 == Biconditional ==
 
 We define the biconditional as the conjunction of two implications:
 
 And one way to prove a biconditional is to prove both of the implications:
-* #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromImplications | introduceBiconditionalFromImplications])
+* #(→ p q)#, #(→ q p)# ⊢ #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromImplications | introduceBiconditionalFromImplications])
 
 We can eliminate one of the implications of a biconditional:
 * #(→ (↔ p q) (→ q p))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalForwardElimination | BiconditionalForwardElimination])
 * #(→ (↔ p q) (→ p q))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalReverseElimination | BiconditionalReverseElimination])
-* #(→ q p)# ([/general/Intuitionistic_propositional_logic.gh/eliminateBiconditionalForward | eliminateBiconditionalForward])
-* #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/eliminateBiconditionalReverse | eliminateBiconditionalReverse])
+* #(↔ p q)# ⊢ #(→ q p)# ([/general/Intuitionistic_propositional_logic.gh/eliminateBiconditionalForward | eliminateBiconditionalForward])
+* #(↔ p q)# ⊢ #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/eliminateBiconditionalReverse | eliminateBiconditionalReverse])
 
 === Biconditionalized versions of some theorems we've already proved ===
 We've proved both directions of each of the following theorems, so the biconditional immediately follows:
@@ -213,16 +213,16 @@ The biconditional has these three properties (which correspond to those defining
 * #(↔ p p)# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalReflexivity | BiconditionalReflexivity])
 * #(→ (↔ p q) (↔ q p))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalSymmetryImplication | BiconditionalSymmetryImplication])
 * #(↔ (↔ p q) (↔ q p))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalSymmetry | BiconditionalSymmetry])
-* #(↔ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapBiconditional | swapBiconditional])
+* #(↔ p q)# ⊢ #(↔ q p)# ([/general/Intuitionistic_propositional_logic.gh/swapBiconditional | swapBiconditional])
 * #(→ (∧ (↔ p q) (↔ q r)) (↔ p r))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalTransitivity | BiconditionalTransitivity])
-* #(↔ p r)# ([/general/Intuitionistic_propositional_logic.gh/applyBiconditionalTransitivity | applyBiconditionalTransitivity])
+* #(↔ p q)#, #(↔ q r)# ⊢ #(↔ p r)# ([/general/Intuitionistic_propositional_logic.gh/applyBiconditionalTransitivity | applyBiconditionalTransitivity])
 
 === Relating biconditional to implications ===
 
 The following just restate the definition of the biconditional.
 * #(↔ (↔ p q) (∧ (→ p q) (→ q p)))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalImplication | BiconditionalImplication])
-* #(∧ (→ p q) (→ q p))# ([/general/Intuitionistic_propositional_logic.gh/convertFromBiconditionalToImplications | convertFromBiconditionalToImplications])
-* #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToBiconditionalFromImplications | convertToBiconditionalFromImplications])
+* #(↔ p q)# ⊢ #(∧ (→ p q) (→ q p))# ([/general/Intuitionistic_propositional_logic.gh/convertFromBiconditionalToImplications | convertFromBiconditionalToImplications])
+* #(∧ (→ p q) (→ q p))# ⊢ #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToBiconditionalFromImplications | convertToBiconditionalFromImplications])
 
 === Algebraic laws for disjunction and conjunction ===
 Most of the theorems of the propositional calculus which are analagous to those of other [[w:Abstract algebra|algebras]], showing properties such as commutivity and associativity, also hold for intuitionistic logic.
@@ -231,8 +231,8 @@ Most of the theorems of the propositional calculus which are analagous to those 
 * #(→ p (∧ p p))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionIdempotenceForward | ConjunctionIdempotenceForward])
 * #(→ (∧ p p) p)# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionIdempotenceReverse | ConjunctionIdempotenceReverse])
 * #(↔ p (∧ p p))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionIdempotence | ConjunctionIdempotence])
-* #(∧ p p)# ([/general/Intuitionistic_propositional_logic.gh/cloneAsConjunction | cloneAsConjunction])
-* #('p')# ([/general/Intuitionistic_propositional_logic.gh/conflateConjunction | conflateConjunction])
+* #p# ⊢ #(∧ p p)# ([/general/Intuitionistic_propositional_logic.gh/cloneAsConjunction | cloneAsConjunction])
+* #(∧ p p)# ⊢ #p# ([/general/Intuitionistic_propositional_logic.gh/conflateConjunction | conflateConjunction])
 
 ==== Conjunction commutativity ====
 * #(↔ (∧ p q) (∧ q p))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionCommutativity | ConjunctionCommutativity])
@@ -244,15 +244,15 @@ To prove associativity for conjunctions, <code>(p ∧ q) ∧ r → p ∧ (q ∧ 
 The proof for associating left is similar.
 * #(→ (∧ p (∧ q r)) (∧ (∧ p q) r))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionLeftAssociation | ConjunctionLeftAssociation])
 * #(↔ (∧ (∧ p q) r) (∧ p (∧ q r)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionAssociativity | ConjunctionAssociativity])
-* #(∧ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/groupConjunctionRight | groupConjunctionRight])
-* #(∧ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/groupConjunctionLeft | groupConjunctionLeft])
+* #(∧ (∧ p q) r)# ⊢ #(∧ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/groupConjunctionRight | groupConjunctionRight])
+* #(∧ p (∧ q r))# ⊢ #(∧ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/groupConjunctionLeft | groupConjunctionLeft])
 
 ==== Disjunction idempotence ====
 * #(→ p (∨ p p))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionIdempotenceForward | DisjunctionIdempotenceForward])
 * #(→ (∨ p p) p)# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionIdempotenceReverse | DisjunctionIdempotenceReverse])
 * #(↔ p (∨ p p))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionIdempotence | DisjunctionIdempotence])
-* #(∨ p p)# ([/general/Intuitionistic_propositional_logic.gh/cloneAsDisjunction | cloneAsDisjunction])
-* #('p')# ([/general/Intuitionistic_propositional_logic.gh/conflateDisjunction | conflateDisjunction])
+* #p# ⊢ #(∨ p p)# ([/general/Intuitionistic_propositional_logic.gh/cloneAsDisjunction | cloneAsDisjunction])
+* #(∨ p p)# ⊢ #p# ([/general/Intuitionistic_propositional_logic.gh/conflateDisjunction | conflateDisjunction])
 
 ==== Disjunction commutativity ====
 * #(↔ (∨ p q) (∨ q p))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionCommutativity | DisjunctionCommutativity])
@@ -262,8 +262,8 @@ Proving associativity for disjunction is very much analogous to conjunction, wit
 * #(→ (∨ (∨ p q) r) (∨ p (∨ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionRightAssociation | DisjunctionRightAssociation])
 * #(→ (∨ p (∨ q r)) (∨ (∨ p q) r))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionLeftAssociation | DisjunctionLeftAssociation])
 * #(↔ (∨ (∨ p q) r) (∨ p (∨ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionAssociativity | DisjunctionAssociativity])
-* #(∨ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/groupDisjunctionLeft | groupDisjunctionLeft])
-* #(∨ p (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/groupDisjunctionRight | groupDisjunctionRight])
+* #(∨ p (∨ q r))# ⊢ #(∨ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/groupDisjunctionLeft | groupDisjunctionLeft])
+* #(∨ (∨ p q) r)# ⊢ #(∨ p (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/groupDisjunctionRight | groupDisjunctionRight])
 
 === Builders ===
 
@@ -273,13 +273,13 @@ The builders for conjunction and disjunction can be proved using the proofs in [
 
 * #(→ (∧ (∧ p q) (∧ r s)) (∧ (∧ p r) (∧ q s)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionFunction-1 | ConjunctionFunction-1])
 * #(→ (∧ (↔ p q) (↔ r s)) (↔ (∧ p r) (∧ q s)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionFunction | ConjunctionFunction])
-* #(↔ (∧ p r) (∧ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildConjunction | buildConjunction])
+* #(↔ p q)#, #(↔ r s)# ⊢ #(↔ (∧ p r) (∧ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildConjunction | buildConjunction])
 
 ==== Disjunction ====
 This is just like the theorem for conjunction, except that we build on the partial builder theorem <code>DisjunctionSummation</code> instead of <code>ConjunctionMultiplication</code>:
 
 * #(→ (∧ (↔ p q) (↔ r s)) (↔ (∨ p r) (∨ q s)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionFunction | DisjunctionFunction])
-* #(↔ (∨ p r) (∨ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildDisjunction | buildDisjunction])
+* #(↔ p q)#, #(↔ r s)# ⊢ #(↔ (∨ p r) (∨ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildDisjunction | buildDisjunction])
 
 === Distributivity ===
 Here we take up distributivity of disjunction over conjunction, and conjunction over disjunction.  Most of the proofs given in [[Principia Mathematica propositional logic]] apply for intuitionistic logic, as they are fairly straightforward applications of disjunction and conjunction composition.  The tough one is <code>((p ∨ q) ∧ (p ∨ r)) → p ∨ (q ∧ r)</code> (because it has a conjunction in the antecedent and a disjunction in the consequent, it won't yield to straightforward composition tricks).  ''Principia'' proves it from the equivalence of <code>p ∨ q</code> and <code>¬ p → q</code> (which does not hold in both directions in intuitionistic logic).  We prove it from import and builders.
@@ -302,14 +302,14 @@ Also from [[Principia Mathematica propositional logic]] are commuted versions of
 
 * #(↔ (∨ (∧ p q) r) (∧ (∨ p r) (∨ q r)))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionRightDistribution | DisjunctionRightDistribution])
 * #(↔ (∧ (∨ p q) r) (∨ (∧ p r) (∧ q r)))# ([/general/Intuitionistic_propositional_logic.gh/ConjunctionRightDistribution | ConjunctionRightDistribution])
-* #(∧ (∨ p q) (∨ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeLeftDisjunction | distributeLeftDisjunction])
-* #(∨ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectLeftDisjunction | collectLeftDisjunction])
-* #(∧ (∨ p r) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/distributeRightDisjunction | distributeRightDisjunction])
-* #(∨ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/collectRightDisjunction | collectRightDisjunction])
-* #(∨ (∧ p q) (∧ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeLeftConjunction | distributeLeftConjunction])
-* #(∧ p (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectLeftConjunction | collectLeftConjunction])
-* #(∨ (∧ p r) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/distributeRightConjunction | distributeRightConjunction])
-* #(∧ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/collectRightConjunction | collectRightConjunction])
+* #(∨ p (∧ q r))# ⊢ #(∧ (∨ p q) (∨ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeLeftDisjunction | distributeLeftDisjunction])
+* #(∧ (∨ p q) (∨ p r))# ⊢ #(∨ p (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectLeftDisjunction | collectLeftDisjunction])
+* #(∨ (∧ p q) r)# ⊢ #(∧ (∨ p r) (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/distributeRightDisjunction | distributeRightDisjunction])
+* #(∧ (∨ p r) (∨ q r))# ⊢ #(∨ (∧ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/collectRightDisjunction | collectRightDisjunction])
+* #(∧ p (∨ q r))# ⊢ #(∨ (∧ p q) (∧ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeLeftConjunction | distributeLeftConjunction])
+* #(∨ (∧ p q) (∧ p r))# ⊢ #(∧ p (∨ q r))# ([/general/Intuitionistic_propositional_logic.gh/collectLeftConjunction | collectLeftConjunction])
+* #(∧ (∨ p q) r)# ⊢ #(∨ (∧ p r) (∧ q r))# ([/general/Intuitionistic_propositional_logic.gh/distributeRightConjunction | distributeRightConjunction])
+* #(∨ (∧ p r) (∧ q r))# ⊢ #(∧ (∨ p q) r)# ([/general/Intuitionistic_propositional_logic.gh/collectRightConjunction | collectRightConjunction])
 
 === Biconditional and conjunction ===
 A true conjunct does not affect the truth of a proposition. The proof from [[Principia Mathematica propositional logic]] is valid intuitionistically without change.
@@ -327,22 +327,22 @@ This is just an implication corresponding to the modus ponens rule:
 === Transposition ===
 Although intuitionistic logic does not allow removing transposition, it does allow introducing it.
 * #(→ (→ p q) (→ (¬ q) (¬ p)))# ([/general/Intuitionistic_propositional_logic.gh/TranspositionIntroduction | TranspositionIntroduction])
-* #(→ (¬ q) (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/introduceTransposition | introduceTransposition])
+* #(→ p q)# ⊢ #(→ (¬ q) (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/introduceTransposition | introduceTransposition])
 
 Modus tollens is an easy consequence of transposition introduction.
 
 * #(→ (∧ (¬ q) (→ p q)) (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/ModusTollens | ModusTollens])
-* #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/applyModusTollens | applyModusTollens])
+* #(¬ q)#, #(→ p q)# ⊢ #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/applyModusTollens | applyModusTollens])
 
 === Double Negation ===
 Double negation introduction follows fairly directly from our first negation axiom.
 * #(→ p (¬ (¬ p)))# ([/general/Intuitionistic_propositional_logic.gh/DoubleNegationIntroduction | DoubleNegationIntroduction])
-* #(¬ (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/introduceDoubleNegation | introduceDoubleNegation])
+* #p# ⊢ #(¬ (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/introduceDoubleNegation | introduceDoubleNegation])
 
 === Triple negation ===
 In intuitionistic logic, <code>¬ ¬ p</code> is not equivalent to <code>p</code> itself. Triple negation, however, is equivalent to single negation, so one merely needs to worry about formulas without negation, with single negation, or with double negation, not greater amounts of negation.
 * #(↔ (¬ (¬ (¬ p))) (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/TripleNegation | TripleNegation])
-* #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/eliminateTripleNegation | eliminateTripleNegation])
+* #(¬ (¬ (¬ p)))# ⊢ #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/eliminateTripleNegation | eliminateTripleNegation])
 
 === Disjunctive syllogism ===
 [[w:Disjunctive syllogism|Disjunctive syllogism]]:
@@ -371,11 +371,11 @@ We can pull the same trick for disjunction to get our final version of DeMorgan'
 * #(→ (∨ p q) (¬ (∧ (¬ p) (¬ q))))# ([/general/Intuitionistic_propositional_logic.gh/NegationCollectionPDP | NegationCollectionPDP])
 
 Rules:
-* #(¬ (∨ (¬ p) (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationPCP | collectNegationPCP])
-* #(¬ (∧ (¬ p) (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationPDP | collectNegationPDP])
-* #(¬ (∧ p q))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationNDN | collectNegationNDN])
-* #(¬ (∨ p q))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationNCN | collectNegationNCN])
-* #(∧ (¬ p) (¬ q))# ([/general/Intuitionistic_propositional_logic.gh/distributeNegationPDP | distributeNegationPDP])
+* #(∧ p q)# ⊢ #(¬ (∨ (¬ p) (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationPCP | collectNegationPCP])
+* #(∨ p q)# ⊢ #(¬ (∧ (¬ p) (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationPDP | collectNegationPDP])
+* #(∨ (¬ p) (¬ q))# ⊢ #(¬ (∧ p q))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationNDN | collectNegationNDN])
+* #(∧ (¬ p) (¬ q))# ⊢ #(¬ (∨ p q))# ([/general/Intuitionistic_propositional_logic.gh/collectNegationNCN | collectNegationNCN])
+* #(¬ (∨ p q))# ⊢ #(∧ (¬ p) (¬ q))# ([/general/Intuitionistic_propositional_logic.gh/distributeNegationPDP | distributeNegationPDP])
 
 === Double negation and connectives ===
 The first two of these relationships between double negation and conjunction or disjunction are easy consequences of transposition.
@@ -383,7 +383,7 @@ The first two of these relationships between double negation and conjunction or 
 * #(→ (∨ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∨ p q))))# ([/general/Intuitionistic_propositional_logic.gh/DoubleNegatedDisjunction | DoubleNegatedDisjunction])
 
 The converse of <code>DoubleNegatedConjunctionReverse</code> we can prove via the following lemma which introduces double negation to all three formulas of a nested implication.
-* #(→ (¬ (¬ p)) (→ (¬ (¬ q)) (¬ (¬ r))))# ([/general/Intuitionistic_propositional_logic.gh/addDoubleNegationImplicationImplication | addDoubleNegationImplicationImplication])
+* #(→ p (→ q r))# ⊢ #(→ (¬ (¬ p)) (→ (¬ (¬ q)) (¬ (¬ r))))# ([/general/Intuitionistic_propositional_logic.gh/addDoubleNegationImplicationImplication | addDoubleNegationImplicationImplication])
 * #(→ (∧ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∧ p q))))# ([/general/Intuitionistic_propositional_logic.gh/DoubleNegatedConjunctionForward | DoubleNegatedConjunctionForward])
 * #(↔ (∧ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∧ p q))))# ([/general/Intuitionistic_propositional_logic.gh/DoubleNegatedConjunction | DoubleNegatedConjunction])
 
@@ -401,7 +401,7 @@ Now that we've proved some results involving negation, we are ready to tackle th
 === Negation ===
 The negation builder is an easy consequence of transposition introduction (we just need to biconditionalize it).
 * #(→ (↔ p q) (↔ (¬ p) (¬ q)))# ([/general/Intuitionistic_propositional_logic.gh/NegationBuilder | NegationBuilder])
-* #(↔ (¬ p) (¬ q))# ([/general/Intuitionistic_propositional_logic.gh/addNegation | addNegation])
+* #(↔ p q)# ⊢ #(↔ (¬ p) (¬ q))# ([/general/Intuitionistic_propositional_logic.gh/addNegation | addNegation])
 
 === Implication ===
 The proof of the implication builder is analogous to the way we proved <code>ConjunctionMultiplication</code>. We base it on <code>CommonConsequentAddition</code> and <code>CommonAntecedentAddition</code>.
@@ -410,18 +410,18 @@ The proof of the implication builder is analogous to the way we proved <code>Con
 * #(→ (∧ (↔ p q) (↔ r s)) (→ (→ q r) (→ q s)))# ([/general/Intuitionistic_propositional_logic.gh/ImplicationFunction-2 | ImplicationFunction-2])
 * #(→ (∧ (↔ p q) (↔ r s)) (→ (→ p r) (→ q s)))# ([/general/Intuitionistic_propositional_logic.gh/ImplicationFunction-3 | ImplicationFunction-3])
 * #(→ (∧ (↔ p q) (↔ r s)) (↔ (→ p r) (→ q s)))# ([/general/Intuitionistic_propositional_logic.gh/ImplicationFunction | ImplicationFunction])
-* #(↔ (→ p r) (→ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildImplication | buildImplication])
+* #(↔ p q)#, #(↔ r s)# ⊢ #(↔ (→ p r) (→ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildImplication | buildImplication])
 
 === Biconditional ===
 We derive the biconditional builder from the implication builder, just as in [[Principia Mathematica propositional logic]].
 * #(→ (∧ (↔ p q) (↔ r s)) (↔ (↔ p r) (↔ q s)))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalFunction | BiconditionalFunction])
-* #(↔ (↔ p r) (↔ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildBiconditional | buildBiconditional])
+* #(↔ p q)#, #(↔ r s)# ⊢ #(↔ (↔ p r) (↔ q s))# ([/general/Intuitionistic_propositional_logic.gh/buildBiconditional | buildBiconditional])
 
 == Distribution of implication over biconditional ==
 
 The proof of this result from [[Principia Mathematica propositional logic]] applies verbatim.
 * #(↔ (→ p (↔ q r)) (↔ (→ p q) (→ p r)))# ([/general/Intuitionistic_propositional_logic.gh/ImplicationDistributionOverBiconditional | ImplicationDistributionOverBiconditional])
-* #(↔ (→ p q) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeImplicationOverBiconditional | distributeImplicationOverBiconditional])
+* #(→ p (↔ q r))# ⊢ #(↔ (→ p q) (→ p r))# ([/general/Intuitionistic_propositional_logic.gh/distributeImplicationOverBiconditional | distributeImplicationOverBiconditional])
 
 == Relationships between connectives ==
 
@@ -438,11 +438,11 @@ For now, we only prove the third one.
 
 === Disjunction and implication ===
 * #(→ (∨ p q) (→ (¬ p) q))# ([/general/Intuitionistic_propositional_logic.gh/DisjunctionImplicationForward | DisjunctionImplicationForward])
-* #(→ (¬ p) q)# ([/general/Intuitionistic_propositional_logic.gh/convertFromDisjunctionToImplication | convertFromDisjunctionToImplication])
+* #(∨ p q)# ⊢ #(→ (¬ p) q)# ([/general/Intuitionistic_propositional_logic.gh/convertFromDisjunctionToImplication | convertFromDisjunctionToImplication])
 
 The following implication/disjunction theorems are easy consequences of this one.
 * #(→ (∨ (¬ p) q) (→ p q))# ([/general/Intuitionistic_propositional_logic.gh/ImplicationDisjunctionReverse | ImplicationDisjunctionReverse])
-* #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToImplicationFromDisjunction | convertToImplicationFromDisjunction])
+* #(∨ (¬ p) q)# ⊢ #(→ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToImplicationFromDisjunction | convertToImplicationFromDisjunction])
 * #(→ (¬ (→ p q)) (¬ (∨ (¬ p) q)))# ([/general/Intuitionistic_propositional_logic.gh/NotImplicationDisjunction | NotImplicationDisjunction])
 * #(→ (¬ (→ (¬ p) q)) (¬ (∨ p q)))# ([/general/Intuitionistic_propositional_logic.gh/NotDisjunctionImplicationReverse | NotDisjunctionImplicationReverse])
 
@@ -455,8 +455,8 @@ The converse of <code>NotDisjunctionImplicationReverse</code> also holds, but is
 
 Since a suitably negated disjunction implies an implication, the antecedent of this theorem readily reduces to <code>p → q</code> and <code>q → p</code>, which is what we need to prove <code>p ↔ q</code>.
 * #(→ (∧ (∨ (¬ p) q) (∨ p (¬ q))) (↔ p q))# ([/general/Intuitionistic_propositional_logic.gh/BiconditionalConjunctionReverse | BiconditionalConjunctionReverse])
-* #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToBiconditionalFromConjunction | convertToBiconditionalFromConjunction])
-* #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromDisjunctions | introduceBiconditionalFromDisjunctions])
+* #(∧ (∨ (¬ p) q) (∨ p (¬ q)))# ⊢ #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/convertToBiconditionalFromConjunction | convertToBiconditionalFromConjunction])
+* #(∨ (¬ p) q)#, #(∨ p (¬ q))# ⊢ #(↔ p q)# ([/general/Intuitionistic_propositional_logic.gh/introduceBiconditionalFromDisjunctions | introduceBiconditionalFromDisjunctions])
 
 == True and false connectives ==
 We define true (⊤) as a theorem (any theorem would do), and false (⊥) as a statement whose negation is a theorem.
@@ -483,8 +483,8 @@ Here we show that <code>¬ p</code> is equivalent to <code>p → ⊥</code>.  In
 * #(→ (¬ p) (→ p (⊥)))# ([/general/Intuitionistic_propositional_logic.gh/NegationImplicationForward | NegationImplicationForward])
 * #(→ (→ p (⊥)) (¬ p))# ([/general/Intuitionistic_propositional_logic.gh/NegationImplicationReverse | NegationImplicationReverse])
 * #(↔ (¬ p) (→ p (⊥)))# ([/general/Intuitionistic_propositional_logic.gh/NegationImplication | NegationImplication])
-* #(→ p (⊥))# ([/general/Intuitionistic_propositional_logic.gh/convertFromNegationToImplication | convertFromNegationToImplication])
-* #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/convertToNegationFromImplication | convertToNegationFromImplication])
+* #(¬ p)# ⊢ #(→ p (⊥))# ([/general/Intuitionistic_propositional_logic.gh/convertFromNegationToImplication | convertFromNegationToImplication])
+* #(→ p (⊥))# ⊢ #(¬ p)# ([/general/Intuitionistic_propositional_logic.gh/convertToNegationFromImplication | convertToNegationFromImplication])
 
 == Export ==
 We have proved everything in [[Interface:Basic intuitionistic propositional logic]]. There are additional theorems in [[Interface:Intuitionistic propositional logic]], but those are proved in [[Convenience theorems of intuitionistic propositional logic]].
