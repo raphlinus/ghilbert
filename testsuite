@@ -263,3 +263,20 @@ defthm (df-eqvar wff (=var x y) () () (<-> (=var x y) (= x y))
   (= x y) biid
 )
 !reject test.gh Defined term has two binding variable arguments of the same kind
+
+!append in.ghi
+kind (formula)
+tvar (formula p q)
+term (formula (→ p q))
+stmt (AntecedentIntroduction () () (→ p (→ q p)))
+!append out.ghi
+kind (formula)
+tvar (formula p q)
+term (formula (→ p q))
+stmt (AntecedentIntroduction () () (→ q (→ p q)))
+!append test.gh
+import (IN in.ghi () "")
+tvar (formula p q)
+export (OUT out.ghi () "")
+!accept test.gh
+
