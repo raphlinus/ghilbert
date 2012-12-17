@@ -1,6 +1,7 @@
 #encoding: utf-8
 import sys
 import verify
+import copy
 
 class StringStream:
      def __init__(self, s):
@@ -17,6 +18,7 @@ class StringStream:
 class TestUrlCtx:
      def __init__(self):
           self.d = {}
+          self._stash = {}
      def add(self, url, val):
           self.d[url] = val
      def resolve(self, url):
@@ -31,7 +33,11 @@ class TestUrlCtx:
      def append_current(self, text):
           self.d[self.current_url] += text
      def revert(self):
-          self.d[self.current_url] = self.saved_value
+          self.d = copy.deepcopy(self._stash)
+     def stash(self):
+          self._stash = copy.deepcopy(self.d)
+     def clear_stash(self):
+          self._stash = {}
 
 def sexp(s):
      stream = StringStream(s)
@@ -140,9 +146,12 @@ def regression(fn, out):
                cmd = l.split()
                if cmd[0] == '!append':
                     urlctx.open_append(cmd[1])
-                    dosave = False
-               elif cmd[0] == '!save':
-                    dosave = True
+               elif cmd[0] == '!shared':
+                    urlctx = TestUrlCtx()
+               elif cmd[0] == '!end':
+                    urlctx.stash()
+               elif cmd[0] == '!unshare':
+                    urlctx = TestUrlCtx()
                elif cmd[0] in ('!accept', '!reject'):
                     verifyctx = verify.VerifyCtx(urlctx, run_regression)
                     error = None
@@ -161,8 +170,10 @@ def regression(fn, out):
                          print str(lineno) + ': FAIL, got unexpected ' + error
                     if verbose >= 1 and error and cmd[0] == '!reject':
                          print str(lineno) + ': ok ' + error
-                    if not dosave:
-                         urlctx.revert()
+                    urlctx.revert()
+               else:
+                    failures += 1
+                    print "unrecognized command " + cmd[0]
           elif l.strip() and not l.startswith('#'):
                urlctx.append_current(l)
      return [tests, failures]

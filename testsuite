@@ -14,16 +14,13 @@
 
 # Empty proof file is valid, if not very interesting
 !append test.gh
-!save
 !accept test.gh
 
+!shared
 !append test.ghi
-!save
-!accept test.gh
-
 !append test.gh
 import (TEST test.ghi () "")
-!save
+!end
 !accept test.gh
 
 !append test.ghi
@@ -46,6 +43,9 @@ kind (bar baz)
 (kind wff)
 !reject test.gh List-valued command in interface
 
+!unshare
+
+!shared
 !append test.ghi
 kind (wff)
 kind (nat)
@@ -56,30 +56,26 @@ term (wff (= A B))
 term (wff (-> ph ps))
 term (wff (A. x ph))
 term (nat (0))
-!save
+
+stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
+!append test.gh
+import (TEST test.ghi () "")
+
+tvar (wff ph ps)
+var (nat x y)
+tvar (nat A B)
+!end
 !accept test.gh
 
 !append test.ghi
 kind (wff)
 !reject test.gh Redefinition of kind
 
-!append test.ghi
-stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
-stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
-!save
-!accept test.gh
-
 # thm stuff
 
 !append test.gh
-tvar (wff ph ps)
-var (nat x y)
-tvar (nat A B)
-!save
-!accept test.gh
-
 # simple theorem that should check
-!append test.gh
 thm (19.21ai2 ((ph x)) (hyp (-> ph ps)) (-> ph (A. x ps)) hyp x 19.21ai)
 !accept test.gh
 
@@ -213,7 +209,23 @@ thm (ax-7_2 () () (-> (A. x (A. y ph)) (A. y (A. x ph))) x y ph ax-7)
 thm (ax-7_2 () () (-> (A. x (A. x ph)) (A. x (A. x ph))) x x ph ax-7)
 !reject test.gh Binding variables not distinct
 
+!unshare
+
+!shared
 !append test.ghi
+kind (wff)
+kind (nat)
+tvar (wff ph ps)
+tvar (nat A B)
+var (nat x y)
+term (wff (= A B))
+term (wff (-> ph ps))
+term (wff (A. x ph))
+term (nat (0))
+
+stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
+
 term (nat (+ A B))
 stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
 term (wff (-. ph))
@@ -221,7 +233,13 @@ term (wff (<-> ph ps))
 stmt (id () () (-> ph ph))
 stmt (biid () () (<-> ph ph))
 stmt (preandi () (ph ps) (-. (-> ph (-. ps))))
-!save
+!append test.gh
+import (TEST test.ghi () "")
+
+tvar (wff ph ps)
+var (nat x y)
+tvar (nat A B)
+!end
 !accept test.gh
 
 !append test.gh
@@ -263,6 +281,8 @@ defthm (df-eqvar wff (=var x y) () () (<-> (=var x y) (= x y))
   (= x y) biid
 )
 !reject test.gh Defined term has two binding variable arguments of the same kind
+
+!unshare
 
 !append in.ghi
 kind (formula)
