@@ -300,3 +300,31 @@ tvar (formula p q)
 export (OUT out.ghi () "")
 !accept test.gh
 
+# Tests of name prefixing on import
+!shared
+!append in.ghi
+kind (formula)
+tvar (formula p q)
+term (formula (→ p q))
+stmt (AntecedentIntroduction () () (→ p (→ q p)))
+!end
+!append test.gh
+import (IN in.ghi () "foo.")
+tvar (foo.formula p q)
+thm (foo () () (foo.→ p (foo.→ q p)) p q foo.AntecedentIntroduction)
+!accept test.gh
+!append test.gh
+import (IN in.ghi () "foo.")
+tvar (formula p q)
+!reject test.gh Kind not known: formula
+!append test.gh
+import (IN in.ghi () "foo.")
+tvar (foo.formula p q)
+thm (foo () () (→ p (foo.→ q p)) p q foo.AntecedentIntroduction)
+!reject test.gh term → not known
+!append test.gh
+import (IN in.ghi () "foo.")
+tvar (foo.formula p q)
+thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
+!reject test.gh unknown proof step: AntecedentIntroduction
+

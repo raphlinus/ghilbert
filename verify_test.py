@@ -82,46 +82,6 @@ term (wff ([/] A x ph) (x A))
      test_one_fv(verifyctx, True, 'x', 'x', fvvars_x)
      test_one_fv(verifyctx, False, 'x', 'y', fvvars_x)
 
-def TestStmt(out):
-     urlctx = TestUrlCtx()
-     urlctx.add('foo.ghi',
-"""kind (wff)
-kind (nat)
-tvar (wff ph ps)
-tvar (nat A B)
-var (nat x y)
-term (wff (= A B))
-term (wff (-> ph ps))
-term (wff (A. x ph))
-stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
-""")     
-     verifyctx = verify.VerifyCtx(urlctx, run_regression)
-     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '"foo."'], out)
-     print verifyctx.syms
-
-def TestThm(out):
-     urlctx = TestUrlCtx()
-     urlctx.add('foo.ghi',
-"""kind (wff)
-kind (nat)
-tvar (wff ph ps)
-tvar (nat A B)
-var (nat x y)
-term (wff (= A B))
-term (wff (-> ph ps))
-term (wff (A. x ph))
-stmt (19.21ai ((ph x)) ((-> ph ps)) (-> ph (A. x ps)))
-""")     
-     verifyctx = verify.VerifyCtx(urlctx, run_regression)
-     verifyctx.do_cmd('import', ['FOO', 'foo.ghi', [], '""'], out)
-     verifyctx.do_cmd('tvar', ['wff', 'ph', 'ps'], out)
-     verifyctx.do_cmd('var', ['nat', 'x', 'y'], out)
-     verifyctx.do_cmd('thm', ['19.21ai2', [['ph', 'x']],
-                              ['hyp', ['->', 'ph', 'ps']],
-                              ['->', 'ph', ['A.', 'x', 'ps']],
-                              'hyp', 'x', '19.21ai'], out)
-     print verifyctx.syms
-
 # Version of run loop tuned for regression testing
 def run_regression(urlctx, url, ctx, out):
     s = verify.Scanner(urlctx.resolve(url))
@@ -180,8 +140,6 @@ def regression(fn, out):
 
 verbose = 1
 TestFv(sys.stdout)
-TestStmt(sys.stdout)
-TestThm(sys.stdout)
 if len(sys.argv) > 1:
      tests, failures = regression(sys.argv[1], sys.stdout)
      print
