@@ -328,3 +328,51 @@ tvar (foo.formula p q)
 thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
 !reject test.gh unknown proof step: AntecedentIntroduction
 
+# kindbind in proof modules
+!shared
+!append kinds.ghi
+kind (formula)
+kind (nat)
+var (formula p)
+stmt (repeat () (p) p)
+!append test.gh
+import (IN kinds.ghi () "")
+!end
+
+!append test.gh
+kindbind (formula wff)
+!accept test.gh
+!append test.gh
+kindbind (foobar wff)
+!reject test.gh Kind not known: foobar
+!append test.gh
+kindbind (formula nat)
+!reject test.gh Kind nat already defined
+
+# can use a variable where one of another (bound) kind is expected
+!append test.gh
+kindbind (formula wff)
+var (wff q)
+thm (repeat2 () (H q) q
+  H
+  repeat)
+!accept test.gh
+# cannot use a variable declared with kindbound kind for another kind
+!append test.gh
+kindbind (formula wff)
+var (nat n)
+thm (repeat2 () (H n) n
+  H
+  repeat)
+!reject test.gh
+
+# kindbind in interfaces
+#!shared
+#!append bound.ghi
+#kind (formula)
+#kindbind(formula wff)
+#!append test.gh
+#import (IN bound.ghi () "")
+#!end
+#!accept test.gh
+
