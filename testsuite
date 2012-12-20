@@ -359,10 +359,18 @@ thm (repeat2 () (H q) q
   H
   repeat)
 !accept test.gh
-# cannot use a variable declared with kindbound kind for another kind
+# Here's a kind-checking test, not really about kindbind
 !append test.gh
 kindbind (formula wff)
 tvar (nat n)
+thm (repeat2 () (H n) n
+  H
+  repeat)
+!reject test.gh
+# cannot use a variable declared with kindbound kind for another kind
+!append test.gh
+kindbind (nat natural)
+tvar (natural n)
 thm (repeat2 () (H n) n
   H
   repeat)
