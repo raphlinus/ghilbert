@@ -386,7 +386,22 @@ thm (id2 () () (→ q q)
   q id
 )
 !accept test.gh
-# TODO: rejections as for hypotheses
+# Here's a kind-checking test, not really about kindbind
+!append test.gh
+kindbind (formula wff)
+tvar (nat n)
+thm (id2 () () (→ n n)
+  n id
+)
+!reject test.gh
+# cannot use a variable declared with kindbound kind for another kind
+!append test.gh
+kindbind (nat natural)
+tvar (natural n)
+thm (id2 () () (→ n n)
+  n id
+)
+!reject test.gh
 
 # kindbind in interfaces
 #!shared
