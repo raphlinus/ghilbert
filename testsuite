@@ -333,8 +333,10 @@ thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
 !append kinds.ghi
 kind (formula)
 kind (nat)
-var (formula p)
+tvar (formula p r)
+term (formula (→ p r))
 stmt (repeat () (p) p)
+stmt (id () () (→ p p))
 !append test.gh
 import (IN kinds.ghi () "")
 !end
@@ -352,7 +354,7 @@ kindbind (formula nat)
 # can use a variable where one of another (bound) kind is expected
 !append test.gh
 kindbind (formula wff)
-var (wff q)
+tvar (wff q)
 thm (repeat2 () (H q) q
   H
   repeat)
@@ -360,11 +362,20 @@ thm (repeat2 () (H q) q
 # cannot use a variable declared with kindbound kind for another kind
 !append test.gh
 kindbind (formula wff)
-var (nat n)
+tvar (nat n)
 thm (repeat2 () (H n) n
   H
   repeat)
 !reject test.gh
+
+# similar for mandatory hypotheses: first, able to use kindbound kind
+#!append test.gh
+#kindbind (formula wff)
+#tvar (wff q)
+#thm (id2 () () (→ q q)
+#  q id
+#)
+#!accept test.gh
 
 # kindbind in interfaces
 #!shared

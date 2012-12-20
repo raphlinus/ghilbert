@@ -666,8 +666,8 @@ class VerifyCtx:
                         if invmap.has_key(exp):
                             raise VerifyError('binding variables ' + invmap[exp] + ' and ' + var + ' both map to ' + exp)
                         invmap[exp] = var
-                    # TODO: need to consider kindbind here
-                    if syms[var][0] == 'var' and syms[var][1] != self.syms[exp][1]:
+                    if (syms[var][0] == 'tvar' and exp.__class__ == 'v'.__class__ and
+                        syms[var][1] != self.syms[exp][1]):
                         raise VerifyError('expected kind ' + syms[var][1] + '; but was ' + self.syms[exp][1])
                 for clause in fv:
                     tvar = clause[0]
