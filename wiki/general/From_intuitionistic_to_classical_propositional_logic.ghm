@@ -1,0 +1,125 @@
+{{header
+ | title    = From intuitionistic to classical
+ | subtitle = propositional logic
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = Adding the [[Interface:Law of the excluded middle]] to [[Interface:Basic intuitionistic propositional logic]] gives classical propositional logic.
+}}
+{{interfaces
+| imports = 
+[[Interface:Basic intuitionistic propositional logic]]<br />
+[[Interface:Law of the excluded middle]]
+| exports = [[Interface:Principia Mathematica propositional logic theorems]]
+}}
+
+Instead of proving the axioms of classical propositional logic (for example, [[Interface:Standard axioms of propositional logic]]), we prove the [[Interface:Principia Mathematica propositional logic theorems]].  This is for two reasons.  The first is to show that all the connectives, not just those mentioned in the axioms, have the same meanings (this could alternately be achieved by including all the definitions in the interface with the axioms, as in [[Interface:Principia Mathematica propositional logic]]). The second is to present an alternative proof of the [[Interface:Principia Mathematica propositional logic theorems]].  In some cases the way we prove the theorems is very similar, but in others it is quite different.  The proofs in [[Principia Mathematica propositional logic]] rely heavily on the relationships between the connectives (especially implication and disjunction), and the proofs via intuitionistic logic rely more heavily on theorems such as disjunction composition and conjunction composition.
+
+We define some variables:
+
+== Double negation elimination ==
+* #(→ (¬ (¬ p)) p)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DoubleNegationElimination | DoubleNegationElimination])
+* #(¬ (¬ p))# ⊢ #p# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/eliminateDoubleNegation | eliminateDoubleNegation])
+* #(↔ p (¬ (¬ p)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DoubleNegation | DoubleNegation])
+
+== Transposition elimination ==
+* #(→ (→ (¬ q) (¬ p)) (→ p q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/TranspositionElimination | TranspositionElimination])
+* #(→ (¬ q) (¬ p))# ⊢ #(→ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/eliminateTransposition | eliminateTransposition])
+* #(↔ (→ p q) (→ (¬ q) (¬ p)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/Transposition | Transposition])
+* #(↔ (→ (¬ p) q) (→ (¬ q) p))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/TranspositionWithNegatedAntecedent | TranspositionWithNegatedAntecedent])
+* #(→ (¬ p) q)# ⊢ #(→ (¬ q) p)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/transposeWithNegatedAntecedent | transposeWithNegatedAntecedent])
+* #(↔ (→ p (¬ q)) (→ q (¬ p)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/TranspositionWithNegatedConsequent | TranspositionWithNegatedConsequent])
+* #(→ p (¬ q))# ⊢ #(→ q (¬ p))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/transposeWithNegatedConsequent | transposeWithNegatedConsequent])
+
+=== Transposition for the biconditional ===
+
+To prove this biconditional transposition law, we write the biconditional on the left and right side as a pair of implications, and then apply transposition to each of them.
+
+* #(↔ (↔ p q) (↔ (¬ p) (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/NegationFunction | NegationFunction])
+* #(↔ (¬ p) (¬ q))# ⊢ #(↔ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/removeNegation | removeNegation])
+
+The following version is similar, but with the negation placed differently.  The proof is similar, but is based on different variants of transposition for implications.
+
+* #(↔ (↔ p (¬ q)) (↔ q (¬ p)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalTranspositionWithNegatedRight | BiconditionalTranspositionWithNegatedRight])
+* #(↔ p (¬ q))# ⊢ #(↔ q (¬ p))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/transposeBiconditionalWithNegatedRight | transposeBiconditionalWithNegatedRight])
+
+It will also be convenient to have a commuted version of this theorem.
+* #(↔ (↔ (¬ p) q) (↔ (¬ q) p))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalTranspositionWithNegatedLeft | BiconditionalTranspositionWithNegatedLeft])
+* #(↔ (¬ p) q)# ⊢ #(↔ (¬ q) p)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/transposeBiconditionalWithNegatedLeft | transposeBiconditionalWithNegatedLeft])
+
+== DeMorgan's laws ==
+One of DeMorgan's laws holds (in both directions) intuitionistically.
+
+* #(↔ (¬ (∨ p q)) (∧ (¬ p) (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganPDP | DeMorganPDP])
+
+Double negation elimination turns that one into the other three which distribute negation across disjunction.
+
+* #(↔ (¬ (∨ p (¬ q))) (∧ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganPDN | DeMorganPDN])
+* #(↔ (¬ (∨ (¬ p) q)) (∧ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganNDP | DeMorganNDP])
+* #(↔ (¬ (∨ (¬ p) (¬ q))) (∧ p q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganNDN | DeMorganNDN])
+
+The versions which distribute negation across a conjunction follow from the above versions and transposition.
+* #(↔ (¬ (∧ p q)) (∨ (¬ p) (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganPCP | DeMorganPCP])
+* #(↔ (¬ (∧ p (¬ q))) (∨ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganPCN | DeMorganPCN])
+* #(↔ (¬ (∧ (¬ p) q)) (∨ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganNCP | DeMorganNCP])
+* #(↔ (¬ (∧ (¬ p) (¬ q))) (∨ p q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DeMorganNCN | DeMorganNCN])
+
+We supply those rules which do not hold intuitionistically.
+* #(¬ (∨ p (¬ q)))# ⊢ #(∧ (¬ p) q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationPDN | distributeNegationPDN])
+* #(¬ (∨ (¬ p) q))# ⊢ #(∧ p (¬ q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationNDP | distributeNegationNDP])
+* #(¬ (∨ (¬ p) (¬ q)))# ⊢ #(∧ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationNDN | distributeNegationNDN])
+* #(¬ (∧ p q))# ⊢ #(∨ (¬ p) (¬ q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationPCP | distributeNegationPCP])
+* #(¬ (∧ p (¬ q)))# ⊢ #(∨ (¬ p) q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationPCN | distributeNegationPCN])
+* #(¬ (∧ (¬ p) q))# ⊢ #(∨ p (¬ q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationNCP | distributeNegationNCP])
+* #(¬ (∧ (¬ p) (¬ q)))# ⊢ #(∨ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/distributeNegationNCN | distributeNegationNCN])
+* #(∨ p (¬ q))# ⊢ #(¬ (∧ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/collectNegationPDN | collectNegationPDN])
+* #(∨ (¬ p) q)# ⊢ #(¬ (∧ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/collectNegationNDP | collectNegationNDP])
+* #(∧ p (¬ q))# ⊢ #(¬ (∨ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/collectNegationPCN | collectNegationPCN])
+* #(∧ (¬ p) q)# ⊢ #(¬ (∨ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/collectNegationNCP | collectNegationNCP])
+
+== Tautology ==
+The intention of this theorem is similar to the intuitionistic <code>TautologyId</code>, but it is stated in terms of the law of the excluded middle.
+
+* #(↔ (∨ p (¬ p)) (⊤))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/Tautology | Tautology])
+
+== Relationships between connectives ==
+
+=== Implication and disjunction ===
+
+Intuitionistic logic does have one equivalence relating disjunction to implication, <code>¬ (p ∨ q) ↔ ¬ (¬ p → q)</code>. That and transposition gets us one of the classical equivalences,
+* #(↔ (∨ p q) (→ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/DisjunctionImplication | DisjunctionImplication])
+and throwing in a little double negation elimination gets us the other.
+* #(↔ (→ p q) (∨ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/ImplicationDisjunction | ImplicationDisjunction])
+* #(→ p q)# ⊢ #(∨ (¬ p) q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/convertFromImplicationToDisjunction | convertFromImplicationToDisjunction])
+* #(→ (¬ p) q)# ⊢ #(∨ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/convertToDisjunctionFromImplication | convertToDisjunctionFromImplication])
+
+Although the treatment of propositional logic in Whitehead and Russell's ''Principia'' relies heavily on this relationship between implication and disjunction, we rely on it only for a handful of theorems.
+
+=== Biconditional and two disjunctions ===
+* #(↔ (↔ p q) (∧ (∨ (¬ p) q) (∨ p (¬ q))))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalConjunction | BiconditionalConjunction])
+* #(→ (↔ p q) (∨ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalDisjunctionLeftElimination | BiconditionalDisjunctionLeftElimination])
+* #(→ (↔ p q) (∨ (¬ p) q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalDisjunctionRightElimination | BiconditionalDisjunctionRightElimination])
+* #(↔ p q)# ⊢ #(∧ (∨ (¬ p) q) (∨ p (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/convertFromBiconditionalToConjunction | convertFromBiconditionalToConjunction])
+* #(↔ p q)# ⊢ #(∨ p (¬ q))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/eliminateLeftBiconditionalDisjunction | eliminateLeftBiconditionalDisjunction])
+* #(↔ p q)# ⊢ #(∨ (¬ p) q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/eliminateRightBiconditionalDisjunction | eliminateRightBiconditionalDisjunction])
+
+=== Biconditional as the disjunction of two equivalence classes ===
+
+This theorem, <code>(p ↔ q) ↔ (p ∧ q) ∨ (¬ p ∧ ¬ q)</code>, can be thought of saying that the biconditional is true if and only if both formulas are true or neither is true. We prove it from <code>BiconditionalConjunction</code> by applying the distributive law several times.
+
+The first lemma is <code>¬ p ∨ q ↔ (p ∨ ¬ p) ∧ (q ∨ ¬ p)</code>, which consists of the notion that we can add or remove a conjunct which is a theorem (<code>p ∨ ¬ p</code>), and a commutation.
+* #(↔ (∨ (¬ p) q) (∧ (∨ p (¬ p)) (∨ q (¬ p))))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalDisjunction-1 | BiconditionalDisjunction-1])
+The second lemma, <code>p ∨ ¬ q ↔ (p ∨ ¬ q) ∧ (q ∨ ¬ q)</code>, is similar except that the <code>q ∨ ¬ q</code> goes on the right, and there is no commutation.
+* #(↔ (∨ p (¬ q)) (∧ (∨ p (¬ q)) (∨ q (¬ q))))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalDisjunction-2 | BiconditionalDisjunction-2])
+* #(↔ (↔ p q) (∨ (∧ p q) (∧ (¬ p) (¬ q))))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/BiconditionalDisjunction | BiconditionalDisjunction])
+* #(↔ p q)# ⊢ #(∨ (∧ p q) (∧ (¬ p) (¬ q)))# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/convertFromBiconditionalToDisjunction | convertFromBiconditionalToDisjunction])
+* #(∨ (∧ p q) (∧ (¬ p) (¬ q)))# ⊢ #(↔ p q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/convertToBiconditionalFromDisjunction | convertToBiconditionalFromDisjunction])
+
+== Case elimination ==
+Because of the classical relationship between disjunction and implication, case elimination follows readily from disjunctive case elimination.
+* #(→ (∧ (→ p q) (→ (¬ p) q)) q)# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/CaseElimination | CaseElimination])
+* #(→ p q)#, #(→ (¬ p) q)# ⊢ #q# ([/general/From_intuitionistic_to_classical_propositional_logic.gh/eliminateCases | eliminateCases])
+
+== Export ==
+
+[[Category:Subsystems of classical logic|{{PAGENAME}}]]
