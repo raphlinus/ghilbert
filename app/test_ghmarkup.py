@@ -5,11 +5,19 @@ import ghmarkup
 
 class test_ghmarkup(unittest.TestCase):
   def test_unadorned_text(self):
-    self.assertEqual("<p>\nfoo\n</p>", ghmarkup.ghmarkup("foo"))
+    self.assertEqual("""<p>
+foo
+</p>""", ghmarkup.ghmarkup("foo"))
 
   def test_bold(self):
-    self.assertEqual("<p>\nthe <strong>quick</strong> brown fox\n</p>", ghmarkup.ghmarkup(
-      "the *quick* brown fox"))
+    self.assertEqual("""<p>
+the <strong>quick</strong> brown fox
+</p>""", ghmarkup.ghmarkup("the **quick** brown fox"))
+
+  def test_asterisk(self):
+    self.assertEqual("""<p>
+We find *3.42 more helpful than *7.82 here.
+</p>""", ghmarkup.ghmarkup("We find *3.42 more helpful than *7.82 here."))
 
   def test_bullet(self):
     self.assertEqual("""<ul>
@@ -51,4 +59,7 @@ dog
 
   def test_literal(self):
     self.assertEqual(u'<p>\n<tt>#(→ p q)#</tt>\n</p>', ghmarkup.ghmarkup("{{{#(→ p q)#}}}"))
+
+if __name__ == '__main__':
+    unittest.main()
 
