@@ -19,6 +19,11 @@ the <strong>quick</strong> brown fox
 However, it is not a <em>metric</em> space.
 </p>""", ghmarkup.ghmarkup("However, it is not a _metric_ space."))
 
+  def test_italics_via_slashes(self):
+    self.assertEqual("""<p>
+, which implies our result. <em>Here we are using the compactness of S.</em>
+</p>""", ghmarkup.ghmarkup(", which implies our result. //Here we are using the compactness of S.//"))
+
   def test_asterisk(self):
     self.assertEqual("""<p>
 We find *3.42 more helpful than *7.82 here.
