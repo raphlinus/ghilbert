@@ -14,6 +14,11 @@ foo
 the <strong>quick</strong> brown fox
 </p>""", ghmarkup.ghmarkup("the **quick** brown fox"))
 
+  def test_italics(self):
+    self.assertEqual("""<p>
+However, it is not a <em>metric</em> space.
+</p>""", ghmarkup.ghmarkup("However, it is not a _metric_ space."))
+
   def test_asterisk(self):
     self.assertEqual("""<p>
 We find *3.42 more helpful than *7.82 here.
