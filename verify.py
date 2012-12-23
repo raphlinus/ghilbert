@@ -668,7 +668,9 @@ class VerifyCtx:
                         invmap[exp] = var
                     if (syms[var][0] == 'tvar' and exp.__class__ == 'v'.__class__ and
                         syms[var][1] != self.syms[exp][1]):
-                        raise VerifyError('expected kind ' + syms[var][1] + '; but was ' + self.syms[exp][1])
+                        raise VerifyError('kind mismatch: ' + exp +
+                            ' wanted ' + syms[var][1] + ' found ' + self.syms[exp][1])
+
                 for clause in fv:
                     tvar = clause[0]
                     for var in clause[1:]:

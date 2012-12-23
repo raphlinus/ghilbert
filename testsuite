@@ -334,7 +334,9 @@ thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
 kind (formula)
 kind (nat)
 tvar (formula p r)
+tvar (formula n k)
 term (formula (→ p r))
+term (nat (+ n k))
 stmt (repeat () (p) p)
 stmt (id () () (→ p p))
 !append test.gh
@@ -366,7 +368,14 @@ tvar (nat n)
 thm (repeat2 () (H n) n
   H
   repeat)
-!reject test.gh
+!reject test.gh kind mismatch: n wanted formula found nat
+# Similar, but with a term which is not just a variable
+!append test.gh
+tvar (nat i j)
+thm (repeat2 () (H (+ i j)) (+ i j)
+  H
+  repeat)
+!reject test.gh kind mismatch: (+ i j) wanted formula found nat
 # cannot use a variable declared with kindbound kind for another kind
 !append test.gh
 kindbind (nat natural)
