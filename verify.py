@@ -1410,7 +1410,7 @@ class ExportCtx(InterfaceCtx):
             # after earlier uses of the two separate kinds, and means that
             # kind comparisons throughout the verifier need to be
             # careful to recognize the equivalence.
-            out.write('interface kindbind: TODO!\n')
+            out.write('export to an interface containing kindbind: TODO!\n')
         else:
             out.write('*** Warning: unrecognized command ' + cmd + \
                   ' seen in export context. ***\n')
