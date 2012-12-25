@@ -666,10 +666,10 @@ class VerifyCtx:
                         if invmap.has_key(exp):
                             raise VerifyError('binding variables ' + invmap[exp] + ' and ' + var + ' both map to ' + exp)
                         invmap[exp] = var
-                    if (syms[var][0] == 'tvar' and exp.__class__ == 'v'.__class__ and
-                        syms[var][1] != self.syms[exp][1]):
-                        raise VerifyError('kind mismatch: ' + exp +
-                            ' wanted ' + syms[var][1] + ' found ' + self.syms[exp][1])
+                    exp_kind = self.kind_of_expression(exp)
+                    if syms[var][0] == 'tvar' and syms[var][1] != exp_kind:
+                        raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
+                            ' wanted ' + syms[var][1] + ' found ' + exp_kind)
 
                 for clause in fv:
                     tvar = clause[0]
@@ -682,6 +682,12 @@ class VerifyCtx:
                 proofctx.stack[sp:] = [result]
                 proofctx.mandstack = []
                 #print 'stack:', proofctx.stack
+
+    def kind_of_expression(self, expression):
+        if expression.__class__ == 'v'.__class__:
+            return self.syms[expression][1]
+        else:
+            return self.terms[expression[0]][0]
 
     def def_conc_match(self, conc, remnant, dsig, defterm, proofctx, result):
         """ Check that the defthm conclusion <conc> properly matches the

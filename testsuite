@@ -334,7 +334,7 @@ thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
 kind (formula)
 kind (nat)
 tvar (formula p r)
-tvar (formula n k)
+tvar (nat n k)
 term (formula (→ p r))
 term (nat (+ n k))
 stmt (repeat () (p) p)
@@ -414,11 +414,20 @@ thm (id2 () () (→ n n)
 
 # kindbind in interfaces
 #!shared
-#!append bound.ghi
+#!append kinds.ghi
 #kind (formula)
-#kindbind(formula wff)
+#kindbind (formula wff)
+#kind (natural)
+#kindbind (natural nat)
+#tvar (formula p r)
+#tvar (nat n k)
+#term (formula (→ p r))
+#term (nat (+ n k))
+#stmt (repeat () (p) p)
+#stmt (id () () (→ p p))
 #!append test.gh
-#import (IN bound.ghi () "")
+#import (IN kinds.ghi () "")
 #!end
+
 #!accept test.gh
 
