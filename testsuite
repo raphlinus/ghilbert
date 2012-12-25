@@ -332,11 +332,11 @@ thm (foo () () (foo.→ p (foo.→ q p)) p q AntecedentIntroduction)
 !shared
 !append kinds.ghi
 kind (formula)
-kind (nat)
+kind (natural)
 tvar (formula p r)
-tvar (nat n k)
+tvar (natural n k)
 term (formula (→ p r))
-term (nat (+ n k))
+term (natural (+ n k))
 stmt (repeat () (p) p)
 stmt (id () () (→ p p))
 !append test.gh
@@ -350,7 +350,7 @@ kindbind (formula wff)
 kindbind (foobar wff)
 !reject test.gh Kind not known: foobar
 !append test.gh
-kindbind (formula nat)
+kindbind (formula natural)
 !reject test.gh Kind nat already defined
 
 # can use a variable where one of another (bound) kind is expected
@@ -361,9 +361,10 @@ thm (repeat2 () (H q) q
   H
   repeat)
 !accept test.gh
-# Here's a kind-checking test, not really about kindbind
+# Here's a kind-checking test
 !append test.gh
 kindbind (formula wff)
+kindbind (natural nat)
 tvar (nat n)
 thm (repeat2 () (H n) n
   H
@@ -371,6 +372,7 @@ thm (repeat2 () (H n) n
 !reject test.gh kind mismatch: n wanted formula found nat
 # Similar, but with a term which is not just a variable
 !append test.gh
+kindbind (natural nat)
 tvar (nat i j)
 thm (repeat2 () (H (+ i j)) (+ i j)
   H
@@ -378,14 +380,12 @@ thm (repeat2 () (H (+ i j)) (+ i j)
 !reject test.gh kind mismatch: (+ i j) wanted formula found nat
 # cannot use a variable declared with kindbound kind for another kind
 !append test.gh
-kindbind (nat natural)
-tvar (natural n)
+kindbind (natural nat)
+tvar (nat n)
 thm (repeat2 () (H n) n
   H
   repeat)
 !reject test.gh
-
-# TODO: expression
 
 # similar for mandatory hypotheses: first, able to use kindbound kind
 !append test.gh
@@ -395,9 +395,10 @@ thm (id2 () () (→ q q)
   q id
 )
 !accept test.gh
-# Here's a kind-checking test, not really about kindbind
+# Here's a kind-checking test
 !append test.gh
 kindbind (formula wff)
+kindbind (natural nat)
 tvar (nat n)
 thm (id2 () () (→ n n)
   n id
@@ -405,29 +406,83 @@ thm (id2 () () (→ n n)
 !reject test.gh
 # cannot use a variable declared with kindbound kind for another kind
 !append test.gh
-kindbind (nat natural)
-tvar (natural n)
+kindbind (natural nat)
+tvar (nat n)
 thm (id2 () () (→ n n)
   n id
 )
 !reject test.gh
 
 # kindbind in interfaces
-#!shared
-#!append kinds.ghi
-#kind (formula)
-#kindbind (formula wff)
-#kind (natural)
-#kindbind (natural nat)
-#tvar (formula p r)
-#tvar (nat n k)
-#term (formula (→ p r))
-#term (nat (+ n k))
-#stmt (repeat () (p) p)
-#stmt (id () () (→ p p))
-#!append test.gh
-#import (IN kinds.ghi () "")
-#!end
+!shared
+!append kinds.ghi
+kind (formula)
+kindbind (formula wff)
+kind (natural)
+kindbind (natural nat)
+tvar (formula p r)
+tvar (nat n k)
+term (formula (→ p r))
+term (nat (+ n k))
+stmt (repeat () (p) p)
+stmt (id () () (→ p p))
+!append test.gh
+import (IN kinds.ghi () "")
+!end
 
-#!accept test.gh
+!accept test.gh
+
+!append test.gh
+tvar (wff q)
+thm (repeat2 () (H q) q
+  H
+  repeat)
+!accept test.gh
+
+# Similar, but with a term which is not just a variable
+!append test.gh
+kindbind (natural nat)
+tvar (nat i j)
+thm (repeat-ij () (H (+ i j)) (+ i j)
+  H
+  repeat)
+!reject test.gh kind mismatch: (+ i j) wanted formula found nat
+
+!append test.gh
+tvar (nat n)
+thm (repeat-n () (H n) n
+  H
+  repeat
+)
+!reject test.gh kind mismatch: n wanted formula found natural
+
+!append kinds.ghi
+kindbind (foobar foo)
+!reject test.gh Kind not known: foobar
+
+!append kinds.ghi
+kindbind (formula natural)
+!reject test.gh A kind natural is already visible in the current import export context
+
+# similar for mandatory hypotheses: first, able to use kindbound kind
+!append test.gh
+tvar (wff q)
+thm (id2 () () (→ q q)
+  q id
+)
+!accept test.gh
+# Here's a kind-checking test
+!append test.gh
+tvar (nat n)
+thm (id2 () () (→ n n)
+  n id
+)
+!reject test.gh
+# cannot use a variable declared with kindbound kind for another kind
+!append test.gh
+tvar (nat n)
+thm (id2 () () (→ n n)
+  n id
+)
+!reject test.gh
 

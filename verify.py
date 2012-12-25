@@ -1173,15 +1173,21 @@ class ImportCtx(InterfaceCtx):
         elif cmd == 'param':
             self.param_cmd(arg)
         elif cmd == 'kindbind':
-            # TODO. Note that the interface file kindbind command expects
-            # two existing kinds and makes them equivalent.  This can occur
-            # after earlier uses of the two separate kinds, and means that
-            # kind comparisons throughout the verifier need to be
-            # careful to recognize the equivalence.
-            out.write('interface kindbind: TODO!')
+            self.kindbind_cmd(arg[1], arg[0])
         else:
             out.write('*** Warning: unrecognized command ' + cmd + \
                   ' seen in import context. ***')
+
+    def kindbind_cmd(self, new_kind, existing_kind):
+        # TODO. Note that the interface file kindbind command expects
+        # two existing kinds and makes them equivalent.  This can occur
+        # after earlier uses of the two separate kinds, and means that
+        # kind comparisons throughout the verifier need to be
+        # careful to recognize the equivalence.
+        # We probably don't yet have tests for all those situations.
+        prefixed_new_kind = self.kind_cmd_common([new_kind])
+        # TODO: Don't we need to prefix existing_kind?
+        self.verify.add_kind(prefixed_new_kind, self.verify.get_kind(existing_kind))
 
 class ExportCtx(InterfaceCtx):
     def __init__(self, name, verify, prefix, params):
