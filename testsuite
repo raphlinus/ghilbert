@@ -486,3 +486,58 @@ thm (id2 () () (→ n n)
 )
 !reject test.gh
 
+# export
+# first test is fairly simple, just import a file and then export the same one
+!append test.gh
+export (OUT kinds.ghi () "")
+!accept test.gh
+
+# attempt to export without defining a kindbound kind name
+!append out.ghi
+kind (formula)
+kindbind (formula exportname)
+!append test.gh
+export (OUT out.ghi () "")
+!reject test.gh kind not known: exportname
+
+# attempt to export and kindbind to the wrong types
+!append out.ghi
+kind (formula)
+kindbind (formula nat)
+kind (natural)
+kindbind (natural wff)
+!append test.gh
+export (OUT out.ghi () "")
+!reject test.gh kind nat should be bound to formula but is bound to natural
+
+# an export kind-checking test which does not involve kindbind
+!unshare
+!append out.ghi
+kind (formula)
+kind (foo)
+tvar (formula p q)
+term (formula (* p q))
+!append in.ghi
+kind (formula)
+kind (foo)
+tvar (foo p q)
+term (foo (* p q))
+!append test.gh
+import (IN in.ghi () "")
+export (OUT out.ghi () "")
+!reject test.gh Term * is of kind foo but verify context term * is of kind formula
+
+# test that terms consistently dereference kindbinds
+!unshare
+!append kinds.ghi
+kind (formula)
+kindbind (formula wff)
+tvar (wff p q)
+term (wff (→ p q))
+stmt (repeat () (p) p)
+stmt (id () () (→ p p))
+!append test.gh
+import (IN kinds.ghi () "")
+export (OUT kinds.ghi () "")
+!accept test.gh
+
