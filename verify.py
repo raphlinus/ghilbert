@@ -1173,38 +1173,15 @@ class ImportCtx(InterfaceCtx):
         elif cmd == 'param':
             self.param_cmd(arg)
         elif cmd == 'kindbind':
-            self.kindbind_cmd(arg[1], arg[0])
+            # TODO. Note that the interface file kindbind command expects
+            # two existing kinds and makes them equivalent.  This can occur
+            # after earlier uses of the two separate kinds, and means that
+            # kind comparisons throughout the verifier need to be
+            # careful to recognize the equivalence.
+            raise VerifyError("kindbind is not (yet at least) allowed in interfaces")
         else:
             out.write('*** Warning: unrecognized command ' + cmd + \
                   ' seen in import context. ***')
-
-    def kindbind_cmd(self, new_kind, existing_kind):
-        # TODO. Note that the interface file kindbind command expects
-        # two existing kinds and makes them equivalent.  This can occur
-        # after earlier uses of the two separate kinds, and means that
-        # kind comparisons throughout the verifier need to be
-        # careful to recognize the equivalence.
-        # We probably don't yet have tests for all those situations.
-
-        kname = new_kind
-        if type(new_kind) != type('str'):
-            raise VerifyError('kind argument must be string')
-
-        if new_kind in self.kinds:
-            raise VerifyError('A kind ' + new_kind +
-                     ' is already visible in the current ' + self.sort +
-                     ' export context.')
-
-        looked_up_existing = self.verify.get_kind(existing_kind)
-
-        prefixed_new_kind = self.prefix + new_kind
-
-        self.kinds[new_kind] = looked_up_existing
-        self.mykinds[new_kind] = looked_up_existing
-#        prefixed_new_kind = self.kind_cmd_common([new_kind])
-
-        # TODO: Don't we need to prefix existing_kind?
-        self.verify.add_kind(prefixed_new_kind, looked_up_existing)
 
 class ExportCtx(InterfaceCtx):
     def __init__(self, name, verify, prefix, params):
@@ -1235,8 +1212,6 @@ class ExportCtx(InterfaceCtx):
                     return False
                 kind_v = v[1]
                 kind_vv = vv[1]
-#                kind_v = self.get_kind(v[1])
-#                kind_vv = self.get_kind(vv[1])
                 if kind_v != kind_vv:
                     return False
                 if vexp in invmap:
@@ -1299,8 +1274,9 @@ class ExportCtx(InterfaceCtx):
             # declared in the export context.
 
             if kind != tkind:
-                raise VerifyError('Term ' + local_termname + ' is of kind ' + tkind +
-                                  ' but verify context term ' + termname + ' is of kind ' + kind)
+                raise VerifyError('Term ' + local_termname +
+                                  ' kind mismatch with verify context term ' +
+                                  termname)
 
             if argkinds != targkinds:
                 raise VerifyError(\
@@ -1428,27 +1404,7 @@ class ExportCtx(InterfaceCtx):
             # after earlier uses of the two separate kinds, and means that
             # kind comparisons throughout the verifier need to be
             # careful to recognize the equivalence.
-            # We probably don't yet have tests for all those situations.
-
-            new_kind = arg[1]
-            if type(new_kind) != type('str'):
-                raise VerifyError('kind argument must be string')
-
-            if new_kind in self.kinds:
-                raise VerifyError('A kind ' + new_kind +
-                         ' is already visible in the current ' + self.sort +
-                         ' export context.')
-
-            prefixed_new_kind = self.prefix + new_kind
-
-            looked_up = self.verify.get_kind(prefixed_new_kind)
-            if looked_up != arg[0]:
-                raise VerifyError('kind ' + prefixed_new_kind + ' should be bound to ' + arg[0] +
-                    ' but is bound to ' + looked_up)
-
-            self.kinds[new_kind] = looked_up
-            self.mykinds[new_kind] = looked_up
-
+            raise VerifyError("kindbind is not (yet at least) allowed in interfaces")
         else:
             out.write('*** Warning: unrecognized command ' + cmd + \
                   ' seen in export context. ***\n')

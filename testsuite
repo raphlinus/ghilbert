@@ -430,14 +430,16 @@ stmt (id () () (→ p p))
 import (IN kinds.ghi () "")
 !end
 
-!accept test.gh
+#!accept test.gh
+!reject test.gh kindbind is not (yet at least) allowed in interfaces
 
 !append test.gh
 tvar (wff q)
 thm (repeat2 () (H q) q
   H
   repeat)
-!accept test.gh
+#!accept test.gh
+!reject test.gh kindbind is not (yet at least) allowed in interfaces
 
 # Similar, but with a term which is not just a variable
 !append test.gh
@@ -470,7 +472,9 @@ tvar (wff q)
 thm (id2 () () (→ q q)
   q id
 )
-!accept test.gh
+#!accept test.gh
+!reject test.gh kindbind is not (yet at least) allowed in interfaces
+
 # Here's a kind-checking test
 !append test.gh
 tvar (nat n)
@@ -490,7 +494,8 @@ thm (id2 () () (→ n n)
 # first test is fairly simple, just import a file and then export the same one
 !append test.gh
 export (OUT kinds.ghi () "")
-!accept test.gh
+#!accept test.gh
+!reject test.gh kindbind is not (yet at least) allowed in interfaces
 
 # attempt to export without defining a kindbound kind name
 !append out.ghi
@@ -539,5 +544,6 @@ stmt (id () () (→ p p))
 !append test.gh
 import (IN kinds.ghi () "")
 export (OUT kinds.ghi () "")
-!accept test.gh
+#!accept test.gh
+!reject test.gh kindbind is not (yet at least) allowed in interfaces
 
