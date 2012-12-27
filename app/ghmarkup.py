@@ -186,7 +186,7 @@ def process_ghmarkup(str, path):
         \[\[ |             # open link
         \{\{\{ |           # open preformatted
         (?<![^\s\"\(])     # single char markup must follow whitespace
-          ([#_\[])
+          ([#\[])
           (?=\S)           # and not be followed by whitespace
         ''', re.VERBOSE)
     repls = {'<': '&lt;', '>': '&gt;', '&': '&amp;',

@@ -14,12 +14,12 @@ foo
 the <strong>quick</strong> brown fox
 </p>""", ghmarkup.ghmarkup("the **quick** brown fox"))
 
-  def test_italics(self):
+  def test_underscore(self):
     self.assertEqual("""<p>
-However, it is not a <em>metric</em> space.
-</p>""", ghmarkup.ghmarkup("However, it is not a _metric_ space."))
+Either _foo or _bar could work.
+</p>""", ghmarkup.ghmarkup("Either _foo or _bar could work."))
 
-  def test_italics_via_slashes(self):
+  def test_italics(self):
     self.assertEqual("""<p>
 , which implies our result. <em>Here we are using the compactness of S.</em>
 </p>""", ghmarkup.ghmarkup(", which implies our result. //Here we are using the compactness of S.//"))
