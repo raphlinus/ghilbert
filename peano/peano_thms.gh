@@ -6,7 +6,7 @@ import (PEANO_MIN peano_min.ghi (PROP) "")
 kindbind (num nat)
 
 tvar (wff ph ps ch th ta)
-tvar (nat A B C D A' B' C')
+tvar (nat A B C D A' B' C' D')
 var (nat v w x y z v' w' x' y' z')
 
 # == Pure predicate calculus ==
@@ -1308,6 +1308,14 @@ thm (leadd2 () ()
   B C addcom (+ C A) leeq2i bitri
 )
 
+# Inequality relation for two equal sums
+thm (leadd12 () ()
+  (-> (= (+ A B) (+ C D)) (<-> (<= A C) (<= D B)))
+  (= (+ A B) (+ C D)) id (+ C B) leeq1d
+  D B C leadd2 syl6bbr
+  A C B leadd1 syl5bb
+)
+
 thm (1nle0 () ()
   (-. (<= (1) (0)))
   x pa_ax1 (0) (S x) eqcom mtbi
@@ -1511,6 +1519,16 @@ thm (axlttri () ()
       (< B A) (= A B) orcom notbii
     bitr3i
   bitri
+)
+
+# Less than or equal to expressed in terms of less than or equals
+thm (leleo () ()
+  (<-> (<= A B) (\/ (< A B) (= A B)))
+  A B lenltt
+    B A axlttri con2bii
+  bitr4i
+  B A eqcom (< A B) orbi1i bitri
+  (= A B) (< A B) orcom bitri
 )
 
 thm (ltadd1 () ()
@@ -1872,17 +1890,8 @@ thm (abeq2d ((ph x)) (h (-> ph (<-> ps ch)))
 
 # Proofs in progress:
 
-# Would it be cleaner to write (-> (-. (=_ S ({/})))) for the antecedent?
-# thm (mincl ((S x)) ()
-#   (-> (E. x (e. x S)) (e. (min S) S))
-# ?)
-
 # thm (modlt () ()
 #   (-> (< 0 B) (< (mod A B) B))
-# ?)
-
-# thm (modid () ()
-#   (-> (< A B) (= (mod A B) A))
 # ?)
 
 # thm (modcyc () ()
@@ -2447,6 +2456,153 @@ thm (iotaeq () ()
   A x df-sn
   ({} A) ({|} x (= x A)) ax-iotaeq ax-mp eqcomi
   A ax-iota eqtr
+)
+
+# == Ternary conditional for naturals ==
+
+# Ternary expressions for naturals: (ph ? A : B)
+thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (=
+  (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))))
+  (iota ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))))
+
+  x  y  A  eqeq1
+  ph  anbi2d
+    x  y  B  eqeq1
+    (-. ph)  anbi2d
+  orbi12d
+  abeq
+  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))  ax-iotaeq    ax-mp
+)
+
+defthm (df-ifn num (ifn ph A B) ((ph x) (A x) (B x)) ()
+  (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
+  y  ph  A  B  x  df-ifn-just)
+
+# First branch of ternary expression.
+thm (ifn1 () () (-> ph (= (ifn ph A B) A))
+     ph  (= x A)  iba
+     ph  (= x A)  ancom    syl6bbr
+       (-. ph)  (= x B)  pm3.26    con2i
+       (/\ (-. ph) (= x B))  (/\ ph (= x A))  biorf    syl
+         (/\ (-. ph) (= x B))  (/\ ph (= x A))  orcom
+       syl6rbb
+     bitr4d
+     x  19.21ai
+       x  (= x A)  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  abeq2
+     syl
+     ({|} x (= x A))  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ax-iotaeq    syl
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        A  x  df-sn
+          ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp
+        syl6eqr
+      A  ax-iota    syl6eq
+)
+
+# Second branch of ternary expression.
+thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
+     (-. ph)  (= x B)  iba
+     (-. ph)  (= x B)  ancom    syl6bbr
+       ph  (= x A)  pm3.26    con3i
+       (/\ ph (= x A))  (/\ (-. ph) (= x B))  biorf    syl
+       bitr2d
+       x  19.21ai
+         x  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  (= x B)  abeq2
+       syl
+     ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} x (= x B))  ax-iotaeq    syl
+     eqcomd
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        B  x  df-sn
+          ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp
+        syl6eqr
+      B  ax-iota    syl6eq
+)
+
+# Equivalence of predicate in ifn
+thm (ifnbi () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B)))
+  ph ps dfbi3
+    ph A B ifn1 ps adantr ps A B ifn1 ph adantl eqcomd eqtrd
+      ph A B ifn2 (-. ps) adantr ps A B ifn2 (-. ph) adantl eqcomd eqtrd
+    jaoi
+  sylbi
+)
+
+# Equality of first term for ifn
+thm (ifneq1 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C)))
+  ph A C ifn1 B eqeq1d biimprd imp
+  ph B C ifn1 (= A B) adantr eqcomd eqtrd ex
+    ph A C ifn2
+    ph B C ifn2 eqcomd eqtrd (= A B) a1d
+  pm2.61i
+)
+
+# Equality of second term for ifn
+thm (ifneq2 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B)))
+  ph C A ifn1
+  ph C B ifn1 eqcomd eqtrd (= A B) a1d
+    ph C A ifn2 B eqeq1d biimprd imp
+    ph C B ifn2 (= A B) adantr eqcomd eqtrd ex
+  pm2.61i
+)
+
+# == Subtraction over natural numbers ==
+
+# Justification for definition of halfminus
+thm (df-halfminus-just ((A x y) (B x y)) ()
+  (= (ifn (< A B) (0) (iota ({|} x (= A (+ B x)))))
+    (ifn (< A B) (0) (iota ({|} y (= A (+ B y))))))
+  x y B addeq2 A eqeq2d abeq
+  ({|} x (= A (+ B x))) ({|} y (= A (+ B y))) ax-iotaeq ax-mp
+  (iota ({|} x (= A (+ B x)))) (iota ({|} y (= A (+ B y)))) (< A B) (0) ifneq2 ax-mp
+)
+
+# Definition of "half minus"
+defthm (df-halfminus num (.- A B) ((A x) (B x)) ()
+  (= (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))))
+  A B y x df-halfminus-just
+)
+
+# Minus is the inverse of addition
+thm (halfminus () ()
+  (-> (<= B A) (= (+ (.- A B) B) A))
+  B A lenltt
+  (< A B) (0) (iota ({|} x (= A (+ B x)))) ifn2 sylbi
+  A B x df-halfminus syl5eq
+  B addeq1d
+    B A x df-le
+    (+ B x) A eqcom x exbii bitri
+
+      A (+ B x) (+ B y) ax-eqtr
+      B x y addcan2 sylib
+      y gen x gen (E. x (= A (+ B x))) biantru bitri
+      x y B addeq2 A eqeq2d eu4
+    bitr4i
+
+      x (= A (+ B x)) iotacl2
+    sylbi
+
+      x (iota ({|} x (= A (+ B x)))) B addeq2 A eqeq2d elab
+    sylib
+    B (iota ({|} x (= A (+ B x)))) addcom syl6eq
+  eqcomd eqtrd
+)
+
+# A number minus zero is itself
+thm (halfminuszero () () (= (.- A (0)) A)
+  (.- A (0)) pa_ax3 eqcomi
+    A nn0nlt0 (0) A lenltt mpbir
+    (0) A halfminus ax-mp
+  eqtr
+)
+
+# A number minus itself is zero
+thm (halfminusid () () (= (.- A A) (0))
+  A leid A A halfminus ax-mp
+  A pa_ax3r eqcomi eqtr
+  (.- A A) A (0) addcan mpbi
 )
 
 # == Division, primality ==
@@ -3600,6 +3756,27 @@ thm (minel ((ps x)) (
   h2 elab sylib
 )
 
+# Another way of specifying the value of minimum
+thm (minval ((ps x) (A x))
+  (h1 (rwff x ph)
+   h2 (-> (= x A) (<-> ph ps)))
+  (-> (/\ ps (A. x (-> ph (<= A x)))) (= A (min ({|} x ph))))
+
+  h2 elab
+  A ({|} x ph) minex sylbir
+    x (min ({|} x ph)) ({|} x ph) ax-eleq1
+    h1 abid syl5bbr
+      (= x (min ({|} x ph))) id A leeq2d
+    imbi12d
+    cla4g
+  anim12i
+    (e. (min ({|} x ph)) ({|} x ph)) (<= A (min ({|} x ph))) pm3.35
+    (<= (min ({|} x ph)) A) anim1i
+    an1rs
+  syl
+  A (min ({|} x ph)) lesym sylibr
+)
+
 # number 89.0
 thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
   (= (min ({|} x (E. y (= (+ (* B y) x) A))))
@@ -3976,6 +4153,113 @@ thm (divideseq12 () () (-> (/\ (= A B) (= C D))  (-> (| A C) (| B D)))
  (E. z (= (* A z) C))  (E. z (= (* B z) C))  (E. z (= (* B z) D))  pm3.33    syl
 A  C  z  df-divides  syl5ib
 B  D  z  df-divides  syl6ibr
+)
+
+thm (modval.1 () ()
+  (-> (/\ (= (+ (* (S B) D) C) A) (= (+ (* (S B) D') C') A))
+   (<-> (< D' D) (< C C')))
+
+  (+ (* (S B) D) C) A eqcom (+ (* (S B) D') C') A eqcom anbi12i
+  A (+ (* (S B) D) C) (+ (* (S B) D') C') ax-eqtr sylbi
+
+  (* (S B) D) C (* (S B) D') C' leadd12 syl
+
+    (S B) D mulcom (* (S B) D') leeq1i
+    (S B) D' mulcom (* D (S B)) leeq2i bitri
+    D B D' lemul5 bitri
+  syl5bbr
+
+  D D' lenltt C' C lenltt bibi12i sylib
+  con4bid
+)
+
+thm (modval.2 () ()
+  (-> (/\ (= (+ (* (S B) D) C) A) (= (+ (* (S B) D') C') A))
+    (-> (< C C') (<= (+ (S B) C) C')))
+  B D C A D' C' modval.1
+  biimprd
+  D' D nnltp1let syl6ib
+
+  (+ D' (1)) D (S B) lemul2 syl6
+
+    (S B) D' (1) distr
+    (S B) mulid (* (S B) D') addeq2i eqtr
+    (* (S B) D) leeq1i
+  syl6ib
+  #(* (S B) D) pa_ax3 (+ (* (S B) D') (S B)) leeq2i syl6ibr
+  #(S B) (0) (* (S B) D') leadd2 syl6ibr
+
+  (+ (* (S B) D') (S B)) (* (S B) D) C leadd1 syl6ib
+
+    # Note: the next two lines are copied from modval.1, should be refactored
+    (+ (* (S B) D) C) A eqcom (+ (* (S B) D') C') A eqcom anbi12i
+    A (+ (* (S B) D) C) (+ (* (S B) D') C') ax-eqtr sylbi
+    (+ (+ (* (S B) D') (S B)) C) leeq2d
+  sylibd
+
+  (* (S B) D') (S B) C addass (+ (* (S B) D') C') leeq1i syl6ib
+  (+ (S B) C) C' (* (S B) D') leadd2 syl6ibr
+)
+
+thm (modval.3 () ()
+  (-> (/\ (= (+ (* B D) C) A) (= (+ (* B D') C') A)) (-> (< C C') (<= (+ B C) C')))
+    (0) B C addeq1 C pa_ax3r syl5eqr C' leeq1d
+    C C' df-lt pm3.26bi syl5bi
+    (/\ (= (+ (* B D) C) A) (= (+ (* B D') C') A)) a1d
+  (0) B eqcom B eq0le0 bitri B (0) lenltt bitri con2bii
+  (0) B nnltp1let (1) pa_ax3r B leeq1i bitri
+  bitr3i
+
+  (.- B (1)) D C A D' C' modval.2
+
+  (1) B halfminus (.- B (1)) a1suc syl5eq D muleq1d C addeq1d A eqeq1d
+    (1) B halfminus (.- B (1)) a1suc syl5eq D' muleq1d C' addeq1d A eqeq1d
+  anbi12d
+
+  (1) B halfminus (.- B (1)) a1suc syl5eq C addeq1d C' leeq1d
+  (< C C') imbi2d
+  imbi12d
+  mpbii
+  sylbi
+
+  pm2.61i
+)
+
+# Main theorem giving mod its value
+thm (modval ((A y) (B y) (C y)) ()
+  (-> (/\ (< C B) (E. y (= (+ (* B y) C) A))) (= C (mod A B)))
+
+  (< C B) (E. y (= (+ (* B y) C) A)) pm3.27
+    y y' B muleq2 C addeq1d A eqeq1d exalpha
+
+    B y x A y' C modval.3
+      B x addge01t B (+ B x) C letr mpan
+    syl6
+    con3d
+    B C lenltt con2bii syl5ib
+    C x lenltt syl6ibr
+    ex y 19.23ai com12
+    y' 19.23ai
+    sylbi com3r
+    imp x 19.21ai
+  jca
+
+    x z (* B y) addeq2 A eqeq1d y exbid rwffi
+      x C (* B y) addeq2 A eqeq1d y exbid
+    minval
+  syl
+  A B x y df-mod C eqeq2i sylibr
+)
+
+# Identity law for modulo
+thm (modid () ()
+  (-> (< A B) (= (mod A B) A))
+  x (0) tyex
+    x (0) B muleq2 B pa_ax5 syl6eq
+    A addeq1d A pa_ax3r syl6eq
+    x 19.22i
+  ax-mp
+  A B x A modval mpan2 eqcomd
 )
 
 # Definition of division using set minimum instead of iota
@@ -6279,153 +6563,6 @@ thm (explt () ()
     C B lenltt
       (exp A C) (exp A B) lenltt
   3bitr3g con4bid
-)
-
-# == Ternary conditional for naturals ==
-
-# Ternary expressions for naturals: (ph ? A : B)
-thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (=
-  (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))))
-  (iota ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))))
-
-  x  y  A  eqeq1
-  ph  anbi2d
-    x  y  B  eqeq1
-    (-. ph)  anbi2d
-  orbi12d
-  abeq
-  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))  ax-iotaeq    ax-mp
-)
-
-defthm (df-ifn num (ifn ph A B) ((ph x) (A x) (B x)) ()
-  (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
-  y  ph  A  B  x  df-ifn-just)
-
-# First branch of ternary expression.
-thm (ifn1 () () (-> ph (= (ifn ph A B) A))
-     ph  (= x A)  iba
-     ph  (= x A)  ancom    syl6bbr
-       (-. ph)  (= x B)  pm3.26    con2i
-       (/\ (-. ph) (= x B))  (/\ ph (= x A))  biorf    syl
-         (/\ (-. ph) (= x B))  (/\ ph (= x A))  orcom
-       syl6rbb
-     bitr4d
-     x  19.21ai
-       x  (= x A)  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  abeq2
-     syl
-     ({|} x (= x A))  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ax-iotaeq    syl
-         ph  A  B  x  df-ifn
-      syl6eqr
-      eqcomd
-        A  x  df-sn
-          ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp
-        syl6eqr
-      A  ax-iota    syl6eq
-)
-
-# Second branch of ternary expression.
-thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
-     (-. ph)  (= x B)  iba
-     (-. ph)  (= x B)  ancom    syl6bbr
-       ph  (= x A)  pm3.26    con3i
-       (/\ ph (= x A))  (/\ (-. ph) (= x B))  biorf    syl
-       bitr2d
-       x  19.21ai
-         x  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  (= x B)  abeq2
-       syl
-     ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} x (= x B))  ax-iotaeq    syl
-     eqcomd
-         ph  A  B  x  df-ifn
-      syl6eqr
-      eqcomd
-        B  x  df-sn
-          ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp
-        syl6eqr
-      B  ax-iota    syl6eq
-)
-
-# Equivalence of predicate in ifn
-thm (ifnbi () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B)))
-  ph ps dfbi3
-    ph A B ifn1 ps adantr ps A B ifn1 ph adantl eqcomd eqtrd
-      ph A B ifn2 (-. ps) adantr ps A B ifn2 (-. ph) adantl eqcomd eqtrd
-    jaoi
-  sylbi
-)
-
-# Equality of first term for ifn
-thm (ifneq1 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C)))
-  ph A C ifn1 B eqeq1d biimprd imp
-  ph B C ifn1 (= A B) adantr eqcomd eqtrd ex
-    ph A C ifn2
-    ph B C ifn2 eqcomd eqtrd (= A B) a1d
-  pm2.61i
-)
-
-# Equality of second term for ifn
-thm (ifneq2 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B)))
-  ph C A ifn1
-  ph C B ifn1 eqcomd eqtrd (= A B) a1d
-    ph C A ifn2 B eqeq1d biimprd imp
-    ph C B ifn2 (= A B) adantr eqcomd eqtrd ex
-  pm2.61i
-)
-
-# == Subtraction over natural numbers ==
-
-# Justification for definition of halfminus
-thm (df-halfminus-just ((A x y) (B x y)) ()
-  (= (ifn (< A B) (0) (iota ({|} x (= A (+ B x)))))
-    (ifn (< A B) (0) (iota ({|} y (= A (+ B y))))))
-  x y B addeq2 A eqeq2d abeq
-  ({|} x (= A (+ B x))) ({|} y (= A (+ B y))) ax-iotaeq ax-mp
-  (iota ({|} x (= A (+ B x)))) (iota ({|} y (= A (+ B y)))) (< A B) (0) ifneq2 ax-mp
-)
-
-# Definition of "half minus"
-defthm (df-halfminus num (.- A B) ((A x) (B x)) ()
-  (= (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))))
-  A B y x df-halfminus-just
-)
-
-# Minus is the inverse of addition
-thm (halfminus () ()
-  (-> (<= B A) (= (+ (.- A B) B) A))
-  B A lenltt
-  (< A B) (0) (iota ({|} x (= A (+ B x)))) ifn2 sylbi
-  A B x df-halfminus syl5eq
-  B addeq1d
-    B A x df-le
-    (+ B x) A eqcom x exbii bitri
-
-      A (+ B x) (+ B y) ax-eqtr
-      B x y addcan2 sylib
-      y gen x gen (E. x (= A (+ B x))) biantru bitri
-      x y B addeq2 A eqeq2d eu4
-    bitr4i
-
-      x (= A (+ B x)) iotacl2
-    sylbi
-
-      x (iota ({|} x (= A (+ B x)))) B addeq2 A eqeq2d elab
-    sylib
-    B (iota ({|} x (= A (+ B x)))) addcom syl6eq
-  eqcomd eqtrd
-)
-
-# A number minus zero is itself
-thm (halfminuszero () () (= (.- A (0)) A)
-  (.- A (0)) pa_ax3 eqcomi
-    A nn0nlt0 (0) A lenltt mpbir
-    (0) A halfminus ax-mp
-  eqtr
-)
-
-# A number minus itself is zero
-thm (halfminusid () () (= (.- A A) (0))
-  A leid A A halfminus ax-mp
-  A pa_ax3r eqcomi eqtr
-  (.- A A) A (0) addcan mpbi
 )
 
 # == Unique factorization ==
