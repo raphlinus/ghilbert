@@ -68,6 +68,14 @@ class AuthenticatedHandler(webapp2.RequestHandler):
         return User.get_by_key_name(username)
 
     @webapp2.cached_property
+    def identity(self):
+        userobj = self.userobj
+        if userobj is None:
+            return 'Local User <localuser@localhost>'
+        else:
+            return userobj.identity
+
+    @webapp2.cached_property
     def perms(self):
         user = self.userobj
         if not user:

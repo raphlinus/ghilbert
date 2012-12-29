@@ -96,6 +96,8 @@ class EditHandler(users.AuthenticatedHandler):
                 auth += ', ok to save.'
             else:
                 auth += ', but no save permissions.'
+        elif users.bypass_local_auth(self.request):
+            auth = 'Not logged in, but local dev server.'
         else:
             auth = 'Not logged in, save won\'t work.'
         o.write("""<head>
@@ -305,7 +307,7 @@ class SaveHandler(users.AuthenticatedHandler):
         babygit.stage.checkout(self.repo)
         tree = babygit.stage.save(self.repo, git_path, newcontent)
         babygit.stage.add(self.repo, tree)
-        author = self.userobj.identity
+        author = self.identity
         msg = 'Commit from web thm editor: save ' + name + '\n'
         commitsha = babygit.stage.commit(self.repo, author, msg)
         o.write(json.encode(['ok', 'successfully saved ' + name]))
