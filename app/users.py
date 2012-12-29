@@ -14,6 +14,9 @@
 
 # Management of user accounts and profiles
 
+# Do we require authentication on the debug server?
+REQUIRE_LOCAL_PASSWD = False
+
 import re
 import os
 import hashlib
@@ -73,6 +76,8 @@ class AuthenticatedHandler(webapp2.RequestHandler):
 
     @webapp2.cached_property
     def has_write_perm(self):
+        if bypass_local_auth(self.request):
+            return True
         perms = self.perms
         return perms and perms == 'super' or perms == 'write'
 
@@ -204,6 +209,10 @@ def check_user_pass(user, passwd):
 def request_secure_enough(request):
     return request.environ['SERVER_SOFTWARE'].startswith('Development') or \
         request.environ.get('HTTPS') == 'on'
+
+def bypass_local_auth(request):
+    return request.environ['SERVER_SOFTWARE'].startswith('Development') and \
+        not REQUIRE_LOCAL_PASSWD
 
 # The front page (/) is in this module because it's sensitive to login state
 class FrontPageHandler(AuthenticatedHandler):

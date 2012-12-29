@@ -94,7 +94,10 @@ class Handler(users.AuthenticatedHandler):
         git_path = gitcontent.wiki_to_git_path(path)
         tree = babygit.stage.save(self.repo, git_path, content)
         babygit.stage.add(self.repo, tree)
-        author = self.userobj.identity
+        if self.userobj is None:
+            author = 'Local User <localuser@localhost>'
+        else:
+            author = self.userobj.identity
         msg = msg.rstrip() + '\n'
         commitsha = babygit.stage.commit(self.repo, author, msg)
         o = self.response.out

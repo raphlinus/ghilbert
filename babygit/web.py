@@ -325,6 +325,8 @@ class handler(app.users.AuthenticatedHandler):
     # This is authentication with basic auth, for git clients. Web access
     # uses cookies instead (see app/users.py)
     def authenticate(self):
+        if app.users.bypass_local_auth(self.request):
+            return True
         if not app.users.request_secure_enough(self.request):
             self.error(403)
             return False
