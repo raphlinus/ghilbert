@@ -1,0 +1,164 @@
+{{header
+ | title    = Convenience theorems of
+ | subtitle = propositional logic
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = This page proves those statments of [[Interface:Classical propositional calculus]] which aren't in [[Interface:Principia Mathematica propositional logic theorems]].  This includes chiefly additional builders (which aren't necessarily in most textbook treatments as they take substitution for granted), additional variants on modus ponens and related theorems, and the like. Some of them are significant aids to making proofs concise and readable, but some of them are more arguable and are here to ease translating proofs from other systems or so that people writing proofs can make their own decisions.
+}}
+{{interfaces
+| imports = [[Interface:Principia Mathematica propositional logic theorems]]
+| exports = [[Interface:Classical propositional calculus]]
+}}
+
+We first import [[Interface:Principia Mathematica propositional logic theorems]]:
+
+As usual, {{{p}}}, {{{q}}}, and {{{r}}} are formulas. We also define some longer names which will make the formulas with a lot of variables more readable.
+
+== Detachment ==
+We have already encountered our first detachment rule, {{{applyModusPonens}}}, which takes a proposition and an implication with that proposition as antecedent.  
+
+=== Multiple antecedents ===
+This section is for variants in which the implication has several antecedents (that is, the antecedent is a conjunction of two or more propositions) and we detach one or more of the antecedents.
+
+* #p#, #(→ (∧ p q) r)# ⊢ #(→ q r)# ([/general/Convenience_theorems_of_propositional_logic.gh/detach1of2 | detach1of2])
+* #q#, #(→ (∧ p q) r)# ⊢ #(→ p r)# ([/general/Convenience_theorems_of_propositional_logic.gh/detach2of2 | detach2of2])
+* #p#, #(→ (∧ (∧ p q) r) consequent)# ⊢ #(→ (∧ q r) consequent)# ([/general/Convenience_theorems_of_propositional_logic.gh/detach1of3 | detach1of3])
+* #q#, #(→ (∧ (∧ p q) r) consequent)# ⊢ #(→ (∧ p r) consequent)# ([/general/Convenience_theorems_of_propositional_logic.gh/detach2of3 | detach2of3])
+* #p#, #(→ (∧ (∧ (∧ p q) r) s) consequent)# ⊢ #(→ (∧ (∧ q r) s) consequent)# ([/general/Convenience_theorems_of_propositional_logic.gh/detach1of4 | detach1of4])
+
+=== Nested formulas ===
+Here the "implication" is really a nesting of implications and/or biconditionals, and we detach one of the formulas from somewhere inside the nested formulas.
+
+* #(→ p (→ q r))# ⊢ #(→ q (→ p r))# ([/general/Convenience_theorems_of_propositional_logic.gh/applyComm | applyComm])
+* #p#, #(→ antecedent (→ p q))# ⊢ #(→ antecedent q)# ([/general/Convenience_theorems_of_propositional_logic.gh/detachImplicationImplication | detachImplicationImplication])
+* #q#, #(→ p (↔ q r))# ⊢ #(→ p r)# ([/general/Convenience_theorems_of_propositional_logic.gh/detachImplicationBiconditional | detachImplicationBiconditional])
+* #r#, #(→ p (↔ q r))# ⊢ #(→ p q)# ([/general/Convenience_theorems_of_propositional_logic.gh/detachImplicationBiconditionalRight | detachImplicationBiconditionalRight])
+
+=== Negated detachment ===
+This variant of ''modus tollens'' detaches the right hand side of a biconditional, which is a consequent.<ref>[http://us.metamath.org/mpeuni/mtbiri.html mtbiri], metamath's set.mm, accessed July 20, 2010</ref>
+* #(¬ r)#, #(→ p (↔ q r))# ⊢ #(→ p (¬ q))# ([/general/Convenience_theorems_of_propositional_logic.gh/negatedDetachImplicationBiconditionalRight | negatedDetachImplicationBiconditionalRight])
+
+Here's the same thing for the left side of the biconditional.
+* #(¬ q)#, #(→ p (↔ q r))# ⊢ #(→ p (¬ r))# ([/general/Convenience_theorems_of_propositional_logic.gh/negatedDetachImplicationBiconditional | negatedDetachImplicationBiconditional])
+
+Here's one for two implications.
+* #(¬ r)#, #(→ p (→ q r))# ⊢ #(→ p (¬ q))# ([/general/Convenience_theorems_of_propositional_logic.gh/negatedDetachImplicationImplication | negatedDetachImplicationImplication])
+
+== Transforming parts of formula ==
+By "transforming", we mean applying a biconditional to replace part of a formula.
+* #(→ p q)#, #(↔ p r)# ⊢ #(→ r q)# ([/general/Convenience_theorems_of_propositional_logic.gh/transformAntecedent | transformAntecedent])
+* #(→ antecedent (→ p q))#, #(↔ q r)# ⊢ #(→ antecedent (→ p r))# ([/general/Convenience_theorems_of_propositional_logic.gh/transformImplicationImplicationConsequent | transformImplicationImplicationConsequent])
+* #(→ antecedent (→ p q))#, #(↔ p r)# ⊢ #(→ antecedent (→ r q))# ([/general/Convenience_theorems_of_propositional_logic.gh/transformImplicationImplicationAntecedent | transformImplicationImplicationAntecedent])
+* #(→ antecedent (↔ p q))#, #(↔ p r)# ⊢ #(→ antecedent (↔ r q))# ([/general/Convenience_theorems_of_propositional_logic.gh/transformImplicationBiconditionalLeft | transformImplicationBiconditionalLeft])
+* #(→ antecedent (↔ p q))#, #(↔ q r)# ⊢ #(→ antecedent (↔ p r))# ([/general/Convenience_theorems_of_propositional_logic.gh/transformImplicationBiconditionalRight | transformImplicationBiconditionalRight])
+* #(∨ p q)#, #(↔ q r)# ⊢ #(∨ p r)# ([/general/Convenience_theorems_of_propositional_logic.gh/transformDisjunctionRight | transformDisjunctionRight])
+
+== More relationships between connectives ==
+
+=== Conjunction and implication ===
+The following relationships between conjunction and implication parallel those between disjunction and implication (and in fact follow easily from them and DeMorgan's laws).<ref>ConjunctionImplication is *4.63 in ''Principia'', with the two sides of the biconditional commuted</ref>
+* #(↔ (∧ p q) (¬ (→ p (¬ q))))# ([/general/Convenience_theorems_of_propositional_logic.gh/ConjunctionImplication | ConjunctionImplication])
+* #(↔ (→ p q) (¬ (∧ p (¬ q))))# ([/general/Convenience_theorems_of_propositional_logic.gh/ImplicationConjunction | ImplicationConjunction])
+
+=== Negation and biconditional ===
+Here we prove that {{{¬ p ↔ (p ↔ ⊥)}}}.
+
+* #(→ (⊥) p)# ([/general/Convenience_theorems_of_propositional_logic.gh/NegationBiconditional-1 | NegationBiconditional-1])
+* #(→ (→ p (⊥)) (∧ (→ p (⊥)) (→ (⊥) p)))# ([/general/Convenience_theorems_of_propositional_logic.gh/NegationBiconditional-2 | NegationBiconditional-2])
+* #(↔ (→ p (⊥)) (↔ p (⊥)))# ([/general/Convenience_theorems_of_propositional_logic.gh/NegationBiconditional-3 | NegationBiconditional-3])
+* #(↔ (¬ p) (↔ p (⊥)))# ([/general/Convenience_theorems_of_propositional_logic.gh/NegationBiconditional | NegationBiconditional])
+
+== Additional builders ==
+The builders in [[Interface:Principia Mathematica propositional logic theorems]] for the various connectives often have a theorem form (e.g. {{{ConjunctionFunction}}}) and a rule form (e.g. {{{buildConjunction}}}). They may have a version for the implication rather than the biconditional (e.g. {{{DisjunctionSummation}}}, although sometimes only the biconditionalized version holds) and variants which add a common formula to one side or the other (e.g. {{{DisjunctionSummationLL}}} and {{{DisjunctionSummationRR}}}). Here we prove some of those variations which we haven't proved yet. The LR and RL variations (analogous to {{{DisjunctionSummationLR}}} and {{{DisjunctionSummationRL}}}) haven't as often been needed, but they could go here too, if there is a need.
+* #(→ (↔ p q) (↔ (∨ r p) (∨ r q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/DisjunctionBuilderLL | DisjunctionBuilderLL])
+* #(↔ p q)# ⊢ #(↔ (∨ r p) (∨ r q))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildDisjunctionLL | buildDisjunctionLL])
+* #(→ (↔ p q) (↔ (∨ p common) (∨ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/DisjunctionBuilderRR | DisjunctionBuilderRR])
+* #(↔ p q)# ⊢ #(↔ (∨ p common) (∨ q common))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildDisjunctionRR | buildDisjunctionRR])
+* #(↔ p q)# ⊢ #(↔ (∧ r p) (∧ r q))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildConjunctionLL | buildConjunctionLL])
+* #(↔ p q)# ⊢ #(↔ (∧ p r) (∧ q r))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildConjunctionRR | buildConjunctionRR])
+* #(→ (↔ p q) (↔ (↔ p common) (↔ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/BiconditionalBuilderRR | BiconditionalBuilderRR])
+* #(↔ p q)# ⊢ #(↔ (↔ common p) (↔ common q))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildBiconditionalLL | buildBiconditionalLL])
+
+For implications, we call the two sides the antecedent and consequent, rather than L and R (well, except for theorems which were named before this convention was establish and which noone has gotten around to renaming yet).
+* #(→ (↔ p q) (↔ (→ p common) (→ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/ImplicationBuilderConsequent | ImplicationBuilderConsequent])
+* #(→ (↔ p q) (↔ (→ p common) (→ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/ImplicationBuilderRR | ImplicationBuilderRR])
+* #(↔ p q)# ⊢ #(↔ (→ p common) (→ q common))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildImplicationConsequent | buildImplicationConsequent])
+* #(↔ p q)# ⊢ #(↔ (→ common p) (→ common q))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildImplicationAntecedent | buildImplicationAntecedent])
+
+=== Building in the consequent ===
+Often we work with formulas which all have an antecedent in common, and in which all our building happens in the consequent. This is particularly helpful when dealing with substitution as it is handled in [[Interface:First-order logic with quantifiability]].
+
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (¬ p) (¬ q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/addNegationInConsequent | addNegationInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (∧ p common) (∧ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildConjunctionRRInConsequent | buildConjunctionRRInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (∧ common p) (∧ common q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildConjunctionLLInConsequent | buildConjunctionLLInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (∨ p common) (∨ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildDisjunctionRRInConsequent | buildDisjunctionRRInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (∨ common p) (∨ common q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildDisjunctionLLInConsequent | buildDisjunctionLLInConsequent])
+* #(→ antecedent (↔ p0 q0))#, #(→ antecedent (↔ p1 q1))# ⊢ #(→ antecedent (↔ (∧ p0 p1) (∧ q0 q1)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildConjunctionInConsequent | buildConjunctionInConsequent])
+* #(→ antecedent (↔ p0 q0))#, #(→ antecedent (↔ p1 q1))# ⊢ #(→ antecedent (↔ (∨ p0 p1) (∨ q0 q1)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildDisjunctionInConsequent | buildDisjunctionInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (→ p common) (→ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildCommonConsequentInConsequent | buildCommonConsequentInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (→ common p) (→ common q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildCommonAntecedentInConsequent | buildCommonAntecedentInConsequent])
+* #(→ antecedent (↔ p0 q0))#, #(→ antecedent (↔ p1 q1))# ⊢ #(→ antecedent (↔ (→ p0 p1) (→ q0 q1)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildImplicationInConsequent | buildImplicationInConsequent])
+* #(→ antecedent (↔ p0 q0))#, #(→ antecedent (↔ p1 q1))# ⊢ #(→ antecedent (↔ (↔ p0 p1) (↔ q0 q1)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildBiconditionalInConsequent | buildBiconditionalInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (↔ common p) (↔ common q)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildBiconditionalLLInConsequent | buildBiconditionalLLInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ (↔ p common) (↔ q common)))# ([/general/Convenience_theorems_of_propositional_logic.gh/buildBiconditionalRRInConsequent | buildBiconditionalRRInConsequent])
+
+== Additional transformations ==
+* #(→ antecedent (∨ p q))#, #(↔ p r)# ⊢ #(→ antecedent (∨ r q))# ([/general/Convenience_theorems_of_propositional_logic.gh/transformImplicationDisjunctionLeft | transformImplicationDisjunctionLeft])
+
+== Additional theorems in the consequent ==
+The various *InConsequent theorems are generally easy consequences of {{{composeConjunction}}}.
+* #(→ antecedent (→ p q))#, #(→ antecedent (→ q p))# ⊢ #(→ antecedent (↔ p q))# ([/general/Convenience_theorems_of_propositional_logic.gh/introduceBiconditionalFromImplicationsInConsequent | introduceBiconditionalFromImplicationsInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (→ p q))# ([/general/Convenience_theorems_of_propositional_logic.gh/eliminateBiconditionalReverseInConsequent | eliminateBiconditionalReverseInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (→ q p))# ([/general/Convenience_theorems_of_propositional_logic.gh/eliminateBiconditionalForwardInConsequent | eliminateBiconditionalForwardInConsequent])
+* #(→ antecedent p)#, #(→ antecedent (→ p q))# ⊢ #(→ antecedent q)# ([/general/Convenience_theorems_of_propositional_logic.gh/applyModusPonensInConsequent | applyModusPonensInConsequent])
+* #(→ antecedent (↔ p q))#, #(→ antecedent (↔ q r))# ⊢ #(→ antecedent (↔ p r))# ([/general/Convenience_theorems_of_propositional_logic.gh/applyBiconditionalTransitivityInConsequent | applyBiconditionalTransitivityInConsequent])
+* #(→ antecedent (↔ p q))# ⊢ #(→ antecedent (↔ q p))# ([/general/Convenience_theorems_of_propositional_logic.gh/swapBiconditionalInConsequent | swapBiconditionalInConsequent])
+* #(→ antecedent p)# ⊢ #(→ antecedent (→ q p))# ([/general/Convenience_theorems_of_propositional_logic.gh/introduceAntecedentInConsequent | introduceAntecedentInConsequent])
+* #(→ antecedent (→ p (→ q r)))# ⊢ #(→ antecedent (→ (∧ p q) r))# ([/general/Convenience_theorems_of_propositional_logic.gh/importInConsequent | importInConsequent])
+* #(→ antecedent (→ (∧ p q) r))# ⊢ #(→ antecedent (→ p (→ q r)))# ([/general/Convenience_theorems_of_propositional_logic.gh/exportInConsequent | exportInConsequent])
+* #(→ antecedent (∧ p q))# ⊢ #(→ antecedent q)# ([/general/Convenience_theorems_of_propositional_logic.gh/eliminateLeftConjunctInConsequent | eliminateLeftConjunctInConsequent])
+* #(→ antecedent (∧ p q))# ⊢ #(→ antecedent p)# ([/general/Convenience_theorems_of_propositional_logic.gh/eliminateRightConjunctInConsequent | eliminateRightConjunctInConsequent])
+* #(→ antecedent (→ p q))# ⊢ #(→ antecedent (→ (¬ q) (¬ p)))# ([/general/Convenience_theorems_of_propositional_logic.gh/introduceTranspositionInConsequent | introduceTranspositionInConsequent])
+* #(→ antecedent (→ (¬ q) (¬ p)))# ⊢ #(→ antecedent (→ p q))# ([/general/Convenience_theorems_of_propositional_logic.gh/eliminateTranspositionInConsequent | eliminateTranspositionInConsequent])
+
+== Theorems partly in the consequent ==
+* #(→ antecedent p)#, #q# ⊢ #(→ antecedent (∧ q p))# ([/general/Convenience_theorems_of_propositional_logic.gh/introduceLeftConjunctToConsequent | introduceLeftConjunctToConsequent])
+* #(→ antecedent p)#, #q# ⊢ #(→ antecedent (∧ p q))# ([/general/Convenience_theorems_of_propositional_logic.gh/introduceRightConjunctToConsequent | introduceRightConjunctToConsequent])
+
+== Theorems in the antecedent ==
+There are more cases where it is convenient to have a rule that operates in the consequent than in the antecedent.  But there are a few for the latter.
+* #(→ (→ p (→ q r)) consequent)# ⊢ #(→ (→ (∧ p q) r) consequent)# ([/general/Convenience_theorems_of_propositional_logic.gh/importInAntecedent | importInAntecedent])
+* #(→ (→ (∧ p q) r) consequent)# ⊢ #(→ (→ p (→ q r)) consequent)# ([/general/Convenience_theorems_of_propositional_logic.gh/exportInAntecedent | exportInAntecedent])
+
+== Rules for associativity ==
+Here are some rules for changing the associativity in the consequent.
+* #(→ antecedent (∧ (∧ p q) r))# ⊢ #(→ antecedent (∧ p (∧ q r)))# ([/general/Convenience_theorems_of_propositional_logic.gh/associateConjunctionRightInConsequent | associateConjunctionRightInConsequent])
+* #(→ antecedent (∧ p (∧ q r)))# ⊢ #(→ antecedent (∧ (∧ p q) r))# ([/general/Convenience_theorems_of_propositional_logic.gh/associateConjunctionLeftInConsequent | associateConjunctionLeftInConsequent])
+
+== Combinations of commutativity and associativity ==
+Commutativity and associativity might be combined in any number of ways, but a few patterns turn out to be common.
+
+The first one swaps the second and third disjuncts in a disjunction of four formulas.<ref>[http://us.metamath.org/mpeuni/or4.html or4], metamath's set.mm, accessed February 5, 2011</ref>
+* #(↔ (∨ (∨ p q) (∨ r s)) (∨ (∨ p r) (∨ q s)))# ([/general/Convenience_theorems_of_propositional_logic.gh/Disjunction4 | Disjunction4])
+* #(∨ (∨ p q) (∨ r s))# ⊢ #(∨ (∨ p r) (∨ q s))# ([/general/Convenience_theorems_of_propositional_logic.gh/swap23ofDisjunction4 | swap23ofDisjunction4])
+* #(↔ (∨ (∨ p q) r) (∨ (∨ p r) q))# ([/general/Convenience_theorems_of_propositional_logic.gh/Disjunction3 | Disjunction3])
+* #(∨ (∨ p q) r)# ⊢ #(∨ (∨ p r) q)# ([/general/Convenience_theorems_of_propositional_logic.gh/swap23ofDisjunction3 | swap23ofDisjunction3])
+* #(∨ (∨ p q) r)# ⊢ #(∨ (∨ q p) r)# ([/general/Convenience_theorems_of_propositional_logic.gh/swap12ofDisjunction3 | swap12ofDisjunction3])
+
+The next theorem swaps the second and third conjuncts in a conjunction of four formulas.<ref>[http://us.metamath.org/mpeuni/an4.html an4], metamath's set.mm, accessed February 5, 2011</ref>
+* #(↔ (∧ (∧ p q) (∧ r s)) (∧ (∧ p r) (∧ q s)))# ([/general/Convenience_theorems_of_propositional_logic.gh/Conjunction4 | Conjunction4])
+
+== Proof by contradiction ==
+Although the theorems presented thus far do provide ways to make deductions concerning contradictions, the usual form of a proof by contradiction is either to assume a statement and proof its negation, or the other way around.
+* #(→ p q)#, #(→ p (¬ q))# ⊢ #(¬ p)# ([/general/Convenience_theorems_of_propositional_logic.gh/noteContradiction | noteContradiction])
+* #(→ p (¬ p))# ⊢ #(¬ p)# ([/general/Convenience_theorems_of_propositional_logic.gh/deduceNegationFromContradiction | deduceNegationFromContradiction])
+* #(→ (¬ p) p)# ⊢ #p# ([/general/Convenience_theorems_of_propositional_logic.gh/deduceFromNegatedContradiction | deduceFromNegatedContradiction])
+
+== Done ==
+We now export [[Interface:Classical propositional calculus]].
+
+== Footnotes ==
+<references/>
+
+[[Category:Classical propositional logic]]
