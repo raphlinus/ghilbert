@@ -186,9 +186,10 @@ def get_header_from_description(lines):
     return None
 
 class ShowThm:
-    def __init__(self, s, out, linkable_thms, style, url):
+    def __init__(self, s, out, cmd, linkable_thms, style, url):
         self.s = s
         self.out = out
+        self.cmd = cmd
         self.linkable_thms = linkable_thms
         self.style = style
         self.proofctx = None
@@ -207,7 +208,7 @@ class ShowThm:
     # assume thm name has already been consumed
     def run(self, verifyctx):
         trace = []
-        state = 3  # to match the state numbers in direct.js
+        state = 3 if self.cmd == 'thm' else 12 # to match the state numbers in direct.js
         sexpstack = []
         concl = None
         while True:
@@ -257,6 +258,23 @@ class ShowThm:
                         sexpstack[-1].append(last)
                 else:
                     sexpstack[-1].append(tok)
+            elif state == 12:
+                # kind of term being defined (defthm only)
+                if tok in ('(', ')'):
+                    return 'expected defined kind'
+                state = 13
+            elif state == 13:
+                # beginning of definiendum (defthm only)
+                if tok == '(':
+                    state = 14
+                else:
+                    return 'expected definiendum'
+            elif state == 14:
+                # body of definiendum (defthm only)
+                if tok == ')':
+                    state = 3
+                elif tok == '(':
+                    return 'did not expect nested s-exp in definiendum'
             if state == 4:
                 #self.out.write('dv list: ' + verify.sexp_to_string(thestep) + '\n')
                 label = None  # doesn't seem to be needed
@@ -330,13 +348,13 @@ class ShowThmRunner:
                     return True
                 if type(cmd) != str:
                     raise SyntaxError('cmd must be atom: %s has type %s' % (cmd, type(cmd)))
-                if cmd == 'thm':
+                if cmd in ('thm', 'defthm'):
                     tok = s.get_tok()
                     if tok != '(':
-                        raise SyntaxError('expected thm start')
+                        raise SyntaxError('expected thm or defthm start')
                     tok = s.get_tok()
                     if tok == self.thmname:
-                        show_thm = ShowThm(s, self.response.out, self.linkable_thms, self.style, self.url)
+                        show_thm = ShowThm(s, self.response.out, cmd, self.linkable_thms, self.style, self.url)
                         show_thm.header(self.thmname)
                         show_thm.write_linestash(s.get_linestash())
                         s.start_recording(show_thm)
@@ -456,6 +474,8 @@ class ListThmsRunner:
                 ctx.do_cmd(cmd, arg, out)
                 if cmd == 'thm' and len(arg):
                     self.thmlist.append((self.error, arg[0], arg[2], arg[3], s.get_linestash()))
+                elif cmd == 'defthm' and len(arg):
+                    self.thmlist.append((self.error, arg[0], arg[4], arg[5], s.get_linestash()))
                 s.clear_linestash()
         except verify.VerifyError, x:
             out.write('Verify error at %s:%d:\n%s' % (url, s.lineno, x.why))
