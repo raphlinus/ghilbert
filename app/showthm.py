@@ -33,6 +33,9 @@ import read
 s = babygit.appengine.AEStore()
 repo = babygit.repo.Repo(s)
 
+class NotFound(Exception):
+    pass
+
 class ProofFormatter:
     def __init__(self, out, style, url):
         self.out = out
@@ -417,7 +420,13 @@ class ListThmsPage(webapp2.RequestHandler):
         # We use the standard runner for imports and exports, but our own
         # special one for the topmost context.
         ctx = verify.VerifyCtx(urlctx, verify.run, runner.error_handler)
-        runner.run(urlctx, url, ctx, DevNull())
+        try:
+            runner.run(urlctx, url, ctx, DevNull())
+        except NotFound:
+            self.error(404)
+            self.response.out.write(url + ' not found')
+            return
+
         logging.debug(`runner.thmlist`)
         for error, thm_name, hypotheses, conclusion, lines in runner.thmlist:
             header = get_header_from_description(lines)
@@ -461,7 +470,10 @@ class ListThmsRunner:
     def __init__(self):
         self.thmlist = []
     def run(self, urlctx, url, ctx, out):
-        s = ShowThmScanner(urlctx.resolve(url))
+        instream = urlctx.resolve(url)
+        if instream is None:
+            raise NotFound()
+        s = ShowThmScanner(instream)
         try:
             while 1:
                 cmd = verify.read_sexp(s)
