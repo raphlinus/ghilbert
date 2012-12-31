@@ -34,7 +34,7 @@ kind (object)
 tvar (object s t u s0 s1 t0 t1)
 # 
 # To use a variable as a term in JHilbert needs the following explicit conversion.  When we are writing informally (rather than in JHilbert proofs themselves), we may omit the conversion (it should be understood whereever we use a variable in a context where a term is expected).
-term (object (value x))
+term (object x)
 # 
 # Using a term where a variable is expected (for example the <code>x</code> in <code>∀ x φ</code>) is of course not allowed.
 # 
@@ -60,17 +60,17 @@ term (formula (= s t))
 # === Building equalities ===
 # One of the equality axioms in most formulations of predicate logic with equality is some variation of <code>x = y → (x = z → y = z)</code>.<ref>[http://us.metamath.org/mpeuni/ax-8.html ax-8], metamath's set.mm, accessed April 16, 2012</ref> This can be thought of as a funny way to write transitivity, or as a slight variation of [[Interface:First-order logic with quantifiability#statEqualityBuilderRR|<code>EqualityBuilderRR</code>]].
 stmt (EqualityAxiom () ()
-  (→ (= (value x) (value y)) (→ (= (value x) (value z)) (= (value y) (value z)))))
+  (→ (= x y) (→ (= x z) (= y z))))
 # 
 # === Axioms combining equality and quantification ===
 # 
 # The <code>Existence</code> axiom asserts that there is at least one object:
-stmt (Existence () () (¬ (∀ x (¬ (= (value x) (value y))))) )
-stmt (QuantifierSubstitution () () (→ (∀ x (= (value x) (value y))) (∀ y (= (value y) (value x)))) )
+stmt (Existence () () (¬ (∀ x (¬ (= x y)))) )
+stmt (QuantifierSubstitution () () (→ (∀ x (= x y)) (∀ y (= y x))) )
 # 
 # The <code>VariableSubstitution</code> axiom converts a statement about one variable to a statement about another. In most uses, <code>φ</code> will contain <code>x</code> as a free variable.  Then the axiom allows one to deduce <code>∀ x (x = y → φ)</code>, a statement where <code>x</code> is not free, but where <code>y</code> is free.  <code>∀ x (x = y → φ)</code> means (in some sense), <code>φ</code> with <code>y</code> substituted for <code>x</code>. Metamath contains several equivalent variations of this axiom;<ref>[http://us.metamath.org/mpeuni/ax11v.html ax11v], [http://us.metamath.org/mpeuni/ax-11.html ax-11], and [http://us.metamath.org/mpeuni/ax-11o.html ax-11o] in metamath's set.mm, accessed March 14, 2010</ref> we pick ax11v, which is the most convenient one for us.
 stmt (VariableSubstitution ((x y)) () 
-  (→ (= (value x) (value y)) (→ φ (∀ x (→ (= (value x) (value y)) φ)))) )
+  (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
 # 
 # There is also the principle of "equals can be substituted for equals". In our system, there is no way to express this generally, and it must be provided separately for each kind of predicate or operation which exists in the theory (for example, <code>∈</code> (is an element of), for set theory, or <code>S</code> (successor) or <code>+</code> (addition) for Peano arithmetic). Such a statement for equals itself, <code>(s0 = s1 ∧ t0 = t1) → (s0 = t0 ↔ s1 = t1)</code>, can be proved from the above axioms, so an additional axiom is not needed here.
 # 

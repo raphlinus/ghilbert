@@ -41,22 +41,22 @@ The basic facts about equality are that it is reflexive, symmetric and transitiv
 === Reflexivity ===
 We start with reflexivity.  The first two theorems are intermediate steps:
 
-* #(→ (= (value x) (value y)) (= (value y) (value y)))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-1 | VariableEqualityReflexivity-1])
-* #(→ (∀ x (¬ (= (value y) (value y)))) (∀ x (¬ (= (value x) (value y)))))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-2 | VariableEqualityReflexivity-2])
+* #(→ (= x y) (= y y))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-1 | VariableEqualityReflexivity-1])
+* #(→ (∀ x (¬ (= y y))) (∀ x (¬ (= x y))))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-2 | VariableEqualityReflexivity-2])
 
 The proof of reflexivity involves adding an extra variable {{{x}}}. We need to specify that this variable is distinct from {{{y}}}, but this doesn't affect the generality of the result. The variable {{{x}}} only appears in the proof, not in the theorem, and so the distinct variable constraint only needs to appear here, not in the statement of the theorem in [[Interface:First-order logic]].
-* #(= (value y) (value y))# ([/general/First-order_logic.gh/VariableEqualityReflexivity | VariableEqualityReflexivity])
+* #(= y y)# ([/general/First-order_logic.gh/VariableEqualityReflexivity | VariableEqualityReflexivity])
 
 === Symmetry ===
 To prove symmetry, we take {{{x = y → (x = x → y = x)}}} from the equality axiom, and then detach {{{x = x}}} because we have already proved reflexivity.
-* #(→ (= (value x) (value y)) (= (value y) (value x)))# ([/general/First-order_logic.gh/VariableEqualitySymmetryImplication | VariableEqualitySymmetryImplication])
-* #(↔ (= (value x) (value y)) (= (value y) (value x)))# ([/general/First-order_logic.gh/VariableEqualitySymmetry | VariableEqualitySymmetry])
-* #(= (value x) (value y))# ⊢ #(= (value y) (value x))# ([/general/First-order_logic.gh/swapVariableEquality | swapVariableEquality])
+* #(→ (= x y) (= y x))# ([/general/First-order_logic.gh/VariableEqualitySymmetryImplication | VariableEqualitySymmetryImplication])
+* #(↔ (= x y) (= y x))# ([/general/First-order_logic.gh/VariableEqualitySymmetry | VariableEqualitySymmetry])
+* #(= x y)# ⊢ #(= y x)# ([/general/First-order_logic.gh/swapVariableEquality | swapVariableEquality])
 
 === Transitivity ===
 Transitivity is now just a rearangement of our equality axiom:
-* #(→ (∧ (= (value x) (value y)) (= (value y) (value z))) (= (value x) (value z)))# ([/general/First-order_logic.gh/VariableEqualityTransitivity | VariableEqualityTransitivity])
-* #(= (value x) (value y))#, #(= (value y) (value z))# ⊢ #(= (value x) (value z))# ([/general/First-order_logic.gh/applyVariableEqualityTransitivity | applyVariableEqualityTransitivity])
+* #(→ (∧ (= x y) (= y z)) (= x z))# ([/general/First-order_logic.gh/VariableEqualityTransitivity | VariableEqualityTransitivity])
+* #(= x y)#, #(= y z)# ⊢ #(= x z)# ([/general/First-order_logic.gh/applyVariableEqualityTransitivity | applyVariableEqualityTransitivity])
 
 === Not equal ===
 Although {{{≠}}} is just an abbreviation for negation and equality, we do need to repeat the definition in this file to be able to export to [[Interface:First-order logic]].
@@ -64,11 +64,11 @@ Although {{{≠}}} is just an abbreviation for negation and equality, we do need
 == Specialization ==
 We can remove a universal quantifier. This is sometimes taken as an axiom but here we prove it from the other axioms via a number of intermediate steps.<ref>[http://us.metamath.org/mpeuni/ax4.html ax4] in metamath's set.mm, accessed February 18, 2010</ref> In many formulations of predicate logic, specialization is combined with substitution (and often a distinction between constants and variables), but we handle substitution later.  Constants in our system are represented by predicates with no arguments (for example, {{{(0)}}} in [[Interface:Basic arithmetic]]), and our substitution mechanisms will be able to handle them (as well as other kinds of terms).
 
-* #(→ (= (value y) (value x)) (→ (¬ φ) (∀ x (→ (= (value x) (value y)) (¬ φ)))))# ([/general/First-order_logic.gh/Specialization-18 | Specialization-18])
-* #(→ (∀ x (→ (= (value x) (value y)) (¬ φ))) (∀ x (→ φ (¬ (= (value x) (value y))))))# ([/general/First-order_logic.gh/Specialization-22 | Specialization-22])
-* #(→ (∀ x (→ φ (¬ (= (value x) (value y))))) (¬ (∀ x φ)))# ([/general/First-order_logic.gh/Specialization-a | Specialization-a])
-* #(→ (¬ (→ (∀ x φ) φ)) (¬ (= (value y) (value x))))# ([/general/First-order_logic.gh/Specialization-30 | Specialization-30])
-* #(→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= (value y) (value x)))))# ([/general/First-order_logic.gh/Specialization-33 | Specialization-33])
+* #(→ (= y x) (→ (¬ φ) (∀ x (→ (= x y) (¬ φ)))))# ([/general/First-order_logic.gh/Specialization-18 | Specialization-18])
+* #(→ (∀ x (→ (= x y) (¬ φ))) (∀ x (→ φ (¬ (= x y)))))# ([/general/First-order_logic.gh/Specialization-22 | Specialization-22])
+* #(→ (∀ x (→ φ (¬ (= x y)))) (¬ (∀ x φ)))# ([/general/First-order_logic.gh/Specialization-a | Specialization-a])
+* #(→ (¬ (→ (∀ x φ) φ)) (¬ (= y x)))# ([/general/First-order_logic.gh/Specialization-30 | Specialization-30])
+* #(→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= y x))))# ([/general/First-order_logic.gh/Specialization-33 | Specialization-33])
 
 The proof of reflexivity involves adding an extra variable {{{y}}}. We need to specify that this variable is distinct from {{{x}}} and {{{φ}}}, but this doesn't affect the generality of the result. The variable {{{y}}} only appears in the proof, not in the theorem, and so the distinct variable constraint only needs to appear here, not in the statement of the theorem in [[Interface:First-order logic]].
 * #(→ (∀ x φ) φ)# ([/general/First-order_logic.gh/Specialization | Specialization])
@@ -300,7 +300,7 @@ Here we prove a number of results involving equality and quantifiers.  Many of t
 === ax9o ===
 First is a variant of the {{{Existence}}} axiom:<ref>[http://us.metamath.org/mpeuni/ax9o.html ax9o] in metamath's set.mm, accessed February 22, 2010</ref>
 
-* #(→ (∀ x (→ (= (value x) (value y)) (∀ x φ))) φ)# ([/general/First-order_logic.gh/ax9o | ax9o])
+* #(→ (∀ x (→ (= x y) (∀ x φ))) φ)# ([/general/First-order_logic.gh/ax9o | ax9o])
 
 === A quantified statement which starts with a proposition ===
 It is common for a quantifier to be followed by some kind of condition.  For example "for every ε > 0, (¬ ψ)" or "there exists a δ > 0 such that ψ".  Despite the similar wording, the former is formalized as {{{∀ ε (ε > 0 → ¬ ψ)}}} (with an implication) and the latter is formalized as {{{∃ δ (δ > 0 ∧ ψ)}}} (with a conjunction).  The first theorem in this section expresses this relationship:<ref>[http://us.metamath.org/mpeuni/alinexa.html alinexa] in metamath's set.mm, accessed February 22, 2010</ref>
@@ -309,22 +309,22 @@ It is common for a quantifier to be followed by some kind of condition.  For exa
 
 The second theorem, {{{equs3}}}, is a special case which will be useful in dealing with substitution:<ref>[http://us.metamath.org/mpeuni/equs3.html equs3] in metamath's set.mm, accessed February 22, 2010</ref>
 
-* #(↔ (∃ x (∧ (= (value x) s) φ)) (¬ (∀ x (→ (= (value x) s) (¬ φ)))))# ([/general/First-order_logic.gh/equs3 | equs3])
+* #(↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ)))))# ([/general/First-order_logic.gh/equs3 | equs3])
 
 == Change variable ==
 We can change the variable in a quantifier and the expression which it quantifies. For example, in [[Basic arithmetic]] we will need to prove {{{∃ n a + n = b ↔ ∃ m a + m = b}}}. Here we state a theorem which lets us do this: given {{{x = y → (φx ↔ φy)}}}, where {{{x}}} is not free in {{{φy}}} and {{{y}}} is not free in {{{φx}}}, conclude {{{∃ x φx ↔ ∃ y φy}}}.
 
 We start by proving {{{∃ y φy → ∃ x φx}}} (subject to the same hypotheses).<ref>The proof is based on exalpha1 in [http://code.google.com/p/ghilbert/ ghilbert]'s [http://code.google.com/p/ghilbert/source/browse/trunk/peano/peano_thms.gh peano_thms.gh], accessed October 12, 2010</ref>
-* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(→ (∃ y φy) (∃ x φx))# ([/general/First-order_logic.gh/ChangeVariableThereExistsReverseNotFree | ChangeVariableThereExistsReverseNotFree])
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(→ (∃ y φy) (∃ x φx))# ([/general/First-order_logic.gh/ChangeVariableThereExistsReverseNotFree | ChangeVariableThereExistsReverseNotFree])
 
 The other direction is an easy consequence, but to prove it we do need to commute the equality and the biconditional.
-* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(→ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsForwardNotFree | ChangeVariableThereExistsForwardNotFree])
-* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsNotFree | ChangeVariableThereExistsNotFree])
-* #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExists | ChangeVariableThereExists])
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(→ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsForwardNotFree | ChangeVariableThereExistsForwardNotFree])
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsNotFree | ChangeVariableThereExistsNotFree])
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExists | ChangeVariableThereExists])
 
 The corresponding result for ∀ is an easy consequence. The proof consists of the usual technique of pushing negations around until all the ∃ turn into ∀.
-* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAllNotFree | ChangeVariableForAllNotFree])
-* #(→ (= (value x) (value y)) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAll | ChangeVariableForAll])
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAllNotFree | ChangeVariableForAllNotFree])
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAll | ChangeVariableForAll])
 
 == Substitution of variables ==
 We now move to proper substitution via {{{substVariable}}}.
@@ -339,20 +339,20 @@ Given the definition we have adopted, our first order of business is making it a
 
 The following lemma's consequent is half of the definition of {{{substVariable}}}:<ref>[http://us.metamath.org/mpeuni/equs4.html equs4] in metamath's set.mm, accessed February 22, 2010</ref>
 
-* #(→ (∀ x (→ (= (value x) (value y)) φ)) (∃ x (∧ (= (value x) (value y)) φ)))# ([/general/First-order_logic.gh/equs4 | equs4])
+* #(→ (∀ x (→ (= x y) φ)) (∃ x (∧ (= x y) φ)))# ([/general/First-order_logic.gh/equs4 | equs4])
 
 Now we're ready for our first theorem to help us prove a substituted formula:
-* #(→ (∀ x (→ (= (value x) (value y)) φ)) (substVariable y x φ))# ([/general/First-order_logic.gh/sb2 | sb2])
+* #(→ (∀ x (→ (= x y) φ)) (substVariable y x φ))# ([/general/First-order_logic.gh/sb2 | sb2])
 
 === Substitution implies ∃ x (x = y ∧ φ) ===
 
 Although being able to prove a formula involving {{{substVariable}}} is our first order of business, some of the theorems below also do the reverse. Here is a lemma to help turn {{{substVariable}}} into something else (it is just extracting half of the definition):<ref>[http://us.metamath.org/mpeuni/sb1.html sb1] in metamath's set.mm, accessed February 24, 2010</ref>
-* #(→ (substVariable y x φ) (∃ x (∧ (= (value x) (value y)) φ)))# ([/general/First-order_logic.gh/sb1 | sb1])
+* #(→ (substVariable y x φ) (∃ x (∧ (= x y) φ)))# ([/general/First-order_logic.gh/sb1 | sb1])
 
 === Substitution applied to an equality ===
 This theorem is basically just equality reflexivity, except that one side has been substituted with the object on the other side.<ref>[http://us.metamath.org/mpeuni/equsb1.html equsb1] in metamath's set.mm, accessed February 22, 2010</ref>
 
-* #(substVariable y x (= (value x) (value y)))# ([/general/First-order_logic.gh/SubstitutionEquality | SubstitutionEquality])
+* #(substVariable y x (= x y))# ([/general/First-order_logic.gh/SubstitutionEquality | SubstitutionEquality])
 
 === Substitution of a theorem remains a theorem ===
 If we have a theorem, we can add a variable substitution onto it.<ref>[http://us.metamath.org/mpeuni/sbt.html sbt] in metamath's set.mm, accessed February 24, 2010</ref>
@@ -363,22 +363,22 @@ A statement of the form {{{x = y → (φ ↔ ψ)}}}, where {{{x}}} is not free i
 
 We break up the proof into several steps:
 
-* #(→ (= (value x) (value y)) (↔ φ ψ))# ⊢ #(→ (∧ (= (value x) (value y)) φ) ψ)# ([/general/First-order_logic.gh/sbie-1 | sbie-1])
-* #(→ (∧ (= (value x) (value y)) φ) ψ)# ⊢ #(→ (substVariable y x φ) (∃ x ψ))# ([/general/First-order_logic.gh/sbie-2 | sbie-2])
-* #(is-not-free-in x ψ)#, #(→ (= (value x) (value y)) (↔ φ ψ))# ⊢ #(→ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie-forward | sbie-forward])
-* #(is-not-free-in x ψ)#, #(→ (= (value x) (value y)) (↔ φ ψ))# ⊢ #(→ ψ (substVariable y x φ))# ([/general/First-order_logic.gh/sbie-reverse | sbie-reverse])
-* #(is-not-free-in x ψ)#, #(→ (= (value x) (value y)) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie | sbie])
-* #(→ (= (value x) (value y)) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/makeSubstVariableExplicit | makeSubstVariableExplicit])
+* #(→ (= x y) (↔ φ ψ))# ⊢ #(→ (∧ (= x y) φ) ψ)# ([/general/First-order_logic.gh/sbie-1 | sbie-1])
+* #(→ (∧ (= x y) φ) ψ)# ⊢ #(→ (substVariable y x φ) (∃ x ψ))# ([/general/First-order_logic.gh/sbie-2 | sbie-2])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(→ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie-forward | sbie-forward])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(→ ψ (substVariable y x φ))# ([/general/First-order_logic.gh/sbie-reverse | sbie-reverse])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie | sbie])
+* #(→ (= x y) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/makeSubstVariableExplicit | makeSubstVariableExplicit])
 
 === sbequ12 ===
 Another relationship between {{{substVariable}}} and equality is {{{x = y → (φ ↔ [y / x]φ)}}}.<ref>[http://us.metamath.org/mpeuni/sbequ12.html sbequ12] in metamath's set.mm, accessed February 26, 2010</ref>  We prove each direction of the biconditional separately.
-* #(→ (= (value x) (value y)) (→ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ1 | sbequ1])
+* #(→ (= x y) (→ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ1 | sbequ1])
 
 The other direction is also simple:
-* #(→ (= (value x) (value y)) (→ (substVariable y x φ) φ))# ([/general/First-order_logic.gh/sbequ2 | sbequ2])
+* #(→ (= x y) (→ (substVariable y x φ) φ))# ([/general/First-order_logic.gh/sbequ2 | sbequ2])
 
 We now combine the two to get {{{sbequ12}}}:
-* #(→ (= (value x) (value y)) (↔ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ12 | sbequ12])
+* #(→ (= x y) (↔ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ12 | sbequ12])
 
 === Implication builder ===
 Analogous to our other implication builders, this theorem takes an implication and lets us add {{{substVariable}}} to both sides.<ref>[http://us.metamath.org/mpeuni/sbimi.html sbimi] in metamath's set.mm, accessed February 24, 2010</ref>

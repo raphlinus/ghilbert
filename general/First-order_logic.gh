@@ -22,8 +22,8 @@ thm (buildForAll () (H (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ))
         introduceBiconditionalFromImplications
  )
 thm (VariableEqualityReflexivity-1 () ()
-  (→ (= (value x) (value y)) (= (value y) (value y)))
-        (= (value x) (value y)) ConjunctionIdempotence eliminateBiconditionalReverse
+  (→ (= x y) (= y y))
+        (= x y) ConjunctionIdempotence eliminateBiconditionalReverse
 
         x y y EqualityAxiom
         import
@@ -32,18 +32,18 @@ thm (VariableEqualityReflexivity-1 () ()
  )
 
 thm (VariableEqualityReflexivity-2 () ()
-  (→ (∀ x (¬ (= (value y) (value y)))) (∀ x (¬ (= (value x) (value y)))))
+  (→ (∀ x (¬ (= y y))) (∀ x (¬ (= x y))))
         x y VariableEqualityReflexivity-1
         introduceTransposition
         x generalize
 
-        x (¬ (= (value y) (value y))) (¬ (= (value x) (value y))) QuantifiedImplication
+        x (¬ (= y y)) (¬ (= x y)) QuantifiedImplication
         applyModusPonens
  )
-thm (VariableEqualityReflexivity ( (x y)) () (= (value y) (value y))
+thm (VariableEqualityReflexivity ( (x y)) () (= y y)
         x y Existence
 
-        (¬ (= (value y) (value y))) x Generalization
+        (¬ (= y y)) x Generalization
         x y VariableEqualityReflexivity-2
         applySyllogism
 
@@ -51,21 +51,21 @@ thm (VariableEqualityReflexivity ( (x y)) () (= (value y) (value y))
         eliminateDoubleNegation
  )
 thm (VariableEqualitySymmetryImplication () ()
-  (→ (= (value x) (value y)) (= (value y) (value x)))
+  (→ (= x y) (= y x))
         x VariableEqualityReflexivity
         x y x EqualityAxiom
         detachImplicationImplication
  )
 
 thm (VariableEqualitySymmetry () ()
-  (↔ (= (value x) (value y)) (= (value y) (value x)))
+  (↔ (= x y) (= y x))
         x y VariableEqualitySymmetryImplication
         y x VariableEqualitySymmetryImplication
         introduceBiconditionalFromImplications
  )
 
-thm (swapVariableEquality () (H (= (value x) (value y)))
-  (= (value y) (value x))
+thm (swapVariableEquality () (H (= x y))
+  (= y x)
         H
 
         x y VariableEqualitySymmetry
@@ -74,7 +74,7 @@ thm (swapVariableEquality () (H (= (value x) (value y)))
         applyModusPonens
  )
 thm (VariableEqualityTransitivity () ()
-  (→ (∧ (= (value x) (value y)) (= (value y) (value z))) (= (value x) (value z)))
+  (→ (∧ (= x y) (= y z)) (= x z))
         x y VariableEqualitySymmetryImplication
         y x z EqualityAxiom
         applySyllogism
@@ -82,8 +82,8 @@ thm (VariableEqualityTransitivity () ()
  )
 
 thm (applyVariableEqualityTransitivity ()
-  (H1 (= (value x) (value y)) H2 (= (value y) (value z)))
-  (= (value x) (value z))
+  (H1 (= x y) H2 (= y z))
+  (= x z)
         H1
         H2
         introduceConjunction
@@ -93,31 +93,31 @@ thm (applyVariableEqualityTransitivity ()
 term (wff (≠ s t))
 stmt (≠ () () (↔ (≠ s t) (¬ (= s t))))
 thm (Specialization-18 ((x y)) () 
-  (→ (= (value y) (value x)) (→ (¬ φ) (∀ x (→ (= (value x) (value y)) (¬ φ)))))
+  (→ (= y x) (→ (¬ φ) (∀ x (→ (= x y) (¬ φ)))))
         y x VariableEqualitySymmetry eliminateBiconditionalReverse
         x y (¬ φ) VariableSubstitution
         applySyllogism
  )
 
 thm (Specialization-22 () () 
-  (→ (∀ x (→ (= (value x) (value y)) (¬ φ))) (∀ x (→ φ (¬ (= (value x) (value y))))))
-        (= (value x) (value y)) φ TranspositionWithNegatedConsequent
+  (→ (∀ x (→ (= x y) (¬ φ))) (∀ x (→ φ (¬ (= x y)))))
+        (= x y) φ TranspositionWithNegatedConsequent
         eliminateBiconditionalReverse
 
         x addForAll
  )
 
-thm (Specialization-a () () (→ (∀ x (→ φ (¬ (= (value x) (value y))))) (¬ (∀ x φ)))
-        x φ (¬ (= (value x) (value y))) ForAllImplication
+thm (Specialization-a () () (→ (∀ x (→ φ (¬ (= x y)))) (¬ (∀ x φ)))
+        x φ (¬ (= x y)) ForAllImplication
 
         x y Existence
-        (∀ x φ) (∀ x (¬ (= (value x) (value y)))) Transposition eliminateBiconditionalReverse
+        (∀ x φ) (∀ x (¬ (= x y))) Transposition eliminateBiconditionalReverse
         detachImplicationImplication
 
         applySyllogism
  )
 
-thm (Specialization-30 ((x y)) () (→ (¬ (→ (∀ x φ) φ)) (¬ (= (value y) (value x))))
+thm (Specialization-30 ((x y)) () (→ (¬ (→ (∀ x φ) φ)) (¬ (= y x)))
         y x φ Specialization-18
         import
 
@@ -135,7 +135,7 @@ thm (Specialization-30 ((x y)) () (→ (¬ (→ (∀ x φ) φ)) (¬ (= (value y)
  )
 
 thm (Specialization-33 ((x y)) () 
-  (→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= (value y) (value x)))))
+  (→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= y x))))
         x φ y Specialization-30
         y addForAll
  )
@@ -787,9 +787,9 @@ thm (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ
 
         applySyllogism
  )
-thm (ax9o () () (→ (∀ x (→ (= (value x) (value y)) (∀ x φ))) φ)
+thm (ax9o () () (→ (∀ x (→ (= x y) (∀ x φ))) φ)
         x y Existence
-        x (= (value x) (value y)) (∀ x φ) ForAllImplicationThereExists
+        x (= x y) (∀ x φ) ForAllImplicationThereExists
 # This gives us <code>∀ x (x = y → ∀ x φ) → (∃ x x = y → ∃ x ∀ x φ)</code>, which can be simplified to our desired result.  The first step is to note that <code>∃ x x = y</code> is just the <code>Existence</code> axiom, and can therefore be removed:
         detachImplicationImplication
 # Now we need to reduce <code>∃ x ∀ x φ</code> to <code>φ</code>:
@@ -807,13 +807,13 @@ thm (alinexa () () (↔ (∀ x (→ φ (¬ ψ))) (¬ (∃ x (∧ φ ψ))))
         applyBiconditionalTransitivity
  )
 thm (equs3 () () 
-  (↔ (∃ x (∧ (= (value x) s) φ)) (¬ (∀ x (→ (= (value x) s) (¬ φ)))))
-        x (= (value x) s) φ alinexa
+  (↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ)))))
+        x (= x s) φ alinexa
         transposeBiconditionalWithNegatedRight
  )
 thm (ChangeVariableThereExistsReverseNotFree
   ((x y))
-  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= (value x) (value y)) (↔ φx φy)))
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
   (→ (∃ y φy) (∃ x φx))
         HFREEX
 
@@ -825,13 +825,13 @@ thm (ChangeVariableThereExistsReverseNotFree
 # The next part of the proof derives <code>∀ x (x = y → φx) → ∃ x φx</code>. The first step is to go from <code>∃ x x = y</code> (by the <code>Existence</code> axiom) to <code>∃ x ((x = y → φx) → φx)</code>.
         x y Existence
 
-        (= (value x) (value y)) φx ModusPonens
+        (= x y) φx ModusPonens
         export
         x addThereExists
 
         applyModusPonens
 # Now we just distribute the quantification to get <code>∀ x (x = y → φx) → ∃ x φx</code>.
-        x (→ (= (value x) (value y)) φx) φx ThereExistsImplication
+        x (→ (= x y) φx) φx ThereExistsImplication
         eliminateBiconditionalReverse
         applyModusPonens
 # Combining this with the previous result gives <code>φy → ∃ x φx</code>
@@ -847,7 +847,7 @@ thm (ChangeVariableThereExistsReverseNotFree
         applyModusPonens
  )
 thm (ChangeVariableThereExistsForwardNotFree ((x y))
-  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= (value x) (value y)) (↔ φx φy)))
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
   (→ (∃ x φx) (∃ y φy))
         HFREEY HFREEX
 
@@ -865,7 +865,7 @@ thm (ChangeVariableThereExistsForwardNotFree ((x y))
 
 thm (ChangeVariableThereExistsNotFree
   ((x y))
-  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= (value x) (value y)) (↔ φx φy)))
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy))
         HFREEX HFREEY H
         ChangeVariableThereExistsForwardNotFree
@@ -878,7 +878,7 @@ thm (ChangeVariableThereExistsNotFree
 
 thm (ChangeVariableThereExists
   ((y φx) (x φy) (x y))
-  (H (→ (= (value x) (value y)) (↔ φx φy)))
+  (H (→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy))
         x φy DistinctNotFree
         y φx DistinctNotFree
@@ -886,7 +886,7 @@ thm (ChangeVariableThereExists
         ChangeVariableThereExistsNotFree
  )
 thm (ChangeVariableForAllNotFree ((x y))
-  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= (value x) (value y)) (↔ φx φy)))
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy))
         HFREEX
         negateNotFree
@@ -917,7 +917,7 @@ thm (ChangeVariableForAllNotFree ((x y))
  )
 
 thm (ChangeVariableForAll ((y φx) (x φy) (x y))
-  (H (→ (= (value x) (value y)) (↔ φx φy)))
+  (H (→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy))
         x φy DistinctNotFree
         y φx DistinctNotFree
@@ -925,69 +925,69 @@ thm (ChangeVariableForAll ((y φx) (x φy) (x y))
         ChangeVariableForAllNotFree
  )
 term (wff (substVariable y x φ))
-stmt (Substvariable () () (↔ (substVariable y x φ) (∧ (→ (= (value x) (value y)) φ) (∃ x (∧ (= (value x) (value y)) φ)))))
-thm (equs4 () () (→ (∀ x (→ (= (value x) (value y)) φ)) (∃ x (∧ (= (value x) (value y)) φ)))
-        (∀ x (→ (= (value x) (value y)) φ)) (= (value x) (value y)) ConjunctionLeftElimination
+stmt (Substvariable () () (↔ (substVariable y x φ) (∧ (→ (= x y) φ) (∃ x (∧ (= x y) φ)))))
+thm (equs4 () () (→ (∀ x (→ (= x y) φ)) (∃ x (∧ (= x y) φ)))
+        (∀ x (→ (= x y) φ)) (= x y) ConjunctionLeftElimination
 
-        x (→ (= (value x) (value y)) φ) Specialization
+        x (→ (= x y) φ) Specialization
         import
 
         composeConjunction
 
-        (= (value x) (value y)) φ ConjunctionImplication
+        (= x y) φ ConjunctionImplication
         eliminateBiconditionalReverse
         applySyllogism
 # That gives us <code>((∀ x ((x = y) → φ)) ∧ x = y) → (¬ ((x = y) → (¬ φ)))</code>. We transform the consequent to <code>(¬ (∀ x ((x = y) → (¬ φ))))</code>:
-        x (→ (= (value x) (value y)) (¬ φ)) Specialization
+        x (→ (= x y) (¬ φ)) Specialization
         introduceTransposition
         applySyllogism
 # And then we add <code>∀x</code> to the front of that consequent:
-        x (→ (= (value x) (value y)) (¬ φ)) BoundForAllNotFree
+        x (→ (= x y) (¬ φ)) BoundForAllNotFree
         negateNotFree
         applySyllogism
 # We export and add one more ∀x:
         export
         a5i
 # which gives us <code>(∀x(x = y → φ) → ∀x(x = y → ∀x ¬ ∀x(x = y → ¬ φ)))</code>.  The consequent of that is just what we need to apply ax9o:
-        x y (¬ (∀ x (→ (= (value x) (value y)) (¬ φ)))) ax9o
+        x y (¬ (∀ x (→ (= x y) (¬ φ)))) ax9o
         applySyllogism
 # so we have simplified the consequent to <code>¬ ∀x(x = y → ¬ φ))</code>. We merely apply <code>equs3</code> to that and we're done.
-        x (value y) φ equs3 eliminateBiconditionalForward
+        x y φ equs3 eliminateBiconditionalForward
         applySyllogism
  )
-thm (sb2 () () (→ (∀ x (→ (= (value x) (value y)) φ)) (substVariable y x φ))
-        x (→ (= (value x) (value y)) φ) Specialization
+thm (sb2 () () (→ (∀ x (→ (= x y) φ)) (substVariable y x φ))
+        x (→ (= x y) φ) Specialization
         x y φ equs4
         composeConjunction
  )
-thm (sb1 () () (→ (substVariable y x φ) (∃ x (∧ (= (value x) (value y)) φ)))
-        (→ (= (value x) (value y)) φ) (∃ x (∧ (= (value x) (value y)) φ)) ConjunctionLeftElimination
+thm (sb1 () () (→ (substVariable y x φ) (∃ x (∧ (= x y) φ)))
+        (→ (= x y) φ) (∃ x (∧ (= x y) φ)) ConjunctionLeftElimination
  )
-thm (SubstitutionEquality () () (substVariable y x (= (value x) (value y)))
-        (= (value x) (value y)) ImplicationReflexivity
+thm (SubstitutionEquality () () (substVariable y x (= x y))
+        (= x y) ImplicationReflexivity
         x generalize
 
-        x y (= (value x) (value y)) sb2
+        x y (= x y) sb2
 
         applyModusPonens
  )
 thm (introduceSubstVariable () (H φ) (substVariable y x φ)
         H
-        (= (value x) (value y)) introduceAntecedent
+        (= x y) introduceAntecedent
         x generalize
 
         x y φ sb2
 
         applyModusPonens
  )
-thm (sbie-1 () (H (→ (= (value x) (value y)) (↔ φ ψ))) (→ (∧ (= (value x) (value y)) φ) ψ)
+thm (sbie-1 () (H (→ (= x y) (↔ φ ψ))) (→ (∧ (= x y) φ) ψ)
         H
         φ ψ BiconditionalReverseElimination
         applySyllogism
         import
  )
 
-thm (sbie-2 () (H (→ (∧ (= (value x) (value y)) φ) ψ)) (→ (substVariable y x φ) (∃ x ψ))
+thm (sbie-2 () (H (→ (∧ (= x y) φ) ψ)) (→ (substVariable y x φ) (∃ x ψ))
         y x φ sb1
 
         H
@@ -997,7 +997,7 @@ thm (sbie-2 () (H (→ (∧ (= (value x) (value y)) φ) ψ)) (→ (substVariable
  )
 
 thm (sbie-forward ()
-  (HFREE (is-not-free-in x ψ) HEQ (→ (= (value x) (value y)) (↔ φ ψ)))
+  (HFREE (is-not-free-in x ψ) HEQ (→ (= x y) (↔ φ ψ)))
   (→ (substVariable y x φ) ψ)
         HEQ
         sbie-1
@@ -1010,7 +1010,7 @@ thm (sbie-forward ()
  )
 
 thm (sbie-reverse ()
-  (HFREE (is-not-free-in x ψ) HEQ (→ (= (value x) (value y)) (↔ φ ψ)))
+  (HFREE (is-not-free-in x ψ) HEQ (→ (= x y) (↔ φ ψ)))
   (→ ψ (substVariable y x φ))
 # The first line we'll use at the very end.
         HFREE
@@ -1032,7 +1032,7 @@ thm (sbie-reverse ()
  )
 
 thm (sbie () 
-  (HFREE (is-not-free-in x ψ) HEQ (→ (= (value x) (value y)) (↔ φ ψ)))
+  (HFREE (is-not-free-in x ψ) HEQ (→ (= x y) (↔ φ ψ)))
   (↔ (substVariable y x φ) ψ)
         HFREE HEQ sbie-forward
         HFREE HEQ sbie-reverse
@@ -1040,28 +1040,28 @@ thm (sbie ()
  )
 
 thm (makeSubstVariableExplicit ((x ψ))
-  (H (→ (= (value x) (value y)) (↔ φ ψ)))
+  (H (→ (= x y) (↔ φ ψ)))
   (↔ (substVariable y x φ) ψ)
         x ψ DistinctNotFree
         H
         sbie
  )
-thm (sbequ1 () () (→ (= (value x) (value y)) (→ φ (substVariable y x φ)))
+thm (sbequ1 () () (→ (= x y) (→ φ (substVariable y x φ)))
 # The proof is going to show that <code>x = y ∧ φ</code> implies <code>(substVariable y x φ)</code>. We show this for the two halves of the definition of <code>substVariable</code>. The first half of the <code>subst</code> definition is <code>x = y → φ</code>:
-        (= (value x) (value y)) φ ConjunctionLeftElimination
-        φ (= (value x) (value y)) AntecedentIntroduction
+        (= x y) φ ConjunctionLeftElimination
+        φ (= x y) AntecedentIntroduction
         applySyllogism
 # The other half is <code>∃ x (x = y ∧ φ)</code>:
-        (∧ (= (value x) (value y)) φ) x ThereExistsIntroduction
+        (∧ (= x y) φ) x ThereExistsIntroduction
 # Now we combine the two:
         composeConjunction
         export
  )
-thm (sbequ2 () () (→ (= (value x) (value y)) (→ (substVariable y x φ) φ))
-        (→ (= (value x) (value y)) φ) (∃ x (∧ (= (value x) (value y)) φ)) ConjunctionRightElimination
+thm (sbequ2 () () (→ (= x y) (→ (substVariable y x φ) φ))
+        (→ (= x y) φ) (∃ x (∧ (= x y) φ)) ConjunctionRightElimination
         applyComm
  )
-thm (sbequ12 () () (→ (= (value x) (value y)) (↔ φ (substVariable y x φ)))
+thm (sbequ12 () () (→ (= x y) (↔ φ (substVariable y x φ)))
         x y φ sbequ1
         x y φ sbequ2
         composeConjunction
@@ -1071,9 +1071,9 @@ thm (sbequ12 () () (→ (= (value x) (value y)) (↔ φ (substVariable y x φ)))
  )
 thm (addSubstVariable  () (H (→ φ ψ)) (→ (substVariable y x φ) (substVariable y x ψ))
 # The left half of the conjunction defining <code>substVariable</code> is <code>x = y → φ</code>.  So we first show that the one for <code>φ</code> implies the one for <code>ψ</code>:
-        H (= (value x) (value y)) addCommonAntecedent
+        H (= x y) addCommonAntecedent
 # The right half of the conjunction defining <code>substVariable</code> is <code>∃ x (x = y ∧ φ)</code>.  Showing the relevant implication is only slightly more difficult:
-        H (= (value x) (value y)) conjoinLL
+        H (= x y) conjoinLL
         x addThereExists
 # We now combine the two halves:
         conjoin
