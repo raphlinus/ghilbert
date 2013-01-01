@@ -32,7 +32,7 @@ Tab.prototype.show = function() {
     if (this.session) {
         document.getElementById("editor").style.display = "block";
         this.workspace.editor.setSession(this.session);
-        this.workspace.editor.resize();
+        // Note: editor requires resize, but this is done in Workspace.resize()
         this.workspace.editor.focus();
     }
     this.tabmenuelement.className = "active";
@@ -88,6 +88,10 @@ function Workspace() {
     this.currenttab = null;
     this.tabcounter = 0;
     this.initmenus();
+    var self = this;
+    window.addEventListener('resize', function() {
+        self.resize();
+    });
 }
 
 Workspace.prototype.initmenus = function() {
@@ -118,6 +122,7 @@ Workspace.prototype.selecttab = function(tab) {
     }
     tab.show();
     this.currenttab = tab;
+    this.resize();
 }
 
 Workspace.prototype.newtab = function(tabname, tab) {
@@ -246,7 +251,7 @@ Workspace.prototype.newdirtab = function() {
 Workspace.prototype.populatedir = function(id, dir) {
     var self = this;
     var container = document.getElementById(id);
-    // container.style.overflow = 'scroll';
+    container.style.overflow = 'auto';
     function rec(dir, prefix) {
         for (var i = 0; i < dir.length; i++) {
             if (typeof dir[i] == 'string') {
@@ -308,4 +313,19 @@ Workspace.prototype.closetab = function(event) {
         this.deletetab(tab);
     }
     event.preventDefault();
+}
+
+// Ideally, this should be done with flexboxes, but I can't figure it out
+Workspace.prototype.resize = function() {
+    var height = window.innerHeight;
+    height -= document.getElementById("nav").offsetHeight;
+    height -= document.getElementById("tabmenu").offsetHeight;
+    console.log("height = " + height);
+    var tab = this.currenttab;
+    if (tab.session) {
+        document.getElementById("editor").style.height = height + "px";
+        this.editor.resize();
+    } else {
+        document.getElementById(tab.contentid).style.height = height + "px";
+    }
 }
