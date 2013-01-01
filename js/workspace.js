@@ -16,8 +16,13 @@ var Range = ace.require('ace/range').Range;
 var EditSession = ace.require('ace/edit_session').EditSession;
 var UndoManager = ace.require('ace/undomanager').UndoManager;
 
-function Tab(workspace, tabmenuelement, contentid) {
+// A "tab" represents both an open tab (which may be associated with a
+// file), or a "shelved" file, with contents but not an active editor.
+function Tab(workspace) {
     this.workspace = workspace;
+}
+
+Tab.prototype.attachui = function(tabmenuelement, contentid) {
     this.tabmenuelement = tabmenuelement;
     this.contentid = contentid;
 }
@@ -41,10 +46,44 @@ Tab.prototype.hide = function() {
    this.tabmenuelement.className = "";
 }
 
+Tab.prototype.shelve = function() {
+    if (this.session) {
+        this.contents = this.session.getValue();
+    }
+    this.session = undefined;
+    this.tabmenuelement = undefined;
+    this.contentid = undefined;
+}
+
+Tab.prototype.unshelve = function() {
+    this.session.setValue(this.contents);
+    this.contents = undefined;
+}
+
+// Get file contents of the tab (assuming it exists)
+Tab.prototype.getcontents = function() {
+    if (this.session) {
+        return this.session.getValue();
+    } else {
+        return this.contents;
+    }
+}
+
+Tab.prototype.setcontents = function(contents) {
+    if (this.original === undefined) {
+        this.original = contents;
+    }
+    if (this.session) {
+        this.session.setValue(contents);
+    } else {
+        this.contents = contents;
+    }
+}
+
 function Workspace() {
+    // The tabs array only contains ui-attached tabs (not shelved files)
     this.tabs = [];
-    // The filemap maps a file to either a string or a tab object (if there's
-    // an open tab for the file).
+    // All files (whether mapped to ui or shelved)
     this.filemap = {};
     this.currenttab = null;
     this.tabcounter = 0;
@@ -81,7 +120,7 @@ Workspace.prototype.selecttab = function(tab) {
     this.currenttab = tab;
 }
 
-Workspace.prototype.newtab = function(tabname) {
+Workspace.prototype.newtab = function(tabname, tab) {
     var self = this;
     var tabmenu = document.getElementById("tabmenu");
     var li = document.createElement("li");
@@ -106,39 +145,54 @@ Workspace.prototype.newtab = function(tabname) {
         .appendChild(document.createElement("div"));
     div.id = contentid;
     div.style.display = "none";
-    var tab = new Tab(this, li, contentid);
+    if (tab === undefined) {
+        tab = new Tab(this);
+    }
+    tab.attachui(li, contentid);
     this.tabs.push(tab);
     return tab;
 }
 
-Workspace.prototype.neweditortab = function(tabname) {
-    var tab = this.newtab(tabname);
-    if (this.editor) {
-        // create a new session for an existing editor object
-        tab.session = new EditSession('');
-        tab.session.setUndoManager(new UndoManager());
-    } else {
-        this.editor = ace.edit("editor");
-        tab.session = this.editor.getSession();
+Workspace.prototype.neweditortab = function(tabname, tab) {
+    var tab = this.newtab(tabname, tab);
+    if (!tab.session) {
+        if (this.editor) {
+            // create a new session for an existing editor object
+            tab.session = new EditSession('');
+            tab.session.setUndoManager(new UndoManager());
+        } else {
+            this.editor = ace.edit("editor");
+            tab.session = this.editor.getSession();
+        }
     }
-    var el = document.getElementById(tab.contentid);
-    el.appendChild(document.createTextNode(tabname));
     return tab;
 }
 
 Workspace.prototype.loadfile = function(filename) {
     if (filename in this.filemap) {
-        return this.filemap[filename];
+        var tab = this.filemap[filename];
+        console.log(tab);
+        if (tab.session) {
+            return tab;
+        }
     }
-    var tab = this.neweditortab(filename);
+    var tabname = filename
+    var slashix = tabname.lastIndexOf('/');
+    if (slashix >= 0) {
+        tabname = tabname.substring(slashix + 1);
+    }
+    tab = this.neweditortab(tabname, tab);
+    if (tab.contents !== undefined) {
+        tab.unshelve();
+        return tab;
+    }
     this.filemap[filename] = tab;
     var x = new XMLHttpRequest();
     var url = '/git/' + filename;
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
             var contents = x.responseText;
-            tab.original = contents;
-            tab.session.setValue(contents);
+            tab.setcontents(contents);
         }
     };
     x.open('GET', url, true);
@@ -164,6 +218,7 @@ Workspace.prototype.deletetab = function(tab) {
     document.getElementById("tabmenu").removeChild(tab.tabmenuelement);
     document.getElementById("content").removeChild(
         document.getElementById(tab.contentid));
+    tab.shelve();
 }
 
 Workspace.prototype.revert = function() {
