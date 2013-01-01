@@ -17,6 +17,8 @@
 import users
 import gitcontent
 
+import babygit.babygit
+
 from webapp2_extras import json
 
 class Handler(users.AuthenticatedHandler):
@@ -24,7 +26,7 @@ class Handler(users.AuthenticatedHandler):
         self.initialize(request, response)
         self.repo = gitcontent.get_repo()
 
-    def get(self, arg):
+    def get_workspace(self, arg):
         o = self.response.out
         o.write('''<!DOCTYPE html>
 <html><head><title>Ghilbert workspace</title>
@@ -34,6 +36,9 @@ class Handler(users.AuthenticatedHandler):
 <ul id="nav">
     <li><a href="#">File</a>
         <ul>
+            <li><a id="menu-newtab" href="#">New Tab</a></li>
+            <li><a id="menu-dirtab" href="#">Directory</a></li>
+            <li><a id="menu-revert" href="#">Revert</a></li>
             <li><a href="#">Save</a></li>
         </ul>
     </li>
@@ -50,7 +55,7 @@ class Handler(users.AuthenticatedHandler):
 <ul id="tabmenu">
 </ul>
 
-<div id="editor"></div>
+<div id="editor" style="display: none"></div>
 
 <div id="content"></div>
 
@@ -59,9 +64,30 @@ class Handler(users.AuthenticatedHandler):
 <script type="text/javascript">
     var workspace = new Workspace();
 ''')
-        if len(arg):
+        if arg:
             o.write('    workspace.loadfile(' + json.encode(arg[1:]) + ');\n')
-        o.write('    workspace.selecttab(workspace.loadfile("bar"));\n')
+        o.write('    workspace.selecttab(workspace.newdirtab());\n')
         o.write('</script>\n')
 
+    def ls(self, sha):
+        result = []
+        blob = self.repo.getobj(sha)
+        if babygit.babygit.obj_type(blob) == 'tree':
+            for mode, name, child_sha in self.repo.parse_tree(blob):
+                if mode == '40000':
+                    result.append([name, self.ls(child_sha)])
+                else:
+                    result.append(name)
+        return result
+
+    def get_dir(self):
+        root = self.repo.getroot()
+        self.response.headers['Content-Type'] = 'text/plain; charset = UTF-8'
+        o = self.response.out
+        o.write(json.encode(self.ls(root)))
+
+    def get(self, arg):
+        if arg == '/_dir':
+            return self.get_dir()
+        return self.get_workspace(arg)
 

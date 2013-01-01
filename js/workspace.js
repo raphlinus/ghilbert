@@ -14,6 +14,7 @@
 
 var Range = ace.require('ace/range').Range;
 var EditSession = ace.require('ace/edit_session').EditSession;
+var UndoManager = ace.require('ace/undomanager').UndoManager;
 
 function Tab(workspace, tabmenuelement, contentid) {
     this.workspace = workspace;
@@ -34,7 +35,7 @@ Tab.prototype.show = function() {
 
 Tab.prototype.hide = function() {
     document.getElementById(this.contentid).style.display = "none";
-     if (this.session) {
+    if (this.session) {
         document.getElementById("editor").style.display = "none";
     }
    this.tabmenuelement.className = "";
@@ -42,8 +43,31 @@ Tab.prototype.hide = function() {
 
 function Workspace() {
     this.tabs = [];
+    // The filemap maps a file to either a string or a tab object (if there's
+    // an open tab for the file).
+    this.filemap = {};
     this.currenttab = null;
     this.tabcounter = 0;
+    this.initmenus();
+}
+
+Workspace.prototype.initmenus = function() {
+    var self = this;
+    document.getElementById("menu-newtab").addEventListener('click',
+        function (event) {
+            self.selecttab(self.newtab('new tab'));
+            self.finishmenuselect(event);
+        });
+    document.getElementById("menu-dirtab").addEventListener('click',
+        function (event) {
+            self.selecttab(self.newdirtab());
+            self.finishmenuselect(event);
+        });
+    document.getElementById("menu-revert").addEventListener('click',
+        function (event) {
+            self.revert();
+            self.finishmenuselect(event);
+        });
 }
 
 Workspace.prototype.selecttab = function(tab) {
@@ -69,7 +93,6 @@ Workspace.prototype.newtab = function(tabname) {
     a.addEventListener('click', function(event) {
         self.clicktab(event);
     });
-    li.appendChild(document.createTextNode(" "));
     a2 = li.appendChild(document.createElement("a"));
     a2.href="#";
     a2.className = "close";
@@ -93,6 +116,7 @@ Workspace.prototype.neweditortab = function(tabname) {
     if (this.editor) {
         // create a new session for an existing editor object
         tab.session = new EditSession('');
+        tab.session.setUndoManager(new UndoManager());
     } else {
         this.editor = ace.edit("editor");
         tab.session = this.editor.getSession();
@@ -103,12 +127,18 @@ Workspace.prototype.neweditortab = function(tabname) {
 }
 
 Workspace.prototype.loadfile = function(filename) {
+    if (filename in this.filemap) {
+        return this.filemap[filename];
+    }
     var tab = this.neweditortab(filename);
+    this.filemap[filename] = tab;
     var x = new XMLHttpRequest();
-    var url = 'http://localhost:8080/git/' + filename;
+    var url = '/git/' + filename;
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
-            tab.session.setValue(x.responseText);
+            var contents = x.responseText;
+            tab.original = contents;
+            tab.session.setValue(contents);
         }
     };
     x.open('GET', url, true);
@@ -116,29 +146,111 @@ Workspace.prototype.loadfile = function(filename) {
     return tab;
 }
 
-function foo() {
-    var session = workspace.currenttab.session;
+Workspace.prototype.deletetab = function(tab) {
+    var ix = this.tabs.indexOf(tab);
+    if (ix >= 0) {
+        if (tab === this.currenttab) {
+            if (ix > 0) {
+                this.selecttab(this.tabs[ix - 1]);
+            } else if (ix + 1 < this.tabs.length) {
+                this.selecttab(this.tabs[ix + 1]);
+            } else {
+                tab.hide();
+                this.currenttab = null;
+            }
+        }
+        this.tabs.splice(ix, 1);
+    }
+    document.getElementById("tabmenu").removeChild(tab.tabmenuelement);
+    document.getElementById("content").removeChild(
+        document.getElementById(tab.contentid));
+}
+
+Workspace.prototype.revert = function() {
+    var tab = this.currenttab;
+    if (tab.session && tab.original !== undefined) {
+        tab.session.setValue(tab.original);
+    }
+}
+
+Workspace.prototype.newdirtab = function() {
+    var self = this;
+    var tab = this.newtab('dir');
+    var x = new XMLHttpRequest();
+    var url = '/workspace/_dir';
+    x.onreadystatechange = function() {
+        if (x.readyState == 4) {
+            self.populatedir(tab.contentid, JSON.parse(x.responseText));
+        }
+    }
+    x.open('GET', url, true);
+    x.send(null);
+    return tab;
+}
+
+Workspace.prototype.populatedir = function(id, dir) {
+    var self = this;
+    var container = document.getElementById(id);
+    // container.style.overflow = 'scroll';
+    function rec(dir, prefix) {
+        for (var i = 0; i < dir.length; i++) {
+            if (typeof dir[i] == 'string') {
+                var div = container.appendChild(document.createElement('div'));
+                var a = div.appendChild(document.createElement('a'));
+                a.href = '#';
+                var fn = prefix + dir[i];
+                a.appendChild(document.createTextNode(fn));
+                (function (fn) {
+                    a.addEventListener('click', function(event) {
+                        self.selecttab(self.loadfile(fn));
+                        event.preventDefault();
+                    })
+                })(fn);
+            } else {
+                rec(dir[i][1], prefix + dir[i][0] + '/');
+            }
+        }
+    }
+    rec(dir, '');
+}
+
+Workspace.prototype.finishmenuselect = function(event) {
     document.getElementById("nav").className = "off";
     window.setTimeout(function () {document.getElementById("nav").className = "";}, 50);
+    event.preventDefault();
+}
+
+function foo() {
+    var session = workspace.currenttab.session;
     range = new Range(1, 4, 1, 7);
     session.addMarker(range, "gh_error", "text", false);
     session.setAnnotations([{row:0, column:10, text:"annotation text", type:"warning"}]);
     return false;
 }
 
-Workspace.prototype.clicktab = function(event) {
-    var el = event.target.parentNode;
+// Finds a tab object from the li element of the tab
+Workspace.prototype.findtab = function(element) {
     for (var i = 0; i < this.tabs.length; i++) {
         var tab = this.tabs[i];
-        if (el === tab.tabmenuelement) {
-            this.selecttab(tab);
+        if (element === tab.tabmenuelement) {
+            return tab;
         }
+    }
+    return null;
+}
+
+Workspace.prototype.clicktab = function(event) {
+    var tab = this.findtab(event.target.parentNode);
+    if (tab) {
+        this.selecttab(tab);
     }
     event.preventDefault();
 }
 
 Workspace.prototype.closetab = function(event) {
-    var el = event.target.parentNode;
-    document.getElementById("tabmenu").removeChild(el);
+    var tab = this.findtab(event.target.parentNode);
+    if (tab) {
+        this.deletetab(tab);
+    }
     event.preventDefault();
 }
