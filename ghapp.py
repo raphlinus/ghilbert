@@ -27,6 +27,7 @@ import app.recent
 import app.showthm
 import app.users
 import app.wiki
+import app.workspace
 
 import webapp2
 from webapp2_extras import json
@@ -286,6 +287,7 @@ urlmap = [
     ('/env(/.*)?', PrintEnvironmentHandler),
     ('/git/(.*)', babygit.web.handler),
     ('/wiki(/.*)?', app.wiki.Handler),
+    ('/workspace(/.*)?', app.workspace.Handler),
     ('/save', app.edit.SaveHandler),
     ('/account/(.*)', app.users.AccountHandler),
     ('/recent', app.recent.RecentChangesPage),

@@ -102,15 +102,8 @@ class EditHandler(users.AuthenticatedHandler):
             auth = 'Not logged in, save won\'t work.'
         o.write("""<head>
 <title>Ghilbert</title>
+<link rel=stylesheet href="/static/editor.css" type="text/css">
 <style type="text/css">
-    #panel tr.headerRow {background-color: #ccc}
-    #panel tr.clickableRow {cursor: pointer}
-    #panel tr.clickableRow:hover {background-color: #eee}
-    #panel tr.clickableRow:active {background-color: #ddd}
-    table#panel { border: 1px solid black; border-collapse:collapse;}
-    #panel tr { border: 1px solid black; }
-    #panel td {padding: .3em; }
-
 """)
         if useAce: o.write("""    .ace_marker-layer .gh_error {
         position: absolute;
