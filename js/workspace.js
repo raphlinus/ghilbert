@@ -93,6 +93,9 @@ function Workspace() {
     window.addEventListener('resize', function() {
         self.resize();
     });
+    window.onbeforeunload =  function() {
+        return self.beforeunload();
+    };
 }
 
 Workspace.prototype.initmenus = function() {
@@ -112,7 +115,7 @@ Workspace.prototype.initmenus = function() {
         });
     document.getElementById("menu-save").addEventListener('click',
         function (event) {
-            self.save();
+            self.save(true);
             self.finishmenuselect(event);
         });
     document.getElementById("menu-revert").addEventListener('click',
@@ -203,7 +206,7 @@ Workspace.prototype.initeditor = function() {
         name: 'save',
         bindKey: {win: 'Ctrl-S', mac: 'Command-S'},
         exec: function(editor) {
-            self.save();
+            self.save(true);
         },
         readOnly: false
     });
@@ -443,20 +446,28 @@ Workspace.prototype.dirty = function() {
         document.getElementById("status").innerHTML = "●";
     }
     this.dirtytimeoutid = window.setTimeout(function() {
-        self.save();
+        self.save(true);
     }, 10000);
 };
 
-Workspace.prototype.save = function() {
+Workspace.prototype.save = function(async) {
     document.getElementById("status").innerHTML = "Saving...";
     var diffs = this.getdiff();
     var x = new XMLHttpRequest();
-    x.open('POST', '/workspace', true);
+    x.open('POST', '/workspace', async);
     x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    x.onreadystatechange = function() {
-        document.getElementById("status").innerHTML = "";
-        // TODO; track in-flight status
-    };
+    if (async) {
+        x.onreadystatechange = function() {
+            document.getElementById("status").innerHTML = "";
+            // TODO; track in-flight status
+        };
+    }
     x.send(JSON.stringify(diffs));
     delete this.dirtytimeoutid;
+};
+
+Workspace.prototype.beforeunload = function() {
+    if (this.dirtytimeoutid !== undefined) {
+        this.save(false);
+    }
 };
