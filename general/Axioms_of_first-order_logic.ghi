@@ -62,9 +62,8 @@ stmt (Existence () () (¬ (∀ x (¬ (= x y)))) )
 stmt (QuantifierSubstitution () () (→ (∀ x (= x y)) (∀ y (= y x))) )
 # 
 # The <code>VariableSubstitution</code> axiom converts a statement about one variable to a statement about another. In most uses, <code>φ</code> will contain <code>x</code> as a free variable.  Then the axiom allows one to deduce <code>∀ x (x = y → φ)</code>, a statement where <code>x</code> is not free, but where <code>y</code> is free.  <code>∀ x (x = y → φ)</code> means (in some sense), <code>φ</code> with <code>y</code> substituted for <code>x</code>. Metamath contains several equivalent variations of this axiom;<ref>[http://us.metamath.org/mpeuni/ax11v.html ax11v], [http://us.metamath.org/mpeuni/ax-11.html ax-11], and [http://us.metamath.org/mpeuni/ax-11o.html ax-11o] in metamath's set.mm, accessed March 14, 2010</ref> we pick ax11v, which is the most convenient one for us.
-# This doesn't work as-is in ghilbert, because neither x nor y is a term
-#stmt (VariableSubstitution ((x y)) () 
-#  (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
+stmt (VariableSubstitution () () 
+  (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
 # 
 # There is also the principle of "equals can be substituted for equals". In our system, there is no way to express this generally, and it must be provided separately for each kind of predicate or operation which exists in the theory (for example, <code>∈</code> (is an element of), for set theory, or <code>S</code> (successor) or <code>+</code> (addition) for Peano arithmetic). Such a statement for equals itself, <code>(s0 = s1 ∧ t0 = t1) → (s0 = t0 ↔ s1 = t1)</code>, can be proved from the above axioms, so an additional axiom is not needed here.
 # 
