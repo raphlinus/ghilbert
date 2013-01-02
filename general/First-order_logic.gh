@@ -225,17 +225,37 @@ thm (ForAllCommutation () () (↔ (∀ x (∀ y φ)) (∀ y (∀ x φ)))
         introduceBiconditionalFromImplications
  )
 thm (ThereExistsCommutation () () (↔ (∃ x (∃ y φ)) (∃ y (∃ x φ)))
+        x (∃ y φ) ThereExists
+
+        y φ ThereExists
+        addNegation
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+
         (∀ y (¬ φ)) DoubleNegation swapBiconditional
         x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
 
         x y (¬ φ) ForAllCommutation
-        applyBiconditionalTransitivity
-
-        (∀ x (¬ φ)) DoubleNegation
-        y buildForAll
-        applyBiconditionalTransitivity
-
         addNegation
+        applyBiconditionalTransitivity
+
+        x φ NotThereExists
+        y buildForAll
+        addNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        y (∃ x φ) NotThereExists
+        addNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        (∃ y (∃ x φ)) DoubleNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (ForAllConjunctionSplitting () () (→ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)))
         φ ψ ConjunctionRightElimination
