@@ -25,7 +25,7 @@ function Tab(workspace) {
 Tab.prototype.attachui = function(tabmenuelement, contentid) {
     this.tabmenuelement = tabmenuelement;
     this.contentid = contentid;
-}
+};
 
 Tab.prototype.show = function() {
     document.getElementById(this.contentid).style.display = "block";
@@ -36,7 +36,7 @@ Tab.prototype.show = function() {
         this.workspace.editor.focus();
     }
     this.tabmenuelement.className = "active";
-}
+};
 
 Tab.prototype.hide = function() {
     document.getElementById(this.contentid).style.display = "none";
@@ -44,21 +44,22 @@ Tab.prototype.hide = function() {
         document.getElementById("editor").style.display = "none";
     }
    this.tabmenuelement.className = "";
-}
+};
 
 Tab.prototype.shelve = function() {
     if (this.session) {
         this.contents = this.session.getValue();
     }
-    this.session = undefined;
-    this.tabmenuelement = undefined;
-    this.contentid = undefined;
-}
+    delete this.session;
+    delete this.tabmenuelement;
+    delete this.contentid;
+};
 
 Tab.prototype.unshelve = function() {
     this.session.setValue(this.contents);
-    this.contents = undefined;
-}
+    delete this.contents;
+    delete this.diff;
+};
 
 // Get file contents of the tab (assuming it exists)
 Tab.prototype.getcontents = function() {
@@ -67,7 +68,7 @@ Tab.prototype.getcontents = function() {
     } else {
         return this.contents;
     }
-}
+};
 
 Tab.prototype.setcontents = function(contents) {
     if (this.original === undefined) {
@@ -78,7 +79,7 @@ Tab.prototype.setcontents = function(contents) {
     } else {
         this.contents = contents;
     }
-}
+};
 
 function Workspace() {
     // The tabs array only contains ui-attached tabs (not shelved files)
@@ -98,8 +99,11 @@ Workspace.prototype.initmenus = function() {
     var self = this;
     document.getElementById("menu-newtab").addEventListener('click',
         function (event) {
-            self.selecttab(self.newtab('new tab'));
             self.finishmenuselect(event);
+            var fn = window.prompt("New file name:")
+            if (fn) {
+                self.selecttab(self.newblankfile(fn));
+            }
         });
     document.getElementById("menu-dirtab").addEventListener('click',
         function (event) {
@@ -116,7 +120,7 @@ Workspace.prototype.initmenus = function() {
             self.creatediff();
             self.finishmenuselect(event);
         });
-}
+};
 
 Workspace.prototype.selecttab = function(tab) {
     if (this.currenttab) {
@@ -128,7 +132,7 @@ Workspace.prototype.selecttab = function(tab) {
     tab.show();
     this.currenttab = tab;
     this.resize();
-}
+};
 
 Workspace.prototype.newtab = function(tabname, tab) {
     var self = this;
@@ -161,10 +165,15 @@ Workspace.prototype.newtab = function(tabname, tab) {
     tab.attachui(li, contentid);
     this.tabs.push(tab);
     return tab;
-}
+};
 
-Workspace.prototype.neweditortab = function(tabname, tab) {
+Workspace.prototype.neweditortab = function(filename, tab) {
     var self = this;
+    var tabname = filename;
+    var slashix = tabname.lastIndexOf('/');
+    if (slashix >= 0) {
+        tabname = tabname.substring(slashix + 1);
+    }
     var tab = this.newtab(tabname, tab);
     if (!tab.session) {
         if (this.editor) {
@@ -180,22 +189,16 @@ Workspace.prototype.neweditortab = function(tabname, tab) {
         });
     }
     return tab;
-}
+};
 
 Workspace.prototype.loadfile = function(filename) {
     if (filename in this.filemap) {
         var tab = this.filemap[filename];
-        console.log(tab);
         if (tab.session) {
             return tab;
         }
     }
-    var tabname = filename
-    var slashix = tabname.lastIndexOf('/');
-    if (slashix >= 0) {
-        tabname = tabname.substring(slashix + 1);
-    }
-    tab = this.neweditortab(tabname, tab);
+    tab = this.neweditortab(filename, tab);
     if (tab.contents !== undefined) {
         tab.unshelve();
         return tab;
@@ -206,13 +209,30 @@ Workspace.prototype.loadfile = function(filename) {
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
             var contents = x.responseText;
+            if (tab.diff) {
+                var d = new diff_match_patch();
+                contents = d.patch_apply(tab.diff, contents)[0];
+                // TODO: should probably check success
+            }
             tab.setcontents(contents);
         }
     };
     x.open('GET', url, true);
     x.send(null);
     return tab;
-}
+};
+
+Workspace.prototype.newblankfile = function(filename) {
+    if (filename in this.filemap) {
+        // Note: it's still possible to create a file over an existing one
+        // Maybe a good idea to track the directory from initial state
+        return this.loadfile(filename);
+    }
+    var tab = this.neweditortab(filename, tab);
+    this.filemap[filename] = tab;
+    tab.setcontents('');
+    return tab;
+};
 
 Workspace.prototype.deletetab = function(tab) {
     var ix = this.tabs.indexOf(tab);
@@ -233,34 +253,47 @@ Workspace.prototype.deletetab = function(tab) {
     document.getElementById("content").removeChild(
         document.getElementById(tab.contentid));
     tab.shelve();
-}
+};
 
 Workspace.prototype.revert = function() {
     var tab = this.currenttab;
     if (tab.session && tab.original !== undefined) {
         tab.session.setValue(tab.original);
     }
-}
+};
+
+Workspace.prototype.initstate = function(base, diffs) {
+    this.base = base;
+    for (var fn in diffs) {
+        if (!(fn in this.filemap)) {
+            this.filemap[fn] = new Tab(this);
+        }
+        this.filemap[fn].diff = diffs[fn];
+    }
+};
 
 Workspace.prototype.newdirtab = function() {
     var self = this;
     var tab = this.newtab('dir');
     var x = new XMLHttpRequest();
-    var url = '/workspace/_dir';
+    var url = '/workspace/_init';
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
-            self.populatedir(tab.contentid, JSON.parse(x.responseText));
+            var response = JSON.parse(x.responseText);
+            self.initstate(response['base'], response['diffs']);
+            self.populatedir(tab.contentid, response['dir']);
         }
     }
     x.open('GET', url, true);
     x.send(null);
     return tab;
-}
+};
 
 Workspace.prototype.populatedir = function(id, dir) {
     var self = this;
     var container = document.getElementById(id);
     container.style.overflow = 'auto';
+    var fileset = {};
     function rec(dir, prefix) {
         for (var i = 0; i < dir.length; i++) {
             if (typeof dir[i] == 'string') {
@@ -268,6 +301,7 @@ Workspace.prototype.populatedir = function(id, dir) {
                 var a = div.appendChild(document.createElement('a'));
                 a.href = '#';
                 var fn = prefix + dir[i];
+                fileset[fn] = 1;
                 a.appendChild(document.createTextNode(fn));
                 (function (fn) {
                     a.addEventListener('click', function(event) {
@@ -281,13 +315,23 @@ Workspace.prototype.populatedir = function(id, dir) {
         }
     }
     rec(dir, '');
-}
+    // Fill in files we have (for example, from diffs), but not in dir
+    for (var fn in this.filemap) {
+        if (!(fn in fileset)) {
+            var tab = this.filemap[fn];
+            var d = new diff_match_patch();
+            tab.original = '';
+            tab.contents = d.patch_apply(tab.diff, '')[0];
+            rec([fn], '');
+        }
+    }
+};
 
 Workspace.prototype.finishmenuselect = function(event) {
     document.getElementById("nav").className = "off";
     window.setTimeout(function () {document.getElementById("nav").className = "";}, 50);
     event.preventDefault();
-}
+};
 
 function foo() {
     var session = workspace.currenttab.session;
@@ -306,7 +350,7 @@ Workspace.prototype.findtab = function(element) {
         }
     }
     return null;
-}
+};
 
 Workspace.prototype.clicktab = function(event) {
     var tab = this.findtab(event.target.parentNode);
@@ -314,7 +358,7 @@ Workspace.prototype.clicktab = function(event) {
         this.selecttab(tab);
     }
     event.preventDefault();
-}
+};
 
 Workspace.prototype.closetab = function(event) {
     var tab = this.findtab(event.target.parentNode);
@@ -322,7 +366,7 @@ Workspace.prototype.closetab = function(event) {
         this.deletetab(tab);
     }
     event.preventDefault();
-}
+};
 
 // Ideally, this should be done with flexboxes, but I can't figure it out.
 Workspace.prototype.resize = function() {
@@ -336,21 +380,26 @@ Workspace.prototype.resize = function() {
     } else {
         document.getElementById(tab.contentid).style.height = height + "px";
     }
-}
+};
 
 Workspace.prototype.getdiff = function() {
-    var diffs = [];
+    var diffs = {};
     var d = new diff_match_patch();
     for (var fn in this.filemap) {
         var tab = this.filemap[fn];
-        if (tab.original !== undefined) {
+        if (tab.diff !== undefined) {
+            diffs[fn] = tab.diff;
+        } else if (tab.original !== undefined) {
             var diff = d.patch_make(tab.original, tab.getcontents());
-            diffs.push([fn, diff]);
+            if (!tab.session) {
+                // save diff for shelved file so we don't need to recompute
+                tab.diff = diff;
+            }
+            diffs[fn] = diff;
         }
     }
-    // TODO: keep track of base sha and maybe timestamp
-    return {"diffs": diffs};    
-}
+    return {"diffs": diffs, "base": this.base};  
+};
 
 Workspace.prototype.creatediff = function() {
     var diffs = this.getdiff();
@@ -359,7 +408,7 @@ Workspace.prototype.creatediff = function() {
         .appendChild(document.createElement('div'));
     div.appendChild(document.createTextNode(JSON.stringify(diffs)));
     this.selecttab(tab);
-}
+};
 
 // Call this method every time there's a mutation to the workspace (which
 // would trigger a save.
@@ -380,4 +429,4 @@ Workspace.prototype.dirty = function() {
         x.send(JSON.stringify(diffs));
         self.dirtytimeoutid = undefined;
     }, 2000);
-}
+};

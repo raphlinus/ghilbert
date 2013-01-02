@@ -93,13 +93,7 @@ class Handler(users.AuthenticatedHandler):
                     result.append(name)
         return result
 
-    def get_dir(self):
-        root = self.repo.getroot()
-        self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
-        o = self.response.out
-        o.write(json.encode(self.ls(root)))
-
-    def get_workspace_state(self):
+    def get_init_state(self):
         username = self.username
         if username is None:
             username = 'localuser'
@@ -107,18 +101,17 @@ class Handler(users.AuthenticatedHandler):
         if workspaceobj is None:
             wjson = {}
             wjson['base'] = self.repo.gethead()
-            wjson['diffs'] = []
-            workspace = json.encode(wjson)
+            wjson['diffs'] = {}
         else:
-            workspace = zlib.decompress(workspaceobj.workspace)
+            wjson = json.decode(zlib.decompress(workspaceobj.workspace))
+        root = self.repo.getroot(wjson.get('base'))
+        wjson['dir'] = self.ls(root)
         self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
-        self.response.out.write(workspace)
+        self.response.out.write(json.encode(wjson))
 
     def get(self, arg):
-        if arg == '/_dir':
-            return self.get_dir()
-        elif arg == '/_workspace':
-            return self.get_workspace_state()
+        if arg == '/_init':
+            return self.get_init_state()
         return self.get_workspace(arg)
 
     def post(self, arg):
