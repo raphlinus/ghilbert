@@ -14,12 +14,23 @@
 
 # The workspace and generic edit area
 
-import users
+import zlib
+
+from google.appengine.ext import db
+
+from webapp2_extras import json
+
+import common
 import gitcontent
+import users
 
 import babygit.babygit
 
-from webapp2_extras import json
+class Workspace(db.Model):
+    # key_name is userid
+
+    # zlib compressed json
+    workspace = db.BlobProperty()
 
 class Handler(users.AuthenticatedHandler):
     def __init__(self, request, response):
@@ -38,12 +49,13 @@ class Handler(users.AuthenticatedHandler):
         <ul>
             <li><a id="menu-newtab" href="#">New Tab</a></li>
             <li><a id="menu-dirtab" href="#">Directory</a></li>
-            <li><a id="menu-revert" href="#">Revert</a></li>
+            <li><a id="menu-creatediff" href="#">Create Diff</a></li>
             <li><a href="#">Save</a></li>
         </ul>
     </li>
     <li><a href="#">Edit</a>
         <ul>
+            <li><a id="menu-revert" href="#">Revert</a></li>
             <li><a href="#" onclick="return foo();">Autoindent</a></li>
             <li><a href="#">Inline</a></li>
         </ul>
@@ -61,6 +73,7 @@ class Handler(users.AuthenticatedHandler):
 
 <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/workspace.js" type="text/javascript"></script>
+<script src="/js/diff_match_patch.js" type="text/javascript"></script>
 <script type="text/javascript">
     var workspace = new Workspace();
 ''')
@@ -82,12 +95,39 @@ class Handler(users.AuthenticatedHandler):
 
     def get_dir(self):
         root = self.repo.getroot()
-        self.response.headers['Content-Type'] = 'text/plain; charset = UTF-8'
+        self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
         o = self.response.out
         o.write(json.encode(self.ls(root)))
+
+    def get_workspace_state(self):
+        username = self.username
+        if username is None:
+            username = 'localuser'
+        workspaceobj = Workspace.get_by_key_name(username)
+        if workspaceobj is None:
+            wjson = {}
+            wjson['base'] = self.repo.gethead()
+            wjson['diffs'] = []
+            workspace = json.encode(wjson)
+        else:
+            workspace = zlib.decompress(workspaceobj.workspace)
+        self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
+        self.response.out.write(workspace)
 
     def get(self, arg):
         if arg == '/_dir':
             return self.get_dir()
+        elif arg == '/_workspace':
+            return self.get_workspace_state()
         return self.get_workspace(arg)
 
+    def post(self, arg):
+        if not self.has_write_perm:
+            return common.error_403(self)
+        workspace_str = self.request.body
+        username = self.username
+        if username is None:
+            username = 'localuser'
+        workspace = Workspace(key_name = username)
+        workspace.workspace = zlib.compress(workspace_str)
+        workspace.put()

@@ -190,7 +190,7 @@ GH.save = function(content, url) {
         }
     };
     req.open('POST', '/save', true);
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
     req.send(text);
     var dots = 0;
     function spin() {

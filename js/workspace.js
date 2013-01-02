@@ -111,6 +111,11 @@ Workspace.prototype.initmenus = function() {
             self.revert();
             self.finishmenuselect(event);
         });
+    document.getElementById("menu-creatediff").addEventListener('click',
+        function (event) {
+            self.creatediff();
+            self.finishmenuselect(event);
+        });
 }
 
 Workspace.prototype.selecttab = function(tab) {
@@ -159,6 +164,7 @@ Workspace.prototype.newtab = function(tabname, tab) {
 }
 
 Workspace.prototype.neweditortab = function(tabname, tab) {
+    var self = this;
     var tab = this.newtab(tabname, tab);
     if (!tab.session) {
         if (this.editor) {
@@ -169,6 +175,9 @@ Workspace.prototype.neweditortab = function(tabname, tab) {
             this.editor = ace.edit("editor");
             tab.session = this.editor.getSession();
         }
+        tab.session.on('change', function(delta) {
+            self.dirty();
+        });
     }
     return tab;
 }
@@ -315,12 +324,11 @@ Workspace.prototype.closetab = function(event) {
     event.preventDefault();
 }
 
-// Ideally, this should be done with flexboxes, but I can't figure it out
+// Ideally, this should be done with flexboxes, but I can't figure it out.
 Workspace.prototype.resize = function() {
     var height = window.innerHeight;
     height -= document.getElementById("nav").offsetHeight;
     height -= document.getElementById("tabmenu").offsetHeight;
-    console.log("height = " + height);
     var tab = this.currenttab;
     if (tab.session) {
         document.getElementById("editor").style.height = height + "px";
@@ -328,4 +336,48 @@ Workspace.prototype.resize = function() {
     } else {
         document.getElementById(tab.contentid).style.height = height + "px";
     }
+}
+
+Workspace.prototype.getdiff = function() {
+    var diffs = [];
+    var d = new diff_match_patch();
+    for (var fn in this.filemap) {
+        var tab = this.filemap[fn];
+        if (tab.original !== undefined) {
+            var diff = d.patch_make(tab.original, tab.getcontents());
+            diffs.push([fn, diff]);
+        }
+    }
+    // TODO: keep track of base sha and maybe timestamp
+    return {"diffs": diffs};    
+}
+
+Workspace.prototype.creatediff = function() {
+    var diffs = this.getdiff();
+    var tab = this.newtab("diff");
+    var div = document.getElementById(tab.contentid)
+        .appendChild(document.createElement('div'));
+    div.appendChild(document.createTextNode(JSON.stringify(diffs)));
+    this.selecttab(tab);
+}
+
+// Call this method every time there's a mutation to the workspace (which
+// would trigger a save.
+Workspace.prototype.dirty = function() {
+    // TODO: more logic to defer dirty if XHR is in flight
+    var self = this;
+    if (this.dirtytimeoutid !== undefined) {
+        window.clearTimeout(this.dirtytimeoutid);
+    }
+    this.dirtytimeoutid = window.setTimeout(function() {
+        var diffs = self.getdiff();
+        var x = new XMLHttpRequest();
+        x.open('POST', '/workspace', true);
+        x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        x.onreadystatechange = function() {
+            // TODO; track in-flight status
+        };
+        x.send(JSON.stringify(diffs));
+        self.dirtytimeoutid = undefined;
+    }, 2000);
 }
