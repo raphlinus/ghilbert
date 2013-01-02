@@ -147,10 +147,11 @@ thm (a5i () (H (→ (∀ x φ) ψ)) (→ (∀ x φ) (∀ x ψ))
 
         applySyllogism
  )
-term (wff (∃ x φ))
-stmt (∃ () () (↔ (∃ x φ) (¬ (∀ x (¬ φ)))))
+defthm (ThereExists formula (∃ x φ) () () (↔ (∃ x φ) (¬ (∀ x (¬ φ))))
+        (¬ (∀ x (¬ φ))) BiconditionalReflexivity
+)
 thm (NotThereExists () () (↔ (¬ (∃ x φ)) (∀ x (¬ φ)))
-        (∃ x φ) BiconditionalReflexivity
+        x φ ThereExists
         addNegation
 
         (∀ x (¬ φ)) DoubleNegation swapBiconditional
@@ -161,6 +162,9 @@ thm (NotForAll () () (↔ (¬ (∀ x φ)) (∃ x (¬ φ)))
         φ DoubleNegation
         x buildForAll
         addNegation
+
+        x (¬ φ) ThereExists swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (addThereExists () (H (→ φ ψ)) (→ (∃ x φ) (∃ x ψ))
         H
