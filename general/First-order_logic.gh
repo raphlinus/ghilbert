@@ -167,17 +167,31 @@ thm (NotForAll () () (↔ (¬ (∀ x φ)) (∃ x (¬ φ)))
         applyBiconditionalTransitivity
  )
 thm (addThereExists () (H (→ φ ψ)) (→ (∃ x φ) (∃ x ψ))
+        x φ ThereExists
+        eliminateBiconditionalReverse
+
         H
         introduceTransposition
         x addForAll
         introduceTransposition
+        applySyllogism
+
+        x ψ ThereExists
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (buildThereExists () (H (↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ))
+        x φ ThereExists
+
         H
         addNegation
         x buildForAll
         addNegation
+        applyBiconditionalTransitivity
+
+        x ψ ThereExists swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (ThereExistsIntroduction () () (→ φ (∃ x φ))
         x (¬ φ) Specialization
