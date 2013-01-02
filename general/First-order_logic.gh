@@ -21,64 +21,28 @@ thm (buildForAll () (H (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ))
         H eliminateBiconditionalForward x addForAll
         introduceBiconditionalFromImplications
  )
-thm (VariableEqualityReflexivity-1 () ()
-  (→ (= x y) (= y y))
-        (= x y) ConjunctionIdempotence eliminateBiconditionalReverse
 
-        x y y EqualityAxiom
-        import
-
-        applySyllogism
- )
-
-thm (VariableEqualityReflexivity-2 () ()
-  (→ (∀ x (¬ (= y y))) (∀ x (¬ (= x y))))
-        x y VariableEqualityReflexivity-1
-        introduceTransposition
-        x generalize
-
-        x (¬ (= y y)) (¬ (= x y)) QuantifiedImplication
-        applyModusPonens
- )
-thm (VariableEqualityReflexivity ( (x y)) () (= y y)
-        x y Existence
-
-        (¬ (= y y)) x Generalization
-        x y VariableEqualityReflexivity-2
-        applySyllogism
-
-        applyModusTollens
-        eliminateDoubleNegation
- )
-thm (VariableEqualitySymmetryImplication () ()
-  (→ (= x y) (= y x))
-        x VariableEqualityReflexivity
-        x y x EqualityAxiom
-        detachImplicationImplication
- )
+thm (VariableEqualityReflexivity () () (= x x)
+        x EqualityReflexivity
+)
 
 thm (VariableEqualitySymmetry () ()
   (↔ (= x y) (= y x))
-        x y VariableEqualitySymmetryImplication
-        y x VariableEqualitySymmetryImplication
-        introduceBiconditionalFromImplications
- )
+        x y EqualitySymmetry
+)
 
 thm (swapVariableEquality () (H (= x y))
   (= y x)
         H
 
-        x y VariableEqualitySymmetry
+        x y EqualitySymmetry
         eliminateBiconditionalReverse
 
         applyModusPonens
  )
 thm (VariableEqualityTransitivity () ()
   (→ (∧ (= x y) (= y z)) (= x z))
-        x y VariableEqualitySymmetryImplication
-        y x z EqualityAxiom
-        applySyllogism
-        import
+        x y z EqualityTransitivity
  )
 
 thm (applyVariableEqualityTransitivity ()
@@ -90,8 +54,9 @@ thm (applyVariableEqualityTransitivity ()
         x y z VariableEqualityTransitivity
         applyModusPonens
  )
-term (wff (≠ s t))
-stmt (≠ () () (↔ (≠ s t) (¬ (= s t))))
+defthm (df-notequal formula (≠ s t) () () (↔ (≠ s t) (¬ (= s t)))
+        (¬ (= s t)) BiconditionalReflexivity
+)
 thm (Specialization-18 ((x y)) () 
   (→ (= y x) (→ (¬ φ) (∀ x (→ (= x y) (¬ φ)))))
         y x VariableEqualitySymmetry eliminateBiconditionalReverse

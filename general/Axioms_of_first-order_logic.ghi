@@ -50,9 +50,10 @@ stmt (generalize () (φ) (∀ x φ))
 term (formula (= s t))
 # 
 # === Building equalities ===
-# One of the equality axioms in most formulations of predicate logic with equality is some variation of <code>x = y → (x = z → y = z)</code>.<ref>[http://us.metamath.org/mpeuni/ax-8.html ax-8], metamath's set.mm, accessed April 16, 2012</ref> This can be thought of as a funny way to write transitivity, or as a slight variation of [[Interface:First-order logic with quantifiability#statEqualityBuilderRR|<code>EqualityBuilderRR</code>]].
-stmt (EqualityAxiom () ()
-  (→ (= x y) (→ (= x z) (= y z))))
+# We need some axioms defining equality. Because it seems like the path of least resistance, we adopt reflexivity, symmetry, and transitivity for terms. Other approaches would just assume these for variables, or a smaller set of axioms which imply these.<ref>[http://us.metamath.org/mpeuni/ax-8.html ax-8], metamath's set.mm, accessed April 16, 2012</ref>
+stmt (EqualityReflexivity () () (= s s))
+stmt (EqualitySymmetry () () (↔ (= s t) (= t s)))
+stmt (EqualityTransitivity () () (→ (∧ (= s t) (= t u)) (= s u)))
 # 
 # === Axioms combining equality and quantification ===
 # 
