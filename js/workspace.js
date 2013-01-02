@@ -110,6 +110,11 @@ Workspace.prototype.initmenus = function() {
             self.selecttab(self.newdirtab());
             self.finishmenuselect(event);
         });
+    document.getElementById("menu-save").addEventListener('click',
+        function (event) {
+            self.save();
+            self.finishmenuselect(event);
+        });
     document.getElementById("menu-revert").addEventListener('click',
         function (event) {
             self.revert();
@@ -181,7 +186,7 @@ Workspace.prototype.neweditortab = function(filename, tab) {
             tab.session = new EditSession('');
             tab.session.setUndoManager(new UndoManager());
         } else {
-            this.editor = ace.edit("editor");
+            this.initeditor();
             tab.session = this.editor.getSession();
         }
         tab.session.on('change', function(delta) {
@@ -189,6 +194,19 @@ Workspace.prototype.neweditortab = function(filename, tab) {
         });
     }
     return tab;
+};
+
+Workspace.prototype.initeditor = function() {
+    var self = this;
+    this.editor = ace.edit("editor");
+    this.editor.commands.addCommand({
+        name: 'save',
+        bindKey: {win: 'Ctrl-S', mac: 'Command-S'},
+        exec: function(editor) {
+            self.save();
+        },
+        readOnly: false
+    });
 };
 
 Workspace.prototype.loadfile = function(filename) {
@@ -204,15 +222,19 @@ Workspace.prototype.loadfile = function(filename) {
         return tab;
     }
     this.filemap[filename] = tab;
+    document.getElementById("status").innerHTML = "Loading...";
     var x = new XMLHttpRequest();
     var url = '/git/' + filename;
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
+            document.getElementById("status").innerHTML = "";
             var contents = x.responseText;
+            tab.original = contents;
             if (tab.diff) {
                 var d = new diff_match_patch();
                 contents = d.patch_apply(tab.diff, contents)[0];
                 // TODO: should probably check success
+                delete tab.diff;
             }
             tab.setcontents(contents);
         }
@@ -417,16 +439,24 @@ Workspace.prototype.dirty = function() {
     var self = this;
     if (this.dirtytimeoutid !== undefined) {
         window.clearTimeout(this.dirtytimeoutid);
+    } else {
+        document.getElementById("status").innerHTML = "●";
     }
     this.dirtytimeoutid = window.setTimeout(function() {
-        var diffs = self.getdiff();
-        var x = new XMLHttpRequest();
-        x.open('POST', '/workspace', true);
-        x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-        x.onreadystatechange = function() {
-            // TODO; track in-flight status
-        };
-        x.send(JSON.stringify(diffs));
-        self.dirtytimeoutid = undefined;
-    }, 2000);
+        self.save();
+    }, 10000);
+};
+
+Workspace.prototype.save = function() {
+    document.getElementById("status").innerHTML = "Saving...";
+    var diffs = this.getdiff();
+    var x = new XMLHttpRequest();
+    x.open('POST', '/workspace', true);
+    x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    x.onreadystatechange = function() {
+        document.getElementById("status").innerHTML = "";
+        // TODO; track in-flight status
+    };
+    x.send(JSON.stringify(diffs));
+    delete this.dirtytimeoutid;
 };

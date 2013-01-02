@@ -140,7 +140,7 @@ class EditHandler(users.AuthenticatedHandler):
 <br/>
 """ % thmname)
         if useAce: o.write("""<div id="canvas"></div>
-<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
   var editor = ace.edit("canvas");
   </script>
