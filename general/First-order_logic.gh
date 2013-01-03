@@ -483,6 +483,20 @@ thm (negateNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (¬ φ))
 
         applyModusPonens
  )
+
+thm (buildNotFree () (H (↔ φ ψ)) (↔ (is-not-free-in x φ) (is-not-free-in x ψ))
+        x φ df-is-not-free-in
+
+        H
+        H x buildForAll
+        buildImplication
+        applyBiconditionalTransitivity
+
+        x ψ df-is-not-free-in
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
 thm (BoundThereExistsNotFree () () (is-not-free-in x (∃ x φ))
         x (¬ φ) BoundForAllNotFree
         negateNotFree
@@ -493,11 +507,6 @@ thm (addThereExistsNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (∃ y
         negateNotFree
         y addForAllNotFree
         negateNotFree
- )
-thm (buildNotFree () (H (↔ φ ψ)) (↔ (is-not-free-in x φ) (is-not-free-in x ψ))
-        H
-        H x buildForAll
-        buildImplication
  )
 thm (addForAllToConsequentNotFree () (HFREE (is-not-free-in x φ) HIMP (→ φ ψ)) (→ φ (∀ x ψ))
         HFREE
