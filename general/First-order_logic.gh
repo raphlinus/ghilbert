@@ -332,11 +332,13 @@ thm (ForAllBiconditional () () (→ (∀ x (↔ φ ψ)) (↔ (∀ x φ) (∀ x �
         applySyllogism
  )
 thm (ThereExistsImplication () () (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) (∃ x ψ)))
+        x (→ φ ψ) ThereExists
+
         φ ψ ImplicationDisjunction
         addNegation
         φ ψ DeMorganNDP
         applyBiconditionalTransitivity
-# So far, we have transformed <code>¬ (φ → ψ)</code> into <code>φ ∧ (¬ ψ)</code> which is now ripe for applying <code>ForAllConjunction</code> 
+# So far, we have transformed <code>¬ (φ → ψ)</code> into <code>φ ∧ (¬ ψ)</code> which is now ripe for applying <code>ForAllConjunction</code>
         x buildForAll
 
         x φ (¬ ψ) ForAllConjunction
@@ -349,7 +351,15 @@ thm (ThereExistsImplication () () (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) (∃ 
 
         (∀ x φ) (¬ (∀ x (¬ ψ))) ImplicationDisjunction swapBiconditional
         applyBiconditionalTransitivity
- )
+# Applying ThereExists we are done.
+        applyBiconditionalTransitivity
+
+        x ψ ThereExists
+        (∀ x φ) buildImplicationAntecedent
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
 thm (ThereExistsConjunctionCombining () () (→ (∧ (∀ x φ) (∃ x ψ)) (∃ x (∧ φ ψ)))
         x φ (¬ ψ) ForAllImplication
 # That gives us <code>∀ x (φ → ¬ ψ) → (∀ x φ → ∀ x ¬ ψ)</code>. We first transform <code>∀ x ¬ ψ</code> into <code>¬ ∃ x ψ</code>.
