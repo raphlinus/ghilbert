@@ -552,16 +552,24 @@ thm (implicationNotFree ()
 # The first part of the proof is to derive <code>¬ φ → ∀ x (φ → ψ)</code>:
         HPHI
         negateNotFree
+
         φ ψ principia*2.21
+
         addForAllToConsequentNotFree
 # The second part of the proof is to derive <code>ψ → ∀ x (φ → ψ)</code>:
         HPSI
+
         ψ φ AntecedentIntroduction
         addForAllToConsequentNotFree
 # Now we combine the two parts:
         composeDisjunction
         applySyllogism
- )
+
+        x (→ φ ψ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 thm (disjunctionNotFree () 
   (HPHI (is-not-free-in x φ) HPSI (is-not-free-in x ψ))
   (is-not-free-in x (∨ φ ψ))
