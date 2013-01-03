@@ -438,10 +438,18 @@ thm (BoundForAllNotFree () () (is-not-free-in x (∀ x φ))
  )
 thm (addForAllNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (∀ y φ))
         H
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
         y addForAll
 
         y x φ ForAllCommutation eliminateBiconditionalReverse
         applySyllogism
+
+        x (∀ y φ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
  )
 thm (NegationNotFree () () (→ (∀ x (is-not-free-in x φ)) (is-not-free-in x (¬ φ)))
         φ (∀ x φ) Transposition eliminateBiconditionalReverse
