@@ -283,20 +283,30 @@ thm (ForAllConjunction () () (↔ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)
         introduceBiconditionalFromImplications
  )
 thm (ThereExistsDisjunction () () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) (∃ x ψ)))
+        x (∨ φ ψ) ThereExists
+
         φ ψ DeMorganPDP
         x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
 
         x (¬ φ) (¬ ψ) ForAllConjunction
+        addNegation
         applyBiconditionalTransitivity
 
         (∀ x (¬ φ)) (∀ x (¬ ψ)) DeMorganNDN swapBiconditional
-        applyBiconditionalTransitivity
-
         addNegation
-
-        (∨ (∃ x φ) (∃ x ψ)) DoubleNegation swapBiconditional
         applyBiconditionalTransitivity
- )
+
+        (∨ (¬ (∀ x (¬ φ))) (¬ (∀ x (¬ ψ)))) DoubleNegation swapBiconditional
+        applyBiconditionalTransitivity
+
+        x φ ThereExists swapBiconditional
+        x ψ ThereExists swapBiconditional
+        buildDisjunction
+        applyBiconditionalTransitivity
+)
+
 thm (ThereExistsConjunction () () (→ (∃ x (∧ φ ψ)) (∧ (∃ x φ) (∃ x ψ)))
         φ ψ ConjunctionRightElimination
         x addThereExists
