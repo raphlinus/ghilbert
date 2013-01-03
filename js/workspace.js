@@ -154,7 +154,7 @@ Workspace.prototype.newtab = function(tabname, tab) {
     a.addEventListener('click', function(event) {
         self.clicktab(event);
     });
-    a2 = li.appendChild(document.createElement("a"));
+    a2 = a.appendChild(document.createElement("a"));
     a2.href="#";
     a2.className = "close";
     a2.appendChild(document.createTextNode("×"));
@@ -170,7 +170,7 @@ Workspace.prototype.newtab = function(tabname, tab) {
     if (tab === undefined) {
         tab = new Tab(this);
     }
-    tab.attachui(li, contentid);
+    tab.attachui(a, contentid);
     this.tabs.push(tab);
     return tab;
 };
@@ -274,7 +274,7 @@ Workspace.prototype.deletetab = function(tab) {
         }
         this.tabs.splice(ix, 1);
     }
-    document.getElementById("tabmenu").removeChild(tab.tabmenuelement);
+    document.getElementById("tabmenu").removeChild(tab.tabmenuelement.parentNode);
     document.getElementById("content").removeChild(
         document.getElementById(tab.contentid));
     tab.shelve();
@@ -378,7 +378,7 @@ Workspace.prototype.findtab = function(element) {
 };
 
 Workspace.prototype.clicktab = function(event) {
-    var tab = this.findtab(event.target.parentNode);
+    var tab = this.findtab(event.target);
     if (tab) {
         this.selecttab(tab);
     }
