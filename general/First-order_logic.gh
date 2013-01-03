@@ -452,8 +452,13 @@ thm (addForAllNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (∀ y φ))
         applyModusPonens
  )
 thm (NegationNotFree () () (→ (∀ x (is-not-free-in x φ)) (is-not-free-in x (¬ φ)))
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        x addForAll
+
         φ (∀ x φ) Transposition eliminateBiconditionalReverse
         x addForAll
+        applySyllogism
 
         x (¬ (∀ x φ)) (¬ φ) ForAllImplication
         applySyllogism
@@ -464,6 +469,10 @@ thm (NegationNotFree () () (→ (∀ x (is-not-free-in x φ)) (is-not-free-in x 
 
         (∀ x (¬ φ)) addCommonConsequent
 
+        applySyllogism
+
+        x (¬ φ) df-is-not-free-in
+        eliminateBiconditionalForward
         applySyllogism
  )
 thm (negateNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (¬ φ))
