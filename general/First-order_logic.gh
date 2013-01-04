@@ -919,11 +919,15 @@ thm (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ
 
         applySyllogism
  )
-thm (ax9o () () (→ (∀ x (→ (= x y) (∀ x φ))) φ)
+thm (ExistenceThereExists () () (∃ x (= x y))
         x y Existence
         x (= x y) ThereExists
         eliminateBiconditionalForward
         applyModusPonens
+)
+
+thm (ax9o () () (→ (∀ x (→ (= x y) (∀ x φ))) φ)
+        x y ExistenceThereExists
 
         x (= x y) (∀ x φ) ForAllImplicationThereExists
 # This gives us <code>∀ x (x = y → ∀ x φ) → (∃ x x = y → ∃ x ∀ x φ)</code>, which can be simplified to our desired result.  The first step is to note that <code>∃ x x = y</code> is just the <code>Existence</code> axiom, and can therefore be removed:
@@ -953,7 +957,7 @@ thm (equs3 () ()
         transposeBiconditionalWithNegatedRight
  )
 thm (ChangeVariableThereExistsReverseNotFree
-  ((x y))
+  ()
   (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
   (→ (∃ y φy) (∃ x φx))
         HFREEX
@@ -964,7 +968,7 @@ thm (ChangeVariableThereExistsReverseNotFree
 # That gives us <code>φy → (x = y → φx)</code>. Adding ∀ to the consequent gives <code>φy → ∀ x (x = y → φx)</code>.
         addForAllToConsequentNotFree
 # The next part of the proof derives <code>∀ x (x = y → φx) → ∃ x φx</code>. The first step is to go from <code>∃ x x = y</code> (by the <code>Existence</code> axiom) to <code>∃ x ((x = y → φx) → φx)</code>.
-        x y Existence
+        x y ExistenceThereExists
 
         (= x y) φx ModusPonens
         export
