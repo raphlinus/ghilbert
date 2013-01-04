@@ -1,0 +1,283 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = First-order logic
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = This interface collects important theorems from first-order logic, which builds on [[Interface:Classical propositional calculus|propositional logic]] by adding quantifiers ("for all" and "there exists") and equality. It is meant as a user-friendly reservoir for those interfaces and proof modules which merely use first-order logic, without proving anything new within it. It does not include results which rely on the [[Interface:Axiom of quantifiability]]; many modules may wish to import [[Interface:First-order logic with quantifiability]] instead of this interface.
+# 
+# Statements can be added if necessary, but then the exporting modules have to be updated accordingly.
+# }}
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus]]
+# | importedby = [[First-order logic with quantifiability]]
+# | exportedby = [[First-order logic]]
+# }}
+# == Formulas, objects, and quantification ==
+# We build on [[Interface:Classical propositional calculus]]:
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+# 
+# By convention we use φ, ψ, χ, and θ to represent formulas:
+tvar (formula φ ψ χ θ)
+# 
+# We also define some variables which suggest which variables are likely to occur in a formula. For example, <code>φx</code> is likely to include the variable <code>x</code> (of course, it is the distinct variable constraints which really specify what variables are allowed). This is similar in intent to the notation <code>φ(x)</code> which is sometimes used in treatments of predicate logic.
+tvar (formula φx φy ψy)
+# 
+# We use the term ''object'' to refer to something which is subject to quantification or equality. From an axiomatic point of view, what is a valid object is defined implicitly, by axioms such as those of [[w:Zermelo–Fraenkel set theory|ZFC set theory]] or [[w:Peano axioms|Peano arithmetic]].
+# 
+kind (object)
+tvar (object s t u s0 s1 t0 t1)
+# 
+# A ''variable'' is something we can quantify over.
+# 
+ 
+var (object x y z x0 x1 y0 y1)
+# 
+# A variable can be used where an object is expected, although it needs to be converted via the following explicit conversion.  When we are writing informally (rather than in JHilbert proofs themselves), we may omit the conversion (it should be understood whereever we use a variable in a context where an object is expected).
+term (object x)
+# 
+# The reverse is not possible.  Examples of objects which are not variables might be <code>s + t</code> for Peano arithmetic, or <code>s ∪ t</code> for set theory.
+# 
+# We extend the available formulas with [[w:Universal quantification|universal quantification]] and [[w:Existential quantification|existential quantification]]:
+term (formula (∀ x φ))
+term (formula (∃ x φ))
+# 
+# === Order of operations ===
+# In informal discussion, we omit some parentheses, building on the [[w:Order of operations|precedence]] from [[Interface:Classical propositional calculus]]. The precedence, from tightest to loosest, is:
+# 
+# * =
+# * ∀, ∃, is-not-free-in
+# * ¬
+# * ∧
+# * ∨
+# * →, ↔
+# 
+# For example, <code>∀ z x = y ∨ ¬ x = y</code> means <code>(∀ z (x = y)) ∨ (¬ (x = y))</code>. We do not supply a precedence for <code>value</code> because we simply omit it in informal discussion.
+# 
+# == Relationship between universal and existential quantification ==
+# 
+stmt (NotForAll () () (↔ (¬ (∀ x φ)) (∃ x (¬ φ))))
+stmt (NotThereExists () () (↔ (¬ (∃ x φ)) (∀ x (¬ φ))))
+# 
+# == Builders for quantifiers ==
+# As with propositional calculus, we need to build up formulas explicitly, and these rules let us do it.  We provide them for both quantifiers, for implication and the biconditional.
+stmt (addForAll () ((→ φ ψ)) (→ (∀ x φ) (∀ x ψ)))
+stmt (addThereExists () ((→ φ ψ)) (→ (∃ x φ) (∃ x ψ)))
+
+stmt (buildForAll () ((↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ)))
+stmt (buildThereExists () ((↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ)))
+# 
+# === Additional builders ===
+# Some of these builders rely on theorems we haven't presented yet, but they are similar to the simple ones above in terms of general intent.
+stmt (buildThereExistsInConsequent ((x φ)) 
+  ((→ φ (↔ ψ χ)))
+  (→ φ (↔ (∃ x ψ) (∃ x χ))))
+stmt (buildForAllInConsequent ((x φ))
+  ((→ φ (↔ ψ χ)))
+  (→ φ (↔ (∀ x ψ) (∀ x χ))))
+# 
+# == Order ==
+# The order of adjacent quantifiers of the same type can be exchanged:
+stmt (ForAllCommutation () () (↔ (∀ x (∀ y φ)) (∀ y (∀ x φ))))
+stmt (ThereExistsCommutation () () (↔ (∃ x (∃ y φ)) (∃ y (∃ x φ))))
+# 
+# ∃ followed by ∀ can be switched,
+stmt (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ))))
+# 
+# but the converse does not in general hold.
+# 
+# == Combining quantified statements ==
+# Quantifiers of the same variable can sometimes be combined or split:
+stmt (ForAllConjunction () () (↔ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ))))
+stmt (ThereExistsDisjunction () () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) (∃ x ψ))))
+stmt (ThereExistsImplication () () (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) (∃ x ψ))))
+stmt (ForAllImplication () () (→ (∀ x (→ φ ψ)) (→ (∀ x φ) (∀ x ψ))))
+stmt (ThereExistsConjunction () () (→ (∃ x (∧ φ ψ)) (∧ (∃ x φ) (∃ x ψ))))
+# 
+# === Biconditional ===
+stmt (ForAllBiconditional () () (→ (∀ x (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ))))
+# 
+# === Other kinds of splits and combinations ===
+stmt (ForAllImplicationThereExists () () (→ (∀ x (→ φ ψ)) (→ (∃ x φ) (∃ x ψ))))
+stmt (ForAllBiconditionalThereExists () () (→ (∀ x (↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ))))
+
+stmt (ThereExistsConjunctionCombining () ()
+  (→ (∧ (∀ x φ) (∃ x ψ)) (∃ x (∧ φ ψ))))
+stmt (ThereExistsConjunctionRightCombining () ()
+  (→ (∧ (∃ x φ) (∀ x ψ)) (∃ x (∧ φ ψ))))
+
+stmt (combineThereExistsForAll () ((∃ x φ) (∀ x ψ)) (∃ x (∧ φ ψ)))
+# 
+# == Generalization and specialization ==
+# We can remove a universal quantifier:
+stmt (Specialization () () (→ (∀ x φ) φ))
+stmt (specialize () ((∀ x φ)) φ)
+# 
+# The converse is sometimes possible, but only with some restrictions. Either the variable does not occur in the formula, or the formula is unconditionally true:
+stmt (Generalization ((x φ)) () (→ φ (∀ x φ)))
+stmt (generalize () (φ) (∀ x φ))
+# 
+# An existential quantifier can be added unconditionally,
+stmt (ThereExistsIntroduction () () (→ φ (∃ x φ)))
+# 
+# and can be removed if the variable does not occur in the formula.
+stmt (NullThereExists ((x φ)) () (↔ (∃ x φ) φ))
+stmt (removeThereExists ((x φ)) ((∃ x φ)) φ)
+tvar (formula antecedent)
+stmt (removeThereExistsInConsequent ((x φ)) ((→ antecedent (∃ x φ))) (→ antecedent φ))
+# 
+# == Equality ==
+# Here we are concerned with equality between variables. Equality between terms is treated in [[Interface:First-order logic with quantifiability]].
+# 
+# Equality is reflexive, symmetry, and transitive.
+term (formula (= s t))
+stmt (VariableEqualityReflexivity () () (= x x))
+
+stmt (VariableEqualitySymmetry () () (↔ (= x y) (= y x)))
+stmt (swapVariableEquality () ((= x y)) (= y x))
+
+stmt (VariableEqualityTransitivity () ()
+  (→ (∧ (= x y) (= y z)) (= x z)))
+stmt (applyVariableEqualityTransitivity ()
+  ((= x y) (= y z)) (= x z))
+# 
+# We also define <code>≠</code>, which is just an abbreviation for negation and equality.
+# 
+term (wff (≠ s t))
+stmt (≠ () () (↔ (≠ s t) (¬ (= s t))))
+# 
+# == Free variables ==
+# We provide a variety of ways to prove that a variable is not [[w:free variable|free]] in a formula, and a variety of conclusions that follow from this. These theorems do not depend on the details of how <code>is-not-free-in</code> is defined, and there is no theorem that implies the negation of <code>is-not-free-in</code> for cases not covered here. In other words, <code>is-not-free-in</code> need not correspond exactly to the conventional definition of freeness, as long as it corresponds for the cases we need.
+# 
+term (formula (is-not-free-in x φ))
+# 
+# === Showing a variable is free ===
+# A variable is not free in a formula if it does not occur in the formula:
+stmt (DistinctNotFree ((x φ)) () (is-not-free-in x φ))
+# 
+# A variable is not free in a formula if it is bound by a quantifier:
+stmt (BoundForAllNotFree () () (is-not-free-in x (∀ x φ)))
+stmt (BoundThereExistsNotFree () () (is-not-free-in x (∃ x φ)))
+# 
+# If a variable is not free in a formula it is not free in a formula which adds another quantifier (possibly to a different variable) at the start:
+stmt (addForAllNotFree () ((is-not-free-in x φ)) (is-not-free-in x (∀ y φ)))
+stmt (addThereExistsNotFree () ((is-not-free-in x φ)) (is-not-free-in x (∃ y φ)))
+# 
+# If a variable is not free in any of the parts of a formula it is not free in the formula which joins them with connectives:
+# 
+stmt (negateNotFree () ((is-not-free-in x φ)) (is-not-free-in x (¬ φ)))
+
+stmt (implicationNotFree () 
+  ((is-not-free-in x φ) (is-not-free-in x ψ))
+  (is-not-free-in x (→ φ ψ))
+)
+
+stmt (disjunctionNotFree () 
+  ((is-not-free-in x φ) (is-not-free-in x ψ))
+  (is-not-free-in x (∨ φ ψ)))
+
+stmt (conjunctionNotFree ()
+  ((is-not-free-in x φ) (is-not-free-in x ψ))
+  (is-not-free-in x (∧ φ ψ)))
+
+stmt (biconditionalNotFree ()
+  ((is-not-free-in x φ) (is-not-free-in x ψ))
+  (is-not-free-in x (↔ φ ψ)))
+# 
+# And we supply a builder for <code>is-not-free-in</code>:
+# 
+stmt (buildNotFree () ((↔ φ ψ)) (↔ (is-not-free-in x φ) (is-not-free-in x ψ)))
+# 
+# === Adding or removing quantifiers ===
+# If a variable is not free in a formula, it is legitimate to add or remove quantifiers from that formula:
+stmt (ForAllAddRemoveNotFree () ((is-not-free-in x φ)) (↔ (∀ x φ) φ))
+stmt (ThereExistsAddRemoveNotFree () ((is-not-free-in x φ)) (↔ (∃ x φ) φ))
+# 
+# === Moving formulas in and out of quantification ===
+# The results in this section all have to do with being able to move around formulas relative to quantifiers, given that the quantified variable is not free in the formula being moved.
+# 
+# ==== Implication ====
+stmt (ForAllImplicationAntecedentMovement () ((is-not-free-in x φ)) (↔ (∀ x (→ φ ψ)) (→ φ (∀ x ψ))))
+stmt (moveAntecedentOutOfForAll () ((∀ x (→ φ ψ)) (is-not-free-in x φ)) (→ φ (∀ x ψ)))
+stmt (moveAntecedentIntoForAll () 
+  ((→ φ (∀ x ψ)) (is-not-free-in x φ)) 
+  (∀ x (→ φ ψ)))
+
+stmt (ThereExistsAntecedentMovementNotFree () ((is-not-free-in x φ)) (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ))))
+stmt (ForAllImplicationConsequentMovement () ((is-not-free-in x ψ)) (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ)))
+stmt (ThereExistsImplicationConsequentMovement () ((is-not-free-in x ψ)) (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) ψ)))
+
+stmt (ThereExistsConjunctionMovementNotFree () ((is-not-free-in x φ)) (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
+# 
+# ==== Versions with distinct variables ====
+stmt (ThereExistsConjunctionMovement ((x φ)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
+stmt (ThereExistsConjunctionRightMovement ((x ψ)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ)))
+
+stmt (ThereExistsDisjunctionMovement ((x φ)) () (↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ))))
+stmt (ThereExistsDisjunctionRightMovement ((x ψ)) () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) ψ)) )
+
+stmt (ThereExistsAntecedentMovement ((x φ)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ))))
+# 
+# Here are a few rules based on these:
+stmt (moveLeftConjunctIntoThereExistsInConsequent ((x φ))
+  ((→ antecedent (∧ φ (∃ x ψ))))
+  (→ antecedent (∃ x (∧ φ ψ))))
+stmt (moveRightConjunctIntoThereExistsInConsequent ((x ψ))
+  ((→ antecedent (∧ (∃ x φ) ψ)))
+  (→ antecedent (∃ x (∧ φ ψ))))
+stmt (repeatAntecedentThereExists ((x antecedent))
+  ((→ antecedent (∃ x ψ)))
+  (→ antecedent (∃ x (∧ antecedent ψ))))
+# 
+# ==== Scattering and gathering ====
+# If we have two formulas joined by a conjunction, one quantified over one variable and the other quantified over another, we can express the quantifiers either at the beginning or with the formulas they apply to.<ref>[http://us.metamath.org/mpeuni/eeanv.html eeanv], metamath's set.mm, accessed August 8, 2010</ref> We refer to this process as gathering (that is, gathering the quantifiers together at the start of the formula) or scattering (the opposite).
+stmt (ThereExistsScattering ((φx y) (ψy x)) ()
+  (↔ (∃ x (∃ y (∧ φx ψy))) (∧ (∃ x φx) (∃ y ψy))))
+stmt (gatherThereExistsInConsequent ((φx y) (ψy x)) ((→ antecedent (∧ (∃ x φx) (∃ y ψy))))
+  (→ antecedent (∃ x (∃ y (∧ φx ψy)))))
+# 
+# ==== Adding quantifiers to theorems which are implications ====
+# 
+# These variants on moving formulas turn out to be used particularly often:
+stmt (addThereExistsToAntecedent ((x ψ))
+  ((→ φ ψ))
+  (→ (∃ x φ) ψ))
+stmt (addForAllToConsequent ((x φ))
+  ((→ φ ψ))
+  (→ φ (∀ x ψ)))
+
+stmt (addForAllToConsequentNotFree () ((is-not-free-in x φ) (→ φ ψ)) (→ φ (∀ x ψ)))
+# 
+# === Changing the quantified variable ===
+# We can transform a quantified formula by substituting each of the occurences of the variable we are quantifying over to another variable, and changing the variable in the quantifier accordingly. Here is a version with implicit substitution.
+stmt (ChangeVariableThereExistsNotFree
+  ((x y))
+  ((is-not-free-in x φy)
+   (is-not-free-in y φx)
+   (→ (= x y) (↔ φx φy)))
+  (↔ (∃ x φx) (∃ y φy)))
+stmt (ChangeVariableForAllNotFree ((x y))
+  ((is-not-free-in x φy)
+   (is-not-free-in y φx)
+   (→ (= x y) (↔ φx φy)))
+  (↔ (∀ x φx) (∀ y φy)))
+
+stmt (ChangeVariableThereExists
+  ((y φx) (x φy) (x y))
+  ((→ (= x y) (↔ φx φy)))
+  (↔ (∃ x φx) (∃ y φy)))
+stmt (ChangeVariableForAll ((y φx) (x φy) (x y))
+  ((→ (= x y) (↔ φx φy)))
+  (↔ (∀ x φx) (∀ y φy)))
+# 
+# === Other theorems related to substitution ===
+stmt (equs3 () () 
+  (↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ))))))
+stmt (VariableSubstitution ((x y)) () 
+  (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
+# 
+# == References ==
+# <references/>
+# 
+# [[Category:Classical first-order logic|{{PAGENAME}}]]
