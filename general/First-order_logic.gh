@@ -614,12 +614,25 @@ thm (biconditionalNotFree ()
         applyModusPonens
  )
 thm (ThereExistsAddRemoveNotFree () (H (is-not-free-in x φ)) (↔ (∃ x φ) φ)
+# Forward direction
+        x φ ThereExists
+        eliminateBiconditionalReverse
+
         H
         negateNotFree
+
+        x (¬ φ) df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
         transposeWithNegatedAntecedent
 
+        applySyllogism
+
+# Reverse direction
         φ x ThereExistsIntroduction
 
+# Combine them.
         introduceBiconditionalFromImplications
  )
 
