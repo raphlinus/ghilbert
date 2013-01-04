@@ -908,7 +908,11 @@ thm (gatherThereExistsInConsequent ((φx y) (ψy x)) (H (→ antecedent (∧ (�
 thm (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ)))
         y φ BoundForAllNotFree
         x addThereExistsNotFree
-# At this point we have (expanding the definition of <code>is-not-free-in</code>) <code>∃ x ∀ y φ → ∀ y ∃ x ∀ y φ</code>.  We just need to get rid of the inner ∀ on the right hand side:
+
+        y (∃ x (∀ y φ)) df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+# At this point we have <code>∃ x ∀ y φ → ∀ y ∃ x ∀ y φ</code>.  We just need to get rid of the inner ∀ on the right hand side:
         y φ Specialization
         x addThereExists
         y addForAll
