@@ -921,13 +921,22 @@ thm (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ
  )
 thm (ax9o () () (→ (∀ x (→ (= x y) (∀ x φ))) φ)
         x y Existence
+        x (= x y) ThereExists
+        eliminateBiconditionalForward
+        applyModusPonens
+
         x (= x y) (∀ x φ) ForAllImplicationThereExists
 # This gives us <code>∀ x (x = y → ∀ x φ) → (∃ x x = y → ∃ x ∀ x φ)</code>, which can be simplified to our desired result.  The first step is to note that <code>∃ x x = y</code> is just the <code>Existence</code> axiom, and can therefore be removed:
         detachImplicationImplication
 # Now we need to reduce <code>∃ x ∀ x φ</code> to <code>φ</code>:
+        x (∀ x φ) ThereExists
+        eliminateBiconditionalReverse
+        applySyllogism
+
         x φ ax6o
         applySyllogism
- )
+)
+
 thm (alinexa () () (↔ (∀ x (→ φ (¬ ψ))) (¬ (∃ x (∧ φ ψ))))
         φ (¬ ψ) ImplicationDisjunction
         φ ψ DeMorganPCP swapBiconditional
