@@ -817,12 +817,12 @@ thm (ThereExistsConjunctionMovementNotFree () (H (is-not-free-in x φ)) (↔ (�
         φ (∃ x ψ) DeMorganNDN
         applyBiconditionalTransitivity
  )
-thm (ThereExistsConjunctionMovement ((x φ)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))
+thm (ThereExistsConjunctionMovement ((φ x)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))
         x φ DistinctNotFree
         ψ ThereExistsConjunctionMovementNotFree
  )
 
-thm (ThereExistsConjunctionRightMovement ((x ψ)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ))
+thm (ThereExistsConjunctionRightMovement ((ψ x)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ))
         φ ψ ConjunctionCommutativity
         x buildThereExists
 
@@ -833,11 +833,11 @@ thm (ThereExistsConjunctionRightMovement ((x ψ)) () (↔ (∃ x (∧ φ ψ)) (�
         applyBiconditionalTransitivity
  )
 
-thm (ThereExistsAntecedentMovement ((x φ)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))
+thm (ThereExistsAntecedentMovement ((φ x)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))
         x φ DistinctNotFree
         ψ ThereExistsAntecedentMovementNotFree
  )
-thm (moveLeftConjunctIntoThereExistsInConsequent ((x φ))
+thm (moveLeftConjunctIntoThereExistsInConsequent ((φ x))
   (H (→ antecedent (∧ φ (∃ x ψ))))
   (→ antecedent (∃ x (∧ φ ψ)))
         H
@@ -847,7 +847,7 @@ thm (moveLeftConjunctIntoThereExistsInConsequent ((x φ))
         applySyllogism
  )
 
-thm (moveRightConjunctIntoThereExistsInConsequent ((x ψ))
+thm (moveRightConjunctIntoThereExistsInConsequent ((ψ x))
   (H (→ antecedent (∧ (∃ x φ) ψ)))
   (→ antecedent (∃ x (∧ φ ψ)))
         H
@@ -857,7 +857,7 @@ thm (moveRightConjunctIntoThereExistsInConsequent ((x ψ))
         applySyllogism
  )
 
-thm (repeatAntecedentThereExists ((x antecedent))
+thm (repeatAntecedentThereExists ((antecedent x))
   (H (→ antecedent (∃ x ψ)))
   (→ antecedent (∃ x (∧ antecedent ψ)))
         antecedent ImplicationReflexivity
@@ -865,7 +865,7 @@ thm (repeatAntecedentThereExists ((x antecedent))
         composeConjunction
         moveLeftConjunctIntoThereExistsInConsequent
  )
-thm (addThereExistsToAntecedent ((x ψ))
+thm (addThereExistsToAntecedent ((ψ x))
   (H (→ φ ψ))
   (→ (∃ x φ) ψ)
         H x generalize
