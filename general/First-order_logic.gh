@@ -794,11 +794,15 @@ thm (ForAllConjunctionMovement () (H (is-not-free-in x φ)) (↔ (∀ x (∧ φ 
 
         applyBiconditionalTransitivity
  )
+
 thm (ThereExistsConjunctionMovementNotFree () (H (is-not-free-in x φ)) (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))
 # We first note that the definition of ∃ makes <code>∃ x (φ ∧ ψ)</code> equivalent to <code>¬ ∀ x ¬ (φ ∧ ψ)</code> and apply DeMorgan's law to make it <code>¬ ∀ x (¬ φ ∨ ¬ ψ)</code>
+        x (∧ φ ψ) ThereExists
+
         φ ψ DeMorganPCP
         x buildForAll
         addNegation
+        applyBiconditionalTransitivity
 # Now we can move <code>¬ φ</code> out of the scope of the quantifier, to get <code>¬ (¬ φ ∨ ∀ x ¬ ψ)</code>:
         H negateNotFree
         (¬ ψ) ForAllDisjunctionMovement
