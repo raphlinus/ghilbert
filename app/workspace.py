@@ -107,7 +107,7 @@ class Handler(users.AuthenticatedHandler):
             wjson = json.decode(zlib.decompress(workspaceobj.workspace))
         root = self.repo.getroot(wjson.get('base'))
         wjson['dir'] = self.ls(root)
-        self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
+        self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
         self.response.out.write(json.encode(wjson))
 
     def get(self, arg):

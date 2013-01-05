@@ -324,6 +324,7 @@ Workspace.prototype.populatedir = function(id, dir) {
             if (typeof dir[i] == 'string') {
                 var div = container.appendChild(document.createElement('div'));
                 var a = div.appendChild(document.createElement('a'));
+                a.className = 'dirlink';
                 a.href = '#';
                 var fn = prefix + dir[i];
                 fileset[fn] = 1;
