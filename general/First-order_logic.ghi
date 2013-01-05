@@ -65,10 +65,10 @@ stmt (buildThereExists () ((↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ)))
 # 
 # === Additional builders ===
 # Some of these builders rely on theorems we haven't presented yet, but they are similar to the simple ones above in terms of general intent.
-stmt (buildThereExistsInConsequent ((x φ)) 
+stmt (buildThereExistsInConsequent ((φ x)) 
   ((→ φ (↔ ψ χ)))
   (→ φ (↔ (∃ x ψ) (∃ x χ))))
-stmt (buildForAllInConsequent ((x φ))
+stmt (buildForAllInConsequent ((φ x))
   ((→ φ (↔ ψ χ)))
   (→ φ (↔ (∀ x ψ) (∀ x χ))))
 # 
@@ -110,17 +110,17 @@ stmt (Specialization () () (→ (∀ x φ) φ))
 stmt (specialize () ((∀ x φ)) φ)
 # 
 # The converse is sometimes possible, but only with some restrictions. Either the variable does not occur in the formula, or the formula is unconditionally true:
-stmt (Generalization ((x φ)) () (→ φ (∀ x φ)))
+stmt (Generalization ((φ x)) () (→ φ (∀ x φ)))
 stmt (generalize () (φ) (∀ x φ))
 # 
 # An existential quantifier can be added unconditionally,
 stmt (ThereExistsIntroduction () () (→ φ (∃ x φ)))
 # 
 # and can be removed if the variable does not occur in the formula.
-stmt (NullThereExists ((x φ)) () (↔ (∃ x φ) φ))
-stmt (removeThereExists ((x φ)) ((∃ x φ)) φ)
+stmt (NullThereExists ((φ x)) () (↔ (∃ x φ) φ))
+stmt (removeThereExists ((φ x)) ((∃ x φ)) φ)
 tvar (formula antecedent)
-stmt (removeThereExistsInConsequent ((x φ)) ((→ antecedent (∃ x φ))) (→ antecedent φ))
+stmt (removeThereExistsInConsequent ((φ x)) ((→ antecedent (∃ x φ))) (→ antecedent φ))
 # 
 # == Equality ==
 # Here we are concerned with equality between variables. Equality between terms is treated in [[Interface:First-order logic with quantifiability]].
@@ -149,7 +149,7 @@ term (formula (is-not-free-in x φ))
 # 
 # === Showing a variable is free ===
 # A variable is not free in a formula if it does not occur in the formula:
-stmt (DistinctNotFree ((x φ)) () (is-not-free-in x φ))
+stmt (DistinctNotFree ((φ x)) () (is-not-free-in x φ))
 # 
 # A variable is not free in a formula if it is bound by a quantifier:
 stmt (BoundForAllNotFree () () (is-not-free-in x (∀ x φ)))
@@ -206,22 +206,22 @@ stmt (ThereExistsImplicationConsequentMovement () ((is-not-free-in x ψ)) (↔ (
 stmt (ThereExistsConjunctionMovementNotFree () ((is-not-free-in x φ)) (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
 # 
 # ==== Versions with distinct variables ====
-stmt (ThereExistsConjunctionMovement ((x φ)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
-stmt (ThereExistsConjunctionRightMovement ((x ψ)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ)))
+stmt (ThereExistsConjunctionMovement ((φ x)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
+stmt (ThereExistsConjunctionRightMovement ((ψ x)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ)))
 
-stmt (ThereExistsDisjunctionMovement ((x φ)) () (↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ))))
-stmt (ThereExistsDisjunctionRightMovement ((x ψ)) () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) ψ)) )
+stmt (ThereExistsDisjunctionMovement ((φ x)) () (↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ))))
+stmt (ThereExistsDisjunctionRightMovement ((ψ x)) () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) ψ)) )
 
-stmt (ThereExistsAntecedentMovement ((x φ)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ))))
+stmt (ThereExistsAntecedentMovement ((φ x)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ))))
 # 
 # Here are a few rules based on these:
-stmt (moveLeftConjunctIntoThereExistsInConsequent ((x φ))
+stmt (moveLeftConjunctIntoThereExistsInConsequent ((φ x))
   ((→ antecedent (∧ φ (∃ x ψ))))
   (→ antecedent (∃ x (∧ φ ψ))))
-stmt (moveRightConjunctIntoThereExistsInConsequent ((x ψ))
+stmt (moveRightConjunctIntoThereExistsInConsequent ((ψ x))
   ((→ antecedent (∧ (∃ x φ) ψ)))
   (→ antecedent (∃ x (∧ φ ψ))))
-stmt (repeatAntecedentThereExists ((x antecedent))
+stmt (repeatAntecedentThereExists ((antecedent x))
   ((→ antecedent (∃ x ψ)))
   (→ antecedent (∃ x (∧ antecedent ψ))))
 # 
@@ -235,10 +235,10 @@ stmt (gatherThereExistsInConsequent ((φx y) (ψy x)) ((→ antecedent (∧ (∃
 # ==== Adding quantifiers to theorems which are implications ====
 # 
 # These variants on moving formulas turn out to be used particularly often:
-stmt (addThereExistsToAntecedent ((x ψ))
+stmt (addThereExistsToAntecedent ((ψ x))
   ((→ φ ψ))
   (→ (∃ x φ) ψ))
-stmt (addForAllToConsequent ((x φ))
+stmt (addForAllToConsequent ((φ x))
   ((→ φ ψ))
   (→ φ (∀ x ψ)))
 
@@ -247,29 +247,29 @@ stmt (addForAllToConsequentNotFree () ((is-not-free-in x φ) (→ φ ψ)) (→ �
 # === Changing the quantified variable ===
 # We can transform a quantified formula by substituting each of the occurences of the variable we are quantifying over to another variable, and changing the variable in the quantifier accordingly. Here is a version with implicit substitution.
 stmt (ChangeVariableThereExistsNotFree
-  ((x y))
+  ()
   ((is-not-free-in x φy)
    (is-not-free-in y φx)
    (→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy)))
-stmt (ChangeVariableForAllNotFree ((x y))
+stmt (ChangeVariableForAllNotFree ()
   ((is-not-free-in x φy)
    (is-not-free-in y φx)
    (→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy)))
 
 stmt (ChangeVariableThereExists
-  ((y φx) (x φy) (x y))
+  ((φx y) (φy x) )
   ((→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy)))
-stmt (ChangeVariableForAll ((y φx) (x φy) (x y))
+stmt (ChangeVariableForAll ((φx y) (φy x) )
   ((→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy)))
 # 
 # === Other theorems related to substitution ===
 stmt (equs3 () () 
   (↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ))))))
-stmt (VariableSubstitution ((x y)) () 
+stmt (VariableSubstitution () () 
   (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
 # 
 # == References ==
