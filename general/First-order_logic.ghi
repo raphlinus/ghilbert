@@ -252,29 +252,29 @@ stmt (addForAllToConsequentNotFree () ((is-not-free-in x φ) (→ φ ψ)) (→ �
 # === Changing the quantified variable ===
 # We can transform a quantified formula by substituting each of the occurences of the variable we are quantifying over to another variable, and changing the variable in the quantifier accordingly. Here is a version with implicit substitution.
 stmt (ChangeVariableThereExistsNotFree
-  ((x y))
+  ()
   ((is-not-free-in x φy)
    (is-not-free-in y φx)
    (→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy)))
-stmt (ChangeVariableForAllNotFree ((x y))
+stmt (ChangeVariableForAllNotFree ()
   ((is-not-free-in x φy)
    (is-not-free-in y φx)
    (→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy)))
 
 stmt (ChangeVariableThereExists
-  ((φx y) (φy x) (x y))
+  ((φx y) (φy x) )
   ((→ (= x y) (↔ φx φy)))
   (↔ (∃ x φx) (∃ y φy)))
-stmt (ChangeVariableForAll ((φx y) (φy x) (x y))
+stmt (ChangeVariableForAll ((φx y) (φy x) )
   ((→ (= x y) (↔ φx φy)))
   (↔ (∀ x φx) (∀ y φy)))
 # 
 # === Other theorems related to substitution ===
 stmt (equs3 () () 
   (↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ))))))
-stmt (VariableSubstitution ((x y)) () 
+stmt (VariableSubstitution () () 
   (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
 # 
 # == References ==
