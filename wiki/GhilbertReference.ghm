@@ -1,0 +1,93 @@
+This page is designed to be (eventually) a full reference manual for the ghilbert proof verifier.
+
+Ghilbert distinguishes between interfaces and modules and different commands are valid in interfaces or modules.  Interfaces live in a {{{.ghi}}} file and proof module live in a {{{.gh}}} file. Interfaces contain axioms and statements to be proved; modules prove those statements. A [[w:lemma|lemma]] which is proven in a module but which is not likely to be useful in contexts other than the given proof should not be listed in any interface.
+
+Anything from {{{#}}} to the end of the line is a comment (that is, it is ignored by Ghilbert).
+
+==Interfaces==
+Interfaces contain:
+
+* Parameters.  This is a way to import kinds, terms and definitions from another interface. Except that it does not import statements, it has much the same meaning as the import statement in a module, and the same syntax except that it starts with {{{param}}} instead of {{{import}}}.
+ param (//identifier// //page// (//parameter1// //parameter2// ...) //prefix//)
+When interfaces with one or more {{{param}}} commands in them are imported or exported, the {{{import}}} or {{{export}}} command must be given a parameter list matching the parameters of the interface. This does not mean that parameters generated from exactly the same page with the correct prefix have to be used (in that case, parameter lists would be somewhat pointless). Instead, any parameters providing the kinds, terms and definitions as the specified //page// with //prefix// can be used.
+
+* Kinds.  Each variable will be of some kind, and the kinds are declared with the {{{kind}}} statement.
+ kind (//new-kind//)
+For example, {{{kind (formula)}}} says there is a kind called {{{formula}}}.
+
+* Variables.  Variables are declared with a kind, and as either term variables ({{{tvar}}}) or binding variables ({{{var}}}).
+ tvar (//kind// //new-variable-1// //new-variable-2//...)
+ var (//kind// //new-variable-1// //new-variable-2//...)
+For example, {{{tvar (formula p q r)}}} declares variables p, q and r, all formulas.
+
+* Terms.
+ term (//kind// (//new-term// //argument-1// //argument-2//...))
+For example, {{{term (formula (¬ p))}}} defines a term called ¬ of kind formula which takes one argument, which is a formula (assuming {{{p}}} had been declared with {{{tvar (formula p)}}}). The name of the term is the first thing in the list, and although the ghilbert web site will sometimes typeset it differently, that is a display feature only; in editing proofs the term comes first. For example, in a proof you might mention {{{(∧ p q)}}}, which might get typeset as {{{p ∧ q}}}.
+
+* Statements.  Statements are either axioms (in which case there will be no modules which export this interface, as axioms cannot be proved) or statements to be proved (in which case, some module will prove the statement and export the interface).
+ stmt (//new-statement// (//distinct-variables//) (//hypotheses//) (//consequent//))
+For example, one version of the famous [[w:modus ponens|modus ponens]] states that from the hypotheses p and p → q, one can conclude q:
+ stmt (applyModusPonens () (p (→ p q)) q)
+:*Distinct variables.  The distinct variables are a list of constraints, for example:
+ ((φ x))
+::means that φ is distinct from x. The first variable in a constraint must be a term variable; the others are binding variables. All binding variables are implicitly considered distinct from each other, so there is no need for a constraint like {{{(x y)}}} (where x and y are binding variables). (TODO: need to explain the freeness stuff).
+
+* No proofs, kindbind, or exports. The {{{thm}}}, {{{defthm}}}, {{{kindbind}}}, and {{{export}}} commands, which exist for proof modules, are not valid in interfaces.
+
+== Modules ==
+* Import statements. These represent kinds, terms, definitions and statements (either axioms, or statements proved elsewhere) to be assumed in proofs.
+ import (//identifier// //page// (//parameter1// //parameter2// ...) //prefix//)
+For example:
+ import (NICOD Interface:Nicod_axioms () "")
+As you can see, interfaces with no parameters are imported with empty parameter lists. If the interface being imported has parameters, you need to first import the interfaces to be used as parameters, and then supply their identifiers as //parameter1// and so on.  For example:
+ import (CLASSICAL Interface:Classical_propositional_calculus () "")
+ import (PRINCIPIA Interface:Axioms_of_first-order_logic (CLASSICAL) "")
+where the second interface expects Interface:Classical_propositional_calculus or a compatible interface as its only parameter.
+
+The //prefix// allows the names in the interface to differ from the name in the module (which may be necessary to avoid naming conflicts with some of the imported interfaces, for example). For an example of avoiding naming conflicts, see [[Nicod's reduction of Principia Mathematica]] (which uses a prefix on the export). The prefix can be either a string or {{{""}}} for the empty string.
+
+* Variables.  Same syntax and meaning as in interfaces.
+
+* Definitions. TODO: need to describe defthm
+
+* Proofs.
+ thm (//new-theorem// (//distinct-variables//) (//hypotheses//) (//consequent//) //proof//)
+
+This represents the proof of a theorem.
+
+:* //new-theorem// is the name of the theorem.
+:* //hypotheses// will need to be present to later apply the theorem, and can be empty. Each hypothesis consists of a label followed by the hypothesis (unlike in {{{stmt}}}, in which the labels are omitted).
+:* //consequent// is what is being proved.
+:* //proof// is a sequence of atoms.  Each atom can be the label of a hypothesis, a variable, or the name of a statement which is being applied. Hypotheses and variables are pushed onto the //proof stack//. Applying a statement proceeds by popping from the proof stack one element for each hypothesis and variable in the statement being applied. The variables should be pushed in the order in which they first appear in the statement. These elements must match what the statement expects. The statement then pushes its consequent onto the proof stack.  At the end of the proof, the proof stack must contain one element, and it must be the consequent which is being proved.
+
+* Kindbind.  This allows a kind to have several names, which may be necessary in conjunction with the prefix feature of the export statement.
+ kindbind (//existing-name// //new-name//)
+For example, if you have a kind called formula and you want .formula to refer to the same kind, specify
+ kindbind (formula .formula)
+
+* Export statements.  Once a module has proved everything it wants to, it can export those proofs to an interface.
+ export (//identifier// //page// (//parameter1// //parameter2// ...) //prefix//)
+See import for a description of identifier, page, parameters, and prefix. For the export to succeed, the proof module must have:
+
+:* a kind (imported or created via kindbind) for every kind in the interface it exports to (see [[Example of missing kind in export]]).
+:* a term (created by term or defthm) for every term in the interface it exports to. The kinds must match.
+:* a statement (imported or created via thm) for every statement in the interface it exports to. The variable names need not match, but must unify. The distinct variable constraints you are exporting to must be a subset of the ones in the theorem you are exporting. The hypotheses must be the same, in the same way as the conclusions (TODO: want examples for this).
+
+* No kind definitions, statements, parameters, or terms. Kinds, statements, or terms must be defined in interfaces and then imported into proof modules. It is valid to prove or define something and then export it to a statement or term, but the statement or term lives in the interface, not the proof module directly. Kinds are like axioms in that they are assumed, not proved or defined (unless of course a kind is aliased to another kind via {{{kindbind}}}, in which case it is analogous to a term or statement this way). That is, the {{{stmt}}}, {{{kind}}}, and {{{term}}} commands, which exist for interfaces, are not valid in proof modules. See [[Example of attempt to define a statement in a proof module]], [[Example of attempt to define a kind in a proof module]] and [[Example of attempt to define a term in a proof module]]. Also, the parameter mechanism involves just putting {{{param}}} in an interface, not a proof module; see [[Example of attempt to define a parameter in a proof module]].
+
+== Troubleshooting ==
+Some of the error messages you may encounter are:
+
+ Term freemap mismatch with verify context
+
+This means that you are trying to export to a term, but the thing you are exporting is (TODO: explain how freeness works in ghilbert, or at least what it means in the context of this error message).
+
+== External links ==
+
+*[http://wiki.planetmath.org/AsteroidMeta/Ghilbert ghilbert]. This is some other Ghilbert, compared with metamath, adds a number of features most notably definitions and the ability to separate proofs into interfaces and modules. In particular, [http://wiki.planetmath.org/AsteroidMeta/Ghilbert_specification the specification] is rather close to what is described in this page.
+
+Other related systems, which may help you understand ghilbert (especially until this manual is a bit more complete) are:
+
+*[http://metamath.org/ Metamath]. Metamath is in the same general family, in the sense of having fairly explicit proofs and a simple proof verifier.  There is an automated converter to convert metamath to ghilbert.
+
+*Jhilbert. See [http://www.wikiproofs.org].
