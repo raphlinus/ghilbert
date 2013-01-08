@@ -24,13 +24,25 @@ For example, {{{tvar (formula p q r)}}} declares variables p, q and r, all formu
 : term (//kind// (//new-term// //argument-1// //argument-2//...))
 For example, {{{term (formula (¬ p))}}} defines a term called ¬ of kind formula which takes one argument, which is a formula (assuming {{{p}}} had been declared with {{{tvar (formula p)}}}). The name of the term is the first thing in the list, and although the ghilbert web site will sometimes typeset it differently, that is a display feature only; in editing proofs the term comes first. For example, in a proof you might mention {{{(∧ p q)}}}, which might get typeset as {{{p ∧ q}}}.
 
+The arguments of a term each have a kind and binding. By //binding//, we mean that the argument is either a term (if the variable supplied to {{{term}}} was declared with {{{tvar}}}), or the term being defined //binds// this variable. For example, consider the following example:
+
+{{{
+kind (formula)
+tvar (formula φ ψ)
+kind (object)
+var (object x y)
+term (formula (∀ x φ))
+}}}
+
+In this case {{{∀}}} is considered to bind the variable which is the first argument. Ghilbert applies the same treatment to any term with a binding variable; {{{∀}}} is not a special case for the verifier. The effect of this treatment is that, for example, {{{y}}} is not considered free in {{{∀ y ψ}}}, which affects the verifier's processing of freeness constraints.
+
 * Statements.  Statements are either axioms (in which case there will be no modules which export this interface, as axioms cannot be proved) or statements to be proved (in which case, some module will prove the statement and export the interface).
-: stmt (//new-statement// (//distinct-variables//) (//hypotheses//) (//consequent//))
+: stmt (//new-statement// (//freeness-constraints//) (//hypotheses//) (//consequent//))
 For example, one version of the famous [[https://en.wikipedia.org/wiki/Modus_ponens|modus ponens]] states that from the hypotheses p and p → q, one can conclude q:
 : stmt (applyModusPonens () (p (→ p q)) q)
-:*Distinct variables.  The distinct variables are a list of constraints, for example:
+:*Freeness constraints (a list of constraints), for example:
 : ((φ x))
-::means that φ is distinct from x. The first variable in a constraint must be a term variable; the others are binding variables. All binding variables are implicitly considered distinct from each other, so there is no need for a constraint like {{{(x y)}}} (where x and y are binding variables). (TODO: need to explain the freeness stuff).
+::means that x is not free in φ. The first variable in a constraint must be a term variable; the others are binding variables. All binding variables are implicitly considered distinct from each other, so there is no need for a constraint like {{{(x y)}}} (where x and y are binding variables). A variable satisfies the constraint if it does not appear in the term, and also if it bound in that term (see the discussion under the {{{term}}} command).
 
 * No proofs, kindbind, or exports. The {{{thm}}}, {{{defthm}}}, {{{kindbind}}}, and {{{export}}} commands, which exist for proof modules, are not valid in interfaces.
 
@@ -51,7 +63,7 @@ The //prefix// allows the names in the interface to differ from the name in the 
 * Definitions. TODO: need to describe defthm
 
 * Proofs.
-: thm (//new-theorem// (//distinct-variables//) (//hypotheses//) (//consequent//) //proof//)
+: thm (//new-theorem// (//freeness-constraints//) (//hypotheses//) (//consequent//) //proof//)
 
 This represents the proof of a theorem.
 
@@ -71,7 +83,7 @@ See import for a description of identifier, page, parameters, and prefix. For th
 
 :* a kind (imported or created via kindbind) for every kind in the interface it exports to (see [[Example of missing kind in export]]).
 :* a term (created by term or defthm) for every term in the interface it exports to. The kinds must match.
-:* a statement (imported or created via thm) for every statement in the interface it exports to. The variable names need not match, but must unify. The distinct variable constraints you are exporting to must be a subset of the ones in the theorem you are exporting. The hypotheses must be the same, in the same way as the conclusions (TODO: want examples for this).
+:* a statement (imported or created via thm) for every statement in the interface it exports to. The variable names need not match, but must unify. The freeness constraints you are exporting to must be a subset of the ones in the theorem you are exporting, and must match (TODO: explain the freemap stuff). The hypotheses must be the same, in the same way as the conclusions (TODO: want examples for this).
 
 * No kind definitions, statements, parameters, or terms. Kinds, statements, or terms must be defined in interfaces and then imported into proof modules. It is valid to prove or define something and then export it to a statement or term, but the statement or term lives in the interface, not the proof module directly. Kinds are like axioms in that they are assumed, not proved or defined (unless of course a kind is aliased to another kind via {{{kindbind}}}, in which case it is analogous to a term or statement this way). That is, the {{{stmt}}}, {{{kind}}}, and {{{term}}} commands, which exist for interfaces, are not valid in proof modules.
 
