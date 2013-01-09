@@ -116,24 +116,28 @@ def regression(fn, out):
                     verifyctx = verify.VerifyCtx(urlctx, run_regression)
                     error = None
                     tests += 1
-                    try:
-                         run_regression(urlctx, cmd[1], verifyctx, out)
-                    except verify.VerifyError, x:
-                         error = "VerifyError: " + x.why
-                    except SyntaxError, x:
-                         error = "SyntaxError: " + str(x)
-                    if error is None and cmd[0] == '!reject':
+                    if len(cmd) < 2:
                          failures += 1
-                         print str(lineno) + ': FAIL, expected error: ' + ' '.join(cmd[2:])
-                    elif error and cmd[0] == '!accept':
-                         failures += 1
-                         print str(lineno) + ': FAIL, got unexpected ' + error
-                    if verbose >= 1 and error and cmd[0] == '!reject':
-                         print str(lineno) + ': ok ' + error
+                         print str(lineno) + ": Missing proof module name for !accept or !reject command"
+                    else:
+                         try:
+                              run_regression(urlctx, cmd[1], verifyctx, out)
+                         except verify.VerifyError, x:
+                              error = "VerifyError: " + x.why
+                         except SyntaxError, x:
+                              error = "SyntaxError: " + str(x)
+                         if error is None and cmd[0] == '!reject':
+                              failures += 1
+                              print str(lineno) + ': FAIL, expected error: ' + ' '.join(cmd[2:])
+                         elif error and cmd[0] == '!accept':
+                              failures += 1
+                              print str(lineno) + ': FAIL, got unexpected ' + error
+                         if verbose >= 1 and error and cmd[0] == '!reject':
+                              print str(lineno) + ': ok ' + error
                     urlctx.revert()
                else:
                     failures += 1
-                    print "unrecognized command " + cmd[0]
+                    print str(lineno) + ": unrecognized command " + cmd[0]
           elif l.strip() and not l.startswith('#'):
                urlctx.append_current(l)
      return [tests, failures]
