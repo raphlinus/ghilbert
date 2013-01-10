@@ -547,3 +547,34 @@ export (OUT kinds.ghi () "")
 #!accept test.gh
 !reject test.gh kindbind is not (yet at least) allowed in interfaces
 
+# export and freeness
+!shared
+!append in.ghi
+kind (formula)
+tvar (formula p q φ ψ)
+term (formula (→ p q))
+term (formula (↔ p q))
+stmt (BiconditionalReflexivity () () (↔ p p))
+kind (object)
+var (object x y)
+term (formula (∀ x φ))
+!append test.gh
+import (IN in.ghi () "")
+!append out.ghi
+kind (formula)
+tvar (formula p q φ ψ)
+kind (object)
+var (object x y)
+!end
+
+!append out.ghi
+term (formula (foo x φ))
+!append test.gh
+tvar (formula p q φ ψ)
+var (object x y)
+defthm (df-foo formula (foo x φ) () () (↔ (foo x φ) (→ φ (∀ x φ)))
+        (→ φ (∀ x φ)) BiconditionalReflexivity
+)
+export (OUT out.ghi () "")
+!reject test.gh Term freemap mismatch with verify context for foo
+
