@@ -378,7 +378,7 @@ thm (ThereExistsForAll ((s x)) () (↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x
 # and then turning this implicit substitution into its ∃ form.
         ImplicitThereExists
  )
-thm (SubstitutionThereExists ((s x) (s y)  (φ y)) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
+thm (SubstitutionThereExists ((s x)) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
 # We start with applying some builders to get <code>y = s → (∃ x (x = y ∧ φ) ↔ ∃ x (x = s ∧ φ))</code>.
         y s x EqualityBuilderLL
         φ buildConjunctionRRInConsequent
@@ -409,7 +409,7 @@ thm (SubstNegationLemma () ()
         transposeBiconditionalWithNegatedRight
  )
 
-thm (SubstNegation ( (s y) (φ y)) () (↔ (subst s x (¬ φ)) (¬ (subst s x φ)))
+thm (SubstNegation () () (↔ (subst s x (¬ φ)) (¬ (subst s x φ)))
         s x (¬ φ) y Subst
 
         y s (∃ x (∧ (= x y) (¬ φ))) ThereExistsForAll
@@ -432,7 +432,7 @@ thm (SubstNegation ( (s y) (φ y)) () (↔ (subst s x (¬ φ)) (¬ (subst s x φ
         addNegation
         applyBiconditionalTransitivity
  )
-thm (SubstDisjunction ( (s y)  (φ y) (ψ y)) () (↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))
+thm (SubstDisjunction () () (↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))
         s x (∨ φ ψ) y Subst
 
         (= x y) φ ψ ConjunctionLeftDistribution
@@ -512,7 +512,7 @@ thm (SubstBiconditional () () (↔ (subst s x (↔ φ ψ)) (↔ (subst s x φ) (
         swapBiconditional
         applyBiconditionalTransitivity
  )
-thm (SubstThereExists ((s y x z) (φ z)) () (↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))
+thm (SubstThereExists ((s y)) () (↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))
 # To prove this, we simply expand the definition of <code>subst</code> and move <code>∃ y</code> across each piece of it. The expansion is <code>∃ z (z = s ∧ ∃ x (x = z ∧ ∃ y φ))</code>
         s x (∃ y φ) z Subst
 
