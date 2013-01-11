@@ -297,16 +297,14 @@ thm (ImplicitForAll ((s x) (ψ x)) (HEQ (→ (= x s) (↔ φ ψ)))
 
         applyModusPonens
  )
-thm (ImplicitSubstitutionThereExists ((s x)) (HFREE (is-not-free-in x ψ)) 
+thm (ImplicitSubstitutionThereExists ((s x) (ψ x)) ()
   (→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∃ x (∧ (= x s) φ)) ψ))
 # The proof basically consists of massaging negations to derive this result from the corresponding one for ∀. We start by showing that <code>∀x (x = s → (φ ↔ ψ))</code> implies that <code>∀x(x = s → ¬ φ)</code> is equivalent to <code>¬ ψ</code>.
         φ ψ NegationFunction eliminateBiconditionalReverse
         (= x s) addCommonAntecedent
         x addForAll
 
-        HFREE
-        negateNotFree
-        s (¬ φ) ImplicitSubstitutionForAllNotFree
+        x s (¬ φ) (¬ ψ) ImplicitSubstitutionForAll
 
         applySyllogism
 # Now we need to show that <code>∀ x (x = s → ¬ φ) ↔ (¬ ψ)</code> implies <code>∃ x (x = s ∧ φ) ↔ ψ</code>. We first turn the former into <code>ψ ↔ (¬ ∀ x (x = s → ¬ φ))</code>:
