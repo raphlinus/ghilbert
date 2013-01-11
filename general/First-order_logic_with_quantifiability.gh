@@ -327,21 +327,14 @@ thm (ImplicitSubstitutionThereExists ((s x) (ψ x)) ()
 # and combine this with the first part of the proof.
         applySyllogism
  )
-thm (ImplicitThereExistsNotFree ((s x)) (HFREE (is-not-free-in x ψ) HEQ (→ (= x s) (↔ φ ψ)))
+thm (ImplicitThereExists ((s x) (ψ x)) (HEQ (→ (= x s) (↔ φ ψ)))
   (↔ (∃ x (∧ (= x s) φ)) ψ)
         HEQ
         x generalize
 
-        HFREE
-        s φ ImplicitSubstitutionThereExists
+        x s φ ψ ImplicitSubstitutionThereExists
 
         applyModusPonens
- )
-thm (ImplicitThereExists ((s x) (ψ x)) (HEQ (→ (= x s) (↔ φ ψ)))
-  (↔ (∃ x (∧ (= x s) φ)) ψ)
-        x ψ DistinctNotFree
-        HEQ
-        ImplicitThereExistsNotFree
  )
 thm (VariableToObjectLemma ((s x) (φ x))
   (H (→ (= x s) φ))
