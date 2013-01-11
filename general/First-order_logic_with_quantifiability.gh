@@ -368,8 +368,6 @@ thm (ObjectSubstitution ((s x)) ()
         VariableToObject
  )
 thm (ThereExistsForAll ((s x)) () (↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x s) φ)))
-# First we stick something on the proof stack for later use:
-        x (→ (= x s) φ) BoundForAllNotFree
 # The proof consists of first proving <code>x = s → (φ ↔ ∀ x (x = s → φ))</code>,
         x s φ ObjectSubstitution
 
@@ -378,7 +376,7 @@ thm (ThereExistsForAll ((s x)) () (↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x
 
         introduceBiconditionalFromImplicationsInConsequent
 # and then turning this implicit substitution into its ∃ form.
-        ImplicitThereExistsNotFree
+        ImplicitThereExists
  )
 thm (SubstitutionThereExists ((s x) (s y)  (φ y)) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
 # We start with applying some builders to get <code>y = s → (∃ x (x = y ∧ φ) ↔ ∃ x (x = s ∧ φ))</code>.
