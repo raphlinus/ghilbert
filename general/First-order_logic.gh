@@ -31,11 +31,11 @@ thm (VariableEqualitySymmetry () ()
         x y EqualitySymmetry
 )
 
-thm (swapVariableEquality () (H (= x y))
-  (= y x)
+thm (swapEquality () (H (= s t))
+  (= t s)
         H
 
-        x y EqualitySymmetry
+        s t EqualitySymmetry
         eliminateBiconditionalReverse
 
         applyModusPonens
@@ -45,13 +45,13 @@ thm (VariableEqualityTransitivity () ()
         x y z EqualityTransitivity
  )
 
-thm (applyVariableEqualityTransitivity ()
-  (H1 (= x y) H2 (= y z))
-  (= x z)
+thm (applyEqualityTransitivity ()
+  (H1 (= s t) H2 (= t u))
+  (= s u)
         H1
         H2
         introduceConjunction
-        x y z VariableEqualityTransitivity
+        s t u EqualityTransitivity
         applyModusPonens
  )
 defthm (NotEqual formula (≠ s t) () () (↔ (≠ s t) (¬ (= s t)))

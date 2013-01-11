@@ -123,19 +123,19 @@ tvar (formula antecedent)
 stmt (removeThereExistsInConsequent ((φ x)) ((→ antecedent (∃ x φ))) (→ antecedent φ))
 # 
 # == Equality ==
-# Here we are concerned with equality between variables. Equality between terms is treated in [[Interface:First-order logic with quantifiability]].
+# At least for now, we just define equality between terms here (rather than trying to separate equality between terms and equality between variables).
 # 
 # Equality is reflexive, symmetry, and transitive.
 term (formula (= s t))
-stmt (VariableEqualityReflexivity () () (= x x))
+stmt (EqualityReflexivity () () (= s s))
 
-stmt (VariableEqualitySymmetry () () (↔ (= x y) (= y x)))
-stmt (swapVariableEquality () ((= x y)) (= y x))
+stmt (EqualitySymmetry () () (↔ (= s t) (= t s)))
+stmt (swapEquality () ((= s t)) (= t s))
 
-stmt (VariableEqualityTransitivity () ()
-  (→ (∧ (= x y) (= y z)) (= x z)))
-stmt (applyVariableEqualityTransitivity ()
-  ((= x y) (= y z)) (= x z))
+stmt (EqualityTransitivity () ()
+  (→ (∧ (= s t) (= t u)) (= s u)))
+stmt (applyEqualityTransitivity ()
+  ((= s t) (= t u)) (= s u))
 # 
 # We also define <code>≠</code>, which is just an abbreviation for negation and equality.
 # 
