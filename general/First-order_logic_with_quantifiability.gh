@@ -5,77 +5,12 @@ tvar (formula φ ψ φx φy φs)
 tvar (object s t u s0 s1 t0 t1)
 var (object x y z x0 x1 y0 y1)
 import (QUANTIFIABILITY_AXIOM Axiom_of_quantifiability.ghi (CLASSICAL WITHOUT_QUANTIFIABILITY) "")
-thm (EqualityReflexivity-1 () ()
-  (→ (= x s) (= s s))
-        (= x s) ConjunctionIdempotence eliminateBiconditionalReverse
-
-        x s s TermEqualityAxiom
-        import
-
-        applySyllogism
- )
-
-thm (EqualityReflexivity-2 () ()
-  (→ (∀ x (¬ (= s s))) (∀ x (¬ (= x s))))
-        x s EqualityReflexivity-1
-        introduceTransposition
-
-        x addForAll
- )
-
-thm (EqualityReflexivity ( (s x)) () (= s s)
-        x s Quantifiability
-
-        (¬ (= s s)) x Generalization
-        x s EqualityReflexivity-2
-        applySyllogism
-
-        x (= x s) NotThereExists
-        eliminateBiconditionalForward
-        applySyllogism
-
-        eliminateTransposition
-
-        applyModusPonens
- )
-thm (EqualitySymmetryImplication () ()
-  (→ (= s t) (= t s))
-        s EqualityReflexivity
-        s t s TermEqualityAxiom
-        detachImplicationImplication
- )
-
-thm (EqualitySymmetry () () (↔ (= s t) (= t s))
-        s t EqualitySymmetryImplication
-        t s EqualitySymmetryImplication
-        introduceBiconditionalFromImplications
- )
-thm (EqualityTransitivity () ()
-  (→ (∧ (= s t) (= t u)) (= s u))
-        s t EqualitySymmetryImplication
-        t s u TermEqualityAxiom
-        applySyllogism
-        import
- )
-thm (swapEquality () (H (= s t)) (= t s)
-        H
-        s t EqualitySymmetry eliminateBiconditionalReverse
-        applyModusPonens
- )
 
 thm (swapEqualityInConsequent () (H (→ φ (= s t))) (→ φ (= t s))
         H
         s t EqualitySymmetry
         eliminateBiconditionalReverse
         applySyllogism
- )
-
-thm (applyEqualityTransitivity () (H1 (= s t) H2 (= t u)) (= s u)
-        H1
-        H2
-        introduceConjunction
-        s t u EqualityTransitivity
-        applyModusPonens
  )
 
 thm (applyEqualityTransitivityInConsequent () (H1 (→ φ (= s t)) H2 (→ φ (= t u))) (→ φ (= s u))
