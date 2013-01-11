@@ -118,15 +118,7 @@ thm (buildEqualityLLInConsequent ()
         H
         buildEqualityInConsequent
  )
-defthm (Subst formula (subst s x φ) () () (↔ (subst s x φ) (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))))
-        (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))) BiconditionalReflexivity
-)
-thm (Subst ( (s y) (φ y)    (s z) (φ z)) () (
-  ↔ (subst s x φ) 
-    (∃ y (∧ (= y s) 
-      (∃ x (∧ (= x y) φ))
-    ))
-)
+defthm (Subst formula (subst s x φ) ((s y) (φ y)) () (↔ (subst s x φ) (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))))
 # What we need to prove is <code>∃ z (z = s ∧ ∃ x (x = z ∧ φ)) ↔ ∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code>.  The first step is <code>z = y → (z = s ∧ ∃ x (x = z ∧ φ) ↔ y = s ∧ ∃ x (x = y ∧ φ))</code>
         z y s EqualityBuilderRR
 
