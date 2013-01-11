@@ -230,19 +230,6 @@ thm (introduceThereExistsFromObject () (H (subst s x φ)) (∃ x φ)
         s x φ ThereExistsIntroductionFromObject
         applyModusPonens
  )
-thm (SubstNotFree ((s x)   (s y) (φ y)) () (is-not-free-in x (subst s x φ))
-# The proof consists of just applying our not-free theorems to each piece of the definition of <code>subst</code>
-        x (= y s) DistinctNotFree
-        x (∧ (= x y) φ) BoundThereExistsNotFree
-        conjunctionNotFree
-        y addThereExistsNotFree
-
-        s x φ y Subst
-        x buildNotFree
-        eliminateBiconditionalForward
-
-        applyModusPonens
- )
 thm (SpecializationToObject ((s y)  (φ y)) () (→ (∀ x φ) (subst s x φ))
 # We start with <code>∀ x φ ∧ ∃ x x = y → ∃ x (φ ∧ x = y)</code> and eliminate the second antecedent (because it is an instance of <code>Quantifiability</code>).
         x y Quantifiability
