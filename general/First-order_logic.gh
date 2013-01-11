@@ -613,6 +613,24 @@ thm (biconditionalNotFree ()
         eliminateBiconditionalForward
         applyModusPonens
  )
+thm (ForAllAddRemove ((φ x)) () (↔ (∀ x φ) φ)
+        x φ Specialization
+        φ x Generalization
+        introduceBiconditionalFromImplications
+)
+
+thm (ThereExistsAddRemove ((φ x)) () (↔ (∃ x φ) φ)
+        x φ ThereExists
+
+        x (¬ φ) ForAllAddRemove
+        addNegation
+        applyBiconditionalTransitivity
+
+        φ DoubleNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
 thm (ThereExistsAddRemoveNotFree () (H (is-not-free-in x φ)) (↔ (∃ x φ) φ)
 # Forward direction
         x φ ThereExists
@@ -723,7 +741,9 @@ thm (ThereExistsAntecedentMovementNotFree () (H (is-not-free-in x φ)) (↔ (∃
 
         applyBiconditionalTransitivity
  )
-thm (ForAllImplicationConsequentMovement () (H (is-not-free-in x ψ)) (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))
+
+# This is just here until we can convert everything over to ForAllImplicationConsequentMovement.
+thm (ForAllImplicationConsequentMovementNotFree () (H (is-not-free-in x ψ)) (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))
 # For the forward direction we first distribute to <code>∃ x φ → ∃ x ψ</code> and then remove the quantifier on <code>ψ</code>.
         x φ ψ ForAllImplicationThereExists
         H ThereExistsAddRemoveNotFree eliminateBiconditionalReverse
@@ -739,6 +759,24 @@ thm (ForAllImplicationConsequentMovement () (H (is-not-free-in x ψ)) (↔ (∀ 
 
 # Because x is not free in the antecedent, we can conclude <code>(∃ x φ → ψ) → ∀ x (φ → ψ)</code>:
         addForAllToConsequentNotFree
+
+# Now we just need to combine the forward and reverse implications:
+        introduceBiconditionalFromImplications
+)
+
+thm (ForAllImplicationConsequentMovement ((ψ x)) () (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))
+# For the forward direction we first distribute to <code>∃ x φ → ∃ x ψ</code> and then remove the quantifier on <code>ψ</code>.
+        x φ ψ ForAllImplicationThereExists
+        x ψ ThereExistsAddRemove eliminateBiconditionalReverse
+        (∃ x φ) addCommonAntecedent
+        applySyllogism
+# The reverse direction is somewhat more complicated.
+# We show that <code>(∃ x φ → ψ) → (φ → ψ)</code>
+        φ x ThereExistsIntroduction
+        ψ addCommonConsequent
+
+# Because x is not free in the antecedent, we can conclude <code>(∃ x φ → ψ) → ∀ x (φ → ψ)</code>:
+        x addForAllToConsequent
 
 # Now we just need to combine the forward and reverse implications:
         introduceBiconditionalFromImplications
@@ -870,8 +908,7 @@ thm (addThereExistsToAntecedent ((ψ x))
   (→ (∃ x φ) ψ)
         H x generalize
 
-        x ψ DistinctNotFree
-        φ ForAllImplicationConsequentMovement
+        x φ ψ ForAllImplicationConsequentMovement
         eliminateBiconditionalReverse
 
         applyModusPonens
@@ -986,7 +1023,7 @@ thm (ChangeVariableThereExistsReverseNotFree
 
         HFREEY
         x addThereExistsNotFree
-        φy ForAllImplicationConsequentMovement
+        φy ForAllImplicationConsequentMovementNotFree
         eliminateBiconditionalReverse
 
         applyModusPonens
