@@ -560,8 +560,8 @@ thm (introduceSubst () (H φ) (subst s x φ)
         x φ s SpecializationToObject
         applyModusPonens
  )
-thm (makeSubstExplicitNotFree ((s x)  (ψ y)  (s y) (φ y))
-  (HFREE (is-not-free-in x ψ) HEQ (→ (= x s) (↔ φ ψ)))
+thm (makeSubstExplicit ((s x) (ψ x))
+  (HEQ (→ (= x s) (↔ φ ψ)))
   (↔ (subst s x φ) ψ)
 # The proof will basically consist of two applications of <code>ImplicitSubstitutionThereExists</code>.
 # 
@@ -577,14 +577,12 @@ thm (makeSubstExplicitNotFree ((s x)  (ψ y)  (s y) (φ y))
 # Now we add <code>∀ x</code> to the consequent:
         x addForAllToConsequent
 # The first application of <code>ImplicitSubstitutionThereExists</code> turns <code>∀ x (x = y → (φ ↔ ψ))</code> into <code>∃ x (x = y ∧ φ) ↔ ψ</code>:
-        HFREE
-        y φ ImplicitSubstitutionThereExists
+        x y φ ψ ImplicitSubstitutionThereExists
 # Combining these results gets <code>y = s → (∃x (x = y ∧ φ) ↔ ψ)</code>:
         applySyllogism
 # We then apply <code>ImplicitSubstitutionThereExists</code> again to get <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ)) ↔ ψ)</code>, which is our desired result.
         y generalize
-        y ψ DistinctNotFree
-        s (∃ x (∧ (= x y) φ)) ImplicitSubstitutionThereExists
+        y s (∃ x (∧ (= x y) φ)) ψ ImplicitSubstitutionThereExists
         applyModusPonens
 # Now we just need to apply the definition of <code>subst</code> and we are done:
         swapBiconditional
@@ -594,13 +592,6 @@ thm (makeSubstExplicitNotFree ((s x)  (ψ y)  (s y) (φ y))
         swapBiconditional
  )
 
-thm (makeSubstExplicit ((s x) (ψ x))
-  (H (→ (= x s) (↔ φ ψ)))
-  (↔ (subst s x φ) ψ)
-        x ψ DistinctNotFree
-        H
-        makeSubstExplicitNotFree
- )
 thm (EqualitySubstForward ((s x)   (s z) (φ z)) () (→ (= x s) (→ φ (subst s x φ)))
 # The proof consists of gradually building up the definition of <code>subst</code>. It is somewhat similar to the proof in metamath<ref>[http://us.metamath.org/mpeuni/sbequ1.html sbequ1]</ref> although the details are different because we have a different definition of <code>subst</code>.
 # 
