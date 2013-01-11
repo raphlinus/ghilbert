@@ -264,7 +264,7 @@ thm (specializeToObjectInConsequent () (H (→ antecedent (∀ x φ))) (→ ante
         x φ s SpecializationToObject
         applySyllogism
  )
-thm (ImplicitSubstitutionForAllNotFree ((s x)) (HFREE (is-not-free-in x ψ))
+thm (ImplicitSubstitutionForAll ((s x) (ψ x)) ()
   (→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∀ x (→ (= x s) φ)) ψ))
 # First we turn <code>x = s → (φ ↔ ψ)</code> into <code>(x = s → φ) ↔ (x = s → ψ)</code>.
         (= x s) φ ψ ImplicationDistributionOverBiconditional
@@ -275,8 +275,7 @@ thm (ImplicitSubstitutionForAllNotFree ((s x)) (HFREE (is-not-free-in x ψ))
         x (→ (= x s) φ) (→ (= x s) ψ) ForAllBiconditional
         applySyllogism
 # Since <code>x</code> is not free in <code>ψ</code>, we can rewrite <code>∀ x (x = s → ψ)<code> as <code>∃ x x = s → ψ</code>.
-        HFREE
-        (= x s) ForAllImplicationConsequentMovement
+        x (= x s) ψ ForAllImplicationConsequentMovement
         transformImplicationBiconditionalRight
 # But <code>∃ x x = s</code> is a theorem, so we can detach it. We do so by first proving <code>(∃ x x = s → ψ) ↔ ψ</code>.
         x s Quantifiability
