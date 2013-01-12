@@ -592,7 +592,7 @@ thm (makeSubstExplicit ((s x) (ψ x))
         swapBiconditional
  )
 
-thm (EqualitySubstForward ((s x)   (s z) (φ z)) () (→ (= x s) (→ φ (subst s x φ)))
+thm (EqualitySubstForward ((s x)) () (→ (= x s) (→ φ (subst s x φ)))
 # The proof consists of gradually building up the definition of <code>subst</code>. It is somewhat similar to the proof in metamath<ref>[http://us.metamath.org/mpeuni/sbequ1.html sbequ1]</ref> although the details are different because we have a different definition of <code>subst</code>.
 # 
 # We're going to start with <code>x = s ∧ φ → ∃ x (x = s ∧ φ)</code>, and then we want to change the innermost <code>s</code> to <code>z</code> (under the condition that <code>z = s</code>). We do this by using <code>(x = s ∧ φ) ∧ z = s</code> as an antecedent in both cases.
@@ -641,7 +641,9 @@ thm (EqualitySubstDistinct ((s x)) () (→ (= x s) (↔ φ (subst s x φ)))
         x s φ EqualitySubstReverse
         introduceBiconditionalFromImplicationsInConsequent
  )
-thm (SubstItself (  (φ y)   (φ z)) () (↔ (subst x x φ) φ)
+thm (SubstItself () () (↔ (subst x x φ) φ)
+        x x φ z Subst
+
 # Before we get started, we leave a statement on the proof stack for later.
         y x Quantifiability
 # The first step is <code>y = x → (φ ↔ [ y / x ] φ)</code>.
@@ -668,6 +670,7 @@ thm (SubstItself (  (φ y)   (φ z)) () (↔ (subst x x φ) φ)
         removeThereExists
 
         swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (EqualitySubst () () (→ (= x s) (↔ φ (subst s x φ)))
 # The first step is <code>x = s → ([ x / x ] φ ↔ [ s / x ] φ)</code>
