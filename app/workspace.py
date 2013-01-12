@@ -50,7 +50,7 @@ class Handler(users.AuthenticatedHandler):
         <ul>
             <li><a id="menu-newtab" href="#">New Tab</a></li>
             <li><a id="menu-dirtab" href="#">Directory</a></li>
-            <li><a id="menu-creatediff" href="#">Create Diff</a></li>
+            <li><a id="menu-createdelta" href="#">Create delta</a></li>
             <li><a id="menu-save" href="#">Save</a></li>
         </ul>
     </li>
@@ -74,6 +74,7 @@ class Handler(users.AuthenticatedHandler):
 
 <script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/workspace.js" type="text/javascript"></script>
+<script src="/js/delta.js" type="text/javascript"></script>
 <script src="/js/diff_match_patch.js" type="text/javascript"></script>
 <script type="text/javascript">
     var workspace = new Workspace();
@@ -102,12 +103,12 @@ class Handler(users.AuthenticatedHandler):
         if workspaceobj is None:
             wjson = {}
             wjson['base'] = self.repo.gethead()
-            wjson['diffs'] = {}
+            wjson['deltas'] = {}
         else:
             wjson = json.decode(zlib.decompress(workspaceobj.workspace))
         root = self.repo.getroot(wjson.get('base'))
         wjson['dir'] = self.ls(root)
-        self.response.headers['Content-Type'] = 'application/json; charset = UTF-8'
+        self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
         self.response.out.write(json.encode(wjson))
 
     def get(self, arg):
