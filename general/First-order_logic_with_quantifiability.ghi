@@ -32,11 +32,6 @@ tvar (object s t u s0 s1 t0 t1)
  
 var (object x y z x0 x1 y0 y1)
 # 
-# A variable can be used where an object is expected, although it needs to be converted via the following explicit conversion.  When we are writing informally (rather than in JHilbert proofs themselves), we may omit the conversion (it should be understood whereever we use a variable in a context where an object is expected).
-term (object x)
-# 
-# The reverse is not possible.  Examples of objects which are not variables might be <code>s + t</code> for Peano arithmetic, or <code>s ∪ t</code> for set theory.
-# 
 # We extend the available formulas with [[w:Universal quantification|universal quantification]] and [[w:Existential quantification|existential quantification]]:
 term (formula (∀ x φ))
 term (formula (∃ x φ))
@@ -151,73 +146,22 @@ stmt (buildEqualityLLInConsequent ()
 # 
 # We also define <code>≠</code>, which is just an abbreviation for negation and equality.
 # 
-term (wff (≠ s t))
+term (formula (≠ s t))
 stmt (NotEqual () () (↔ (≠ s t) (¬ (= s t))))
 # 
 # == Free variables ==
-# We provide a variety of ways to prove that a variable is not [[w:free variable|free]] in a formula, and a variety of conclusions that follow from this. These theorems do not depend on the details of how <code>is-not-free-in</code> is defined, and there is no theorem that implies the negation of <code>is-not-free-in</code> for cases not covered here. In other words, <code>is-not-free-in</code> need not correspond exactly to the conventional definition of freeness, as long as it corresponds for the cases we need.
-# 
-term (formula (is-not-free-in x φ))
-# 
-# === Showing a variable is free ===
-# A variable is not free in a formula if it does not occur in the formula:
-stmt (DistinctNotFree ((φ x)) () (is-not-free-in x φ))
-# 
-# A variable is not free in a formula if it is bound by a quantifier:
-stmt (BoundForAllNotFree () () (is-not-free-in x (∀ x φ)))
-stmt (BoundThereExistsNotFree () () (is-not-free-in x (∃ x φ)))
-# 
-# If a variable is not free in a formula it is not free in a formula which adds another quantifier (possibly to a different variable) at the start:
-stmt (addForAllNotFree () ((is-not-free-in x φ)) (is-not-free-in x (∀ y φ)))
-stmt (addThereExistsNotFree () ((is-not-free-in x φ)) (is-not-free-in x (∃ y φ)))
-# 
-# If a variable is not free in any of the parts of a formula it is not free in the formula which joins them with connectives:
-# 
-stmt (negateNotFree () ((is-not-free-in x φ)) (is-not-free-in x (¬ φ)))
+# Metamath has <code>φ → ∀ x φ</code> as a way to say that a variable is not free in a formula, but we rely instead on the free variable features built in to ghilbert.
 
-stmt (implicationNotFree () 
-  ((is-not-free-in x φ) (is-not-free-in x ψ))
-  (is-not-free-in x (→ φ ψ))
-)
-
-stmt (disjunctionNotFree () 
-  ((is-not-free-in x φ) (is-not-free-in x ψ))
-  (is-not-free-in x (∨ φ ψ)))
-
-stmt (conjunctionNotFree ()
-  ((is-not-free-in x φ) (is-not-free-in x ψ))
-  (is-not-free-in x (∧ φ ψ)))
-
-stmt (biconditionalNotFree ()
-  ((is-not-free-in x φ) (is-not-free-in x ψ))
-  (is-not-free-in x (↔ φ ψ)))
-# 
-# And we supply a builder for <code>is-not-free-in</code>:
-# 
-stmt (buildNotFree () ((↔ φ ψ)) (↔ (is-not-free-in x φ) (is-not-free-in x ψ)))
-# 
 # === Adding or removing quantifiers ===
 # If a variable is not free in a formula, it is legitimate to add or remove quantifiers from that formula:
-stmt (ForAllAddRemoveNotFree () ((is-not-free-in x φ)) (↔ (∀ x φ) φ))
-stmt (ThereExistsAddRemoveNotFree () ((is-not-free-in x φ)) (↔ (∃ x φ) φ))
+stmt (ForAllAddRemove ((φ x)) () (↔ (∀ x φ) φ))
+stmt (ThereExistsAddRemove ((φ x)) () (↔ (∃ x φ) φ))
 # 
 # === Moving formulas in and out of quantification ===
 # The results in this section all have to do with being able to move around formulas relative to quantifiers, given that the quantified variable is not free in the formula being moved.
 # 
-# ==== Implication ====
-stmt (ForAllImplicationAntecedentMovement () ((is-not-free-in x φ)) (↔ (∀ x (→ φ ψ)) (→ φ (∀ x ψ))))
-stmt (moveAntecedentOutOfForAll () ((∀ x (→ φ ψ)) (is-not-free-in x φ)) (→ φ (∀ x ψ)))
-stmt (moveAntecedentIntoForAll () 
-  ((→ φ (∀ x ψ)) (is-not-free-in x φ)) 
-  (∀ x (→ φ ψ)))
+stmt (ForAllImplicationConsequentMovement ((ψ x)) () (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ)))
 
-stmt (ThereExistsAntecedentMovementNotFree () ((is-not-free-in x φ)) (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ))))
-stmt (ForAllImplicationConsequentMovement () ((is-not-free-in x ψ)) (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ)))
-stmt (ThereExistsImplicationConsequentMovement () ((is-not-free-in x ψ)) (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) ψ)))
-
-stmt (ThereExistsConjunctionMovementNotFree () ((is-not-free-in x φ)) (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
-# 
-# ==== Versions with distinct variables ====
 stmt (ThereExistsConjunctionMovement ((φ x)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ))))
 stmt (ThereExistsConjunctionRightMovement ((ψ x)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ)))
 
@@ -255,7 +199,6 @@ stmt (addForAllToConsequent ((φ x))
   ((→ φ ψ))
   (→ φ (∀ x ψ)))
 
-stmt (addForAllToConsequentNotFree () ((is-not-free-in x φ) (→ φ ψ)) (→ φ (∀ x ψ)))
 # 
 # == Converting variable to object ==
 # We can convert a formula containing a variable <code>x</code> to one containing an object <code>s</code> using the following theorem.
@@ -337,19 +280,6 @@ stmt (ChangeVariableExplicitThereExists ((φ y) ) ()
   (↔ (∃ x φ) (∃ y (subst y x φ))))
 stmt (ChangeVariableExplicitForAll ((φ y) ) ()
   (↔ (∀ x φ) (∀ y (subst y x φ))))
-# 
-# Here are versions of the implicit ones with explicit freeness hypotheses rather than distinct variable constraints.
-stmt (ChangeVariableThereExistsNotFree
-  ()
-  ((is-not-free-in x φy)
-   (is-not-free-in y φx)
-   (→ (= x y) (↔ φx φy)))
-  (↔ (∃ x φx) (∃ y φy)))
-stmt (ChangeVariableForAllNotFree ()
-  ((is-not-free-in x φy)
-   (is-not-free-in y φx)
-   (→ (= x y) (↔ φx φy)))
-  (↔ (∀ x φx) (∀ y φy)))
 # 
 # A similar transformation is possible for substitution.
 stmt (ChangeVariableSubstitution
