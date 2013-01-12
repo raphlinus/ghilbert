@@ -58,7 +58,7 @@ Tab.prototype.shelve = function() {
 Tab.prototype.unshelve = function() {
     this.session.setValue(this.contents);
     delete this.contents;
-    delete this.diff;
+    delete this.delta;
 };
 
 // Get file contents of the tab (assuming it exists)
@@ -123,9 +123,9 @@ Workspace.prototype.initmenus = function() {
             self.revert();
             self.finishmenuselect(event);
         });
-    document.getElementById("menu-creatediff").addEventListener('click',
+    document.getElementById("menu-createdelta").addEventListener('click',
         function (event) {
-            self.creatediff();
+            self.createdelta();
             self.finishmenuselect(event);
         });
 };
@@ -233,11 +233,9 @@ Workspace.prototype.loadfile = function(filename) {
             document.getElementById("status").innerHTML = "";
             var contents = x.responseText;
             tab.original = contents;
-            if (tab.diff) {
-                var d = new diff_match_patch();
-                contents = d.patch_apply(tab.diff, contents)[0];
-                // TODO: should probably check success
-                delete tab.diff;
+            if (tab.delta) {
+                contents = apply_delta(contents, tab.delta);
+                delete tab.delta;
             }
             tab.setcontents(contents);
         }
@@ -287,13 +285,13 @@ Workspace.prototype.revert = function() {
     }
 };
 
-Workspace.prototype.initstate = function(base, diffs) {
+Workspace.prototype.initstate = function(base, deltas) {
     this.base = base;
-    for (var fn in diffs) {
+    for (var fn in deltas) {
         if (!(fn in this.filemap)) {
             this.filemap[fn] = new Tab(this);
         }
-        this.filemap[fn].diff = diffs[fn];
+        this.filemap[fn].delta = deltas[fn];
     }
 };
 
@@ -305,7 +303,7 @@ Workspace.prototype.newdirtab = function() {
     x.onreadystatechange = function() {
         if (x.readyState == 4) {
             var response = JSON.parse(x.responseText);
-            self.initstate(response['base'], response['diffs']);
+            self.initstate(response['base'], response['deltas']);
             self.populatedir(tab.contentid, response['dir']);
         }
     }
@@ -341,13 +339,12 @@ Workspace.prototype.populatedir = function(id, dir) {
         }
     }
     rec(dir, '');
-    // Fill in files we have (for example, from diffs), but not in dir
+    // Fill in files we have (for example, from deltas), but not in dir
     for (var fn in this.filemap) {
         if (!(fn in fileset)) {
             var tab = this.filemap[fn];
-            var d = new diff_match_patch();
             tab.original = '';
-            tab.contents = d.patch_apply(tab.diff, '')[0];
+            tab.contents = apply_delta('', tab.delta);
             rec([fn], '');
         }
     }
@@ -408,31 +405,30 @@ Workspace.prototype.resize = function() {
     }
 };
 
-Workspace.prototype.getdiff = function() {
-    var diffs = {};
-    var d = new diff_match_patch();
+Workspace.prototype.getdelta = function() {
+    var deltas = {};
     for (var fn in this.filemap) {
         var tab = this.filemap[fn];
-        if (tab.diff !== undefined) {
-            diffs[fn] = tab.diff;
+        if (tab.delta !== undefined) {
+            deltas[fn] = tab.delta;
         } else if (tab.original !== undefined) {
-            var diff = d.patch_make(tab.original, tab.getcontents());
+            var delta = compute_delta(tab.original, tab.getcontents());
             if (!tab.session) {
-                // save diff for shelved file so we don't need to recompute
-                tab.diff = diff;
+                // save delta for shelved file so we don't need to recompute
+                tab.delta = delta;
             }
-            diffs[fn] = diff;
+            deltas[fn] = delta;
         }
     }
-    return {"diffs": diffs, "base": this.base};  
+    return {"deltas": deltas, "base": this.base};  
 };
 
-Workspace.prototype.creatediff = function() {
-    var diffs = this.getdiff();
-    var tab = this.newtab("diff");
+Workspace.prototype.createdelta = function() {
+    var deltas = this.getdelta();
+    var tab = this.newtab("delta");
     var div = document.getElementById(tab.contentid)
         .appendChild(document.createElement('div'));
-    div.appendChild(document.createTextNode(JSON.stringify(diffs)));
+    div.appendChild(document.createTextNode(JSON.stringify(deltas)));
     this.selecttab(tab);
 };
 
@@ -453,7 +449,7 @@ Workspace.prototype.dirty = function() {
 
 Workspace.prototype.save = function(async) {
     document.getElementById("status").innerHTML = "Saving...";
-    var diffs = this.getdiff();
+    var deltas = this.getdelta();
     var x = new XMLHttpRequest();
     x.open('POST', '/workspace', async);
     x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -463,7 +459,7 @@ Workspace.prototype.save = function(async) {
             // TODO; track in-flight status
         };
     }
-    x.send(JSON.stringify(diffs));
+    x.send(JSON.stringify(deltas));
     delete this.dirtytimeoutid;
 };
 
