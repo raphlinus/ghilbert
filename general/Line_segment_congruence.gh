@@ -1,0 +1,286 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (AXIOMS Tarski's_geometry_axioms.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
+tvar (point x′ y′ z′ w′ u′)
+var (object a b b′ c d′ q q′ ww ww′ b″ c″)
+tvar (formula antecedent)
+thm (CongruenceReflexivity () () (≡ x y x y)
+        y x CongruenceABBA
+        y x CongruenceABBA
+        introduceConjunction
+
+        y x x y x y CongruenceTransitivityAxiom
+
+        applyModusPonens
+ )
+thm (CongruenceSymmetryImplication () () (→ (≡ x y z w) (≡ z w x y))
+        x y CongruenceReflexivity
+        x y z w x y CongruenceTransitivityAxiom
+        detach2of2
+ )
+
+thm (CongruenceSymmetry () () (↔ (≡ x y z w) (≡ z w x y))
+        x y z w CongruenceSymmetryImplication
+        z w x y CongruenceSymmetryImplication
+        introduceBiconditionalFromImplications
+ )
+
+thm (swapCongruenceInConsequent () (H (→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ z w x y))
+        H
+        x y z w CongruenceSymmetryImplication
+        applySyllogism
+ )
+thm (CongruenceTransitivity () () (→ (∧ (≡ x y z w) (≡ z w u v)) (≡ x y u v))
+        x y z w CongruenceSymmetry
+        eliminateBiconditionalReverse
+        (≡ z w u v) conjoinRR
+
+        z w x y u v CongruenceTransitivityAxiom
+
+        applySyllogism
+ )
+thm (CongruenceLeftCommutativityImplication () () (→ (≡ x y z w) (≡ y x z w))
+        x y CongruenceABBA
+        x y y x z w CongruenceTransitivityAxiom
+        detach1of2
+ )
+
+thm (CongruenceLeftCommutativity () () (↔ (≡ x y z w) (≡ y x z w))
+        x y z w CongruenceLeftCommutativityImplication
+        y x z w CongruenceLeftCommutativityImplication
+        introduceBiconditionalFromImplications
+ )
+
+thm (commuteCongruenceLeftInConsequent () (H (→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ y x z w))
+        H
+        x y z w CongruenceLeftCommutativityImplication
+        applySyllogism
+ )
+thm (CongruenceRightCommutativity () () (↔ (≡ x y z w) (≡ x y w z))
+        x y z w CongruenceSymmetry
+
+        z w x y CongruenceLeftCommutativity
+        applyBiconditionalTransitivity
+
+        w z x y CongruenceSymmetry
+        applyBiconditionalTransitivity
+ )
+
+thm (commuteCongruenceRightInConsequent () (H (→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ x y w z))
+        H
+        x y z w CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (CongruenceTrivialIdentity ( ) () (≡ y y x x)
+        a x y x x SegmentConstruction
+# Now we have <code>∃ a (between x y a ∧ y a ≡ x x)</code>. We drop the between part.
+        (between x y a) (≡ y a x x) ConjunctionLeftElimination
+        a addThereExists
+        applyModusPonens
+# Here we combine <code>y a ≡ x x → y = a</code> with our previous result and rearrange a bit to get <code>∃ a (y = a ∧ y a ≡ x x)</code>.
+        y a x CongruenceIdentity
+        (≡ y a x x) ImplicationReflexivity
+        composeConjunction
+        a addThereExists
+        applyModusPonens
+# Now we just need a substitution.  The substitution is <code>y = a → (y y ≡ x x ↔ y a ≡ x x)</code>.
+        x EqualityReflexivity
+        x EqualityReflexivity
+        y EqualityReflexivity
+        y y y a x x x x CongruenceBuilder
+        detach1of4
+        detach2of2
+        detach2of2
+# Taking the reverse implication and combining with the previous result gives us <code>∃ a y y ≡ x x</code>.
+        eliminateBiconditionalForwardInConsequent
+        import
+        a addThereExists
+        applyModusPonens
+# The quantifier is no longer needed, and removing it finishes the proof.
+        removeThereExists
+ )
+thm (CongruenceIdentityLeft () () (→ (≡ x x y z) (= y z))
+        x x y z CongruenceSymmetry
+        eliminateBiconditionalReverse
+
+        y z x CongruenceIdentity
+        applySyllogism
+ )
+thm (CongruenceCommutativity () () (↔ (≡ x y z w) (≡ y x w z))
+        x y z w CongruenceLeftCommutativity
+        y x z w CongruenceRightCommutativity
+        applyBiconditionalTransitivity
+ )
+
+thm (commuteCongruenceInConsequent () (H (→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ y x w z))
+        H
+        x y z w CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (CongruenceIdentityFromEquality () () (→ (= x y) (→ (≡ x y z w) (= z w)))
+# This is just a substitution away from <code>CongruenceIdentityLeft</code>.  The substitution is <code>x = y → (x x ≡ z w ↔ x y ≡ z w)</code>.
+        z EqualityReflexivity
+        w EqualityReflexivity
+        x EqualityReflexivity
+        x x x y z z w w CongruenceBuilder
+        detach1of4
+        detach2of2
+        detach2of2
+
+        eliminateBiconditionalForwardInConsequent
+
+        x z w CongruenceIdentityLeft
+        (= x y) introduceAntecedent
+        applySyllogismInConsequent
+ )
+thm (ThreeSegmentXEqualsY () () (→ (= x y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))
+# We start with <code>x = y → (x y ≡ x′ y′ → x′ = y′)</code>
+        x y x′ y′ CongruenceIdentityFromEquality
+# Using <code>x′ = y′</code> for something takes this form: <code>x = y → (x′ = y′ → (y z ≡ y′ z′ → x z ≡ x′ z′))</code>.
+        z EqualityReflexivity
+        z′ EqualityReflexivity
+        x y z z x′ y′ z′ z′ CongruenceBuilder
+        detach2of2
+        detach2of3
+        eliminateBiconditionalForwardInConsequent
+        export
+# We combine those to get <code>x = y → (x y ≡ x′ y′ → (y z ≡ y′ z′ → x z ≡ x′ z′))</code>.
+        applySyllogismInConsequent
+# Adding two more antecedents and importing several times gives us the complete <code>x = y</code> case.
+        (between x′ y′ z′) introduceAntecedentInConsequent
+        (between x y z) introduceAntecedentInConsequent
+        importInConsequent
+        importInConsequent
+        importInConsequent
+ )
+thm (ThreeSegmentXNotEqualY () () (→ (x ≠ y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))
+# Applying the five segment axiom gives us <code>x ≠ y ∧ between x y z ∧ between x′ y′ z′ ∧ x y ≡ x′ y′ ∧ y z ≡ y′ z′ ∧ x x ≡ x′ x′ ∧ y x ≡ y′ x′ → z x ≡ z′ x′</code>. First we detach <code>x x ≡ x′ x′</code>
+        x x′ CongruenceTrivialIdentity
+        x y z x′ y′ z′ x x′ OuterFiveSegment
+        detach2of3
+# Next we commute <code>z x ≡ z′ x′</code> to <code>x z ≡ x′ z′</code>.
+        z x z′ x′ CongruenceCommutativity eliminateBiconditionalReverse
+        applySyllogism
+# We are still facing <code>x ≠ y ∧ between x y z ∧ between x′ y′ z′ ∧ x y ≡ x′ y′ ∧ y z ≡ y′ z′ ∧ y x ≡ y′ x′ → x z ≡ x′ z′</code>. We need to remove the <code>y x ≡ y′ x′</code> (because it is redundant with <code>x y ≡ x′ y′</code>).
+# 
+# We get most of the way with <code>x y ≡ x′ y′ ∧ y z ≡ y′ z′ → (x y ≡ x′ y′ ∧ y z ≡ y′ z′) ∧ y x ≡ y′ x′</code>:
+        (∧ (≡ x y x′ y′) (≡ y z y′ z′)) ImplicationReflexivity
+
+        (≡ x y x′ y′) (≡ y z y′ z′) ConjunctionRightElimination
+        commuteCongruenceInConsequent
+
+        composeConjunction
+# Now we just add the rest of the antecedents and combine to finish the <code>x ≠ y</code> case.
+        (≡ x z x′ z′) addCommonConsequent
+        exportInAntecedent
+        exportInAntecedent
+        exportInConsequent
+        (between x′ y′ z′) addCommonAntecedent
+        (between x y z) addCommonAntecedent
+        (x ≠ y) addCommonAntecedent
+
+        importInAntecedent
+        importInAntecedent
+        importInAntecedent
+        importInAntecedent
+        importInAntecedent
+
+        applyModusPonens
+
+        importInConsequent
+        importInConsequent
+        importInConsequent
+ )
+
+thm (OuterThreeSegment () ()
+  (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′))
+        x y z x′ y′ z′ ThreeSegmentXEqualsY
+        x y z x′ y′ z′ ThreeSegmentXNotEqualY
+        eliminateCases
+ )
+thm (SegmentConstructionUniquenessAxAy () () (→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))
+# First we extract the two pieces we care about, first showing that big long antecedent implies <code>A x ≡ B C</code>,
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# And then that it implies <code>A y ≡ B C</code>.
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionLeftElimination
+# We apply symmetry to turn that into <code>B C ≡ A y</code>.
+        swapCongruenceInConsequent
+# We combine the two to get <code>A x ≡ B C ∧ B C ≡ A y</code>, and apply transitivity to finish.
+        composeConjunction
+
+        A x B C A y CongruenceTransitivity
+        applySyllogism
+ )
+thm (SegmentConstructionUniquenessQxQy () () (→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))
+# To apply <code>OuterThreeSegment</code> we need four things. The first is <code>between Q A x</code>.
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# The second is <code>between Q A y</code>.
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# The third is <code>Q A ≡ Q A</code>.
+        Q A CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+
+        composeConjunction
+# The fourth is <code>A x ≡ A y</code>.
+        Q A x B C y SegmentConstructionUniquenessAxAy
+
+        composeConjunction
+# Applying <code>OuterThreeSegment</code> we are done.
+        Q A x Q A y OuterThreeSegment
+        applySyllogism
+ )
+thm (SegmentConstructionUniquenessxxxy () () (→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))
+# We'll be applying <code>OuterFiveSegment</code> which has seven antecedents. The first two we can do together, <code>Q ≠ A ∧ between Q A x</code>.
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# The next is <code>between Q A x</code>.
+        (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# We now need four congruences. The first is <code>Q A ≡ Q A</code>.
+        Q A CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+
+        composeConjunction
+# The second congruence is <code>A x ≡ A x</code>.
+        A x CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+
+        composeConjunction
+# The third congruence is <code>Q x ≡ Q y</code>.
+        Q A x B C y SegmentConstructionUniquenessQxQy
+        composeConjunction
+# The fourth congruence is <code>A x ≡ A y</code>.
+        Q A x B C y SegmentConstructionUniquenessAxAy
+        composeConjunction
+# We are ready to apply <code>OuterFiveSegment</code>.
+        Q A x Q A x x y OuterFiveSegment
+        applySyllogism
+ )
+thm (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))
+        Q A x B C y SegmentConstructionUniquenessxxxy
+        x x y CongruenceIdentityLeft
+        applySyllogism
+ )
+export (RESULTS Line_segment_congruence.ghi (CLASSICAL FIRSTORDER) "")
