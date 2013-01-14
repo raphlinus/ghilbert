@@ -23,7 +23,7 @@ thm (EqualityReflexivity-2 () ()
         x addForAll
  )
 
-thm (EqualityReflexivity ( (s x)) () (= s s)
+thm (EqualityReflexivity ( ) () (= s s)
         x s Quantifiability
 
         (¬ (= s s)) x Generalization
@@ -186,7 +186,7 @@ thm (buildEqualityLLInConsequent ()
 defthm (Subst formula (subst s x φ) () () (↔ (subst s x φ) (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))))
         (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))) BiconditionalReflexivity
 )
-thm (Subst ( (s y) (φ y)    (s z) (φ z)) () (
+thm (Subst ( (s y) (φ y)     ) () (
   ↔ (subst s x φ) 
     (∃ y (∧ (= y s) 
       (∃ x (∧ (= x y) φ))
@@ -203,7 +203,7 @@ thm (Subst ( (s y) (φ y)    (s z) (φ z)) () (
 # Then we just apply our change-variable theorem and we are done.
         ChangeVariableThereExists
  )
-thm (SubstBuilderReplacement ((s y) (t y) (φ y) ) ()
+thm (SubstBuilderReplacement (   ) ()
   (→ (= s t) (↔ (subst s x φ) (subst t x φ)))
         s t y EqualityBuilderLL
         (∃ x (∧ (= x y) φ)) buildConjunctionRRInConsequent
@@ -224,7 +224,7 @@ thm (buildSubstReplacement () (H (= s t))
         s t x φ SubstBuilderReplacement
         applyModusPonens
  )
-thm (SubstAddition ((s y)  (ψ y) (φ y)) () (→ (∀ x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))
+thm (SubstAddition (   ) () (→ (∀ x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))
         φ ψ (= x y) ConjunctionMultiplicationLL
         x addForAll
 
@@ -280,7 +280,7 @@ thm (buildSubst () (H (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ))
         s x addSubst
         introduceBiconditionalFromImplications
  )
-thm (ThereExistsIntroductionFromObject ( (φ y)  (s y)) ()
+thm (ThereExistsIntroductionFromObject (   ) ()
   (→ (subst s x φ) (∃ x φ))
 # The proof takes the definition of <code>subst</code>, <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code> and pares it down by eliminating the parts we don't need. We start by expanding the definition.
         s x φ y Subst
@@ -303,7 +303,7 @@ thm (introduceThereExistsFromObject () (H (subst s x φ)) (∃ x φ)
         s x φ ThereExistsIntroductionFromObject
         applyModusPonens
  )
-thm (SubstNotFree ((s x)   (s y) (φ y)) () (is-not-free-in x (subst s x φ))
+thm (SubstNotFree ((s x)    ) () (is-not-free-in x (subst s x φ))
 # The proof consists of just applying our not-free theorems to each piece of the definition of <code>subst</code>
         x (= y s) DistinctNotFree
         x (∧ (= x y) φ) BoundThereExistsNotFree
@@ -316,7 +316,7 @@ thm (SubstNotFree ((s x)   (s y) (φ y)) () (is-not-free-in x (subst s x φ))
 
         applyModusPonens
  )
-thm (SpecializationToObject ((s y)  (φ y)) () (→ (∀ x φ) (subst s x φ))
+thm (SpecializationToObject (  ) () (→ (∀ x φ) (subst s x φ))
 # We start with <code>∀ x φ ∧ ∃ x x = y → ∃ x (φ ∧ x = y)</code> and eliminate the second antecedent (because it is an instance of <code>Quantifiability</code>).
         x y Quantifiability
         x φ (= x y) ThereExistsConjunctionCombining
@@ -447,7 +447,7 @@ thm (VariableToObject ((s x) (φs x))
         Hφx HSUB detachImplicationBiconditional
         VariableToObjectLemma
  )
-thm (ObjectSubstitution ((s x)  (φ y) (s y)) () 
+thm (ObjectSubstitution ((s x)   ) () 
   (→ (= x s) (→ φ (∀ x (→ (= x s) φ))))
 # The general idea of the proof is to "substitute" <code>s</code> for <code>y</code> using a formula of the form <code>y = s → (''a formula with y in it'' ↔ ''much the same formula, but with s'')</code>.
 # 
@@ -477,7 +477,7 @@ thm (ThereExistsForAll ((s x)) () (↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x
 # and then turning this implicit substitution into its ∃ form.
         ImplicitThereExistsNotFree
  )
-thm (SubstitutionThereExists ((s x) (s y)  (φ y)) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
+thm (SubstitutionThereExists ((s x)   ) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
 # We start with applying some builders to get <code>y = s → (∃ x (x = y ∧ φ) ↔ ∃ x (x = s ∧ φ))</code>.
         y s x EqualityBuilderLL
         φ buildConjunctionRRInConsequent
@@ -508,7 +508,7 @@ thm (SubstNegationLemma () ()
         transposeBiconditionalWithNegatedRight
  )
 
-thm (SubstNegation ( (s y) (φ y)) () (↔ (subst s x (¬ φ)) (¬ (subst s x φ)))
+thm (SubstNegation (  ) () (↔ (subst s x (¬ φ)) (¬ (subst s x φ)))
         s x (¬ φ) y Subst
 
         y s (∃ x (∧ (= x y) (¬ φ))) ThereExistsForAll
@@ -531,7 +531,7 @@ thm (SubstNegation ( (s y) (φ y)) () (↔ (subst s x (¬ φ)) (¬ (subst s x φ
         addNegation
         applyBiconditionalTransitivity
  )
-thm (SubstDisjunction ( (s y)  (φ y) (ψ y)) () (↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))
+thm (SubstDisjunction (    ) () (↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))
         s x (∨ φ ψ) y Subst
 
         (= x y) φ ψ ConjunctionLeftDistribution
@@ -611,7 +611,7 @@ thm (SubstBiconditional () () (↔ (subst s x (↔ φ ψ)) (↔ (subst s x φ) (
         swapBiconditional
         applyBiconditionalTransitivity
  )
-thm (SubstThereExists ((s y x z) (φ z)) () (↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))
+thm (SubstThereExists ((s y x z) ) () (↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))
 # To prove this, we simply expand the definition of <code>subst</code> and move <code>∃ y</code> across each piece of it. The expansion is <code>∃ z (z = s ∧ ∃ x (x = z ∧ ∃ y φ))</code>
         s x (∃ y φ) z Subst
 
@@ -659,7 +659,7 @@ thm (introduceSubst () (H φ) (subst s x φ)
         x φ s SpecializationToObject
         applyModusPonens
  )
-thm (makeSubstExplicitNotFree ((s x)  (ψ y)  (s y) (φ y))
+thm (makeSubstExplicitNotFree ((s x)     )
   (HFREE (is-not-free-in x ψ) HEQ (→ (= x s) (↔ φ ψ)))
   (↔ (subst s x φ) ψ)
 # The proof will basically consist of two applications of <code>ImplicitSubstitutionThereExists</code>.
@@ -700,7 +700,7 @@ thm (makeSubstExplicit ((s x) (ψ x))
         H
         makeSubstExplicitNotFree
  )
-thm (EqualitySubstForward ((s x)   (s z) (φ z)) () (→ (= x s) (→ φ (subst s x φ)))
+thm (EqualitySubstForward ((s x)    ) () (→ (= x s) (→ φ (subst s x φ)))
 # The proof consists of gradually building up the definition of <code>subst</code>. It is somewhat similar to the proof in metamath<ref>[http://us.metamath.org/mpeuni/sbequ1.html sbequ1]</ref> although the details are different because we have a different definition of <code>subst</code>.
 # 
 # We're going to start with <code>x = s ∧ φ → ∃ x (x = s ∧ φ)</code>, and then we want to change the innermost <code>s</code> to <code>z</code> (under the condition that <code>z = s</code>). We do this by using <code>(x = s ∧ φ) ∧ z = s</code> as an antecedent in both cases.
@@ -749,7 +749,7 @@ thm (EqualitySubstDistinct ((s x)) () (→ (= x s) (↔ φ (subst s x φ)))
         x s φ EqualitySubstReverse
         introduceBiconditionalFromImplicationsInConsequent
  )
-thm (SubstItself (  (φ y)   (φ z)) () (↔ (subst x x φ) φ)
+thm (SubstItself (     ) () (↔ (subst x x φ) φ)
 # Before we get started, we leave a statement on the proof stack for later.
         y x Quantifiability
 # The first step is <code>y = x → (φ ↔ [ y / x ] φ)</code>.
