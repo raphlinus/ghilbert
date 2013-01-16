@@ -128,6 +128,11 @@ Workspace.prototype.initmenus = function() {
             self.createdelta();
             self.finishmenuselect(event);
         });
+    document.getElementById("menu-commit").addEventListener('click',
+        function (event) {
+            self.createcommittab();
+            self.finishmenuselect(event);
+        });
 };
 
 Workspace.prototype.selecttab = function(tab) {
@@ -467,4 +472,11 @@ Workspace.prototype.beforeunload = function() {
     if (this.dirtytimeoutid !== undefined) {
         this.save(false);
     }
+};
+
+Workspace.prototype.createcommittab = function() {
+    if (this.committab === undefined) {
+        this.committab = this.newtab("commit");
+    }
+    this.selecttab(this.committab);
 };

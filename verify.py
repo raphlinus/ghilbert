@@ -1188,7 +1188,7 @@ class ExportCtx(InterfaceCtx):
         InterfaceCtx.__init__(self, name, verify, prefix, params, 'export')
         self.assertions = {}
 
-    def export_match(self, sexp, vexp, varmap, invmap):
+    def export_match(self, sexp, vexp, varmap, invmap, vsyms):
         """ Match export-context expression sexp against verify-context
             expression vexp, building variable map varmap from export-context
             variables to verify-context variables as one goes.
@@ -1205,7 +1205,7 @@ class ExportCtx(InterfaceCtx):
                 except KeyError:
                     return False
                 # Check binding vs. term var and kinds
-                vv = self.verify.syms[vexp]
+                vv = vsyms[vexp]
                 binding_v = v[0]
                 binding_vv = vv[0]
                 if binding_v != binding_vv:
@@ -1235,7 +1235,7 @@ class ExportCtx(InterfaceCtx):
             return False
         n = n - 1
         for i in xrange(n):
-            if not self.export_match(sexp[i + 1], vexp[i + 1], varmap, invmap):
+            if not self.export_match(sexp[i + 1], vexp[i + 1], varmap, invmap, vsyms):
                 return False
         return True
         
@@ -1329,9 +1329,9 @@ class ExportCtx(InterfaceCtx):
             for i in range(nhyps):
                 hyp = local_hyps[i]
                 vhyp = vhyps[i]
-                if not self.export_match(hyp, vhyp, varmap, invmap):
+                if not self.export_match(hyp, vhyp, varmap, invmap, vsyms):
                     raise VerifyError('Hypothesis mismatch for stmt %s\nExport context:\n   %s\nVerify context:\n   %s' % (local_label, sexp_to_string(hyp), sexp_to_string(vhyp)))
-            if not self.export_match(local_conc, vconcl, varmap, invmap):
+            if not self.export_match(local_conc, vconcl, varmap, invmap, vsyms):
                 raise VerifyError('Conclusion mismatch for stmt %s\nExport context:\n   %s\nVerify context:\n   %s' % (local_label, sexp_to_string(local_conc), sexp_to_string(vconcl)))
 
             # Would it make sense to save a 'nonfree' dictionary

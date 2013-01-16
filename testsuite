@@ -578,3 +578,17 @@ defthm (df-foo formula (foo x φ) () () (↔ (foo x φ) (→ φ (∀ x φ)))
 export (OUT out.ghi () "")
 !reject test.gh Term freemap mismatch with verify context for foo
 
+# Import a statement (with hypotheses), and then export it unchanged.
+!unshare
+!append in.ghi
+kind (formula)
+tvar (formula p)
+stmt (foo () (p) p)
+!append out.ghi
+kind (formula)
+tvar (formula φ)
+stmt (foo () (φ) φ)
+!append test.gh
+import (IN in.ghi () "")
+export (OUT out.ghi () "")
+!accept test.gh

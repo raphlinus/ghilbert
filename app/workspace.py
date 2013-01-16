@@ -52,6 +52,7 @@ class Handler(users.AuthenticatedHandler):
             <li><a id="menu-dirtab" href="#">Directory</a></li>
             <li><a id="menu-createdelta" href="#">Create delta</a></li>
             <li><a id="menu-save" href="#">Save</a></li>
+            <li><a id="menu-commit" href="#">Commit</a></li>
         </ul>
     </li>
     <li><a href="#">Edit</a>
