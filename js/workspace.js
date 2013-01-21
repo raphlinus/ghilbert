@@ -50,15 +50,15 @@ Tab.prototype.shelve = function() {
     if (this.session) {
         this.contents = this.session.getValue();
     }
-    delete this.session;
-    delete this.tabmenuelement;
-    delete this.contentid;
+    this.session = undefined;
+    this.tabmenuelement = undefined;
+    this.contentid = undefined;
 };
 
 Tab.prototype.unshelve = function() {
     this.session.setValue(this.contents);
-    delete this.contents;
-    delete this.delta;
+    this.contents = undefined;
+    this.delta = undefined;
 };
 
 // Get file contents of the tab (assuming it exists)
@@ -240,7 +240,7 @@ Workspace.prototype.loadfile = function(filename) {
             tab.original = contents;
             if (tab.delta) {
                 contents = apply_delta(contents, tab.delta);
-                delete tab.delta;
+                tab.delta = undefined;
             }
             tab.setcontents(contents);
         }
@@ -403,6 +403,7 @@ Workspace.prototype.resize = function() {
     height -= document.getElementById("tabmenu").offsetHeight;
     var tab = this.currenttab;
     if (tab.session) {
+        height -= tab.contentheight | 0;
         document.getElementById("editor").style.height = height + "px";
         this.editor.resize();
     } else {
@@ -425,7 +426,7 @@ Workspace.prototype.getdelta = function() {
             deltas[fn] = delta;
         }
     }
-    return {"deltas": deltas, "base": this.base};  
+    return {"deltas": deltas, "base": this.base};
 };
 
 Workspace.prototype.createdelta = function() {
@@ -460,12 +461,14 @@ Workspace.prototype.save = function(async) {
     x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     if (async) {
         x.onreadystatechange = function() {
-            document.getElementById("status").innerHTML = "";
-            // TODO; track in-flight status
+            if (x.readyState == 4) {
+                document.getElementById("status").innerHTML = "";
+                // TODO; track in-flight status
+            }
         };
     }
     x.send(JSON.stringify(deltas));
-    delete this.dirtytimeoutid;
+    this.dirtytimeoutid = undefined;
 };
 
 Workspace.prototype.beforeunload = function() {
@@ -474,9 +477,57 @@ Workspace.prototype.beforeunload = function() {
     }
 };
 
+Workspace.prototype.commitfn = '_COMMIT_MSG';  // special filename for commit message
+
 Workspace.prototype.createcommittab = function() {
-    if (this.committab === undefined) {
-        this.committab = this.newtab("commit");
+    var tab = this.newblankfile(this.commitfn);
+    tab.contentheight = 100;
+    document.getElementById(tab.contentid).innerHTML =
+        '<button id="commitbutton" type="button">Commit</button>';
+    var commitbutton = document.getElementById("commitbutton");
+    var self = this;
+    commitbutton.addEventListener('click',
+        function(event) {
+            commitbutton.innerHTML = "Submitting...";
+            self.docommit(commitbutton);
+        }
+    );
+    this.selecttab(tab);
+};
+
+Workspace.prototype.docommit = function(button) {
+    var deltas = this.getdelta();
+    deltas.msg = apply_delta('', deltas.deltas[this.commitfn]);
+    if (/^\s*$/.test(deltas.msg)) {
+        button.innerHTML = "Please write commit message, then commit again";
+        return;
     }
-    this.selecttab(this.committab);
+    delete deltas.deltas[this.commitfn];
+    var x = new XMLHttpRequest();
+    x.open('POST', '/workspace/commit', true);
+    x.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    var self = this;
+    x.onreadystatechange = function() {
+        if (x.readyState == 4) {
+            var response = x.status == 200 ? JSON.parse(x.responseText) :
+                ['error', 'network error'];
+            if (response[0] == 'ok') {
+                button.innerHTML = "Committed";
+                self.base = response[1].base;
+                for (fn in self.filemap) {
+                    var tab = self.filemap[fn];
+                    if (tab.original !== undefined) {
+                        tab.original = tab.getcontents();
+                    }
+                    tab.delta = undefined;
+                }
+                delete self.filemap[self.commitfn];
+                self.dirtytimeoutid = 1;
+            } else {
+                button.innerHTML = "Error: " + response[1];
+            }
+        }
+    };
+    x.send(JSON.stringify(deltas));
+    this.dirtytimeoutid = undefined;
 };

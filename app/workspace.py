@@ -25,6 +25,16 @@ import gitcontent
 import users
 
 import babygit.babygit
+import babygit.stage
+
+# Apply a delta as produced by delta.js
+def apply_delta(original, delta):
+    orig_lines = original.split('\n')
+    result = []
+    for start, length, new in delta:
+        result.extend(orig_lines[start:start+length])
+        result.extend(new)
+    return '\n'.join(result)
 
 class Workspace(db.Model):
     # key_name is userid
@@ -123,9 +133,41 @@ class Handler(users.AuthenticatedHandler):
             return self.get_init_state()
         return self.get_workspace(arg)
 
+    def apply_deltas(self, base, deltas):
+        tree = self.repo.getroot(base)
+        for fn, delta in deltas.iteritems():
+            obj = self.repo.traverse(fn)
+            orig = '' if obj is None else babygit.babygit.obj_contents(obj)
+            newcontents = apply_delta(orig, delta).encode('utf-8')
+            tree = babygit.stage.save(self.repo, fn.encode('utf-8'), newcontents, tree)
+        return tree
+
+    def do_commit(self):
+        workspace = json.decode(self.request.body)
+        if workspace['base'] != self.repo.gethead():
+            result = ['error', 'concurrent update']
+            # TODO: need to make this experience better
+        else:
+            # A few things wrong with the "stage" abstraction:
+            # 1. It doesn't work well for head != master
+            # 2. It pushes extra intermediate tree blobs
+            # 3. It reads and writes to the datastore, not needed here
+            # But it's good enough for now, and can be replaced later.
+            babygit.stage.checkout(self.repo)
+            newtree = self.apply_deltas(workspace['base'], workspace['deltas'])
+            babygit.stage.add(self.repo, newtree)
+            author = self.identity
+            msg = workspace['msg'].rstrip() + '\n'
+            commitsha = babygit.stage.commit(self.repo, author, msg)
+            result = ['ok', {'base': commitsha}]
+        self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
+        self.response.out.write(json.encode(result))
+
     def post(self, arg):
         if not self.has_write_perm:
             return common.error_403(self)
+        if arg == '/commit':
+            return self.do_commit()
         workspace_str = self.request.body
         username = self.username
         if username is None:
