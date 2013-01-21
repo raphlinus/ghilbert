@@ -200,6 +200,7 @@ Workspace.prototype.neweditortab = function(filename, tab) {
         tab.session.on('change', function(delta) {
             self.dirty();
         });
+        tab.session.setUseWrapMode(true);
     }
     return tab;
 };
