@@ -1276,12 +1276,14 @@ class ExportCtx(InterfaceCtx):
             if kind != tkind:
                 raise VerifyError('Term ' + local_termname +
                                   ' kind mismatch with verify context term ' +
-                                  termname)
+                                  termname +
+                                  '; exporting to kind ' + kind +
+                                  ' but is ' + tkind + ' in verify context')
 
             if argkinds != targkinds:
                 raise VerifyError(\
                     'Term signature mismatch with verify context for ' + local_termname +
-                    '. Kinds being exported to: ' + str(argkinds) +
+                    '; kinds being exported to: ' + str(argkinds) +
                     '; kinds in verify context: ' + str(targkinds))
 
             if freemap != tfreemap:
