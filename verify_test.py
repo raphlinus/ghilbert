@@ -118,7 +118,7 @@ def regression(fn, out):
                     tests += 1
                     if len(cmd) < 2:
                          failures += 1
-                         print str(lineno) + ": Missing proof module name for !accept or !reject command"
+                         print str(lineno) + ": FAIL, Missing proof module name for !accept or !reject command"
                     else:
                          try:
                               run_regression(urlctx, cmd[1], verifyctx, out)
@@ -137,7 +137,7 @@ def regression(fn, out):
                     urlctx.revert()
                else:
                     failures += 1
-                    print str(lineno) + ": unrecognized command " + cmd[0]
+                    print str(lineno) + ": FAIL, unrecognized command " + cmd[0]
           elif l.strip() and not l.startswith('#'):
                urlctx.append_current(l)
      return [tests, failures]
