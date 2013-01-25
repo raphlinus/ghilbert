@@ -3,8 +3,6 @@
 import (PROP prop.ghi () "")
 import (PEANO_MIN peano_min.ghi (PROP) "")
 
-kindbind (num nat)
-
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D')
 var (nat v w x y z v' w' x' y' z')
@@ -909,7 +907,7 @@ thm (eu4 ((ph y) (ps x))
 
 # == Basic Peano arithmetic ==
 
-defthm (df-1 num (1) () () (= (1) (S (0)))
+defthm (df-1 nat (1) () () (= (1) (S (0)))
         (S (0)) eqid)
 
 thm (addeq1 () ()
@@ -2326,7 +2324,7 @@ thm (df-tail-just ((A x) (A y') (A y) (A z)) ()
   y  y'  z  opeq1    A  eqeq1d   exalpha   syl6bb    abeq
   ({|} x (E. y (= (<,> y x) A)))  ({|} z (E. y' (= (<,> y' z) A)))    ax-iotaeq    ax-mp
 )
-defthm  (df-tail num (tail A) ((A x) (A y')) ()
+defthm  (df-tail nat (tail A) ((A x) (A y')) ()
   (= (tail A)  (iota ({|} x (E. y' (= (<,> y' x) A)))))
   z  y  A  x  y'  df-tail-just)
 
@@ -2350,7 +2348,7 @@ thm (df-head-just ((A x) (A y') (A y) (A z)) ()
   y  y'  z  opeq2    A  eqeq1d   exalpha   syl6bb    abeq
   ({|} x (E. y (= (<,> x y) A)))  ({|} z (E. y' (= (<,> z y') A)))   ax-iotaeq    ax-mp
 )
-defthm  (df-head num (head A) ((A x) (A y')) ()
+defthm  (df-head nat (head A) ((A x) (A y')) ()
   (= (head A)  (iota ({|} x (E. y' (= (<,> x  y') A)))))
   z  y  A  x  y'  df-head-just)
 
@@ -2474,7 +2472,7 @@ thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (=
   ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))  ax-iotaeq    ax-mp
 )
 
-defthm (df-ifn num (ifn ph A B) ((ph x) (A x) (B x)) ()
+defthm (df-ifn nat (ifn ph A B) ((ph x) (A x) (B x)) ()
   (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
   y  ph  A  B  x  df-ifn-just)
 
@@ -2560,7 +2558,7 @@ thm (df-halfminus-just ((A x y) (B x y)) ()
 )
 
 # Definition of "half minus"
-defthm (df-halfminus num (.- A B) ((A x) (B x)) ()
+defthm (df-halfminus nat (.- A B) ((A x) (B x)) ()
   (= (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))))
   A B y x df-halfminus-just
 )
@@ -3465,7 +3463,7 @@ thm (df-sqrt-just ((A x) (A y)) ()
    abeq    ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))  ({|} y (/\ (<= (* y y) A) (< A (* (S y) (S y)))))  ax-iotaeq     ax-mp
 )
 
-defthm  (df-sqrt num (sqrt A) ((A x)) ()
+defthm  (df-sqrt nat (sqrt A) ((A x)) ()
   (= (sqrt A)  (iota ({|} x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))))
   y  A  x  df-sqrt-just)
 
@@ -3537,7 +3535,7 @@ abeq
 )
 
 
-defthm  (df-min num (min S) ((S x) (S y)) ()
+defthm  (df-min nat (min S) ((S x) (S y)) ()
         (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))))
           x' S y' x y df-min-just)
 
@@ -3789,7 +3787,7 @@ thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
 )
 
 
-defthm  (df-mod num (mod A B) ((A x y) (B x y)) ()
+defthm  (df-mod nat (mod A B) ((A x y) (B x y)) ()
         (= (mod A B) (min ({|} x (E. y (= (+ (* B y) x) A)))))
           x'  y'  B  A  x  y df-mod-just)
 
@@ -3910,7 +3908,7 @@ thm (df-gcd-just ((A z z') (B z z')) ()
 )
 
 
-defthm  (df-gcd num (gcd A B) ((A z) (B z)) ()
+defthm  (df-gcd nat (gcd A B) ((A z) (B z)) ()
         (= (gcd A B) (min ({|} z (/\ (-. (= z (0)))
                 (lincom A B z)))))
           z'  A B z df-gcd-just)
@@ -4270,7 +4268,7 @@ thm (df-div-just ((A x y) (B x y)) ()
   ({|} x (= (+ (* B x) (mod A B)) A)) ({|} y (= (+ (* B y) (mod A B)) A)) mineq ax-mp
 )
 
-defthm (df-div num (div A B) ((A x) (B x)) ()
+defthm (df-div nat (div A B) ((A x) (B x)) ()
   (= (div A B) (min ({|} x (= (+ (* B x) (mod A B)) A))))
   y B A x df-div-just
 )
@@ -4309,7 +4307,7 @@ thm (df-beta-just ((A x x') (B x x')) ()
   abeq
   ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A)))  ({|} x' (| (S (* (S (<,> B x')) (tail A))) (head A)))   mineq  ax-mp
 )
-defthm  (df-beta num (beta A B) ((A x ) (B x )) ()
+defthm  (df-beta nat (beta A B) ((A x ) (B x )) ()
         (= (beta A B) (min ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A)))))
           x' B A x df-beta-just)
 
@@ -5497,7 +5495,7 @@ thm (df-apply-just ((A y) (S y) (A z) (S z)) ()
    z  y  A  opeq2     (<,> A z)  (<,> A y)  S  ax-eleq1    syl   abeq     ({|} z (e. (<,> A z) S))  ({|} y (e. (<,> A y) S))  ax-iotaeq    ax-mp)
 
 # Definition of function application
-defthm  (df-apply num (apply S A) ( (A z) (S z)) ()
+defthm  (df-apply nat (apply S A) ( (A z) (S z)) ()
   (= (apply S A) (iota ({|} z (e. (<,> A z) S))))
   y A S z df-apply-just)
 
@@ -6243,7 +6241,7 @@ thm (df-exp-just ((A w x y z) (B x z)) () (=
  ({|} x (recursep (lambda y (* y A)) B (1) x))  ({|} z (recursep (lambda w (* w A)) B (1) z))  ax-iotaeq    ax-mp
 )
 
-defthm (df-exp num (exp A B) ((A x y) (B x)) ()
+defthm (df-exp nat (exp A B) ((A x y) (B x)) ()
   (= (exp A B) (iota ({|} x (recursep (lambda y (* y A)) B (1) x))))
   x'  y'  A  B  x  y  df-exp-just)
 

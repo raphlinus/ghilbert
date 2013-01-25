@@ -1,10 +1,10 @@
 param (PROP prop.ghi () "")
 
-kind (num)
+kind (nat)
 
 tvar (wff ph ps ch)
-tvar (num A B C D)
-var (num x y z)
+tvar (nat A B C D)
+var (nat x y z)
 
 term (wff (A. x ph))
 term (wff (= A B))
@@ -30,11 +30,11 @@ stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
 
 stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 
-# Similar to ax-8, but for num's instead of var's.
+# Similar to ax-8, but for nat's instead of var's.
 stmt (ax-eqtr () ()
   (-> (/\ (= A B) (= A C)) (= B C)))
 
-# Similar to ax-9, but expanded to num's instead of var's.
+# Similar to ax-9, but expanded to nat's instead of var's.
 stmt (ax-tyex ((A x)) ()
   (-. (A. x (-. (= x A)))))
 
@@ -43,10 +43,10 @@ stmt (ax-tyex ((A x)) ()
 
 # Properties of numbers: Peano axioms
 
-term (num (0))
-term (num (S A))
-term (num (+ A B))
-term (num (* A B))
+term (nat (0))
+term (nat (S A))
+term (nat (+ A B))
+term (nat (* A B))
 
 # Equality axiom for addition
 stmt (addeq12 () ()
@@ -78,7 +78,7 @@ stmt (pa_ind ((ph y)) ()
       (A. x ph)))
 
 # Ordered pairs, using a suitable construction in natural numbers.
-term (num (<,> A B))
+term (nat (<,> A B))
 stmt (df-op () ()
   (= (<,> A B) (+ (* (+ A B) (+ A B)) B)))
 
