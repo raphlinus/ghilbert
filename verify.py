@@ -1375,6 +1375,10 @@ class ExportCtx(InterfaceCtx):
                         # Hmm, we could perhaps allow stronger freeness
                         # constraints in the exported stmt than in the
                         # original, but for now we don't.
+                        if not vvar in nonfrees_orig:
+                            # not sure what this means, but at least give a line number
+                            # by making it a VerifyError.
+                            raise VerifyError('variable ' + vvar + ' not found in nonfrees ' + str(nonfrees_orig))
                         if not tvar in nonfrees_orig[vvar]:
                             raise VerifyError('Export context free variable constraint context for %s is too strong' % vname)
                         # Add tvar to the set of term variables in which vvar
