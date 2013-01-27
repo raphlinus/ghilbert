@@ -21,7 +21,7 @@ For example, {{{kind (formula)}}} says there is a kind called {{{formula}}}.
 For example, {{{tvar (formula p q r)}}} declares variables p, q and r, all formulas.
 
 * Terms.
-: term (//kind// (//new-term// //argument-1// //argument-2//...))
+: term (//kind// (//new-term// //argument-1// //argument-2//...) //freemap//)
 
 : For example, {{{term (formula (¬ p))}}} defines a term called ¬ of kind formula which takes one argument, which is a formula (assuming {{{p}}} had been declared with {{{tvar (formula p)}}}). The name of the term is the first thing in the list, and although the ghilbert web site will sometimes typeset it differently, that is a display feature only; in editing proofs the term comes first. For example, in a proof you might mention {{{(∧ p q)}}}, which might get typeset as {{{p ∧ q}}}.
 
@@ -36,6 +36,13 @@ term (formula (∀ x φ))
 }}}
 
 : In this case {{{∀}}} is considered to bind the variable which is the first argument. Ghilbert applies the same treatment to any term with a binding variable; {{{∀}}} is not a special case for the verifier. The effect of this treatment is that, for example, {{{y}}} is not considered free in {{{∀ y ψ}}}, which affects the verifier's processing of freeness constraints.
+
+: The freemap consists of entries of the form (//variable// //term//). A freemap entry indicates that if the variable occurs free in the specified term, it is considered free in the term being defined. For example;
+: {{{
+term (formula (subst A x φ) ((x A)))
+}}}
+
+: This means that {{{x}}} is considered free in, for example, {{{(subst (x + x) x φ)}}} (because x occurs free in A, which in this case is x + x). If a variable is not mentioned in the freemap, it is considered bound in the term being defined.
 
 * Statements.  Statements are either axioms (in which case there will be no modules which export this interface, as axioms cannot be proved) or statements to be proved (in which case, some module will prove the statement and export the interface).
 : stmt (//new-statement// (//freeness-constraints//) (//hypotheses//) (//consequent//))
@@ -93,7 +100,7 @@ Some of the error messages you may encounter are:
 
 : Term freemap mismatch with verify context
 
-This means that you are trying to export to a term, but the thing you are exporting is (TODO: explain how freeness works in ghilbert, or at least what it means in the context of this error message).
+This means that you are trying to export to a term, but the thing you are exporting does not agree with the term's freemap. See the discussion of freemaps under term above.
 
 == External links ==
 
