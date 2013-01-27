@@ -22,11 +22,12 @@ For example, {{{tvar (formula p q r)}}} declares variables p, q and r, all formu
 
 * Terms.
 : term (//kind// (//new-term// //argument-1// //argument-2//...))
-For example, {{{term (formula (¬ p))}}} defines a term called ¬ of kind formula which takes one argument, which is a formula (assuming {{{p}}} had been declared with {{{tvar (formula p)}}}). The name of the term is the first thing in the list, and although the ghilbert web site will sometimes typeset it differently, that is a display feature only; in editing proofs the term comes first. For example, in a proof you might mention {{{(∧ p q)}}}, which might get typeset as {{{p ∧ q}}}.
 
-The arguments of a term each have a kind and binding. By //binding//, we mean that the argument is either a term (if the variable supplied to {{{term}}} was declared with {{{tvar}}}), or the term being defined //binds// this variable. For example, consider the following example:
+: For example, {{{term (formula (¬ p))}}} defines a term called ¬ of kind formula which takes one argument, which is a formula (assuming {{{p}}} had been declared with {{{tvar (formula p)}}}). The name of the term is the first thing in the list, and although the ghilbert web site will sometimes typeset it differently, that is a display feature only; in editing proofs the term comes first. For example, in a proof you might mention {{{(∧ p q)}}}, which might get typeset as {{{p ∧ q}}}.
 
-{{{
+: The arguments of a term each have a kind and binding. By //binding//, we mean that the argument is either a term (if the variable supplied to {{{term}}} was declared with {{{tvar}}}), or the term being defined //binds// this variable. For example, consider the following example:
+
+: {{{
 kind (formula)
 tvar (formula φ ψ)
 kind (object)
@@ -34,7 +35,7 @@ var (object x y)
 term (formula (∀ x φ))
 }}}
 
-In this case {{{∀}}} is considered to bind the variable which is the first argument. Ghilbert applies the same treatment to any term with a binding variable; {{{∀}}} is not a special case for the verifier. The effect of this treatment is that, for example, {{{y}}} is not considered free in {{{∀ y ψ}}}, which affects the verifier's processing of freeness constraints.
+: In this case {{{∀}}} is considered to bind the variable which is the first argument. Ghilbert applies the same treatment to any term with a binding variable; {{{∀}}} is not a special case for the verifier. The effect of this treatment is that, for example, {{{y}}} is not considered free in {{{∀ y ψ}}}, which affects the verifier's processing of freeness constraints.
 
 * Statements.  Statements are either axioms (in which case there will be no modules which export this interface, as axioms cannot be proved) or statements to be proved (in which case, some module will prove the statement and export the interface).
 : stmt (//new-statement// (//freeness-constraints//) (//hypotheses//) (//consequent//))
@@ -56,7 +57,7 @@ As you can see, interfaces with no parameters are imported with empty parameter 
 : import (PRINCIPIA Interface:Axioms_of_first-order_logic (CLASSICAL) "")
 where the second interface expects Interface:Classical_propositional_calculus or a compatible interface as its only parameter.
 
-The //prefix// allows the names in the interface to differ from the name in the module (which may be necessary to avoid naming conflicts with some of the imported interfaces, for example). The prefix can be either a string or {{{""}}} for the empty string.
+: The //prefix// allows the names in the interface to differ from the name in the module (which may be necessary to avoid naming conflicts with some of the imported interfaces, for example). The prefix can be either a string or {{{""}}} for the empty string.
 
 * Variables.  Same syntax and meaning as in interfaces.
 
@@ -65,7 +66,7 @@ The //prefix// allows the names in the interface to differ from the name in the 
 * Proofs.
 : thm (//new-theorem// (//freeness-constraints//) (//hypotheses//) (//consequent//) //proof//)
 
-This represents the proof of a theorem.
+: This represents the proof of a theorem.
 
 :* //new-theorem// is the name of the theorem.
 :* //hypotheses// will need to be present to later apply the theorem, and can be empty. Each hypothesis consists of a label followed by the hypothesis (unlike in {{{stmt}}}, in which the labels are omitted).
