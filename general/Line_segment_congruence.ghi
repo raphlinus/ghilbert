@@ -1,0 +1,108 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = [[Betweenness of points]]
+# | exportedby = [[Line segment congruence]]
+# }}
+# 
+# {{geometry series brief}}
+# 
+# We build on [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]] (including equality):
+# 
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+# 
+# The kind <code>object</code>, defined in first-order logic, represents a point. We do not directly have a concept of lines, angles, or circles (nor can these be defined in the obvious way as sets of points, as this is a first-order theory).
+kindbind (object point)
+tvar (point x y z w u v A B C D Q)
+tvar (point x′ y′ z′ u′)
+
+var (object a b c xx yy)
+tvar (formula antecedent)
+# 
+# == Congruence of line segments ==
+# We introduce congruence of line segments; <code>(x y ≡ w z)</code> means that the line segment <code>x y</code> is the same length as the line segment <code>w z</code>. This property is also known as equidistance.
+term (formula (≡ x y z w))
+# 
+# There are a variety of ways of expressing the idea that congruence is not affected by the order in which we list the line segment's endpoints.
+stmt (CongruenceLeftCommutativity () () (↔ (≡ x y z w) (≡ y x z w)))
+stmt (CongruenceRightCommutativity () () (↔ (≡ x y z w) (≡ x y w z)))
+stmt (CongruenceCommutativity () () (↔ (≡ x y z w) (≡ y x w z)))
+
+stmt (commuteCongruenceLeftInConsequent () ((→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ y x z w)))
+stmt (commuteCongruenceRightInConsequent () ((→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ x y w z)))
+stmt (commuteCongruenceInConsequent () ((→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ y x w z)))
+# 
+# The congruence relation has the attributes of an equivalence relation between line segments.
+stmt (CongruenceReflexivity () () (≡ x y x y))
+stmt (CongruenceSymmetry () () (↔ (≡ x y z w) (≡ z w x y)))
+stmt (CongruenceTransitivity () () (→ (∧ (≡ x y z w) (≡ z w u v)) (≡ x y u v)))
+
+stmt (CongruenceABBA () () (≡ x y y x))
+stmt (swapCongruenceInConsequent () ((→ antecedent (≡ x y z w)))
+  (→ antecedent (≡ z w x y)))
+# 
+# A segment which has zero length starts and ends at the same point (although saying "zero length" is a bit of a shortcut, as our theory is not based on real numbers or any other numbers).
+stmt (CongruenceIdentity () () (→ (≡ x y z z) (= x y)))
+stmt (CongruenceIdentityLeft () () (→ (≡ x x y z) (= y z)))
+stmt (CongruenceTrivialIdentity () () (≡ y y x x))
+stmt (CongruenceIdentityFromEquality () () (→ (= x y) (→ (≡ x y z w) (= z w))))
+# 
+# == Segment construction ==
+# A line segment can be extended beyond one of its endpoints by a specified distance (where by "distance" we mean a second line segment, which the constructed segment is to be congruent to). The segment extended this way is unique.
+term (formula (between x y z))
+stmt (SegmentConstruction ((w a) (x a) (y a) (z a)) () (∃ a (∧ (between w x a) (≡ x a y z))))
+stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y)))
+# 
+# == Five segment ==
+# <gallery>
+# File:Five segment.svg|Outer five segment
+# </gallery>
+# The five segment theorems are variations of the familiar congruences for triangles (although without any explicit reference to angles). So far we just have the outer, not inner, forms (see [[Interface:Basic geometry]] for both).
+stmt (OuterFiveSegment () ()
+  (→
+   (∧ (∧ (∧ (∧
+     (∧ (∧ (≠ x y) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
+)
+# 
+# === Three segment ===
+# The three segment theorems can be thought of as degenerate cases of five segment, or as basic properties of points on a line.
+stmt (OuterThreeSegment () ()
+  (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))
+# 
+# == Tarski's axioms ==
+# We repeat those axioms which are not subsumed by the theorems we have proved so far. Explanations are at [[Interface:Tarski's geometry axioms]].
+stmt (Indivisibility () () (→ (between x y x) (= x y)))
+stmt (Pasch ((x a) (u a) (z a) (y a) (v a)) () (→ (∧ (between x u z) (between y v z)) (∃ a (∧ (between u a y) (between v a x)))))
+tvar (formula φx ψy)
+stmt (Continuity ((φx yy) (φx a) (φx b) (ψy xx) (ψy a) (ψy b) ) () 
+  (→
+  (∃ a (∀ xx (∀ yy (→ (∧ φx ψy) (between a xx yy))))) (∃ b (∀ xx (∀ yy (→ (∧ φx ψy) (between xx b yy)))))))
+stmt (LowerDimension () ()
+  (∃ a (∃ b (∃ c
+    (∧
+     (∧
+     (¬ (between a b c)) (¬ (between b c a))) (¬ (between c a b))
+)))))
+stmt (UpperDimension () ()
+  (→
+  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (≠ u v)) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
+stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
+  →
+  (∧ (∧ (between x u v) (between y u z)) (≠ x u)) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
+tvar (point x0 x1 x2 x3 y0 y1 y2 y3)
+stmt (CongruenceBuilder () () (
+  →
+  (∧ (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (= x3 y3)) (↔ (≡ x0 x1 x2 x3) (≡ y0 y1 y2 y3))
+))
+stmt (BetweenBuilder () () (
+  →
+  (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (↔ (between x0 x1 x2) (between y0 y1 y2))
+))
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Euclidean geometries (general) and generalizations]]
+# [[Category:Foundations of classical theories (including reverse mathematics)]]
