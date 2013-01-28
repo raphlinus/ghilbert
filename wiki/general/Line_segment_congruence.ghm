@@ -50,22 +50,22 @@ There are two cases. If {{{x ≠ y}}}, then applying five segments to x y z and 
 We first prove the {{{x = y}}} case as a lemma.
 * #(→ (= x y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))# ([/general/Line_segment_congruence.gh/ThreeSegmentXEqualsY | ThreeSegmentXEqualsY])
 Now, the {{{x ≠ y}}} case.
-* #(→ (x ≠ y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))# ([/general/Line_segment_congruence.gh/ThreeSegmentXNotEqualY | ThreeSegmentXNotEqualY])
+* #(→ (≠ x y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))# ([/general/Line_segment_congruence.gh/ThreeSegmentXNotEqualY | ThreeSegmentXNotEqualY])
 * #(→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′))# ([/general/Line_segment_congruence.gh/OuterThreeSegment | OuterThreeSegment])
 
 == Uniqueness of segment construction ==
 Here we prove that the segment constructed by the segment construction axiom is unique. We state this as {{{Q ≠ A ∧ between Q A x ∧ A x ≡ B C ∧ between Q A y ∧ A y ≡ B C → x = y}}}. The proof is first that {{{A x ≡ A y}}} (because both are congruent to {{{B C}}}), and between that and {{{Q A ≡ Q A}}} we can apply {{{OuterThreeSegment}}} to {{{Q A x}}} and {{{Q A y}}} to get {{{Q x ≡ Q y}}}. Then we will apply {{{OuterFiveSegment}}} with the lines {{{Q A x}}} and {{{Q A x}}} and the points {{{x}}} and {{{y}}}. The four congruences we need are {{{Q A ≡ Q A}}}, {{{A x ≡ A x}}}, {{{Q x ≡ Q y}}}, and {{{A x ≡ A y}}}, and then {{{OuterFiveSegment}}} gives us {{{x x ≡ x y}}}. This congruence yields {{{x = y}}} by {{{CongruenceIdentityLeft}}}.<ref>construction_unicity in Narboux</ref>
 
 The only real difficulty in formalizing this is juggling all those conjunctions and multiple antecedents. The first lemma shows {{{A x ≡ A y}}}.
-* #(→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessAxAy | SegmentConstructionUniquenessAxAy])
+* #(→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessAxAy | SegmentConstructionUniquenessAxAy])
 The next lemma shows {{{Q x ≡ Q y}}}.
-* #(→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessQxQy | SegmentConstructionUniquenessQxQy])
+* #(→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessQxQy | SegmentConstructionUniquenessQxQy])
 
 The next lemma gets us most of the way. It shows {{{x x ≡ x y}}}.
-* #(→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessxxxy | SegmentConstructionUniquenessxxxy])
+* #(→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessxxxy | SegmentConstructionUniquenessxxxy])
 
 The final theorem is only a small step further.
-* #(→ (∧ (∧ (∧ (∧ (Q ≠ A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniqueness | SegmentConstructionUniqueness])
+* #(→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniqueness | SegmentConstructionUniqueness])
 
 == Export ==
 We now export to [[Interface:Line segment congruence]].
