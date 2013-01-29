@@ -1,0 +1,181 @@
+{{interfaces
+| imports = [[Interface:Betweenness of points]]
+| exports = [[Interface:Triangle congruence]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Betweenness of points|geometry results so far]] and define some variables:
+
+== Inner five segment ==
+[[File:Inner five segment.svg|thumb|Inner five segment]]
+The five segment axiom can be thought of as an "outer five segment" statement, as one is given a set of congruences and concludes a congruence for a segment outside the given ones. The inner five segment theorem is similar, but the given set of congruences are for the outer segments and the theorem supplies a congruence inside those. The key change, comparing the axiom/theorem and diagrams, is to move the congruence for {{{z u}}} from the consequent to the antecedent, and the congruence for {{{y u}}} from the antecedent to the consequent.<ref>Lemma l4_2 in Narboux</ref>
+
+The proof has two cases.  The first case is {{{x = z}}}. From {{{between x y z}}} we get {{{x = y}}}. Likewise, {{{x z ≡ x′ z′}}} implies {{{x′ = z′}}}, which in turn implies {{{x′ = y′}}}. Thus, we can turn {{{x u ≡ x′ u′}}} into {{{y u ≡ y u′}}}.
+* #(→ (∧ (= x z) (between x y z)) (= x y))# ([/general/Triangle_congruence.gh/IndivisibilityFromEquality | IndivisibilityFromEquality])
+* #(→ (= x z) (→ (∧ (∧ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x z x′ z′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ z u z′ u′)) (≡ y u y′ u′)))# ([/general/Triangle_congruence.gh/InnerFiveSegmentXEqualsZ | InnerFiveSegmentXEqualsZ])
+[[File:Inner five segment proof.svg|thumb|right|The {{{x ≠ z}}} case. {{{w z ≡ w′ z′}}} by construction. {{{w u ≡ w′ u′}}} by applying outer five segment to {{{x z w u}}}. {{{y u ≡ y′ u′}}} by applying outer five segment to {{{w z y u}}}.]]
+The {{{x ≠ z}}} case is proved by two applications of outer five segment. First extend the line segment {{{x z}}} beyond {{{z}}} to a distinct point {{{w}}}. Extend {{{x′ z′}}} beyond {{{z′}}} to a point {{{w′}}} such that {{{w z ≡ w′ z′}}}. We can now apply outer five segment to {{{x z w u}}} to get {{{w u ≡ w′ u′}}}. Then we apply outer five segment to {{{w z y u}}} to get {{{y u ≡ y′ u′}}}.
+
+The bulk of the proof consists of picking out conjuncts to satisfy the antecedents of the outer five segment invocations. We break it out into two lemmas, which start after the construction of {{{w}}} and {{{w′}}} and go from there. The first lemma proves {{{w u ≡ w′ u′}}} and the second applies the first and proves {{{y u ≡ y′ u′}}}. The two lemmas have the same antecedent, which is parenthesized in the following way. It consists of four conjuncts, the first of which corresponds to the construction of {{{w}}}, the second of which corresponds to the construction of {{{w′}}}, the third of which is {{{w ≠ z}}}, and the fourth of which is the antecedent of the eventual {{{InnerFiveSegment}}} theorem we are working towards.
+* #(→
+  (
+    ∧ (∧ (between x z w) (¬ (= z w))) (
+    ∧ (∧ (between x′ z′ w′) (≡ z′ w′ z w)) (
+    ∧ (¬ (= x z)) (
+    ∧ (∧ (∧ (∧ (∧ (between x y z)
+      (between x′ y′ z′))
+      (≡ x z x′ z′))
+      (≡ y z y′ z′))
+      (≡ x u x′ u′))
+      (≡ z u z′ u′))))) (≡ w u w′ u′))# ([/general/Triangle_congruence.gh/InnerFiveSegmentWU | InnerFiveSegmentWU])
+* #(→
+  (
+    ∧ (∧ (between x z w) (¬ (= z w))) (
+    ∧ (∧ (between x′ z′ w′) (≡ z′ w′ z w)) (
+    ∧ (¬ (= x z)) (
+    ∧ (∧ (∧ (∧ (∧ (between x y z)
+      (between x′ y′ z′))
+      (≡ x z x′ z′))
+      (≡ y z y′ z′))
+      (≡ x u x′ u′))
+      (≡ z u z′ u′))))) (≡ y u y′ u′))# ([/general/Triangle_congruence.gh/InnerFiveSegmentYU | InnerFiveSegmentYU])
+Now it is time to assemble the {{{x ≠ z}}} case. It basically consists of predicate logic. There might be an clearer way to arrange this proof, but the basic idea is to construct {{{w′}}} (which we call {{{ww′}}} when we need a variable) with {{{SegmentConstruction}}}, to construct {{{w}}} (which we call {{{ww}}} when we need a variable) using {{{PointConstructionDifferent}}}, and to use those constructions to remove antecedents from the formula we get from {{{InnerFiveSegmentYU}}}.
+* #(→ (¬ (= x z)) (→ (∧ (∧ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x z x′ z′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ z u z′ u′)) (≡ y u y′ u′)))# ([/general/Triangle_congruence.gh/InnerFiveSegmentXNotEqualZ | InnerFiveSegmentXNotEqualZ])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x z x′ z′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ z u z′ u′)) (≡ y u y′ u′))# ([/general/Triangle_congruence.gh/InnerFiveSegment | InnerFiveSegment])
+
+== Inner three segment ==
+The next theorem, {{{between x y z ∧ between x′ y′ z′ ∧ x z ≡ x′ z′ ∧ y z ≡ y′ z′ → x y ≡ x′ y′}}}, is analogous to the three segment theorem we proved earlier, except that we are given the outer congruence and conclude an inner one.<ref>Lemma l4_3 in Narboux</ref><ref>Axiom 24 in Givant and Tarski, 1999</ref> The proof is a straightforward application of inner five segments; there is no need to treat any degenerate cases separately (as we did with outer three segment).
+
+* #(→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x z x′ z′)) (≡ y z y′ z′)) (≡ x y x′ y′))# ([/general/Triangle_congruence.gh/InnerThreeSegment | InnerThreeSegment])
+
+== Congruence of three points ==
+We call one set of three points congruent to a second set if each of the three corresponding congruences hold. In other words, two triangles are congruent if their corresponding sides are congruent (side-side-side) (except that our definition also holds for degenerate cases, where not all three points are distinct). The conventional notation is {{{△ABC ≅ △DEF}}} but because of the degenerate cases and JHilbert limitations, we just call it {{{A B C ≅ D E F}}}.
+
+The corresponding sides of congruent (possibly degenerate) triangles are congruent.
+* #(→ (A B C ≅ A′ B′ C′) (≡ A B A′ B′))# ([/general/Triangle_congruence.gh/Congruence12 | Congruence12])
+* #(→ (A B C ≅ A′ B′ C′) (≡ B C B′ C′))# ([/general/Triangle_congruence.gh/Congruence23 | Congruence23])
+* #(→ (A B C ≅ A′ B′ C′) (≡ A C A′ C′))# ([/general/Triangle_congruence.gh/Congruence13 | Congruence13])
+
+The next theorem rotates the order of the points in a triangle congruence. Narboux does not explicitly state this, presumably because he can just have Coq, his theorem prover, expand the definition and make many of the inferences automatically, as in the proof of {{{l4_13}}}.
+* #(↔ (A B C ≅ A′ B′ C′) (B C A ≅ B′ C′ A′))# ([/general/Triangle_congruence.gh/CongruenceRotation | CongruenceRotation])
+
+=== Reflexivity ===
+Also not stated by Narboux, probably for similar reasons, is reflexivity of triangle congruence.
+* #(A B C ≅ A B C)# ([/general/Triangle_congruence.gh/TriangleCongruenceReflexivity | TriangleCongruenceReflexivity])
+
+=== Constructing a degenerate congruent triangle ===
+Given two congruent line segments {{{A C}}} and {{{A′ C′}}}, where {{{B}}} is on the former, we construct a point {{{b′}}} on the latter line segment such that the degenerate triangles {{{A B C}}} and {{{A′ b′ C′</code/'> are congruent.<ref>Lemma l4_5 in Narboux</ref> In symbols this is {{{between A B C ∧ A C ≡ A′ C′ → ∃ b′ (between A′ b′ C′ ∧ A B C ≅ A′ b′ C′)}}}
+
+Here is a sketch of the proof: Extend {{{C′ A′}}} to a distinct point {{{d′}}}. Extend {{{d′ A′}}} to a point {{{b′}}} such that {{{A B ≡ A′ b′}}}. Extend {{{d′ b′}}} to a point {{{c″}}} such that {{{b′ c″ ≡ B C}}}. From {{{between d′ A′ b′}}} and {{{between d′ b′ c″}}} we can conclude {{{between A′ b′ c″}}} (by {{{BetweennessInnerTransitivityFlipped}}}). Applying outer three segment to {{{A B C}}} and {{{A′ b′ c″}}} gives us {{{A C ≡ A′ c″}}}. By the uniqueness of segment construction, applied to {{{d′ A′ C′}}} and {{{d′ A′ c″}}}, we conclude that {{{C′ = c″}}}. Given this equality, we merely need to do some substitution to prove each of the three congruences which make up {{{A B C ≅ A′ b′ C′}}}.
+
+Our first lemma constructs the points and moves the quantifiers a bit.
+* #(→ (∧ (between A B C) (≡ A C A′ C′)) 
+    (∃ d′ (∃ b′ (∃ c″
+      (∧ (∧ (∧ (∧ (between C′ A′ d′) (¬ (= A′ d′)))
+      (∧ (between d′ A′ b′) (≡ A′ b′ A B)))
+      (∧ (between d′ b′ c″)
+        (≡ b′ c″ B C)))
+      (∧ (between A B C) (≡ A C A′ C′)))))))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-1 | InnerDegenerateTriangle-1])
+
+The next few lemmas start after the construction of the points (that is, their antecedent is the consequent of the previous lemma, minus the quantifiers). We use {{{D′}}} as an {{{object}}} which corresponds to the {{{variable}}} {{{d′}}} (and likewise for the other quantified variables). The next lemma proves {{{between A′ B′ C″}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (between A′ B′ C″))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abc | InnerDegenerateTriangle-abc])
+
+The next lemma applies outer three segment to {{{A B C}}} and {{{A′ B′ C″}}} to yield {{{A C ≡ A′ C″}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (≡ A C A′ C″))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-acac | InnerDegenerateTriangle-acac])
+
+The next lemma, {{{between D′ A′ C″}}}, is an obvious consequence of betweenness transitivity.
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (between D′ A′ C″))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-dac | InnerDegenerateTriangle-dac])
+
+The next lemma applies uniqueness of segment construction to {{{D′ A′ C′}}} and {{{D′ A′ C″}}} and concludes {{{C′ = C″}}}.
+
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (= C′ C″))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-cc | InnerDegenerateTriangle-cc])
+
+Given this equality, we merely need to do some substitution to prove each of the three congruences which make up {{{A B C ≅ A′ B′ C′}}}.
+
+We start with a lemma which performs the substitution.
+* #(→ (∧ (= C′ C″) (≡ B′ C″ B C)) (≡ B′ C′ B C))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-bcbc | InnerDegenerateTriangle-bcbc])
+
+Now we can proceed to {{{A B C ≅ A′ B′ C′}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (A B C ≅ A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abcabc | InnerDegenerateTriangle-abcabc])
+
+A similar substitution turns {{{between A′ B′ C″}}} into {{{between A′ B′ C′}}}
+* #(→ (∧ (= C′ C″) (between A′ B′ C″)) (between A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abc1-sub | InnerDegenerateTriangle-abc1-sub])
+* #(
+  → (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
+   (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
+   (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
+   (∧ (between A B C) (≡ A C A′ C′)))
+  (between A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abc1 | InnerDegenerateTriangle-abc1])
+
+We're ready to assemble the result and remove the quantifiers which don't apply once the conclusion is reached.
+* #(→ (∧ (between A B C) (≡ A C A′ C′)) (∃ b′ (∧ (between A′ b′ C′) (A B C ≅ A′ b′ C′))))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle | InnerDegenerateTriangle])
+
+=== Betweenness of congruent degenerate triangles ===
+Given two (degenerate) congruent triangles, if the points of the first one are in a betweenness relationship, the corresponding points of the second are in a respective betweenness relationship. That is, {{{between A B C ∧ A B C ≅ A′ B′ C′ → between A′ B′ C′}}}.<ref>l4_6 in Narboux</ref> Here's the proof: apply {{{InnerDegenerateTriangle}}} to construct {{{B″}}} such that {{{between A′ B″ C′}}} and {{{A B C ≅ A′ B″ C′}}}. The congruences give us {{{A′ B″ ≡ A′ B′}}} and {{{C′ B″ ≡ C′ B′}}}. Given those two, and a few trivial congruences, we can apply inner five segment to the line segments {{{A′ B″ C′}}} and {{{A′ B″ C′}}} and points {{{B″}}} and {{{B′}}}, which gives us {{{B″ B″ ≡ B″ B′}}}. This of course implies {{{B″ = B′}}}, and substitution produces {{{between A′ B′ C′}}}.
+
+Our first lemma constructs {{{B″}}} and rearranges the quantifiers somewhat.
+* #(→ (∧ (between A B C) (A B C ≅ A′ B′ C′))
+    (∃ b″ (∧ (∧ (between A′ b″ C′) (A B C ≅ A′ b″ C′))
+      (∧ (between A B C) (A B C ≅ A′ B′ C′)))))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-1 | BetweennessDegenerateTriangle-1])
+
+The next lemma proves {{{A′ B″ ≡ A′ B′}}}.
+
+* #(
+  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
+    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  (≡ A′ B″ A′ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-abab | BetweennessDegenerateTriangle-abab])
+The proof of the {{{C′ B″ ≡ C′ B′}}} lemma is very similar.
+* #(
+  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
+    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  (≡ C′ B″ C′ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-cbcb | BetweennessDegenerateTriangle-cbcb])
+
+We're now ready to prove {{{B″ = B′}}}.
+
+* #(
+  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
+    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  (= B″ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-bb | BetweennessDegenerateTriangle-bb])
+We're just a substitution away from {{{between A′ B′ C′}}}.
+* #(
+  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
+    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  (between A′ B′ C′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-abc | BetweennessDegenerateTriangle-abc])
+The final theorem is just a matter of assembling and removing the quantifier.
+* #(→ (∧ (between A B C) (A B C ≅ A′ B′ C′)) (between A′ B′ C′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle | BetweennessDegenerateTriangle])
+
+== Export ==
+We now export to [[Interface:Triangle congruence]].
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
