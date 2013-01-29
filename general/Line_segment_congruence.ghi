@@ -55,7 +55,7 @@ stmt (CongruenceIdentityFromEquality () () (→ (= x y) (→ (≡ x y z w) (= z 
 # A line segment can be extended beyond one of its endpoints by a specified distance (where by "distance" we mean a second line segment, which the constructed segment is to be congruent to). The segment extended this way is unique.
 term (formula (between x y z))
 stmt (SegmentConstruction ((w a) (x a) (y a) (z a)) () (∃ a (∧ (between w x a) (≡ x a y z))))
-stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y)))
+stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y)))
 # 
 # == Five segment ==
 # <gallery>
@@ -65,7 +65,7 @@ stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (be
 stmt (OuterFiveSegment () ()
   (→
    (∧ (∧ (∧ (∧
-     (∧ (∧ (≠ x y) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
+     (∧ (∧ (¬ (= x y)) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
 )
 # 
 # === Three segment ===
@@ -89,10 +89,10 @@ stmt (LowerDimension () ()
 )))))
 stmt (UpperDimension () ()
   (→
-  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (≠ u v)) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
+  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (¬ (= u v))) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
 stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
   →
-  (∧ (∧ (between x u v) (between y u z)) (≠ x u)) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
+  (∧ (∧ (between x u v) (between y u z)) (¬ (= x u))) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
 tvar (point x0 x1 x2 x3 y0 y1 y2 y3)
 stmt (CongruenceBuilder () () (
   →

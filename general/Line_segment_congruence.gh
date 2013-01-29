@@ -162,7 +162,7 @@ thm (ThreeSegmentXEqualsY () () (→ (= x y) (→ (∧ (∧ (∧ (between x y z)
         importInConsequent
         importInConsequent
  )
-thm (ThreeSegmentXNotEqualY () () (→ (≠ x y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))
+thm (ThreeSegmentXNotEqualY () () (→ (¬ (= x y)) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))
 # Applying the five segment axiom gives us <code>x ≠ y ∧ between x y z ∧ between x′ y′ z′ ∧ x y ≡ x′ y′ ∧ y z ≡ y′ z′ ∧ x x ≡ x′ x′ ∧ y x ≡ y′ x′ → z x ≡ z′ x′</code>. First we detach <code>x x ≡ x′ x′</code>
         x x′ CongruenceTrivialIdentity
         x y z x′ y′ z′ x x′ OuterFiveSegment
@@ -186,7 +186,7 @@ thm (ThreeSegmentXNotEqualY () () (→ (≠ x y) (→ (∧ (∧ (∧ (between x 
         exportInConsequent
         (between x′ y′ z′) addCommonAntecedent
         (between x y z) addCommonAntecedent
-        (≠ x y) addCommonAntecedent
+        (¬ (= x y)) addCommonAntecedent
 
         importInAntecedent
         importInAntecedent
@@ -207,13 +207,13 @@ thm (OuterThreeSegment () ()
         x y z x′ y′ z′ ThreeSegmentXNotEqualY
         eliminateCases
  )
-thm (SegmentConstructionUniquenessAxAy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))
+thm (SegmentConstructionUniquenessAxAy () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))
 # First we extract the two pieces we care about, first showing that big long antecedent implies <code>A x ≡ B C</code>,
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 # And then that it implies <code>A y ≡ B C</code>.
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionLeftElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionLeftElimination
 # We apply symmetry to turn that into <code>B C ≡ A y</code>.
         swapCongruenceInConsequent
 # We combine the two to get <code>A x ≡ B C ∧ B C ≡ A y</code>, and apply transitivity to finish.
@@ -222,20 +222,20 @@ thm (SegmentConstructionUniquenessAxAy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) 
         A x B C A y CongruenceTransitivity
         applySyllogism
  )
-thm (SegmentConstructionUniquenessQxQy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))
+thm (SegmentConstructionUniquenessQxQy () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))
 # To apply <code>OuterThreeSegment</code> we need four things. The first is <code>between Q A x</code>.
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 # The second is <code>between Q A y</code>.
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
         eliminateLeftConjunctInConsequent
 
         composeConjunction
 # The third is <code>Q A ≡ Q A</code>.
         Q A CongruenceReflexivity
-        (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+        (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
 
         composeConjunction
 # The fourth is <code>A x ≡ A y</code>.
@@ -246,13 +246,13 @@ thm (SegmentConstructionUniquenessQxQy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) 
         Q A x Q A y OuterThreeSegment
         applySyllogism
  )
-thm (SegmentConstructionUniquenessxxxy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))
+thm (SegmentConstructionUniquenessxxxy () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))
 # We'll be applying <code>OuterFiveSegment</code> which has seven antecedents. The first two we can do together, <code>Q ≠ A ∧ between Q A x</code>.
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
 # The next is <code>between Q A x</code>.
-        (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
@@ -260,12 +260,12 @@ thm (SegmentConstructionUniquenessxxxy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) 
         composeConjunction
 # We now need four congruences. The first is <code>Q A ≡ Q A</code>.
         Q A CongruenceReflexivity
-        (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+        (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
 
         composeConjunction
 # The second congruence is <code>A x ≡ A x</code>.
         A x CongruenceReflexivity
-        (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
+        (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) introduceAntecedent
 
         composeConjunction
 # The third congruence is <code>Q x ≡ Q y</code>.
@@ -278,7 +278,7 @@ thm (SegmentConstructionUniquenessxxxy () () (→ (∧ (∧ (∧ (∧ (≠ Q A) 
         Q A x Q A x x y OuterFiveSegment
         applySyllogism
  )
-thm (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))
+thm (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))
         Q A x B C y SegmentConstructionUniquenessxxxy
         x x y CongruenceIdentityLeft
         applySyllogism

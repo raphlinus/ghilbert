@@ -133,11 +133,11 @@ thm (BetweennessOuterTransitivityFlipped-1 () () (→ (∧ (∧ (between A C x) 
 
 thm (BetweennessOuterTransitivityFlipped-bca ( (A a) (B a) (C a) (D a)) ()
   (→
-   (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (∃ a (∧ (∧ (between A C a) (≡ C a C D)) (between B C a))))
+   (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (∃ a (∧ (∧ (between A C a) (≡ C a C D)) (between B C a))))
         a A C C D SegmentConstruction
-        (∧ (∧ (between A B C) (between B C D)) (≠ B C)) introduceAntecedent
+        (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) introduceAntecedent
 
-        (∧ (between A B C) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (between A B C) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         (between A B C) (between B C D) ConjunctionRightElimination
         applySyllogism
 
@@ -153,11 +153,11 @@ thm (BetweennessOuterTransitivityFlipped-bca ( (A a) (B a) (C a) (D a)) ()
  )
 thm (BetweennessOuterTransitivityFlipped-2 ((A a) (B a) (C a) (D a)) ()
   (→
-   (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (∃ a (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C))))
+   (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (∃ a (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)))))
 # First, <code>C a ≡ C D ∧ between B C a</code>.
         A B C D a BetweennessOuterTransitivityFlipped-bca
 # Next, <code>between B C D</code>
-        (∧ (between A B C) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (between A B C) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         eliminateLeftConjunctInConsequent
 
         composeConjunction
@@ -166,48 +166,48 @@ thm (BetweennessOuterTransitivityFlipped-2 ((A a) (B a) (C a) (D a)) ()
         eliminateBiconditionalForward
         applySyllogism
 # Finally, <code>B ≠ C</code>
-        (∧ (between A B C) (between B C D)) (≠ B C) ConjunctionLeftElimination
+        (∧ (between A B C) (between B C D)) (¬ (= B C)) ConjunctionLeftElimination
 
         composeConjunction
 
-        a (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ThereExistsConjunctionRightMovement
+        a (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ThereExistsConjunctionRightMovement
         eliminateBiconditionalForward
         applySyllogism
  )
-thm (BetweennessOuterTransitivityFlipped-ad () () (→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C)) (= a D))
+thm (BetweennessOuterTransitivityFlipped-ad () () (→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C))) (= a D))
 # We'll be applying <code>SegmentConstructionUniqueness</code>. It has five antecedents. The first is <code>B ≠ C</code>.
-        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ConjunctionLeftElimination
+        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ConjunctionLeftElimination
 # The second is <code>between B C a</code>
-        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 
         composeConjunction
 # The third is <code>C a ≡ C D</code>
-        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 
         composeConjunction
 # The fourth is <code>between B C D</code>
-        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         eliminateLeftConjunctInConsequent
 
         composeConjunction
 # The fifth is <code>C D ≡ C D</code>
         C D CongruenceReflexivity
-        (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C)) introduceAntecedent
+        (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C))) introduceAntecedent
 
         composeConjunction
 # Applying <code>SegmentConstructionUniqueness</code> we can conclude <code>a = D</code>.
         B C a C D D SegmentConstructionUniqueness
         applySyllogism
  )
-thm (BetweennessOuterTransitivityFlipped-aca-ad () () (→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C)) (∧ (= a D) (between A C a)))
+thm (BetweennessOuterTransitivityFlipped-aca-ad () () (→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C))) (∧ (= a D) (between A C a)))
         A C a D B BetweennessOuterTransitivityFlipped-ad
 
-        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (≠ B C) ConjunctionRightElimination
+        (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
@@ -224,7 +224,7 @@ thm (BetweennessOuterTransitivityFlipped-sub () () (→ (∧ (= a D) (between A 
         eliminateBiconditionalReverseInConsequent
         import
  )
-thm (BetweennessOuterTransitivityFlipped (   ) () (→ (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (between A C D))
+thm (BetweennessOuterTransitivityFlipped (   ) () (→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A C D))
         A B C D a BetweennessOuterTransitivityFlipped-2
 
         A C a D B BetweennessOuterTransitivityFlipped-aca-ad
@@ -249,20 +249,20 @@ thm (BetweennessMiddleTransitivityBEqualsC () () (→ (= B C) (→ (∧ (between
         applySyllogism
  )
 
-thm (BetweennessMiddleTransitivityBNotEqualC () () (→ (≠ B C) (→ (∧ (between A B D) (between B C D)) (between A C D)))
+thm (BetweennessMiddleTransitivityBNotEqualC () () (→ (¬ (= B C)) (→ (∧ (between A B D) (between B C D)) (between A C D)))
 # We'll prove <code>B ≠ C ∧ (between A B D ∧ between B C D) → between A C D</code>, which is only an export away from our desired result.
 # 
 # To apply <code>BetweennessOuterTransitivityFlipped</code> we need three things.  The first is <code>between A B C</code>
-        (≠ B C) (∧ (between A B D) (between B C D)) ConjunctionLeftElimination
+        (¬ (= B C)) (∧ (between A B D) (between B C D)) ConjunctionLeftElimination
         A B D C BetweennessInnerTransitivity
         applySyllogism
 # The second is <code>between B C D</code>
-        (≠ B C) (∧ (between A B D) (between B C D)) ConjunctionLeftElimination
+        (¬ (= B C)) (∧ (between A B D) (between B C D)) ConjunctionLeftElimination
         eliminateLeftConjunctInConsequent
 
         composeConjunction
 # The third is <code>B ≠ C</code>
-        (≠ B C) (∧ (between A B D) (between B C D)) ConjunctionRightElimination
+        (¬ (= B C)) (∧ (between A B D) (between B C D)) ConjunctionRightElimination
         composeConjunction
 
         A B C D BetweennessOuterTransitivityFlipped
@@ -275,7 +275,7 @@ thm (BetweennessMiddleTransitivity () () (→ (∧ (between A B D) (between B C 
         B C A D BetweennessMiddleTransitivityBNotEqualC
         eliminateCases
  )
-thm (BetweennessOuterTransitivity () () (→ (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (between A B D))
+thm (BetweennessOuterTransitivity () () (→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A B D))
         A B C BetweennessSymmetry
         B C D BetweennessSymmetry
         buildConjunction
@@ -334,7 +334,7 @@ thm (IndivisibilityBidirectional () () (↔ (between x y x) (= x y))
         x y IndivisibilityBiconditional
  )
 
-thm (TwonessLemma () () (∃ a (∃ b (∃ c (∨ (≠ a b) (≠ b c)))))
+thm (TwonessLemma () () (∃ a (∃ b (∃ c (∨ (¬ (= a b)) (¬ (= b c))))))
         a b c LowerDimension
 # The <code>a = b</code> case involves first picking out <code>¬ between b c a</code>.
         (∧
@@ -362,12 +362,12 @@ thm (TwonessLemma () () (∃ a (∃ b (∃ c (∨ (≠ a b) (≠ b c)))))
         (= a b) introduceAntecedent
         applySyllogismInConsequent
 # and add the <code>a ≠ b</code> disjunct.
-        (≠ b c) (≠ a b) DisjunctionLeftIntroduction
+        (¬ (= b c)) (¬ (= a b)) DisjunctionLeftIntroduction
         (= a b) introduceAntecedent
         applySyllogismInConsequent
 # The <code>a ≠ b</code> case is just a matter of arranging formulas for the case elimination and hooking to <code>LowerDimension</code>.
-        (≠ a b) (≠ b c) DisjunctionRightIntroduction
-        (∨ (≠ a b) (≠ b c))
+        (¬ (= a b)) (¬ (= b c)) DisjunctionRightIntroduction
+        (∨ (¬ (= a b)) (¬ (= b c)))
         (∧
           (∧
           (¬ (between a b c)) (¬ (between b c a))) (¬ (between c a b))
@@ -380,7 +380,7 @@ thm (TwonessLemma () () (∃ a (∃ b (∃ c (∨ (≠ a b) (≠ b c)))))
         a addThereExists
         applyModusPonens
  )
-thm (TwonessLemma2 () () (↔ (∃ a (∃ b (≠ a b))) (∃ b (∃ c (≠ b c))))
+thm (TwonessLemma2 () () (↔ (∃ a (∃ b (¬ (= a b)))) (∃ b (∃ c (¬ (= b c)))))
 # Starting from the inside, our first substitution is <code>b = c → (a ≠ b ↔ a ≠ c)</code>
         b c a EqualityBuilderLL
         addNegationInConsequent
@@ -396,27 +396,27 @@ thm (TwonessLemma2 () () (↔ (∃ a (∃ b (≠ a b))) (∃ b (∃ c (≠ b c))
         applyBiconditionalTransitivity
  )
 
-thm (Twoness () () (∃ a (∃ b (≠ a b)))
+thm (Twoness () () (∃ a (∃ b (¬ (= a b))))
         a b c TwonessLemma
 
-        c (≠ a b) (≠ b c) ThereExistsDisjunctionMovement
+        c (¬ (= a b)) (¬ (= b c)) ThereExistsDisjunctionMovement
         eliminateBiconditionalReverse
         b addThereExists
         a addThereExists
         applyModusPonens
 # We now have <code>∃ a ∃ b (a ≠ b ∨ ∃ c b ≠ c)</code>. We distribute <code>∃ b</code> across the disjunction.
-        b (≠ a b) (∃ c (≠ b c)) ThereExistsDisjunction
+        b (¬ (= a b)) (∃ c (¬ (= b c))) ThereExistsDisjunction
         eliminateBiconditionalReverse
         a addThereExists
         applyModusPonens
 # We have <code>∃ a (∃ b a ≠ b ∨ ∃ b ∃ c b ≠ c)</code>. We move the second disjunct outside of the quantifier for <code>a</code> to get <code>∃ a ∃ b a ≠ b ∨ ∃ b ∃ c b ≠ c</code>
-        a (∃ b (≠ a b)) (∃ b (∃ c (≠ b c))) ThereExistsDisjunctionRightMovement
+        a (∃ b (¬ (= a b))) (∃ b (∃ c (¬ (= b c)))) ThereExistsDisjunctionRightMovement
         eliminateBiconditionalReverse
         applyModusPonens
 # At this point, we can change the variables in the latter disjunct.
         a b c TwonessLemma2
         eliminateBiconditionalForward
-        (∃ a (∃ b (≠ a b))) disjoinLL
+        (∃ a (∃ b (¬ (= a b)))) disjoinLL
         applyModusPonens
 # Having gotten both disjuncts to use the same variables, we are done.
         conflateDisjunction
@@ -427,10 +427,10 @@ thm (CongruenceIdentityFromEqualityImported () () (→ (∧ (= A B) (≡ A B C D
  )
 
 thm (NegatedCongruenceIdentityFromEquality () ()
-  (→ (∧ (≠ A B) (≡ A B C D)) (≠ C D))
+  (→ (∧ (¬ (= A B)) (≡ A B C D)) (¬ (= C D)))
         A B C D CongruenceSymmetry
         eliminateBiconditionalReverse
-        (≠ A B) conjoinLL
+        (¬ (= A B)) conjoinLL
 
         C D A B CongruenceIdentityFromEqualityImported
         export
@@ -445,14 +445,14 @@ thm (NegatedCongruenceIdentityFromEquality () ()
         applySyllogism
  )
 
-thm (PointConstructionDifferentLemma2 () () (→ (∧ (∧ (between A B C) (≡ B C x y)) (≠ x y)) (∧ (between A B C) (≠ B C)))
+thm (PointConstructionDifferentLemma2 () () (→ (∧ (∧ (between A B C) (≡ B C x y)) (¬ (= x y))) (∧ (between A B C) (¬ (= B C))))
 # First we pick out <code>between A B C</code>.
-        (∧ (between A B C) (≡ B C x y)) (≠ x y) ConjunctionRightElimination
+        (∧ (between A B C) (≡ B C x y)) (¬ (= x y)) ConjunctionRightElimination
         eliminateRightConjunctInConsequent
 # Next we pick out <code>x ≠ y</code>.
-        (∧ (between A B C) (≡ B C x y)) (≠ x y) ConjunctionLeftElimination
+        (∧ (between A B C) (≡ B C x y)) (¬ (= x y)) ConjunctionLeftElimination
 # Next we pick out <code>B C ≡ x y</code> and swap it to <code>x y ≡ B C</code>.
-        (∧ (between A B C) (≡ B C x y)) (≠ x y) ConjunctionRightElimination
+        (∧ (between A B C) (≡ B C x y)) (¬ (= x y)) ConjunctionRightElimination
         eliminateLeftConjunctInConsequent
         swapCongruenceInConsequent
 # Combining the second two results and applying <code>NegatedCongruenceIdentityFromEquality</code> gives us <code>B ≠ C</code>.
@@ -463,7 +463,7 @@ thm (PointConstructionDifferentLemma2 () () (→ (∧ (∧ (between A B C) (≡ 
         composeConjunction
  )
 
-thm (PointConstructionDifferent ((A c) (B c)  (A b a) (B b a) ) () (∃ c (∧ (between A B c) (≠ B c)))
+thm (PointConstructionDifferent ((A c) (B c)  (A b a) (B b a) ) () (∃ c (∧ (between A B c) (¬ (= B c))))
 # The proof of our main theorem will proceed by constructing two different points <code>a</code> and <code>b</code>, and using them to extend the segment <code>A B</code> to a distinct point.
 # 
 # We start with the extension of <code>A B</code> beyond <code>B</code> to a point <code>c</code>.
@@ -476,14 +476,14 @@ thm (PointConstructionDifferent ((A c) (B c)  (A b a) (B b a) ) () (∃ c (∧ (
 # and combine the two statements and gather the quantifiers at the beginning to get <code>∃ a ∃ b ∃ c ((between A B c ∧ B c ≡ a b) ∧ a ≠ b)</code>
         introduceConjunction
 
-        a (∀ b (∃ c (∧ (between A B c) (≡ B c a b)))) (∃ b (≠ a b)) ThereExistsConjunctionCombining
+        a (∀ b (∃ c (∧ (between A B c) (≡ B c a b)))) (∃ b (¬ (= a b))) ThereExistsConjunctionCombining
         applyModusPonens
 
-        b (∃ c (∧ (between A B c) (≡ B c a b))) (≠ a b) ThereExistsConjunctionCombining
+        b (∃ c (∧ (between A B c) (≡ B c a b))) (¬ (= a b)) ThereExistsConjunctionCombining
         a addThereExists
         applyModusPonens
 
-        c (∧ (between A B c) (≡ B c a b)) (≠ a b) ThereExistsConjunctionRightMovement
+        c (∧ (between A B c) (≡ B c a b)) (¬ (= a b)) ThereExistsConjunctionRightMovement
         b buildThereExists
         a buildThereExists
         eliminateBiconditionalForward
@@ -498,10 +498,10 @@ thm (PointConstructionDifferent ((A c) (B c)  (A b a) (B b a) ) () (∃ c (∧ (
         removeThereExists
         removeThereExists
  )
-thm (AnotherPoint ((A b)) () (∃ b (≠ A b))
+thm (AnotherPoint ((A b)) () (∃ b (¬ (= A b)))
         b A A PointConstructionDifferent
 
-        (between A A b) (≠ A b) ConjunctionLeftElimination
+        (between A A b) (¬ (= A b)) ConjunctionLeftElimination
         b addThereExists
 
         applyModusPonens
