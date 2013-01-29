@@ -3,8 +3,8 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Betweenness_of_points.ghi (CLASSICAL FIRSTORDER) "")
 
-tvar (point x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
-tvar (point x′ y′ z′ w′ u′)
+tvar (object x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
+tvar (object x′ y′ z′ w′ u′)
 var (object a b b′ c d′ q q′ ww ww′ b″ c″)
 thm (IndivisibilityFromEquality () () (→ (∧ (= x z) (between x y z)) (= x y))
         x EqualityReflexivity
@@ -319,11 +319,14 @@ thm (InnerThreeSegment () ()
 
         commuteCongruenceInConsequent
  )
-defthm (≅ wff (≅ x y z x′ y′ z′) () () (↔ (≅ x y z x′ y′ z′) (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′)))
+defthm (TriangleCongruence formula (≅ x y z x′ y′ z′) () () (↔ (≅ x y z x′ y′ z′) (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′)))
         (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′)) BiconditionalReflexivity
 )
 thm (Congruence12 () () (→ (A B C ≅ A′ B′ C′) (≡ A B A′ B′))
-        (∧ (≡ A B A′ B′) (≡ A C A′ C′)) (≡ B C B′ C′) ConjunctionRightElimination
+        A B C A′ B′ C′ TriangleCongruence
+        eliminateBiconditionalReverse
+
+        eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
  )
 
