@@ -71,14 +71,14 @@ stmt (LowerDimension () ()
 # and less than three.
 stmt (UpperDimension () ()
   (→
-  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (≠ u v)) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
+  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (¬ (= u v))) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
 # 
 # == Axiom of Euclid ==
 # [[File:Tarski's axiom of Euclid C.svg|thumb|right]]
 # There are quite a variety of ways to state Euclid's [[w:parallel postulate]]. Here we adopt one which says that if a point u is in the interior of ∠yxz (in the sense of being on the line segment yz drawn across the angle), then any point v which is further out (that is, u is between v and the vertex of the angle) will also be in the interior (in the sense that a line segment containing v can be drawn across the angle).
 stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
   →
-  (∧ (∧ (between x u v) (between y u z)) (≠ x u)) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
+  (∧ (∧ (between x u v) (between y u z)) (¬ (= x u))) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
 # 
 # == Five Segment ==
 # [[File:Five segment.svg|thumb|right]]
@@ -87,7 +87,7 @@ tvar (object x′ y′ z′ u′)
 stmt (OuterFiveSegment () ()
   (→
    (∧ (∧ (∧ (∧
-     (∧ (∧ (≠ x y) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
+     (∧ (∧ (¬ (= x y)) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
 )
 # 
 # == Segment Construction ==
