@@ -50,7 +50,7 @@ stmt (CongruenceIdentityLeft () () (→ (≡ x x y z) (= y z)))
 stmt (CongruenceTrivialIdentity () () (≡ y y x x))
 stmt (CongruenceIdentityFromEquality () () (→ (= x y) (→ (≡ x y z w) (= z w))))
 stmt (NegatedCongruenceIdentityFromEquality () ()
-  (→ (∧ (≠ A B) (≡ A B C D)) (≠ C D)))
+  (→ (∧ (¬ (= A B)) (≡ A B C D)) (¬ (= C D))))
 # 
 # == Betweenness ==
 # The other fundamental formula is betweenness; <code>(between x y z)</code> signifies "y is between x and z".
@@ -81,9 +81,9 @@ stmt (BetweennessInnerTransitivityFlipped () ()
   (→ (∧ (between A B C) (between A C D)) (between B C D)))
 
 stmt (BetweennessOuterTransitivity () ()
-  (→ (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (between A B D)))
+  (→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A B D)))
 stmt (BetweennessOuterTransitivityFlipped () ()
-  (→ (∧ (∧ (between A B C) (between B C D)) (≠ B C)) (between A C D)))
+  (→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A C D)))
 
 stmt (BetweennessMiddleTransitivity () ()
   (→ (∧ (between A B D) (between B C D)) (between A C D)))
@@ -93,13 +93,13 @@ stmt (BetweennessMiddleTransitivityFlipped () ()
 # == Segment construction ==
 # A line segment can be extended beyond one of its endpoints by a specified distance (where by "distance" we mean a second line segment, which the constructed segment is to be congruent to). The segment extended this way is unique.
 stmt (SegmentConstruction ((w a) (x a) (y a) (z a)) () (∃ a (∧ (between w x a) (≡ x a y z))))
-stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (≠ Q A) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y)))
+stmt (SegmentConstructionUniqueness () () (→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y)))
 # 
 # == Existence of distinct points ==
 # Here we can construct a point distinct from a given point, or a point distinct from a given point extended along a given line segment.
 stmt (PointConstructionDifferent ((A c) (B c)) ()
-  (∃ c (∧ (between A B c) (≠ B c))))
-stmt (AnotherPoint ((A b)) () (∃ b (≠ A b)))
+  (∃ c (∧ (between A B c) (¬ (= B c)))))
+stmt (AnotherPoint ((A b)) () (∃ b (¬ (= A b))))
 # 
 # == Five segment ==
 # <gallery>
@@ -109,7 +109,7 @@ stmt (AnotherPoint ((A b)) () (∃ b (≠ A b)))
 stmt (OuterFiveSegment () ()
   (→
    (∧ (∧ (∧ (∧
-     (∧ (∧ (≠ x y) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
+     (∧ (∧ (¬ (= x y)) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
 )
 # 
 # === Three segment ===
@@ -133,10 +133,10 @@ stmt (LowerDimension () ()
 )))))
 stmt (UpperDimension () ()
   (→
-  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (≠ u v)) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
+  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (¬ (= u v))) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
 stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
   →
-  (∧ (∧ (between x u v) (between y u z)) (≠ x u)) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
+  (∧ (∧ (between x u v) (between y u z)) (¬ (= x u))) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
 tvar (object x0 x1 x2 x3 y0 y1 y2 y3)
 stmt (CongruenceBuilder () () (
   →
