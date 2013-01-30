@@ -345,8 +345,12 @@ thm (Congruence13 () () (→ (≅ A B C A′ B′ C′) (≡ A C A′ C′))
         eliminateLeftConjunctInConsequent
  )
 thm (CongruenceRotation () () (↔ (≅ A B C A′ B′ C′) (≅ B C A B′ C′ A′))
+        A B C A′ B′ C′ TriangleCongruence
+
 # We take <code>(A B ≡ A′ B′ ∧ A C ≡ A′ C′) ∧ B C ≡ B′ C′</code> and start by commuting across the second conjunction.
         (∧ (≡ A B A′ B′) (≡ A C A′ C′)) (≡ B C B′ C′) ConjunctionCommutativity
+        applyBiconditionalTransitivity
+
 # That gives us <code>B C ≡ B′ C′ ∧ (A B ≡ A′ B′ ∧ A C ≡ A′ C′)</code>. Swapping the points in the latter two congruences gives <code>B C ≡ B′ C′ ∧ (B A ≡ B′ A′ ∧ C A ≡ C′ A′)</code>
         A B A′ B′ CongruenceCommutativity
         A C A′ C′ CongruenceCommutativity
@@ -357,6 +361,10 @@ thm (CongruenceRotation () () (↔ (≅ A B C A′ B′ C′) (≅ B C A B′ C�
         applyBiconditionalTransitivity
 # And all we need to do is apply associativity.
         (≡ B C B′ C′) (≡ B A B′ A′) (≡ C A C′ A′)  ConjunctionAssociativity
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        B C A B′ C′ A′ TriangleCongruence
         swapBiconditional
         applyBiconditionalTransitivity
  )
