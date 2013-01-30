@@ -4,11 +4,11 @@ import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Triangle_congruence.ghi (CLASSICAL FIRSTORDER) "")
 
 tvar (formula φ)
-tvar (point x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
-tvar (point x′ y′ z′ w′ u′)
-tvar (point x0 x1 x2 x3 y0 y1 y2 y3)
+tvar (object x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
+tvar (object x′ y′ z′ w′ u′)
+tvar (object x0 x1 x2 x3 y0 y1 y2 y3)
 var (object a b b′ c c′ d′ b″ c″)
-defthm (Collinear wff (collinear x y z) () () (↔ (collinear x y z) (∨ (∨ (between x y z) (between y z x)) (between z x y)))
+defthm (Collinear formula (collinear x y z) () () (↔ (collinear x y z) (∨ (∨ (between x y z) (between y z x)) (between z x y)))
         (∨ (∨ (between x y z) (between y z x)) (between z x y)) BiconditionalReflexivity
 )
 
@@ -18,12 +18,22 @@ thm (BetweennessCollinearity () () (→ (between x y z) (collinear x y z))
           (between z x y)
           DisjunctionRightIntroduction
         applySyllogism
+
+        x y z Collinear
+        eliminateBiconditionalForward
+        applySyllogism
  )
 thm (CollinearityRotation () () (↔ (collinear x y z) (collinear y z x))
+        x y z Collinear
+
         (between x y z) (between y z x) (between z x y) DisjunctionAssociativity
+        applyBiconditionalTransitivity
 
         (between x y z) (∨ (between y z x) (between z x y)) DisjunctionCommutativity
+        applyBiconditionalTransitivity
 
+        y z x Collinear
+        swapBiconditional
         applyBiconditionalTransitivity
  )
 thm (Collinearity23 () () (↔ (collinear x y z) (collinear x z y))
