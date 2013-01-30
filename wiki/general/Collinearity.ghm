@@ -1,0 +1,127 @@
+{{interfaces
+| imports = [[Interface:Triangle congruence]]
+| exports = [[Interface:Collinearity]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Triangle congruence|geometry results so far]] and define some variables:
+
+== Collinearity ==
+To say that three points are collinear is just to say that one of them is between the other two (in any order).<ref>Definition Col in Narboux</ref>
+* #(→ (between x y z) (collinear x y z))# ([/general/Collinearity.gh/BetweennessCollinearity | BetweennessCollinearity])
+
+=== Permutations ===
+One way to express the "in any order" concept is to provide permutation theorems. The first is rotation: {{{collinear x y z ↔ collinear y z x}}}.<ref>col_permutation_1 and col_permutation_2 in Narboux</ref>
+* #(↔ (collinear x y z) (collinear y z x))# ([/general/Collinearity.gh/CollinearityRotation | CollinearityRotation])
+
+The next permutation swaps the second and third points.<ref>col_permutation_5 in Narboux, biconditionalized</ref>
+* #(↔ (collinear x y z) (collinear x z y))# ([/general/Collinearity.gh/Collinearity23 | Collinearity23])
+
+To swap the first and second points, we rotate and then swap the second and third points.<ref>col_permutation_4 in Narboux, biconditionalized</ref>
+* #(↔ (collinear x y z) (collinear y x z))# ([/general/Collinearity.gh/Collinearity12 | Collinearity12])
+
+To swap the first and third points, we rotate and then swap the first and second points.<ref>col_permutation_3 in Narboux, biconditionalized</ref>
+* #(↔ (collinear x y z) (collinear z y x))# ([/general/Collinearity.gh/Collinearity13 | Collinearity13])
+
+=== Collinearity of a point, itself, and another point ===
+A point is collinear with itself and any second point. That is, {{{collinear A A B}}}, and likewise for any other order of the three points.<ref>col_trivial_1, col_trivial_2, and col_trivial_3 in Narboux</ref>
+* #(collinear A A B)# ([/general/Collinearity.gh/CollinearityAAB | CollinearityAAB])
+* #(collinear A B B)# ([/general/Collinearity.gh/CollinearityABB | CollinearityABB])
+* #(collinear A B A)# ([/general/Collinearity.gh/CollinearityABA | CollinearityABA])
+
+=== Collinearity and degenerate congruent triangles ===
+The analogue to {{{BetweennessDegenerateTriangle}}} also holds for collinearity.<ref>l4_13 in Narboux</ref>
+* #(→ (∧ (collinear A B C) (≅ A B C A′ B′ C′)) (collinear A′ B′ C′))# ([/general/Collinearity.gh/CollinearityDegenerateTriangle | CollinearityDegenerateTriangle])
+
+=== Builder ===
+Equals can be substituted for equals in a collinearity.
+* #(
+  →
+  (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (↔ (collinear x0 x1 x2) (collinear y0 y1 y2)))# ([/general/Collinearity.gh/CollinearityBuilder | CollinearityBuilder])
+
+== Constructing congruent degenerate triangles from collinear points ==
+Given a (degenerate) triangle and a line segment congruent to one of the sides of the triangle, we can construct a second triangle on the line segment which is congruent to the given triangle. Here we prove a degenerate case, in which the points of the given triangle are collinear. In symbols, {{{collinear A B C ∧ A B ≡ A′ B′ → ∃ c′ A B C ≅ A′ B′ c′}}}.<ref>l4_14 in Narboux</ref> This is an analogue to {{{InnerDegenerateTriangle}}} but for collinearity rather than betweenness.
+
+There are three cases, corresponding to the three betweenness predicates which make up the definition of {{{collinear}}}.
+
+The first lemma is basically predicate logic. It enables us to move the two antecedents inside the quantifier.
+* #(∃ c′ φ)# ⊢ #(→ (∧ (between x y z) (≡ A B A′ B′)) (∃ c′ (∧ (between x y z) (∧ (≡ A B A′ B′) φ))))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-1 | CollinearityConstructDegenerateTriangle-1])
+The next few lemmas form the bulk of the {{{between A B C}}} case. Extend {{{A′ B′}}} to a point {{{C′}}} such that {{{B′ C′ ≡ B C}}}. Between that congruence and {{{A B ≡ A′ B′}}}, we can conclude {{{A C ≡ A′ C′}}}. Those three congruences are what we need for {{{A B C ≅ A′ B′ C′}}}.
+* #(→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≡ B C B′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-abc-bc | CollinearityConstructDegenerateTriangle-abc-bc])
+* #(→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≡ A C A′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-abc-ac | CollinearityConstructDegenerateTriangle-abc-ac])
+* #(→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≅ A B C A′ B′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-abc-core | CollinearityConstructDegenerateTriangle-abc-core])
+* #(→ (between A B C) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-abc | CollinearityConstructDegenerateTriangle-abc])
+The second case, {{{between C A B}}}, is similar. Extend {{{B′ A′}}} to a point {{{C′}}} such that {{{A′ C′ ≡ A C}}}. Between that congruence and {{{A B ≡ A′ B′}}}, we can conclude {{{B C ≡ B′ C′}}}. Those three congruences are what we need for {{{A B C ≅ A′ B′ C′}}}.
+* #(→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≡ A C A′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-cab-ac | CollinearityConstructDegenerateTriangle-cab-ac])
+* #(→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≡ B C B′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-cab-bc | CollinearityConstructDegenerateTriangle-cab-bc])
+* #(→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≅ A B C A′ B′ C′))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-cab-core | CollinearityConstructDegenerateTriangle-cab-core])
+* #(→ (between C A B) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-cab | CollinearityConstructDegenerateTriangle-cab])
+The {{{between B C A}}} case is a consequence of {{{InnerDegenerateTriangle}}}.
+* #(→ (between B C A) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle-bca | CollinearityConstructDegenerateTriangle-bca])
+* #(→ (∧ (collinear A B C) (≡ A B A′ B′)) (∃ c′ (≅ A B C A′ B′ c′)))# ([/general/Collinearity.gh/CollinearityConstructDegenerateTriangle | CollinearityConstructDegenerateTriangle])
+
+== Five segment ==
+<gallery>
+File:Five segment.svg|Outer five segment
+File:Inner five segment.svg|Inner five segment
+</gallery>
+This five segment theorem combines inner and outer five segment. It is {{{A ≠ B ∧ collinear A B C ∧ A B C ≅ A′ B′ C′ ∧ A D ≡ A′ D′ ∧ B D ≡ B′ D′ → C D ≡ C′ D′}}}.<ref>l4_16 in Narboux</ref> The illustrations show the inner and outer cases. {{{A}}}, {{{B}}}, and {{{C}}} correspond to {{{x}}}, {{{y}}}, and {{{z}}} but can be in any order (as long as {{{A}}} and {{{B}}} are the ones with known congruences). {{{D}}} corresponds to {{{u}}}.
+
+We prove the result separately for each of the three betweenness relationships which make up the definition of {{{collinear}}}. Each of those proofs is just a matter of applying either inner or outer five segment, so it is just a matter of rearranging the many conjuncts which make up the antecedent of each theorem. The first bunch of lemmas are for those rearrangements.
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (¬ (= A B)))# ([/general/Collinearity.gh/FiveSegment-anotb | FiveSegment-anotb])
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ A B A′ B′))# ([/general/Collinearity.gh/FiveSegment-ab | FiveSegment-ab])
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ B C B′ C′))# ([/general/Collinearity.gh/FiveSegment-bc | FiveSegment-bc])
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ A D A′ D′))# ([/general/Collinearity.gh/FiveSegment-ad | FiveSegment-ad])
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ B D B′ D′))# ([/general/Collinearity.gh/FiveSegment-bd | FiveSegment-bd])
+* #(→ (∧ (between A B C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between A′ B′ C′))# ([/general/Collinearity.gh/FiveSegment-abcabc | FiveSegment-abcabc])
+* #(→ (between A B C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))# ([/general/Collinearity.gh/FiveSegment-abc | FiveSegment-abc])
+* #(→ (∧ (between B C A) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between B′ C′ A′))# ([/general/Collinearity.gh/FiveSegment-bcabca | FiveSegment-bcabca])
+* #(→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ C A C′ A′))# ([/general/Collinearity.gh/FiveSegment-ca | FiveSegment-ca])
+* #(→ (between B C A) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))# ([/general/Collinearity.gh/FiveSegment-bca | FiveSegment-bca])
+The third case is {{{between C A B}}} but due to the way that {{{OuterFiveSegment}}} is written, we need to write it as {{{between B A C}}} instead.
+* #(→ (∧ (between B A C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between B′ A′ C′))# ([/general/Collinearity.gh/FiveSegment-bacbac | FiveSegment-bacbac])
+* #(→ (between B A C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))# ([/general/Collinearity.gh/FiveSegment-bac | FiveSegment-bac])
+* #(→ (between C A B) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))# ([/general/Collinearity.gh/FiveSegment-cab | FiveSegment-cab])
+* #(→ (collinear A B C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))# ([/general/Collinearity.gh/FiveSegment-core | FiveSegment-core])
+The only thing remaining is to rearrange the conjuncts in the antecedent. We write the rearrangement as a lemma.
+* #(→ (∧ (∧ (∧ (∧ p q) r) s) t) (∧ q (∧ (∧ (∧ p r) s) t)))# ([/general/Collinearity.gh/FiveSegment-conjuncts | FiveSegment-conjuncts])
+* #(→ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′))# ([/general/Collinearity.gh/FiveSegment | FiveSegment])
+
+== Points equidistant from two given points ==
+[[File:Lemma l4_17 from Narboux.svg|thumb|right|EquidistantLine]]
+If two given points are equidistant to each of two distinct points on a line, they are equidistant to every point on that line. That is, {{{A ≠ B ∧ collinear A B C ∧ A P ≡ A Q ∧ B P ≡ B Q → C P ≡ C Q}}}.<ref>l4_17 in Narboux</ref>
+
+The proof applies {{{FiveSegment}}} with {{{A B C}}} as the collinear points for both parts and {{{P}}} and {{{Q}}} as the fourth points, respectively.
+* #(→ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q)) (≡ C P C Q))# ([/general/Collinearity.gh/EquidistantLine | EquidistantLine])
+
+== Uniqueness of a point given distances to two collinear points ==
+On a given line, the distance to two distinct points uniquely determines a point. That is, {{{A ≠ B ∧ collinear A B C ∧ A C ≡ A C′ ∧ B C ≡ B C′ → C = C′}}}. We prove this by applying {{{EquidistantLine}}} to the line {{{A B C}}} and the points {{{C}}} and {{{C′}}}, which gives us {{{C C ≡ C C′}}}.<ref>l4_18 in Narboux</ref>
+* #(→ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A C A C′)) (≡ B C B C′)) (= C C′))# ([/general/Collinearity.gh/CollinearTwoDistanceUniqueness | CollinearTwoDistanceUniqueness])
+
+== A point on a line segment ==
+A point on a line segment is uniquely determined by its distance to the two endpoints. That is, {{{between A C B ∧ A C ≡ A C′ ∧ B C ≡ B C′ → C = C′}}}.<ref>l4_19 in Narboux</ref>
+
+We divide the proof into two cases, {{{A = B}}} and {{{A ≠ B}}}.
+
+The {{{A = B}}} case is easy; {{{C}}} also equals {{{A}}} and so {{{A C ≡ A C′}}} implies {{{C = C′}}}.
+* #(→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= A C)))# ([/general/Collinearity.gh/BetweennessTwoDistanceUniqueness-ac | BetweennessTwoDistanceUniqueness-ac])
+* #(→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= A C′)))# ([/general/Collinearity.gh/BetweennessTwoDistanceUniqueness-acprime | BetweennessTwoDistanceUniqueness-acprime])
+* #(→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′)))# ([/general/Collinearity.gh/BetweennessTwoDistanceUniqueness-eq | BetweennessTwoDistanceUniqueness-eq])
+
+The {{{A ≠ B}}} case follows easily from {{{CollinearTwoDistanceUniqueness}}}.
+
+* #(→ (¬ (= A B)) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′)))# ([/general/Collinearity.gh/BetweennessTwoDistanceUniqueness-ne | BetweennessTwoDistanceUniqueness-ne])
+
+We can now assemble the theorem.
+* #(→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′))# ([/general/Collinearity.gh/BetweennessTwoDistanceUniqueness | BetweennessTwoDistanceUniqueness])
+
+== Export ==
+We now export to [[Interface:Collinearity]].
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
