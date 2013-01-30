@@ -93,7 +93,10 @@ thm (CollinearityABA () () (collinear A B A)
 thm (CollinearityDegenerateTriangle () ()
   (→ (∧ (collinear A B C) (≅ A B C A′ B′ C′)) (collinear A′ B′ C′))
 # The proof just consists of expanding <code>collinear A B C</code> into a disjunction of three betweenness formulas, and applying <code>BetweennessDegenerateTriangle</code> three times.
-# 
+        A B C Collinear
+        eliminateBiconditionalReverse
+        (≅ A B C A′ B′ C′) conjoinRR
+#
 # We start with <code>between A B C → (A B C ≅ A′ B′ C′ → collinear A′ B′ C′)<code>.
         A B C A′ B′ C′ BetweennessDegenerateTriangle
 
@@ -138,6 +141,7 @@ thm (CollinearityDegenerateTriangle () ()
 
         composeDisjunction
         import
+        applySyllogism
  )
 thm (CollinearityBuilder () () (
   →
