@@ -322,7 +322,7 @@ thm (InnerThreeSegment () ()
 defthm (TriangleCongruence formula (≅ x y z x′ y′ z′) () () (↔ (≅ x y z x′ y′ z′) (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′)))
         (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′)) BiconditionalReflexivity
 )
-thm (Congruence12 () () (→ (A B C ≅ A′ B′ C′) (≡ A B A′ B′))
+thm (Congruence12 () () (→ (≅ A B C A′ B′ C′) (≡ A B A′ B′))
         A B C A′ B′ C′ TriangleCongruence
         eliminateBiconditionalReverse
 
@@ -330,15 +330,15 @@ thm (Congruence12 () () (→ (A B C ≅ A′ B′ C′) (≡ A B A′ B′))
         eliminateRightConjunctInConsequent
  )
 
-thm (Congruence23 () () (→ (A B C ≅ A′ B′ C′) (≡ B C B′ C′))
+thm (Congruence23 () () (→ (≅ A B C A′ B′ C′) (≡ B C B′ C′))
         (∧ (≡ A B A′ B′) (≡ A C A′ C′)) (≡ B C B′ C′) ConjunctionLeftElimination
  )
 
-thm (Congruence13 () () (→ (A B C ≅ A′ B′ C′) (≡ A C A′ C′))
+thm (Congruence13 () () (→ (≅ A B C A′ B′ C′) (≡ A C A′ C′))
         (∧ (≡ A B A′ B′) (≡ A C A′ C′)) (≡ B C B′ C′) ConjunctionRightElimination
         eliminateLeftConjunctInConsequent
  )
-thm (CongruenceRotation () () (↔ (A B C ≅ A′ B′ C′) (B C A ≅ B′ C′ A′))
+thm (CongruenceRotation () () (↔ (≅ A B C A′ B′ C′) (≅ B C A B′ C′ A′))
 # We take <code>(A B ≡ A′ B′ ∧ A C ≡ A′ C′) ∧ B C ≡ B′ C′</code> and start by commuting across the second conjunction.
         (∧ (≡ A B A′ B′) (≡ A C A′ C′)) (≡ B C B′ C′) ConjunctionCommutativity
 # That gives us <code>B C ≡ B′ C′ ∧ (A B ≡ A′ B′ ∧ A C ≡ A′ C′)</code>. Swapping the points in the latter two congruences gives <code>B C ≡ B′ C′ ∧ (B A ≡ B′ A′ ∧ C A ≡ C′ A′)</code>
@@ -354,7 +354,7 @@ thm (CongruenceRotation () () (↔ (A B C ≅ A′ B′ C′) (B C A ≅ B′ C�
         swapBiconditional
         applyBiconditionalTransitivity
  )
-thm (TriangleCongruenceReflexivity () () (A B C ≅ A B C)
+thm (TriangleCongruenceReflexivity () () (≅ A B C A B C)
         A B CongruenceReflexivity
         A C CongruenceReflexivity
         introduceConjunction
@@ -643,7 +643,7 @@ thm (InnerDegenerateTriangle-abcabc () () (
    (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
    (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
    (∧ (between A B C) (≡ A C A′ C′)))
-  (A B C ≅ A′ B′ C′))
+  (≅ A B C A′ B′ C′))
 # <code>A B ≡ A′ B′</code>:
         (∧ (∧ (∧ (∧ (between C′ A′ D′) (¬ (= A′ D′)))
           (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
@@ -715,7 +715,7 @@ thm (InnerDegenerateTriangle-abc1 () () (
  )
 thm (InnerDegenerateTriangle ((A b′) (B b′) (C b′) (A′ b′) (C′ b′)
     (A c″ b′ d′) (B c″ d′) (C c″ d′) (A′ c″ d′) (C′ c″ d′)) ()
-  (→ (∧ (between A B C) (≡ A C A′ C′)) (∃ b′ (∧ (between A′ b′ C′) (A B C ≅ A′ b′ C′))))
+  (→ (∧ (between A B C) (≡ A C A′ C′)) (∃ b′ (∧ (between A′ b′ C′) (≅ A B C A′ b′ C′))))
         A B C A′ C′ d′ b′ c″ InnerDegenerateTriangle-1
 
         C′ A′ d′ b′ A B c″ C InnerDegenerateTriangle-abc1
@@ -730,20 +730,20 @@ thm (InnerDegenerateTriangle ((A b′) (B b′) (C b′) (A′ b′) (C′ b′)
 
         removeThereExistsInConsequent
 
-        c″ (∧ (between A′ b′ C′) (A B C ≅ A′ b′ C′)) NullThereExists
+        c″ (∧ (between A′ b′ C′) (≅ A B C A′ b′ C′)) NullThereExists
         eliminateBiconditionalReverse
         b′ addThereExists
         applySyllogism
  )
 thm (BetweennessDegenerateTriangle-1
   ((A b″) (B b″) (C b″) (A′ b″) (B′ b″) (C′ b″)) ()
-  (→ (∧ (between A B C) (A B C ≅ A′ B′ C′))
-    (∃ b″ (∧ (∧ (between A′ b″ C′) (A B C ≅ A′ b″ C′))
-      (∧ (between A B C) (A B C ≅ A′ B′ C′)))))
+  (→ (∧ (between A B C) (≅ A B C A′ B′ C′))
+    (∃ b″ (∧ (∧ (between A′ b″ C′) (≅ A B C A′ b″ C′))
+      (∧ (between A B C) (≅ A B C A′ B′ C′)))))
 # To apply <code>InnerDegenerateTriangle</code> we need <code>between A B C</code>,
-        (between A B C) (A B C ≅ A′ B′ C′) ConjunctionRightElimination
+        (between A B C) (≅ A B C A′ B′ C′) ConjunctionRightElimination
 # and <code>A C ≡ A′ C′</code>.
-        (between A B C) (A B C ≅ A′ B′ C′) ConjunctionLeftElimination
+        (between A B C) (≅ A B C A′ B′ C′) ConjunctionLeftElimination
 
         A B C A′ B′ C′ Congruence13
         applySyllogism
@@ -753,23 +753,23 @@ thm (BetweennessDegenerateTriangle-1
         A B C A′ C′ b″ InnerDegenerateTriangle
         applySyllogism
 # Now we just add <code>between A B C ∧ A B C ≅ A′ B′ C′</code> to the consequent and move it inside the quantifier.
-        (∧ (between A B C) (A B C ≅ A′ B′ C′)) ImplicationReflexivity
+        (∧ (between A B C) (≅ A B C A′ B′ C′)) ImplicationReflexivity
         composeConjunction
 
         b″
-          (∧ (between A′ b″ C′) (A B C ≅ A′ b″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′))
+          (∧ (between A′ b″ C′) (≅ A B C A′ b″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′))
           ThereExistsConjunctionRightMovement
         eliminateBiconditionalForward
         applySyllogism
  )
 thm (BetweennessDegenerateTriangle-abab () () (
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (≡ A′ B″ A′ B′))
 # We start with <code>A′ B″ ≡ A B</code>.
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           ImplicationReflexivity
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
@@ -779,8 +779,8 @@ thm (BetweennessDegenerateTriangle-abab () () (
 
         swapCongruenceInConsequent
 # In a similar way we get <code>A B ≡ A′ B′</code>.
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           ImplicationReflexivity
         eliminateLeftConjunctInConsequent
         eliminateLeftConjunctInConsequent
@@ -795,12 +795,12 @@ thm (BetweennessDegenerateTriangle-abab () () (
  )
 
 thm (BetweennessDegenerateTriangle-cbcb () () (
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (≡ C′ B″ C′ B′))
 # We start with <code>B″ C′ ≡ B C</code>.
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           ImplicationReflexivity
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
@@ -810,8 +810,8 @@ thm (BetweennessDegenerateTriangle-cbcb () () (
 
         swapCongruenceInConsequent
 # In a similar way we get <code>B C ≡ B′ C′</code>.
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           ImplicationReflexivity
         eliminateLeftConjunctInConsequent
         eliminateLeftConjunctInConsequent
@@ -827,12 +827,12 @@ thm (BetweennessDegenerateTriangle-cbcb () () (
         commuteCongruenceInConsequent
  )
 thm (BetweennessDegenerateTriangle-bb () () (
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (= B″ B′))
 # The proof is by inner five segment on the line segments <code>A′ B″ C′</code> and <code>A′ B″ C′</code> and points <code>B″</code> and <code>B′</code>. To apply inner five segment, we need two betweenness relationships and four congruences. The betweenness relationships are both the same: <code>between A′ B″ C′</code>.
-        (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′))
+        (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′))
           ConjunctionRightElimination
         eliminateRightConjunctInConsequent
 
@@ -841,14 +841,14 @@ thm (BetweennessDegenerateTriangle-bb () () (
         applySyllogism
 # The first congruence is <code>A′ C′ ≡ A′ C′</code>.
         A′ C′ CongruenceReflexivity
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           introduceAntecedent
         composeConjunction
 # The second congruence is <code>B″ C′ ≡ B″ C′</code>.
         B″ C′ CongruenceReflexivity
-        (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′)))
+        (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′)))
           introduceAntecedent
         composeConjunction
 # The third congruence is <code>A′ B″ ≡ A′ B′</code>.
@@ -865,14 +865,14 @@ thm (BetweennessDegenerateTriangle-bb () () (
         applySyllogism
  )
 thm (BetweennessDegenerateTriangle-abc () () (
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (between A′ B′ C′))
 # Here's <code>B″ = B′</code>:
         A′ B″ C′ A B C B′ BetweennessDegenerateTriangle-bb
 # Here's <code>between A′ B″ C′</code>:
-        (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-          (∧ (between A B C) (A B C ≅ A′ B′ C′))
+        (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+          (∧ (between A B C) (≅ A B C A′ B′ C′))
           ConjunctionRightElimination
         eliminateRightConjunctInConsequent
 
@@ -891,7 +891,7 @@ thm (BetweennessDegenerateTriangle-abc () () (
  )
 thm (BetweennessDegenerateTriangle
   (      ) ()
-  (→ (∧ (between A B C) (A B C ≅ A′ B′ C′)) (between A′ B′ C′))
+  (→ (∧ (between A B C) (≅ A B C A′ B′ C′)) (between A′ B′ C′))
         A B C A′ B′ C′ b″ BetweennessDegenerateTriangle-1
 
         A′ b″ C′ A B C B′ BetweennessDegenerateTriangle-abc
