@@ -53,16 +53,16 @@ The next theorem, {{{between x y z ∧ between x′ y′ z′ ∧ x z ≡ x′ z
 We call one set of three points congruent to a second set if each of the three corresponding congruences hold. In other words, two triangles are congruent if their corresponding sides are congruent (side-side-side) (except that our definition also holds for degenerate cases, where not all three points are distinct). The conventional notation is {{{△ABC ≅ △DEF}}} but because of the degenerate cases and JHilbert limitations, we just call it {{{A B C ≅ D E F}}}.
 
 The corresponding sides of congruent (possibly degenerate) triangles are congruent.
-* #(→ (A B C ≅ A′ B′ C′) (≡ A B A′ B′))# ([/general/Triangle_congruence.gh/Congruence12 | Congruence12])
-* #(→ (A B C ≅ A′ B′ C′) (≡ B C B′ C′))# ([/general/Triangle_congruence.gh/Congruence23 | Congruence23])
-* #(→ (A B C ≅ A′ B′ C′) (≡ A C A′ C′))# ([/general/Triangle_congruence.gh/Congruence13 | Congruence13])
+* #(→ (≅ A B C A′ B′ C′) (≡ A B A′ B′))# ([/general/Triangle_congruence.gh/Congruence12 | Congruence12])
+* #(→ (≅ A B C A′ B′ C′) (≡ B C B′ C′))# ([/general/Triangle_congruence.gh/Congruence23 | Congruence23])
+* #(→ (≅ A B C A′ B′ C′) (≡ A C A′ C′))# ([/general/Triangle_congruence.gh/Congruence13 | Congruence13])
 
 The next theorem rotates the order of the points in a triangle congruence. Narboux does not explicitly state this, presumably because he can just have Coq, his theorem prover, expand the definition and make many of the inferences automatically, as in the proof of {{{l4_13}}}.
-* #(↔ (A B C ≅ A′ B′ C′) (B C A ≅ B′ C′ A′))# ([/general/Triangle_congruence.gh/CongruenceRotation | CongruenceRotation])
+* #(↔ (≅ A B C A′ B′ C′) (≅ B C A B′ C′ A′))# ([/general/Triangle_congruence.gh/CongruenceRotation | CongruenceRotation])
 
 === Reflexivity ===
 Also not stated by Narboux, probably for similar reasons, is reflexivity of triangle congruence.
-* #(A B C ≅ A B C)# ([/general/Triangle_congruence.gh/TriangleCongruenceReflexivity | TriangleCongruenceReflexivity])
+* #(≅ A B C A B C)# ([/general/Triangle_congruence.gh/TriangleCongruenceReflexivity | TriangleCongruenceReflexivity])
 
 === Constructing a degenerate congruent triangle ===
 Given two congruent line segments {{{A C}}} and {{{A′ C′}}}, where {{{B}}} is on the former, we construct a point {{{b′}}} on the latter line segment such that the degenerate triangles {{{A B C}}} and {{{A′ b′ C′</code/'> are congruent.<ref>Lemma l4_5 in Narboux</ref> In symbols this is {{{between A B C ∧ A C ≡ A′ C′ → ∃ b′ (between A′ b′ C′ ∧ A B C ≅ A′ b′ C′)}}}
@@ -122,7 +122,7 @@ Now we can proceed to {{{A B C ≅ A′ B′ C′}}}.
    (∧ (between D′ A′ B′) (≡ A′ B′ A B)))
    (∧ (between D′ B′ C″) (≡ B′ C″ B C)))
    (∧ (between A B C) (≡ A C A′ C′)))
-  (A B C ≅ A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abcabc | InnerDegenerateTriangle-abcabc])
+  (≅ A B C A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abcabc | InnerDegenerateTriangle-abcabc])
 
 A similar substitution turns {{{between A′ B′ C″}}} into {{{between A′ B′ C′}}}
 * #(→ (∧ (= C′ C″) (between A′ B′ C″)) (between A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abc1-sub | InnerDegenerateTriangle-abc1-sub])
@@ -134,41 +134,41 @@ A similar substitution turns {{{between A′ B′ C″}}} into {{{between A′ B
   (between A′ B′ C′))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle-abc1 | InnerDegenerateTriangle-abc1])
 
 We're ready to assemble the result and remove the quantifiers which don't apply once the conclusion is reached.
-* #(→ (∧ (between A B C) (≡ A C A′ C′)) (∃ b′ (∧ (between A′ b′ C′) (A B C ≅ A′ b′ C′))))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle | InnerDegenerateTriangle])
+* #(→ (∧ (between A B C) (≡ A C A′ C′)) (∃ b′ (∧ (between A′ b′ C′) (≅ A B C A′ b′ C′))))# ([/general/Triangle_congruence.gh/InnerDegenerateTriangle | InnerDegenerateTriangle])
 
 === Betweenness of congruent degenerate triangles ===
 Given two (degenerate) congruent triangles, if the points of the first one are in a betweenness relationship, the corresponding points of the second are in a respective betweenness relationship. That is, {{{between A B C ∧ A B C ≅ A′ B′ C′ → between A′ B′ C′}}}.<ref>l4_6 in Narboux</ref> Here's the proof: apply {{{InnerDegenerateTriangle}}} to construct {{{B″}}} such that {{{between A′ B″ C′}}} and {{{A B C ≅ A′ B″ C′}}}. The congruences give us {{{A′ B″ ≡ A′ B′}}} and {{{C′ B″ ≡ C′ B′}}}. Given those two, and a few trivial congruences, we can apply inner five segment to the line segments {{{A′ B″ C′}}} and {{{A′ B″ C′}}} and points {{{B″}}} and {{{B′}}}, which gives us {{{B″ B″ ≡ B″ B′}}}. This of course implies {{{B″ = B′}}}, and substitution produces {{{between A′ B′ C′}}}.
 
 Our first lemma constructs {{{B″}}} and rearranges the quantifiers somewhat.
-* #(→ (∧ (between A B C) (A B C ≅ A′ B′ C′))
-    (∃ b″ (∧ (∧ (between A′ b″ C′) (A B C ≅ A′ b″ C′))
-      (∧ (between A B C) (A B C ≅ A′ B′ C′)))))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-1 | BetweennessDegenerateTriangle-1])
+* #(→ (∧ (between A B C) (≅ A B C A′ B′ C′))
+    (∃ b″ (∧ (∧ (between A′ b″ C′) (≅ A B C A′ b″ C′))
+      (∧ (between A B C) (≅ A B C A′ B′ C′)))))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-1 | BetweennessDegenerateTriangle-1])
 
 The next lemma proves {{{A′ B″ ≡ A′ B′}}}.
 
 * #(
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (≡ A′ B″ A′ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-abab | BetweennessDegenerateTriangle-abab])
 The proof of the {{{C′ B″ ≡ C′ B′}}} lemma is very similar.
 * #(
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (≡ C′ B″ C′ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-cbcb | BetweennessDegenerateTriangle-cbcb])
 
 We're now ready to prove {{{B″ = B′}}}.
 
 * #(
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (= B″ B′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-bb | BetweennessDegenerateTriangle-bb])
 We're just a substitution away from {{{between A′ B′ C′}}}.
 * #(
-  → (∧ (∧ (between A′ B″ C′) (A B C ≅ A′ B″ C′))
-    (∧ (between A B C) (A B C ≅ A′ B′ C′))) 
+  → (∧ (∧ (between A′ B″ C′) (≅ A B C A′ B″ C′))
+    (∧ (between A B C) (≅ A B C A′ B′ C′))) 
   (between A′ B′ C′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle-abc | BetweennessDegenerateTriangle-abc])
 The final theorem is just a matter of assembling and removing the quantifier.
-* #(→ (∧ (between A B C) (A B C ≅ A′ B′ C′)) (between A′ B′ C′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle | BetweennessDegenerateTriangle])
+* #(→ (∧ (between A B C) (≅ A B C A′ B′ C′)) (between A′ B′ C′))# ([/general/Triangle_congruence.gh/BetweennessDegenerateTriangle | BetweennessDegenerateTriangle])
 
 == Export ==
 We now export to [[Interface:Triangle congruence]].
