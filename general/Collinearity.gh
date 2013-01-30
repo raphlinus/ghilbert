@@ -37,6 +37,8 @@ thm (CollinearityRotation () () (↔ (collinear x y z) (collinear y z x))
         applyBiconditionalTransitivity
  )
 thm (Collinearity23 () () (↔ (collinear x y z) (collinear x z y))
+        x y z Collinear
+
 # The proof starts with <code>between x y z ↔ between z y x</code> and <code>between y z x ↔ between x z y</code>.
         x y z BetweennessSymmetry
         y z x BetweennessSymmetry
@@ -48,6 +50,11 @@ thm (Collinearity23 () () (↔ (collinear x y z) (collinear x z y))
 # Combining that with <code>between z x y ↔ between y x z</code> finishes the task.
         z x y BetweennessSymmetry
         buildDisjunction
+        applyBiconditionalTransitivity
+
+        x z y Collinear
+        swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (Collinearity12 () () (↔ (collinear x y z) (collinear y x z))
         x y z CollinearityRotation
