@@ -1,0 +1,2438 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START Line_segment_inequality.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point A B C D E F P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″)
+var (object a b c c′ d d′ e e′ f p x y z)
+defthm (Is-outside wff (is-outside P A B) () () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))) BiconditionalReflexivity
+)
+thm (OutBetweenness () () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))
+        (is-outside P A B) BiconditionalReflexivity
+ )
+thm (BeyondOutForward () () (→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (between B P C)) (is-outside P A B))
+# The first two parts of the <code>P is-outside A B</code> definition are the inequalities <code>A ≠ P</code> and <code>B ≠ P</code> which we just carry over from the antecedent.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (between B P C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (between B P C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# To apply <code>BetweennessMiddleConnectivity</code>, we first need <code>C ≠ P</code>.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (between B P C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next we need <code>between C P A</code>.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (between B P C)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        A P C BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# The last thing we will need for <code>BetweennessMiddleConnectivity</code> is <code>between C P B</code>.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (between B P C)
+          ConjunctionLeftElimination
+
+        B P C BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Now we apply connectivity to get <code>between P A B ∨ between P B A</code>, which is the only remaining part of the definition of <code>is-outside</code>.
+        C P A B BetweennessMiddleConnectivity
+        applySyllogism
+
+        composeConjunction
+ )
+
+thm (BeyondOutReverse-1 () ()
+  (→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (is-outside P A B))
+    (∨ (∧ (∧ (¬ (= A P)) (between A P C)) (between P A B))
+      (∧ (∧ (¬ (= A P)) (between A P C)) (between P B A))))
+# First we pick out <code>A ≠ P ∧ between A P C</code>.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (is-outside P A B)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (is-outside P A B)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next we take <code>P is-outside A B</code>, unfold the definition, and extract <code>between P A B ∨ between P B A</code>.
+        (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+          (is-outside P A B)
+          ConjunctionLeftElimination
+
+        (∧ (¬ (= A P)) (¬ (= B P)))
+          (∨ (between P A B) (between P B A))
+          ConjunctionLeftElimination
+        applySyllogism
+
+        composeConjunction
+# Applying distributivity of conjunction over disjunction finishes the job.
+        (∧ (¬ (= A P)) (between A P C))
+          (between P A B)
+          (between P B A)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (BeyondOutReverse () () (→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (is-outside P A B)) (between B P C))
+        A P B C BeyondOutReverse-1
+# Our first transitivity invocation is <code>between B A P ∧ between A P C ∧ A ≠ P → between B P C</code>.
+        (∧ (¬ (= A P)) (between A P C))
+          (between P A B)
+          ConjunctionLeftElimination
+
+        P A B BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (¬ (= A P)) (between A P C))
+          (between P A B)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        (∧ (¬ (= A P)) (between A P C))
+          (between P A B)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        B A P C BetweennessOuterTransitivityFlipped
+        applySyllogism
+# Our second transitivity invocation is <code>between A B P ∧ between A P C → B P C</code>
+        (∧ (¬ (= A P)) (between A P C))
+          (between P B A)
+          ConjunctionLeftElimination
+
+        P B A BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (¬ (= A P)) (between A P C))
+          (between P B A)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        A B P C BetweennessInnerTransitivityFlipped
+        applySyllogism
+# Now we combine the two.
+        composeDisjunction
+        applySyllogism
+ )
+
+thm (BeyondOut () () (→ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+  (↔ (between B P C) (is-outside P A B)))
+        A P B C BeyondOutForward
+        export
+
+        A P B C BeyondOutReverse
+        export
+
+        introduceBiconditionalFromImplicationsInConsequent
+ )
+thm (ExistsBeyondOutForward-bpc () ()
+  (→ (∧ (is-outside P A B) (∧ (¬ (= C P)) (between A P C)))
+    (between B P C))
+# At the end of the proof we'll need a copy of <code>P is-outside A B</code>, so we stick it on the proof stack.
+        (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
+# Most of the proof of this lemma consists of an application of  <code>BeyondOut</code>. The first thing we need is <code>A ≠ P</code>.
+        (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# Next is <code>B ≠ P</code>
+        (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next is <code>C ≠ P</code>
+        (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Last is <code>between A P C</code>.
+        (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Applying <code>BeyondOut</code> gives us <code>between B P C ↔ P is-outside A B</code>
+        A P B C BeyondOut
+        applySyllogism
+# Now we detach the <code>P is-outside A B</code> part so we just have <code>between B P C</code>.
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+ )
+
+thm (ExistsBeyondOutForward-c ((A c) (P c)) () (∃ c (∧ (¬ (= c P)) (between A P c)))
+        c A P PointConstructionDifferent
+
+        (between A P c) (¬ (= P c)) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        c addThereExists
+        applyModusPonens
+
+        P c EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        (between A P c) conjoinRR
+        c addThereExists
+        applyModusPonens
+ )
+
+thm (ExistsBeyondOutForward-3 ((A c) (B c) (P c)) () (→ (is-outside P A B) (∃ c (∧ (∧ (¬ (= c P)) (between A P c)) (between B P c))))
+        P A B c ExistsBeyondOutForward-bpc
+        export
+        c addForAllToConsequent
+# We now have <code>P is-outside A B → ∀ c (c ≠ P ∧ between A P c → between B P c)</code>. Combining this with the previous result gives <code>P is-outside A B → ∃ c (c ≠ P ∧ between A P c ∧ (c ≠ P ∧ between A P c → between B P c))</code>.
+        c P A ExistsBeyondOutForward-c
+        introduceLeftConjunctToConsequent
+
+        c
+          (∧ (¬ (= c P)) (between A P c))
+          (→ (∧ (¬ (= c P)) (between A P c)) (between B P c))
+          ThereExistsConjunctionRightCombining
+        applySyllogism
+# To get <code>between B P c</code> is just a matter of modus ponens. The one complication is that we want to keep <code>c ≠ P ∧ between A P c</code> around in addition, so we apply idempotence, associativity, and modus ponens, in that order.
+        (∧ (¬ (= c P)) (between A P c)) ConjunctionIdempotence
+        eliminateBiconditionalReverse
+        (→ (∧ (¬ (= c P)) (between A P c)) (between B P c)) conjoinRR
+        c addThereExists
+        applySyllogism
+
+        (∧ (¬ (= c P)) (between A P c))
+          (∧ (¬ (= c P)) (between A P c))
+          (→ (∧ (¬ (= c P)) (between A P c)) (between B P c))
+          ConjunctionAssociativity
+        eliminateBiconditionalReverse
+        c addThereExists
+        applySyllogism
+
+        (∧ (¬ (= c P)) (between A P c))
+          (between B P c)
+          ModusPonens
+        (∧ (¬ (= c P)) (between A P c)) conjoinLL
+        c addThereExists
+        applySyllogism
+ )
+
+thm (ExistsBeyondOutForward ((A c) (B c) (P c)) ()
+  (→ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P)))
+    (∃ c (∧ (∧ (¬ (= c P))
+      (between A P c)) (between B P c)))))
+# First is <code>P is-outside A B → A ≠ P</code>
+        (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+# Next is <code>P is-outside A B → B ≠ P</code>
+        (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next is the remainder.
+        P A B c ExistsBeyondOutForward-3
+        composeConjunction
+ )
+
+thm (ExistsBeyondOutReverse ((A c) (B c) (P c)) ()
+  (→ (∧ (∧ (¬ (= A P)) (¬ (= B P)))
+    (∃ c (∧ (∧ (¬ (= c P))
+      (between A P c)) (between B P c))))
+   (is-outside P A B))
+# This proof is basically an application of middle connectivity for betweenness, which in this case is <code>c ≠ P ∧ between c P A ∧ between c P B → between P A B ∨ between P B A</code>. First we need <code>c ≠ P</code>
+        (∧ (¬ (= c P)) (between A P c))
+          (between B P c)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+# Next is <code>between c P A</code>.
+        (∧ (¬ (= c P)) (between A P c))
+          (between B P c)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        A P c BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>between c P B</code>.
+        (∧ (¬ (= c P)) (between A P c))
+          (between B P c)
+          ConjunctionLeftElimination
+
+        B P c BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# We apply connectivity, remove the quantifier from the consequent, and assemble the result.
+        c P A B BetweennessMiddleConnectivity
+        applySyllogism
+
+        c addThereExists
+        removeThereExistsInConsequent
+
+        (∧ (¬ (= A P)) (¬ (= B P))) conjoinLL
+ )
+
+thm (ExistsBeyondOut ((A c) (B c) (P c)) () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∃ c (∧ (∧ (¬ (= c P)) (between A P c)) (between B P c)))))
+        P A B c ExistsBeyondOutForward
+        A P B c ExistsBeyondOutReverse
+        introduceBiconditionalFromImplications
+ )
+thm (OutCollinearityForward-1 () () (→ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (between P A B)) (¬ (between A P B)))
+# First we pick out and rearrange the parts we need, specifically we prove <code>P ≠ A ∧ P ≠ B ∧ between P A B → between P A B ∧ P ≠ A</code>
+        (∧ (¬ (= A P)) (¬ (= B P))) (between P A B) ConjunctionLeftElimination
+
+        (∧ (¬ (= A P)) (¬ (= B P))) (between P A B) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The geometrical content of this proof is <code>between P A B ∧ between A P B → A = P</code>.
+        P A B BetweennessEquality
+
+        P A EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# Applying some propositional logic, we rearrange this to <code>between P A B ∧ A ≠ P → ¬ between A P B</code>
+        export
+
+        (between A P B) (= A P) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+# Combining this with our first rearrangement, we get the desired result.
+        applySyllogism
+ )
+thm (OutCollinearityForward-2 () () (→ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (between P B A)) (¬ (between A P B)))
+        (¬ (= A P)) (¬ (= B P)) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        (between P B A) conjoinRR
+
+        B P A OutCollinearityForward-1
+        applySyllogism
+
+        B P A BetweennessSymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (OutCollinearityForward-3 () () (→ (is-outside P A B) (¬ (between A P B)))
+        (∧ (¬ (= A P)) (¬ (= B P))) (between P A B) (between P B A) ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        A P B OutCollinearityForward-1
+        A P B OutCollinearityForward-2
+        composeDisjunction
+
+        applySyllogism
+ )
+thm (OutCollinearityForward-collinear () () (→ (is-outside P A B) (collinear A P B))
+        (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionLeftElimination
+
+        (between P A B) (between P B A) DisjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A B BetweennessSymmetry
+        eliminateBiconditionalReverse
+        (between P B A) disjoinLL
+        applySyllogism
+
+        (∨ (between P B A) (between B A P)) (between A P B) DisjunctionLeftIntroduction
+        applySyllogism
+
+        (between A P B) (between P B A) (between B A P) DisjunctionAssociativity
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (OutCollinearityForward () () (→ (is-outside P A B) (∧ (collinear A P B) (¬ (between A P B))))
+        P A B OutCollinearityForward-collinear
+        P A B OutCollinearityForward-3
+        composeConjunction
+ )
+thm (OutCollinearityReverse-1 () () (→ (∧ (collinear A P B) (¬ (between A P B))) (∧ (¬ (= A P)) (¬ (= B P))))
+        (collinear A P B) (¬ (between A P B))
+        ConjunctionLeftElimination
+# Next we show <code>A = P → (between A P B ↔ between P P B)</code>, and from it <code>A = P → between A P B</code>.
+        P B BetweenAAB
+
+        P EqualityReflexivity
+        B EqualityReflexivity
+        A P P P B B BetweennessBuilder
+        detach2of2
+        detach2of2
+
+        detachImplicationBiconditionalRight
+
+        introduceTransposition
+# Proving <code>B = P → between A P B</code> is similar (via <code>B = P → (between A P B ↔ between A P P)</code>.
+        A P BetweenABB
+
+        A EqualityReflexivity
+        P EqualityReflexivity
+        A A P P B P BetweennessBuilder
+        detach2of3
+        detach1of2
+
+        detachImplicationBiconditionalRight
+
+        introduceTransposition
+
+        composeConjunction
+
+        applySyllogism
+ )
+thm (OutCollinearityReverse-2 () ()
+  (→ (∧ (collinear A P B) (¬ (between A P B)))
+    (∨ (between P A B) (between P B A)))
+# First we show <code>collinear A P B ∧ ¬ between A P B → between P B A ∨ between P A B</code>
+        (between A P B) (between P B A) (between B A P) DisjunctionAssociativity
+        eliminateBiconditionalReverse
+
+        (between A P B) (∨ (between P B A) (between B A P)) DisjunctionImplication
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+# That gives us <code>between P B A ∨ between B A P</code>. We just need to rearrange a bit and we are done.
+        B A P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        (between P B A) disjoinLL
+        applySyllogism
+
+        (between P B A) (between P A B) DisjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (OutCollinearityReverse () () (→ (∧ (collinear A P B) (¬ (between A P B))) (is-outside P A B))
+        A P B OutCollinearityReverse-1
+        A P B OutCollinearityReverse-2
+        composeConjunction
+ )
+
+thm (OutCollinearity () () (↔ (is-outside P A B) (∧ (collinear A P B) (¬ (between A P B))))
+        P A B OutCollinearityForward
+        A P B OutCollinearityReverse
+        introduceBiconditionalFromImplications
+ )
+thm (OutReflexivity () () (→ (¬ (= A P)) (is-outside P A A))
+        (¬ (= A P)) ConjunctionIdempotence
+        eliminateBiconditionalReverse
+
+        P A BetweenABB
+        cloneAsDisjunction
+        introduceRightConjunctToConsequent
+ )
+thm (OutSymmetry () () (↔ (is-outside P A B) (is-outside P B A))
+        (¬ (= A P)) (¬ (= B P)) ConjunctionCommutativity
+        (between P A B) (between P B A) DisjunctionCommutativity
+        buildConjunction
+ )
+thm (OutTransitivity-1 () () (→ (∧ (¬ (= B P))
+  (∧ (∨ (between P A B) (between P B A))
+    (∨ (between P B C) (between P C B))))
+  (∨ (between P A C) (between P C A)))
+# First we break down the four cases.
+        (between P A B)
+          (between P B A)
+          (∨ (between P B C) (between P C B))
+          ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+
+        (between P A B) (between P B C) (between P C B) ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (between P B A) (between P B C) (between P C B) ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        disjoin
+
+        applySyllogism
+
+        (¬ (= B P)) conjoinLL
+# Now we distribute the <code>B ≠ P</code> into each of the cases.
+        (¬ (= B P))
+          (∨ (∧ (between P A B) (between P B C)) (∧ (between P A B) (between P C B)))
+          (∨ (∧ (between P B A) (between P B C)) (∧ (between P B A) (between P C B)))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= B P))
+          (∧ (between P A B) (between P B C))
+          (∧ (between P A B) (between P C B))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (¬ (= B P))
+          (∧ (between P B A) (between P B C))
+          (∧ (between P B A) (between P C B))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        disjoin
+        applySyllogism
+# The first case is <code>B ≠ P ∧ between P A B ∧ between P B C</code>.  In all four cases we are showing that the case in question implies <code>between P A C ∨ between P C A</code>. In the current case, <code>between P A C</code> follows from transitivity.
+        (¬ (= B P))
+          (∧ (between P A B) (between P B C))
+          ConjunctionLeftElimination
+
+        P A B C BetweennessMiddleTransitivityFlipped
+        applySyllogism
+
+        (between P A C) (between P C A) DisjunctionRightIntroduction
+        applySyllogism
+# The second case is <code>B ≠ P ∧ between P A B ∧ between P C B</code>.  Here we apply inner connectivity for betweenness.
+        (¬ (= B P))
+          (∧ (between P A B) (between P C B))
+          ConjunctionLeftElimination
+
+        P A B C BetweennessInnerConnectivity
+        applySyllogism
+
+        composeDisjunction
+# The third case is <code>B ≠ P ∧ between P B A ∧ between P B C</code>.  Here we apply outer connectivity for betweenness.
+        B P EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+
+        (∧ (between P B A) (between P B C)) conjoinRR
+
+        (¬ (= P B)) (between P B A) (between P B C) ConjunctionAssociativity
+        eliminateBiconditionalForward
+        applySyllogism
+
+        P B A C BetweennessOuterConnectivity
+        applySyllogism
+# The fourth case is <code>B ≠ P ∧ between P B A ∧ between P C B</code>.  In this one <code>between P C A</code> follows from betweenness transitivity.
+        (¬ (= B P))
+          (∧ (between P B A) (between P C B))
+          ConjunctionLeftElimination
+
+        (between P B A) (between P C B) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P C B A BetweennessMiddleTransitivityFlipped
+        applySyllogism
+
+        (between P C A) (between P A C) DisjunctionLeftIntroduction
+        applySyllogism
+
+        composeDisjunction
+
+        composeDisjunction
+
+        applySyllogism
+ )
+
+thm (OutTransitivity () () (→ (∧ (is-outside P A B) (is-outside P B C)) (is-outside P A C))
+# First we pick out <code>A ≠ P</code>.
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
+          (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# Secondly we pick out <code>C ≠ P</code>.
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
+          (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next we assemble <code>B ≠ P ∧ ((between P A B ∨ between P B A) ∧ (between P B C ∨ between P C B))</code> and apply our lemma to turn this into <code>between P A C ∨ between P C A</code>.
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
+          (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
+          (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
+          (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        composeConjunction
+
+        B P A C OutTransitivity-1
+        applySyllogism
+
+        composeConjunction
+ )
+thm (OutSegmentConstructionLemma () ()
+  (→ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (∧ (∨ (between A R E) (between A E R))
+      (≡ A E B C)))
+  (∧ (is-outside A E R) (≡ A E B C)))
+# To apply the definition of <code>A is-outside E R</code>, first we need <code>E ≠ A</code>. This follows from <code>B ≠ C</code> and <code>A E ≡ B C</code>, and the first step is picking out those two formulas.
+        (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R E) (between A E R))
+            (≡ A E B C))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R E) (between A E R))
+            (≡ A E B C))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# The next step in getting to <code>E ≠ A</code> is to show that <code>B ≠ C ∧ A E ≡ B C → A ≠ E</code>.
+        A E B C CongruenceIdentityFromEquality
+        export
+        applyComm
+
+        (= A E) (= B C) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applyComm
+        import
+# Combining that with the previous result and flipping the two sides of the not-equals sign gives us <code>E ≠ A</code>.
+        applySyllogism
+
+        A E EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next we need <code>R ≠ A</code>.
+        (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R E) (between A E R))
+            (≡ A E B C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Then we need <code>between A E R ∨ between A R E</code>
+        (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R E) (between A E R))
+            (≡ A E B C))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        (between A R E) (between A E R)
+        DisjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# That's all for <code>A is-outside E R</code>. So the only remaining step is <code>A E ≡ B C</code>
+        (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R E) (between A E R))
+            (≡ A E B C))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+ )
+
+thm (OutSegmentConstruction ((R e) (A e) (B e) (C e)) ()
+  (→ (∧ (¬ (= R A)) (¬ (= B C)))
+    (∃ e (∧ (is-outside A e R) (≡ A e B C))))
+        (∧ (¬ (= R A)) (¬ (= B C))) ImplicationReflexivity
+        e A R B C InnerSegmentConstruction
+        introduceRightConjunctToConsequent
+
+        e
+          (∧ (¬ (= R A)) (¬ (= B C)))
+          (∧ (∨ (between A R e) (between A e R))
+            (≡ A e B C))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+
+        R A B C e OutSegmentConstructionLemma
+        e addThereExists
+        applySyllogism
+ )
+thm (OutSegmentConstructionUniqueness-cases () () 
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (∨ (∨ (∧ (between A X R) (between A Y R))
+    (∧ (between A X R) (between A R Y)))
+    (∨ (∧ (between A R X) (between A Y R))
+    (∧ (∧ (¬ (= A R)) (between A R X)) (between A R Y)))))
+# First is <code>A ≠ R</code>.
+        (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+          (is-outside A X R)) (≡ A X B C))
+          (is-outside A Y R))
+          (≡ A Y B C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        R A EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>between A X R ∨ between A R X</code>
+        (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+          (is-outside A X R)) (≡ A X B C))
+          (is-outside A Y R))
+          (≡ A Y B C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next is <code>between A Y R ∨ between A R Y</code>
+        (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+          (is-outside A X R)) (≡ A X B C))
+          (is-outside A Y R))
+          (≡ A Y B C)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        composeConjunction
+# Now we apply distributivity to expand the four cases.
+        (between A X R)
+          (between A R X)
+          (∨ (between A Y R) (between A R Y))
+          ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+
+        (between A X R) (between A Y R) (between A R Y) ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (between A R X) (between A Y R) (between A R Y) ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        disjoin
+
+        applySyllogism
+
+        (¬ (= A R)) conjoinLL
+
+        applySyllogism
+# Now we distribute the <code>A ≠ R</code> into each of the cases.
+        (¬ (= A R))
+          (∨ (∧ (between A X R) (between A Y R)) (∧ (between A X R) (between A R Y)))
+          (∨ (∧ (between A R X) (between A Y R)) (∧ (between A R X) (between A R Y)))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= A R))
+          (∧ (between A X R) (between A Y R))
+          (∧ (between A X R) (between A R Y))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (¬ (= A R))
+          (∧ (between A R X) (between A Y R))
+          (∧ (between A R X) (between A R Y))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        disjoin
+        applySyllogism
+# Now we remove <code>A ≠ R</code> from the first three cases, and apply associativity to the fourth.
+        (¬ (= A R)) (∧ (between A X R) (between A Y R)) ConjunctionLeftElimination
+        (¬ (= A R)) (∧ (between A X R) (between A R Y)) ConjunctionLeftElimination
+        disjoin
+
+        (¬ (= A R)) (∧ (between A R X) (between A Y R)) ConjunctionLeftElimination
+
+        (¬ (= A R)) (between A R X) (between A R Y) ConjunctionAssociativity
+        eliminateBiconditionalForward
+
+        disjoin
+        disjoin
+        applySyllogism
+ )
+
+thm (OutSegmentConstructionUniqueness-axy-ayx () () 
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (∨ (between A X Y) (between A Y X)))
+        R A B C X Y OutSegmentConstructionUniqueness-cases
+# The first of the four cases is <code>between A X R ∧ between A Y R</code>.
+        A X R Y BetweennessInnerConnectivity
+# The second case is <code>between A X R ∧ between A R Y</code>.
+        A X R Y BetweennessMiddleTransitivityFlipped
+        (between A X Y) (between A Y X) DisjunctionRightIntroduction
+        applySyllogism
+
+        composeDisjunction
+# The third case is <code>between A R X ∧ between A Y R</code>.
+        (between A R X) (between A Y R) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+
+        A Y R X BetweennessMiddleTransitivityFlipped
+        (between A Y X) (between A X Y) DisjunctionLeftIntroduction
+        applySyllogism
+
+        applySyllogism
+# The fourth case is <code>A ≠ R ∧ between A R X ∧ between A R Y</code>.
+        A R X Y BetweennessOuterConnectivity
+
+        composeDisjunction
+
+        composeDisjunction
+
+        applySyllogism
+ )
+
+thm (OutSegmentConstructionUniqueness-axay () () 
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (≡ A X A Y))
+        (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+          (is-outside A X R)) (≡ A X B C))
+          (is-outside A Y R))
+          (≡ A Y B C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+          (is-outside A X R)) (≡ A X B C))
+          (is-outside A Y R))
+          (≡ A Y B C)
+          ConjunctionLeftElimination
+
+        A Y B C CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        A X B C A Y CongruenceTransitivity
+        applySyllogism
+ )
+
+thm (OutSegmentConstructionUniqueness () () 
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (= X Y))
+# We first arrange the results of the two previous lemmas to get <code>(between A X Y ∧ A X ≡ A Y) ∨ (between A Y X ∧ A X ≡ A Y)</code>.
+        R A B C X Y OutSegmentConstructionUniqueness-axy-ayx
+        R A B C X Y OutSegmentConstructionUniqueness-axay
+        composeConjunction
+
+        (between A X Y) (between A Y X) (≡ A X A Y) ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+        applySyllogism
+# The result for the first half is <code>between A X Y ∧ A X ≡ A Y → X = Y</code>, which follows directly from <code>BetweennessOneDistanceUniqueness</code>.
+        A X Y BetweennessOneDistanceUniqueness
+# The second half result, <code>between A Y X ∧ A X ≡ A Y → X = Y</code>, is basically the same thing, but we need to rearrange slightly.
+        A X A Y CongruenceSymmetry
+        eliminateBiconditionalReverse
+        (between A Y X) conjoinLL
+
+        A Y X BetweennessOneDistanceUniqueness
+        applySyllogism
+
+        Y X EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# Now we combine the two halves.
+        composeDisjunction
+        applySyllogism
+ )
+thm (LessEqualBetween-y ((P y) (A y) (B y)) ()
+  (→ (∧ (is-outside P A B) (≤ P A P B))
+    (∃ y (∧ (is-outside P A B)
+      (∧ (between P y B) (≡ P A P y)))))
+        P A P B y LessEqualCutoff
+        eliminateBiconditionalReverse
+        (is-outside P A B) conjoinLL
+
+        y
+          (is-outside P A B)
+          (∧ (between P y B) (≡ P A P y))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (LessEqualBetween-Py () ()
+  (→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y))) (¬ (= P Y)))
+# First we pick out <code>P ≠ A</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A P EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>P A ≡ P Y</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next is <code>P = Y ∧ P A ≡ P Y → P = A</code> (from <code>CongruenceIdentityFromEquality</code>), which we then rearrange to give <code>P ≠ A ∧ P A ≡ P Y → P ≠ Y</code>
+        P A P Y CongruenceSymmetry
+        eliminateBiconditionalReverse
+        (= P Y) conjoinLL
+
+        P Y P A CongruenceIdentityFromEquality
+        applySyllogism
+
+        export
+        applyComm
+
+        (= P Y) (= P A) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+        
+        applyComm
+        import
+# Combining that with the previous result finishes the proof.
+        applySyllogism
+ )
+thm (LessEqualBetween-PyB () ()
+  (→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (is-outside P Y B))
+# First we need <code>Y ≠ P</code>.
+        P A B Y LessEqualBetween-Py
+
+        P Y EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Then we need <code>B ≠ P</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Finally we need <code>between P Y B ∨ between P B Y</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        (between P Y B) (between P B Y) DisjunctionRightIntroduction
+        applySyllogism
+
+        composeConjunction
+ )
+
+thm (LessEqualBetween-yA () ()
+  (→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (= Y A))
+# First we need <code>B ≠ P</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next we need <code>P ≠ Y</code>.
+        P A B Y LessEqualBetween-Py
+        composeConjunction
+# Next we need <code>P is-outside Y B</code>.
+        P A B Y LessEqualBetween-PyB
+        composeConjunction
+# Next is <code>P Y ≡ P Y</code>.
+        P Y CongruenceReflexivity
+        introduceRightConjunctToConsequent
+# Next is <code>P is-outside A B</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+        composeConjunction
+# Next is <code>P A ≡ P Y</code>.
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+# Now that we have all the hypotheses, we'll apply <code>OutSegmentConstructionUniqueness</code> to give <code>Y = A</code>.
+        B P P Y Y A OutSegmentConstructionUniqueness
+        applySyllogism
+ )
+
+thm (LessEqualBetween-PAB () ()
+  (→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (between P A B))
+# First we get out <code>Y = A</code> and <code>between P Y B</code>.
+        P A B Y LessEqualBetween-yA
+
+        (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The substitution is <code>Y = A → (between P Y B ↔ between P A B)</code>.
+        P EqualityReflexivity
+        B EqualityReflexivity
+        P P Y A B B BetweennessBuilder
+        detach2of2
+        detach1of2
+
+        eliminateBiconditionalReverseInConsequent
+        import
+
+        applySyllogism
+ )
+
+thm (LessEqualBetweenForward (   ) ()
+  (→ (∧ (is-outside P A B) (≤ P A P B)) (between P A B))
+        P A B y LessEqualBetween-y
+
+        P A B y LessEqualBetween-PAB
+        y addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+ )
+thm (LessEqualBetweenReverse (   ) ()
+  (→ (between P A B) (≤ P A P B))
+        (between P A B) ImplicationReflexivity
+
+        P A CongruenceReflexivity
+        introduceRightConjunctToConsequent
+# Now we apply a substitution <code>c = A → (between P c B ∧ P A ≡ P c ↔ between P A B ∧ P A ≡ P A)</code> to turn <code>between P A B ∧ P A ≡ P A</code> into <code>[ A / c ] (between P c B ∧ P A ≡ P c)</code>.
+        P EqualityReflexivity
+        B EqualityReflexivity
+        P P c A B B BetweennessBuilder
+        detach2of2
+        detach1of2
+
+        A EqualityReflexivity
+        P EqualityReflexivity
+        P EqualityReflexivity
+        P P A A P P c A CongruenceBuilder
+        detach1of4
+        detach2of3
+        detach1of2
+
+        buildConjunctionInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+        applySyllogism
+# Turning the substitution into ∃ and applying <code>LessEqualCutoff</code> we are done.
+        A
+          c
+          (∧ (between P c B) (≡ P A P c))
+          ThereExistsIntroductionFromObject
+        applySyllogism
+
+        P A P B c LessEqualCutoff
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (LessEqualBetween () ()
+  (→ (is-outside P A B) (↔ (≤ P A P B) (between P A B)))
+        P A B LessEqualBetweenForward
+        export
+
+        P A B LessEqualBetweenReverse
+        (is-outside P A B) introduceAntecedent
+
+        introduceBiconditionalFromImplicationsInConsequent
+ )
+thm (CollinearityCollinearity-1 () ()
+  (→ (∨ (between P S X) (between P X S)) (collinear X P S))
+# We prove <code>collinear X P S</code> via its definition: <code>between X P S ∨ between P S X ∨ between S X P</code>.
+        P X S BetweennessSymmetry
+        eliminateBiconditionalReverse
+
+        (between P S X) disjoinLL
+
+        (∨ (between P S X) (between S X P))
+          (between X P S)
+          DisjunctionLeftIntroduction
+        applySyllogism
+
+        (between X P S) (between P S X) (between S X P) DisjunctionAssociativity
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (CollinearityOuterTransitivityRearranged () ()
+  (→ (∧ (∧ (¬ (= P Q)) (collinear S P Q)) (collinear X P Q))
+  (collinear X P S))
+# First we associate the two collinearity formulas together.
+        (¬ (= P Q))
+          (collinear S P Q)
+          (collinear X P Q)
+          ConjunctionAssociativity
+        eliminateBiconditionalReverse
+# Now we apply distributivity multiple times to separate out the nine cases. Round one: splitting <code>collinear S P Q</code> halfway.
+        (∨ (between S P Q) (between P Q S))
+          (between Q S P) 
+          (collinear X P Q)
+          ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+# Round two: splitting <code>collinear S P Q</code> the rest of the way.
+        (between S P Q)
+          (between P Q S)
+          (collinear X P Q)
+          ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+        (∧ (between Q S P) (collinear X P Q)) disjoinRR
+        applySyllogism
+# Round three: split <code>collinear X P Q</code> halfway.
+        (between S P Q)
+          (∨ (between X P Q) (between P Q X))
+          (between Q X P)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (between P Q S)
+          (∨ (between X P Q) (between P Q X))
+          (between Q X P)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        disjoin
+
+        (between Q S P)
+          (∨ (between X P Q) (between P Q X))
+          (between Q X P)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        disjoin
+        applySyllogism
+# Round four: split <code>collinear X P Q</code> the rest of the way.
+        (between S P Q)
+          (between X P Q)
+          (between P Q X)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (∧ (between S P Q) (between Q X P)) disjoinRR
+
+        (between P Q S)
+          (between X P Q)
+          (between P Q X)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (∧ (between P Q S) (between Q X P)) disjoinRR
+
+        disjoin
+
+        (between Q S P)
+          (between X P Q)
+          (between P Q X)
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (∧ (between Q S P) (between Q X P)) disjoinRR
+
+        disjoin
+
+        applySyllogism
+# Having split out the nine cases, we combine with <code>P ≠ Q</code> and then distribute <code>P ≠ Q</code> into each of the cases.
+        (¬ (= P Q)) conjoinLL
+        applySyllogism
+# Round one.
+        (¬ (= P Q))
+          (∨ (∨ (∨ (∧ (between S P Q) (between X P Q))
+                (∧ (between S P Q) (between P Q X)))
+              (∧ (between S P Q) (between Q X P)))
+            (∨ (∨ (∧ (between P Q S) (between X P Q))
+                (∧ (between P Q S) (between P Q X)))
+              (∧ (between P Q S) (between Q X P))))
+          (∨ (∨ (∧ (between Q S P) (between X P Q))
+              (∧ (between Q S P) (between P Q X)))
+            (∧ (between Q S P) (between Q X P)))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applySyllogism
+# Round two.
+        (¬ (= P Q))
+          (∨ (∨ (∧ (between S P Q) (between X P Q))
+                (∧ (between S P Q) (between P Q X)))
+              (∧ (between S P Q) (between Q X P)))
+          (∨ (∨ (∧ (between P Q S) (between X P Q))
+              (∧ (between P Q S) (between P Q X)))
+            (∧ (between P Q S) (between Q X P)))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (∧ (¬ (= P Q))
+          (∨ (∨ (∧ (between Q S P) (between X P Q))
+              (∧ (between Q S P) (between P Q X)))
+            (∧ (between Q S P) (between Q X P))))
+          disjoinRR
+        applySyllogism
+# Round three.
+        (¬ (= P Q))
+          (∨ (∧ (between S P Q) (between X P Q))
+            (∧ (between S P Q) (between P Q X)))
+          (∧ (between S P Q) (between Q X P))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        (¬ (= P Q))
+          (∨ (∧ (between P Q S) (between X P Q))
+            (∧ (between P Q S) (between P Q X)))
+          (∧ (between P Q S) (between Q X P))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        disjoin
+
+        (¬ (= P Q))
+          (∨ (∧ (between Q S P) (between X P Q))
+            (∧ (between Q S P) (between P Q X)))
+          (∧ (between Q S P) (between Q X P))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+
+        disjoin
+        applySyllogism
+# Round four.
+        (¬ (= P Q))
+          (∧ (between S P Q) (between X P Q))
+          (∧ (between S P Q) (between P Q X))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (∧ (¬ (= P Q)) (∧ (between S P Q) (between Q X P))) disjoinRR
+
+        (¬ (= P Q))
+          (∧ (between P Q S) (between X P Q))
+          (∧ (between P Q S) (between P Q X))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (∧ (¬ (= P Q)) (∧ (between P Q S) (between Q X P))) disjoinRR
+
+        disjoin
+
+        (¬ (= P Q))
+          (∧ (between Q S P) (between X P Q))
+          (∧ (between Q S P) (between P Q X))
+          ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        (∧ (¬ (= P Q)) (∧ (between Q S P) (between Q X P))) disjoinRR
+
+        disjoin
+        applySyllogism
+# Sorry breaking out the cases took so long. Anyway, we are ready to tackle them one by one. The first is <code>between S P Q ∧ between X P Q</code> (of course, all of them have <code>P ≠ Q</code> tacked on the front, which we usually will not state explicitly). It follows from the following application of <code>BetweennessMiddleConnectivity</code>: <code>Q ≠ P ∧ between Q P S ∧ between Q P X → between P S X ∨ between P X S</code>
+        (¬ (= P Q))
+          (∧ (between S P Q) (between X P Q))
+          ConjunctionRightElimination
+
+        P Q EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= P Q))
+          (∧ (between S P Q) (between X P Q))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        S P Q BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        (¬ (= P Q))
+          (∧ (between S P Q) (between X P Q))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        X P Q BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        Q P S X BetweennessMiddleConnectivity
+        applySyllogism
+# To finish the first case we turn <code>between P S X ∨ between P X S</code> into <code>collinear X P S</code>.
+        P S X CollinearityCollinearity-1
+        applySyllogism
+# The second case is <code>between S P Q ∧ between P Q X</code>. This follows from <code>between S P Q ∧ between P Q X ∧ P ≠ Q → between S P X</code>, which is an instance of <code>BetweennessOuterTransitivity</code>.
+        (¬ (= P Q))
+          (∧ (between S P Q) (between P Q X))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        (¬ (= P Q))
+          (∧ (between S P Q) (between P Q X))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        (¬ (= P Q))
+          (∧ (between S P Q) (between P Q X))
+          ConjunctionRightElimination
+
+        composeConjunction
+
+        S P Q X BetweennessOuterTransitivity
+        applySyllogism
+# Now we need <code>between S P X → collinear X P S</code>.
+        S P X BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        X P S BetweennessCollinearity
+        applySyllogism
+
+        composeDisjunction
+# The third case is <code>between S P Q ∧ between Q X P</code>, which follows from <code>between S P Q ∧ between P X Q → between S P X</code>, which is an instance of <code>BetweennessInnerTransitivity</code>
+        (¬ (= P Q))
+          (∧ (between S P Q) (between Q X P))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        (¬ (= P Q))
+          (∧ (between S P Q) (between Q X P))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        Q X P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        S P Q X BetweennessInnerTransitivity
+        applySyllogism
+# To finish this case we need <code>between S P X → collinear X P S</code>.
+        S P X BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        X P S BetweennessCollinearity
+        applySyllogism
+
+        composeDisjunction
+# We now start the second set of cases, those starting with <code>between P Q S</code>. The fourth case is <code>between P Q S ∧ between X P Q</code>, which follows from <code>between X P Q ∧ between P Q S ∧ P ≠ Q → between X P S</code>, which is an instance of <code>BetweennessOuterTransitivity</code>.
+        (¬ (= P Q))
+          (∧ (between P Q S) (between X P Q))
+          ConjunctionLeftElimination
+
+        (between P Q S) (between X P Q) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= P Q))
+          (∧ (between P Q S) (between X P Q))
+          ConjunctionRightElimination
+        composeConjunction
+
+        X P Q S BetweennessOuterTransitivity
+        applySyllogism
+# To finish this case we need <code>between X P S → collinear X P S</code>.
+        X P S BetweennessCollinearity
+        applySyllogism
+# The fifth case is <code>between P Q S ∧ between P Q X</code>. This follows from <code>BetweennessOuterConnectivity</code>, which in this case is <code>P ≠ Q ∧ between P Q S ∧ between P Q X → between P S X ∨ between P X S</code>.
+        (¬ (= P Q))
+          (∧ (between P Q S) (between P Q X))
+          ConjunctionRightElimination
+
+        (¬ (= P Q))
+          (∧ (between P Q S) (between P Q X))
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        (¬ (= P Q)) (between P Q S) (between P Q X) ConjunctionAssociativity
+        eliminateBiconditionalForward
+        applySyllogism
+
+        P Q S X BetweennessOuterConnectivity
+        applySyllogism
+# To finish this case we turn <code>between P S X ∨ between P X S</code> into <code>collinear X P S</code>.
+        P S X CollinearityCollinearity-1
+        applySyllogism
+
+        composeDisjunction
+# The sixth case is <code>between P Q S ∧ between Q X P</code>. It follows from <code>between P X Q ∧ between P Q S → between P X S</code>, an instance of <code>BetweennessMiddleTransitivityFlipped</code>
+        (¬ (= P Q))
+          (∧ (between P Q S) (between Q X P))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        Q X P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= P Q))
+          (∧ (between P Q S) (between Q X P))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        P X Q S BetweennessMiddleTransitivityFlipped
+        applySyllogism
+# To finish the case we turn <code>between P X S</code> into <code>collinear X P S</code>.
+        P X S BetweennessCollinearity
+        applySyllogism
+
+        P X S Collinearity12
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeDisjunction
+
+        composeDisjunction
+# We are ready for the last trio of cases, those which start with <code>between Q S P</code>. The seventh case is <code>between Q S P ∧ between X P Q</code>. It follows from <code>between X P Q ∧ between P S Q → between X P S</code>, which is an instance of <code>BetweennessInnerTransitivity</code>.
+        (¬ (= P Q))
+          (∧ (between Q S P) (between X P Q))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        (¬ (= P Q))
+          (∧ (between Q S P) (between X P Q))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        Q S P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        X P Q S BetweennessInnerTransitivity
+        applySyllogism
+# To finish the case we turn <code>between X P S</code> into <code>collinear X P S</code>.
+        X P S BetweennessCollinearity
+        applySyllogism
+# The eighth case is <code>between Q S P ∧ between P Q X</code>. It follows by <code>between P S Q ∧ between P Q X → between P S X</code> which is an instance of <code>BetweennessMiddleTransitivityFlipped</code>.
+        (¬ (= P Q))
+          (∧ (between Q S P) (between P Q X))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        Q S P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (¬ (= P Q))
+          (∧ (between Q S P) (between P Q X))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        P S Q X BetweennessMiddleTransitivityFlipped
+        applySyllogism
+# To finish the case we need to turn <code>between P S X</code> into <code>collinear X P S</code>.
+        P S X BetweennessCollinearity
+        applySyllogism
+
+        X P S CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeDisjunction
+# The ninth and final case is <code>between Q S P ∧ between Q X P</code>. It follows from <code>between P S Q ∧ between P X Q → between P S X ∨ between P X S</code>, which is an instance of <code>BetweennessInnerConnectivity</code>.
+        (¬ (= P Q))
+          (∧ (between Q S P) (between Q X P))
+          ConjunctionLeftElimination
+
+        Q S P BetweennessSymmetry
+        Q X P BetweennessSymmetry
+        buildConjunction
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P S Q X BetweennessInnerConnectivity
+        applySyllogism
+# To finish this case, we turn <code>between P S X ∨ between P X S</code> into <code>collinear X P S</code>.
+        P S X CollinearityCollinearity-1
+        applySyllogism
+
+        composeDisjunction
+
+        composeDisjunction
+# To finish the proof, we simply combine the breaking down of the cases with the resolution of each case.
+        applySyllogism
+ )
+thm (CollinearityOuterTransitivity () ()
+  (→ (∧ (∧ (¬ (= P Q)) (collinear P Q A)) (collinear P Q B))
+  (collinear P A B))
+# First we need <code>P ≠ Q</code>
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+# Second we need <code>collinear A P Q</code>.
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        A P Q CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+# Lastly we need <code>collinear B P Q</code>.
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionLeftElimination
+
+        B P Q CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+# Applying the previous rearrangement of transitivity gives us <code>collinear B P A</code>, which we then rearrange to <code>collinear P A B</code>.
+        P Q A B CollinearityOuterTransitivityRearranged
+        applySyllogism
+
+        B P A CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (CollinearityCollinearityForward () ()
+  (→ (∧ (∧ (∧ (¬ (= P Q)) (¬ (= S P)))
+    (collinear S P Q)) (collinear X P Q))
+  (collinear X P S))
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P Q)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P Q)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P Q)
+          ConjunctionLeftElimination
+        composeConjunction
+
+        P Q S X CollinearityOuterTransitivityRearranged
+        applySyllogism
+ )
+thm (CollinearityCollinearityReverse () ()
+  (→ (∧ (∧ (∧ (¬ (= P Q)) (¬ (= S P)))
+    (collinear S P Q)) (collinear X P S))
+  (collinear X P Q))
+# We first need <code>P ≠ S</code>.
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P S)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        S P EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>Q ≠ P</code>.
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P S)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        P Q EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>collinear Q P S</code>.
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P S)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        S P Q Collinearity13
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Last is <code>collinear X P S</code>.
+        (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+          (collinear X P S)
+          ConjunctionLeftElimination
+
+        composeConjunction
+# Applying the forward theorem, with <code>S</code> and <code>Q</code> interchanged, finishes the job.
+        P S Q X CollinearityCollinearityForward
+        applySyllogism
+ )
+thm (CollinearityCollinearity () ()
+  (→ (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+    (↔ (collinear X P Q) (collinear X P S)))
+        P Q S X CollinearityCollinearityForward
+        export
+
+        P Q S X CollinearityCollinearityReverse
+        export
+
+        introduceBiconditionalFromImplicationsInConsequent
+ )
+thm (CollinearityInnerTransitivity () ()
+  (→ (∧ (∧ (¬ (= P Q)) (collinear P Q A)) (collinear P Q B))
+  (collinear Q A B))
+# We will be applying collinearity outer transitivity. First we need <code>Q ≠ P</code>.
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        P Q EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>collinear Q P A</code>.
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        P Q A Collinearity12
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Last is <code>collinear Q P B</code>.
+        (∧ (¬ (= P Q)) (collinear P Q A))
+          (collinear P Q B)
+          ConjunctionLeftElimination
+
+        P Q B Collinearity12
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        Q P A B CollinearityOuterTransitivity
+        applySyllogism
+ )
+thm (LineIntersection-cpq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear C P Q))
+# <code>C ≠ D</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>collinear C D P</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>collinear C D Q</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        C D P Q CollinearityOuterTransitivity
+        applySyllogism
+ )
+thm (LineIntersection-ab () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (¬ (= A B)))
+# We pick out <code>¬ collinear A B C</code>, which we will need shortly.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# The next step is to note <code>collinear A A C</code> and apply a substitution to turn it into <code>A = B → collinear A B C</code>.
+        A C CollinearityAAB
+
+        A EqualityReflexivity
+        C EqualityReflexivity
+        A A A B C C CollinearityBuilder
+        detach2of2
+        detach1of2
+
+        detachImplicationBiconditional
+# Now we just transpose and combine with <code>¬ collinear A B C</code>.
+        introduceTransposition
+        applySyllogism
+ )
+
+thm (LineIntersection-abpq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (∧ (∧ (¬ (= A B)) (collinear A B P)) (collinear A B Q)))
+# <code>A ≠ B</code>:
+        A B C D P Q LineIntersection-ab
+# <code>collinear A B P</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>collinear A B Q</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P))
+          (collinear C D Q)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+ )
+
+thm (LineIntersection-apq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear A P Q))
+        A B C D P Q LineIntersection-abpq
+        A B P Q CollinearityOuterTransitivity
+        applySyllogism
+ )
+
+thm (LineIntersection-bpq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear B P Q))
+        A B C D P Q LineIntersection-abpq
+        A B P Q CollinearityInnerTransitivity
+        applySyllogism
+ )
+thm (LineIntersection-pqa () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q A))
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionRightElimination
+        A B C D P Q LineIntersection-apq
+        applySyllogism
+
+        A P Q CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (LineIntersection-pqc () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q C))
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionRightElimination
+        A B C D P Q LineIntersection-cpq
+        applySyllogism
+
+        C P Q CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (LineIntersection-acq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A C Q))
+# <code>P ≠ Q</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionLeftElimination
+# <code>collinear P Q A</code>:
+        A B C D P Q LineIntersection-pqa
+        composeConjunction
+# <code>collinear P Q C</code>:
+        A B C D P Q LineIntersection-pqc
+        composeConjunction
+# Transitivity produces <code>collinear Q A C</code>, which we then rearrange to <code>collinear A C Q</code>.
+        P Q A C CollinearityInnerTransitivity
+        applySyllogism
+
+        Q A C CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (LineIntersection-pqb () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q B))
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionRightElimination
+        A B C D P Q LineIntersection-bpq
+        applySyllogism
+
+        B P Q CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (LineIntersection-abq () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A B Q))
+# <code>P ≠ Q</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionLeftElimination
+# <code>collinear P Q A</code>:
+        A B C D P Q LineIntersection-pqa
+        composeConjunction
+# <code>collinear P Q B</code>:
+        A B C D P Q LineIntersection-pqb
+        composeConjunction
+# Transitivity produces <code>collinear Q A B</code>, which we then rearrange to <code>collinear A B Q</code>.
+        P Q A B CollinearityInnerTransitivity
+        applySyllogism
+
+        Q A B CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (LineIntersection-qa () ()
+  (→ (∧ (= Q A)
+    (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q))))
+    (collinear A B C))
+# <code>P ≠ Q</code>:
+        (= Q A)
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+# <code>collinear P Q B</code>:
+        (= Q A)
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionLeftElimination
+        A B C D P Q LineIntersection-pqb
+        applySyllogism
+
+        composeConjunction
+# <code>collinear P Q C</code>:
+        (= Q A)
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionLeftElimination
+        A B C D P Q LineIntersection-pqc
+        applySyllogism
+
+        composeConjunction
+# Applying transitivity yields <code>collinear Q B C</code>, which we then turn into <code>collinear A B C</code> via a subsitution.
+        P Q B C CollinearityInnerTransitivity
+        applySyllogism
+
+        (= Q A)
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionRightElimination
+        composeConjunction
+
+        B EqualityReflexivity
+        C EqualityReflexivity
+        Q A B B C C CollinearityBuilder
+        detach2of2
+        detach2of2
+
+        eliminateBiconditionalReverseInConsequent
+        applyComm
+        import
+
+        applySyllogism
+ )
+thm (LineIntersection-qnota () ()
+  (→ (∧ (¬ (= Q A))
+    (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q))))
+    (collinear A B C))
+# <code>Q ≠ A</code>:
+        (¬ (= Q A))
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionRightElimination
+# <code>collinear Q A B</code>:
+        (¬ (= Q A))
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        Q A B CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+# <code>collinear Q A C</code>:
+        (¬ (= Q A))
+          (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+          (collinear A B P)) (collinear A B Q))
+          (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+          ConjunctionLeftElimination
+        A B C D P Q LineIntersection-acq
+        applySyllogism
+
+        Q A C CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+
+        Q A B C CollinearityInnerTransitivity
+        applySyllogism
+ )
+thm (LineIntersection-abc () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A B C))
+        Q A B C D P LineIntersection-qa
+        export
+
+        Q A B C D P LineIntersection-qnota
+        export
+
+        eliminateCases
+ )
+thm (LineIntersection-contradiction () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (⊥))
+        A B C D P Q LineIntersection-abc
+
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+            (collinear A B P)) (collinear A B Q))
+            (collinear C D P)) (collinear C D Q))
+          (¬ (= P Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        (collinear A B C) Contradiction
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (LineIntersection () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (= P Q))
+        A B C D P Q LineIntersection-contradiction
+        export
+
+        (¬ (= P Q)) NegationImplication
+        eliminateBiconditionalForward
+        applySyllogism
+
+        (= P Q) DoubleNegation
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (LowerDimensionCollinearity () ()
+  (∃ a (∃ b (∃ c (¬ (collinear a b c)))))
+        a b c LowerDimension
+
+        (between a b c)
+          (between b c a)
+          DeMorganPDP
+        eliminateBiconditionalForward
+        (¬ (between c a b)) conjoinRR
+        c addThereExists
+        b addThereExists
+        a addThereExists
+        applyModusPonens
+
+        (∨ (between a b c)
+            (between b c a))
+          (between c a b)
+          DeMorganPDP
+        eliminateBiconditionalForward
+        c addThereExists
+        b addThereExists
+        a addThereExists
+        applyModusPonens
+ )
+thm (PointNotOnLineLemma ((A c) (B c) (P c)) ()
+  (→ (¬ (collinear A B P)) (∃ c (¬ (collinear A B c))))
+        A EqualityReflexivity
+        B EqualityReflexivity
+        A A B B c P CollinearityBuilder
+        detach2of3
+        detach1of2
+
+        addNegationInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+
+        P c (¬ (collinear A B c)) ThereExistsIntroductionFromObject
+        applySyllogism
+ )
+thm (PointNotOnLine-ax () ()
+  (→ (∧ (= A X) (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (collinear A B Z)))
+  (collinear X Y Z))
+# <code>A ≠ B</code>:
+        (= A X)
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>collinear A B Y</code>:
+        (= A X)
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# <code>collinear A B Z</code>:
+        (= A X)
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Applying transitivity gives <code>collinear A Y Z</code>,
+        A B Y Z CollinearityOuterTransitivity
+        applySyllogism
+# and applying a substitution turns that into <code>collinear X Y Z</code>.
+        (= A X)
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionRightElimination
+        composeConjunction
+
+        Y EqualityReflexivity
+        Z EqualityReflexivity
+        A X Y Y Z Z CollinearityBuilder
+        detach2of2
+        detach2of2
+
+        eliminateBiconditionalReverseInConsequent
+        applyComm
+        import
+        applySyllogism
+ )
+thm (PointNotOnLine-anotx () ()
+  (→ (∧ (¬ (= A X)) (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (collinear A B Z)))
+  (collinear X Y Z))
+# We start with <code>A ≠ X</code>.
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionRightElimination
+# To prove <code>collinear A X Y</code>, we first need <code>A ≠ B</code>:
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>collinear A B X</code>:
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# <code>collinear A B Y</code>:
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# That's all we need for <code>collinear A X Y</code>
+        A B X Y CollinearityOuterTransitivity
+        applySyllogism
+        composeConjunction
+# Now we need <code>collinear A X Z</code>, and the first antecedent is <code>A ≠ B</code>.
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>collinear A B X</code>:
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# <code>collinear A B Z</code>:
+        (¬ (= A X))
+          (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+            (¬ (= A B)))) (collinear A B Z))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Applying transitivity we get <code>collinear A X Z</code>
+        A B X Z CollinearityOuterTransitivity
+        applySyllogism
+        composeConjunction
+# We are now ready to apply transitivity to <code>A ≠ X</code>, <code>collinear A X Y</code>, and <code>collinear A X Z</code> to get <code>collinear X Y Z</code>.
+        A X Y Z CollinearityInnerTransitivity
+        applySyllogism
+ )
+thm (PointNotOnLine-abz () ()
+  (→ (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (¬ (collinear X Y Z)))
+  (¬ (collinear A B Z)))
+        A X B Y Z PointNotOnLine-ax
+        export
+
+        A X B Y Z PointNotOnLine-anotx
+        export
+
+        eliminateCases
+
+        export
+
+        (collinear A B Z) (collinear X Y Z) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+ )
+thm (PointNotOnLine-eliminate-abx ((A c) (B c) (X c) (Z c)) ()
+  (→ (∧ (∧ (collinear A B Y) (¬ (= A B))) (¬ (collinear X Y Z)))
+  (∃ c (¬ (collinear A B c))))
+# First, the <code>collinear A B X</code> case:
+        (collinear A B X)
+          (∧ (collinear A B Y) (¬ (= A B)))
+          (¬ (collinear X Y Z))
+          ConjunctionAssociativity
+        eliminateBiconditionalForward
+
+        A B X Y Z PointNotOnLine-abz
+        applySyllogism
+
+        A B Z c PointNotOnLineLemma
+        applySyllogism
+
+        export
+# Second, the <code>¬ collinear A B X</code> case:
+        (¬ (collinear A B X))
+          (∧ (∧ (collinear A B Y) (¬ (= A B))) (¬ (collinear X Y Z)))
+          ConjunctionRightElimination
+        A B X c PointNotOnLineLemma
+        applySyllogism
+
+        export
+# Now we just need to combine the cases.
+        eliminateCases
+ )
+thm (PointNotOnLine-eliminate-aby ((A c) (B c) (X c) (Y c) (Z c)) ()
+  (→ (∧ (¬ (= A B)) (¬ (collinear X Y Z)))
+  (∃ c (¬ (collinear A B c))))
+# First, the <code>collinear A B Y</code> case:
+        (collinear A B Y)
+          (¬ (= A B))
+          (¬ (collinear X Y Z))
+          ConjunctionAssociativity
+        eliminateBiconditionalForward
+
+        A B Y X Z c PointNotOnLine-eliminate-abx
+        applySyllogism
+
+        export
+# Second, the <code>¬ collinear A B Y</code> case:
+        (¬ (collinear A B Y))
+          (∧ (¬ (= A B)) (¬ (collinear X Y Z)))
+          ConjunctionRightElimination
+        A B Y c PointNotOnLineLemma
+        applySyllogism
+
+        export
+# Now we just need to combine the cases.
+        eliminateCases
+ )
+thm (PointNotOnLine ((A c) (B c)  (A y z x) (B y z x) ) ()
+  (→ (¬ (= A B)) (∃ c (¬ (collinear A B c))))
+# First we put the theorem on the proof stack.
+        x y z LowerDimensionCollinearity
+# Now we show we can move the quantifiers to the start: <code>A ≠ B ∧ ∃ x ∃ y ∃ z ¬ collinear x y z → ∃ x ∃ y ∃ z (A ≠ B ∧ ¬ collinear x y z)</code>
+        x
+          (¬ (= A B))
+          (∃ y (∃ z (¬ (collinear x y z))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+
+        y
+          (¬ (= A B))
+          (∃ z (¬ (collinear x y z)))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        x addThereExists
+        applySyllogism
+
+        z
+          (¬ (= A B))
+          (¬ (collinear x y z))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        y addThereExists
+        x addThereExists
+        applySyllogism
+
+# Now we can introduce the previous theorem and then add the quantifiers.
+        A B x y z c PointNotOnLine-eliminate-aby
+        z addThereExistsToAntecedent
+        y addThereExistsToAntecedent
+        x addThereExistsToAntecedent
+
+        applySyllogism
+# Detaching the theorem finishes the proof.
+        detach2of2
+ )
+thm (IntersectionCongruence-db () ()
+  (→ (∧ (= A B) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (= D B))
+# To apply <code>CongruenceIdentityFromEquality</code>, we first need <code>A = B</code>.
+        (= A B)
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionRightElimination
+# Secondly, we need <code>A B ≡ D B</code>.
+        (= A B)
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# That lets us conclude <code>D = B</code>.
+        A B D B CongruenceIdentityFromEquality
+        applySyllogism
+ )
+
+thm (IntersectionCongruence-ab () ()
+  (→ (∧ (= A B) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (≡ A E C D))
+# We'll need <code>B C ≡ B E</code> a bit later, so we put it on the proof stack.
+        (= A B)
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+# The next step is the substitution. The substitution will be <code>D = B ∧ A = B → (D C ≡ A E ↔ B C ≡ B E)</code>, so we start with <code>D = B ∧ A = B</code>.
+        A B C D E IntersectionCongruence-db
+
+        (= A B)
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionRightElimination
+
+        composeConjunction
+# Here is <code>D = B ∧ A = B → (D C ≡ A E ↔ B C ≡ B E)</code>, as promised.
+        C EqualityReflexivity
+        E EqualityReflexivity
+        D B C C A B E E CongruenceBuilder
+        detach2of2
+        detach2of3
+
+        applySyllogism
+# Pulling <code>B C ≡ B E</code> off the proof stack and combining, we get <code>D C ≡ A E</code>.
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+# Now we just rearrange that congruence to <code>A E ≡ C D</code>.
+        D C A E CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        A E D C CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (IntersectionCongruence-anotb () ()
+  (→ (∧ (¬ (= A B)) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (≡ A E C D))
+# First we need <code>A ≠ B</code>.
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionRightElimination
+# We need two betweenness relationships, the first of which is <code>between A B C</code>.
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The other is <code>between D B E</code>.
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# There are two congruences for the baseline, <code>A B ≡ D B</code>,
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# and <code>B C ≡ B E</code>.
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# The off-baseline congruences are <code>A D ≡ D A</code>,
+        A D CongruenceABBA
+        introduceRightConjunctToConsequent
+# and <code>B D ≡ B A</code>.
+        (¬ (= A B))
+          (∧ (∧ (∧ (between A B C) (between D B E))
+            (≡ A B D B)) (≡ B C B E))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B D B CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        D B A B CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Applying five segment gives us <code>C D ≡ E A</code>, which we then rearrange to <code>A E ≡ C D</code>.
+        A B C D B E D A OuterFiveSegment
+        applySyllogism
+
+        C D E A CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        E A C D CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (IntersectionCongruence () ()
+  (→ (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E))
+  (≡ A E C D))
+        A B C D E IntersectionCongruence-ab
+        export
+
+        A B C D E IntersectionCongruence-anotb
+        export
+
+        eliminateCases
+ )
+export (RESULTS Out_lines.ghi (CLASSICAL FIRSTORDER) "")

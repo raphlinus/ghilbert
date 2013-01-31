@@ -1,0 +1,390 @@
+{{interfaces
+| imports = [[Interface:Line segment inequality]]
+| exports = [[Interface:Out lines]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page gets its name from ''out lines'', that is a predicate {{{(P is-outside A B)}}} which means that {{{P}}} is on the line {{{A B}}} outside the segment {{{A B}}}. We prove a number of results based on that concept, which in turn lead to a number of theorems involving collinearity.
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Line segment inequality|geometry results so far]] and define some variables:
+
+== Out lines defined ==
+A point {{{P}}} is on the line {{{A B}}} outside the line segment {{{A B}}} if and only if one of those points is between {{{P}}} and the other and {{{P}}} is not equal to either one.<ref>Definition out in Narboux</ref>
+
+We also state this definition as a theorem.
+* #(↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))# ([/general/Out_lines.gh/OutBetweenness | OutBetweenness])
+
+=== Relating out lines to existence of a point beyond the outside point ===
+This section (and the next one) have to do with relating {{{P is-outside A B}}} to a point {{{C}}} for which {{{between A P C}}} and {{{between B P C}}}. The first result says that if {{{between A P C}}}, then {{{between B P C}}} is equivalent to {{{P is-outside A B}}}.<ref>l6_2 in Narboux</ref>
+
+We first tackle the {{{between B P C → P is-outside A B}}} case. This is a straightforward application of {{{BetweennessMiddleConnectivity}}}, which in this case says basically that {{{between A P C}}} and {{{between B P C}}} imply {{{between A B P ∨ between B A P}}}.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (between B P C)) (is-outside P A B))# ([/general/Out_lines.gh/BeyondOutForward | BeyondOutForward])
+In the other direction, {{{P is-outside A B}}} tells us that either {{{between P A B}}} or {{{between P B A}}}. In the either case, we can apply transitivity with {{{between A P C}}} to get {{{between B P C}}}.
+
+We'll arrange this proof by first rearranging the disjunction and conjunctions, before we worry about transitivity.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (is-outside P A B))
+    (∨ (∧ (∧ (¬ (= A P)) (between A P C)) (between P A B))
+      (∧ (∧ (¬ (= A P)) (between A P C)) (between P B A))))# ([/general/Out_lines.gh/BeyondOutReverse-1 | BeyondOutReverse-1])
+* #(→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (is-outside P A B)) (between B P C))# ([/general/Out_lines.gh/BeyondOutReverse | BeyondOutReverse])
+* #(→ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
+  (↔ (between B P C) (is-outside P A B)))# ([/general/Out_lines.gh/BeyondOut | BeyondOut])
+
+=== The existence of a point beyond the outside point ===
+In this section we show that a point is outside a line segment if and only if there exists a point beyond the outside point.  In symbols, {{{P is-outside A B}}} is equivalent to {{{A ≠ P ∧ B ≠ P ∧ ∃ c (C ≠ P ∧ between A P C ∧ between B P C)}}}.
+
+We start with the forward implication. Extend {{{A P}}} to a distinct point {{{c}}} (that is, a point for which {{{P ≠ c ∧ between A P c}}}. We can then apply {{{BeyondOut}}} to show that {{{between B P c}}}.<ref>l6_3_1 in Narboux</ref> Below we present the formal version of this proof, broken down into several lemmas.
+
+* #(→ (∧ (is-outside P A B) (∧ (¬ (= C P)) (between A P C)))
+    (between B P C))# ([/general/Out_lines.gh/ExistsBeyondOutForward-bpc | ExistsBeyondOutForward-bpc])
+The next lemma is just {{{PointConstructionDifferent}}}, together with some rearrangements via commutativity and symmetry.
+* #(∃ c (∧ (¬ (= c P)) (between A P c)))# ([/general/Out_lines.gh/ExistsBeyondOutForward-c | ExistsBeyondOutForward-c])
+* #(→ (is-outside P A B) (∃ c (∧ (∧ (¬ (= c P)) (between A P c)) (between B P c))))# ([/general/Out_lines.gh/ExistsBeyondOutForward-3 | ExistsBeyondOutForward-3])
+* #(→ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P)))
+    (∃ c (∧ (∧ (¬ (= c P))
+      (between A P c)) (between B P c)))))# ([/general/Out_lines.gh/ExistsBeyondOutForward | ExistsBeyondOutForward])
+We now turn to the reverse direction.<ref>l6_3_2 in Narboux</ref>
+* #(→ (∧ (∧ (¬ (= A P)) (¬ (= B P)))
+    (∃ c (∧ (∧ (¬ (= c P))
+      (between A P c)) (between B P c))))
+   (is-outside P A B))# ([/general/Out_lines.gh/ExistsBeyondOutReverse | ExistsBeyondOutReverse])
+* #(↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∃ c (∧ (∧ (¬ (= c P)) (between A P c)) (between B P c)))))# ([/general/Out_lines.gh/ExistsBeyondOut | ExistsBeyondOut])
+
+=== Alternate definition in terms of collinearity ===
+A point is outside a line segment if and only if it is collinear with the endpoints of the segment but not between them. That is, {{{P is-outside A B ↔ collinear A P B ∧ ¬ between A P B}}}.
+
+We first tackle the forward direction.<ref>l6_4_1 in Narboux</ref> The first lemma is {{{P ≠ A ∧ P ≠ B ∧ between P A B → ¬ between A P B}}}.
+* #(→ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (between P A B)) (¬ (between A P B)))# ([/general/Out_lines.gh/OutCollinearityForward-1 | OutCollinearityForward-1])
+
+The second lemma, {{{A ≠ P ∧ B ≠ P ∧ between P B A → ¬ between A P B}}}, is very similar.
+* #(→ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (between P B A)) (¬ (between A P B)))# ([/general/Out_lines.gh/OutCollinearityForward-2 | OutCollinearityForward-2])
+
+Combining the two previous lemmas we get {{{P is-outside A B → ¬ between A P B}}}.
+* #(→ (is-outside P A B) (¬ (between A P B)))# ([/general/Out_lines.gh/OutCollinearityForward-3 | OutCollinearityForward-3])
+
+Collinearity is straightforward.
+* #(→ (is-outside P A B) (collinear A P B))# ([/general/Out_lines.gh/OutCollinearityForward-collinear | OutCollinearityForward-collinear])
+
+Combining the last two results gives the forward direction.
+* #(→ (is-outside P A B) (∧ (collinear A P B) (¬ (between A P B))))# ([/general/Out_lines.gh/OutCollinearityForward | OutCollinearityForward])
+
+Turning our attention to the reverse direction,<ref>l6_4_2 in Narboux</ref> we have two tasks. The first is to show that {{{P ≠ A}}} and }}}P ≠ B}}}, each of which follows from {{{¬ between A P B}}} (because either equality holding would make {{{between A P B}}} hold trivially).
+* #(→ (∧ (collinear A P B) (¬ (between A P B))) (∧ (¬ (= A P)) (¬ (= B P))))# ([/general/Out_lines.gh/OutCollinearityReverse-1 | OutCollinearityReverse-1])
+Our other task is to show {{{between P A B ∨ between P B A}}}.
+* #(→ (∧ (collinear A P B) (¬ (between A P B)))
+    (∨ (between P A B) (between P B A)))# ([/general/Out_lines.gh/OutCollinearityReverse-2 | OutCollinearityReverse-2])
+
+Combining our tasks proves the reverse direction, and combining forward and reverse directions proves the equivalence.
+* #(→ (∧ (collinear A P B) (¬ (between A P B))) (is-outside P A B))# ([/general/Out_lines.gh/OutCollinearityReverse | OutCollinearityReverse])
+* #(↔ (is-outside P A B) (∧ (collinear A P B) (¬ (between A P B))))# ([/general/Out_lines.gh/OutCollinearity | OutCollinearity])
+
+== Reflexive, symmetric, and transitive ==
+Here we present versions of reflexivity, symmetry, and transitivity. You can think of this as dividing a line (excluding the point {{{P}}} itself) into two equivalence classes: those to the left of {{{P}}} and those to the right (we certainly don't have the machinery to say it quite that way, but that is the rough idea).
+
+=== Reflexivity ===
+* #(→ (¬ (= A P)) (is-outside P A A))# ([/general/Out_lines.gh/OutReflexivity | OutReflexivity])
+
+=== Symmetry ===
+* #(↔ (is-outside P A B) (is-outside P B A))# ([/general/Out_lines.gh/OutSymmetry | OutSymmetry])
+
+=== Transitivity ===
+Expanding the definitions of the antecedent, we start with
+  A ≠ P ∧ B ≠ P ∧ (between P A B ∨ between P B A) ∧
+  B ≠ P ∧ C ≠ P ∧ (between P B C ∨ between P C B)
+Looking at the betweenness part of that, there are four cases ({{{between P A B ∧ between P B C}}} being the first, {{{between P A B ∧ between P C B}}}, being the second, and so on).
+
+The interesting part is a lemma which handles those four cases; there is also a fair bit of rearranging (in the lemma and in the proof of the actual theorem).
+
+* #(→ (∧ (¬ (= B P))
+  (∧ (∨ (between P A B) (between P B A))
+    (∨ (between P B C) (between P C B))))
+  (∨ (between P A C) (between P C A)))# ([/general/Out_lines.gh/OutTransitivity-1 | OutTransitivity-1])
+* #(→ (∧ (is-outside P A B) (is-outside P B C)) (is-outside P A C))# ([/general/Out_lines.gh/OutTransitivity | OutTransitivity])
+
+== Line segment construction ==
+From a given point, in the direction of a second given point, we construct a segment congruent to a given line segment. This is similar to {{{InnerSegmentConstruction}}} but is expressed in terms of {{{is-outside}}}.
+
+=== Existence ===
+In this section we prove the existence of such a point. That is, {{{R ≠ A ∧ B ≠ C → ∃ e (A is-outside e R ∧ A e ≡ B C)}}}.
+
+The proof consists of applying {{{InnerSegmentConstruction}}}, rearranging, and applying the definition of {{{is-outside}}}. The following lemma expresses most of the rearrangements.<ref>l6_11_existence in Narboux</ref>
+* #(→ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (∧ (∨ (between A R E) (between A E R))
+      (≡ A E B C)))
+  (∧ (is-outside A E R) (≡ A E B C)))# ([/general/Out_lines.gh/OutSegmentConstructionLemma | OutSegmentConstructionLemma])
+* #(→ (∧ (¬ (= R A)) (¬ (= B C)))
+    (∃ e (∧ (is-outside A e R) (≡ A e B C))))# ([/general/Out_lines.gh/OutSegmentConstruction | OutSegmentConstruction])
+
+=== Uniqueness ===
+The point that we construct this way is also unique. In symbols, {{{R ≠ A ∧ B ≠ C ∧ A is-outside X R ∧ A X ≡ B C ∧ A is-outside Y R ∧ A Y ≡ B C → X = Y}}}.<ref>l6_11_unicity in Narboux</ref>
+
+The proof of uniqueness is more involved than the existence proof. Start by expanding the definitions of {{{is-outside}}} (and removing the redundant copies of {{{R ≠ A}}}) so we now have
+  R ≠ A ∧ B ≠ C ∧
+  X ≠ A ∧ (between A X R ∨ between A R X) ∧
+  A X ≡ B C ∧
+  Y ≠ A ∧ (between A Y R ∨ between A R Y) ∧
+  A Y ≡ B C
+
+By congruence transitivity, we derive {{{A X ≡ A Y}}}. Then we look at the betweenness relationships. Specifically we want to conclude {{{between A X Y ∨ between A Y X}}}. There are four cases: {{{between A X R ∧ between A Y R → between A X Y ∨ between A Y X}}} by inner connectivity, {{{between A X R ∧ between A R Y → between A X Y}}} by transitivity, {{{between A R X ∧ between A Y R → between A Y X}}} by transitivity, and {{{A ≠ R ∧ between A R X ∧ between A R Y → between A X Y ∨ between A Y X}}} by outer connectivity.
+
+Once we have {{{A X ≡ A Y}}} and {{{between A X Y ∨ between A Y X}}}, {{{X = Y}}} follows from {{{BetweennessOneDistanceUniqueness}}} (applied twice, once to each of the betweenness formulas).
+
+Our first lemma just spells out the four cases.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (∨ (∨ (∧ (between A X R) (between A Y R))
+    (∧ (between A X R) (between A R Y)))
+    (∨ (∧ (between A R X) (between A Y R))
+    (∧ (∧ (¬ (= A R)) (between A R X)) (between A R Y)))))# ([/general/Out_lines.gh/OutSegmentConstructionUniqueness-cases | OutSegmentConstructionUniqueness-cases])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (∨ (between A X Y) (between A Y X)))# ([/general/Out_lines.gh/OutSegmentConstructionUniqueness-axy-ayx | OutSegmentConstructionUniqueness-axy-ayx])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (≡ A X A Y))# ([/general/Out_lines.gh/OutSegmentConstructionUniqueness-axay | OutSegmentConstructionUniqueness-axay])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
+    (is-outside A X R)) (≡ A X B C))
+    (is-outside A Y R)) (≡ A Y B C))
+  (= X Y))# ([/general/Out_lines.gh/OutSegmentConstructionUniqueness | OutSegmentConstructionUniqueness])
+
+== The closer point is between ==
+If {{{A}}} and {{{B}}} are on a line with {{{P}}}, both on the same side of {{{P}}}, and {{{A}}} is closer to {{{P}}} than {{{B}}} is, then {{{A}}} is between {{{P}}} and {{{B}}}. That is, {{{P is-outside A B ∧ P A ≤ P B → between P A B}}}.<ref>l6_13_1 in Narboux</ref>
+
+The proof begins by expanding {{{P A ≤ P B}}} to {{{∃ y (between P y B ∧ P A ≡ P y)}}}. From {{{P is-outside A B}}} and {{{P A ≡ P y}}} we can conclude {{{P ≠ y}}}. We will then be applying {{{OutSegmentConstructionUniqueness}}} which in this case expands to:
+
+  B ≠ P ∧ P ≠ y ∧
+  P is-outside y B ∧ P y ≡ P y ∧
+  P is-outside A B ∧ P A ≡ P y →
+  y = A
+
+Each piece of this is something we already have, or readily follows from things we have. Once we have {{{y = A}}} we just substitute it into {{{between P y B}}} and we are done.
+
+The first lemma constructs the point {{{y}}}.
+* #(→ (∧ (is-outside P A B) (≤ P A P B))
+    (∃ y (∧ (is-outside P A B)
+      (∧ (between P y B) (≡ P A P y)))))# ([/general/Out_lines.gh/LessEqualBetween-y | LessEqualBetween-y])
+
+The next lemma is {{{P ≠ y}}}
+* #(→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y))) (¬ (= P Y)))# ([/general/Out_lines.gh/LessEqualBetween-Py | LessEqualBetween-Py])
+
+The next lemma is {{{P is-outside Y B}}}.
+* #(→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (is-outside P Y B))# ([/general/Out_lines.gh/LessEqualBetween-PyB | LessEqualBetween-PyB])
+The next lemma applies {{{OutSegmentConstructionUniqueness}}} to give {{{Y = A}}}.
+* #(→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (= Y A))# ([/general/Out_lines.gh/LessEqualBetween-yA | LessEqualBetween-yA])
+Now that we have {{{Y = A}}}, we just substitute that into {{{between P Y B}}} to get {{{between P A B}}}.
+* #(→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)))
+  (between P A B))# ([/general/Out_lines.gh/LessEqualBetween-PAB | LessEqualBetween-PAB])
+* #(→ (∧ (is-outside P A B) (≤ P A P B)) (between P A B))# ([/general/Out_lines.gh/LessEqualBetweenForward | LessEqualBetweenForward])
+
+=== The point which is between is closer ===
+The converse also holds: {{{P is-outside A B ∧ between P A B → P A ≤ P B}}}.<ref>l6_13_2 in Narboux</ref> To prove {{{P A ≤ P B}}}, we need {{{∃ c (between P c B ∧ P A ≡ P c)}}}, and the point {{{A}}} suffices for the choice of {{{c}}}. In fact, we don't need the hypothesis {{{P is-outside A B}}}, so unlike Narboux we state the theorem without it.
+* #(→ (between P A B) (≤ P A P B))# ([/general/Out_lines.gh/LessEqualBetweenReverse | LessEqualBetweenReverse])
+
+=== Biconditional ===
+Here we combine the previous two results: {{{P is-outside A B → (P A ≤ P B ↔ between P A B)}}}.
+* #(→ (is-outside P A B) (↔ (≤ P A P B) (between P A B)))# ([/general/Out_lines.gh/LessEqualBetween | LessEqualBetween])
+
+== Collinearity ==
+In this section we prove a number of results involving collinearity.
+
+=== Outer transitivity ===
+Here we prove {{{P ≠ Q ∧ collinear P Q A ∧ collinear P Q B → collinear P A B}}}.<ref>col_transitivity_1 in Narboux</ref> We call it "outer" transitivity although unlike similar-looking results for betweenness, five segment, etc, this does not make it a different theorem than inner transitivity, just a different rearrangement (since the order of points in a collinearity predicate does not matter).
+
+Actually, we first prove it in the slightly rearranged form {{{P ≠ Q ∧ collinear S P Q ∧ collinear X P Q → collinear X P S}}} (in which {{{P}}} and {{{Q}}} are interchanged and the order of the points in the collinearity statements are changed). There is no deep reason for this rearrangement, but it will be slightly more convenient in the next section.
+
+Expanding each {{{collinear}}} in the antecedent by the definition, and then applying associativity, gives us nine cases. In each case we'll be able to prove {{{between X P S}}}, {{{between P X S}}}, {{{between P S X}}}, or a disjunction between two of them. Each case will follow from either betweenness transitivity or betweenness connectivity.
+
+We start with a lemma, and then proceed to the proof.
+* #(→ (∨ (between P S X) (between P X S)) (collinear X P S))# ([/general/Out_lines.gh/CollinearityCollinearity-1 | CollinearityCollinearity-1])
+* #(→ (∧ (∧ (¬ (= P Q)) (collinear S P Q)) (collinear X P Q))
+  (collinear X P S))# ([/general/Out_lines.gh/CollinearityOuterTransitivityRearranged | CollinearityOuterTransitivityRearranged])
+
+Now we return to {{{P ≠ Q ∧ collinear P Q A ∧ collinear P Q B → collinear P A B}}}.
+* #(→ (∧ (∧ (¬ (= P Q)) (collinear P Q A)) (collinear P Q B))
+  (collinear P A B))# ([/general/Out_lines.gh/CollinearityOuterTransitivity | CollinearityOuterTransitivity])
+
+=== Being collinear to collinear points ===
+Given three collinear distinct points, a fourth point being collinear to two of them is equivalent to being collinear to two others. More precisely, {{{P ≠ Q ∧ S ≠ P ∧ collinear S P Q → (collinear X P Q ↔ collinear X P S)}}}.
+
+The forward direction is {{{P ≠ Q ∧ S ≠ P ∧ collinear S P Q ∧ collinear X P Q → collinear X P S}}}.<ref>l6_16_1 in Narboux</ref> It is almost identical to what we proved in the previous section (we just need to drop the {{{S ≠ P}}}).
+* #(→ (∧ (∧ (∧ (¬ (= P Q)) (¬ (= S P)))
+    (collinear S P Q)) (collinear X P Q))
+  (collinear X P S))# ([/general/Out_lines.gh/CollinearityCollinearityForward | CollinearityCollinearityForward])
+
+The reverse direction is {{{P ≠ Q ∧ S ≠ P ∧ collinear S P Q ∧ collinear X P S → collinear X P Q}}}.<ref>l6_16_2 in Narboux</ref> This is essentially the same as the forward direction, as exchanging {{{S}}} and {{{Q}}} doesn't really change the statement. Narboux proves the reverse direction by copy-pasting the proof of the forward direction, interchanging {{{S}}} and {{{Q}}}, but our proof simply performs the right rearrangements to apply the forward direction.
+* #(→ (∧ (∧ (∧ (¬ (= P Q)) (¬ (= S P)))
+    (collinear S P Q)) (collinear X P S))
+  (collinear X P Q))# ([/general/Out_lines.gh/CollinearityCollinearityReverse | CollinearityCollinearityReverse])
+
+We combine the two previous results to get {{{P ≠ Q ∧ S ≠ P ∧ collinear S P Q → (collinear X P Q ↔ collinear X P S)}}}
+* #(→ (∧ (∧ (¬ (= P Q)) (¬ (= S P))) (collinear S P Q))
+    (↔ (collinear X P Q) (collinear X P S)))# ([/general/Out_lines.gh/CollinearityCollinearity | CollinearityCollinearity])
+
+=== Inner transitivity ===
+Here we prove {{{P ≠ Q ∧ collinear P Q A ∧ collinear P Q B → collinear Q A B}}}.<ref>col_transitivity_2 in Narboux</ref> As we said before, the mathematical meaning of the theorem is not different from the "outer" collinearity transitivity; it is merely a rearrangement.
+* #(→ (∧ (∧ (¬ (= P Q)) (collinear P Q A)) (collinear P Q B))
+  (collinear Q A B))# ([/general/Out_lines.gh/CollinearityInnerTransitivity | CollinearityInnerTransitivity])
+
+== The intersection of two lines ==
+If two distinct, non-degenerate lines intersect, they intersect in a single point. At least for this theorem, we consider a line {{{A B}}} and line {{{C D}}} to be distinct and non-degenerate if {{{¬ collinear A B C ∧ C ≠ D}}}. The statement of the whole theorem is {{{¬ collinear A B C ∧ C ≠ D ∧ collinear A B P ∧ collinear A B Q ∧ collinear C D P ∧ collinear C D Q → P = Q}}}.<ref>l6_21 in Narboux</ref>
+
+The proof consists of multiple applications of collinearity transitivity, together with some cases and a proof by contradiction. It starts with {{{collinear C P Q}}} (by collinearity transitivity).
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear C P Q))# ([/general/Out_lines.gh/LineIntersection-cpq | LineIntersection-cpq])
+
+Then note that {{{A ≠ B}}} (as a consequence of {{{¬ collinear A B C}}}), and collinearity transitivity gives us {{{collinear A P Q}}} and {{{collinear B P Q}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (¬ (= A B)))# ([/general/Out_lines.gh/LineIntersection-ab | LineIntersection-ab])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (∧ (∧ (¬ (= A B)) (collinear A B P)) (collinear A B Q)))# ([/general/Out_lines.gh/LineIntersection-abpq | LineIntersection-abpq])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear A P Q))# ([/general/Out_lines.gh/LineIntersection-apq | LineIntersection-apq])
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (collinear B P Q))# ([/general/Out_lines.gh/LineIntersection-bpq | LineIntersection-bpq])
+
+We now assume {{{P ≠ Q}}} and will show {{{collinear A B C}}}, which is a contradiction. The first thing we get from {{{P ≠ Q}}} is {{{collinear A C Q}}} (from {{{collinear A P Q}}} and {{{collinear C P Q}}}).
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q A))# ([/general/Out_lines.gh/LineIntersection-pqa | LineIntersection-pqa])
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q C))# ([/general/Out_lines.gh/LineIntersection-pqc | LineIntersection-pqc])
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A C Q))# ([/general/Out_lines.gh/LineIntersection-acq | LineIntersection-acq])
+
+In a similar way we prove {{{collinear A B Q}}}.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear P Q B))# ([/general/Out_lines.gh/LineIntersection-pqb | LineIntersection-pqb])
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A B Q))# ([/general/Out_lines.gh/LineIntersection-abq | LineIntersection-abq])
+
+Now we consider two cases: {{{Q = A}}} and {{{Q ≠ A}}}.
+
+For the {{{Q = A}}} case, first apply collinearity transitivity to {{{collinear C P Q}}} and {{{collinear B P Q}}} to get {{{collinear C B Q}}}, which turns into our desired contradiction {{{collinear A B C}}} by substituting {{{A}}} for {{{Q}}}.
+* #(→ (∧ (= Q A)
+    (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q))))
+    (collinear A B C))# ([/general/Out_lines.gh/LineIntersection-qa | LineIntersection-qa])
+
+The {{{Q ≠ A}}} case lets us apply transitivity to {{{collinear A C Q}}} and {{{collinear A B Q}}} to get {{{collinear A B C}}}, which is our desired contradiction.
+* #(→ (∧ (¬ (= Q A))
+    (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q))))
+    (collinear A B C))# ([/general/Out_lines.gh/LineIntersection-qnota | LineIntersection-qnota])
+
+Next we combine the cases.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (collinear A B C))# ([/general/Out_lines.gh/LineIntersection-abc | LineIntersection-abc])
+
+Here we point out the contradiction.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q)) (¬ (= P Q)))
+    (⊥))# ([/general/Out_lines.gh/LineIntersection-contradiction | LineIntersection-contradiction])
+
+Since assuming {{{P ≠ Q}}} produced a contradiction, we can conclude that {{{P = Q}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= C D)))
+    (collinear A B P)) (collinear A B Q))
+    (collinear C D P)) (collinear C D Q))
+    (= P Q))# ([/general/Out_lines.gh/LineIntersection | LineIntersection])
+
+== The existence of a point not on a given line ==
+Given a line, there is a point which is not on that line. Formally, {{{A ≠ B → ∃ c ¬ collinear A B c}}}.<ref>l6_25 in Narboux</ref>
+
+The proof, not surprisingly, is based on {{{LowerDimension}}}, which gives us three non-collinear points x, y, and z. If any one of them is not on the line (that is, {{{¬ collinear A B x}}} or likewise for y or z), we are done. But if they are all collinear with {{{A}}} and {{{B}}}, we can conclude {{{collinear x y z}}} by transitivity, which is a contradiction.
+
+We start by restating {{{LowerDimension}}} in terms of collinearity.
+* #(∃ a (∃ b (∃ c (¬ (collinear a b c)))))# ([/general/Out_lines.gh/LowerDimensionCollinearity | LowerDimensionCollinearity])
+
+The next lemma says that if we have a point not collinear with {{{A}}} and {{{B}}}, we are done.
+* #(→ (¬ (collinear A B P)) (∃ c (¬ (collinear A B c))))# ([/general/Out_lines.gh/PointNotOnLineLemma | PointNotOnLineLemma])
+
+We're ready to start working on getting {{{collinear x y z}}} by transitivity. There are two cases: {{{A = X}}} and {{{A ≠ X}}}. The {{{A = X}}} case is the easier one: we first conclude {{{collinear A Y Z}}} and then substitute {{{X}}} for {{{A}}}.
+* #(→ (∧ (= A X) (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (collinear A B Z)))
+  (collinear X Y Z))# ([/general/Out_lines.gh/PointNotOnLine-ax | PointNotOnLine-ax])
+
+The {{{A ≠ X}}} case involves first proving {{{collinear A X Y}}} and {{{collinear A X Z}}} (each by transitivity), and applying transitivity again, to get {{{collinear X Y Z}}}.
+* #(→ (∧ (¬ (= A X)) (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (collinear A B Z)))
+  (collinear X Y Z))# ([/general/Out_lines.gh/PointNotOnLine-anotx | PointNotOnLine-anotx])
+
+We now combine the {{{A = X}}} and {{{A ≠ X}}} cases and rearrange a bit.
+* #(→ (∧ (∧ (collinear A B X) (∧ (collinear A B Y)
+    (¬ (= A B)))) (¬ (collinear X Y Z)))
+  (¬ (collinear A B Z)))# ([/general/Out_lines.gh/PointNotOnLine-abz | PointNotOnLine-abz])
+
+The next lemma gets rid of {{{collinear A B X}}} (because the case {{{¬ collinear A B X}}} is taken care of by {{{PointNotOnLineLemma}}}).
+* #(→ (∧ (∧ (collinear A B Y) (¬ (= A B))) (¬ (collinear X Y Z)))
+  (∃ c (¬ (collinear A B c))))# ([/general/Out_lines.gh/PointNotOnLine-eliminate-abx | PointNotOnLine-eliminate-abx])
+
+In a very similar manner we get rid of {{{collinear A B Y}}}.
+* #(→ (∧ (¬ (= A B)) (¬ (collinear X Y Z)))
+  (∃ c (¬ (collinear A B c))))# ([/general/Out_lines.gh/PointNotOnLine-eliminate-aby | PointNotOnLine-eliminate-aby])
+
+At this point we are very close. The only thing remaining in the antecedent that we need to get rid of is {{{¬ collinear X Y Z}}}. But {{{X}}}, {{{Y}}}, and {{{Z}}} no longer appear anywhere else in the formula. So we can quantify at will, specifically to turn {{{¬ collinear X Y Z}}} into {{{∃ x ∃ y ∃ z ¬ collinear x y z}}}, which we can then detach as it is a theorem.
+
+* #(→ (¬ (= A B)) (∃ c (¬ (collinear A B c))))# ([/general/Out_lines.gh/PointNotOnLine | PointNotOnLine])
+
+== Intersecting lines and congruences ==
+[[File:Theorem t2_8 from Narboux.svg|thumb|right]]
+Given two intersecting line segments, where the portions of each segment on the sides of the intersection are congruent, the segments drawn from the endpoints of one line segment to the endpoints of the other are congruent. That is, {{{between A B C ∧ between D B E ∧ A B ≡ D B ∧ B C ≡ B E → A E ≡ C D}}}.<ref>Theorem t2_8 in Narboux</ref>
+
+We consider {{{A = B}}} and {{{A ≠ B}}} cases. The {{{A = B}}} case is easy: {{{A = B}}} implies {{{D = B}}} and substituting into {{{B C ≡ B E}}} gives us {{{A E ≡ C D}}}.
+
+The {{{A ≠ B}}} case follows from outer five segment, using baselines {{{A B C}}} and {{{D B E}}} and points {{{D}}} and {{{A}}}.
+
+Starting on the {{{A = B}}} case, the first step is proving {{{D = B}}}.
+* #(→ (∧ (= A B) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (= D B))# ([/general/Out_lines.gh/IntersectionCongruence-db | IntersectionCongruence-db])
+* #(→ (∧ (= A B) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (≡ A E C D))# ([/general/Out_lines.gh/IntersectionCongruence-ab | IntersectionCongruence-ab])
+
+Now we are ready for the {{{A ≠ B}}} case, in which we apply outer five segment using baselines {{{A B C}}} and {{{D B E}}} and points {{{D}}} and {{{A}}}.
+* #(→ (∧ (¬ (= A B)) (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E)))
+  (≡ A E C D))# ([/general/Out_lines.gh/IntersectionCongruence-anotb | IntersectionCongruence-anotb])
+* #(→ (∧ (∧ (∧ (between A B C) (between D B E))
+    (≡ A B D B)) (≡ B C B E))
+  (≡ A E C D))# ([/general/Out_lines.gh/IntersectionCongruence | IntersectionCongruence])
+
+== Export ==
+We now export to [[Interface:Out lines]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
