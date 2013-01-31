@@ -214,7 +214,7 @@ thm (LessEqualExtensionForward-abf-afcd () ()
  )
 
 thm (LessEqualExtensionForward
-  ((A f) (B f) (C f) (D f)  (A f e)   ) ()
+  ((A f) (B f) (C f) (D f)) ()
   (→ (≤ A B C D) (∃ f (∧ (between A B f) (≡ A f C D))))
         A B C D e LessEqualCutoff
         eliminateBiconditionalReverse
@@ -231,7 +231,7 @@ thm (LessEqualExtensionForward
         removeThereExistsInConsequent
  )
 thm (LessEqualExtensionReverse
-  ((A f) (B f) (C f) (D f)  (A f e)   ) ()
+  ((A f) (B f) (C f) (D f)) ()
   (→ (∃ f (∧ (between A B f) (≡ A f C D))) (≤ A B C D))
         A B f C D e InnerDegenerateTriangle
         f addThereExists
@@ -354,10 +354,8 @@ thm (LessEqualCongruence-3 () ()
         composeConjunction
  )
 
-thm (LessEqualCongruence
-  ( (A e′ e) (B e′ e) (C e′ e) (D e′ e) (A′ e′ e) (B′ e′ e) (C′ e′ e) (D′ e′ e)) ()
-  (→
-    (∧ (∧ (≤ A B C D) (≡ A B A′ B′)) (≡ C D C′ D′)) (≤ A′ B′ C′ D′))
+thm (LessEqualCongruence () ()
+  (→ (∧ (∧ (≤ A B C D) (≡ A B A′ B′)) (≡ C D C′ D′)) (≤ A′ B′ C′ D′))
         A B C D A′ B′ C′ D′ e LessEqualCongruence-1
 
         C e D A B A′ B′ C′ D′ e′ LessEqualCongruence-2
@@ -408,8 +406,7 @@ thm (LessEqualReflexivity (  ) () (≤ A B A B)
 var (object ab bc ac)
 tvar (object A0 A1 B0 B1 C0 C1)
 
-thm (LessEqualTransitivity
-  ( (A0 bc ac ab) (A1 bc ac ab) (B0 bc ac ab) (B1 bc ac ab) (C0 bc ac ab) (C1 bc ac ab)) ()
+thm (LessEqualTransitivity () ()
   (→ (∧ (≤ A0 A1 B0 B1) (≤ B0 B1 C0 C1)) (≤ A0 A1 C0 C1))
         A0 A1 B0 B1 ab LessEqualCutoff
         B0 B1 C0 C1 bc LessEqualCutoff
@@ -514,6 +511,7 @@ thm (LessEqualTransitivity
         eliminateBiconditionalForward
         applySyllogism
  )
+
 thm (BetweennessOneDistanceUniqueness-abc-acb () ()
   (→ (∧ (between A B C) (≡ A B A C)) (≅ A B C A C B))
         (between A B C) (≡ A B A C) ConjunctionLeftElimination
@@ -527,6 +525,10 @@ thm (BetweennessOneDistanceUniqueness-abc-acb () ()
 
         B C CongruenceABBA
         introduceRightConjunctToConsequent
+
+        A B C A C B TriangleCongruence
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (BetweennessOneDistanceUniqueness () ()
