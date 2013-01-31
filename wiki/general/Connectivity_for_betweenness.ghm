@@ -1,0 +1,765 @@
+{{interfaces
+| imports = [[Interface:Collinearity]]
+| exports = [[Interface:Connectivity for betweenness]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page is devoted to the proof of one theorem, {{{A ≠ B ∧ between A B C ∧ between A B D → between A C D ∨ between A D C}}}.<ref>l5_1 in Narboux</ref> This is called outer connectivity for betweenness by Narboux<ref>Narboux (2007), page 144</ref> and Givant.<ref>Tarski and Givant (1999), page 186</ref> It was once considered an axiom of Tarski's system, but was proved from the other axioms by Gupta in 1965<ref>Tarski and Givant (1999), page 190</ref><ref>Narboux (2007), citing Gupta, H.N.: Contributions to the axiomatic foundations of geometry. PhD thesis, University of California, Berkley (1965)</ref>
+
+The proof is not simple; Givant calls it "rather involved" and Narboux devotes two and a half pages to an informal proof (and an explanation of part of the formal proof).<ref>Narboux (2007), pages 151-153</ref>
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Collinearity|geometry results so far]] and define some variables:
+
+== Summary ==
+[[File:outer connectivity for betweenness 1.svg|thumb|right|construction of C′, D′, B′, and B″]]
+
+Here's an outline of the proof, illustrating which points we construct but leaving most of the detailed line segment congruences for the detailed formal proof.
+
+We first construct {{{C′ and D′}}} extending the line segments {{{A D}}} and {{{A C}}} by a distance of {{{C D}}} in both cases. Eventually, the proof will show that {{{C = C′}}} or {{{D = D′}}}.
+
+Then extend the line segments {{{A C′}}} and {{{A D′}}} to points {{{B′}}} and {{{B″}}} by distances of {{{C B}}} and {{{D B}}}. The result of this construction is that the distance from {{{B}}} is the same to either {{{B′}}} or {{{B″}}} and thus we can conclude that {{{B′ = B″}}}.
+
+{{clear}}
+[[File:outer connectivity for betweenness 2.svg|thumb|right|construction of E]]
+The point {{{E}}} lies at the intersection of {{{C C′}}} and {{{D D′}}}.
+
+At this point we assume {{{C ≠ C′}}} and will deduce from that {{{D = D′}}}.
+
+{{clear}}
+[[File:outer connectivity for betweenness 3.svg|thumb|right|construction of P, Q, and R]]
+Extend {{{C′ C}}} by the distance {{{C D′}}} to a point {{{P}}}. Extend {{{D′ C}}} by the distance {{{C E}}} to a point {{{R}}}. Extend {{{P R}}} by the distance {{{R P}}} to a point {{{Q}}}.
+
+{{clear}}
+[[File:outer connectivity for betweenness 4.svg|thumb|right|D′ D ≡ P Q and C P ≡ C Q]]
+By some congruences we can show first {{{D′ D ≡ P Q}}}, which we'll need at the end of the proof, and {{{C P ≡ C Q}}}, which leads to the next step.
+
+{{clear}}
+[[File:outer connectivity for betweenness 5.svg|thumb|right|B P ≡ B Q and B′ P ≡ B′ Q]]
+[[File:outer connectivity for betweenness 6.svg|thumb|right|C′ P ≡ C′ Q]]
+At this point we will apply {{{EquidistantLine}}} five times. In every case we will show that {{{x P ≡ x Q}}} (based on two such existing congruences). For the starting point, we already have {{{C P ≡ C Q}}} and {{{R P ≡ R Q}}}. In turn, we will prove a similar congruence for {{{D′}}}, {{{B}}}, {{{B′}}}, and {{{C′}}}. Those cases easily fit the pictures we have been drawing so far. But we don't stop there: because {{{C′}}}, {{{C}}}, and {{{P}}} are collinear, we can also conclude {{{P P ≡ P Q}}} (this last one doesn't quite as readily lend itself to being illustrated in diagram form, but the first four are illustrated in the adjacent figures).
+
+Of course, {{{P P ≡ P Q}}} implies {{{P = Q}}}, which in turn implies {{{D = D′}}} (via {{{D D′ ≡ P Q}}}).
+
+We have shown that {{{C ≠ C′}}} implies {{{D = D′}}}, or in other words {{{C = C′ ∨ D = D′}}}. The former implies {{{A D C}}} and the latter implies {{{A C D}}}, so we reach the conclusion that {{{between A C D ∨ between A D C}}}.
+
+{{clear}}
+== Construction of C′, D′, B′, and B″ ==
+[[File:outer connectivity for betweenness 1.svg|thumb|right|construction of C′, D′, B′, and B″]]
+We construct {{{c′}}} such that {{{between A D c′ ∧ D c′ ≡ C D}}} and {{{d′}}} such that {{{between A C d′ ∧ C d′ ≡ C D}}}.
+
+Then we construct {{{b′}}} such that {{{between A c′ b′ ∧ c′ b′ ≡ C B}}} and {{{b″}}} such that {{{between A d′ b″ ∧ d′ b″ ≡ D B}}}.
+
+The following lemma embodies these constructions, and a bit of rearrangement of the quantifiers.
+* #(→ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+    (∃ c′ (∃ d′ (∃ b′ (∃ b″
+      (∧ (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+      (∧ (between A C d′) (≡ C d′ C D)))
+      (∧ (between A c′ b′) (≡ c′ b′ C B)))
+      (∧ (between A d′ b″) (≡ d′ b″ D B)))
+      (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))))))# ([/general/Connectivity_for_betweenness.gh/BetweennessOuterConnectivity-cdbb | BetweennessOuterConnectivity-cdbb])
+
+== B′ is equal to B″ ==
+[[File:outer connectivity for betweenness 1.svg|thumb|right|B′ = B″]]
+In this section we'll show that {{{B′ = B″}}}. The idea of the proof is simple: to get from {{{B}}} to {{{B′}}} we go through {{{D}}} and {{{C′}}}, and to get from {{{B}}} to {{{B″}}} we go through {{{C}}} and {{{D′}}}. As can be seen from the way we constructed the points, the three segments in the one case are congruent to the three segments in the other (although in reverse order), so the distance from {{{B}}} to either {{{B′}}} or {{{B″}}} is the same. Because {{{A ≠ B}}}, this implies that {{{B′ = B″}}} by the uniqueness of segment construction (applied to {{{A B B′}}} and {{{A B B″}}}).
+
+=== B C′ ≡ B″ C ===
+[[File:outer connectivity for betweenness 1.svg|thumb|right|B C′ ≡ B″ C]]
+Here we prove {{{B C′ ≡ B″ C}}}, starting with a few lemmas which we'll need.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B D C′))# ([/general/Connectivity_for_betweenness.gh/b-d-cprime | b-d-cprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B″ D′ C))# ([/general/Connectivity_for_betweenness.gh/bdoubleprime-dprime-c | bdoubleprime-dprime-c])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ D C′ D′ C))# ([/general/Connectivity_for_betweenness.gh/d-cprime-dprime-c | d-cprime-dprime-c])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B C′ B″ C))# ([/general/Connectivity_for_betweenness.gh/b-cprime-bdoubleprime-c | b-cprime-bdoubleprime-c])
+
+=== B B′ ≡ B″ B ===
+[[File:outer connectivity for betweenness 1.svg|thumb|right|B B′ ≡ B″ B]]
+Here we extend the congruence from the previous section one more point. This is also an application of {{{OuterThreeSegment}}}, and we again break out some of the pieces into lemmas.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A B C′))# ([/general/Connectivity_for_betweenness.gh/a-b-cprime | a-b-cprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B C′ B′))# ([/general/Connectivity_for_betweenness.gh/b-cprime-bprime | b-cprime-bprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A C B″))# ([/general/Connectivity_for_betweenness.gh/a-c-bdoubleprime | a-c-bdoubleprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B″ C B))# ([/general/Connectivity_for_betweenness.gh/bdoubleprime-c-b | bdoubleprime-c-b])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B B′ B″ B))# ([/general/Connectivity_for_betweenness.gh/b-bprime-bdoubleprime-b | b-bprime-bdoubleprime-b])
+
+=== B″ = B′ ===
+In this section we apply {{{SegmentConstructionUniqueness}}} to prove that {{{B′}}} and {{{B″}}} are in fact the same point. We start with some more betweenness transitivity lemmas.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A B D′))# ([/general/Connectivity_for_betweenness.gh/a-b-dprime | a-b-dprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (= B″ B′))# ([/general/Connectivity_for_betweenness.gh/bdoubleprime-bprime | bdoubleprime-bprime])
+
+== Construction of E ==
+[[File:outer connectivity for betweenness 2.svg|thumb|right|C′ D′ ≡ C D, construction of E, E C ≡ E C′, and E D ≡ E D′]]
+In this section we construct the point {{{E}}} and also prove a number of congruences. First (even before we construct E), we can apply outer five segment to the line segments {{{B C D′}}} and {{{B′ C′ D}}} with points {{{C′}}} and {{{C}}} to give us {{{C′ D′ ≡ C D}}}. Then we construct {{{E}}} as the intersection of {{{C C′}}} and {{{D D′}}} (the axiom of Pasch ensures its existence).
+
+The congruences {{{E C ≡ E C′}}} and {{{E D ≡ E D′}}} may remind us of the familiar theorem that the diagonals of a rhombus bisect each other, but of course to say it that way would get ahead of ourselves. We can readily prove each of those two congruences, however, from a simple invocation of inner five segment.
+
+=== C′ D′ ≡ C D ===
+[[File:outer connectivity for betweenness 1a.svg|thumb|right|C′ D′ ≡ C D]]
+We just said that this follows from inner five segment, but that's a slight oversimplification. That's true for the {{{B ≠ C}}} case (which we'll prove first), but there's a separate {{{B = C}}} case. We'll start with the {{{B ≠ C}}} case, and before the case itself we'll prove a few lemmas which represent the various antecedents of {{{OuterFiveSegment}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B C D′))# ([/general/Connectivity_for_betweenness.gh/b-c-dprime | b-c-dprime])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B′ C′ D))# ([/general/Connectivity_for_betweenness.gh/bprime-cprime-d | bprime-cprime-d])
+The next two lemmas just apply a substitution to turn {{{B C′ ≡ B″ C}}}, which we have already proved, into {{{B C′ ≡ B′ C}}}.
+* #(→ (∧ (= B″ B′) (≡ B C′ B″ C)) (≡ B C′ B′ C))# ([/general/Connectivity_for_betweenness.gh/b-cprime-bprime-c-lemma | b-cprime-bprime-c-lemma])
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B C′ B′ C))# ([/general/Connectivity_for_betweenness.gh/b-cprime-bprime-c | b-cprime-bprime-c])
+* #(→ (∧ (¬ (= B C))
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (≡ C′ D′ C D))# ([/general/Connectivity_for_betweenness.gh/cprime-dprime-c-d-case-bnotc | cprime-dprime-c-d-case-bnotc])
+
+We now turn to the {{{B = C}}} case. We first note that in this case {{{C′ B′ ≡ C B}}} implies {{{B′ = C′}}}
+* #(→ (∧ (= B C)
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (= B′ C′))# ([/general/Connectivity_for_betweenness.gh/bprime-cprime | bprime-cprime])
+* #(→ (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (≡ C′ D′ B D))# ([/general/Connectivity_for_betweenness.gh/cprime-dprime-c-d-case-bc-1 | cprime-dprime-c-d-case-bc-1])
+* #(→
+    (∧ (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (= B C)) (≡ C′ D′ C D))# ([/general/Connectivity_for_betweenness.gh/cprime-dprime-c-d-case-bc-2 | cprime-dprime-c-d-case-bc-2])
+* #(→ (∧ (= B C)
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (≡ C′ D′ C D))# ([/general/Connectivity_for_betweenness.gh/cprime-dprime-c-d-case-bc | cprime-dprime-c-d-case-bc])
+
+Finishing the proof of {{{C′ D′ ≡ C D}}} just involves assembling the two cases.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ C′ D′ C D))# ([/general/Connectivity_for_betweenness.gh/cprime-dprime-c-d | cprime-dprime-c-d])
+
+=== Construction of E ===
+We're now ready to construct the point {{{E}}}. We already have the betweenness relationships we need for the axiom of Pasch, {{{between D′ C A}}} and {{{between C′ D A}}}. Applying {{{Pasch}}}, we get {{{C E C′}}} and {{{D E D′}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (∃ e (∧ (between C e C′) (between D e D′))))# ([/general/Connectivity_for_betweenness.gh/e-exists-1 | e-exists-1])
+
+Here's a variant of the previous theorem with the antecedent repeated inside the quantifier.
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (∃ e
+    (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+      (∧ (between A C D′) (≡ C D′ C D)))
+      (∧ (between A C′ B′) (≡ C′ B′ C B)))
+      (∧ (between A D′ B″) (≡ D′ B″ D B)))
+      (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+      (∧ (between C e C′) (between D e D′)))))# ([/general/Connectivity_for_betweenness.gh/e-exists | e-exists])
+
+=== E C ≡ E C′ ===
+[[File:outer connectivity for betweenness 2.svg|thumb|right|E C ≡ E C′ and E D ≡ E D′]]
+Here we apply inner five segment to prove {{{E C ≡ E C′}}}. We are applying inner five segment to the line segments {{{D E D′}}} and {{{D E D′}}} and points {{{C}}} and {{{C′}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (≡ E C E C′))# ([/general/Connectivity_for_betweenness.gh/e-c-e-cprime | e-c-e-cprime])
+
+=== E D ≡ E D′ ===
+The proof that {{{E D ≡ E D′}}} is exactly analogous, but applies inner five segment to the line segments {{{C E C′}}} and {{{C E C′}}} and points {{{D}}} and {{{D′}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (≡ E D E D′))# ([/general/Connectivity_for_betweenness.gh/e-d-e-dprime | e-d-e-dprime])
+
+== Construction of P, Q, and R ==
+[[File:outer connectivity for betweenness 3.svg|thumb|right|construction of P, Q, and R]]
+Extend {{{C′ C}}} by the distance {{{C D′}}} to a point {{{P}}}. Extend {{{D′ C}}} by the distance {{{C E}}} to a point {{{R}}}. Extend {{{P R}}} by the distance {{{R P}}} to a point {{{Q}}}.
+
+In other words, we are adding {{{(between C′ C P ∧ C P ≡ C D′) ∧ (between D′ C R ∧ C R ≡ C E) ∧ (between P R Q ∧ R Q ≡ R P)}}}
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (∃ r (∃ p (∃ q (
+    ∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C p) (≡ C p C D′)))
+    (∧ (between D′ C r) (≡ C r C E)))
+    (∧ (between p r q) (≡ r q r p))
+  )))))# ([/general/Connectivity_for_betweenness.gh/p-q-r-exist | p-q-r-exist])
+
+=== C ≠ D′ ===
+Our goal is to prove {{{C = C′ ∨ D = D′}}}. We do this by adding {{{C ≠ C′}}} to our antecedent and then showing it implies {{{D = D′}}}. The first step is to show that {{{C ≠ D′}}}. This is a straightforward consequence of {{{C ≠ C′}}} and the congruence of {{{C D′}}} and {{{C′ D′}}}, but it will take a few lemmas to do all the needed arranging.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C D′))
+  (= D′ C′))# ([/general/Connectivity_for_betweenness.gh/dprime-cprime | dprime-cprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C D′))
+  (= C C′))# ([/general/Connectivity_for_betweenness.gh/c-cprime | c-cprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= C D′)))# ([/general/Connectivity_for_betweenness.gh/c-dprime | c-dprime])
+
+=== R P ≡ E D′ ===
+The proof is by outer five segment on {{{D′ C R}}} and {{{P C E}}} and points {{{P}}} and {{{D′}}}. We pretty much have everything we need to apply outer five segment, although {{{between P C E}}} is complicated enough to break out into its own lemma. This lemma follows from {{{between P C C′}}} and {{{between C E C′}}}.
+
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (between P C E))# ([/general/Connectivity_for_betweenness.gh/p-c-e | p-c-e])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ R P E D′))# ([/general/Connectivity_for_betweenness.gh/r-p-e-dprime | r-p-e-dprime])
+
+=== R Q ≡ E D ===
+This is an easy consequence of {{{R P ≡ E D′}}}.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ R Q E D))# ([/general/Connectivity_for_betweenness.gh/r-q-e-d | r-q-e-d])
+
+== D′ D ≡ P Q ==
+[[File:outer connectivity for betweenness 4.svg|thumb|right|D′ D ≡ P Q and C P ≡ C Q]]
+The congruences from the previous section, {{{R P ≡ E D′}}} and {{{R Q ≡ E D}}}, lead to {{{D′ D ≡ P Q}}}, which is a congruence we'll need later on. The proof is by outer three segment on {{{D′ E D}}} and {{{P R Q}}}.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ D′ D P Q))# ([/general/Connectivity_for_betweenness.gh/dprime-d-p-q | dprime-d-p-q])
+
+== C Q ≡ C D ==
+[[File:outer connectivity for betweenness 4.svg|thumb|right|D′ D ≡ P Q and C P ≡ C Q]]
+To prove {{{C Q ≡ C D}}}, there are two cases, based on whether {{{D′ = E}}} or not.
+
+=== {{{D′ = E}}} case ===
+We start with the case in which {{{D′ = E}}}.
+
+First is {{{D′ = D}}}, which follows via {{{E = D}}} from {{{E D ≡ E D′}}}.
+* #(
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= E D))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d-case-dprime-e-e-d | c-q-c-d-case-dprime-e-e-d])
+* #(
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= D′ D))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d-case-dprime-e-dprime-d | c-q-c-d-case-dprime-e-dprime-d])
+
+It might seem that having proved {{{D′ = D}}} we are done with this case (since after all, {{{D′ = D}}} is the long-term goal of this proof). Although we could, of course, proceed this way, it would entail carrying along the two cases to almost the end of the proof. So we instead will take a few more steps to prove {{{C Q ≡ C D}}}. The next one is {{{P = Q}}}.
+
+* #(
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= P Q))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d-case-dprime-e-p-q | c-q-c-d-case-dprime-e-p-q])
+
+Now that we have {{{P = Q}}}, we just need to apply transitivity and a substitution to {{{C P ≡ C D′}}} and {{{C D′ ≡ C D}}} to get {{{C Q = C D}}}.
+* #(
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (≡ C Q C D))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d-case-dprime-e | c-q-c-d-case-dprime-e])
+
+=== {{{D′ ≠ E}}} case ===
+The more interesting case is {{{D′ ≠ E}}}. It follows from outer five segment on line segments {{{D′ E D}}} and {{{P R Q}}} and points {{{C}}} and {{{C}}}.
+* #(
+    → (∧ (¬ (= D′ E))
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (≡ C Q C D))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d-case-dprime-not-e | c-q-c-d-case-dprime-not-e])
+
+=== Combining the two cases ===
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C Q C D))# ([/general/Connectivity_for_betweenness.gh/c-q-c-d | c-q-c-d])
+
+=== A Corollary: C P ≡ C Q ===
+That the previous result implies {{{C P ≡ C Q}}} is apparent from looking at the single ticked line segments in the diagram. The proof is just some congruence transitivity.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C P C Q))# ([/general/Connectivity_for_betweenness.gh/c-p-c-q | c-p-c-q])
+
+== The line containing C, R, D′, B, B′, C′, and P ==
+[[File:outer connectivity for betweenness 5.svg|thumb|right|D′ P ≡ D′ Q, B P ≡ B Q, and likewise for B′ and C′]]
+We've set up the dominos, and in this section we push them over. For a domino (point) {{{x}}} to "fall" means that we prove {{{x P ≡ x Q}}} (via {{{EquidistantLine}}}). So we need three collinear points, the first two of which are not equal, and the first two of which already have their congruences with {{{P}}} and {{{Q}}} proven. That gives us the third congruence, and then this domino is ready to push on one of the following ones.
+
+=== D′ ===
+We start with {{{R}}}, {{{C}}}, and {{{D′}}}.
+
+The first part is {{{R ≠ C}}}. We will show that {{{R = C}}} implies {{{C = C′}}}, so a transposition gives us what we want.
+* #(→ (∧ (≡ C R C E) (= R C)) (= C E))# ([/general/Connectivity_for_betweenness.gh/c-e-lemma | c-e-lemma])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= C E))# ([/general/Connectivity_for_betweenness.gh/c-e | c-e])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= E C′))# ([/general/Connectivity_for_betweenness.gh/e-cprime | e-cprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= C C′))# ([/general/Connectivity_for_betweenness.gh/r-c-implies-c-cprime | r-c-implies-c-cprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= R C)))# ([/general/Connectivity_for_betweenness.gh/r-not-c | r-not-c])
+
+Now we are ready to prove {{{D′ P ≡ D′ Q}}}.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ D′ P D′ Q))# ([/general/Connectivity_for_betweenness.gh/dprime-p-dprime-q | dprime-p-dprime-q])
+
+=== B′ ===
+The next point is {{{B′}}}, which follows from the results for {{{C}}} and {{{D′}}}. We break out one substitution into a lemma, but other than that we have everything we need.
+
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (between C D′ B′))# ([/general/Connectivity_for_betweenness.gh/c-dprime-bprime | c-dprime-bprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ B′ P B′ Q))# ([/general/Connectivity_for_betweenness.gh/bprime-p-bprime-q | bprime-p-bprime-q])
+
+=== B ===
+The next point is {{{B}}}, which also follows from the results for {{{C}}} and {{{D′}}}. We have everything we need here with even less work than in the previous section.
+
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ B P B Q))# ([/general/Connectivity_for_betweenness.gh/b-p-b-q | b-p-b-q])
+
+=== C′ ===
+The next point is {{{C′}}}, which follows from the results for {{{B}}} and {{{B′}}}. 
+
+Before we get to the main proof of this, we prove a few lemmas. The first one we need is {{{between B′ C B}}}. As we already have 
+{{{between B″ C B}}}, this is just a substitution.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B′ C B))# ([/general/Connectivity_for_betweenness.gh/bprime-c-b | bprime-c-b])
+
+The next lemma is {{{B ≠ B′}}}. As usual, this will be via the contrapositive.
+
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= B B′))
+  (= C C′))# ([/general/Connectivity_for_betweenness.gh/b-bprime-c-cprime | b-bprime-c-cprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= B B′)))# ([/general/Connectivity_for_betweenness.gh/b-bprime | b-bprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C′ P C′ Q))# ([/general/Connectivity_for_betweenness.gh/cprime-p-cprime-q | cprime-p-cprime-q])
+
+=== P ===
+The next point is {{{P}}}, which follows from the results for {{{C′}}} and {{{C}}}. It would be harder to draw a diagram for this one (if the diagram were to show the congruences as well as just {{{P}}}, {{{C}}}, and {{{C′}}}), but the proof is much the same as the ones we've done so far.
+
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ P P P Q))# ([/general/Connectivity_for_betweenness.gh/p-p-p-q | p-p-p-q])
+
+== Assembling the result ==
+Having proved {{{P P ≡ P Q}}}, we are most of the way done.
+
+=== P = Q ===
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (= P Q))# ([/general/Connectivity_for_betweenness.gh/p-q | p-q])
+
+=== D = D′ ===
+Here's a variant of {{{CongruenceIdentityFromEquality}}}. Because we (almost?) always want the imported one, the plan is to phase out the exported version in favor of the imported one.
+* #(→ (∧ (= x y) (≡ x y z w)) (= z w))# ([/general/Connectivity_for_betweenness.gh/CongruenceIdentityFromEqualityImported | CongruenceIdentityFromEqualityImported])
+
+And {{{D = D′}}} follows from {{{P = Q}}} and {{{P Q ≡ D D′}}}.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (= D D′))# ([/general/Connectivity_for_betweenness.gh/d-dprime | d-dprime])
+
+=== between A C D ∨ between A D C ===
+In this section we prove that the long list of antecedents we have been working with implies {{{between A C D ∨ between A D C}}}. There are a few steps.
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (∨ (= C C′) (= D D′)))# ([/general/Connectivity_for_betweenness.gh/c-cprime-or-d-dprime | c-cprime-or-d-dprime])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C C′))
+    (between A D C))# ([/general/Connectivity_for_betweenness.gh/a-d-c | a-d-c])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= D D′))
+    (between A C D))# ([/general/Connectivity_for_betweenness.gh/a-c-d | a-c-d])
+* #(
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (∨ (between A C D) (between A D C)))# ([/general/Connectivity_for_betweenness.gh/a-c-d-or-a-d-c | a-c-d-or-a-d-c])
+
+=== Betweenness outer connectivity ===
+We now are prepared to take the various lemmas which represent the construction of the various points, tie them together (basically just syllogisms, with suitable handling of ∃), and then remove the quantifiers once they are no longer needed.
+* #(→ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (∨ (between A C D) (between A D C)))# ([/general/Connectivity_for_betweenness.gh/BetweennessOuterConnectivity | BetweennessOuterConnectivity])
+
+== Export ==
+We now export to [[Interface:Connectivity for betweenness]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

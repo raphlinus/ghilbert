@@ -1,0 +1,3178 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START Collinearity.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point A B C D E P Q R A′ B′ C′ D′ B″ C″)
+var (object a b b′ c c′ d′ e p q r b″ c″)
+thm (BetweennessOuterConnectivity-cdbb
+  ((A c′ d′ b′ b″) (B c′ d′ b′ b″) (C c′ d′ b′ b″) (D c′ d′ b′ b″)) ()
+  (→ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+    (∃ c′ (∃ d′ (∃ b′ (∃ b″
+      (∧ (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+      (∧ (between A C d′) (≡ C d′ C D)))
+      (∧ (between A c′ b′) (≡ c′ b′ C B)))
+      (∧ (between A d′ b″) (≡ d′ b″ D B)))
+      (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))))))
+        c′ A D C D SegmentConstruction
+        d′ A C C D SegmentConstruction
+        introduceConjunction
+
+        c′ d′ (∧ (between A D c′) (≡ D c′ C D))
+          (∧ (between A C d′) (≡ C d′ C D))
+          ThereExistsScattering
+        eliminateBiconditionalForward
+
+        applyModusPonens
+# So far we have the construction of <code>c′</code> and <code>d′</code>, specifically <code>∃ c′ ∃ d′ ((between A D c′ ∧ D c′ ≡ C D) ∧ (between A C d′ ∧ C d′ ≡ C D))</code>. We now turn to <code>b′</code>.
+        b′ A c′ C B SegmentConstruction
+        d′ generalize
+        c′ generalize
+
+        combineThereExistsForAll
+
+        d′
+          (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+          (∃ b′ (∧
+            (between A c′ b′) (≡ c′ b′ C B)))
+          ThereExistsConjunctionRightCombining
+        c′ addThereExists
+        applyModusPonens
+# That gives us <code>∃ c′ ∃ d′ ((between A D c′ ∧ D c′ ≡ C D) ∧ (between A C d′ ∧ C d′ ≡ C D) ∧ ∃ b′ (between A c′ b′ ∧ c′ b′ ≡ C B))</code>. The next step is to move <code>∃ b′</code> to the front.
+        b′
+          (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+          (∧
+            (between A c′ b′) (≡ c′ b′ C B))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        d′ addThereExists
+        c′ addThereExists
+        applyModusPonens
+# Now we construct <code>b″</code>, which starts with <code>∃ b″ (between A d′ b″ ∧ d′ b″ ≡ D B)</code> and then moves the quantifiers to the front.
+        b″ A d′ D B SegmentConstruction
+        d′ generalize
+
+        introduceConjunction
+
+        c′
+          (∃ d′ (∃ b′
+            (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+              (∧ (between A C d′) (≡ C d′ C D)))
+              (∧
+                (between A c′ b′) (≡ c′ b′ C B)))
+          ))
+          (∀ d′ (∃ b″ (∧ (between A d′ b″) (≡ d′ b″ D B))))
+          ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        applyModusPonens
+
+        d′
+          (∃ b′
+            (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+              (∧ (between A C d′) (≡ C d′ C D)))
+              (∧
+                (between A c′ b′) (≡ c′ b′ C B)))
+          )
+          (∃ b″ (∧ (between A d′ b″) (≡ d′ b″ D B)))
+          ThereExistsConjunctionRightCombining
+        c′ addThereExists
+        applyModusPonens
+
+        b′ b″
+          (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+            (∧
+              (between A c′ b′) (≡ c′ b′ C B)))
+          (∧ (between A d′ b″) (≡ d′ b″ D B))
+          ThereExistsScattering
+        eliminateBiconditionalForward
+        d′ addThereExists
+        c′ addThereExists
+        applyModusPonens
+# Now we need to add in <code>A ≠ B ∧ between A B C ∧ between A B D</code>, and move it inside all four quantifiers.
+        (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) introduceAntecedent
+
+        (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) ImplicationReflexivity
+        composeConjunction
+
+        c′
+          (∃ d′ (∃ b′ (∃ b″
+            (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+            (∧
+              (between A c′ b′) (≡ c′ b′ C B)))
+            (∧
+              (between A d′ b″) (≡ d′ b″ D B)))
+          )))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+        ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        applySyllogism
+
+        d′
+          (∃ b′ (∃ b″
+            (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+            (∧
+              (between A c′ b′) (≡ c′ b′ C B)))
+            (∧
+              (between A d′ b″) (≡ d′ b″ D B)))
+          ))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+        ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        c′ addThereExists
+        applySyllogism
+
+        b′
+          (∃ b″
+            (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+            (∧
+              (between A c′ b′) (≡ c′ b′ C B)))
+            (∧
+              (between A d′ b″) (≡ d′ b″ D B)))
+          )
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+        ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        d′ addThereExists
+        c′ addThereExists
+        applySyllogism
+
+        b″
+          (∧ (∧ (∧ (∧ (between A D c′) (≡ D c′ C D))
+            (∧ (between A C d′) (≡ C d′ C D)))
+            (∧
+              (between A c′ b′) (≡ c′ b′ C B)))
+            (∧
+              (between A d′ b″) (≡ d′ b″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+        ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        b′ addThereExists
+        d′ addThereExists
+        c′ addThereExists
+        applySyllogism
+ )
+thm (b-d-cprime
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B D C′))
+# First is <code>between A B D</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+# Second is <code>between A D C′</code>
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+
+        composeConjunction
+# The result follows from transitivity.
+        A B D C′ BetweennessInnerTransitivityFlipped
+        applySyllogism
+ )
+
+thm (bdoubleprime-dprime-c
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B″ D′ C))
+# This is another application of transitivity, starting with <code>between B″ D′ A</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D′ B″ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# The other thing we need is <code>between D′ C A</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A C D′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B″ D′ A C BetweennessInnerTransitivity
+        applySyllogism
+ )
+
+thm (d-cprime-dprime-c
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ D C′ D′ C))
+# Each of the segments <code>D C′</code> and <code>D′ C</code> is congruent to <code>C D</code>, so we just need to apply symmetry and transitivity.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        D C′ C D C D′ CongruenceTransitivity
+        applySyllogism
+
+        D C′ C D′ CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (b-cprime-bdoubleprime-c
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B C′ B″ C))
+# We prove this theorem by applying <code>OuterThreeSegment</code> to <code>B D C′</code> and <code>B″ D′ C</code>. The first step is <code>between B D C′</code>.
+        A D C′ C D′ B′ B B″ b-d-cprime
+# The next is <code>between B″ D′ C</code>.
+        A D C′ C D′ B′ B B″ bdoubleprime-dprime-c
+        composeConjunction
+# The next is <code>B D ≡ B″ D′</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        D′ B″ D B CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        D B D′ B″ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# The last is <code>D C′ D′ C</code>
+        A D C′ C D′ B′ B B″ d-cprime-dprime-c
+        composeConjunction
+# Three segment gives us <code>B C′ B″ C</code>, the desired result.
+        B D C′ B″ D′ C OuterThreeSegment
+        applySyllogism
+ )
+thm (a-b-cprime
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A B C′))
+# This is an application of transitivity to <code>between A B D</code>
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+# and <code>between A D C′</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        A B D C′ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+
+thm (b-cprime-bprime
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B C′ B′))
+# Here we apply transitivity to <code>between A B C′</code>.
+        A D C′ C D′ B′ B B″ a-b-cprime
+# and <code>between A C′ B′</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        A B C′ B′ BetweennessInnerTransitivityFlipped
+        applySyllogism
+ )
+
+thm (a-c-bdoubleprime
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A C B″))
+# Here we apply transitivity to <code>between A C D′</code>
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# and <code>between A D′ B″</code>
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        A C D′ B″ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+
+thm (bdoubleprime-c-b
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B″ C B))
+# Here we apply transitivity to <code>A B C</code>
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# and the previous lemma (<code>between A C B″</code>)
+        A D C′ C D′ B′ B B″ a-c-bdoubleprime
+        composeConjunction
+# to produce <code>B C B″</code>. Then we just need to switch the order of the endpoints.
+        A B C B″ BetweennessInnerTransitivityFlipped
+        applySyllogism
+
+        B C B″ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (b-bprime-bdoubleprime-b
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B B′ B″ B))
+# First we need <code>between B C′ B′</code>.
+        A D C′ C D′ B′ B B″ b-cprime-bprime
+# Next we need <code>between B″ C B</code>.
+        A D C′ C D′ B′ B B″ bdoubleprime-c-b
+        composeConjunction
+# <code>B C′ ≡ B″ C</code>:
+        A D C′ C D′ B′ B B″ b-cprime-bdoubleprime-c
+        composeConjunction
+# <code>C′ B′ ≡ C B</code>:
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        B C′ B′ B″ C B OuterThreeSegment
+        applySyllogism
+ )
+thm (a-b-dprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between A B D′))
+# <code>between A B C</code>:
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+# <code>between A C D′</code>:
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        A B C D′ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+
+thm (bdoubleprime-bprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (= B″ B′))
+# We'll prove <code>B′ = B″</code> (and flip the order later). We first need <code>A ≠ B</code>.
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# Next is <code>between A B B′</code>, which follows from <code>between A B C′</code> and <code>between A C′ B′</code> by betweenness transitivity.
+        A D C′ C D′ B′ B B″ a-b-cprime
+
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        A B C′ B′ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+
+        composeConjunction
+# Next is <code>between B B′ ≡ B″ B</code>.
+        A D C′ C D′ B′ B B″ b-bprime-bdoubleprime-b
+        composeConjunction
+# Next is <code>between A B B″</code>, which follows from <code>between A B D′</code> and <code>between A D′ B″</code> by betweenness transitivity.
+        A D C′ C D′ B′ B B″ a-b-dprime
+
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        A B D′ B″ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+
+        composeConjunction
+# Finally we need <code>B B″ ≡ B″ B</code>.
+        B B″ CongruenceABBA
+
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          introduceAntecedent
+        composeConjunction
+# Applying segment construction uniqueness, and then flipping the order of the equality, we are done.
+        A B B′ B″ B B″ SegmentConstructionUniqueness
+        applySyllogism
+
+        B′ B″ EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (b-c-dprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B C D′))
+# We prove this via betweenness transitivity from <code>between B C B″</code>
+        A D C′ C D′ B′ B B″ bdoubleprime-c-b
+
+        B″ C B BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# and <code>between C D′ B″</code>.
+        A D C′ C D′ B′ B B″ bdoubleprime-dprime-c
+
+        B″ D′ C BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B C B″ D′ BetweennessInnerTransitivity
+        applySyllogism
+ )
+
+thm (bprime-cprime-d () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B′ C′ D))
+# This follows by betweenness transitivity from <code>B′ C′ B</code>
+        A D C′ C D′ B′ B B″ b-cprime-bprime
+
+        B C′ B′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# and <code>C′ D B</code>
+        A D C′ C D′ B′ B B″ b-d-cprime
+
+        B D C′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B′ C′ B D BetweennessInnerTransitivity
+        applySyllogism
+ )
+
+thm (b-cprime-bprime-c-lemma () ()
+  (→ (∧ (= B″ B′) (≡ B C′ B″ C)) (≡ B C′ B′ C))
+        B EqualityReflexivity
+        C′ EqualityReflexivity
+        C EqualityReflexivity
+        B B C′ C′ B″ B′ C C CongruenceBuilder
+        detach2of2
+        detach2of3
+        detach1of2
+
+        eliminateBiconditionalReverseInConsequent
+
+        import
+ )
+
+thm (b-cprime-bprime-c () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ B C′ B′ C))
+        A D C′ C D′ B′ B B″ bdoubleprime-bprime
+        A D C′ C D′ B′ B B″ b-cprime-bdoubleprime-c
+        composeConjunction
+
+        B″ B′ B C′ C b-cprime-bprime-c-lemma
+        applySyllogism
+ )
+
+thm (cprime-dprime-c-d-case-bnotc () ()
+  (→ (∧ (¬ (= B C))
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (≡ C′ D′ C D))
+# For outer five segment, we first need <code>B ≠ C</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionRightElimination
+# Next is <code>between B C D′</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ b-c-dprime
+        applySyllogism
+
+        composeConjunction
+# Next is <code>between B′ C′ D</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ bprime-cprime-d
+        applySyllogism
+
+        composeConjunction
+# Next is <code>B C ≡ B′ C′</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C′ B′ C B CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        C B C′ B′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>C D′ ≡ C′ D</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        D C′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        C D D C′ CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        C D′ C D C′ D CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# Next is <code>B C′ ≡ B′ C</code>.
+        (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ b-cprime-bprime-c
+        applySyllogism
+
+        composeConjunction
+# Last is <code>C C′ ≡ C′ C</code>.
+        C C′ CongruenceABBA
+
+        (∧ (¬ (= B C))
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+          introduceAntecedent
+
+        composeConjunction
+# Applying outer five segment gives us <code>D′ C′ ≡ D C</code>. We flip the order of the points to turn that into <code>C′ D′ ≡ C D</code>.
+        B C D′ B′ C′ D C′ C OuterFiveSegment
+        applySyllogism
+
+        D′ C′ D C CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (bprime-cprime () ()
+  (→ (∧ (= B C)
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (= B′ C′))
+        (= B C)
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionRightElimination
+
+        (= B C)
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C′ B′ C B CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        C B C′ B′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B C B′ C′ CongruenceIdentityFromEquality
+        import
+        applySyllogism
+ )
+
+thm (cprime-dprime-c-d-case-bc-1 () ()
+  (→ (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (≡ C′ D′ B D))
+        B″ B′ C′ EqualityTransitivity
+
+        D′ EqualityReflexivity
+        D EqualityReflexivity
+        B EqualityReflexivity
+        D′ D′ B″ C′ D D B B CongruenceBuilder
+        detach2of2
+        detach2of2
+        detach1of2
+
+        eliminateBiconditionalReverseInConsequent
+# The top thing on the proof stack is now <code>B″ = C′ → (D′ B″ ≡ D B → D′ C′ ≡ D B</code>. We just need to combine it with the other thing on the proof stack, import, and adjust the consequent.
+        applySyllogism
+
+        import
+
+        D′ C′ D B CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (cprime-dprime-c-d-case-bc-2 () ()
+  (→
+    (∧ (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (= B C)) (≡ C′ D′ C D))
+        (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (= B C)
+          ConjunctionRightElimination
+        B″ B′ C′ D′ D B cprime-dprime-c-d-case-bc-1
+        applySyllogism
+
+        (∧ (∧ (= B″ B′) (= B′ C′)) (≡ D′ B″ D B)) (= B C)
+          ConjunctionLeftElimination
+        C′ EqualityReflexivity
+        D′ EqualityReflexivity
+        D EqualityReflexivity
+        C′ C′ D′ D′ B C D D CongruenceBuilder
+        detach2of2
+        detach2of3
+        detach1of2
+        applySyllogism
+
+        eliminateBiconditionalReverseInConsequent
+
+        composeConjunction
+
+        (≡ C′ D′ B D) (≡ C′ D′ C D) ModusPonens
+        applySyllogism
+ )
+
+thm (cprime-dprime-c-d-case-bc () ()
+  (→ (∧ (= B C)
+    (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))))
+  (≡ C′ D′ C D))
+# We've proved all the interesting parts. We just need to pick out the various antecedents for <code>cprime-dprime-c-d-case-bc-2</code>. <code>B″ = B′</code>:
+        (= B C)
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        A D C′ C D′ B′ B B″ bdoubleprime-bprime
+        applySyllogism
+# <code>B′ = C′</code>
+        B C A D C′ D′ B′ B″ bprime-cprime
+        composeConjunction
+# <code>D′ B″ ≡ D B</code>
+        (= B C)
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+# <code>B = C</code>:
+        (= B C)
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ConjunctionRightElimination
+        composeConjunction
+
+        B″ B′ C′ D′ D B C cprime-dprime-c-d-case-bc-2
+        applySyllogism
+ )
+thm (cprime-dprime-c-d () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (≡ C′ D′ C D))
+        B C A D C′ D′ B′ B″ cprime-dprime-c-d-case-bc
+        export
+
+        B C A D C′ D′ B′ B″ cprime-dprime-c-d-case-bnotc
+        export
+
+        eliminateCases
+ )
+thm (e-exists-1
+  ((A e) (D e) (C′ e) (C e) (D′ e) (B′ e) (B e) (B″ e)) ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (∃ e (∧ (between C e C′) (between D e D′))))
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A C D′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        D′ C A C′ D e Pasch
+        applySyllogism
+ )
+thm (e-exists
+  ((A e) (D e) (C′ e) (C e) (D′ e) (B′ e) (B e) (B″ e)) ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (∃ e
+    (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+      (∧ (between A C D′) (≡ C D′ C D)))
+      (∧ (between A C′ B′) (≡ C′ B′ C B)))
+      (∧ (between A D′ B″) (≡ D′ B″ D B)))
+      (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+      (∧ (between C e C′) (between D e D′)))))
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          ImplicationReflexivity
+
+        A D C′ C D′ B′ B B″ e e-exists-1
+
+        composeConjunction
+
+        e
+          (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C e C′) (between D e D′))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+
+        applySyllogism
+ )
+thm (e-c-e-cprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (≡ E C E C′))
+# First we need <code>between D E D′</code>, which is one of our antecedents.
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+# Secondly we need a second copy of <code>between D E D′</code>.
+        (between D E D′) ConjunctionIdempotence
+        eliminateBiconditionalReverse
+        applySyllogism
+# Thirdly we need <code>D D′ ≡ D D′</code>, which is an identity.
+        D D′ CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          introduceAntecedent
+        composeConjunction
+# Fourth we need <code>E D′ ≡ E D′</code>, which is an identity.
+        E D′ CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          introduceAntecedent
+        composeConjunction
+# Next we need <code>D C ≡ D C′</code>, which is one of our antecedents (slightly rearranged).
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        D C′ C D CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        D C′ D C CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Finally we need <code>D′ C ≡ D′ C′</code>, which follows from the antecedent <code>C D′ ≡ C D</code> and <code>C′ D′ ≡ C D</code>, which we proved previously.
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        A D C′ C D′ B′ B B″ cprime-dprime-c-d
+        applySyllogism
+
+        C′ D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        C D′ C D C′ D′ CongruenceTransitivity
+        applySyllogism
+
+        C D′ C′ D′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Applying inner five segment we get <code>E C ≡ E C′</code>
+        D E D′ D E D′ C C′ InnerFiveSegment
+        applySyllogism
+ )
+thm (e-d-e-dprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (≡ E D E D′))
+# First we need <code>between C E C′</code>, which is one of our antecedents.
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+# Secondly we need a second copy of <code>between C E C′</code>.
+        (between C E C′) ConjunctionIdempotence
+        eliminateBiconditionalReverse
+        applySyllogism
+# Thirdly we need <code>C C′ ≡ C C′</code>, which is an identity.
+        C C′ CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          introduceAntecedent
+        composeConjunction
+# Fourth we need <code>E C′ ≡ E C′</code>, which is an identity.
+        E C′ CongruenceReflexivity
+        (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          introduceAntecedent
+        composeConjunction
+# Next we need <code>C D ≡ C D′</code>, which is one of our antecedents (slightly rearranged).
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Finally we need <code>C′ D ≡ C′ D′</code>, which follows from the antecedent <code>D C′ ≡ C D</code> and <code>C′ D′ ≡ C D</code>, which we proved previously.
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′))
+          ConjunctionRightElimination
+        A D C′ C D′ B′ B B″ cprime-dprime-c-d
+        applySyllogism
+
+        C′ D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        D C′ C D C′ D′ CongruenceTransitivity
+        applySyllogism
+
+        D C′ C′ D′ CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Applying inner five segment we get <code>E D ≡ E D′</code>
+        C E C′ C E C′ D D′ InnerFiveSegment
+        applySyllogism
+ )
+thm (p-q-r-exist
+  ((A q r p) (D q r p) (C′ q r p) (C q r p) (D′ q r p) (B′ q r p) (B q r p) (B″ q r p) (E q r p)) ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+  (∃ r (∃ p (∃ q (
+    ∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C p) (≡ C p C D′)))
+    (∧ (between D′ C r) (≡ C r C E)))
+    (∧ (between p r q) (≡ r q r p))
+  )))))
+        (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          ImplicationReflexivity
+# We're ready to construct <code>p</code>.
+        p C′ C C D′ SegmentConstruction
+        introduceRightConjunctToConsequent
+
+        p
+          (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C p) (≡ C p C D′))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+
+# The construction of <code>r</code> is similar.
+        r D′ C C E SegmentConstruction
+        introduceRightConjunctToConsequent
+
+        # TODO: this can be simplified via ThereExistsScattering, right?
+        r
+          (∃ p 
+            (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+            (∧ (between C′ C p) (≡ C p C D′))))
+          (∧ (between D′ C r) (≡ C r C E))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+
+        p
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+            (∧ (between C′ C p) (≡ C p C D′)))
+          (∧ (between D′ C r) (≡ C r C E))
+          ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        r addThereExists
+        applySyllogism
+# The construction of <code>q</code> is only slightly different (with the most obvious difference in the logic being that it depends on <code>p</code> and <code>r</code>).
+        q p r r p SegmentConstruction
+        p generalize
+        r generalize
+        introduceRightConjunctToConsequent
+
+        r
+          (∃ p (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+            (∧ (between C′ C p) (≡ C p C D′)))
+            (∧ (between D′ C r) (≡ C r C E))))
+          (∀ p (∃ q (∧ (between p r q) (≡ r q r p))))
+          ThereExistsConjunctionRightCombining
+        applySyllogism
+
+        p
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+            (∧ (between C′ C p) (≡ C p C D′)))
+            (∧ (between D′ C r) (≡ C r C E)))
+          (∃ q (∧ (between p r q) (≡ r q r p)))
+          ThereExistsConjunctionRightCombining
+        r addThereExists
+        applySyllogism
+
+        q
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+            (∧ (between A C D′) (≡ C D′ C D)))
+            (∧ (between A C′ B′) (≡ C′ B′ C B)))
+            (∧ (between A D′ B″) (≡ D′ B″ D B)))
+            (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+            (∧ (between C E C′) (between D E D′)))
+            (∧ (between C′ C p) (≡ C p C D′)))
+            (∧ (between D′ C r) (≡ C r C E)))
+          (∧ (between p r q) (≡ r q r p))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        p addThereExists
+        r addThereExists
+        applySyllogism
+ )
+thm (dprime-cprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C D′))
+  (= D′ C′))
+# First we need <code>C = D′</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= C D′)
+          ConjunctionLeftElimination
+# Secondly we need <code>C D′ ≡ D′ C′</code> which we derive from <code>C D′ ≡ C D</code> (an antecedent), <code>C′ D′ ≡ C D</code> (previously proved), and a bit of rearrangement.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= C D′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= C D′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ cprime-dprime-c-d
+        applySyllogism
+
+        C′ D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        C D′ C D C′ D′ CongruenceTransitivity
+        applySyllogism
+
+        C D′ C′ D′ CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Now we can show <code>D′ = C′</code>.
+        C D′ D′ C′ CongruenceIdentityFromEquality
+        import
+        applySyllogism
+ )
+
+thm (c-cprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C D′))
+  (= C C′))
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= C D′)
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ E P R Q dprime-cprime
+
+        composeConjunction
+
+        C D′ C′ EqualityTransitivity
+        applySyllogism
+ )
+
+thm (c-dprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= C D′)))
+        A D C′ C D′ B′ B B″ E P R Q c-cprime
+        export
+
+        (= C D′) (= C C′) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+ )
+thm (p-c-e () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (between P C E))
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        C′ C P BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        P C C′ E BetweennessInnerTransitivity
+        applySyllogism
+ )
+
+thm (r-p-e-dprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ R P E D′))
+# First we need <code>D′ ≠ C</code>. We proved it in the previous section.
+        A D C′ C D′ B′ B B″ E P R Q c-dprime
+
+        C D′ EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>between D′ C R</code>, from the construction of <code>R</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Next is <code>between P C E</code>.
+        A D C′ C D′ B′ B B″ E P R Q p-c-e
+        composeConjunction
+# Next is <code>D′ C ≡ P C</code>, from the construction of <code>P</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C P C D′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P C D′ C CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>C R ≡ C E</code>, from the construction of <code>R</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Next is <code>D′ P ≡ P D′</code>, which holds trivially.
+        D′ P CongruenceABBA
+        introduceRightConjunctToConsequent
+# Next is <code>C P ≡ C D′</code>, from the construction of <code>P</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# We can then conclude <code>R P ≡ E D′</code>.
+        D′ C R P C E P D′ OuterFiveSegment
+        applySyllogism
+ )
+thm (r-q-e-d () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ R Q E D))
+# We start with <code>R Q ≡ R P</code> (from the construction of <code>Q</code>).
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next is <code>R P ≡ E D′</code> (from the previous section).
+        A D C′ C D′ B′ B B″ E P R Q r-p-e-dprime
+        composeConjunction
+
+        R Q R P E D′ CongruenceTransitivity
+        applySyllogism
+# Finally is <code>E D′ ≡ E D</code> (which we proved a few sections back).
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ E e-d-e-dprime
+        applySyllogism
+
+        E D E D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        R Q E D′ E D CongruenceTransitivity
+        applySyllogism
+ )
+thm (dprime-d-p-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ D′ D P Q))
+# First is <code>between D′ E D</code>
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        D E D′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>between P R Q</code>
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Next is <code>D′ E ≡ P R</code>.
+        A D C′ C D′ B′ B B″ E P R Q r-p-e-dprime
+
+        R P E D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        E D′ R P CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Last is <code>E D ≡ R Q</code>.
+        A D C′ C D′ B′ B B″ E P R Q r-q-e-d
+
+        R Q E D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        D′ E D P R Q OuterThreeSegment
+        applySyllogism
+ )
+thm (c-q-c-d-case-dprime-e-e-d () ()
+  (
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= E D))
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionRightElimination
+
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ E e-d-e-dprime
+        applySyllogism
+
+        E D E D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        E D′ E D CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        D′ E E D CongruenceIdentityFromEquality
+        import
+
+        applySyllogism
+ )
+
+thm (c-q-c-d-case-dprime-e-dprime-d () ()
+  (
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= D′ D))
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionRightElimination
+
+        D′ E A D C′ C B′ B B″ P R Q c-q-c-d-case-dprime-e-e-d
+        composeConjunction
+
+        D′ E D EqualityTransitivity
+        applySyllogism
+ )
+thm (c-q-c-d-case-dprime-e-p-q () ()
+  (
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (= P Q))
+        D′ E A D C′ C B′ B B″ P R Q c-q-c-d-case-dprime-e-dprime-d
+
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        A D C′ C D′ B′ B B″ E P R Q dprime-d-p-q
+        applySyllogism
+
+        composeConjunction
+
+        D′ D P Q CongruenceIdentityFromEquality
+        import
+
+        applySyllogism
+ )
+thm (c-q-c-d-case-dprime-e () ()
+  (
+    → (∧ (= D′ E)
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (≡ C Q C D))
+        D′ E A D C′ C B′ B B″ P R Q c-q-c-d-case-dprime-e-p-q
+# Now we need <code>C P ≡ C D</code>.
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (= D′ E)
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        C P C D′ C D CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# <code>P = Q → (C P ≡ C D ↔ C Q ≡ C D)</code>
+        C EqualityReflexivity
+        C EqualityReflexivity
+        D EqualityReflexivity
+        C C P Q C C D D CongruenceBuilder
+        detach2of2
+        detach2of2
+        detach1of2
+# A bit of rearranging and we are done.
+        eliminateBiconditionalReverseInConsequent
+        import
+        applySyllogism
+ )
+thm (c-q-c-d-case-dprime-not-e () ()
+  (
+    → (∧ (¬ (= D′ E))
+    (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′))))
+  (≡ C Q C D))
+# First we need <code>D′ ≠ E</code>.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionRightElimination
+# Next we need <code>between D′ E D</code>.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        D E D′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>between P R Q</code>.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Next is <code>D′ E ≡ P R</code>, which we proved a few sections back.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ E P R Q r-p-e-dprime
+        applySyllogism
+
+        R P E D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        E D′ R P CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>E D ≡ R Q</code>, which we proved a few sections back.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+
+        A D C′ C D′ B′ B B″ E P R Q r-q-e-d
+        applySyllogism
+
+        R Q E D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Here is <code>D′ C ≡ P C</code>, from the construction of <code>P</code>.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C P C D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        C D′ C P CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Finally we need <code>E C ≡ R C</code>, which comes from the construction of <code>R</code>.
+        (¬ (= D′ E))
+          (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C R C E CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        C E C R CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# From outer five segment we can conclude <code>D C ≡ Q C</code>.
+        D′ E D P R Q C C OuterFiveSegment
+        applySyllogism
+
+        D C Q C CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        Q C D C CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (c-q-c-d () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C Q C D))
+        D′ E A D C′ C B′ B B″ P R Q c-q-c-d-case-dprime-e
+        export
+
+        D′ E A D C′ C B′ B B″ P R Q c-q-c-d-case-dprime-not-e
+        export
+
+        eliminateCases
+ )
+thm (c-p-c-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C P C Q))
+        A D C′ C D′ B′ B B″ E P R Q c-q-c-d
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C D′ C D CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        C Q C D C D′ CongruenceTransitivity
+        applySyllogism
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C P C D′ CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        C Q C D′ C P CongruenceTransitivity
+        applySyllogism
+
+        C Q C P CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (c-e-lemma () ()
+  (→ (∧ (≡ C R C E) (= R C)) (= C E))
+        C R C E CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+
+        R C C E CongruenceIdentityFromEquality
+        applyComm
+        applySyllogism
+
+        import
+ )
+
+thm (c-e () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= C E))
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= R C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= R C)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        C R E c-e-lemma
+
+        applySyllogism
+ )
+
+thm (e-cprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= E C′))
+        A D C′ C D′ B′ B B″ E P R Q c-e
+
+        C E EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= R C)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ E e-c-e-cprime
+        applySyllogism
+
+        composeConjunction
+
+        E C E C′ CongruenceIdentityFromEquality
+        import
+
+        applySyllogism
+ )
+
+thm (r-c-implies-c-cprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= R C))
+  (= C C′))
+        A D C′ C D′ B′ B B″ E P R Q c-e
+        A D C′ C D′ B′ B B″ E P R Q e-cprime
+        composeConjunction
+
+        C E C′ EqualityTransitivity
+        applySyllogism
+ )
+
+thm (r-not-c () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= R C)))
+        A D C′ C D′ B′ B B″ E P R Q r-c-implies-c-cprime
+        export
+
+        (= R C) (= C C′) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+ )
+thm (dprime-p-dprime-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ D′ P D′ Q))
+# First we need <code>R ≠ C</code>.
+        A D C′ C D′ B′ B B″ E P R Q r-not-c
+# Next is <code>collinear R C D′</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        D′ C R BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        R C D′ BetweennessCollinearity
+        applySyllogism
+
+        composeConjunction
+# Next is <code>R P ≡ R Q</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        R Q R P CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Finally is <code>C P ≡ C Q</code>, which lets us apply <code>EquidistantLine</code>.
+        A D C′ C D′ B′ B B″ E P R Q c-p-c-q
+
+        composeConjunction
+
+        R C D′ P Q EquidistantLine
+        applySyllogism
+ )
+thm (c-dprime-bprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (between C D′ B′))
+# First we put on the proof stack two things: <code>B″ D′ C</code> and <code>B″ = B′</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ bdoubleprime-dprime-c
+        applySyllogism
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ bdoubleprime-bprime
+        applySyllogism
+# Next comes our substitution: <code>B″ = B′ → (between B″ D′ C ↔ between B′ D′ C)</code>.
+        D′ EqualityReflexivity
+        C EqualityReflexivity
+        B″ B′ D′ D′ C C BetweennessBuilder
+        detach2of2
+        detach2of2
+# We detach that twice to get <code>between B′ D′ C</code>.
+        eliminateBiconditionalReverseInConsequent
+        applySyllogism
+
+        applyModusPonensInConsequent
+# We swap the endpoints, as the swapped version will be more convenient later.
+        B′ D′ C BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (bprime-p-bprime-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ B′ P B′ Q))
+# The first part is <code>C ≠ D′</code>.
+        A D C′ C D′ B′ B B″ E P R Q c-dprime
+# Next is <code>collinear C D′ B′</code>
+        A D C′ C D′ B′ B B″ E P R Q c-dprime-bprime
+        C D′ B′ BetweennessCollinearity
+        applySyllogism
+
+        composeConjunction
+# Next is <code>C P ≡ C Q</code>
+        A D C′ C D′ B′ B B″ E P R Q c-p-c-q
+
+        composeConjunction
+# Last is <code>D′ P ≡ D′ Q</code>
+        A D C′ C D′ B′ B B″ E P R Q dprime-p-dprime-q
+
+        composeConjunction
+
+        C D′ B′ P Q EquidistantLine
+        applySyllogism
+ )
+thm (b-p-b-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ B P B Q))
+# The first part is <code>C ≠ D′</code>.
+        A D C′ C D′ B′ B B″ E P R Q c-dprime
+# Next is <code>collinear C D′ B</code>
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ b-c-dprime
+        applySyllogism
+
+        B C D′ BetweennessCollinearity
+        applySyllogism
+
+        B C D′ CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>C P ≡ C Q</code>
+        A D C′ C D′ B′ B B″ E P R Q c-p-c-q
+
+        composeConjunction
+# Last is <code>D′ P ≡ D′ Q</code>
+        A D C′ C D′ B′ B B″ E P R Q dprime-p-dprime-q
+
+        composeConjunction
+
+        C D′ B P Q EquidistantLine
+        applySyllogism
+ )
+thm (bprime-c-b
+  () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+  (between B′ C B))
+        A D C′ C D′ B′ B B″ bdoubleprime-c-b
+
+        A D C′ C D′ B′ B B″ bdoubleprime-bprime
+
+        C EqualityReflexivity
+        B EqualityReflexivity
+        B″ B′ C C B B BetweennessBuilder
+        detach2of2
+        detach2of2
+
+        eliminateBiconditionalReverseInConsequent
+
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+thm (b-bprime-c-cprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= B B′))
+  (= C C′))
+# First we prove <code>C = B</code>, by means of <code>B = B′ ∧ between B C B′ → B = C</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= B B′)
+          ConjunctionLeftElimination
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= B B′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ bprime-c-b
+        applySyllogism
+
+        B′ C B BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B B′ C IndivisibilityFromEquality
+        applySyllogism
+
+        B C EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# Then we prove <code>B = C′</code>, by means of <code>B = B′ ∧ between B C′ B′ → B = C′</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= B B′)
+          ConjunctionLeftElimination
+
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (= B B′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        A D C′ C D′ B′ B B″ b-cprime-bprime
+        applySyllogism
+
+        composeConjunction
+
+        B B′ C′ IndivisibilityFromEquality
+        applySyllogism
+# Now we combine <code>C = B</code> and <code>B = C′</code> to produce <code>C = C′</code>.
+        composeConjunction
+
+        C B C′ EqualityTransitivity
+        applySyllogism
+ )
+
+thm (b-bprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (¬ (= B B′)))
+        A D C′ C D′ B′ B B″ E P R Q b-bprime-c-cprime
+        export
+
+        (= B B′) (= C C′) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+ )
+
+thm (cprime-p-cprime-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ C′ P C′ Q))
+# First is <code>B ≠ B′</code>.
+        A D C′ C D′ B′ B B″ E P R Q b-bprime
+# Next is <code>collinear B B′ C′</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A D C′ C D′ B′ B B″ b-cprime-bprime
+        applySyllogism
+
+        B C′ B′ BetweennessCollinearity
+        applySyllogism
+
+        B C′ B′ Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>B P ≡ B Q</code>
+        A D C′ C D′ B′ B B″ E P R Q b-p-b-q
+
+        composeConjunction
+# Last is <code>B′ P ≡ B′ Q</code>
+        A D C′ C D′ B′ B B″ E P R Q bprime-p-bprime-q
+
+        composeConjunction
+
+        B B′ C′ P Q EquidistantLine
+        applySyllogism
+ )
+thm (p-p-p-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (≡ P P P Q))
+# First is <code>C′ ≠ C</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionLeftElimination
+
+        C C′ EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>collinear C′ C P</code>.
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P)))
+          (¬ (= C C′))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        C′ C P BetweennessCollinearity
+        applySyllogism
+
+        composeConjunction
+# Next is <code>C′ P ≡ C′ Q</code>
+        A D C′ C D′ B′ B B″ E P R Q cprime-p-cprime-q
+
+        composeConjunction
+# Last is <code>C P ≡ C Q</code>
+        A D C′ C D′ B′ B B″ E P R Q c-p-c-q
+
+        composeConjunction
+
+        C′ C P P Q EquidistantLine
+        applySyllogism
+ )
+thm (p-q () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (= P Q))
+        A D C′ C D′ B′ B B″ E P R Q p-p-p-q
+        P P Q CongruenceIdentityLeft
+        applySyllogism
+ )
+tvar (point x y z w)
+thm (CongruenceIdentityFromEqualityImported () () (→ (∧ (= x y) (≡ x y z w)) (= z w))
+        x y z w CongruenceIdentityFromEquality
+        import
+ )
+thm (d-dprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (¬ (= C C′)))
+  (= D D′))
+        A D C′ C D′ B′ B B″ E P R Q p-q
+
+        A D C′ C D′ B′ B B″ E P R Q dprime-d-p-q
+
+        D′ D P Q CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        P Q D′ D CongruenceIdentityFromEqualityImported
+        applySyllogism
+
+        D′ D EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (c-cprime-or-d-dprime () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (∨ (= C C′) (= D D′)))
+        A D C′ C D′ B′ B B″ E P R Q d-dprime
+        export
+
+        (= C C′) (= D D′) DisjunctionImplication
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (a-d-c () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= C C′))
+    (between A D C))
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# The substitution is <code>C = C′ → (between A D C ↔ between A D C′)</code>, which we then apply to prove the desired result.
+        A EqualityReflexivity
+        D EqualityReflexivity
+        A A D D C C′ BetweennessBuilder
+        detach2of3
+        detach1of2
+
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+
+        applySyllogism
+        import
+ )
+
+thm (a-c-d () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (= D D′))
+    (between A C D))
+        (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+          (∧ (between A C D′) (≡ C D′ C D)))
+          (∧ (between A C′ B′) (≡ C′ B′ C B)))
+          (∧ (between A D′ B″) (≡ D′ B″ D B)))
+          (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+          (∧ (between C E C′) (between D E D′)))
+          (∧ (between C′ C P) (≡ C P C D′)))
+          (∧ (between D′ C R) (≡ C R C E)))
+          (∧ (between P R Q) (≡ R Q R P))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        
+eliminateRightConjunctInConsequent
+# The substitution is <code>D = D′ → (between A C D ↔ between A C D′)</code>, which we then apply to prove the desired result.
+        A EqualityReflexivity
+        C EqualityReflexivity
+        A A C C D D′ BetweennessBuilder
+        detach2of3
+        detach1of2
+
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+
+        applySyllogism
+        import
+ )
+
+thm (a-c-d-or-a-d-c () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (∧ (between A D C′) (≡ D C′ C D))
+    (∧ (between A C D′) (≡ C D′ C D)))
+    (∧ (between A C′ B′) (≡ C′ B′ C B)))
+    (∧ (between A D′ B″) (≡ D′ B″ D B)))
+    (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)))
+    (∧ (between C E C′) (between D E D′)))
+    (∧ (between C′ C P) (≡ C P C D′)))
+    (∧ (between D′ C R) (≡ C R C E)))
+    (∧ (between P R Q) (≡ R Q R P)))
+    (∨ (between A C D) (between A D C)))
+        A D C′ C D′ B′ B B″ E P R Q c-cprime-or-d-dprime
+
+        A D C′ C D′ B′ B B″ E P R Q a-d-c
+        (between A D C) (between A C D) DisjunctionLeftIntroduction
+        applySyllogism
+        export
+
+        A D C′ C D′ B′ B B″ E P R Q a-c-d
+        (between A C D) (between A D C) DisjunctionRightIntroduction
+        applySyllogism
+        export
+
+        composeConjunction
+
+        (= C C′)
+          (∨ (between A C D) (between A D C))
+          (= D D′)
+          DisjunctionComposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+thm (BetweennessOuterConnectivity
+  ( (A c′ d′ b′ b″ e r p q)
+   (B c′ d′ b′ b″ e r p q)
+   (C c′ d′ b′ b″ e r p q)
+   (D c′ d′ b′ b″ e r p q))
+  ()
+  (→ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (∨ (between A C D) (between A D C)))
+        A B C D c′ d′ b′ b″ BetweennessOuterConnectivity-cdbb
+
+        A D c′ C d′ b′ B b″ e e-exists
+        b″ addThereExists
+        b′ addThereExists
+        d′ addThereExists
+        c′ addThereExists
+        applySyllogism
+
+        A D c′ C d′ b′ B b″ e r p q p-q-r-exist
+        e addThereExists
+        b″ addThereExists
+        b′ addThereExists
+        d′ addThereExists
+        c′ addThereExists
+        applySyllogism
+
+        A D c′ C d′ b′ B b″ e p r q a-c-d-or-a-d-c
+        q addThereExists
+        p addThereExists
+        r addThereExists
+        e addThereExists
+        b″ addThereExists
+        b′ addThereExists
+        d′ addThereExists
+        c′ addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+
+  )
+export (RESULTS Connectivity_for_betweenness.ghi (CLASSICAL FIRSTORDER) "")
