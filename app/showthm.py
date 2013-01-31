@@ -46,6 +46,7 @@ class ProofFormatter:
 
     def header(self, thmname):
         o = self.out
+        self.thmname = thmname
         common.header(o, "Proof of " + thmname,
             '<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
     def write_header(self, header):
@@ -83,6 +84,8 @@ class ProofFormatter:
 GH.typeset_intermediates()
 </script>
 ''')
+        url = urllib.quote('/edit' + self.url + '/' + self.thmname)
+        self.out.write('<a href="%s">edit</a>' % (url))
     def write_trace(self, trace):
         o = self.out
         o.write('<script type="text/javascript">\n')
