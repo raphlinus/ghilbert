@@ -22,10 +22,13 @@ def header(o, name, stylesheet = None):
     	o.write(stylesheet)
     o.write('<link rel=stylesheet href="/static/common.css" type="text/css">\n')
     o.write('<body>\n')
+    navbar(o)
+    o.write('<h1>' + cgi.escape(name) + '</h1>\n')
+
+def navbar(o):
     o.write('<div class="header">')
     o.write('<a href="/"><img src="/static/favicon.ico"/></a> <a href="/">Ghilbert</a>')
     o.write('</div>')
-    o.write('<h1>' + cgi.escape(name) + '</h1>\n')
 
 def error_403(handler):
     handler.error(403)

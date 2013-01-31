@@ -101,8 +101,9 @@ class EditHandler(users.AuthenticatedHandler):
         else:
             auth = 'Not logged in, save won\'t work.'
         o.write("""<head>
-<title>Ghilbert</title>
+<title>Edit</title>
 <link rel=stylesheet href="/static/editor.css" type="text/css">
+<link rel=stylesheet href="/static/common.css" type="text/css">
 <style type="text/css">
 """)
         if useAce: o.write("""    .ace_marker-layer .gh_error {
@@ -123,8 +124,10 @@ class EditHandler(users.AuthenticatedHandler):
         
 
 <body>
-<a href="/">Home</a> <a href="/recent">Recent</a>
-<h1>Ghilbert - editing <em id="thmname"></em></h1>
+""")
+        common.navbar(o)
+        o.write("""
+<h1>Editing <em id="thmname"></em></h1>
 
 <script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/sandbox.js" type="text/javascript"></script>
