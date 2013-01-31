@@ -13,9 +13,8 @@ param (CLASSICAL Classical_propositional_calculus.ghi () "")
 param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 # 
 # The kind <code>object</code>, defined in first-order logic, represents a point. We do not directly have a concept of lines, angles, or circles (nor can these be defined in the obvious way as sets of points, as this is a first-order theory).
-kindbind (object point)
-tvar (point x y z w u v A B C D P Q)
-tvar (point x′ y′ z′ u′ A′ B′ C′ D′)
+tvar (object x y z w u v A B C D P Q)
+tvar (object x′ y′ z′ u′ A′ B′ C′ D′)
 
 var (object a b c a′ b′ c′)
 tvar (formula antecedent)
@@ -109,7 +108,7 @@ stmt (AnotherPoint ((A b)) () (∃ b (¬ (= A b))))
 # 
 # == Collinearity ==
 # To say that three points are collinear is just to say that one of them is between the other two (in any order).<ref>Definition Col in Narboux</ref>
-term (wff (collinear x y z))
+term (formula (collinear x y z))
 stmt (Collinear () () (↔ (collinear x y z) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
 stmt (BetweennessCollinearity () () (→ (between x y z) (collinear x y z)))
 stmt (CollinearityRotation () () (↔ (collinear x y z) (collinear y z x)))
@@ -134,9 +133,9 @@ stmt (BetweennessTwoDistanceUniqueness () () (→ (∧ (∧ (between A C B) (≡
 # 
 # == Triangle congruence ==
 # === Triangle congruence defined ===
-# At least for now, we define triangle congruence here (rather than provide a theorem providing this definition, which corresponds to the familiar side-side-side property of triangle congruence). The definition allows degenerate triangles: the points may be collinear, and need not all be distinct from each other.
-term (wff (≅ x y z x′ y′ z′))
-stmt (≅ () () (↔ (≅ x y z x′ y′ z′) (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′))))
+# We provide a term for congruence of (possibly degenerate) triangles, and a theorem corresponding to the familiar side-side-side property of triangle congruence. We allow degenerate triangles: the points may be collinear, and need not all be distinct from each other.
+term (formula (≅ x y z x′ y′ z′))
+stmt (TriangleCongruence () () (↔ (≅ x y z x′ y′ z′) (∧ (∧ (≡ x y x′ y′) (≡ x z x′ z′)) (≡ y z y′ z′))))
 # The corresponding sides of congruent (possibly degenerate) triangles are congruent.
 stmt (Congruence12 () () (→ (≅ A B C A′ B′ C′) (≡ A B A′ B′)))
 stmt (Congruence23 () () (→ (≅ A B C A′ B′ C′) (≡ B C B′ C′)))
@@ -204,7 +203,7 @@ stmt (UpperDimension () ()
 stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
   →
   (∧ (∧ (between x u v) (between y u z)) (¬ (= x u))) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
-tvar (point x0 x1 x2 x3 y0 y1 y2 y3)
+tvar (object x0 x1 x2 x3 y0 y1 y2 y3)
 stmt (CongruenceBuilder () () (
   →
   (∧ (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (= x3 y3)) (↔ (≡ x0 x1 x2 x3) (≡ y0 y1 y2 y3))
