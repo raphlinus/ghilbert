@@ -3,7 +3,7 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Connectivity_for_betweenness.ghi (CLASSICAL FIRSTORDER) "")
 
-tvar (point A B C D E F P Q R A′ B′ C′ D′ E′ B″ C″)
+tvar (object A B C D E F P Q R A′ B′ C′ D′ E′ B″ C″)
 var (object c c′ d d′ e e′ f p)
 thm (BetweennessMiddleConnectivity-bcd () ()
   (→ (∧ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (between A C D)) (between B C D))
@@ -150,10 +150,28 @@ thm (BetweennessInnerConnectivity (    ) ()
 
         removeThereExistsInConsequent
  )
-defthm (≤ formula (≤ A B C D) () () (↔ (≤ A B C D) (∃ e (∧ (between C e D) (≡ A B C e))))
-        (∃ e (∧ (between C e D) (≡ A B C e))) BiconditionalReflexivity
+defthm (LessEqual formula (≤ A B C D) ((A e) (C e) (B e) (D e)) ()
+  (↔ (≤ A B C D) (∃ e (∧ (between C e D) (≡ A B C e))))
+
+# We need to prove ∃ e′ (between C e′ D ∧ A B ≡ C e′) ↔ ∃ e (between C e D ∧ A B ≡ C e)
+        C EqualityReflexivity
+        D EqualityReflexivity
+        C C e′ e D D BetweennessBuilder
+        detach2of2
+        detach1of2
+
+        A EqualityReflexivity
+        B EqualityReflexivity
+        C EqualityReflexivity
+        A A B B C C e′ e CongruenceBuilder
+        detach2of3
+        detach2of3
+        detach1of2
+
+        buildConjunctionInConsequent
+        ChangeVariableThereExists
 )
-defthm (≥ formula (≥ A B C D) () () (↔ (≥ A B C D) (≤ C D A B))
+defthm (GreaterEqual formula (≥ A B C D) () () (↔ (≥ A B C D) (≤ C D A B))
         (≤ C D A B) BiconditionalReflexivity
 )
 thm (LessEqualCutoff
@@ -409,7 +427,7 @@ thm (LessEqualReflexivity (  ) () (≤ A B A B)
         applyModusPonens
  )
 var (object ab bc ac)
-tvar (point A0 A1 B0 B1 C0 C1)
+tvar (object A0 A1 B0 B1 C0 C1)
 
 thm (LessEqualTransitivity
   ( (A0 bc ac ab) (A1 bc ac ab) (B0 bc ac ab) (B1 bc ac ab) (C0 bc ac ab) (C1 bc ac ab)) ()
@@ -852,7 +870,7 @@ thm (ZeroSmallest (   ) () (≤ A A B C)
         eliminateBiconditionalForward
         applyModusPonens
  )
-tvar (point x0 y0 x1 y1 x2 y2 x3 y3)
+tvar (object x0 y0 x1 y1 x2 y2 x3 y3)
 thm (LessEqualBuilder
   (        ) () (
   →
@@ -955,13 +973,13 @@ thm (LessEqualZero () () (→ (≤ A B C C) (= A B))
         A B C CongruenceIdentity
         applySyllogism
  )
-defthm (< wff (< A B C D) () () (↔ (< A B C D) (∧ (≤ A B C D) (¬ (≡ A B C D))))
+defthm (< formula (< A B C D) () () (↔ (< A B C D) (∧ (≤ A B C D) (¬ (≡ A B C D))))
         (∧ (≤ A B C D) (¬ (≡ A B C D))) BiconditionalReflexivity
 )
-defthm (> wff (> A B C D) () () (↔ (> A B C D) (< C D A B))
+defthm (> formula (> A B C D) () () (↔ (> A B C D) (< C D A B))
         (< C D A B) BiconditionalReflexivity
 )
-tvar (point x y z w)
+tvar (object x y z w)
 thm (CongruenceIdentityFromEquality () () (→ (∧ (= x y) (≡ x y z w)) (= z w))
         x y z w CongruenceIdentityFromEqualityImported
  )
