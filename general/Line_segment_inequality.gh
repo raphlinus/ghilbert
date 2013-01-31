@@ -150,7 +150,7 @@ thm (BetweennessInnerConnectivity (    ) ()
 
         removeThereExistsInConsequent
  )
-defthm (LessEqual formula (≤ A B C D) ((A e) (C e) (B e) (D e)) ()
+defthm (LessEqualCutoff formula (≤ A B C D) ((A e) (C e) (B e) (D e)) ()
   (↔ (≤ A B C D) (∃ e (∧ (between C e D) (≡ A B C e))))
 
 # We need to prove ∃ e′ (between C e′ D ∧ A B ≡ C e′) ↔ ∃ e (between C e D ∧ A B ≡ C e)
@@ -174,27 +174,6 @@ defthm (LessEqual formula (≤ A B C D) ((A e) (C e) (B e) (D e)) ()
 defthm (GreaterEqual formula (≥ A B C D) () () (↔ (≥ A B C D) (≤ C D A B))
         (≤ C D A B) BiconditionalReflexivity
 )
-thm (LessEqualCutoff
-  ((A e) (B e) (C e) (D e)  (A e e′) (B e e′) (C e e′) (D e e′)) ()
-  (↔ (≤ A B C D) (∃ e (∧ (between C e D) (≡ A B C e))))
-        C EqualityReflexivity
-        D EqualityReflexivity
-        C C e′ e D D BetweennessBuilder
-        detach2of2
-        detach1of2
-
-        A EqualityReflexivity
-        B EqualityReflexivity
-        C EqualityReflexivity
-        A A B B C C e′ e CongruenceBuilder
-        detach2of3
-        detach2of3
-        detach1of2
-
-        buildConjunctionInConsequent
-
-        ChangeVariableThereExists
- )
 thm (LessEqualExtensionForward-ced-abf ((A f) (B f) (C f) (D f) (E f)) ()
   (→ (∧ (between C E D) (≡ A B C E)) (∃ f (≅ C E D A B f)))
         C E D BetweennessCollinearity
