@@ -1,0 +1,169 @@
+{{interfaces
+| imports = [[Interface:Connectivity for betweenness]]
+| exports = [[Interface:Line segment inequality]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This file contains several corollaries to outer connectivity for betweenness (which was proved in [[Connectivity for betweenness]]), a few lemmas, and results relating to line segments being shorter than others.
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Connectivity for betweenness|geometry results so far]] and define some variables:
+
+== Corollaries of outer connectivity for betweenness ==
+
+=== Middle connectivity ===
+This one is just like outer connectivity except that the consequent is {{{between B C D ∨ between B D C}}} instead of {{{between A C D ∨ between A D C}}}.<ref>Lemma l5_2 in Narboux</ref>
+
+* #(→ (∧ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (between A C D)) (between B C D))# ([/general/Line_segment_inequality.gh/BetweennessMiddleConnectivity-bcd | BetweennessMiddleConnectivity-bcd])
+* #(→ (∧ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (between A D C))
+  (between B D C))# ([/general/Line_segment_inequality.gh/BetweennessMiddleConnectivity-bdc | BetweennessMiddleConnectivity-bdc])
+* #(→ (∧ (∧ (¬ (= A B)) (between A B C)) (between A B D)) (∨ (between B C D) (between B D C)))# ([/general/Line_segment_inequality.gh/BetweennessMiddleConnectivity | BetweennessMiddleConnectivity])
+
+=== Inner connectivity ===
+In this section we prove {{{between A B D ∧ between A C D → between A B C ∨ between A C B}}}.<ref>l5_3 in Narboux</ref><ref>Axiom 17 on page 186 of Tarski and Givant (1999)</ref> The proof is in terms of outer connectivity.
+* #(→ (∧ (between A B D) (between A C D)) (∃ e (∧ (∧ (between A B D) (between A C D)) (∧ (between D A e) (¬ (= A e))))))# ([/general/Line_segment_inequality.gh/BetweennessInnerConnectivity-1 | BetweennessInnerConnectivity-1])
+* #(→ (∧ (∧ (between A B D) (between A C D)) (∧ (between D A E) (¬ (= A E)))) (between E A B))# ([/general/Line_segment_inequality.gh/BetweennessInnerConnectivity-eab | BetweennessInnerConnectivity-eab])
+* #(→ (∧ (∧ (between A B D) (between A C D)) (∧ (between D A E) (¬ (= A E)))) (between E A C))# ([/general/Line_segment_inequality.gh/BetweennessInnerConnectivity-eac | BetweennessInnerConnectivity-eac])
+* #(→ (∧ (∧ (between A B D) (between A C D)) (∧ (between D A E) (¬ (= A E)))) (∨ (between A B C) (between A C B)))# ([/general/Line_segment_inequality.gh/BetweennessInnerConnectivity-abc-acb | BetweennessInnerConnectivity-abc-acb])
+* #(→ (∧ (between A B D) (between A C D)) (∨ (between A B C) (between A C B)))# ([/general/Line_segment_inequality.gh/BetweennessInnerConnectivity | BetweennessInnerConnectivity])
+
+== Line segment inequality ==
+Here we define a formula {{{A B ≤ C D}}} to mean that the line segment {{{A B}}} is shorter than or the same length as {{{C D}}}
+
+=== Definition ===
+We define {{{A B ≤ C D}}} to mean that there is a point {{{e}}} in the line segment {{{C D}}} which cuts off a portion of {{{C D}}} which is congruent to {{{A B}}}.<ref>Definition le in Narboux</ref>
+
+We define {{{≥}}} as just {{{≤}}} with the two sides interchanged.<ref>Definition ge in Narboux</ref>
+
+Here we restate that definition as a theorem. As with most such definitions, the proof is just a matter of applying a change of variable, in this case based on {{{e′ = e → (between C e′ D ∧ A B ≡ C e′ ↔ between C e D ∧ A B ≡ C e)}}}.
+* #(↔ (≤ A B C D) (∃ e (∧ (between C e D) (≡ A B C e))))# ([/general/Line_segment_inequality.gh/LessEqualCutoff | LessEqualCutoff])
+
+=== An alternate definition ===
+We could just as well define {{{A B ≤ C D}}} to mean that it is possible to extend {{{A B}}} to a point to produce a line segment which is congruent to {{{C D}}}. In this section we prove that this definition is equivalent to the one in the previous section.
+
+We first tackle the forward implication. From the definition of {{{A B ≤ C D}}}, there is a point {{{E}}} between {{{C}}} and {{{D}}} such that {{{A B ≡ C E}}}. We then extend the line segment {{{A B}}} to a point {{{F}}} such that {{{C E D ≅ A B F}}}. This gives us the two things we need: {{{between A B F}}} from {{{BetweennessDegenerateTriangle}}} and {{{C D ≡ A F}}} directly from {{{C E D ≅ A B F}}}.<ref>lemma l5_5_1 in Narboux</ref>
+* #(→ (∧ (between C E D) (≡ A B C E)) (∃ f (≅ C E D A B f)))# ([/general/Line_segment_inequality.gh/LessEqualExtensionForward-ced-abf | LessEqualExtensionForward-ced-abf])
+* #(→ (∧ (between C E D) (≡ A B C E)) (∃ f (∧ (between C E D) (≅ C E D A B f))))# ([/general/Line_segment_inequality.gh/LessEqualExtensionForward-ced-ced-abf | LessEqualExtensionForward-ced-ced-abf])
+* #(→ (∧ (between C E D) (≅ C E D A B F)) (∧ (between A B F) (≡ A F C D)))# ([/general/Line_segment_inequality.gh/LessEqualExtensionForward-abf-afcd | LessEqualExtensionForward-abf-afcd])
+* #(→ (≤ A B C D) (∃ f (∧ (between A B f) (≡ A f C D))))# ([/general/Line_segment_inequality.gh/LessEqualExtensionForward | LessEqualExtensionForward])
+
+The proof of the reverse direction is fairly similar. We are given a point {{{f}}} for which {{{between A B f}}} and {{{A f ≡ C D}}}. Applying {{{InnerDegenerateTriangle}}} to those two formulas gives us a point {{{e}}} such that {{{A B f ≅ C e D}}}. It then follows that {{{between C e D}}} and {{{A B ≡ C e}}}, which are the two things we need for the definition of {{{≤}}}.<ref>l5_5_2 in Narboux</ref>
+* #(→ (∃ f (∧ (between A B f) (≡ A f C D))) (≤ A B C D))# ([/general/Line_segment_inequality.gh/LessEqualExtensionReverse | LessEqualExtensionReverse])
+* #(↔ (≤ A B C D) (∃ f (∧ (between A B f) (≡ A f C D))))# ([/general/Line_segment_inequality.gh/LessEqualExtension | LessEqualExtension])
+
+=== Concluding inequality from the inequality of congruent segments ===
+Here we prove {{{A B ≤ C D ∧ A B ≡ A′ B′ ∧ C D ≡ C′ D′ → A′ B′ ≤ C′ D′}}}. By {{{LessEqualCutoff}}}, there is a point {{{e}}} on the line segment {{{C D}}} such that {{{A B ≡ C e}}}. We apply {{{InnerDegenerateTriangle}}} to {{{C e D}}} and {{{C′ D′}}} to construct a point {{{e′}}} such that {{{C e D ≅ C′ e′ D′}}}. But this point is on {{{C′ D′}}}, and {{{A′ B′ ≡ C′ e′}}}, so it suffices to prove that {{{A′ B′ ≤ C′ D′}}}, as desired.<ref>l5_6 in Narboux</ref>
+
+Our first lemma constructs the point {{{e}}} and rearranges the quantifiers a little bit.
+* #(→
+    (∧ (∧ (≤ A B C D) (≡ A B A′ B′)) (≡ C D C′ D′)) (∃ e (∧ (∧ (∧ (between C e D) (≡ A B C e)) (≡ A B A′ B′)) (≡ C D C′ D′))))# ([/general/Line_segment_inequality.gh/LessEqualCongruence-1 | LessEqualCongruence-1])
+In the next lemma, we construct the point {{{e′}}}, apply transitivity to {{{A B ≡ C E}}} and {{{A B ≡ A′ B′}}}, and rearrange the quantifiers a bit.
+* #(→ (∧ (∧ (∧ (between C E D) (≡ A B C E)) (≡ A B A′ B′)) (≡ C D C′ D′))
+  (∃ e′ (∧ (∧ (between C′ e′ D′) (≅ C E D C′ e′ D′)) (≡ A′ B′ C E))))# ([/general/Line_segment_inequality.gh/LessEqualCongruence-2 | LessEqualCongruence-2])
+* #(→ (∧ (∧ (between C′ E′ D′) (≅ C E D C′ E′ D′)) (≡ A′ B′ C E))
+    (∧ (between C′ E′ D′) (≡ A′ B′ C′ E′)))# ([/general/Line_segment_inequality.gh/LessEqualCongruence-3 | LessEqualCongruence-3])
+* #(→
+    (∧ (∧ (≤ A B C D) (≡ A B A′ B′)) (≡ C D C′ D′)) (≤ A′ B′ C′ D′))# ([/general/Line_segment_inequality.gh/LessEqualCongruence | LessEqualCongruence])
+
+=== Reflexivity ===
+Line segment inequality is reflexive.<ref>le_reflexivity in Narboux</ref>
+* #(≤ A B A B)# ([/general/Line_segment_inequality.gh/LessEqualReflexivity | LessEqualReflexivity])
+
+=== Transitivity ===
+[[File:Line segment inequality transitivity.svg|thumb|right|Proof of transitivity]]
+Here we prove transitivity of {{{≤}}}.<ref>le_transitivity in Narboux</ref>
+* #(→ (∧ (≤ A0 A1 B0 B1) (≤ B0 B1 C0 C1)) (≤ A0 A1 C0 C1))# ([/general/Line_segment_inequality.gh/LessEqualTransitivity | LessEqualTransitivity])
+
+== Two crucial lemmas ==
+The two lemmas in this section are presented in Narboux (2007).<ref>Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, section 5.1, pages 147–148</ref> According to Narboux they are missing from the book by Schwabhäuser, Szmielew and Tarski.
+
+=== between A B C ∧ A B ≡ A C → B = C === 
+
+Our first of the two results from Narboux is {{{between A B C ∧ A B ≡ A C → B = C}}}, which says there cannot be two distinct points on a line which are the same distance of a given point (on the same side of that point). First we prove {{{A B C ≅ A C B}}}. To do so, we need  {{{A B ≡ A C}}}, {{{A C ≡ A B}}}, and {{{B C ≡ C B}}}.<ref>between_cong in Narboux</ref>
+* #(→ (∧ (between A B C) (≡ A B A C)) (≅ A B C A C B))# ([/general/Line_segment_inequality.gh/BetweennessOneDistanceUniqueness-abc-acb | BetweennessOneDistanceUniqueness-abc-acb])
+* #(→ (∧ (between A B C) (≡ A B A C)) (= B C))# ([/general/Line_segment_inequality.gh/BetweennessOneDistanceUniqueness | BetweennessOneDistanceUniqueness])
+
+=== A similar result ===
+Narboux's second crucial lemma is a similar result in which neither of the two points to be found equal are the endpoint of the line segment, but where they both are on the same line segment.  In symbols, {{{between A D B ∧ between A E B ∧ A D ≡ A E → D = E}}}.<ref>between_cong_2 in Narboux</ref>
+* #(→ (∧ (∧ (between A D B) (between A E B)) (≡ A D A E)) (= D E))# ([/general/Line_segment_inequality.gh/SameSegmentOneDistanceUniqueness | SameSegmentOneDistanceUniqueness])
+
+== Antisymmetry ==
+Here we prove antisymmetry of {{{≤}}}, that is, {{{A0 A1 ≤ B0 B1 ∧ B0 B1 ≤ A0 A1 → A0 A1 ≡ B0 B1}}}. The proof begins by expanding the definition of {{{B0 B1 ≤ A0 A1}}} according to {{{LessEqualExtension}}} (to construct a point {{{c}}} such that {{{between B0 B1 c ∧ B0 c ≡ A0 A1}}}.  We then expand the definition of {{{A0 A1 ≤ B0 B1}}} according to {{{LessEqualCutoff}}} to construct a point {{{d}}} such that {{{between B0 d B1 ∧ B0 d ≡ A0 A1}}}. We now can conclude {{{B0 c ≡ B0 d}}} by congruence transitivity and {{{between B0 d c}}} by betweenness transitivity. These two things together let us apply {{{BetweennessOneDistanceUniqueness}}} to conclude that {{{d = c}}}. Substituting via that equality, we have both {{{between B0 B1 c}}} and {{{between B0 c B1}}}, so {{{c = B1}}}. And substituting that into {{{B0 c ≡ A0 A1}}}, we know that {{{B0 B1 ≡ A0 A1}}}, which is what we seek.<ref>le_anti_symmetry in Narboux</ref>
+
+First, a lemma, which is just {{{BetweennessEquality}}} flipped left to right.
+* #(→ (∧ (between A B C) (between A C B)) (= B C))# ([/general/Line_segment_inequality.gh/BetweennessEquality23 | BetweennessEquality23])
+
+Returning to antisymmetry, the first part of the proof constructs the points {{{c}}} and {{{d}}} and puts everything inside quantifiers.
+* #(→ (∧ (≤ A0 A1 B0 B1) (≤ B0 B1 A0 A1))
+    (∃ c (∃ d (
+      ∧ (∧ (between B0 B1 c) (≡ B0 c A0 A1))
+      (∧ (between B0 d B1) (≡ B0 d A0 A1))
+  ))))# ([/general/Line_segment_inequality.gh/LessEqualAntisymmetry-1 | LessEqualAntisymmetry-1])
+
+The next part of the proof makes the inferences sketched out in the informal proof above, as far as {{{D = C}}}.
+* #(
+  → (∧ (∧ (between B0 B1 C) (≡ B0 C A0 A1))
+    (∧ (between B0 D B1) (≡ B0 D A0 A1)))
+  (= D C)
+  )# ([/general/Line_segment_inequality.gh/LessEqualAntisymmetry-dc | LessEqualAntisymmetry-dc])
+
+The next step applies a substitution and a few more steps to get {{{B1 = C}}}.
+* #(
+  → (∧ (∧ (between B0 B1 C) (≡ B0 C A0 A1))
+    (∧ (between B0 D B1) (≡ B0 D A0 A1)))
+  (= B1 C)
+  )# ([/general/Line_segment_inequality.gh/LessEqualAntisymmetry-b1-c | LessEqualAntisymmetry-b1-c])
+
+We only need substitute {{{B1 = C}}} into {{{B0 C ≡ A0 A1}}} to get {{{B0 B1 ≡ A0 A1}}}, which we flip to get {{{A0 A1 = B0 B1}}}
+* #(
+  → (∧ (∧ (between B0 B1 C) (≡ B0 C A0 A1))
+    (∧ (between B0 D B1) (≡ B0 D A0 A1)))
+  (≡ A0 A1 B0 B1)
+  )# ([/general/Line_segment_inequality.gh/LessEqualAntisymmetry-a0-a1-b0-b1 | LessEqualAntisymmetry-a0-a1-b0-b1])
+
+We now combine the results to prove antisymmetry.
+* #(→ (∧ (≤ A0 A1 B0 B1) (≤ B0 B1 A0 A1))
+    (≡ A0 A1 B0 B1))# ([/general/Line_segment_inequality.gh/LessEqualAntisymmetry | LessEqualAntisymmetry])
+
+== Constructing a line segment along a ray ==
+Starting at a point {{{Q}}}, we can construct a line segment {{{Q x}}} congruent to a given line segment {{{B C}}} and in the direction of a point {{{A}}}. In symbols, {{{∃ p ((between Q A p ∨ between Q p A) ∧ Q p ≡ B C)}}}. Narboux requires that {{{A}}} and {{{Q}}} are distinct but this restriction is unnecessary (although the theorem is more interesting, and the constructed point is unique, only if they are distinct).<ref>segment_construction_2 in Narboux</ref>
+
+* #(∃ p (∧ (∨ (between Q A p) (between Q p A)) (≡ Q p B C)))# ([/general/Line_segment_inequality.gh/InnerSegmentConstruction | InnerSegmentConstruction])
+
+== Any line segment is longer than or congruent to an empty line segment ==
+Here we prove {{{A A ≤ B C}}}.<ref>le_trivial in Narboux</ref>
+* #(≤ A A B C)# ([/general/Line_segment_inequality.gh/ZeroSmallest | ZeroSmallest])
+
+== Builder for ≤ ==
+The builder for {{{≤}}} follows readily from the builders for quantifiers, logical connectives, etc.
+* #(
+  →
+  (∧ (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (= x3 y3)) (↔ (≤ x0 x1 x2 x3) (≤ y0 y1 y2 y3)))# ([/general/Line_segment_inequality.gh/LessEqualBuilder | LessEqualBuilder])
+
+== Totality ==
+Given two line segments, one of the two must be longer than or congruent to the other.<ref>le_cases in Narboux</ref>
+
+Narboux's proof requires two cases, {{{A0 = A1}}} and {{{A0 ≠ A1}}}, but since our version of {{{InnerSegmentConstruction}}} does not require {{{A0 ≠ A1}}}, our proof does not.
+
+* #(∨ (≤ A0 A1 B0 B1) (≤ B0 B1 A0 A1))# ([/general/Line_segment_inequality.gh/LessEqualTotality | LessEqualTotality])
+
+== A segment which is smaller than or congruent to an empty segment ==
+A segment which is smaller than or congruent to an empty segment is itself empty. The proof simply notes that {{{C C ≤ A B}}} is always true and {{{A B ≤ C C}}} is our antecedent. Thus {{{A B ≡ C C}}} by antisymmetry, which in turn implies {{{A = B}}} by {{{CongruenceIdentity}}}.<ref>le_zero in Narboux</ref>
+* #(→ (≤ A B C C) (= A B))# ([/general/Line_segment_inequality.gh/LessEqualZero | LessEqualZero])
+
+== Strict inequality ==
+Following Narboux, we define {{{<}}} and {{{>}}} in terms of {{{≤}}} and line segment congruence.
+
+== Export ==
+Before we export, there is one detail to attend to. Because we are halfway through changing {{{CongruenceIdentityFromEquality}}} from the exported version to the imported version, we need to prove {{{CongruenceIdentityFromEquality}}} as a synonym of {{{CongruenceIdentityFromEqualityImported}}}.
+* #(→ (∧ (= x y) (≡ x y z w)) (= z w))# ([/general/Line_segment_inequality.gh/CongruenceIdentityFromEquality | CongruenceIdentityFromEquality])
+
+We now export to [[Interface:Line segment inequality]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
