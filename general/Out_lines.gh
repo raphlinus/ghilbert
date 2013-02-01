@@ -3,14 +3,12 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Line_segment_inequality.ghi (CLASSICAL FIRSTORDER) "")
 
-tvar (point A B C D E F P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″)
+tvar (object A B C D E F P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″)
 var (object a b c c′ d d′ e e′ f p x y z)
-defthm (Is-outside wff (is-outside P A B) () () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))
+defthm (OutBetweenness formula (is-outside P A B) () () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))
         (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))) BiconditionalReflexivity
 )
-thm (OutBetweenness () () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A))))
-        (is-outside P A B) BiconditionalReflexivity
- )
+
 thm (BeyondOutForward () () (→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C)) (between B P C)) (is-outside P A B))
 # The first two parts of the <code>P is-outside A B</code> definition are the inequalities <code>A ≠ P</code> and <code>B ≠ P</code> which we just carry over from the antecedent.
         (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (¬ (= C P))) (between A P C))
@@ -60,6 +58,10 @@ thm (BeyondOutForward () () (→ (∧ (∧ (∧ (∧ (¬ (= A P)) (¬ (= B P))) 
         applySyllogism
 
         composeConjunction
+
+        P A B OutBetweenness
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (BeyondOutReverse-1 () ()
