@@ -376,8 +376,12 @@ thm (OutCollinearityForward-2 () () (→ (∧ (∧ (¬ (= A P)) (¬ (= B P))) (b
         applySyllogism
  )
 thm (OutCollinearityForward-3 () () (→ (is-outside P A B) (¬ (between A P B)))
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+
         (∧ (¬ (= A P)) (¬ (= B P))) (between P A B) (between P B A) ConjunctionLeftDistribution
         eliminateBiconditionalReverse
+        applySyllogism
 
         A P B OutCollinearityForward-1
         A P B OutCollinearityForward-2
@@ -386,7 +390,11 @@ thm (OutCollinearityForward-3 () () (→ (is-outside P A B) (¬ (between A P B))
         applySyllogism
  )
 thm (OutCollinearityForward-collinear () () (→ (is-outside P A B) (collinear A P B))
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+
         (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionLeftElimination
+        applySyllogism
 
         (between P A B) (between P B A) DisjunctionCommutativity
         eliminateBiconditionalReverse
@@ -401,6 +409,10 @@ thm (OutCollinearityForward-collinear () () (→ (is-outside P A B) (collinear A
         applySyllogism
 
         (between A P B) (between P B A) (between B A P) DisjunctionAssociativity
+        eliminateBiconditionalForward
+        applySyllogism
+
+        A P B Collinear
         eliminateBiconditionalForward
         applySyllogism
  )
@@ -445,8 +457,12 @@ thm (OutCollinearityReverse-2 () ()
   (→ (∧ (collinear A P B) (¬ (between A P B)))
     (∨ (between P A B) (between P B A)))
 # First we show <code>collinear A P B ∧ ¬ between A P B → between P B A ∨ between P A B</code>
+        A P B Collinear
+        eliminateBiconditionalReverse
+
         (between A P B) (between P B A) (between B A P) DisjunctionAssociativity
         eliminateBiconditionalReverse
+        applySyllogism
 
         (between A P B) (∨ (between P B A) (between B A P)) DisjunctionImplication
         eliminateBiconditionalReverse
@@ -467,6 +483,10 @@ thm (OutCollinearityReverse () () (→ (∧ (collinear A P B) (¬ (between A P B
         A P B OutCollinearityReverse-1
         A P B OutCollinearityReverse-2
         composeConjunction
+
+        P A B OutBetweenness
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (OutCollinearity () () (↔ (is-outside P A B) (∧ (collinear A P B) (¬ (between A P B))))
