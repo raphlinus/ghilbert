@@ -173,10 +173,20 @@ thm (ExistsBeyondOutForward-bpc () ()
         (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
 # Most of the proof of this lemma consists of an application of  <code>BeyondOut</code>. The first thing we need is <code>A ≠ P</code>.
         (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
+
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
 # Next is <code>B ≠ P</code>
         (is-outside P A B) (∧ (¬ (= C P)) (between A P C)) ConjunctionRightElimination
+
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 
@@ -256,11 +266,19 @@ thm (ExistsBeyondOutForward ((A c) (B c) (P c)) ()
     (∃ c (∧ (∧ (¬ (= c P))
       (between A P c)) (between B P c)))))
 # First is <code>P is-outside A B → A ≠ P</code>
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+
         (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionRightElimination
+        applySyllogism
         eliminateRightConjunctInConsequent
 
 # Next is <code>P is-outside A B → B ≠ P</code>
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+
         (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)) ConjunctionRightElimination
+        applySyllogism
         eliminateLeftConjunctInConsequent
 
         composeConjunction
@@ -308,6 +326,10 @@ thm (ExistsBeyondOutReverse ((A c) (B c) (P c)) ()
         removeThereExistsInConsequent
 
         (∧ (¬ (= A P)) (¬ (= B P))) conjoinLL
+
+        P A B OutBetweenness
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (ExistsBeyondOut ((A c) (B c) (P c)) () (↔ (is-outside P A B) (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∃ c (∧ (∧ (¬ (= c P)) (between A P c)) (between B P c)))))
