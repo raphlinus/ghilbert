@@ -507,9 +507,16 @@ thm (OutReflexivity () () (→ (¬ (= A P)) (is-outside P A A))
         applySyllogism
  )
 thm (OutSymmetry () () (↔ (is-outside P A B) (is-outside P B A))
+        P A B OutBetweenness
+
         (¬ (= A P)) (¬ (= B P)) ConjunctionCommutativity
         (between P A B) (between P B A) DisjunctionCommutativity
         buildConjunction
+        applyBiconditionalTransitivity
+
+        P B A OutBetweenness
+        swapBiconditional
+        applyBiconditionalTransitivity
  )
 thm (OutTransitivity-1 () () (→ (∧ (¬ (= B P))
   (∧ (∨ (between P A B) (between P B A))
