@@ -975,6 +975,11 @@ thm (LessEqualBetween-Py () ()
   (→ (∧ (is-outside P A B) (∧ (between P Y B) (≡ P A P Y))) (¬ (= P Y)))
 # First we pick out <code>P ≠ A</code>.
         (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
 
@@ -1019,6 +1024,11 @@ thm (LessEqualBetween-PyB () ()
         applySyllogism
 # Then we need <code>B ≠ P</code>.
         (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 
@@ -1030,6 +1040,10 @@ thm (LessEqualBetween-PyB () ()
         applySyllogism
 
         composeConjunction
+
+        P Y B OutBetweenness
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (LessEqualBetween-yA () ()
@@ -1037,6 +1051,11 @@ thm (LessEqualBetween-yA () ()
   (= Y A))
 # First we need <code>B ≠ P</code>.
         (is-outside P A B) (∧ (between P Y B) (≡ P A P Y)) ConjunctionRightElimination
+
+        P A B OutBetweenness
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateRightConjunctInConsequent
         eliminateLeftConjunctInConsequent
 # Next we need <code>P ≠ Y</code>.
