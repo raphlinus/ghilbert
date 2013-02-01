@@ -1,0 +1,1452 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START Out_lines.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point A B C D E F M P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″ P′ Q′ R′ S′ X′ Y′)
+tvar (point P1 P2)
+var (object a b c c′ d d′ e e′ f p p′ x x′ y y′ z)
+defthm (Is-midpoint-of wff (is-midpoint-of M A B) () () (↔ (is-midpoint-of M A B) (∧ (between A M B) (≡ A M M B)))
+        (∧ (between A M B) (≡ A M M B)) BiconditionalReflexivity
+)
+thm (MidpointSymmetry () ()
+  (↔ (is-midpoint-of M A B) (is-midpoint-of M B A))
+        A M B BetweennessSymmetry
+
+        A M M B CongruenceSymmetry
+        M B A M CongruenceCommutativity
+        applyBiconditionalTransitivity
+
+        buildConjunction
+ )
+thm (IndivisibilityBiconditional () () (↔ (between A B A) (= A B))
+        A B IndivisibilityBidirectional
+ )
+
+thm (MidpointIndivisibility () ()
+  (→ (is-midpoint-of M A A) (= M A))
+        (between A M A) (≡ A M M A) ConjunctionRightElimination
+
+        A M IndivisibilityBiconditional
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        A M EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (MidpointReflexivity () () (is-midpoint-of A A A)
+        A A BetweenAAB
+        A A CongruenceReflexivity
+        introduceConjunction
+ )
+thm (SymmetricPoint ((A p′) (P p′)) ()
+  (∃ p′ (is-midpoint-of A P p′))
+        p′ P A P A SegmentConstruction
+
+        A p′ P A CongruenceSymmetry
+        eliminateBiconditionalReverse
+        (between P A p′) conjoinLL
+        p′ addThereExists
+        applyModusPonens
+ )
+thm (SymmetricPointUniqueness-pa () ()
+  (→ (∧ (= P A) (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2)))
+    (= P1 P2))
+# Our first application of <code>CongruenceIdentityFromEquality</code> will be <code>P = A ∧ P A ≡ A P1 → A = P1</code>. After that, we flip <code>A = P1</code> to <code>P1 = A</code>.
+        (= P A)
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionRightElimination
+
+        (= P A)
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        P A A P1 CongruenceIdentityFromEquality
+        applySyllogism
+
+        A P1 EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# The other application of <code>CongruenceIdentityFromEquality</code> is the same thing but with <code>P2</code>.
+        (= P A)
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionRightElimination
+
+        (= P A)
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        P A A P2 CongruenceIdentityFromEquality
+        applySyllogism
+# Combining the two gives <code>P1 = P2</code>.
+        composeConjunction
+        P1 A P2 EqualityTransitivity
+        applySyllogism
+ )
+thm (SymmetricPointUniqueness-pnota () ()
+  (→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2)))
+    (= P1 P2))
+# First, <code>P ≠ A</code>.
+        (¬ (= P A))
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionRightElimination
+# Next, <code>between P A P1</code>.
+        (¬ (= P A))
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# Next, <code>A P1 ≡ P A</code>.
+        (¬ (= P A))
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        P A A P1 CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# The corresponding statements for <code>P2</code> are similar, which are <code>between P A P2</code>,
+        (¬ (= P A))
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# and <code>A P2 ≡ P A</code>
+        (¬ (= P A))
+          (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        P A A P2 CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        P A P1 P A P2 SegmentConstructionUniqueness
+        applySyllogism
+ )
+thm (SymmetricPointUniqueness () ()
+  (→ (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+    (= P1 P2))
+        P A P1 P2 SymmetricPointUniqueness-pa
+        export
+
+        P A P1 P2 SymmetricPointUniqueness-pnota
+        export
+
+        eliminateCases
+ )
+thm (SymmetricPointOneToOne () ()
+  (→ (∧ (is-midpoint-of A P1 P) (is-midpoint-of A P2 P))
+    (= P1 P2))
+        A P1 P MidpointSymmetry
+        A P2 P MidpointSymmetry
+        buildConjunction
+        eliminateBiconditionalReverse
+
+        A P P1 P2 SymmetricPointUniqueness
+        applySyllogism
+ )
+thm (SymmetricPointDistance-pa () ()
+  (→ (∧ (= P A) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (≡ P Q P′ Q′))
+# First we need <code>A = P′</code>, which follows from <code>P = A</code> and <code>P A ≡ A P′</code>.
+        (= P A)
+          (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+          ConjunctionRightElimination
+
+        (= P A)
+          (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        A P′ P MidpointSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        P A A P′ CongruenceIdentityFromEquality
+        applySyllogism
+# Second is <code>A = P</code>.
+        (= P A)
+          (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+          ConjunctionRightElimination
+
+        P A EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction 
+# Last is <code>Q′ A ≡ Q A</code>
+        (= P A)
+          (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        Q′ A A Q CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# We're ready to prove and apply <code>A = P′ ∧ A = P → (Q′ A ≡ Q A ↔ Q′ P′ ≡ Q P)</code>.
+        Q EqualityReflexivity
+        Q′ EqualityReflexivity
+        Q′ Q′ A P′ Q Q A P CongruenceBuilder
+        detach1of4
+        detach2of3
+
+        eliminateBiconditionalReverseInConsequent
+        import
+
+        applySyllogism
+# Now we just need to rearrange <code>Q′ P′ ≡ Q P</code> into <code>P Q ≡ P′ Q′</code>.
+        Q′ P′ Q P CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        Q P Q′ P′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (SymmetricPointDistance-xx (
+    (P x x′) (P′ x x′) (Q x x′) (A x x′)
+  ) () (∃ x (∃ x′ (
+    ∧ (∧ (between P′ P x) (≡ P x Q A))
+      (∧ (between x P′ x′) (≡ P′ x′ Q A))
+    )))
+        x P′ P Q A SegmentConstruction
+
+        x′ x P′ Q A SegmentConstruction
+        x generalize
+
+        introduceConjunction
+
+        x
+          (∧ (between P′ P x) (≡ P x Q A))
+          (∃ x′ (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+          ThereExistsConjunctionRightCombining
+        applyModusPonens
+
+        x′
+          (∧ (between P′ P x) (≡ P x Q A))
+          (∧ (between x P′ x′) (≡ P′ x′ Q A))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        x addThereExists
+        applyModusPonens
+ )
+
+thm (SymmetricPointDistance-xxyy (
+    (P x x′ y y′) (P′ x x′ y y′) (Q x x′ y y′) (Q′ x x′ y y′) (A x x′ y y′)
+  ) ()
+  (→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (∃ x (∃ x′ (∃ y (∃ y′ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+    (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+    (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+    (∧ (between y Q′ y′)
+      (≡ Q′ y′ P A))))))))))
+# First we stick something on the proof stack for later use.
+        (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))) ImplicationReflexivity
+# Leaving that aside, the next step is to construct our four points.
+        x x′ P′ P Q A SymmetricPointDistance-xx
+        y y′ Q′ Q P A SymmetricPointDistance-xx
+        introduceConjunction
+# Now we move the quantifiers to the front.
+        x
+          (∃ x′ (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A))))
+          (∃ y (∃ y′ (∧ (∧ (between Q′ Q y)
+              (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A)))))
+          ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        applyModusPonens
+
+        x′
+          (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+          (∃ y (∃ y′ (∧ (∧ (between Q′ Q y)
+              (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A)))))
+          ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        x addThereExists
+        applyModusPonens
+
+        y
+          (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+          (∃ y′ (∧ (∧ (between Q′ Q y)
+              (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        x′ addThereExists
+        x addThereExists
+        applyModusPonens
+
+        y′
+          (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+          (∧ (∧ (between Q′ Q y)
+              (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A)))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        y addThereExists
+        x′ addThereExists
+        x addThereExists
+        applyModusPonens
+# Now we just need to pick <code>P ≠ A ∧ (A is-midpoint-of P′ P ∧ A is-midpoint-of Q′ Q)</code> up off the proof stack and move it inside the quantifiers.
+        introduceRightConjunctToConsequent
+        x
+          (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∃ x′ (∃ y (∃ y′ (
+            ∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+            (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A)))))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+
+        x′
+          (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∃ y (∃ y′ (
+            ∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+            (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A))))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        x addThereExists
+        applySyllogism
+
+        y
+          (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∃ y′ (
+            ∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+            (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A)))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        x′ addThereExists
+        x addThereExists
+        applySyllogism
+
+        y′
+          (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (
+            ∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+            (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+            (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+            (∧ (between y Q′ y′)
+              (≡ Q′ y′ P A))))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        y addThereExists
+        x′ addThereExists
+        x addThereExists
+        applySyllogism
+ )
+thm (SymmetricPointDistance-apx () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A P X))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        P′ A P X BetweennessInnerTransitivityFlipped
+        applySyllogism
+ )
+thm (SymmetricPointDistance-aqy () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A Q Y))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        Q′ A Q Y BetweennessInnerTransitivityFlipped
+        applySyllogism
+ )
+thm (SymmetricPointDistance-qprime-a-y () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between Q′ A Y))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        Q′ A Q Y BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+thm (SymmetricPointDistance-a-qprime-yprime () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A Q′ Y′))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        Y Q′ Y′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-qprime-a-y
+
+        composeConjunction
+
+        Y′ Q′ Y A BetweennessInnerTransitivity
+        applySyllogism
+
+        Y′ Q′ A BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (SymmetricPointDistance-pprime-a-x () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between P′ A X))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        P′ A P X BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+thm (SymmetricPointDistance-a-pprime-xprime () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A P′ X′))
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        X P′ X′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-pprime-a-x
+
+        composeConjunction
+
+        X′ P′ X A BetweennessInnerTransitivity
+        applySyllogism
+
+        X′ P′ A BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (SymmetricPointDistance-axya () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X Y A))
+# First is <code>between A P X</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-apx
+# Then <code>between Y Q A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-aqy
+
+        A Q Y BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# The first congruence we'll need is <code>A P ≡ Y Q</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        Q Y P A CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A Q Y CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# The other is <code>P X ≡ Q A</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        A P X Y Q A OuterThreeSegment
+        applySyllogism
+ )
+
+thm (SymmetricPointDistance-ayxa () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A Y′ X′ A))
+# First is <code>between A Q′ Y′</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-qprime-yprime
+# Next is <code>between X′ P′ A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-pprime-xprime
+
+        A P′ X′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>A Q′ ≡ X′ P′</code>, which holds because those two line segments are each congruent to <code>A Q</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        Q′ A A Q CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        P′ X′ Q A CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        X′ P′ A Q CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+        A Q′ A Q X′ P′ CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# Last is <code>Q′ Y′ ≡ P′ A</code>, which holds because those two line segments are each congruent to <code>P A</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        P′ A A P CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P′ A P A CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+        Q′ Y′ P A P′ A CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# This lets us conclude <code>A Y′ ≡ X′ A</code>.
+        A Q′ Y′ X′ P′ A OuterThreeSegment
+        applySyllogism
+ )
+thm (SymmetricPointDistance-a-y-a-yprime () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A Y A Y′))
+# First is <code>between A Q Y</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-aqy
+# Next is <code>between A Q′ Y′</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-qprime-yprime
+
+        composeConjunction
+# The first congruence is <code>A Q ≡ A Q′</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        commuteCongruenceLeftInConsequent
+        swapCongruenceInConsequent
+
+        composeConjunction
+# The other congruence is <code>Q Y ≡ Q′ Y′</code>, which holds because each of those line segments is congruent to <code>P A</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+
+        composeConjunction
+
+        Q Y P A Q′ Y′ CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# We can now conclude <code>A Y ≡ A Y′</code>.
+        A Q Y A Q′ Y′ OuterThreeSegment
+        applySyllogism
+ )
+thm (SymmetricPointDistance-axax () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X A X′))
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-axya
+        commuteCongruenceRightInConsequent
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-y-a-yprime
+
+        composeConjunction
+        A X A Y A Y′ CongruenceTransitivity
+        applySyllogism
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-ayxa
+
+        composeConjunction
+        A X A Y′ X′ A CongruenceTransitivity
+        applySyllogism
+
+        commuteCongruenceRightInConsequent
+ )
+thm (SymmetricPointDistance-xa () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (¬ (= X A)))
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-apx
+# We'll also need <code>A ≠ P</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        P A EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# So far we have <code>between A P X ∧ A ≠ P</code>, and we want to show that it implies <code>A ≠ X</code>. This is just <code>IndivisibilityFromEquality</code> and some rearrangement. In this case, indivisibility is <code>A = X ∧ between A P X → A = P</code>.
+        A X P IndivisibilityFromEquality
+        export
+        applyComm
+
+        (= A X) (= A P) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        import
+        applySyllogism
+# Now we just flip <code>A ≠ X</code> to get <code>X ≠ A</code>.
+        A X EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (SymmetricPointDistance-x-a-xprime () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between X A X′))
+# Here we apply transitivity twice. The first application is <code>between P′ A P ∧ between P′ P X → between P′ A X</code>,
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        P′ A P X BetweennessMiddleTransitivityFlipped
+        applySyllogism
+# and the second is <code>between X A P′ ∧ between X P′ X′ → between X A X′</code>.
+        P′ A X BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        X A P′ X′ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+
+thm (between SymmetricPointDistance-y-a-yprime ()
+  ()
+(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between Y A Y′)) </jh>The proof is extremely similar to that for <code>between X A X′</code>(in fact, it is a close call whether to break out a lemma to express the commonality, but here we just repeat the similar proof) . The first application of transitivity is <code>between Q′ A Q ∧ between Q′ Q Y → Q′ A Y</code>,
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        Q′ A Q Y BetweennessMiddleTransitivityFlipped
+        applySyllogism
+# and the second is <code>between Y A Q′ ∧ between Y Q′ Y′ → between Y A Y′</code>.
+        Q′ A Y BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        Y A Q′ Y′ BetweennessMiddleTransitivityFlipped
+        applySyllogism
+ )
+
+thm (SymmetricPointDistance-x-a-yprime-a () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ X A Y′ A))
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-axya
+
+        A X Y A CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-y-a-yprime
+
+        composeConjunction
+
+        X A A Y A Y′ CongruenceTransitivity
+        applySyllogism
+
+        X A A Y′ CongruenceRightCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (SymmetricPointDistance-a-xprime-a-y () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X′ A Y))
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-ayxa
+
+        A Y′ X′ A CongruenceSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        X′ A A Y′ CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-y-a-yprime
+        swapCongruenceInConsequent
+
+        composeConjunction
+
+        A X′ A Y′ A Y CongruenceTransitivity
+        applySyllogism
+ )
+
+thm (SymmetricPointDistance-xyyx () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ X′ Y′ Y X))
+# First we need <code>X ≠ A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-xa
+# Next is <code>between X A X′</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-x-a-xprime
+        composeConjunction
+# Next is <code>between Y′ A Y</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-y-a-yprime
+        swapBetweennessInConsequent
+        composeConjunction
+# Next is <code>X A ≡ Y′ A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-x-a-yprime-a
+        composeConjunction
+# Next is <code>A X′ ≡ A Y</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-xprime-a-y
+        composeConjunction
+# Next is <code>X Y′ ≡ Y′ X</code>.
+        X Y′ CongruenceABBA
+        introduceRightConjunctToConsequent
+# Next is <code>A Y′ ≡ A X</code>. It is essentially the same as <code>X A ≡ Y′ A</code> which we did a few steps back.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-x-a-yprime-a
+        swapCongruenceInConsequent
+        commuteCongruenceInConsequent
+        composeConjunction
+# That gives us <code>X′ Y′ ≡ Y X</code>.
+        X A X′ Y′ A Y Y′ X OuterFiveSegment
+        applySyllogism
+ )
+thm (SymmetricPointDistance-qxqx () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ Q X Q′ X′))
+# First we need betweenness for the two baselines, starting with <code>between Y Q A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-aqy
+
+        A Q Y BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# Betweenness for the other baseline is <code>between Y′ Q′ A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-qprime-yprime
+
+        A Q′ Y′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# We need two congruences for the baselines. The first is <code>Y A ≡ Y′ A</code>,
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-y-a-yprime
+        commuteCongruenceInConsequent
+
+        composeConjunction
+# and the other is <code>Q A ≡ Q′ A</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        commuteCongruenceRightInConsequent
+        swapCongruenceInConsequent
+
+        composeConjunction
+# The congruences for the points are <code>Y X ≡ Y′ X′</code>,
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-xyyx
+        swapCongruenceInConsequent
+        commuteCongruenceRightInConsequent
+        composeConjunction
+# and <code>A X ≡ A X′</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-axax
+        composeConjunction
+# This lets us conclude <code>Q X ≡ Q′ X′</code>.
+        Y Q A Y′ Q′ A X X′ InnerFiveSegment
+        applySyllogism
+ )
+thm (SymmetricPointDistance-pqpq () ()
+  (→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ P Q P′ Q′))
+# Betweenness for the first baseline is <code>between X P A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-apx
+        swapBetweennessInConsequent
+# Betweenness for the other baseline is <code>between X′ P′ A</code>.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-a-pprime-xprime
+        swapBetweennessInConsequent
+        composeConjunction
+# The first congruence for the baselines is <code>X A ≡ X′ A</code>
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-axax
+        commuteCongruenceInConsequent
+        composeConjunction
+# The other baseline congruence is <code>P A ≡ P′ A</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        commuteCongruenceRightInConsequent
+        swapCongruenceInConsequent
+
+        composeConjunction
+# The first congruence for the points is <code>X Q ≡ X′ Q′</code>, which we have already proved.
+        P A P′ Q′ Q X X′ Y Y′ SymmetricPointDistance-qxqx
+        commuteCongruenceInConsequent
+        composeConjunction
+# The other congruence for the points is <code>A Q ≡ A Q′</code>, which follows directly from <code>A is-midpoint-of Q′ Q</code>.
+        (∧ (¬ (= P A)) 
+            (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+          (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+            (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+            (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+            (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A))))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        commuteCongruenceLeftInConsequent
+        swapCongruenceInConsequent
+
+        composeConjunction
+# We are ready to conclude <code>P Q ≡ P′ Q′</code>.
+        X P A X′ P′ A Q Q′ InnerFiveSegment
+        applySyllogism
+ )
+thm (SymmetricPointDistance-pnota
+  ( (P x x′ y y′) (P′ x x′ y y′) (Q x x′ y y′) (Q′ x x′ y y′) (A x x′ y y′)) ()
+  (→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (≡ P Q P′ Q′))
+        P A P′ Q′ Q x x′ y y′ SymmetricPointDistance-xxyy
+
+        P A P′ Q′ Q
+          x x′ y y′
+          SymmetricPointDistance-pqpq
+        y′ addThereExists
+        y addThereExists
+        x′ addThereExists
+        x addThereExists
+
+        applySyllogism
+
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+ )
+thm (SymmetricPointDistance () ()
+  (→ (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+  (≡ P Q P′ Q′))
+        P A P′ Q′ Q SymmetricPointDistance-pa
+        export
+
+        P A P′ Q′ Q SymmetricPointDistance-pnota
+        export
+
+        eliminateCases
+ )
+thm (SymmetricPointBetweenness-congruence () ()
+  (→ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+    (≅ P Q R P′ Q′ R′))
+# First is <code>P Q ≡ P′ Q′</code>.
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of A Q Q′))
+          (is-midpoint-of A R R′)
+          ConjunctionRightElimination
+        A P P′ Q Q′ SymmetricPointDistance
+        applySyllogism
+        swapCongruenceInConsequent
+# Second is <code>P R ≡ P′ R′</code>.
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of A Q Q′))
+          (is-midpoint-of A R R′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of A Q Q′))
+          (is-midpoint-of A R R′)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        A P P′ R R′ SymmetricPointDistance
+        applySyllogism
+        swapCongruenceInConsequent
+
+        composeConjunction
+
+# Third is <code>Q R ≡ Q′ R′</code>
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of A Q Q′))
+          (is-midpoint-of A R R′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of A Q Q′))
+          (is-midpoint-of A R R′)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        A Q Q′ R R′ SymmetricPointDistance
+        applySyllogism
+        swapCongruenceInConsequent
+
+        composeConjunction
+ )
+
+thm (SymmetricPointBetweenness () ()
+  (→ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (between P Q R))
+    (between P′ Q′ R′))
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (between P Q R)
+          ConjunctionLeftElimination
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (between P Q R)
+          ConjunctionRightElimination
+        A P P′ Q Q′ R R′ SymmetricPointBetweenness-congruence
+        applySyllogism
+
+        composeConjunction
+
+        P Q R P′ Q′ R′ BetweennessDegenerateTriangle
+        applySyllogism
+ )
+thm (SymmetricPointCongruence () ()
+  (→ (∧ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (is-midpoint-of A S S′))
+      (≡ P Q R S))
+    (≡ P′ Q′ R′ S′))
+# First is <code>P′ Q′ ≡ P Q</code>.
+        (∧ (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+            (is-midpoint-of A S S′))
+          (≡ P Q R S)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A P P′ Q Q′ SymmetricPointDistance
+        applySyllogism
+# Second is <code>P Q ≡ R S</code>.
+        (∧ (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+            (is-midpoint-of A S S′))
+          (≡ P Q R S)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        P′ Q′ P Q R S CongruenceTransitivity
+        applySyllogism
+# And finally is <code>R S ≡ R′ S′</code>.
+        (∧ (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+            (is-midpoint-of A S S′))
+          (≡ P Q R S)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+            (is-midpoint-of A S S′))
+          (≡ P Q R S)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        A R R′ S S′ SymmetricPointDistance
+        applySyllogism
+        swapCongruenceInConsequent
+
+        composeConjunction
+
+        P′ Q′ R S R′ S′ CongruenceTransitivity
+        applySyllogism
+ )
+thm (SymmetricPointMidpoint () ()
+  (→ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (is-midpoint-of P Q R))
+    (is-midpoint-of P′ Q′ R′))
+# Because reflecting to symmetric points preserves betweenness, <code>between Q P R</code> implies <code>between P′ Q′ R′</code>.
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        A Q Q′ P P′ R R′ SymmetricPointBetweenness
+        applySyllogism
+# Because reflecting to symmetric points preserves line segment congruence, <code>Q P ≡ P R</code> implies <code>Q′ P′ ≡ P′ R′</code>.
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        (∧ (∧ (is-midpoint-of A P P′)
+            (is-midpoint-of A Q Q′))
+            (is-midpoint-of A R R′))
+          (is-midpoint-of P Q R)
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        A Q Q′ P P′ P P′ R R′ SymmetricPointCongruence
+        applySyllogism
+# Combining betweenness and congruence shows <code>P′ is-midpoint-of Q′ R′</code>.
+        composeConjunction
+ )
+export (RESULTS Symmetric_point.ghi (CLASSICAL FIRSTORDER) "")
