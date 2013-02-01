@@ -1175,6 +1175,10 @@ thm (CollinearityCollinearity-1 () ()
         (between X P S) (between P S X) (between S X P) DisjunctionAssociativity
         eliminateBiconditionalForward
         applySyllogism
+
+        X P S Collinear
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (CollinearityOuterTransitivityRearranged () ()
@@ -1186,19 +1190,26 @@ thm (CollinearityOuterTransitivityRearranged () ()
           (collinear X P Q)
           ConjunctionAssociativity
         eliminateBiconditionalReverse
+
+        S P Q Collinear
+        X P Q Collinear
+        buildConjunction
+        eliminateBiconditionalReverse
+        (¬ (= P Q)) conjoinLL
+        applySyllogism
 # Now we apply distributivity multiple times to separate out the nine cases. Round one: splitting <code>collinear S P Q</code> halfway.
         (∨ (between S P Q) (between P Q S))
           (between Q S P) 
-          (collinear X P Q)
+          (∨ (∨ (between X P Q) (between P Q X)) (between Q X P))
           ConjunctionRightDistribution
         eliminateBiconditionalReverse
 # Round two: splitting <code>collinear S P Q</code> the rest of the way.
         (between S P Q)
           (between P Q S)
-          (collinear X P Q)
+          (∨ (∨ (between X P Q) (between P Q X)) (between Q X P))
           ConjunctionRightDistribution
         eliminateBiconditionalReverse
-        (∧ (between Q S P) (collinear X P Q)) disjoinRR
+        (∧ (between Q S P) (∨ (∨ (between X P Q) (between P Q X)) (between Q X P))) disjoinRR
         applySyllogism
 # Round three: split <code>collinear X P Q</code> halfway.
         (between S P Q)
