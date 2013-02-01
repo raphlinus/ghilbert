@@ -613,6 +613,11 @@ thm (OutTransitivity-1 () () (→ (∧ (¬ (= B P))
  )
 
 thm (OutTransitivity () () (→ (∧ (is-outside P A B) (is-outside P B C)) (is-outside P A C))
+        P A B OutBetweenness
+        P B C OutBetweenness
+        buildConjunction
+        eliminateBiconditionalReverse
+
 # First we pick out <code>A ≠ P</code>.
         (∧ (∧ (¬ (= A P)) (¬ (= B P))) (∨ (between P A B) (between P B A)))
           (∧ (∧ (¬ (= B P)) (¬ (= C P))) (∨ (between P B C) (between P C B)))
@@ -652,6 +657,11 @@ thm (OutTransitivity () () (→ (∧ (is-outside P A B) (is-outside P B C)) (is-
         applySyllogism
 
         composeConjunction
+        applySyllogism
+
+        P A C OutBetweenness
+        eliminateBiconditionalForward
+        applySyllogism
  )
 thm (OutSegmentConstructionLemma () ()
   (→ (∧ (∧ (¬ (= R A)) (¬ (= B C)))
