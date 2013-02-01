@@ -1,0 +1,298 @@
+{{interfaces
+| imports = [[Interface:Out lines]]
+| exports = [[Interface:Symmetric point]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page defines the midpoint of a line segment, proves a few basic midpoint results, and then proves a variety of results concerning reflection through a point (symmetric points).
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Line segment inequality|geometry results so far]] and define some variables:
+
+== Midpoint defined ==
+A point is the midpoint of a line segment if it is between the endpoints and is equidistant from each one.
+
+Whether a point is the midpoint does not depend on the order in which we list the endpoints.<ref>Lemma l7_2 in Narboux</ref> This is easily proved from the corresponding theorems for betweenness and congruence.
+* #(↔ (is-midpoint-of M A B) (is-midpoint-of M B A))# ([/general/Symmetric_point.gh/MidpointSymmetry | MidpointSymmetry])
+
+The only midpoint of an empty line segment is the endpoint of the line segment.<ref>l7_3 in Narboux</ref>
+* #(↔ (between A B A) (= A B))# ([/general/Symmetric_point.gh/IndivisibilityBiconditional | IndivisibilityBiconditional])
+* #(→ (is-midpoint-of M A A) (= M A))# ([/general/Symmetric_point.gh/MidpointIndivisibility | MidpointIndivisibility])
+
+The endpoint of an empty line segment is a midpoint of that segment.<ref>Lemma l7_3_2 in Narboux</ref>
+* #(is-midpoint-of A A A)# ([/general/Symmetric_point.gh/MidpointReflexivity | MidpointReflexivity])
+
+== Reflection through a point ==
+[[w:Point reflection|Point symmetry]], or reflection through a point, refers to the process of starting with a single point (which in special cases might be called the origin or the center) and mapping every point to a point directly opposite the given point (at the same distance).
+
+=== Existence of the symmetric point ===
+Given a point {{{A}}}, the symmetric point of {{{P}}} through {{{A}}} is a point {{{P′}}} such that {{{A is-midpoint-of P P′}}}. This point always exists and is unique. We first prove existence.<ref>symmetric_point_construction in Narboux, with the cosmetic change that Narboux interchanges A and P</ref> The proof just applies line segment construction to extend the line segment {{{P A}}} to a point {{{p′}}} by a distance of {{{P A}}}, or in other words, {{{∃ p′ (between P A p′ ∧ A p′ ≡ P A)}}}.
+* #(∃ p′ (is-midpoint-of A P p′))# ([/general/Symmetric_point.gh/SymmetricPoint | SymmetricPoint])
+
+=== Symmetric point uniqueness ===
+Uniqueness is {{{A is-midpoint-of P P1 ∧ A is-midpoint-of P P2 → P1 = P2}}}.<ref>symmetric_point_unicity in Narboux, again exchanging A and P</ref> We first consider the {{{P = A}}} case, which is just a matter of applying {{{CongruenceIdentityFromEquality}}}
+* #(→ (∧ (= P A) (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2)))
+    (= P1 P2))# ([/general/Symmetric_point.gh/SymmetricPointUniqueness-pa | SymmetricPointUniqueness-pa])
+
+The {{{P ≠ A}}} case is a straightforward application of {{{SegmentConstructionUniqueness}}}.
+* #(→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2)))
+    (= P1 P2))# ([/general/Symmetric_point.gh/SymmetricPointUniqueness-pnota | SymmetricPointUniqueness-pnota])
+
+Combining the two cases completes the proof of uniqueness.
+* #(→ (∧ (is-midpoint-of A P P1) (is-midpoint-of A P P2))
+    (= P1 P2))# ([/general/Symmetric_point.gh/SymmetricPointUniqueness | SymmetricPointUniqueness])
+
+=== One to one ===
+Reflecting through a point is one to one.<ref>Lemma l7_9 in Narboux</ref>
+* #(→ (∧ (is-midpoint-of A P1 P) (is-midpoint-of A P2 P))
+    (= P1 P2))# ([/general/Symmetric_point.gh/SymmetricPointOneToOne | SymmetricPointOneToOne])
+
+=== Distance-preserving ===
+Reflecting through a point preserves distances. That is, {{{A is-midpoint-of P′ P ∧ A is-midpoint-of Q′ Q → P Q ≡ P′ Q′}}}.<ref>Lemma l7_13 in Narboux</ref>
+
+[[File:Proof of lemma l7_13 in Narboux.svg|thumb|right|Proof that reflecting through a point preserves distance]]
+The proof is a bit involved, so we'll start with a brief outline. The {{{P = A}}} case is trivial, so henceforth we assume {{{P ≠ A}}}. Starting with the line segment {{{P P′}}}, we extend the two endpoints to points {{{X}}} and {{{X′}}} (by a distance of {{{Q A}}} in both cases). Then we do something similar: extend both ends of {{{Q Q′}}} to {{{Y}}} and {{{Y′}}} by a distance of {{{P A}}}.
+
+The next step is {{{X′ Y′ ≡ Y X}}}, which we get by applying five segment to baselines {{{X A X′}}} and {{{Y′ A Y}}} and points {{{Y′}}} and {{{X}}}.
+
+Then we apply inner five segment to baselines {{{Y Q A}}} and {{{Y′ Q′ A}}} and points {{{X}}} and {{{X′}}}, which gives {{{Q X ≡ Q′ X′}}}.
+
+Finally, applying inner five segment to baselines {{{X P A}}} and {{{X′ P′ A}}} and points Q and {{{Q′}}} yields {{{P Q ≡ P′ Q′}}}, as desired.
+
+==== P = A case ====
+We start formalizing this proof with the {{{P = A}}} case. Because {{{A}}} is the midpoint of {{{Q′ Q}}}, we know that {{{Q′ A ≡ Q A}}}, and we can substitute {{{P}}} for {{{A}}}. We can also substitute {{{P′}}} for {{{A}}}, as {{{A = P′}}} follows from {{{P = A}}} and {{{P′ A ≡ A P}}}.
+
+To understand the organization of the proof, it is based on the substitution {{{A = P′ ∧ A = P → (Q′ A ≡ Q A ↔ Q′ P′ ≡ Q P)}}}.
+* #(→ (∧ (= P A) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (≡ P Q P′ Q′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-pa | SymmetricPointDistance-pa])
+
+==== Constructing X, X′, Y, and Y′ ====
+The first step for the {{{P ≠ A}}} case is to construct the points we will need. The first lemma constructs two points (and we'll be able to use it twice, once for {{{x}}} and {{{x′}}} and once for {{{y}}} and {{{y′}}}).
+
+* #(∃ x (∃ x′ (
+    ∧ (∧ (between P′ P x) (≡ P x Q A))
+      (∧ (between x P′ x′) (≡ P′ x′ Q A))
+    )))# ([/general/Symmetric_point.gh/SymmetricPointDistance-xx | SymmetricPointDistance-xx])
+* #(→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (∃ x (∃ x′ (∃ y (∃ y′ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P x) (≡ P x Q A))
+    (∧ (between x P′ x′) (≡ P′ x′ Q A)))
+    (∧ (∧ (between Q′ Q y) (≡ Q y P A))
+    (∧ (between y Q′ y′)
+      (≡ Q′ y′ P A))))))))))# ([/general/Symmetric_point.gh/SymmetricPointDistance-xxyy | SymmetricPointDistance-xxyy])
+
+==== Applying betweenness transitivity ====
+[[File:Proof of lemma l7_13 in Narboux.svg|thumb|right|X′, P′, A, P, and X are in that order and so are Y′, Q′, A, Q, and Y]]
+Visually the diagram makes it clear that the points of each of the two lines are in a certain order: in the one case X′, P′, A, P, and X and in the other case Y′, Q′, A, Q, and Y. To express this formally involves a large number of betweenness formulas, and we now prove a number of them. The first is {{{between A P X}}}, which follows from {{{between P′ A P}}} and {{{between P′ P X}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A P X))# ([/general/Symmetric_point.gh/SymmetricPointDistance-apx | SymmetricPointDistance-apx])
+
+A similar result is {{{between A Q Y}}}, which follows from {{{between Q′ A Q}}} and {{{between Q′ Q Y}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A Q Y))# ([/general/Symmetric_point.gh/SymmetricPointDistance-aqy | SymmetricPointDistance-aqy])
+
+The next betweenness result is {{{between A Q′ Y′}}}. Unlike the previous two, we need to apply transitivity twice (because of the way we constructed {{{Y′}}}). The first application applies transitivity to {{{between Q′ A Q}}} and {{{between Q′ Q Y}}} to give {{{between Q′ A Y}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between Q′ A Y))# ([/general/Symmetric_point.gh/SymmetricPointDistance-qprime-a-y | SymmetricPointDistance-qprime-a-y])
+The second application applies transitivity to {{{between Y′ Q′ Y}}} and {{{between Q′ A Y}}} to give {{{between Y′ Q′ A}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A Q′ Y′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-a-qprime-yprime | SymmetricPointDistance-a-qprime-yprime])
+
+The same reasoning applied to the other line gives {{{between A P′ X′}}}. The first application of transitivity is to {{{between P′ A P}}} and {{{between P′ P X}}} and gives {{{between P′ A X}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between P′ A X))# ([/general/Symmetric_point.gh/SymmetricPointDistance-pprime-a-x | SymmetricPointDistance-pprime-a-x])
+The second application applies transitivity to {{{between X′ P′ X}}} and {{{between P′ A X}}} to give {{{between X′ P′ A}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between A P′ X′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-a-pprime-xprime | SymmetricPointDistance-a-pprime-xprime])
+
+==== Congruences ====
+[[File:Proof of lemma l7_13 in Narboux.svg|thumb|right|A X, A Y, A X′, and A Y′ are all congruent]]
+From the diagram it should be clear that the line segments {{{A X}}}, {{{A Y}}}, {{{A X′}}}, and {{{A Y′}}} are all congruent, as they each consist of one line segment congruent to {{{P A}}} plus one congruent to {{{Q A}}}. We formalize this through a series of lemmas which apply the three segment theorem.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X Y A))# ([/general/Symmetric_point.gh/SymmetricPointDistance-axya | SymmetricPointDistance-axya])
+The next congruence is {{{A Y′ ≡ X′ A}}}, by three segment from {{{A Q′ Y′}}} and {{{X′ P′ A}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A Y′ X′ A))# ([/general/Symmetric_point.gh/SymmetricPointDistance-ayxa | SymmetricPointDistance-ayxa])
+
+We have one more similar congruence, {{{A Y ≡ A Y′}}}, which follows from outer three segment on lines {{{A Q Y}}} and {{{A Q′ Y′}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A Y A Y′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-a-y-a-yprime | SymmetricPointDistance-a-y-a-yprime])
+
+Other similar congruences can be derived from those by transitivity. Here is {{{A X ≡ A X′}}}
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X A X′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-axax | SymmetricPointDistance-axax])
+
+==== X′ Y′ ≡ Y X ====
+
+All that seems fairly preparatory, and visually obvious. Now for a more substantial result: {{{X′ Y′ ≡ Y X}}}, which we get by applying outer five segment to baselines {{{X A X′}}} and {{{Y′ A Y}}} and points {{{Y′}}} and {{{X}}}. We break some of the antecedents of outer five segment into their own lemmas, and then proceed with outer five segment.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (¬ (= X A)))# ([/general/Symmetric_point.gh/SymmetricPointDistance-xa | SymmetricPointDistance-xa])
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between X A X′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-x-a-xprime | SymmetricPointDistance-x-a-xprime])
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (between Y A Y′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-y-a-yprime | SymmetricPointDistance-y-a-yprime])
+Next is {{{X A ≡ Y′ A}}}, which follows from {{{A X ≡ Y A}}} and {{{A Y ≡ A Y′}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ X A Y′ A))# ([/general/Symmetric_point.gh/SymmetricPointDistance-x-a-yprime-a | SymmetricPointDistance-x-a-yprime-a])
+Next is {{{A X′ ≡ A Y}}}, which follows from {{{A Y′ ≡ X′ A}}} and {{{A Y ≡ A Y′}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ A X′ A Y))# ([/general/Symmetric_point.gh/SymmetricPointDistance-a-xprime-a-y | SymmetricPointDistance-a-xprime-a-y])
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ X′ Y′ Y X))# ([/general/Symmetric_point.gh/SymmetricPointDistance-xyyx | SymmetricPointDistance-xyyx])
+
+==== Q X ≡ Q′ X′ ====
+Now it is time to apply inner five segment to baselines {{{Y Q A}}} and {{{Y′ Q′ A}}} and points {{{X}}} and {{{X′}}}, which gives {{{Q X ≡ Q′ X′}}}.
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ Q X Q′ X′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-qxqx | SymmetricPointDistance-qxqx])
+
+==== P Q ≡ P′ Q′ ====
+The next step is another application of inner five segment, which proves {{{P Q ≡ P′ Q′}}}. It uses baselines {{{X P A}}} and {{{X′ P′ A}}} and points {{{Q}}} and {{{Q′}}}.
+
+* #(→ (
+    ∧ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+    (∧ (∧ (∧ (between P′ P X) (≡ P X Q A))
+    (∧ (between X P′ X′) (≡ P′ X′ Q A)))
+    (∧ (∧ (between Q′ Q Y) (≡ Q Y P A))
+    (∧ (between Y Q′ Y′) (≡ Q′ Y′ P A)))))
+  (≡ P Q P′ Q′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-pqpq | SymmetricPointDistance-pqpq])
+
+==== Finishing the proof ====
+Combining the construction of the points and the proof of {{{P Q ≡ P′ Q′}}} from those points gives us the {{{P ≠ A}}} case of the proof.
+
+* #(→ (∧ (¬ (= P A)) (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q)))
+  (≡ P Q P′ Q′))# ([/general/Symmetric_point.gh/SymmetricPointDistance-pnota | SymmetricPointDistance-pnota])
+
+And finally we combine the {{{P = A}}} and {{{P ≠ A}}} cases.
+
+* #(→ (∧ (is-midpoint-of A P′ P) (is-midpoint-of A Q′ Q))
+  (≡ P Q P′ Q′))# ([/general/Symmetric_point.gh/SymmetricPointDistance | SymmetricPointDistance])
+
+=== Betweenness-preserving ===
+Reflecting through a point preserves betweenness relationships. That is, if a point is between two points and we reflect all three points through a common point {{{A}}}, then the corresponding one symmetric point is between the corresponding two symmetric points. In symbols, {{{A is-midpoint-of P P′ ∧ A is-midpoint-of Q Q′ ∧ A is-midpoint-of R R′ ∧ between P Q R → between P′ Q′ R′}}}.<ref>l7_15 in Narboux</ref>
+
+The proof first applies {{{SymmetricPointDistance}}} to each pair of points to prove the degenerate triangle congruence {{{P Q R ≅ P′ Q′ R′}}}. From there, it is a simple application of {{{BetweennessDegenerateTriangle}}}.
+
+* #(→ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+    (≅ P Q R P′ Q′ R′))# ([/general/Symmetric_point.gh/SymmetricPointBetweenness-congruence | SymmetricPointBetweenness-congruence])
+* #(→ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (between P Q R))
+    (between P′ Q′ R′))# ([/general/Symmetric_point.gh/SymmetricPointBetweenness | SymmetricPointBetweenness])
+
+=== Congruence-preserving ===
+The reflections (through a common point) of congruent line segments are congruent. In symbols, {{{A is-midpoint-of P P′ ∧ A is-midpoint-of Q Q′ ∧ A is-midpoint-of R R′ ∧ A is-midpoint-of S S′ ∧ P Q ≡ R S → P′ Q′ ≡ R′ S′}}}.<ref>l7_16 in Narboux</ref>
+
+The proof is just a matter of applying congruence transitivity to {{{P Q ≡ P′ Q′}}} and {{{R S ≡ R′ S′}}}, which come from {{{SymmetricPointDistance}}}, and {{{P Q ≡ R S}}} (which we are given).
+* #(→ (∧ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (is-midpoint-of A S S′))
+      (≡ P Q R S))
+    (≡ P′ Q′ R′ S′))# ([/general/Symmetric_point.gh/SymmetricPointCongruence | SymmetricPointCongruence])
+
+=== Midpoint-preserving ===
+* #(→ (∧ (∧ (∧ (is-midpoint-of A P P′)
+      (is-midpoint-of A Q Q′))
+      (is-midpoint-of A R R′))
+      (is-midpoint-of P Q R))
+    (is-midpoint-of P′ Q′ R′))# ([/general/Symmetric_point.gh/SymmetricPointMidpoint | SymmetricPointMidpoint])
+
+== Export ==
+We now export to [[Interface:Symmetric point]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
