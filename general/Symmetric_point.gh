@@ -3,14 +3,16 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Out_lines.ghi (CLASSICAL FIRSTORDER) "")
 
-tvar (point A B C D E F M P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″ P′ Q′ R′ S′ X′ Y′)
-tvar (point P1 P2)
+tvar (object A B C D E F M P Q R S X Y Z A′ B′ C′ D′ E′ B″ C″ P′ Q′ R′ S′ X′ Y′)
+tvar (object P1 P2)
 var (object a b c c′ d d′ e e′ f p p′ x x′ y y′ z)
-defthm (Is-midpoint-of wff (is-midpoint-of M A B) () () (↔ (is-midpoint-of M A B) (∧ (between A M B) (≡ A M M B)))
+defthm (Is-midpoint-of formula (is-midpoint-of M A B) () () (↔ (is-midpoint-of M A B) (∧ (between A M B) (≡ A M M B)))
         (∧ (between A M B) (≡ A M M B)) BiconditionalReflexivity
 )
 thm (MidpointSymmetry () ()
   (↔ (is-midpoint-of M A B) (is-midpoint-of M B A))
+        M A B Is-midpoint-of
+
         A M B BetweennessSymmetry
 
         A M M B CongruenceSymmetry
@@ -18,7 +20,13 @@ thm (MidpointSymmetry () ()
         applyBiconditionalTransitivity
 
         buildConjunction
+        applyBiconditionalTransitivity
+
+        M B A Is-midpoint-of
+        swapBiconditional
+        applyBiconditionalTransitivity
  )
+
 thm (IndivisibilityBiconditional () () (↔ (between A B A) (= A B))
         A B IndivisibilityBidirectional
  )
