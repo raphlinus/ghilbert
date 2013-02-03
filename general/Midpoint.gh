@@ -1,0 +1,1753 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START Symmetric_point.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point A B C D E F M P Q R S X Y Z)
+tvar (point A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
+var (object a a′ b b′ c c′ d d′ e e′ f p p′ q r r′ x x′ y y′ z)
+thm (MidpointBuilder () () (→ (∧ (∧ (= M M′) (= A A′)) (= B B′))
+  (↔ (is-midpoint-of M A B) (is-midpoint-of M′ A′ B′)))
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionLeftElimination
+        composeConjunction
+
+        A A′ M M′ B B′ BetweennessBuilder
+        applySyllogism
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (= M M′) (= A A′)) (= B B′) ConjunctionLeftElimination
+        composeConjunction
+
+        A A′ M M′ M M′ B B′ CongruenceBuilder
+        applySyllogism
+
+        buildConjunctionInConsequent
+ )
+thm (MidpointUniqueness-bprime ((A b′) (B b′) (P b′) (P′ b′)) ()
+  (→ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) 
+  (∃ b′ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B b′))))
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) ImplicationReflexivity
+        b′ A B SymmetricPoint
+        introduceRightConjunctToConsequent
+
+        moveLeftConjunctIntoThereExistsInConsequent
+ )
+thm (MidpointUniqueness-p-b-pprime-bprime ( ) ()
+  (→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (≡ P B P′ B′))
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionLeftElimination
+
+        composeConjunction
+
+        A P P′ B B′ SymmetricPointDistance
+        applySyllogism
+
+        swapCongruenceInConsequent
+ )
+thm (MidpointUniqueness-pprime-b-p-bprime ( ) ()
+  (→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (≡ P′ B P B′))
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionLeftElimination
+
+        A B B′ MidpointSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        A P P′ B′ B SymmetricPointDistance
+        applySyllogism
+ )
+
+thm (MidpointUniqueness-b-bprime ( ) ()
+  (→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (= B B′))
+# In this case <code>BetweennessTwoDistanceUniqueness</code> expands to <code>between P B P′ ∧ P B ≡ P B′ ∧ P′ B ≡ P′ B′ → B = B′</code>. First is <code>between P B P′</code>.
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# Next is <code>P B ≡ P B′</code>, which we prove via <code>P B ≡ P′ B</code> and <code>P′ B ≡ P B′</code>.
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        commuteCongruenceRightInConsequent
+
+        A P P′ B B′ MidpointUniqueness-pprime-b-p-bprime
+
+        composeConjunction
+        P B P′ B P B′ CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+# Last is <code>P′ B ≡ P′ B′</code>, which we prove via <code>P′ B ≡ P B</code> and <code>P B ≡ P′ B′</code>.
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        commuteCongruenceRightInConsequent
+        swapCongruenceInConsequent
+
+        A P P′ B B′ MidpointUniqueness-p-b-pprime-bprime
+
+        composeConjunction
+        P′ B P B P′ B′ CongruenceTransitivity
+        applySyllogism
+
+        composeConjunction
+
+        P B P′ B′ BetweennessTwoDistanceUniqueness
+        applySyllogism
+ )
+thm (MidpointUniqueness-a-b-b ( ) ()
+  (→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (is-midpoint-of A B B))
+        A P P′ B B′ MidpointUniqueness-b-bprime
+
+        (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′))
+          (is-midpoint-of A B B′)
+          ConjunctionLeftElimination
+        composeConjunction
+
+        A EqualityReflexivity
+        B EqualityReflexivity
+        A A B B B B′ MidpointBuilder
+        detach2of3
+        detach1of2
+        eliminateBiconditionalForwardInConsequent
+        import
+
+        applySyllogism
+ )
+
+thm (MidpointUniqueness-a-b ( ) ()
+  (→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (= A B))
+        A P P′ B B′ MidpointUniqueness-a-b-b
+        A B MidpointIndivisibility
+        applySyllogism
+ )
+
+thm (MidpointUniqueness (    ) ()
+  (→ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (= A B))
+        A P P′ B b′ MidpointUniqueness-bprime
+
+        A P P′ B b′ MidpointUniqueness-a-b
+        b′ addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+ )
+thm (EquidistantMidpoint-a-m-b () ()
+  (→ (between A M B) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))
+        M A M B CongruenceLeftCommutativity
+        eliminateBiconditionalReverse
+        (between A M B) conjoinLL
+
+        (is-midpoint-of M A B) (= A B) DisjunctionLeftIntroduction
+        applySyllogism
+
+        export
+ )
+thm (EquidistantMidpoint-m-b-a () ()
+  (→ (between M B A) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))
+# Inner three segment needs two betweenness relationships, <code>between A B M</code>
+        (between M B A) (≡ M A M B) ConjunctionRightElimination
+        swapBetweennessInConsequent
+# and <code>between B B M</code>,
+        B M BetweenAAB
+        introduceRightConjunctToConsequent
+# and two congruences, <code>A M ≡ B M</code>
+        (between M B A) (≡ M A M B) ConjunctionLeftElimination
+        commuteCongruenceInConsequent
+        composeConjunction
+# and <code>B M ≡ B M</code>.
+        B M CongruenceReflexivity
+        introduceRightConjunctToConsequent
+# The conclusion is <code>A B ≡ B B</code>,
+        A B M B B M InnerThreeSegment
+        applySyllogism
+# which in turn implies our result.
+        A B B CongruenceIdentity
+        applySyllogism
+
+        (= A B) (is-midpoint-of M A B) DisjunctionRightIntroduction
+        applySyllogism
+
+        export
+ )
+thm (EquidistantMidpoint-b-a-m () ()
+  (→ (between B A M) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))
+# When invoked with <code>A</code> and <code>B</code> switched, <code>EquidistantMidpoint-m-b-a</code> is <code>between M A B → (M B ≡ M A → B = A ∨ M is-midpoint-of B A)</code>. Rearranging we are done.
+        M A B EquidistantMidpoint-m-b-a
+
+        M A B BetweennessSymmetry
+
+        M B M A CongruenceSymmetry
+
+        B A EqualitySymmetry
+        M B A MidpointSymmetry
+        buildDisjunction
+
+        buildImplication
+
+        buildImplication
+
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (EquidistantMidpoint () ()
+  (→ (∧ (collinear A M B) (≡ M A M B))
+    (∨ (= A B) (is-midpoint-of M A B)))
+        A M B EquidistantMidpoint-a-m-b
+        M B A EquidistantMidpoint-m-b-a
+        composeDisjunction
+
+        B A M EquidistantMidpoint-b-a-m
+        composeDisjunction
+
+        import
+ )
+thm (ParallelogramDiagonals-pprime
+  ((A p′) (B p′) (C p′) (D p′) (P p′)) ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+    (∃ p′ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B p′))))
+# Next, we construct <code>p′</code>, starting with <code>collinear B D P</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C))
+          (collinear B P D)
+          ConjunctionLeftElimination
+
+        B P D Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+# The other thing for the construction is <code>B D ≡ D B</code>.
+        B D CongruenceABBA
+        introduceRightConjunctToConsequent
+# This lets us conclude <code>∃ p′ B D P ≡ D B p′</code>.
+        B D P D B p′ CollinearityConstructDegenerateTriangle
+        applySyllogism
+# Now we just need to repeat the formulas from the antecedent and move them inside the quantifier.
+        repeatAntecedentThereExists
+ )
+thm (ParallelogramDiagonals-d-b-pprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (collinear D B P′)
+  )
+# <code>collinear B D P</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        B P D Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+# <code>B D P ≅ D B P′</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionLeftElimination
+        composeConjunction
+
+        B D P D B P′ CollinearityDegenerateTriangle
+        applySyllogism
+ )
+
+thm (ParallelogramDiagonals-p-a-pprime-c () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≡ P A P′ C)
+  )
+# For five segment, we first need <code>B ≠ D</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next is <code>collinear B D P</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        B P D Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>B D P ≅ D B P′</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionLeftElimination
+        composeConjunction
+# Now we just need two congruences, the first of which is <code>B A ≡ D C</code>,
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        commuteCongruenceInConsequent
+        composeConjunction
+# and the second of which is <code>D A ≡ B C</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+        composeConjunction
+# Applying five segment we are done.
+        B D P D B P′ A C FiveSegment
+        applySyllogism
+ )
+
+thm (ParallelogramDiagonals-p-c-pprime-a () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≡ P C P′ A)
+  )
+# <code>B ≠ D</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>collinear B D P</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        B P D Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# <code>B D P ≅ D B P′</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionLeftElimination
+        composeConjunction
+# <code>B C ≡ D A</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>D C ≡ B A</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+        commuteCongruenceInConsequent
+        composeConjunction
+# Applying five segment we are done.
+        B D P D B P′ C A FiveSegment
+        applySyllogism
+ )
+
+thm (ParallelogramDiagonals-a-p-c-c-pprime-a () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≅ A P C C P′ A)
+  )
+# <code>A P ≡ C P′</code>:
+        A B C D P P′ ParallelogramDiagonals-p-a-pprime-c
+        commuteCongruenceInConsequent
+# <code>A C ≡ C A</code>:
+        A C CongruenceABBA
+        introduceRightConjunctToConsequent
+# <code>P C ≡ P′ A</code>:
+        A B C D P P′ ParallelogramDiagonals-p-c-pprime-a
+        composeConjunction
+ )
+thm (ParallelogramDiagonals-p-pprime () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (= P P′)
+  )
+# <code>¬ collinear A C B</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A B C Collinearity23
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# <code>B ≠ D</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>collinear A C P</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A P C Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next is <code>collinear A C P′</code>. Because <code>A</code>, <code>P</code>, and <code>C</code> are collinear and <code>A P C ≅ C P′ A</code> we can conclude <code>P′</code> is also collinear with them.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B C D P P′ ParallelogramDiagonals-a-p-c-c-pprime-a
+
+        composeConjunction
+
+        A P C C P′ A CollinearityDegenerateTriangle
+        applySyllogism
+
+        A C P′ CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+# <code>collinear B D P</code>:
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        B P D Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# <code>collinear B D P′</code>:
+        A B C D P P′ ParallelogramDiagonals-d-b-pprime
+
+        D B P′ Collinearity12
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# We are ready to apply <code>LineIntersection</code>.
+        A C B D P P′ LineIntersection
+        applySyllogism
+ )
+thm (ParallelogramDiagonals-p-a-c () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (is-midpoint-of P A C)
+  )
+# We'll be applying <code>EquidistantMidpoint</code>, and first will need <code>A ≠ C</code>. We derive it from <code>¬ collinear A B C<code>, by means of <code>A = C → collinear A B C</code>
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A B CollinearityABA
+
+        A EqualityReflexivity
+        B EqualityReflexivity
+        A A B B A C CollinearityBuilder
+        detach2of3
+        detach1of2
+
+        detachImplicationBiconditional
+
+        (= A C) (collinear A B C) Transposition
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        applySyllogism
+# Next we need <code>collinear A P C</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next is <code>P A ≡ P C</code>, which follows from <code>P A ≡ P′ C</code> and a substitution.
+        A B C D P P′ ParallelogramDiagonals-p-a-pprime-c
+
+        A B C D P P′ ParallelogramDiagonals-p-pprime
+
+        P EqualityReflexivity
+        A EqualityReflexivity
+        C EqualityReflexivity
+        P P A A P P′ C C CongruenceBuilder
+        detach2of2
+        detach2of3
+        detach1of2
+
+        applySyllogism
+
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+
+        composeConjunction
+# Now we apply <code>EquidistantMidpoint</code>, which first gives us <code>A = C ∨ P is-midpoint-of A C</code>,
+        A P C EquidistantMidpoint
+        applySyllogism
+# and then <code>P is-midpoint-of A C</code>.
+        (= A C) (is-midpoint-of P A C) DisjunctionImplication
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+thm (ParallelogramDiagonals-p-b-d () ()
+  (→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (is-midpoint-of P B D)
+  )
+# We'll be applying <code>EquidistantMidpoint</code>, and first will need <code>B ≠ D</code>.
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Next is <code>collinear B P D</code>. We start with <code>collinear D B P′</code>,
+        A B C D P P′ ParallelogramDiagonals-d-b-pprime
+# substitute <code>P</code> for <code>P′</code>,
+        A B C D P P′ ParallelogramDiagonals-p-pprime
+
+        D EqualityReflexivity
+        B EqualityReflexivity
+        D D B B P P′ CollinearityBuilder
+        detach2of3
+        detach1of2
+
+        applySyllogism
+
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+# and rotate.
+        D B P CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>P B ≡ P D</code>. We start with <code>B P ≡ D P′</code>,
+        (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+            (≡ A B C D)) (≡ B C D A))
+            (collinear A P C)) (collinear B P D))
+          (≅ B D P D B P′)
+          ConjunctionLeftElimination
+        B D P D B P′ Congruence13
+        applySyllogism
+# substitute <code>P<code> for <code>P′</code>,
+        A B C D P P′ ParallelogramDiagonals-p-pprime
+
+        P EqualityReflexivity
+        D EqualityReflexivity
+        B EqualityReflexivity
+        B B P P D D P P′ CongruenceBuilder
+        detach1of4
+        detach2of3
+        detach1of2
+
+        applySyllogism
+
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+# and commute the points on each side of the congruence.
+        commuteCongruenceInConsequent
+
+        composeConjunction
+# Now we apply <code>EquidistantMidpoint</code>, which first gives us <code>B = D ∨ P is-midpoint-of B D</code>,
+        B P D EquidistantMidpoint
+        applySyllogism
+# and then <code>P is-midpoint-of B D</code>.
+        (= B D) (is-midpoint-of P B D) DisjunctionImplication
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+thm (ParallelogramDiagonals
+  (    ) ()
+  (→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+    (∧ (is-midpoint-of P A C) (is-midpoint-of P B D)))
+        A B C D P p′ ParallelogramDiagonals-pprime
+
+        A B C D P p′ ParallelogramDiagonals-p-a-c
+        A B C D P p′ ParallelogramDiagonals-p-b-d
+        composeConjunction
+        p′ addThereExists
+
+        applySyllogism
+
+        removeThereExistsInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-a-b ((A x) (B x)) ()
+  (→ (∧ (∧ (collinear A B C) (≡ C A C B)) (= A B)) (∃ x (is-midpoint-of x A B)))
+# We start with <code>A is-midpoint-of A A</code>.
+        A MidpointReflexivity
+# This in turn implies <code>∃ x x is-midpoint-of A A<code> via the substitution <code>x = A → (x is-midpoint-of A A ↔ A is-midpoint-of A A)</code>.
+        A EqualityReflexivity
+        A EqualityReflexivity
+        x A A A A A MidpointBuilder
+        detach2of2
+        detach2of2
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+        applyModusPonens
+
+        introduceThereExistsFromObject
+# We apply the substitution <code>A = B → (∃ x x is-midpoint-of A A ↔ ∃ x x is-midpoint-of A B)</code>.
+        x EqualityReflexivity
+        A EqualityReflexivity
+        x x A A A B MidpointBuilder
+        detach2of3
+        detach1of2
+        x buildThereExistsInConsequent
+
+        detachImplicationBiconditional
+# That gives us <code>A = B → ∃ x x is-midpoint-of A B</code> so we just need to introduce an antecedent to be done.
+        (∧ (collinear A B C) (≡ C A C B)) introduceAntecedent
+        import
+ )
+thm (MidpointExistsGivenEquidistant-c-a-b ((A x) (B x) (C x)) ()
+  (→
+    (∧ (∧ (collinear A B C) (≡ C A C B)) (is-midpoint-of C A B)) (∃ x (is-midpoint-of x A B)))
+        A EqualityReflexivity
+        B EqualityReflexivity
+        x C A A B B MidpointBuilder
+        detach2of2
+        detach2of2
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+
+        C x (is-midpoint-of x A B) ThereExistsIntroductionFromObject
+        applySyllogism
+
+        (∧ (collinear A B C) (≡ C A C B)) introduceAntecedent
+        import
+ )
+thm (MidpointExistsGivenEquidistant-collinear ((A x) (B x) (C x)) ()
+  (→ (∧ (collinear A B C) (≡ C A C B)) (∃ x (is-midpoint-of x A B)))
+# The first step is <code>A = B ∨ C is-midpoint-of A B<code>.
+        A B C Collinearity23
+        eliminateBiconditionalReverse
+        (≡ C A C B) conjoinRR
+
+        A C B EquidistantMidpoint
+        applySyllogism
+# The <code>A = B</code> case is <code>collinear A B C ∧ C A ≡ C B ∧ A = B → ∃ x x is-midpoint-of A B</code>.
+        A B C x MidpointExistsGivenEquidistant-a-b
+        export
+# The <code>C is-midpoint-of A B<code> case is <code>collinear A B C ∧ C A ≡ C B ∧ C is-midpoint-of A B → ∃ x x is-midpoint-of A B</code>.
+        A B C x MidpointExistsGivenEquidistant-c-a-b
+        export
+
+        composeConjunction
+# We combine the cases, to get <code>collinear A B C ∧ C A ≡ C B → (A = B ∨ C is-midpoint-of A B → ∃ x x is-midpoint-of A B).
+        (= A B)
+          (∃ x (is-midpoint-of x A B))
+          (is-midpoint-of C A B)
+          DisjunctionComposition
+        eliminateBiconditionalReverse
+        applySyllogism
+# Detaching <code>A = B ∨ C is-midpoint-of A B</code> we are done.
+        applyModusPonensInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-p ((A p) (B p) (C p)) ()
+  (→ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∃ p (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (between C A p) (¬ (= A p)))))
+  )
+        p C A PointConstructionDifferent
+        (∧ (¬ (collinear A B C)) (≡ C A C B)) introduceAntecedent
+        repeatAntecedentThereExists
+ )
+
+thm (MidpointExistsGivenEquidistant-q ((C q) (B q) (A q) (P q)) ()
+  (→ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B)) (∧ (between C A P) (¬ (= A P))))
+  (∃ q
+    (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B q) (≡ B q A P))))
+      ))
+        q C B A P SegmentConstruction
+        (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (between C A P) (¬ (= A P))))
+          introduceAntecedent
+        repeatAntecedentThereExists
+# For no especially good reason, for the rest of the proof we parenthesize the formula differently. We could rewrite the rest of the proof, but at least for now it will be less work to just regroup here.
+        (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B q) (≡ B q A P))
+          ConjunctionAssociativity
+        eliminateBiconditionalReverse
+        q addThereExists
+        applySyllogism
+ )
+
+thm (MidpointExistsGivenEquidistant-r ((A r) (B r) (C r) (P r) (Q r)) ()
+  (→ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+    (∧ (between C B Q) (≡ B Q A P)))
+    )
+    (∃ r
+      (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+        (∧ (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B Q) (≡ B Q A P))))
+        (∧ (between A r Q) (between B r P)))
+    ))
+        (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B Q) (≡ B Q A P))))
+        ImplicationReflexivity
+# To construct <code>r</code>, we first need <code>between P A C</code>,
+        (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P)))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        swapBetweennessInConsequent
+# and then <code>between Q B C</code>. Applying <code>Pasch<code> then gives us
+# <code>∃ r (between A r Q ∧ between B r P)</code>.
+        (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P)))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        swapBetweennessInConsequent
+
+        composeConjunction
+
+        P A C Q B r Pasch
+        applySyllogism
+# Moving the quantifier to the start of the consequent we are done.
+        composeConjunction
+
+        r
+          (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A r Q) (between B r P))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (MidpointExistsGivenEquidistant-x ((A x) (B x) (C x) (P x) (Q x) (R x)) ()
+  (→ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∃ x
+      (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+        (∧ (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B Q) (≡ B Q A P))))
+        (∧ (between A R Q) (between B R P)))
+        (∧ (between A x B) (between R x C)))
+    ))
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+        ImplicationReflexivity
+# To construct <code>x</code> we need <code>between C A P</code>
+        (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# and <code>between B R P</code>. Now we apply <code>Pasch</code> to get <code>∃ x (between A x B ∧ between R x C)</code>.
+        (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+        C A P B R x Pasch
+        applySyllogism
+# Moving <code>∃ x</code> to the start of the consequent we are done.
+        composeConjunction
+
+        x
+          (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+          (∧ (between A x B) (between R x C))
+          ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-p-b-q-a () () (
+  → (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+  (≡ P B Q A)
+  )
+# The first thing we need for outer five segment is <code>C ≠ A<code>, which follows from <code>¬ collinear A B C</code>
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A B CollinearityABA
+
+        A EqualityReflexivity
+        B EqualityReflexivity
+        A A B B C A CollinearityBuilder
+        detach2of3
+        detach1of2
+
+        detachImplicationBiconditionalRight
+        introduceTransposition
+
+        applySyllogism
+# The first baseline is <code>between C A P</code>.
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The second baseline is <code>between C B Q</code>.
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The first baseline congruence is <code>C A ≡ C B</code>.
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# The other baseline congruence is <code>A P ≡ B Q</code>
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+
+        composeConjunction
+# The first congruence for the points is <code>C B ≡ C A</code>.
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+
+        composeConjunction
+# The other congruence for the points is <code>A B ≡ B A</code>.
+        A B CongruenceABBA
+        introduceRightConjunctToConsequent
+
+        C A P C B Q B A OuterFiveSegment
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-rprime
+  ((A r′) (B r′) (C r′) (P r′) (Q r′) (R r′) (X r′)) () (
+  → (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+  (∃ r′ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (∧ (between C A P) (¬ (= A P)))
+        (∧ (between C B Q) (≡ B Q A P))))
+      (∧ (between A R Q) (between B R P)))
+      (∧ (between A X B) (between R X C)))
+    (∧ (between A r′ Q) (≅ B R P A r′ Q)))
+  ))
+# We construct <code>r′</code> using <code>InnerDegenerateTriangle</code>. To do so, first we need <code>between B R P</code>,
+        (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+          (∧ (∧ (between C A P) (¬ (= A P)))
+            (∧ (between C B Q) (≡ B Q A P))))
+          (∧ (between A R Q) (between B R P)))
+          (∧ (between A X B) (between R X C))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# and then <code>B P ≡ A Q</code>.
+        A B C P Q R X MidpointExistsGivenEquidistant-p-b-q-a
+        commuteCongruenceInConsequent
+        composeConjunction
+
+        B R P A Q r′ InnerDegenerateTriangle
+        applySyllogism
+
+        repeatAntecedentThereExists
+ )
+thm (MidpointExistsGivenEquidistant-b-r-p-a-rprime-q
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (∧ (∧ (∧ (between B R P) (between A R′ Q)) (≡ B P A Q)) (≡ R P R′ Q))
+  )
+# <code>between B R P</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# <code>between A R′ Q</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+# The first baseline congruence is <code>B P ≡ A Q</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+
+        A B C P Q R X MidpointExistsGivenEquidistant-p-b-q-a
+        applySyllogism
+
+        commuteCongruenceInConsequent
+        composeConjunction
+# The second baseline congruence is <code>R P ≡ R′ Q</code>, which follows from <code>B R P ≅ A R′ Q</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        B R P A R′ Q Congruence23
+        applySyllogism
+        composeConjunction
+ )
+
+thm (MidpointExistsGivenEquidistant-r-a-rprime-b
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ R A R′ B)
+  )
+# We've already proved what we need for the baselines:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-b-r-p-a-rprime-q
+# The first point congruence is <code>B A ≡ A B</code>.
+        B A CongruenceABBA
+        introduceRightConjunctToConsequent
+# The second point congruence is <code>P A ≡ Q B</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        swapCongruenceInConsequent
+        commuteCongruenceInConsequent
+        composeConjunction
+
+        B R P A R′ Q A B InnerFiveSegment
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-q-r-p-rprime
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ Q R P R′)
+  )
+# We've already proved what we need for the baselines:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-b-r-p-a-rprime-q
+# The first congruence for the non-baseline points is <code>B Q ≡ A P</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+# The other congruence for the non-baseline points is <code>P Q ≡ Q P</code>.
+        P Q CongruenceABBA
+        introduceRightConjunctToConsequent
+# Inner five segment then gives us <code>R Q ≡ R′ P</code>, which only needs to be commuted.
+        B R P A R′ Q Q P InnerFiveSegment
+        applySyllogism
+        commuteCongruenceInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-a-r-q-b-rprime-p
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≅ A R Q B R′ P)
+  )
+# <code>A R ≡ B R′</code>:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-r-a-rprime-b
+        commuteCongruenceInConsequent
+
+# <code>A Q ≡ B P</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+
+        A B C P Q R X MidpointExistsGivenEquidistant-p-b-q-a
+        swapCongruenceInConsequent
+        commuteCongruenceInConsequent
+        applySyllogism
+        composeConjunction
+
+# <code>R Q ≡ R′ P</code>:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-q-r-p-rprime
+        commuteCongruenceInConsequent
+        composeConjunction
+ )
+
+thm (MidpointExistsGivenEquidistant-b-rprime-p
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (collinear B R′ P)
+  )
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A R Q BetweennessCollinearity
+        applySyllogism
+
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-a-r-q-b-rprime-p
+        composeConjunction
+
+        A R Q B R′ P CollinearityDegenerateTriangle
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-b-p
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= B P))
+  )
+# At the end of the proof we'll need <code>¬ collinear A B C<code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# Sooner than that we'll need <code>collinear A P C<code>, which follows from <code>between C A P</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        C A P BetweennessCollinearity
+        applySyllogism
+
+        C A P CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+# We take the substitution <code>B = P → (collinear A B C ↔ collinear A P C)</code>,
+        A EqualityReflexivity
+        C EqualityReflexivity
+        A A B P C C CollinearityBuilder
+        detach2of2
+        detach1of2
+# detach the <code>collinear A P C</code>,
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+        applySyllogism
+# transpose to <code>¬ collinear A B C → B ≠ P</code>,
+        (= B P) (collinear A B C) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+# and detach <code>¬ collinear A B C</code>.
+        applyModusPonensInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-b-q
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= B Q))
+  )
+# We pick out <code>A ≠ P</code> for later use,
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# and do the same for <code>B Q ≡ A P</code>
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+# Then we take <code>B = Q ∧ B Q ≡ A P → A = P</code> and detach the <code>B Q ≡ A P</code>.
+        B Q A P CongruenceIdentityFromEquality
+        export
+        applyComm
+        applySyllogism
+# Transposing and detaching <code>A ≠ P</code> gives us <code>B ≠ Q</code>.
+        (= B Q) (= A P) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+        applyModusPonensInConsequent
+ )
+
+thm (MidpointExistsGivenEquidistant-a-q-b
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (collinear A Q B))
+  )
+# We'll start with putting several things on the proof stack which we'll use later in the proof. The first one is <code>¬ collinear B C A</code>
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A B C CollinearityRotation
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>collinear B Q C</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        C B Q BetweennessCollinearity
+        applySyllogism
+
+        C B Q CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+# Next is <code>B ≠ Q</code>.
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-b-q
+# Now we take <code>B ≠ Q ∧ collinear B Q C ∧ collinear B Q A → collinear B C A</code> and detach the first two conjuncts.
+        B Q C A CollinearityOuterTransitivity
+        export
+        export
+        applySyllogism
+        applyModusPonensInConsequent
+# Transposing and detaching gives us <code>¬ collinear B Q A</code>.
+        (collinear B Q A) (collinear B C A) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applyModusPonensInConsequent
+# We just need to rearrange that into <code>¬ collinear A Q B</code>
+        B Q A Collinearity13
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-r-rprime
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (= R R′)
+  )
+# The proof is via <code>LineIntersection</code> on the lines <code>A Q</code> and <code>B P</code>. First we need <code>¬ collinear A Q B</code>.
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-a-q-b
+# <code>B ≠ P</code>:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-b-p
+        composeConjunction
+# <code>collinear A Q R</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A R Q BetweennessCollinearity
+        applySyllogism
+
+        A R Q Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# <code>collinear A Q R′</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        A R′ Q BetweennessCollinearity
+        applySyllogism
+
+        A R′ Q Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# <code>collinear B P R</code>:
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        B R P BetweennessCollinearity
+        applySyllogism
+
+        B R P Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# <code>collinear B P R′</code>:
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-b-rprime-p
+
+        B R′ P Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Applying <code>LineIntersection</code> we are done.
+        A Q B P R R′ LineIntersection
+        applySyllogism
+ )
+thm (MidpointExistsGivenEquidistant-a-r-r-b
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ A R R B)
+  )
+# First we put <code>B R ≡ A R′</code> on the stack for use a bit later.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        B R P A R′ Q Congruence12
+        applySyllogism
+# Next is <code>R = R′</code>.
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-r-rprime
+# <code>R = R′ → (B R ≡ A R ↔ B R ≡ A R′)</code>:
+        R EqualityReflexivity
+        A EqualityReflexivity
+        B EqualityReflexivity
+        B B R R A A R R′ CongruenceBuilder
+        detach1of4
+        detach2of3
+        detach1of2
+# Combining those pieces we get <code>B R ≡ A R</code>,
+        applySyllogism
+        eliminateBiconditionalForwardInConsequent
+        applyModusPonensInConsequent
+# which we rearrange to <code>A R ≡ R B</code>.
+        swapCongruenceInConsequent
+        commuteCongruenceRightInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-c-r
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= C R))
+  )
+# At the end of the proof we'll need <code>¬ collinear A B C</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# We start with <code>between C X R</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        swapBetweennessInConsequent
+# Next is <code>between C X R → (C = R → C = X)</code>, which follows from <code>C = R ∧ between C X R → C = X</code> and some rearrangement.
+        C R X IndivisibilityFromEquality
+        export
+        applyComm
+# Combining those we get <code>C = R → C = X</code>.
+        applySyllogism
+# Leaving that on the stack for a while, we go to <code>between A X B</code>.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# <code>C = X → (between A C B ↔ between A X B)</code>:
+        A EqualityReflexivity
+        B EqualityReflexivity
+        A A C X B B BetweennessBuilder
+        detach2of2
+        detach1of2
+# Now we detach the <code>between A X B</code>.
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+        applySyllogism
+# We have <code>C = X</code> implies <code>between A C B</code>, which in implies <code>collinear A B C</code>.
+        import
+
+        A C B BetweennessCollinearity
+
+        A C B Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        applySyllogism
+        export
+# Combining this with <code>C = R → C = X</code> gives us <code>C = R → collinear A B C</code>.
+        applySyllogismInConsequent
+# Now we pick up <code>¬ collinear A B C</code> from the proof stack and conclude <code>C ≠ R</code>.
+        introduceTranspositionInConsequent
+        applyModusPonensInConsequent
+ )
+thm (MidpointExistsGivenEquidistant-x-midpoint
+  () () (
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (is-midpoint-of X A B)
+  )
+# The first half of <code>X is-midpoint-of A B</code> is <code>between A X B</code>, which is true by construction.
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# The other half is <code>A X ≡ X B</code>. We will conclude <code>X A ≡ X B</code> by <code>EquidistantLine</code> (noting that each of <code>C</code> and <code>R</code> are equidistant from <code>A</code> and <code>B</code>, and <code>X</code> is on the same line). First we need  <code>C ≠ R</code>.
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-c-r
+# Next is <code>collinear C R X</code>
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        R X C BetweennessCollinearity
+        applySyllogism
+
+        C R X CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+# Now we just need equidistance to the two known points, first <code>C A ≡ C B</code>,
+        (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+            (∧ (∧ (between C A P) (¬ (= A P)))
+              (∧ (between C B Q) (≡ B Q A P))))
+            (∧ (between A R Q) (between B R P)))
+            (∧ (between A X B) (between R X C)))
+          (∧ (between A R′ Q) (≅ B R P A R′ Q))
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# and then <code>R A ≡ R B</code>.
+        A B C P Q R X R′ MidpointExistsGivenEquidistant-a-r-r-b
+        commuteCongruenceLeftInConsequent
+
+        composeConjunction
+# Applying <code>EquidistantLine</code> gives us <code>X A ≡ X B</code> which we commute to <code>A X ≡ X B</code>, and that's all we need for <code>X is-midpoint-of A B</code>.
+        C R X A B EquidistantLine
+        applySyllogism
+        commuteCongruenceLeftInConsequent
+
+        composeConjunction
+ )
+thm (MidpointExistsGivenEquidistant-noncollinear
+  ((A x) (B x) (C x)
+
+         
+       
+     
+         
+   ) ()
+  (→ (∧ (¬ (collinear A B C)) (≡ C A C B)) (∃ x (is-midpoint-of x A B)))
+        A B C p MidpointExistsGivenEquidistant-p
+
+        A B C p q MidpointExistsGivenEquidistant-q
+        p addThereExists
+        applySyllogism
+
+        A B C p q r MidpointExistsGivenEquidistant-r
+        q addThereExists
+        p addThereExists
+        applySyllogism
+
+        A B C p q r x MidpointExistsGivenEquidistant-x
+        r addThereExists
+        q addThereExists
+        p addThereExists
+        applySyllogism
+
+        A B C p q r x r′ MidpointExistsGivenEquidistant-rprime
+        x addThereExists
+        r addThereExists
+        q addThereExists
+        p addThereExists
+        applySyllogism
+
+        A B C p q r x r′
+          MidpointExistsGivenEquidistant-x-midpoint
+        r′ addThereExists
+        removeThereExistsInConsequent
+        x addThereExists
+        r addThereExists
+        q addThereExists
+        p addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+        removeThereExistsInConsequent
+ )
+
+thm (MidpointExistsGivenEquidistant ((A x) (B x) (C x)) ()
+  (→ (≡ C A C B) (∃ x (is-midpoint-of x A B)))
+        A B C x MidpointExistsGivenEquidistant-collinear
+        export
+
+        A B C x MidpointExistsGivenEquidistant-noncollinear
+        export
+
+        eliminateCases
+ )
+export (RESULTS Midpoint.ghi (CLASSICAL FIRSTORDER) "")
+export (GEOMETRY Basic_geometry.ghi (CLASSICAL FIRSTORDER) "")
