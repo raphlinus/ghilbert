@@ -1,0 +1,368 @@
+{{interfaces
+| imports = [[Interface:Symmetric point]]
+| exports = [[Interface:Midpoint]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page proves various results involving the midpoint of a line segment. We don't yet prove the existence of a midpoint (that's in the next chapter).
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Symmetric point|geometry results so far]] and define some variables:
+
+== Midpoint builder ==
+This is the proposition that equals can be substituted for equals, in the context of {{{is-midpoint-of}}}. It follows directly from the builders for betweenness and line segment congruence.<ref>not in Narboux</ref>
+* #(→ (∧ (∧ (= M M′) (= A A′)) (= B B′))
+  (↔ (is-midpoint-of M A B) (is-midpoint-of M′ A′ B′)))# ([/general/Midpoint.gh/MidpointBuilder | MidpointBuilder])
+
+== Midpoint is unique ==
+The midpoint of a line segment is unique.<ref>l7_17 in Narboux</ref>
+
+[[File:Proof of midpoint uniqueness.svg|thumb|right]]
+To prove it, start with a line segment {{{P P′}}} which has two midpoints {{{A}}} and {{{B}}}. Our aim is to show that {{{A = B}}}. First construct {{{B′}}}, the symmetric point of {{{B}}} through the point {{{A}}}. Because reflecting through a symmetric point preserves distances, the line segments {{{P B′}}} and {{{B′ P′}}} are congruent to {{{P B}}} and {{{B P′}}}.
+
+Applying {{{BetweennessTwoDistanceUniqueness}}} gives us {{{B = B′}}}. And since {{{B B′}}} is an empty line segment and {{{A}}} is one of its midpoints, then {{{A = B}}}.
+
+To formalize this proof, first we construct the point {{{B′}}}.
+* #(→ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) 
+  (∃ b′ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B b′))))# ([/general/Midpoint.gh/MidpointUniqueness-bprime | MidpointUniqueness-bprime])
+
+Because reflecting about the point {{{A}}} preserves distances, {{{P B ≡ P′ B′}}}.
+* #(→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (≡ P B P′ B′))# ([/general/Midpoint.gh/MidpointUniqueness-p-b-pprime-bprime | MidpointUniqueness-p-b-pprime-bprime])
+
+Similarly, {{{P′ B ≡ P B′}}}.
+* #(→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (≡ P′ B P B′))# ([/general/Midpoint.gh/MidpointUniqueness-pprime-b-p-bprime | MidpointUniqueness-pprime-b-p-bprime])
+* #(→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (= B B′))# ([/general/Midpoint.gh/MidpointUniqueness-b-bprime | MidpointUniqueness-b-bprime])
+
+Because {{{A}}} is between two points which end up being equal ({{{B}}} and {{{B′}}}), we can conclude that {{{A = B}}}.
+* #(→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (is-midpoint-of A B B))# ([/general/Midpoint.gh/MidpointUniqueness-a-b-b | MidpointUniqueness-a-b-b])
+* #(→ (∧ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (is-midpoint-of A B B′)) (= A B))# ([/general/Midpoint.gh/MidpointUniqueness-a-b | MidpointUniqueness-a-b])
+* #(→ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) (= A B))# ([/general/Midpoint.gh/MidpointUniqueness | MidpointUniqueness])
+
+== The equidistant point is the midpoint ==
+A point which is equidistant to the two distinct endpoints of a line segment, and on the same line as them, is the midpoint of that line segment. In symbols, {{{collinear A M B ∧ M A ≡ M B → A = B ∨ M is-midpoint-of A B}}}.<ref>l7_20 in Narboux</ref>
+
+There are three cases based on {{{collinear A M B}}}. The first is {{{between A M B}}} which trivially satisfies the definition of midpoint.
+* #(→ (between A M B) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))# ([/general/Midpoint.gh/EquidistantMidpoint-a-m-b | EquidistantMidpoint-a-m-b])
+
+The second case is {{{between M B A}}}. Because {{{B}}} and {{{A}}} are the same distance from {{{M}}}, they must be the same point. To formalize this, apply inner three segment to {{{between M B A}}} and {{{between M B B}}}, which produces {{{B A ≡ B B}}}.
+* #(→ (between M B A) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))# ([/general/Midpoint.gh/EquidistantMidpoint-m-b-a | EquidistantMidpoint-m-b-a])
+
+The third case is {{{between B A M}}}. Because {{{A}}} and {{{B}}} can be interchanged, it can be proven from the {{{between M B A}}} case. 
+* #(→ (between B A M) (→ (≡ M A M B)
+    (∨ (= A B) (is-midpoint-of M A B))))# ([/general/Midpoint.gh/EquidistantMidpoint-b-a-m | EquidistantMidpoint-b-a-m])
+
+Combining the cases finishes the proof.
+* #(→ (∧ (collinear A M B) (≡ M A M B))
+    (∨ (= A B) (is-midpoint-of M A B)))# ([/general/Midpoint.gh/EquidistantMidpoint | EquidistantMidpoint])
+
+== Diagonals bisect each other ==
+[[File:Proof of lemma l7 21 in Narboux.svg|220px|The proof constructs P′ and shows that P = P′]]
+Given a "parallelogram" (that is, a quadrilateral with opposite sides congruent; we haven't yet developed any theory of parallel lines), the diagonals bisect each other.
+
+First we construct a point {{{p′}}} which is like {{{P}}} but as far from {{{D}}} as {{{P}}} is from {{{B}}}. That is, {{{B D P ≅ D B P′}}}
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+    (∃ p′ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B p′))))# ([/general/Midpoint.gh/ParallelogramDiagonals-pprime | ParallelogramDiagonals-pprime])
+
+The point {{{P′}}} is on the line {{{B D}}}. The proof is by {{{CollinearityDegenerateTriangle}}}, which in this case is {{{collinear B D P ∧ B D P ≅ D B P′ → collinear D B P′}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (collinear D B P′)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-d-b-pprime | ParallelogramDiagonals-d-b-pprime])
+Next is {{{P A ≡ P′ C}}}, which we prove by five segment on baselines {{{B D P}}} and {{{D B P′}}} and points {{{A}}} and {{{C}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≡ P A P′ C)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-p-a-pprime-c | ParallelogramDiagonals-p-a-pprime-c])
+In a very similar manner we prove {{{P C ≡ P′ A}}}, with 
+baselines {{{B D P}}} and {{{D B P′}}} and points {{{C}}} and {{{A}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≡ P C P′ A)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-p-c-pprime-a | ParallelogramDiagonals-p-c-pprime-a])
+Those two congruences suffice to provide {{{A P C ≅ C P′ A}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (≅ A P C C P′ A)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-a-p-c-c-pprime-a | ParallelogramDiagonals-a-p-c-c-pprime-a])
+
+We're ready for {{{P = P′}}}. The proof is by {{{LineIntersection}}}, which in this case expands to {{{¬ collinear A C B ∧ B ≠ D ∧ collinear A C P ∧ collinear A C P′ ∧ collinear B D P ∧ collinear B D P′ → P = P′}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (= P P′)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-p-pprime | ParallelogramDiagonals-p-pprime])
+
+Now that we have {{{P = P′}}} we are mostly there. The next step is showing {{{P is-midpoint-of A C}}}
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (is-midpoint-of P A C)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-p-a-c | ParallelogramDiagonals-p-a-c])
+
+The proof of {{{P is-midpoint-of B D}}} is similar.
+* #(→ (∧ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+      (≅ B D P D B P′))
+    (is-midpoint-of P B D)
+  )# ([/general/Midpoint.gh/ParallelogramDiagonals-p-b-d | ParallelogramDiagonals-p-b-d])
+
+Now we are ready to combine this with the construction of {{{P′}}} to produce our result.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (¬ (= B D)))
+      (≡ A B C D)) (≡ B C D A))
+      (collinear A P C)) (collinear B P D))
+    (∧ (is-midpoint-of P A C) (is-midpoint-of P B D)))# ([/general/Midpoint.gh/ParallelogramDiagonals | ParallelogramDiagonals])
+
+== Joining the midpoints ==
+[[File:Lemma l7_22 in Narboux.svg|thumb|right]]
+This one may be hard to describe in a single sentence. The theorem is that given the configuration shown in the diagram, the point {{{C}}} is on the line segment connecting the midpoints {{{M1}}} and {{{M2}}}. In symbols, {{{between A1 C A2 ∧ between B1 C B2 ∧ C A1 ≡ C B1 ∧ C A2 ≡ C B2 ∧ M1 is-midpoint-of A1 B1 ∧ M2 is-midpoint-of A2 B2 → between M1 C M2{{{.<ref>l7_22 in Narboux</ref>
+
+The proof starts by assuming, without loss of generality, that {{{C A1 ≤ C A2}}}.<ref>l7_22_aux in Narboux</ref>
+
+For now, we omit the (lengthy) proof here, as we don't yet need it.
+
+== Existence of the midpoint (given a point equidistant) ==
+If there is a point equidistant from the endpoints of a line segment, there exists a midpoint of the line segment. In symbols, {{{C A ≡ C B → ∃ x x is-midpoint-of A B{{{. <ref>l7_25 in Narboux</ref> In a future chapter, we will be able to remove the hypothesis and just prove that the midpoint always exists, but this result is one of the steps on the way towards that proof.
+
+First, we take care of a trivial case, in which {{{A}}}, {{{B}}}, and {{{C}}} are collinear. This case has two cases, the first of which is {{{A = B}}}.
+* #(→ (∧ (∧ (collinear A B C) (≡ C A C B)) (= A B)) (∃ x (is-midpoint-of x A B)))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-a-b | MidpointExistsGivenEquidistant-a-b])
+
+The other collinear case is {{{C is-midpoint-of A B}}}, which is even simpler ({{{C}}} is the desired midpoint).
+* #(→
+    (∧ (∧ (collinear A B C) (≡ C A C B)) (is-midpoint-of C A B)) (∃ x (is-midpoint-of x A B)))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-c-a-b | MidpointExistsGivenEquidistant-c-a-b])
+
+Now we are ready for the collinear case itself.
+* #(→ (∧ (collinear A B C) (≡ C A C B)) (∃ x (is-midpoint-of x A B)))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-collinear | MidpointExistsGivenEquidistant-collinear])
+
+[[File:Proof of lemma l7_25 in Narboux.svg|construction of {{{P}}}, {{{Q}}}, {{{R}}}, and {{{X}}}]]
+We have already handled the case in which {{{A}}}, {{{B}}}, and {{{C}}} are collinear, so assume they are non-collinear for the rest of the proof. Next extend line segment {{{C A}}} to a distinct point {{{P}}} and extend line segment {{{C B{{{ by the same distance to a point {{{Q}}}. Let {{{R}}} be the intersection of {{{A Q}}} and {{{B P}}}. Then let {{{X}}} be the intersection of {{{A B}}} and {{{C R}}}.
+
+Our plan is to show that {{{X}}} is the midpoint of {{{A B}}}. To do so, we'll prove {{{A R ≡ B R}}}, so {{{EquidistantLine}}} will give us {{{A X ≡ B X}}}.
+
+We first construct {{{P}}} and {{{Q}}}.
+* #(→ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∃ p (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (between C A p) (¬ (= A p)))))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-p | MidpointExistsGivenEquidistant-p])
+* #(→ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B)) (∧ (between C A P) (¬ (= A P))))
+  (∃ q
+    (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B q) (≡ B q A P))))
+      ))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-q | MidpointExistsGivenEquidistant-q])
+* #(→ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+    (∧ (between C B Q) (≡ B Q A P)))
+    )
+    (∃ r
+      (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+        (∧ (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B Q) (≡ B Q A P))))
+        (∧ (between A r Q) (between B r P)))
+    ))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-r | MidpointExistsGivenEquidistant-r])
+* #(→ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∃ x
+      (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+        (∧ (∧ (between C A P) (¬ (= A P)))
+          (∧ (between C B Q) (≡ B Q A P))))
+        (∧ (between A R Q) (between B R P)))
+        (∧ (between A x B) (between R x C)))
+    ))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-x | MidpointExistsGivenEquidistant-x])
+
+[[File:Proof of lemma l7_25 in Narboux.svg|P B ≡ Q A]]
+The next step is showing that {{{P B ≡ Q A}}}. This by outer five segment on baselines {{{C A P}}} and {{{C B Q}}} and points {{{B}}} and {{{A}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+  (≡ P B Q A)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-p-b-q-a | MidpointExistsGivenEquidistant-p-b-q-a])
+
+Now we construct a point {{{r′}}} which is at a point along the line segment {{{A Q}}} corresponding to where {{{R}}} is along {{{B P}}}. We'll be trying to show that {{{r′{{{ in fact equals {{{R}}}, but first we need to construct it.
+* #(
+  → (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+  (∃ r′ (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (∧ (between C A P) (¬ (= A P)))
+        (∧ (between C B Q) (≡ B Q A P))))
+      (∧ (between A R Q) (between B R P)))
+      (∧ (between A X B) (between R X C)))
+    (∧ (between A r′ Q) (≅ B R P A r′ Q)))
+  ))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-rprime | MidpointExistsGivenEquidistant-rprime])
+
+We next prove {{{R A ≡ R′ B}}} via inner five segment with baselines {{{B R P}}} and {{{A R′ Q}}} and points {{{A}}} and {{{B}}}.
+
+Because we will re-use the same baselines a little later, it is convenient to move the portion of the proof regarding the baselines into a lemma.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (∧ (∧ (∧ (between B R P) (between A R′ Q)) (≡ B P A Q)) (≡ R P R′ Q))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-b-r-p-a-rprime-q | MidpointExistsGivenEquidistant-b-r-p-a-rprime-q])
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ R A R′ B)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-r-a-rprime-b | MidpointExistsGivenEquidistant-r-a-rprime-b])
+
+Next we apply inner five segment with baselines {{{B R P}}} and {{{A R′ Q}}} and points {{{Q}}} and {{{P}}} to give {{{Q R ≡ P R′}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ Q R P R′)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-q-r-p-rprime | MidpointExistsGivenEquidistant-q-r-p-rprime])
+
+[[File:Proof of lemma l7_25 in Narboux.svg|Proving collinear B R′ P gets us close to R = R′]]
+The last two congruences gives us what we need for {{{A R Q ≅ B R′ P}}}, which in turn implies {{{collinear B R′ P{{{.  Looking at the diagram it should be clear that {{{R′}}} has little hope of remaining different from {{{R}}}, although we are still a few steps from proving that {{{R = R′}}}.
+
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≅ A R Q B R′ P)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-a-r-q-b-rprime-p | MidpointExistsGivenEquidistant-a-r-q-b-rprime-p])
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (collinear B R′ P)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-b-rprime-p | MidpointExistsGivenEquidistant-b-rprime-p])
+
+We're getting closer to proving {{{R = R′}}} via {{{LineIntersection}}} (which says that the intersection of two lines is unique, if we rule out some degenerate cases). Next we need {{{B ≠ P}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= B P))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-b-p | MidpointExistsGivenEquidistant-b-p])
+
+The last thing we need to be ready to apply {{{LineIntersection}}} is {{{¬ collinear A Q B}}}. We will show {{{collinear A Q B → collinear A B C}}} by {{{CollinearityOuterTransitivity}}} on {{{B Q C}}} and {{{B Q A}}}. Here our proof seems to be streamlined from Narboux's, which applies {{{CollinearityOuterTransitivity}}} four times, not just one (TODO: re-check this statement when we're done with MidpointExistsGivenEquidistant).
+
+The first part is {{{B ≠ Q}}}.
+
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= B Q))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-b-q | MidpointExistsGivenEquidistant-b-q])
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (collinear A Q B))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-a-q-b | MidpointExistsGivenEquidistant-a-q-b])
+
+It is now time for {{{R = R′}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (= R R′)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-r-rprime | MidpointExistsGivenEquidistant-r-rprime])
+
+Now that we have {{{R = R′}}} we are in the home stretch. {{{A R ≡ R B}}} is next.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (≡ A R R B)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-a-r-r-b | MidpointExistsGivenEquidistant-a-r-r-b])
+
+[[File:Proof of lemma l7_25 in Narboux.svg|since {{{C}}} and {{{R}}} are equidistant from {{{A}}} and {{{B}}}, so is {{{X}}}]]
+We're almost ready to apply {{{EquidistantLine}}}. We still need {{{C ≠ R}}}, though. If {{{C}}} were equal to {{{R}}}, then {{{between R X C}}} would imply that {{{C = X}}}, and {{{between A X B}}} would imply {{{collinear A B C}}}, which is a contradiction.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (¬ (= C R))
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-c-r | MidpointExistsGivenEquidistant-c-r])
+
+We're now ready to conclude {{{X is-midpoint-of A B}}}.
+* #(
+  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+    (∧ (∧ (between C A P) (¬ (= A P)))
+      (∧ (between C B Q) (≡ B Q A P))))
+    (∧ (between A R Q) (between B R P)))
+    (∧ (between A X B) (between R X C)))
+    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+    (is-midpoint-of X A B)
+  )# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-x-midpoint | MidpointExistsGivenEquidistant-x-midpoint])
+
+A bit of logic finishes the proof.
+* #(→ (∧ (¬ (collinear A B C)) (≡ C A C B)) (∃ x (is-midpoint-of x A B)))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant-noncollinear | MidpointExistsGivenEquidistant-noncollinear])
+* #(→ (≡ C A C B) (∃ x (is-midpoint-of x A B)))# ([/general/Midpoint.gh/MidpointExistsGivenEquidistant | MidpointExistsGivenEquidistant])
+
+== Export ==
+We now export to [[Interface:Midpoint]].
+
+Also, we export to [[Interface:Basic geometry]] since it hasn't yet been updated for anything after this point.
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]
