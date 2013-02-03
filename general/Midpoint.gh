@@ -196,6 +196,10 @@ thm (EquidistantMidpoint-a-m-b () ()
         eliminateBiconditionalReverse
         (between A M B) conjoinLL
 
+        M A B Is-midpoint-of
+        eliminateBiconditionalForward
+        applySyllogism
+
         (is-midpoint-of M A B) (= A B) DisjunctionLeftIntroduction
         applySyllogism
 
@@ -253,12 +257,17 @@ thm (EquidistantMidpoint-b-a-m () ()
 thm (EquidistantMidpoint () ()
   (→ (∧ (collinear A M B) (≡ M A M B))
     (∨ (= A B) (is-midpoint-of M A B)))
+        A M B Collinear
+        eliminateBiconditionalReverse
+
         A M B EquidistantMidpoint-a-m-b
         M B A EquidistantMidpoint-m-b-a
         composeDisjunction
 
         B A M EquidistantMidpoint-b-a-m
         composeDisjunction
+
+        applySyllogism
 
         import
  )
