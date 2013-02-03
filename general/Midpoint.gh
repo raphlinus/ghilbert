@@ -3,8 +3,8 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Symmetric_point.ghi (CLASSICAL FIRSTORDER) "")
 
-tvar (point A B C D E F M P Q R S X Y Z)
-tvar (point A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
+tvar (object A B C D E F M P Q R S X Y Z)
+tvar (object A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
 var (object a a′ b b′ c c′ d d′ e e′ f p p′ q r r′ x x′ y y′ z)
 thm (MidpointBuilder () () (→ (∧ (∧ (= M M′) (= A A′)) (= B B′))
   (↔ (is-midpoint-of M A B) (is-midpoint-of M′ A′ B′)))
@@ -39,6 +39,12 @@ thm (MidpointBuilder () () (→ (∧ (∧ (= M M′) (= A A′)) (= B B′))
         applySyllogism
 
         buildConjunctionInConsequent
+
+        M A B Is-midpoint-of
+        M′ A′ B′ Is-midpoint-of
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
  )
 thm (MidpointUniqueness-bprime ((A b′) (B b′) (P b′) (P′ b′)) ()
   (→ (∧ (is-midpoint-of A P P′) (is-midpoint-of B P P′)) 
