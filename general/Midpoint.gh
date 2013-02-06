@@ -1251,6 +1251,10 @@ thm (MidpointExistsGivenEquidistant-a-r-q-b-rprime-p
         A B C P Q R X R′ MidpointExistsGivenEquidistant-q-r-p-rprime
         commuteCongruenceInConsequent
         composeConjunction
+
+        A R Q B R′ P TriangleCongruence
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (MidpointExistsGivenEquidistant-b-rprime-p
@@ -1658,14 +1662,14 @@ thm (MidpointExistsGivenEquidistant-c-r
         introduceTranspositionInConsequent
         applyModusPonensInConsequent
  )
-thm (MidpointExistsGivenEquidistant-x-midpoint
-  () () (
-  → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
-    (∧ (∧ (between C A P) (¬ (= A P)))
-      (∧ (between C B Q) (≡ B Q A P))))
-    (∧ (between A R Q) (between B R P)))
-    (∧ (between A X B) (between R X C)))
-    (∧ (between A R′ Q) (≅ B R P A R′ Q)))
+thm (MidpointExistsGivenEquidistant-x-midpoint () ()
+  (
+    → (∧ (∧ (∧ (∧ (∧ (¬ (collinear A B C)) (≡ C A C B))
+      (∧ (∧ (between C A P) (¬ (= A P)))
+        (∧ (between C B Q) (≡ B Q A P))))
+      (∧ (between A R Q) (between B R P)))
+      (∧ (between A X B) (between R X C)))
+      (∧ (between A R′ Q) (≅ B R P A R′ Q)))
     (is-midpoint-of X A B)
   )
 # The first half of <code>X is-midpoint-of A B</code> is <code>between A X B</code>, which is true by construction.
@@ -1724,15 +1728,13 @@ thm (MidpointExistsGivenEquidistant-x-midpoint
         commuteCongruenceLeftInConsequent
 
         composeConjunction
+
+        X A B Is-midpoint-of
+        eliminateBiconditionalForward
+        applySyllogism
  )
 thm (MidpointExistsGivenEquidistant-noncollinear
-  ((A x) (B x) (C x)
-
-         
-       
-     
-         
-   ) ()
+  ((A x) (B x) (C x)) ()
   (→ (∧ (¬ (collinear A B C)) (≡ C A C B)) (∃ x (is-midpoint-of x A B)))
         A B C p MidpointExistsGivenEquidistant-p
 
