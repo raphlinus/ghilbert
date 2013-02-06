@@ -4,13 +4,31 @@ import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Midpoint.ghi (CLASSICAL FIRSTORDER) "")
 
 tvar (formula antecedent)
-tvar (point A B C D E F M P Q R S X Y Z)
-tvar (point A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
-tvar (point C″)
+tvar (object A B C D E F M P Q R S X Y Z)
+tvar (object A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
+tvar (object C″)
 var (object a a′ b b′ c c′ c″ d d′ e e′ f p p′ q r r′ u u′ v v′ x x′ y y′ z)
-defthm (Is-right-angle formula (is-right-angle A B C) () () (↔ (is-right-angle A B C) (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
-        (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))) BiconditionalReflexivity
+
+defthm (Is-right-angle formula (is-right-angle A B C) ((A c′) (C c′) (B c′)) ()
+  (↔ (is-right-angle A B C) (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
+        B EqualityReflexivity
+        C EqualityReflexivity
+        B B C C c c′ MidpointBuilder
+        detach2of3
+        detach1of2
+
+        A EqualityReflexivity
+        C EqualityReflexivity
+        A EqualityReflexivity
+        A A C C A A c c′ CongruenceBuilder
+        detach1of4
+        detach1of3
+        detach1of2
+
+        buildConjunctionInConsequent
+        ChangeVariableThereExists
 )
+
 thm (RightAngle ((A c′) (B c′) (C c′)     ) ()
   (↔ (is-right-angle A B C)
     (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
