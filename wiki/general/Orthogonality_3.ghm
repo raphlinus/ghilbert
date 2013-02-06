@@ -1,0 +1,66 @@
+{{interfaces
+| imports = [[Interface:Orthogonality 2]]
+| exports = none yet
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page is one of several involving perpendicular lines. We start with some theorems about the {{{⟂}}} (is perpendicular) predicate.
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Orthogonality 1|geometry results so far]] and define some variables:
+
+== Perpendicular lines ==
+Saying that lines are perpendicular at a point is the main step towards saying those lines are perpendicular. The connection is pretty simple: {{{A B ⟂ C D}}} is defined as {{{∃ x A B C D ⟂at x}}}.
+
+=== Theorem form of the definition ===
+As usual, we need a theorem corresponding to the definition.
+* #(↔ (⟂ A B C D) (∃ x (⟂at A B C D x)))# ([/general/Orthogonality_3.gh/Perpendicular | Perpendicular])
+
+=== No line is perpendicular to itself ===
+Here we show {{{¬ A B ⟂ A B}}}. The interesting part of the proof was already done as {{{PerpendicularIrreflexivityAt}}}.<ref>l8_14_1 in Narboux</ref>
+* #(¬ (⟂ A B A B))# ([/general/Orthogonality_3.gh/PerpendicularIrreflexivity | PerpendicularIrreflexivity])
+
+=== Being perpendicular at any point implies being perpendicular ===
+That is, {{{A B C D ⟂at X → A B ⟂ C D}}}.<ref>l8_14_2_1a in Narboux</ref>
+* #(→ (⟂at A B C D X) (⟂ A B C D))# ([/general/Orthogonality_3.gh/PerpendicularAtPerpendicular | PerpendicularAtPerpendicular])
+
+=== Uniqueness of intersection point ===
+If two lines are perpendicular at a point, they intersect only at that point. In symbols, {{{A B C D ⟂at X ∧ collinear Y A B ∧ collinear Y C D → X = Y}}}.<ref>l8_14_2_1b in Narboux</ref>
+
+To prove this we first show {{{is-right-angle Y X Y}}} which follows directly from the {{{∀ p ∀ q (collinear p A B ∧ collinear q C D → is-right-angle p X q)}}} part of {{{PerpendicularAt}}}.
+* #(→ (∧ (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D)) (is-right-angle Y X Y))# ([/general/Orthogonality_3.gh/PerpendicularAtUniqueIntersection-Y-X-Y | PerpendicularAtUniqueIntersection-Y-X-Y])
+
+From {{{is-right-angle Y X Y}}}, it is a short step to {{{X = Y}}}.
+* #(→ (∧ (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D)) (= X Y))# ([/general/Orthogonality_3.gh/PerpendicularAtUniqueIntersection | PerpendicularAtUniqueIntersection])
+
+=== Perpendicular lines which intersect are perpendicular at that point ===
+If two lines are perpendicular and they intersect at a point, they are perpendicular at that point. In symbols, {{{A B ⟂ C D ∧ collinear X A B ∧ collinear X C D → A B C D ⟂at X}}}.<ref>l8_14_2_1b_bis in Narboux</ref>
+
+The proof is a straightforward application of {{{PerpendicularAtUniqueIntersection{{{. We start with a lemma performing a substitution.
+
+* #(→ (∧ (∧ (⟂at A B C D Y) (collinear X A B)) (collinear X C D)) (⟂at A B C D X))# ([/general/Orthogonality_3.gh/PerpendicularIntersectionPerpendicularAt-1 | PerpendicularIntersectionPerpendicularAt-1])
+* #(→ (∧ (∧ (⟂ A B C D) (collinear X A B)) (collinear X C D))
+    (⟂at A B C D X))# ([/general/Orthogonality_3.gh/PerpendicularIntersectionPerpendicularAt | PerpendicularIntersectionPerpendicularAt])
+
+=== Perpendicular lines which intersect at one point are perpendicular at that point ===
+Here is another theorem which relates being perpendicular to being perpendicular at a point: {{{A B ⟂ C D ∧ ∀ y (collinear y A B ∧ collinear y C D → X = y) → A B C D ⟂at X}}}.<ref>l8_14_2_2 in Narboux</ref>
+
+The proof only relies on {{{PerpendicularAt}}}, the definition of {{{⟂}}}, and logic. Basically, we expand {{{A B ⟂ C D}}} to {{{A B C D ⟂at X0}}}, use the other hypothesis to conclude {{{X = X0}}}, and then substitute to turn {{{A B C D ⟂at X0}}} into {{{A B C D ⟂at X}}}.
+
+* #(→ (⟂at A B C D X0) (∧ (collinear X0 A B) (collinear X0 C D)))# ([/general/Orthogonality_3.gh/PerpendicularUniqueIntersectionPerpendicularAt-collinear | PerpendicularUniqueIntersectionPerpendicularAt-collinear])
+* #(→ (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y)))
+  (→ (∧ (collinear X0 A B) (collinear X0 C D)) (= X X0)))# ([/general/Orthogonality_3.gh/PerpendicularUniqueIntersectionPerpendicularAt-subst | PerpendicularUniqueIntersectionPerpendicularAt-subst])
+* #(→ (∧ (⟂at A B C D X0) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (= X X0))# ([/general/Orthogonality_3.gh/PerpendicularUniqueIntersectionPerpendicularAt-x-x0 | PerpendicularUniqueIntersectionPerpendicularAt-x-x0])
+* #(→ (∧ (⟂at A B C D X0) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (⟂at A B C D X))# ([/general/Orthogonality_3.gh/PerpendicularUniqueIntersectionPerpendicularAt-x | PerpendicularUniqueIntersectionPerpendicularAt-x])
+* #(→ (∧ (⟂ A B C D) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (⟂at A B C D X))# ([/general/Orthogonality_3.gh/PerpendicularUniqueIntersectionPerpendicularAt | PerpendicularUniqueIntersectionPerpendicularAt])
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

@@ -1,0 +1,282 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START Orthogonality_2.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (point A B C D E F M P Q R S U V X Y Z)
+tvar (point U0 V0 X0)
+tvar (point A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
+tvar (point C″)
+var (object a a′ b b′ c c′ c″ d d′ e e′ f p p′ q r r′ u u′ v v′ w x x′ y y′ z)
+var (object x0 u0 v0)
+defthm (⟂ formula (⟂ A B C D) () () (↔ (⟂ A B C D) (∃ x (⟂at A B C D x)))
+        (∃ x (⟂at A B C D x)) BiconditionalReflexivity
+)
+thm (Perpendicular ((A x x′) (B x x′) (C x x′) (D x x′)) ()
+  (↔ (⟂ A B C D) (∃ x (⟂at A B C D x)))
+        A EqualityReflexivity
+        B EqualityReflexivity
+        C EqualityReflexivity
+        D EqualityReflexivity
+        A A B B C C D D x′ x PerpendicularAtBuilder
+        detach2of3
+        detach2of3
+        detach2of3
+        detach1of2
+
+        ChangeVariableThereExists
+ )
+thm (PerpendicularIrreflexivity () () (¬ (⟂ A B A B))
+        A B x PerpendicularIrreflexivityAt
+        x generalize
+
+        x (⟂at A B A B x) NotThereExists
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (PerpendicularAtPerpendicular (     ) ()
+  (→ (⟂at A B C D X) (⟂ A B C D))
+        A EqualityReflexivity
+        B EqualityReflexivity
+        C EqualityReflexivity
+        D EqualityReflexivity
+        A A B B C C D D x X PerpendicularAtBuilder
+        detach2of3
+        detach2of3
+        detach2of3
+        detach1of2
+
+        makeSubstExplicit
+
+        eliminateBiconditionalForward
+
+        X x (⟂at A B C D x) ThereExistsIntroductionFromObject
+        applySyllogism
+ )
+thm (PerpendicularAtUniqueIntersection-Y-X-Y ( (A q p) (B q p) (C q p) (D q p) (X q p) (Y q p)) ()
+  (→ (∧ (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D)) (is-right-angle Y X Y))
+# Towards the end of the proof, we'll need <code>A B C D ⟂at X ∧ collinear Y A B ∧ collinear Y C D → collinear Y A B ∧ collinear Y C D</code>. So we stick this on the proof stack.
+        (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D) ConjunctionLeftElimination
+
+        composeConjunction
+# Leaving that aside, we now expand <code>⟂at</code> and pick out the part we care about.
+        (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+
+        A B C D X p q PerpendicularAt
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        eliminateLeftConjunctInConsequent
+
+        Y specializeToObjectInConsequent
+# The consequent is now <code>[ Y / p ] ∀ q (collinear p A B ∧ collinear q C D → is-right-angle p X q)</code>, so we next perform the substitution.
+        B EqualityReflexivity
+        A EqualityReflexivity
+        p Y A A B B CollinearityBuilder
+        detach2of3
+        detach2of2
+
+        (collinear q C D) buildConjunctionRRInConsequent
+
+        q EqualityReflexivity
+        X EqualityReflexivity
+        p Y X X q q RightAngleBuilder
+        detach2of3
+        detach2of2
+
+        buildImplicationInConsequent
+
+        q buildForAllInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        Y specializeToObjectInConsequent
+# The consequent is <code>[ Y / q ] (collinear Y A B ∧ collinear q C D → is-right-angle Y X q)</code>, so again we perform the substitution.
+        D EqualityReflexivity
+        C EqualityReflexivity
+        q Y C C D D CollinearityBuilder
+        detach2of3
+        detach2of2
+
+        (collinear Y A B) buildConjunctionLLInConsequent
+
+        Y EqualityReflexivity
+        X EqualityReflexivity
+        Y Y X X q Y RightAngleBuilder
+        detach2of3
+        detach1of2
+
+        buildImplicationInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalReverse
+        applySyllogism
+# Now we have <code>A B C D ⟂at X ∧ collinear Y A B ∧ collinear Y C D → (collinear Y A B ∧ collinear Y C D → is-right-angle Y X Y)</code> and we want something which is similar, but which only mentions each collinearity antecedent once.
+        applyModusPonensInConsequent
+ )
+thm (PerpendicularAtUniqueIntersection () ()
+  (→ (∧ (∧ (⟂at A B C D X) (collinear Y A B)) (collinear Y C D)) (= X Y))
+        A B C D X Y PerpendicularAtUniqueIntersection-Y-X-Y
+
+        Y X RightAngleLegItself
+        applySyllogism
+
+        swapEqualityInConsequent
+ )
+thm (PerpendicularIntersectionPerpendicularAt-1 () ()
+  (→ (∧ (∧ (⟂at A B C D Y) (collinear X A B)) (collinear X C D)) (⟂at A B C D X))
+# We'll put <code>A B C D ⟂at Y</code> on the proof stack for later.
+        (∧ (⟂at A B C D Y) (collinear X A B))
+          (collinear X C D)
+          ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+# We start with <code>Y = X</code>.
+        A B C D Y X PerpendicularAtUniqueIntersection
+# Then <code>Y = X → (A B C D ⟂at Y → A B C D ⟂at X)</code> by a substitution.
+        A EqualityReflexivity
+        B EqualityReflexivity
+        C EqualityReflexivity
+        D EqualityReflexivity
+        A A B B C C D D Y X PerpendicularAtBuilder
+        detach2of3
+        detach2of3
+        detach2of3
+        detach1of2
+        eliminateBiconditionalReverseInConsequent
+
+        applySyllogism
+# That's all we need.
+        applyModusPonensInConsequent
+ )
+
+thm (PerpendicularIntersectionPerpendicularAt
+  (    ) ()
+  (→ (∧ (∧ (⟂ A B C D) (collinear X A B)) (collinear X C D))
+    (⟂at A B C D X))
+# We first expand <code>A B ⟂ C D</code> to <code>∃ y A B C D ⟂at y</code>
+        A B C D y Perpendicular
+        eliminateBiconditionalReverse
+        (collinear X A B) conjoinRR
+        moveRightConjunctIntoThereExistsInConsequent
+        (collinear X C D) conjoinRR
+        moveRightConjunctIntoThereExistsInConsequent
+# Our lemma then gives us <code>A B C D ⟂at X</code>
+        A B C D y X PerpendicularIntersectionPerpendicularAt-1
+        y addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+ )
+thm (PerpendicularUniqueIntersectionPerpendicularAt-collinear
+  ( (A w z) (B w z) (C w z) (D w z) (X0 w z)) ()
+  (→ (⟂at A B C D X0) (∧ (collinear X0 A B) (collinear X0 C D)))
+        A B C D X0 z w PerpendicularAt
+        eliminateBiconditionalReverse
+
+        eliminateRightConjunctInConsequent
+        associateConjunctionRightInConsequent
+        eliminateLeftConjunctInConsequent
+ )
+
+thm (PerpendicularUniqueIntersectionPerpendicularAt-subst
+  ((A y) (B y) (C y) (D y) (X y) (X0 y)) ()
+  (→ (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y)))
+  (→ (∧ (collinear X0 A B) (collinear X0 C D)) (= X X0)))
+        y
+          (→ (∧ (collinear y A B) (collinear y C D)) (= X y))
+          X0
+          SpecializationToObject
+
+        B EqualityReflexivity
+        A EqualityReflexivity
+        y X0 A A B B CollinearityBuilder
+        detach2of3
+        detach2of2
+
+        D EqualityReflexivity
+        C EqualityReflexivity
+        y X0 C C D D CollinearityBuilder
+        detach2of3
+        detach2of2
+
+        buildConjunctionInConsequent
+
+        y X0 X EqualityBuilderLL
+        buildImplicationInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (PerpendicularUniqueIntersectionPerpendicularAt-x-x0
+  ((A y) (B y) (C y) (D y) (X y) (X0 y)) ()
+  (→ (∧ (⟂at A B C D X0) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (= X X0))
+        (⟂at A B C D X0)
+          (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y)))
+          ConjunctionRightElimination
+
+        A B C D X0 PerpendicularUniqueIntersectionPerpendicularAt-collinear
+        applySyllogism
+
+        (⟂at A B C D X0)
+          (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y)))
+          ConjunctionLeftElimination
+
+        y A B C D X X0 PerpendicularUniqueIntersectionPerpendicularAt-subst
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+
+thm (PerpendicularUniqueIntersectionPerpendicularAt-x
+  ((A y) (B y) (C y) (D y) (X y) (X0 y)) ()
+  (→ (∧ (⟂at A B C D X0) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (⟂at A B C D X))
+        (⟂at A B C D X0)
+          (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y)))
+          ConjunctionRightElimination
+
+        A B C D X0 y X PerpendicularUniqueIntersectionPerpendicularAt-x-x0
+
+        A EqualityReflexivity
+        B EqualityReflexivity
+        C EqualityReflexivity
+        D EqualityReflexivity
+        A A B B C C D D X X0 PerpendicularAtBuilder
+        detach2of3
+        detach2of3
+        detach2of3
+        detach1of2
+
+        eliminateBiconditionalForwardInConsequent
+        applySyllogism
+
+        applyModusPonensInConsequent
+ )
+
+thm (PerpendicularUniqueIntersectionPerpendicularAt
+  ((A y) (B y) (C y) (D y) (X y)
+        ) ()
+  (→ (∧ (⟂ A B C D) (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))))
+  (⟂at A B C D X))
+        A B C D x0 Perpendicular
+        eliminateBiconditionalReverse
+
+        (∀ y (→ (∧ (collinear y A B) (collinear y C D)) (= X y))) conjoinRR
+        moveRightConjunctIntoThereExistsInConsequent
+
+        A B C D x0 y X
+          PerpendicularUniqueIntersectionPerpendicularAt-x
+        x0 addThereExists
+        applySyllogism
+
+        removeThereExistsInConsequent
+ )
