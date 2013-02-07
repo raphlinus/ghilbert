@@ -107,7 +107,7 @@ thm (RightAngleSymmetry () ()
         C B A RightAngleSymmetryImplication
         introduceBiconditionalFromImplications
  )
-thm (RightAngleLeg (    ) ()
+thm (RightAngleLeg () ()
   (→ (∧ (∧ (is-right-angle A B C) (¬ (= A B))) (collinear B A A′)) (is-right-angle A′ B C))
 # Expanding the definition of <code>is-right-angle A B C</code>, we have <code>∃ c′ (B is-midpoint-of C c′ ∧ A C ≡ A c′)</code>.
         A B C c′ RightAngle
@@ -149,6 +149,11 @@ thm (RightAngleLeg (    ) ()
           ConjunctionRightElimination
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
+
+        B C c′ Is-midpoint-of
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateLeftConjunctInConsequent
         commuteCongruenceLeftInConsequent
         composeConjunction
