@@ -192,8 +192,7 @@ thm (RightAngleSymmetricPoint-cdoubleprime-cprime () ()
         applySyllogism
  )
 
-thm (RightAngleSymmetricPoint
-  (         ) ()
+thm (RightAngleSymmetricPoint () ()
   (→ (∧ (is-right-angle A B C) (is-midpoint-of B C C′)) (is-right-angle A B C′))
 # First we expand the definition of <code>is-right-angle</code> into <code>∃ c″ (B is-midpoint-of C c″ ∧ A C ≡ A c″)</code> and move <code>B is-midpoint-of C C′</code> inside the quantifier.
         A B C c″ RightAngle
@@ -260,8 +259,13 @@ thm (RightAngleSymmetricPoint
         c″ addThereExists
         applySyllogism
         removeThereExistsInConsequent
+
+        A B C′ p RightAngle
+        eliminateBiconditionalForward
+        applySyllogism
  )
-thm (RightAngleABB (  ) () (is-right-angle A B B)
+
+thm (RightAngleABB () () (is-right-angle A B B)
 # Expanding what we are trying to prove from the definition of <code>is-right-angle</code>, we need <code>∃ p (B is-midpoint-of B p ∧ A B ≡ A p)</code>. The point <code>B</code> suffices. So the first step is <code>B is-midpoint-of B B ∧ A B ≡ A B</code>.
         B MidpointReflexivity
         A B CongruenceReflexivity
