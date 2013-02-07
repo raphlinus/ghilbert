@@ -9,7 +9,7 @@ tvar (object A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
 tvar (object C″)
 var (object a a′ b b′ c c′ c″ d d′ e e′ f p p′ q r r′ u u′ v v′ x x′ y y′ z)
 
-defthm (Is-right-angle formula (is-right-angle A B C) ((A c′) (C c′) (B c′)) ()
+defthm (RightAngle formula (is-right-angle A B C) ((A c′) (C c′) (B c′)) ()
   (↔ (is-right-angle A B C) (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
         B EqualityReflexivity
         C EqualityReflexivity
@@ -29,28 +29,6 @@ defthm (Is-right-angle formula (is-right-angle A B C) ((A c′) (C c′) (B c′
         ChangeVariableThereExists
 )
 
-thm (RightAngle ((A c′) (B c′) (C c′)     ) ()
-  (↔ (is-right-angle A B C)
-    (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
-# The left hand side's variable of quantification is implicit, but we can use c″ in this proof.
-# First we need <code>c″ = c′ → (B is-midpoint-of C c″ ↔ B is-midpoint-of C c′)
-        B EqualityReflexivity
-        C EqualityReflexivity
-        B B C C c″ c′ MidpointBuilder
-        detach2of3
-        detach1of2
-# Next is <code>c″ = c′ → (A C ≡ A c″ ↔ A C ≡ A c′)</code>.
-        C EqualityReflexivity
-        A EqualityReflexivity
-        A EqualityReflexivity
-        A A C C A A c″ c′ CongruenceBuilder
-        detach1of4
-        detach2of3
-        detach1of2
-# Combining these two and applying <code>ChangeVariableThereExists</code> we are done.
-        buildConjunctionInConsequent
-        ChangeVariableThereExists
- )
 thm (applyCongruenceTransitivityInConsequent ()
   (H1 (→ antecedent (≡ A B C D)) H2 (→ antecedent (≡ C D E F)))
   (→ antecedent (≡ A B E F))
@@ -102,8 +80,7 @@ thm (RightAngleSymmetryImplicationLemma () ()
         composeConjunction
  )
 
-thm (RightAngleSymmetryImplication
-  (      ) ()
+thm (RightAngleSymmetryImplication () ()
   (→ (is-right-angle A B C) (is-right-angle C B A))
 # First we rewrite <code>is-right-angle A B C</code> to explicitly quantify with the variable <code>c′</code>.
         A B C c′ RightAngle
@@ -118,6 +95,10 @@ thm (RightAngleSymmetryImplication
         c′ addThereExists
         applySyllogism
         removeThereExistsInConsequent
+
+        C B A a′ RightAngle
+        eliminateBiconditionalForward
+        applySyllogism
  )
 
 thm (RightAngleSymmetry () ()
