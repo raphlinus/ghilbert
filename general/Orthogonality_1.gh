@@ -4,10 +4,12 @@ import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (START Midpoint.ghi (CLASSICAL FIRSTORDER) "")
 
 tvar (formula antecedent)
-tvar (object A B C D E F M P Q R S X Y Z)
+tvar (object A B C D E F M P Q R S U V X Y Z)
 tvar (object A′ B′ C′ D′ E′ M′ P′ Q′ R′ S′ X′ Y′)
 tvar (object C″)
+tvar (object U0 V0)
 var (object a a′ b b′ c c′ c″ d d′ e e′ f p p′ q r r′ u u′ v v′ x x′ y y′ z)
+var (object u0 v0)
 
 defthm (RightAngle formula (is-right-angle A B C) ((A c′) (C c′) (B c′)) ()
   (↔ (is-right-angle A B C) (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))
@@ -1689,9 +1691,7 @@ thm (PerpendicularAtThereExists-1
  )
 
 thm (PerpendicularAtThereExists
-  ((A v u) (B v u) (C v u) (D v u) (X v u)
-
-    (A v0 u0) (B v0 u0) (C v0 u0) (D v0 u0) (X v0 u0)) ()
+  ((A v u) (B v u) (C v u) (D v u) (X v u)) ()
   (
     → (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
       (∃ u (∃ v (∧ (∧ (∧ (∧ (collinear u A B) (collinear v C D))
@@ -1710,6 +1710,10 @@ thm (PerpendicularAtThereExists
         u0 addForAllToConsequent
 
         composeConjunction
+
+        A B C D X u0 v0 PerpendicularAt
+        eliminateBiconditionalForward
+        applySyllogism
  )
 thm (PerpendicularAtRightAngle ( (A v u) (B v u) (C v u) (D v u) (X v u)) ()
   (→ (⟂at A B C D X) (is-right-angle A X C))
