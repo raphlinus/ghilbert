@@ -956,6 +956,18 @@ thm (RightAngleCongruence-bprime-not-cprime () ()
         B C B′ C′ NegatedCongruenceIdentityFromEquality
         applySyllogism
  )
+
+thm (concludeBetweenFromMidpointInConsequent () (H (→ antecedent (is-midpoint-of M A B)))
+  (→ antecedent (between A M B))
+        H
+
+        M A B Is-midpoint-of
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        eliminateRightConjunctInConsequent
+)
+
 thm (RightAngleCongruence-d-a-dprime-aprime () ()
   (→ (∧ (∧ (¬ (= B C))
       (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
@@ -983,7 +995,7 @@ thm (RightAngleCongruence-d-a-dprime-aprime () ()
         eliminateLeftConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
-        eliminateRightConjunctInConsequent
+        concludeBetweenFromMidpointInConsequent
 
         composeConjunction
 # <code>between C′ B′ D′</code>:
@@ -992,7 +1004,7 @@ thm (RightAngleCongruence-d-a-dprime-aprime () ()
             (≅ A B C A′ B′ C′)))
           (is-midpoint-of B′ C′ D′)
           ConjunctionLeftElimination
-        eliminateRightConjunctInConsequent
+        concludeBetweenFromMidpointInConsequent
 
         composeConjunction
 # <code>C B ≡ C′ B′</code>:
@@ -1018,6 +1030,11 @@ thm (RightAngleCongruence-d-a-dprime-aprime () ()
         eliminateLeftConjunctInConsequent
         eliminateRightConjunctInConsequent
         eliminateRightConjunctInConsequent
+
+        B C D Is-midpoint-of
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateLeftConjunctInConsequent
         swapCongruenceInConsequent
         commuteCongruenceRightInConsequent
@@ -1039,6 +1056,11 @@ thm (RightAngleCongruence-d-a-dprime-aprime () ()
             (≅ A B C A′ B′ C′)))
           (is-midpoint-of B′ C′ D′)
           ConjunctionLeftElimination
+
+        B′ C′ D′ Is-midpoint-of
+        eliminateBiconditionalReverse
+        applySyllogism
+
         eliminateLeftConjunctInConsequent
         commuteCongruenceLeftInConsequent
         applyCongruenceTransitivityInConsequent
