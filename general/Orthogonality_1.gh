@@ -1780,8 +1780,7 @@ thm (PerpendicularAtRightAngle () ()
         detachImplicationImplication
         detachImplicationImplication
  )
-thm (PerpendicularAtBuilder
-  ( (A v u) (B v u) (C v u) (D v u) (X v u) (A′ v u) (B′ v u) (C′ v u) (D′ v u) (X′ v u)) ()
+thm (PerpendicularAtBuilder () ()
   (→ (∧ (∧ (∧ (∧ (= A A′) (= B B′)) (= C C′)) (= D D′)) (= X X′)) (↔ (⟂at A B C D X) (⟂at A′ B′ C′ D′ X′)))
 # <code>A ≠ B ↔ A′ ≠ B′</code>:
         (∧ (∧ (∧ (= A A′) (= B B′)) (= C C′)) (= D D′))
@@ -1903,12 +1902,19 @@ thm (PerpendicularAtBuilder
         applySyllogism
 
         buildImplicationInConsequent
-# Now we add the quantifiers.
+# Now we add the quantifiers,
         v buildForAllInConsequent
         u buildForAllInConsequent
 
         buildConjunctionInConsequent
+# and apply the definition of ⟂at.
+        A B C D X u v PerpendicularAt
+        A′ B′ C′ D′ X′ u v PerpendicularAt
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
  )
+
 thm (PerpendicularAtLeftCommutativity ( (A v u) (B v u) (C v u) (D v u) (X v u)) ()
   (↔ (⟂at A B C D X) (⟂at B A C D X))
         A B C D X u v PerpendicularAt
