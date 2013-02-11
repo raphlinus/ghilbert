@@ -1,0 +1,493 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (BASIC First_steps_in_set_theory.ghi (CLASSICAL FIRSTORDER) "")
+tvar (object A B C D A0 A1 B0 B1 Z)
+var (object a b x y z w a′ b′ x′ y′ z′)
+tvar (formula φ ψ φx φy antecedent)
+thm (SingletonMembership () () (∈ A (singleton A))
+        A EqualityReflexivity
+
+        A A Singleton
+        eliminateBiconditionalForward
+
+        applyModusPonens
+ )
+thm (UnorderedPairLeftMembership () () (∈ A (unorderedPair A B))
+        A EqualityReflexivity
+        (= A B) introduceRightDisjunction
+
+        A A B UnorderedPair
+        eliminateBiconditionalForward
+
+        applyModusPonens
+ )
+thm (UnorderedPairRightMembership () () (∈ B (unorderedPair A B))
+        B EqualityReflexivity
+        (= B A) introduceLeftDisjunction
+
+        B A B UnorderedPair
+        eliminateBiconditionalForward
+
+        applyModusPonens
+ )
+thm (UnorderedPairCommutativity ( ) () (= (unorderedPair A B) (unorderedPair B A))
+        x A B UnorderedPair
+
+        (= x A) (= x B) DisjunctionCommutativity
+        applyBiconditionalTransitivity
+
+        x B A UnorderedPair
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+thm (UnorderedPairFirstMembersEqual-1 () () (→ (= (unorderedPair A C) (unorderedPair B C)) (∨ (= A B) (= A C)))
+        A C UnorderedPairLeftMembership
+
+        (unorderedPair A C) (unorderedPair B C) A MembershipBuilderLL
+
+        detachImplicationBiconditional
+# That gives us <code>{A, C} = {B, C} → A ∈ {B, C}</code>.
+        A B C UnorderedPair
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (UnorderedPairFirstMembersEqual () () (→ (= (unorderedPair A C) (unorderedPair B C)) (= A B))
+# We apply our lemma once to get <code>{A, C} = {B, C} → A = B ∨ A = C</code>
+        A C B UnorderedPairFirstMembersEqual-1
+
+# Applying the lemma a second time, with some commutations, gives us <code>{A, C} = {B, C} → A = B ∨ B = C</code>
+        (unorderedPair A C) (unorderedPair B C) EqualitySymmetry
+        eliminateBiconditionalReverse
+        B C A UnorderedPairFirstMembersEqual-1
+        applySyllogism
+
+        B A EqualitySymmetry
+        transformImplicationDisjunctionLeft
+# We now combine the two results to get <code>{A, C} = {B, C} → (A = B ∨ A = C) ∧ (A = B ∨ B = C)</code>, and apply distributivity to the right hand side to turn it into <code>A = B ∨ (A = C ∧ B = C)</code>.
+        composeConjunction
+        (= A B) (= A C) (= B C) DisjunctionLeftDistribution
+        eliminateBiconditionalForward
+        applySyllogism
+# We turn <code>A = C ∧ B = C</code> into <code>A = B</code>, and after a bit more rearrangement, we are done.
+        B C EqualitySymmetry
+        eliminateBiconditionalReverse
+        (= A C) conjoinLL
+        A C B EqualityTransitivity
+        applySyllogism
+
+        (= A B) disjoinLL
+        applySyllogism
+
+        (= A B) DisjunctionIdempotence
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (UnorderedPairSecondMembersEqual () () (→ (= (unorderedPair C A) (unorderedPair C B)) (= A B))
+        C A UnorderedPairCommutativity
+        C B UnorderedPairCommutativity
+        buildEquality
+        eliminateBiconditionalReverse
+
+        A C B UnorderedPairFirstMembersEqual
+        applySyllogism
+ )
+thm (SingletonUnorderedPair ( ) ()
+  (= (singleton A) (unorderedPair A A))
+        x A Singleton
+
+        (= x A) DisjunctionIdempotence
+        applyBiconditionalTransitivity
+
+        x A A UnorderedPair
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+thm (SeparationBuilder ((A x) (B x)      ) ()
+  (→ (∧ (= A B) (∀ x (↔ φ ψ))) (= (separate x A φ) (separate x B ψ)))
+# To apply extensionality, we want <code>y ∈ { x ∈ A | φ } ↔ y ∈ { x ∈ B | ψ }</code>. The first step in that direction will be <code>y ∈ A ↔ y ∈ B</code>.
+        (= A B) (∀ x (↔ φ ψ)) ConjunctionRightElimination
+        A B y MembershipBuilderLL
+        applySyllogism
+# Next is <code>[ y / x ] φ ↔ [ y / x ] ψ</code>
+        (= A B) (∀ x (↔ φ ψ)) ConjunctionLeftElimination
+        x φ ψ y SubstBuilder
+        applySyllogism
+# Combining those gives <code>y ∈ A ∧ [ y / x ] φ ↔ y ∈ B ∧ [ y / x ] ψ</code>, and it is only necessary to apply <code>Separation</code> to both sides.
+        buildConjunctionInConsequent
+
+        y x A φ Separation
+        y x B ψ Separation
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
+
+        y addForAllToConsequent
+        y (separate x A φ) (separate x B ψ) Extensionality
+        applySyllogism
+ )
+thm (buildSeparation ((A x)) (H (↔ φ ψ)) (= (separate x A φ) (separate x A ψ))
+        H
+        x generalize
+
+        A EqualityReflexivity
+        A A x φ ψ SeparationBuilder
+        detach1of2
+
+        applyModusPonens
+ )
+thm (FormulaBoundLemma ((A z) (B z)) (H (→ φ (∈ z A)))
+  (↔ (∧ (∈ B A) (subst B z φ)) (subst B z φ))
+# The forward direction is trivial.
+        (∈ B A) (subst B z φ) ConjunctionLeftElimination
+# To prove the reverse direction we start by adding a substitution to our hypothesis to get <code>[ B / z ] φ → [ B / z ] z ∈ A</code>.
+        H
+        B z addSubst
+# Now we perform the latter subsitution, starting with <code>z = B → (z ∈ A ↔ B ∈ A)</code>, and then combining with the previous step to get <code>[ B / z ] φ → B ∈ A</code>.
+        z B A MembershipBuilderRR
+        makeSubstExplicit
+        eliminateBiconditionalReverse
+        applySyllogism
+# We now just need to add <code>[ B / z ] φ</code> and combine the two directions.
+        (subst B z φ) ImplicationReflexivity
+        composeConjunction
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (FormulaBound ((A z) (B z)) (H (→ φ (∈ z A)))
+  (↔ (∈ B (separate z A φ)) (subst B z φ))
+        B z A φ Separation
+        H
+        B FormulaBoundLemma
+        applyBiconditionalTransitivity
+ )
+thm (ChangeVariableSeparation-1 ((φx y) (φy x) (A y x) (C x) (C y))
+  (H (→ (= x y) (↔ φx φy)))
+  (↔ (∈ C (separate x A φx)) (∈ C (separate y A φy)))
+# We start by rewriting <code>C ∈ { x ∈ A | φx }</code> as <code>C ∈ A ∧ [ C / x ] φx</code>.
+        C x A φx Separation
+# But <code>[ C / x ] φx</code> is equivalent to <code>[ C / y ] φy</code>.
+        H
+        C ChangeVariableSubstitution
+
+        (∈ C A) buildConjunctionLL
+
+        applyBiconditionalTransitivity
+# That gives us <code>C ∈ A ∧ [ C / y ] φy</code>, which is equivalent to <code>C ∈ { y ∈ A | φy }</code>.
+        C y A φy Separation
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (ChangeVariableSeparation
+  ((φx y) (φy x) (A y x)      )
+  (H (→ (= x y) (↔ φx φy)))
+  (= (separate x A φx) (separate y A φy))
+        H
+        z A ChangeVariableSeparation-1
+        applyExtensionality
+ )
+defthm (∪ object (∪ A B) () () (= (∪ A B) (⋃ (unorderedPair A B)))
+        (⋃ (unorderedPair A B)) BiconditionalReflexivity
+)
+thm (IsElementThereExists ((A x) (B x)) ()
+  (↔ (∈ A B) (∃ x (∧ (∈ A x) (= x B))))
+# We start with the forward direction. First we prove <code>A ∈ B → ∃ x (x = B ∧ A ∈ B)</code>.
+        (∈ A B) ImplicationReflexivity
+        x B Quantifiability
+        introduceLeftConjunctToConsequent
+
+        x (= x B) (∈ A B) ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        applySyllogism
+# Next is the substitution <code>x = B → (A ∈ x ↔ A ∈ B)</code>, which we then rearrange to <code>x = B ∧ A ∈ B → A ∈ x)</code>.
+        x B A MembershipBuilderLL
+        eliminateBiconditionalForwardInConsequent
+        import
+# Combining this with <code>x = B</code> we get <code>x = B ∧ A ∈ B → A ∈ x ∧ x = B</code>, and adding in the quantifier we finish the forward direction.
+        (= x B) (∈ A B) ConjunctionRightElimination
+        composeConjunction
+
+        x addThereExists
+        applySyllogism
+# The reverse direction is just a substitution. We start with <code>x = B → (A ∈ x ↔ A ∈ B)</code> and rearrange it to <code>A ∈ x ∧ x = B → A ∈ B</code>.
+        x B A MembershipBuilderLL
+        eliminateBiconditionalReverseInConsequent
+        applyComm
+        import
+# Adding in the quantifier finishes the reverse direction, and we combine the two directions.
+        x addThereExists
+        removeThereExistsInConsequent
+
+        introduceBiconditionalFromImplications
+ )
+thm (BinaryUnion (   ) () (↔ (∈ A (∪ B C)) (∨ (∈ A B) (∈ A C)))
+# We apply the definition of the union of two sets, and the <code>Union</code> theorem to get <code>A ∈ ⋃ {B, C} ↔ ∃ x (A ∈ x ∧ x ∈ {B, C})</code>
+        A (unorderedPair B C) x Union
+# Expanding the unordered pair turns that into <code>∃ x (A ∈ x ∧ (x = B ∨ x = C))</code>.
+        x B C UnorderedPair
+        (∈ A x) buildConjunctionLL
+        x buildThereExists
+        applyBiconditionalTransitivity
+# Distributivity gives us <code>∃ x ((A ∈ x ∧ x = B) ∨ (A ∈ x ∧ x = C))</code> and splitting the quantifier turns that into <code>∃ x (A ∈ x ∧ x = B) ∨ ∃ x (A ∈ x ∧ x = C)</code>.
+        (∈ A x) (= x B) (= x C) ConjunctionLeftDistribution
+        x buildThereExists
+        applyBiconditionalTransitivity
+
+        x
+          (∧ (∈ A x) (= x B))
+          (∧ (∈ A x) (= x C))
+          ThereExistsDisjunction
+        applyBiconditionalTransitivity
+# Now we can apply the lemma from the previous section to get <code>A ∈ B ∨ A ∈ C</code>.
+        A B x IsElementThereExists
+
+        A C x IsElementThereExists
+
+        buildDisjunction
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (MembershipUnionRightIntroduction () ()
+  (→ (∈ A B) (∈ A (∪ B C)))
+        (∈ A B) (∈ A C) DisjunctionRightIntroduction
+
+        A B C BinaryUnion
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (MembershipUnionLeftIntroduction () () (→ (∈ A C) (∈ A (∪ B C)))
+        (∈ A C) (∈ A B) DisjunctionLeftIntroduction
+
+        A B C BinaryUnion
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (UnorderedPairSingleton (  ) ()
+  (= (unorderedPair A B) (∪ (singleton A) (singleton B)))
+# The proof starts with <code>x ∈ {A, B} ↔ x = A ∨ x = B</code>.
+        x A B UnorderedPair
+# The right hand side is equivalent to <code>x ∈ {A} ∨ x ∈ {B}</code>,
+        x A Singleton
+        x B Singleton
+        buildDisjunction
+        swapBiconditional
+        applyBiconditionalTransitivity
+# which is equivalent to <code>x ∈ {A} ∪ {B}</code>.
+        x (singleton A) (singleton B) BinaryUnion
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+thm (UnionBuilder (     ) ()
+  (→ (= A B) (= (⋃ A) (⋃ B)))
+# We need <code>x ∈ ⋃ A ↔ x ∈ ⋃ B</code>, or expanding the unions according to <code>Union</code>, <code>∃ y (x ∈ y ∧ y ∈ A) ↔ ∃ y (x ∈ y ∧ y ∈ B)</code>. The first step is <code>A = B → (y ∈ A ↔ y ∈ B)</code>, followed by applying builders for the conjunction and the quantifier.
+        A B y MembershipBuilderLL
+        (∈ x y) buildConjunctionLLInConsequent
+        y buildThereExistsInConsequent
+
+        x A y Union
+        x B y Union
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
+
+        x addForAllToConsequent
+        x (⋃ A) (⋃ B) Extensionality
+        applySyllogism
+ )
+
+thm (buildUnion () (H (= A B))
+  (= (⋃ A) (⋃ B))
+        H
+        A B UnionBuilder
+        applyModusPonens
+ )
+thm (UnionIdempotence ( ) () (= (∪ A A) A)
+        x A A BinaryUnion
+
+        (∈ x A) DisjunctionIdempotence
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+thm (UnionSingleton () () (= (⋃ (singleton A)) A)
+        A SingletonUnorderedPair
+        buildUnion
+
+        A UnionIdempotence
+        applyEqualityTransitivity
+ )
+thm (SingletonSubset (  ) ()
+  (↔ (∈ A B) (⊆ (singleton A) B))
+# We start from the <code>{ A } ⊆ B</code> side, first expanding it to <code>∀ x (x ∈ { A } → x ∈ B)</code>.
+        (singleton A) B x Subset
+# Then we transform the <code>x ∈ { A }</code> into <code>x = A</code>
+        x A Singleton
+        (∈ x B) buildImplicationConsequent
+        x buildForAll
+        applyBiconditionalTransitivity
+# That gives us <code>∀ x (x = A → x ∈ B)</code>, which is equivalent to <code>A ∈ B</code> via the substitution <code>x = A → (x ∈ B ↔ A ∈ B)</code>.
+        x A B MembershipBuilderRR
+        ImplicitForAll
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+ )
+thm (SubsetMembership (   ) ()
+  (→ (⊆ A B) (→ (∈ C A) (∈ C B)))
+# First we expand <code>A ⊆ B</code> to <code>∀ x (x ∈ A → x ∈ B)</code>.
+        A B x Subset
+        eliminateBiconditionalReverse
+# Then we conjoin <code>x = C</code> to both sides of the implication to get <code>∀ x (x = C ∧ x ∈ A → x = C ∧ x ∈ B)</code>
+        (∈ x A) (∈ x B) (= x C) ConjunctionMultiplicationLL
+        x addForAll
+        applySyllogism
+# Next we distribute the quantifier across the implication to get <code>∃ x (x = C ∧ x ∈ A) → ∃ x (x = C ∧ x ∈ B)</code>.
+        x
+          (∧ (= x C) (∈ x A))
+          (∧ (= x C) (∈ x B))
+          ForAllImplicationThereExists
+        applySyllogism
+# But the two halves of that are equivalent to <code>C ∈ A</code> and <code>C ∈ B</code>, respectively, thanks to <code>MembershipThereExists</code>.
+        C A x MembershipThereExists
+        C B x MembershipThereExists
+        buildImplication
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (SubsetUnion (      ) ()
+  (→ (∧ (⊆ A B) (∈ B C)) (⊆ A (⋃ C)))
+        A B x Subset
+        (∈ B C) buildConjunctionRR
+        eliminateBiconditionalReverse
+# So far we have <code>A ⊆ B ∧ B ∈ C → ∀ x (x ∈ A → x ∈ B) ∧ B ∈ C</code>. Now we move <code>B ∈ C</code> inside the quantifier.
+        (∈ B C) x Generalization
+        (∀ x (→ (∈ x A) (∈ x B))) conjoinLL
+        applySyllogism
+
+        x (→ (∈ x A) (∈ x B)) (∈ B C) ForAllConjunction
+        eliminateBiconditionalForward
+        applySyllogism
+# That gives us <code>∀ x ((x ∈ A → x ∈ B) ∧ B ∈ C)</code>. Since <code>B ∈ C</code> holds irrespective of <code>x ∈ A</code>, we can also make the weaker statement that it holds assuming <code>x ∈ A</code>. In other words, we can rewrite our formula to <code>∀ x (x ∈ A → x ∈ B ∧ B ∈ C)</code>.
+        (∈ B C) (∈ x A) AntecedentIntroduction
+        (→ (∈ x A) (∈ x B)) conjoinLL
+        x addForAll
+        applySyllogism
+
+        (∈ x A) (∈ x B) (∈ B C) ConjunctionComposition
+        eliminateBiconditionalReverse
+        x addForAll
+        applySyllogism
+# Now we turn <code>x ∈ B ∧ B ∈ C</code> into first <code>[ B / y ] (x ∈ y ∧ y ∈ C)</code> and then <code>∃ y (x ∈ y ∧ y ∈ C)</code>.
+        y B x MembershipBuilderLL
+        y B C MembershipBuilderRR
+        buildConjunctionInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+
+        B y (∧ (∈ x y) (∈ y C)) ThereExistsIntroductionFromObject
+        applySyllogism
+
+        (∈ x A) addCommonAntecedent
+        x addForAll
+        applySyllogism
+# That gives us <code>∀ x (x ∈ A → ∃ y (x ∈ y ∧ y ∈ C))</code>, which we first turn into <code>∀ x (x ∈ A → x ∈ ⋃ C)</code>,
+        x C y Union
+        eliminateBiconditionalForward
+        (∈ x A) addCommonAntecedent
+        x addForAll
+        applySyllogism
+# and then <code>A ⊆ ⋃ C</code>.
+        A (⋃ C) x Subset
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (MembershipSubsetUnion () () (→ (∈ A B) (⊆ A (⋃ B)))
+        A SubsetReflexivity
+        A A B SubsetUnion
+        detach1of2
+ )
+thm (SubsetUnionLeft (  ) ()
+  (⊆ A (∪ A B))
+        (∈ x A) (∈ x B) DisjunctionRightIntroduction
+
+        x A B BinaryUnion
+        eliminateBiconditionalForward
+        applySyllogism
+
+        x generalize
+
+        A (∪ A B) x Subset
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (SubsetUnionRightIntroduction () ()
+  (→ (⊆ A B) (⊆ A (∪ B C)))
+        B C SubsetUnionLeft
+        A B (∪ B C) SubsetTransitivity
+        detach2of2
+ )
+thm (UnorderedPairSubsetForward (   ) ()
+  (→ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))
+# We begin with <code>A ∈ C → (x = A → x ∈ C)</code> and likewise for <code>B</code>
+        x A C MembershipBuilderRR
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+
+        x B C MembershipBuilderRR
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+# We combine the two implications with conjunctions to get <code>A ∈ C ∧ B ∈ C → ((x = A → x ∈ C) ∧ (x = B → x ∈ C))</code>, but the consequent of that simplifies to <code>x = A ∨ x = B → x ∈ C</code>.
+        conjoin
+
+        (= x A)
+          (∈ x C)
+          (= x B)
+          DisjunctionComposition
+        eliminateBiconditionalReverse
+        applySyllogism
+# Now we transform <code>x = A ∨ x = B</code> into <code>x ∈ { A, B }</code>.
+        x A B UnorderedPair
+        swapBiconditional
+        transformImplicationImplicationAntecedent
+# That gives <code>A ∈ C ∧ B ∈ C → (x ∈ { A, B } → x ∈ C)</code>. But the consequent simplifies to just <code>{ A, B } ⊆ C</code>.
+        x addForAllToConsequent
+
+        (unorderedPair A B) C x Subset
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (UnorderedPairSubsetReverse (   ) ()
+  (→ (⊆ (unorderedPair A B) C) (∧ (∈ A C) (∈ B C)))
+        A B UnorderedPairLeftMembership
+        (unorderedPair A B) C A SubsetMembership
+        applyComm
+        applyModusPonens
+
+        B A UnorderedPairRightMembership
+        (unorderedPair A B) C B SubsetMembership
+        applyComm
+        applyModusPonens
+
+        composeConjunction
+ )
+
+thm (UnorderedPairSubset () ()
+  (↔ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))
+        A C B UnorderedPairSubsetForward
+        A B C UnorderedPairSubsetReverse
+        introduceBiconditionalFromImplications
+ )
+export (SETS Basic_operations_of_Zermelo–Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")

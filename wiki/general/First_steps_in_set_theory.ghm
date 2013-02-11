@@ -1,0 +1,164 @@
+{{interfaces
+| imports = [[Interface:Zermelo–Fraenkel set theory]]
+| exports = [[Interface:First steps in set theory]]
+}}
+Here we start with the axioms of Zermelo–Fraenkel set theory and prove theorems for a few of the basic concepts: empty set, singletons, and unordered pairs.  Other topics of set theory are treated elsewhere, such as ordered pairs, relations, functions, some kinds of unions, intersection, set difference, and so on.
+
+We start by importing the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the axioms of [[Interface:Zermelo–Fraenkel set theory]].  We also define some variables.
+
+== Membership ==
+=== Builders ===
+Here are some more membership builders, slight variants of the ones we have.
+* #(= B0 B1)# ⊢ #(↔ (∈ A B0) (∈ A B1))# ([/general/First_steps_in_set_theory.gh/buildMembershipLL | buildMembershipLL])
+* #(= A0 A1)# ⊢ #(↔ (∈ A0 B) (∈ A1 B))# ([/general/First_steps_in_set_theory.gh/buildMembershipRR | buildMembershipRR])
+* #(→ antecedent (= B0 B1))# ⊢ #(→ antecedent (↔ (∈ A B0) (∈ A B1)))# ([/general/First_steps_in_set_theory.gh/buildMembershipLLInConsequent | buildMembershipLLInConsequent])
+* #(→ antecedent (= A0 A1))# ⊢ #(→ antecedent (↔ (∈ A0 B) (∈ A1 B)))# ([/general/First_steps_in_set_theory.gh/buildMembershipRRInConsequent | buildMembershipRRInConsequent])
+
+=== Membership with a substitution ===
+Here are two ways to express {{{∈}}} in terms of a substitution.<ref>[http://us.metamath.org/mpeuni/clel2.html clel2], metamath's set.mm, accessed January 28, 2011</ref><ref>[http://us.metamath.org/mpeuni/df-clel.html df-clel], metamath's set.mm, accessed February 1, 2011</ref>
+* #(↔ (∈ A B) (∀ x (→ (= x A) (∈ x B))))# ([/general/First_steps_in_set_theory.gh/MembershipForAll | MembershipForAll])
+* #(↔ (∈ A B) (∃ x (∧ (= x A) (∈ x B))))# ([/general/First_steps_in_set_theory.gh/MembershipThereExists | MembershipThereExists])
+
+== Empty set ==
+The [[w:empty set|empty set]], or null set, is the set with no elements. We start with the conventional form of the [[w:Axiom of empty set|axiom of empty set]]. For us (and for many other axiomizations of set theory), this "axiom" is a theorem rather than an axiom.<ref>[http://us.metamath.org/mpeuni/axnul.html axnul], metamath's set.mm, accessed July 19, 2010</ref>
+* #(∃ x (∀ y (¬ (∈ y x))))# ([/general/First_steps_in_set_theory.gh/axnul | axnul])
+
+Now we introduce the symbol {{{∅}}} for the empty set.
+
+* #(∉ x (abstract y (⊥)))# ([/general/First_steps_in_set_theory.gh/EmptySetVariable | EmptySetVariable])
+
+We provide a version with object instead of variable.
+* #(∉ A (abstract y (⊥)))# ([/general/First_steps_in_set_theory.gh/EmptySetObject | EmptySetObject])
+* #(∉ A (∅))# ([/general/First_steps_in_set_theory.gh/EmptySet | EmptySet])
+
+== Pairing for objects ==
+The {{{Pairing}}} axiom allows us to form a set given two elements, where the given sets are represented by variables. Here we prove the same thing, but with object in place of variable. The proof is by straightforward application of {{{VariableToObject}}} with the usual substitution machinery.
+* #(∃ w (∀ z (↔ (∈ z w) (∨ (= z A) (= z y)))))# ([/general/First_steps_in_set_theory.gh/PairingObject-1 | PairingObject-1])
+* #(∃ w (∀ z (↔ (∈ z w) (∨ (= z A) (= z B)))))# ([/general/First_steps_in_set_theory.gh/PairingObject | PairingObject])
+
+== Extensionality ==
+Extensionality, that sets with the same elements are equal, is an axiom. Here we prove a few simple consequences of that axiom.
+
+=== Objects instead of variables ===
+Here is a variant of extensionality, {{{∀ z (z ∈ A ↔ z ∈ B) → A = B}}}, which changes variables to objects. We first prove a lemma.
+
+* #(→ (∀ z (↔ (∈ z A) (∈ z y))) (= A y))# ([/general/First_steps_in_set_theory.gh/Extensionality-1 | Extensionality-1])
+* #(→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B))# ([/general/First_steps_in_set_theory.gh/Extensionality | Extensionality])
+
+It will also be convenient to have a rule form.<ref>[http://us.metamath.org/mpeuni/eqriv.html eqriv], metamath's set.mm, accessed February 15, 2011</ref>
+* #(↔ (∈ x A) (∈ x B))# ⊢ #(= A B)# ([/general/First_steps_in_set_theory.gh/applyExtensionality | applyExtensionality])
+
+=== Biconditional ===
+
+Although the converse of {{{Extensionality}}} is just a substitution, the biconditionalized version of {{{Extensionality}}} will be convenient sometimes.
+* #(↔ (= A B) (∀ z (↔ (∈ z A) (∈ z B))))# ([/general/First_steps_in_set_theory.gh/ExtensionalityBiconditional | ExtensionalityBiconditional])
+
+=== Version without distinct variable constraints ===
+Here's a version of {{{Extensionality}}} which replaces the distinct variable constraints with {{{is-not-free-in}}}.<ref>[http://us.metamath.org/mpeuni/cleqf.html cleqf], metamath's set.mm, accessed July, 2011</ref>
+* #(is-not-free-in x (∈ y A))#, #(is-not-free-in x (∈ y B))# ⊢ #(↔ (= A B) (∀ x (↔ (∈ x A) (∈ x B))))# ([/general/First_steps_in_set_theory.gh/ExtensionalityNotFree | ExtensionalityNotFree])
+
+== Introducing a notation for a set ==
+Many of the axioms (or theorems) of set theory assert the existence of certain sets. That is, they take the form that there is a set whose elements are those which satisfy a certain formula. In symbols, {{{∃ result ∀ y (y ∈ result ↔ φy)}}}. For each of these, we want to introduce a notation for the set {{{result}}}. Most of the work of doing this is some substitution machinery, which can be in part factored out to the following theorems.
+* #(→ (= z y) (↔ φz φy))#, #(∃ result (∀ y (↔ (∈ y result) φy)))# ⊢ #(↔ (∈ y (abstract z φz)) φy)# ([/general/First_steps_in_set_theory.gh/SetVariable | SetVariable])
+Getting rid of the distinct variable constraint and changing {{{y}}} from a variable to an object are accomplished by invoking {{{VariableToObject}}}.
+* #(→ (= z y) (↔ φz φy))#, #(→ (= y C) (↔ φy φC))#, #(∃ result (∀ y (↔ (∈ y result) φy)))# ⊢ #(↔ (∈ C (abstract z φz)) φC)# ([/general/First_steps_in_set_theory.gh/SetObject | SetObject])
+
+== Unordered pair ==
+
+The unordered pair {{{{A, B}}}} has {{{A}}} and {{{B}}} as elements.  That is, we seek to prove {{{y ∈ {A, B} ↔ y = A ∨ y = B}}}. We apply pairing to {{{A}}} and {{{B}}} (again via {{{SetObject}}}).
+
+* #(→ (= C D) (↔ (∨ (= C A) (= C B)) (∨ (= D A) (= D B))))# ([/general/First_steps_in_set_theory.gh/UnorderedPair-sub | UnorderedPair-sub])
+* #(↔ (∈ C (abstract z (∨ (= z A) (= z B)))) (∨ (= C A) (= C B)))# ([/general/First_steps_in_set_theory.gh/UnorderedPairObject | UnorderedPairObject])
+
+Because the notation {{{{ A, B }}}} is not available, we call it {{{(unorderedPair A B)}}}.
+* #(↔ (∈ C (unorderedPair A B)) (∨ (= C A) (= C B)))# ([/general/First_steps_in_set_theory.gh/UnorderedPair | UnorderedPair])
+
+=== Builder ===
+The builder for unordered pairs is {{{A0 = B0 ∧ A1 = B1 → {A0, A1} = {B0, B1}}}}.
+* #(→ (∧ (= A0 B0) (= A1 B1)) (= (abstract a (∨ (= a A0) (= a A1))) (abstract b (∨ (= b B0) (= b B1)))))# ([/general/First_steps_in_set_theory.gh/UnorderedPairBuilder-1 | UnorderedPairBuilder-1])
+* #(→ (∧ (= A0 B0) (= A1 B1)) (= (abstract a (∨ (= a A0) (= a A1))) (unorderedPair B0 B1)))# ([/general/First_steps_in_set_theory.gh/UnorderedPairBuilder-2 | UnorderedPairBuilder-2])
+* #(→ (∧ (= A0 B0) (= A1 B1)) (= (unorderedPair A0 A1) (unorderedPair B0 B1)))# ([/general/First_steps_in_set_theory.gh/UnorderedPairBuilder | UnorderedPairBuilder])
+
+== Singleton ==
+Given a set (object) {{{A}}}, the singleton of {{{A}}} is a set {{{{ A }}}} which has {{{A}}} as its only element. Singletons are an easy special case of unordered pairs: we define {{{{ A }}}} to be {{{{ A, A }}}}.<ref>[http://us.metamath.org/mpeuni/dfsn2.html dfsn2] in metamath's set.mm, accessed April 4, 2011</ref> Because the notation {{{{ A }}}} is not available in JHilbert, we call it {{{(singleton A)}}}.
+
+
+The key theorem regarding membership in a singleton is {{{B ∈ { A } ↔ B = A}}}.<ref>[http://us.metamath.org/mpeuni/elsncg.html elsncg] in metamath's set.mm, accessed April 4, 2011</ref>
+* #(↔ (∈ B (singleton A)) (= B A))# ([/general/First_steps_in_set_theory.gh/Singleton | Singleton])
+
+The builder for singletons is {{{A = B → { A } = { B }}}}.<ref>[http://us.metamath.org/mpeuni/sneq.html sneq], metamath's set.mm, accessed July, 2010</ref>
+* #(→ (= A B) (= (singleton A) (singleton B)))# ([/general/First_steps_in_set_theory.gh/SingletonBuilder | SingletonBuilder])
+
+== Union ==
+This section introduces the union of a set, {{{⋃ A}}}. We go through much the same process as for unordered pairs, but based on the axiom of union.
+
+First is a version of the axiom of union for {{{object}}} rather than {{{variable}}}.
+
+* #(∃ y (∀ z (↔ (∈ z y) (∃ w (∧ (∈ z w) (∈ w A))))))# ([/general/First_steps_in_set_theory.gh/UnionAxiomObject | UnionAxiomObject])
+
+Then we prove {{{B ∈ ⋃ A ↔ ∃ x (B ∈ x ∧ x ∈ A)}}} using {{{SetObject}}} in the usual way. The main complication we didn't have with unordered pairs is the need to change the variable of quantification via {{{Union-changeVariable}}}.
+
+* #(→ (= C D) (↔ (∃ x (∧ (∈ C x) (∈ x A))) (∃ x (∧ (∈ D x) (∈ x A)))))# ([/general/First_steps_in_set_theory.gh/Union-sub | Union-sub])
+* #(↔ (∃ x (∧ (∈ C x) (∈ x A)))
+    (∃ x′ (∧ (∈ C x′) (∈ x′ A))))# ([/general/First_steps_in_set_theory.gh/Union-changeVariable | Union-changeVariable])
+* #(↔ (∈ B (abstract z (∃ x′ (∧ (∈ z x′) (∈ x′ A))))) (∃ x (∧ (∈ B x) (∈ x A))))# ([/general/First_steps_in_set_theory.gh/UnionObject | UnionObject])
+* #(↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A))))# ([/general/First_steps_in_set_theory.gh/Union | Union])
+
+== Subset ==
+A set is a subset of another ({{{A ⊆ B}}}) if and only if being an element of the first set implies being a member of the second.
+* #(↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))# ([/general/First_steps_in_set_theory.gh/Subset | Subset])
+
+=== Partial order ===
+The subset relationship has the three properties of a [[w:Partially ordered set|partial order]]. That is, it is reflexive, antisymmetric, and transitive.
+
+First we prove transitivity.<ref>[http://us.metamath.org/mpeuni/sstr.html sstr], metamath's set.mm, accessed January 28, 2011</ref>
+* #(→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))# ([/general/First_steps_in_set_theory.gh/SubsetTransitivity | SubsetTransitivity])
+
+Antisymmetry and reflexivity follow from the equivalence {{{A = B ↔ A ⊆ B ∧ B ⊆ A}}}.  To prove this equivalence, take {{{∀ x (x ∈ A ↔ x ∈ B)}}}, decompose the biconditional into implications, and distribute the quantifier across both of them. The left side is {{{A = B}}} by extensionality, and the right side is {{{A ⊆ B ∧ B ⊆ A}}} by {{{Subset}}}.<ref>[http://us.metamath.org/mpeuni/eqss.html eqss], metamath's set.mm, accessed February 20, 2011</ref>
+* #(↔ (= A B) (∧ (⊆ A B) (⊆ B A)))# ([/general/First_steps_in_set_theory.gh/EqualitySubset | EqualitySubset])
+* #(⊆ A A)# ([/general/First_steps_in_set_theory.gh/SubsetReflexivity | SubsetReflexivity])
+* #(→ (∧ (⊆ A B) (⊆ B A)) (= A B))# ([/general/First_steps_in_set_theory.gh/SubsetAntisymmetry | SubsetAntisymmetry])
+
+== Power set ==
+Introducing a notation for power set is much like union. Because of issues with distinct variable declarations, we won't be able to to use the subset notation until the very end.
+
+First is a version of the axiom of power set for {{{object}}} rather than {{{variable}}}.
+
+* #(∃ y (∀ z (↔ (∈ z y) (∀ w (→ (∈ w z) (∈ w A))))))# ([/general/First_steps_in_set_theory.gh/PowerSetAxiomObject | PowerSetAxiomObject])
+
+Then we prove {{{B ∈ (power A) ↔ ∀ x (x ∈ B → x ∈ A)}}} using {{{SetObject}}} in the usual way. Similarly to the proof for unions, we will need to change the variable of quantification, in our case via {{{PowerSet-changeVariable}}}.
+
+* #(→ (= C D) (↔ (∀ x (→ (∈ x C) (∈ x A))) (∀ x (→ (∈ x D) (∈ x A)))))# ([/general/First_steps_in_set_theory.gh/PowerSet-sub | PowerSet-sub])
+* #(↔ (∀ x (→ (∈ x C) (∈ x A)))
+    (∀ x′ (→ (∈ x′ C) (∈ x′ A))))# ([/general/First_steps_in_set_theory.gh/PowerSet-changeVariable | PowerSet-changeVariable])
+* #(↔ (∈ B (abstract z (∀ x′ (→ (∈ x′ z) (∈ x′ A))))) (∀ x (→ (∈ x B) (∈ x A))))# ([/general/First_steps_in_set_theory.gh/PowerSetObject | PowerSetObject])
+* #(↔ (∈ B (power A)) (∀ x (→ (∈ x B) (∈ x A))))# ([/general/First_steps_in_set_theory.gh/PowerSetForAll | PowerSetForAll])
+* #(↔ (∈ B (power A)) (⊆ B A))# ([/general/First_steps_in_set_theory.gh/PowerSet | PowerSet])
+
+== Separation ==
+Here we provide the ability to form a set containing those elements of a given set which satisfy an arbitrary formula. In other words, we can form the set of all {{{x}}} in {{{A}}} such that {{{φ}}}, which is commonly notated as {{{{x ∈ A | φ }}}}. We will use that notation in discussion but JHilbert's syntax is not that flexible, so for JHilbert we will call it {{{(separate x A φ)}}}. ''Restricted set abstraction'' is one term for this (contrasted with the ''unrestricted set abstraction'' of {{{{x | φ}}}}).<ref>See for example Michael R. Genesereth and Richard E. Fikes (1994), "[http://logic.stanford.edu/kif/Hypertext/node25.html Paradoxes]", Knowledge Interchange Format Version 3.0 Reference Manual, also available as Stanford Logic Group Technical Report Logic-92-1.</ref>
+
+Introducing this notation follows much the process as for the other existence theorems/axioms, in this case working from {{{SeparationThereExists}}}. We are trying to prove {{{C ∈ {x ∈ A | φ } ↔ C ∈ A ∧ [C / x] φ}}}.<ref>This is basically [http://us.metamath.org/mpeuni/elrabsf.html elrabsf] from metamath's set.mm, accessed February 24, 2011. The main difference is that metamath expresses the notion that x is not free in A as a hypothesis rather than a distinct variable constraint.</ref>
+
+First we provide a version of {{{SeparationThereExists}}} where we turn the variable {{{z}}} into the object {{{A}}}
+* #(∃ y (∀ x (↔ (∈ x y) (∧ (∈ x A) φ))))# ([/general/First_steps_in_set_theory.gh/SeparationThereExistsObject | SeparationThereExistsObject])
+* #(∃ result (∀ y (↔ (∈ y result) (∧ (∈ y A) (subst y x φ)))))# ([/general/First_steps_in_set_theory.gh/SeparationThereExistsSubst | SeparationThereExistsSubst])
+
+From here we apply {{{SetObject}}} in much the usual way.
+* #(→ (= C D) (↔ (∧ (∈ C A) (subst C x φ)) (∧ (∈ D A) (subst D x φ))))# ([/general/First_steps_in_set_theory.gh/Separation-sub | Separation-sub])
+* #(↔ (∈ C (abstract z (∧ (∈ z A) (subst z x φ)))) (∧ (∈ C A) (subst C x φ)))# ([/general/First_steps_in_set_theory.gh/SeparationObject | SeparationObject])
+* #(↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ)))# ([/general/First_steps_in_set_theory.gh/Separation | Separation])
+
+== Membership ==
+Here's a theorem which combines {{{∈}}} with a substitution.<ref>[http://us.metamath.org/mpeuni/clel2.html clel2], metamath's set.mm, accessed January 28, 2011</ref>
+* #(↔ (∈ A B) (∀ x (→ (= x A) (∈ x B))))# ([/general/First_steps_in_set_theory.gh/ImplicitMembership | ImplicitMembership])
+
+== Done ==
+We have now proved all the theorems in [[Interface:Basic operations of general set theory]], and in [[Interface:First steps in set theory]].
+
+
+== References ==
+
+<references />
+
+[[Category:Axiomatics of classical set theory and its fragments‎]]

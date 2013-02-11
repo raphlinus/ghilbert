@@ -1,0 +1,109 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = [[Basic operations of Zermelo–Fraenkel set theory]]
+# | exportedby = [[First steps in set theory]]
+# }}
+# 
+# This page covers some of the simplest operations of set theory including the empty set, singletons, unordered pairs, power set, and unions. Because of the way that JHilbert currently handles definitions, it only includes the most basic results (sufficient to define terms using <code>term</code> rather than <code>def</code>) and leaves a more comprehensive set of theorems about each of these topics to other places.
+# 
+# == Variables, objects (classes), and membership ==
+# 
+# We build on [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]] (including equality):
+# 
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+# 
+# First-order logic provides us with two kinds: <code>variable</code> is a variable, which represents a set and can be quantified over, and <code>object</code> is an expression which represents a set. For example, a variable might be <code>x</code>, <code>y</code>, or <code>z</code>, but an object could be the singleton <code>{ x }</code>, the unordered pair <code>{ x, y }</code>, the ordered pair <code>〈 x, y 〉</code>, etc. To some extent the concepts of variable and object correspond to set and class in some theories (like metamath's set.mm), but one key difference is that we have no [[w:proper class|proper classes]] thanks to the [[Interface:Axiom of quantifiability|axiom of quantifiability]].
+# 
+var (object x y z w)
+tvar (object A B C A0 A1 B0 B1)
+tvar (formula φ antecedent)
+# 
+# We can test whether one set is an element of another, and define an abbreviation for the negated version.
+term (formula (∈ A B))
+term (wff (∉ A B))
+stmt (∉ () () (↔ (∉ A B) (¬ (∈ A B))))
+# 
+# Here are two ways of combining membership with a substitution:
+stmt (MembershipForAll ((A x) (B x)) ()
+  (↔ (∈ A B) (∀ x (→ (= x A) (∈ x B)))))
+stmt (MembershipThereExists ((A x) (B x)) ()
+  (↔ (∈ A B) (∃ x (∧ (= x A) (∈ x B)))))
+# 
+# == Empty set, singletons, and unordered pairs ==
+# We assert the existence of the empty set, a set with no elements.
+term (object (∅))
+stmt (EmptySet () () (∉ A (∅)))
+# 
+# Given a set, we can form a set <code>{ s }</code> which has only it as an element.<ref>[http://us.metamath.org/mpeuni/elsncg.html elsncg], metamath's set.mm, accessed August 7, 2010</ref>
+term (object (singleton A))
+stmt (Singleton () () (↔ (∈ A (singleton B)) (= A B)))
+# 
+# Given two sets, we can form a unordered pair <code>{ s, t }</code> which has only those sets as elements.
+term (object (unorderedPair A B))
+stmt (UnorderedPair () () (↔ (∈ B (unorderedPair A0 A1)) (∨ (= B A0) (= B A1))))
+# 
+# == Subset ==
+# 
+# We define the subset relationship.
+term (formula (⊆ A B))
+stmt (Subset ((A x) (B x)) ()
+  (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B)))))
+# 
+# === Partial order ===
+# The subset relationship has the three properties of a [[w:Partially ordered set|partial order]]. That is, it is reflexive, antisymmetric, and transitive.
+# 
+stmt (SubsetReflexivity () () (⊆ A A))
+stmt (SubsetAntisymmetry () () (→ (∧ (⊆ A B) (⊆ B A)) (= A B)))
+stmt (SubsetTransitivity () () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C)))
+# 
+# == Union and power set ==
+# The union of a set has as its elements everything which is an element of some set in the given set.
+term (object (⋃ A))
+stmt (Union ((A x) (B x)) () (↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A)))))
+# 
+# The power set of a set has as its elements all of the subsets of the given set.
+term (object (power A))
+stmt (PowerSet () () (↔ (∈ B (power A)) (⊆ B A)))
+# 
+# == Separation ==
+# We define <code>{x ∈ A | φ}</code>, the set of all elements in <code>A</code> which also satisfy <code>φ</code>. Although we write <code>{x ∈ A | φ}</code> informally, for JHilbert it needs to be <code>(separate x A φ)</code>.
+term (object (separate x A φ))
+stmt (Separation ((A x)) ()
+  (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ))))
+# 
+# == Builders ==
+# Equals can be substituted for equals, in the context of set operations.
+# 
+stmt (MembershipBuilderLL () () (→ (= B0 B1) (↔ (∈ A B0) (∈ A B1))))
+stmt (MembershipBuilderRR () () (→ (= A0 A1) (↔ (∈ A0 B) (∈ A1 B))))
+stmt (buildMembershipLL () ((= B0 B1)) (↔ (∈ A B0) (∈ A B1)))
+stmt (buildMembershipRR () ((= A0 A1)) (↔ (∈ A0 B) (∈ A1 B)))
+stmt (buildMembershipLLInConsequent ()
+  ((→ antecedent (= B0 B1)))
+  (→ antecedent (↔ (∈ A B0) (∈ A B1))))
+stmt (buildMembershipRRInConsequent ()
+  ((→ antecedent (= A0 A1)))
+  (→ antecedent (↔ (∈ A0 B) (∈ A1 B))))
+
+stmt (SingletonBuilder () () (→ (= A B) (= (singleton A) (singleton B))))
+
+stmt (UnorderedPairBuilder () () (→ (∧ (= A0 B0) (= A1 B1)) (= (unorderedPair A0 A1) (unorderedPair B0 B1))))
+# 
+# == Extensionality ==
+# Sets with the same elements are equal.
+stmt (Extensionality ((A z) (B z)) () (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B)))
+stmt (applyExtensionality ((A x) (B x)) ((↔ (∈ x A) (∈ x B))) (= A B))
+# 
+# Here's a variant with explicit freeness hypotheses rather than distinct variable constraints.
+stmt (ExtensionalityNotFree ((A y) (B y) )
+  ((is-not-free-in x (∈ y A))
+   (is-not-free-in x (∈ y B))
+  )
+  (↔ (= A B) (∀ x (↔ (∈ x A) (∈ x B)))))
+# 
+# == References ==
+# <references/>
+# 
+# [[Category:Axiomatics of classical set theory and its fragments|{{PAGENAME}}]]
