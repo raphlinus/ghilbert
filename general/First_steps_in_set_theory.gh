@@ -1,0 +1,534 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (AXIOMS Zermelo–Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")
+
+var (object x y z w result x′)
+var (object a b)
+tvar (object A B C D A0 A1 B0 B1)
+tvar (formula φ antecedent)
+thm (buildMembershipLL () (H (= B0 B1)) (↔ (∈ A B0) (∈ A B1))
+        H
+        B0 B1 A MembershipBuilderLL
+        applyModusPonens
+ )
+
+thm (buildMembershipRR () (H (= A0 A1)) (↔ (∈ A0 B) (∈ A1 B))
+        H
+        A0 A1 B MembershipBuilderRR
+        applyModusPonens
+ )
+
+thm (buildMembershipLLInConsequent ()
+  (H (→ antecedent (= B0 B1)))
+  (→ antecedent (↔ (∈ A B0) (∈ A B1)))
+        H
+        B0 B1 A MembershipBuilderLL
+        applySyllogism
+ )
+
+thm (buildMembershipRRInConsequent ()
+  (H (→ antecedent (= A0 A1)))
+  (→ antecedent (↔ (∈ A0 B) (∈ A1 B)))
+        H
+        A0 A1 B MembershipBuilderRR
+        applySyllogism
+ )
+thm (MembershipForAll ((A x) (B x)) ()
+  (↔ (∈ A B) (∀ x (→ (= x A) (∈ x B))))
+        x A B MembershipBuilderRR
+        ImplicitForAll
+        swapBiconditional
+ )
+
+thm (MembershipThereExists ((A x) (B x)) ()
+  (↔ (∈ A B) (∃ x (∧ (= x A) (∈ x B))))
+        x A B MembershipBuilderRR
+        ImplicitThereExists
+        swapBiconditional
+ )
+thm (axnul () () (∃ x (∀ y (¬ (∈ y x))))
+# The only set theory axiom we use in the proof is the axiom of separation, which says that given the existence of any set (which is implicit in some of the predicate logic steps), we can construct a subset of it which has no elements. Here is our application of separation, which we will use at the end of the proof (after a bunch of logical steps).
+        x y z (∧ (∈ y y) (¬ (∈ y y))) SeparationThereExists
+# The proof starts with <code>¬ (y ∈ y ∧ ¬ y ∈ y)</code>
+        (¬ (∈ y y)) TertiumNonDatur
+        collectNegationNDN
+# We now add <code>y ∈ z</code> to get <code>¬ (y ∈ z ∧ (y ∈ y ∧ ¬ y ∈ y))</code>
+        (∈ y z) (∧ (∈ y y) (¬ (∈ y y))) ConjunctionLeftElimination
+        introduceTransposition
+        applyModusPonens
+# We note that <code>y ∈ x ↔ (y ∈ z ∧ (y ∈ y ∧ ¬ y ∈ y))</code> implies itself.
+        (↔ (∈ y x) (∧ (∈ y z) (∧ (∈ y y) (¬ (∈ y y))))) ImplicationReflexivity
+# We detach half the biconditional to get <code>(y ∈ x ↔ (y ∈ z ∧ (y ∈ y ∧ ¬ y ∈ y))) → ¬ y ∈ x</code>
+        negatedDetachImplicationBiconditionalRight
+# We're almost there. We just need to add the quantifiers and apply the instance of the axiom of separation that we started with.
+        y addForAll
+        x addThereExists
+        applyModusPonens
+ )
+var (object emptyElement)
+defthm (∅ object (∅) () () (= (∅) (abstract emptyElement (⊥)))
+        (abstract emptyElement (⊥)) BiconditionalReflexivity
+)
+
+thm (EmptySetVariable () () (∉ x (abstract y (⊥)))
+# To apply <code>Abstraction</code>, we need <code>∃ result ∀ x (x ∈ result ↔ [x / y]⊥)</code>. This follows from <code>axnul</code>, the <code>NegationBiconditional</code> relationship between negation and <code>⊥</code>, and the fact that substituting a variable in <code>⊥</code> has no effect.
+        result x axnul
+
+        (∈ x result) NegationBiconditional
+        (∈ x result) BiconditionalReflexivity
+        x y (⊥) NullSubstitution swapBiconditional
+        buildBiconditional
+        applyBiconditionalTransitivity
+
+        x buildForAll
+        result buildThereExists
+
+        eliminateBiconditionalReverse
+        applyModusPonens
+# Now that we have <code>∃ result ∀ x (x ∈ result ↔ [x / y]⊥)</code>, we can apply <code>Abstraction</code> to get <code>x ∈ {y | ⊥} ↔ [x / y]⊥</code>.
+        Abstraction
+# Moving the substitution which has no effect
+        x y (⊥) NullSubstitution
+        applyBiconditionalTransitivity
+# gives us <code>x ∈ {y | ⊥} ↔ ⊥</code>
+# and then <code>NegationBiconditional</code> gives us our desired result.
+        (∈ x (abstract y (⊥))) NegationBiconditional
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (EmptySetObject ((A x y)) () (∉ A (abstract y (⊥)))
+# The substitution to apply <code>VariableToObject</code> is <code>x = A → x ∉ ∅ ↔ A ∉ ∅</code>
+        x A (abstract y (⊥)) MembershipBuilderRR
+        addNegationInConsequent
+
+        x y EmptySetVariable
+
+        VariableToObject
+ )
+
+thm (EmptySet () () (∉ A (∅))
+        A emptyElement EmptySetObject
+ )
+thm (PairingObject-1 ((A x z w) ) () (∃ w (∀ z (↔ (∈ z w) (∨ (= z A) (= z y)))))
+        x A z EqualityBuilderLL
+        (= z y) buildDisjunctionRRInConsequent
+        (∈ z w) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+        w buildThereExistsInConsequent
+
+        w z x y Pairing
+
+        VariableToObject
+ )
+
+thm (PairingObject ((A y z w) (B y z w)) () (∃ w (∀ z (↔ (∈ z w) (∨ (= z A) (= z B)))))
+        y B z EqualityBuilderLL
+        (= z A) buildDisjunctionLLInConsequent
+        (∈ z w) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+        w buildThereExistsInConsequent
+
+        w z A y PairingObject-1
+
+        VariableToObject
+ )
+thm (Extensionality-1 ((A z)  ) () (→ (∀ z (↔ (∈ z A) (∈ z y))) (= A y))
+# This lemma changes <code>x</code> to <code>A</code>, using <code>VariableToObject</code> applied to <code>x = A → ((∀ z (z ∈ x ↔ z ∈ y) → x = y) ↔ (∀ z (z ∈ A ↔ z ∈ y) → A = y))</code>
+        x A z MembershipBuilderLL
+        (∈ z y) buildBiconditionalRRInConsequent
+        z buildForAllInConsequent
+
+        x A y EqualityBuilderRR
+
+        buildImplicationInConsequent
+
+        z x y ExtensionalityVariable
+        VariableToObject
+ )
+
+thm (Extensionality ((A z) (B z)    ) ()
+  (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B))
+# To prove this, we change <code>y</code> to <code>B</code>, using <code>VariableToObject</code> applied to <code>y = B → ((∀ z (z ∈ A ↔ z ∈ y) → A = y) ↔ (∀ z (z ∈ A ↔ z ∈ B) → A = B))</code>
+        y B z MembershipBuilderLL
+        (∈ z A) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+
+        y B A EqualityBuilderLL
+
+        buildImplicationInConsequent
+
+        z A y Extensionality-1
+        VariableToObject
+ )
+thm (applyExtensionality ((A x) (B x))
+  (H (↔ (∈ x A) (∈ x B)))
+  (= A B)
+        H
+        x generalize
+        x A B Extensionality
+        applyModusPonens
+ )
+thm (ExtensionalityBiconditional ((A z) (B z)) ()
+  (↔ (= A B) (∀ z (↔ (∈ z A) (∈ z B))))
+        A B z MembershipBuilderLL
+        z addForAllToConsequent
+
+        z A B Extensionality
+
+        introduceBiconditionalFromImplications
+ )
+thm (ExtensionalityNotFree ((A y) (B y) )
+  (HA (is-not-free-in x (∈ y A)) HB (is-not-free-in x (∈ y B)))
+  (↔ (= A B) (∀ x (↔ (∈ x A) (∈ x B))))
+        A B y ExtensionalityBiconditional
+# The key to the proof is <code>∀ x (x ∈ A ↔ x ∈ B) ↔ ∀ y (y ∈ A ↔ y ∈ B)</code>. It comes about as a variable change, specifically <code>ChangeVariableForAllNotFree</code>. The first step is <code>x is-not-free-in (y ∈ A ↔ y ∈ B)</code>.
+        HA
+        HB
+        biconditionalNotFree
+# Next we need <code>y is-not-free-in (x ∈ A ↔ x ∈ B)</code>.
+        y (↔ (∈ x A) (∈ x B)) DistinctNotFree
+# Finally is <code>x = y → (x ∈ A ↔ x ∈ B) ↔ (y ∈ A ↔ y ∈ B)</code>.
+        x y A MembershipBuilderRR
+        x y B MembershipBuilderRR
+        buildBiconditionalInConsequent
+
+        ChangeVariableForAllNotFree
+# That gives us <code>∀ x (x ∈ A ↔ x ∈ B) ↔ ∀ y (y ∈ A ↔ y ∈ B)</code>. Now we just need to combine with <code>ExtensionalityBiconditional</code>.
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+tvar (formula φy φz φC)
+thm (SetVariable
+  ((φz y result)  (φy z))
+  (HSUBZ (→ (= z y) (↔ φz φy)) HEXISTS (∃ result (∀ y (↔ (∈ y result) φy))))
+  (↔ (∈ y (abstract z φz)) φy)
+        HEXISTS
+# The first step is <code>[y / z]φz ↔ φy</code>.
+        HSUBZ
+        makeSubstExplicit
+# We now apply builders to get <code>∃ result ∀ y (y ∈ result ↔ [y / z]φz) ↔ ∃ result ∀ y (y ∈ result ↔ φy)</code>
+        (∈ y result) buildBiconditionalLL
+        y buildForAll
+        result buildThereExists
+# The right hand side of this is just our existence theorem, though (which we had left on the proof stack), so we detach it.
+        eliminateBiconditionalForward
+        applyModusPonens
+# Applying <code>Abstraction</code> to <code><code>∃ result ∀ y (y ∈ result ↔ [y / z]φz)</code> gives <code>y ∈ {z | φz} ↔ [y / z]φz</code> and simplying the last part gives us <code>y ∈ {z | φz} ↔ φy</code>.
+        Abstraction
+
+        HSUBZ
+        makeSubstExplicit
+
+        applyBiconditionalTransitivity
+ )
+thm (SetObject
+  ((C y) (φz y result)  (φy z) (φz y) (φC y))
+  (HSUBZ (→ (= z y) (↔ φz φy)) HSUBC (→ (= y C) (↔ φy φC)) HEXISTS (∃ result (∀ y (↔ (∈ y result) φy))))
+  (↔ (∈ C (abstract z φz)) φC)
+# Our substitution is <code>y = C → ((y ∈ {z | φz} ↔ φy) ↔ (C ∈ {z | φz} ↔ φC))</code>.
+        y C (abstract z φz) MembershipBuilderRR
+        HSUBC
+        buildBiconditionalInConsequent
+
+        HSUBZ
+        HEXISTS
+        SetVariable
+
+        VariableToObject
+ )
+thm (UnorderedPair-sub () () (→ (= C D) (↔ (∨ (= C A) (= C B)) (∨ (= D A) (= D B))))
+        C D A EqualityBuilderRR
+        C D B EqualityBuilderRR
+        buildDisjunctionInConsequent
+ )
+
+thm (UnorderedPairObject ( (A y result z) (B y result z)) () (↔ (∈ C (abstract z (∨ (= z A) (= z B)))) (∨ (= C A) (= C B)))
+        z y A B UnorderedPair-sub
+        y C A B UnorderedPair-sub
+        result y A B PairingObject
+        SetObject
+ )
+defthm (Unorderedpair object (unorderedPair A B) () () (= (unorderedPair A B) (abstract y (∨ (= y A) (= y B))))
+        (abstract y (∨ (= y A) (= y B))) BiconditionalReflexivity
+)
+
+thm (UnorderedPair ( ) () (↔ (∈ C (unorderedPair A B)) (∨ (= C A) (= C B)))
+        C z A B UnorderedPairObject
+ )
+thm (UnorderedPairBuilder-1
+  (      (A0 a) (A1 a) (B0 b) (B1 b))
+  ()
+  (→ (∧ (= A0 B0) (= A1 B1)) (= (abstract a (∨ (= a A0) (= a A1))) (abstract b (∨ (= b B0) (= b B1)))))
+# Applying builders for equality and disjunction, we get <code>A0 = B0 ∧ A1 = B1 → (z = A0 ∨ z = A1 ↔ z = B0 ∨ z = B1)</code>.
+        (= A0 B0) (= A1 B1) ConjunctionRightElimination
+        A0 B0 z EqualityBuilderLL
+        applySyllogism
+
+        (= A0 B0) (= A1 B1) ConjunctionLeftElimination
+        A1 B1 z EqualityBuilderLL
+        applySyllogism
+
+        composeConjunction
+
+        (= z A0) (= z B0) (= z A1) (= z B1) DisjunctionFunction
+        applySyllogism
+# Applying <code>UnorderedPair</code>, we get <code>A0 = B0 ∧ A1 = B1 → (z ∈ {A0, A1} ↔ z ∈ {B0, B1})</code>.
+        z a A0 A1 UnorderedPairObject
+        swapBiconditional
+        transformImplicationBiconditionalLeft
+
+        z b B0 B1 UnorderedPairObject
+        swapBiconditional
+        transformImplicationBiconditionalRight
+# By extensionality, the right hand side implies <code>{A0, A1} = {B0, B1}</code>.
+        z addForAllToConsequent
+        z (abstract a (∨ (= a A0) (= a A1))) (abstract b (∨ (= b B0) (= b B1))) Extensionality
+        applySyllogism
+ )
+
+thm (UnorderedPairBuilder-2 ((A0 a) (A1 a)  ) () (→ (∧ (= A0 B0) (= A1 B1)) (= (abstract a (∨ (= a A0) (= a A1))) (unorderedPair B0 B1)))
+        A0 B0 A1 B1 a b UnorderedPairBuilder-1
+ )
+
+thm (UnorderedPairBuilder (  ) () (→ (∧ (= A0 B0) (= A1 B1)) (= (unorderedPair A0 A1) (unorderedPair B0 B1)))
+        A0 B0 A1 B1 a UnorderedPairBuilder-2
+ )
+defthm (Singleton object (singleton A) () () (= (singleton A) (unorderedPair A A))
+        (unorderedPair A A) BiconditionalReflexivity
+)
+thm (Singleton () () (↔ (∈ B (singleton A)) (= B A))
+        B A A UnorderedPair
+
+        (= B A) DisjunctionIdempotence
+        swapBiconditional
+
+        applyBiconditionalTransitivity
+ )
+thm (SingletonBuilder () () (→ (= A B) (= (singleton A) (singleton B)))
+        (= A B) ConjunctionIdempotence
+        eliminateBiconditionalReverse
+
+        A B A B UnorderedPairBuilder
+        applySyllogism
+ )
+thm (UnionAxiomObject ((A x y z w)) () (∃ y (∀ z (↔ (∈ z y) (∃ w (∧ (∈ z w) (∈ w A))))))
+        x A w MembershipBuilderLL
+        (∈ z w) buildConjunctionLLInConsequent
+        w buildThereExistsInConsequent
+        (∈ z y) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+        y buildThereExistsInConsequent
+
+        y z w x UnionAxiom
+
+        VariableToObject
+ )
+thm (Union-sub ((C x) (D x)) () (→ (= C D) (↔ (∃ x (∧ (∈ C x) (∈ x A))) (∃ x (∧ (∈ D x) (∈ x A)))))
+        C D x MembershipBuilderRR
+        (∈ x A) buildConjunctionRRInConsequent
+        x buildThereExistsInConsequent
+ )
+
+thm (Union-changeVariable ((C x′)  (A x′) (C x) (A x)) ()
+  (↔ (∃ x (∧ (∈ C x) (∈ x A)))
+    (∃ x′ (∧ (∈ C x′) (∈ x′ A))))
+        x x′ C MembershipBuilderLL
+        x x′ A MembershipBuilderRR
+        buildConjunctionInConsequent
+
+        ChangeVariableThereExists
+ )
+
+thm (UnionObject ( (B x) (A result y x z x′)) () (↔ (∈ B (abstract z (∃ x′ (∧ (∈ z x′) (∈ x′ A))))) (∃ x (∧ (∈ B x) (∈ x A))))
+        z y x A Union-sub
+        x z A x′ Union-changeVariable
+        transformImplicationBiconditionalLeft
+
+        y B x A Union-sub
+
+        result y x A UnionAxiomObject
+
+        SetObject
+ )
+
+defthm (⋃ object (⋃ A) () () (= (⋃ A) (abstract z (∃ x (∧ (∈ z x) (∈ x A)))))
+        (abstract z (∃ x (∧ (∈ z x) (∈ x A)))) BiconditionalReflexivity
+)
+
+thm (Union ((A x) (B x)      ) ()
+  (↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A))))
+        B z x′ A x UnionObject
+ )
+defthm (⊆ formula (⊆ A B) () () (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
+        (∀ x (→ (∈ x A) (∈ x B))) BiconditionalReflexivity
+)
+
+thm (Subset ((A x) (B x)    ) ()
+  (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
+        y x A MembershipBuilderRR
+        y x B MembershipBuilderRR
+        buildImplicationInConsequent
+        ChangeVariableForAll
+ )
+thm (SubsetTransitivity (   ) () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))
+        A B x Subset
+        B C x Subset
+        buildConjunction
+        eliminateBiconditionalReverse
+
+        x
+          (→ (∈ x A) (∈ x B))
+          (→ (∈ x B) (∈ x C))
+          ForAllConjunction
+        eliminateBiconditionalForward
+        applySyllogism
+
+        (∈ x A) (∈ x B) (∈ x C) ImplicationTransitivity
+        x addForAll
+        applySyllogism
+
+        A C x Subset
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (EqualitySubset (  ) ()
+  (↔ (= A B) (∧ (⊆ A B) (⊆ B A)))
+        A B x ExtensionalityBiconditional
+
+        (∈ x A) (∈ x B) BiconditionalImplication
+        x buildForAll
+        applyBiconditionalTransitivity
+
+        x
+          (→ (∈ x A) (∈ x B))
+          (→ (∈ x B) (∈ x A))
+          ForAllConjunction
+        applyBiconditionalTransitivity
+
+        A B x Subset
+        B A x Subset
+        buildConjunction
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (SubsetReflexivity () () (⊆ A A)
+        A EqualityReflexivity
+
+        A A EqualitySubset
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        conflateConjunction
+ )
+
+thm (SubsetAntisymmetry () () (→ (∧ (⊆ A B) (⊆ B A)) (= A B))
+        A B EqualitySubset
+        eliminateBiconditionalForward
+ )
+thm (PowerSetAxiomObject ((A x y z w)) () (∃ y (∀ z (↔ (∈ z y) (∀ w (→ (∈ w z) (∈ w A))))))
+        x A w MembershipBuilderLL
+        (∈ w z) buildCommonAntecedentInConsequent
+        w buildForAllInConsequent
+        (∈ z y) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+        y buildThereExistsInConsequent
+
+        y z w x PowerSetAxiom
+
+        VariableToObject
+ )
+thm (PowerSet-sub ((C x) (D x)) () (→ (= C D) (↔ (∀ x (→ (∈ x C) (∈ x A))) (∀ x (→ (∈ x D) (∈ x A)))))
+        C D x MembershipBuilderLL
+        (∈ x A) buildCommonConsequentInConsequent
+        x buildForAllInConsequent
+ )
+
+thm (PowerSet-changeVariable ((C x′)  (A x′) (C x) (A x)) ()
+  (↔ (∀ x (→ (∈ x C) (∈ x A)))
+    (∀ x′ (→ (∈ x′ C) (∈ x′ A))))
+        x x′ C MembershipBuilderRR
+        x x′ A MembershipBuilderRR
+        buildImplicationInConsequent
+
+        ChangeVariableForAll
+ )
+
+thm (PowerSetObject ( (B x) (A result y x z x′)) () (↔ (∈ B (abstract z (∀ x′ (→ (∈ x′ z) (∈ x′ A))))) (∀ x (→ (∈ x B) (∈ x A))))
+        z y x A PowerSet-sub
+        x z A x′ PowerSet-changeVariable
+        transformImplicationBiconditionalLeft
+
+        y B x A PowerSet-sub
+
+        result y x A PowerSetAxiomObject
+
+        SetObject
+ )
+
+defthm (Power object (power A) () () (= (power A) (abstract z (∀ x (→ (∈ x z) (∈ x A)))))
+        (abstract z (∀ x (→ (∈ x z) (∈ x A)))) BiconditionalReflexivity
+)
+
+thm (PowerSetForAll ((A x) (B x)      ) ()
+  (↔ (∈ B (power A)) (∀ x (→ (∈ x B) (∈ x A))))
+        B z x′ A x PowerSetObject
+ )
+
+thm (PowerSet (  ) () (↔ (∈ B (power A)) (⊆ B A))
+        B A x PowerSetForAll
+
+        B A x Subset
+        swapBiconditional
+
+        applyBiconditionalTransitivity
+ )
+thm (SeparationThereExistsObject ((A y x) (φ y) (A y)  (A x y z) ) ()
+  (∃ y (∀ x (↔ (∈ x y) (∧ (∈ x A) φ))))
+        z A x MembershipBuilderLL
+        φ buildConjunctionRRInConsequent
+        (∈ x y) buildBiconditionalLLInConsequent
+        x buildForAllInConsequent
+        y buildThereExistsInConsequent
+
+        y x z φ SeparationThereExists
+
+        VariableToObject
+ )
+
+thm (SeparationThereExistsSubst
+  ((A y result) (φ result) (A result) (A result x)) ()
+  (∃ result (∀ y (↔ (∈ y result) (∧ (∈ y A) (subst y x φ)))))
+        result y A (subst y x φ) SeparationThereExistsObject
+ )
+thm (Separation-sub () () (→ (= C D) (↔ (∧ (∈ C A) (subst C x φ)) (∧ (∈ D A) (subst D x φ))))
+        C D A MembershipBuilderRR
+        C D x φ SubstBuilderReplacement
+        buildConjunctionInConsequent
+ )
+
+thm (SeparationObject ( (A y result z) (φ y result z)  (A x)) ()
+  (↔ (∈ C (abstract z (∧ (∈ z A) (subst z x φ)))) (∧ (∈ C A) (subst C x φ)))
+        z y A x φ Separation-sub
+        y C A x φ Separation-sub
+        result y A x φ SeparationThereExistsSubst
+        SetObject
+ )
+
+defthm (Separate object (separate x A φ) () () (= (separate x A φ) (abstract y (∧ (∈ y A) (subst y x φ))))
+        (abstract y (∧ (∈ y A) (subst y x φ))) BiconditionalReflexivity
+)
+
+thm (Separation ((A x)     ) ()
+  (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ)))
+        C z A x φ SeparationObject
+ )
+thm (ImplicitMembership ((A x) (B x)) ()
+  (↔ (∈ A B) (∀ x (→ (= x A) (∈ x B))))
+        x A B MembershipBuilderRR
+        ImplicitForAll
+        swapBiconditional
+ )
+export (GENERAL Basic_operations_of_general_set_theory.ghi (CLASSICAL FIRSTORDER) "")
+export (FIRST First_steps_in_set_theory.ghi (CLASSICAL FIRSTORDER) "") 
