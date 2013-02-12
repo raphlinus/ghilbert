@@ -68,7 +68,25 @@ where the second interface expects Interface:Classical_propositional_calculus or
 
 * Variables.  Same syntax and meaning as in interfaces.
 
-* Definitions. TODO: need to describe defthm
+* Definitions.
+
+: defthm (//theorem-name// //kind// //term// //constraints// //hypotheses// //conclusion// //proof//...)
+
+: Define a new term of kind //kind// whose name and arguments are described by //term//. Also prove a theorem which is specified by //constrants//, //hypotheses//, and //conclusion//, and name it //theorem-name//.
+
+: Unlike a regular proof, the conclusion need not exactly match what is on the proof stack at the end of //proof//. Everything must exactly match except for uses of the new term being defined, which must follow these rules:
+
+: • The matched subexpression from the proof stack must be a term expression, not just a variable. The subexpression's kind must agree with //kind//.
+
+: • Any variable in the matched subexpression that is not one of the corresponding definition term's use's actual arguments is called a definition dummy variable.  Each definition dummy variable must also be a proof dummy variable, that is, it must not occur in the hypotheses or conclusion of the theorem.
+
+: • Every such matching subexpression is identical. (Specifically, even definition dummy variables must be identical in all the expansions.)
+
+: • All definition dummy variables in the definiens must be binding variables, and must not occur explicitly free in the definiens.
+
+: • Every actual argument variable of the term use must occur in the matched subexpression.
+
+: The conclusion must mention the term being defined (with the same arguments as in //term//). The conclusion may contain more than one use of the new term being defined, but in that case each occurrence must have the same arguments.
 
 * Proofs.
 : thm (//new-theorem// (//freeness-constraints//) (//hypotheses//) (//consequent//) //proof//)
@@ -101,6 +119,10 @@ Some of the error messages you may encounter are:
 : Term freemap mismatch with verify context
 
 This means that you are trying to export to a term, but the thing you are exporting does not agree with the term's freemap. See the discussion of freemaps under term above.
+
+: Definition dummy 'x' is not a proof dummy
+
+The variable {{{x}}} appears in the term being defined and also in the conclusion or hypotheses. See the discussion under {{{defthm}}} above.
 
 == External links ==
 
