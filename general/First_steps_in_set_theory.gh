@@ -145,7 +145,7 @@ thm (axnul-with-subst () () (∃ emptySet (∀ y (↔ (∈ y emptySet) (subst y 
         applyModusPonens
 )
 
-defthm (EmptySet object (∅) () () (= (∅) (abstract y (⊥)))
+defthm (EmptySetAsAbstraction object (∅) () () (= (∅) (abstract y (⊥)))
 # We need to prove { x | ⊥ } = { y | ⊥ }.
 # We start with z ∈ { x | ⊥ } ↔ [ z / x ] ⊥.
         emptySet z x axnul-with-subst
@@ -165,7 +165,7 @@ defthm (EmptySet object (∅) () () (= (∅) (abstract y (⊥)))
         applyExtensionality
 )
 
-thm (EmptySetVariable () () (∉ x (abstract y (⊥)))
+thm (EmptySetVariable () () (¬ (∈ x (∅)))
 # To apply <code>Abstraction</code>, we need <code>∃ result ∀ x (x ∈ result ↔ [x / y]⊥)</code>. This follows from <code>axnul</code>, the <code>NegationBiconditional</code> relationship between negation and <code>⊥</code>, and the fact that substituting a variable in <code>⊥</code> has no effect.
         result x axnul
 
@@ -180,9 +180,9 @@ thm (EmptySetVariable () () (∉ x (abstract y (⊥)))
 
         eliminateBiconditionalReverse
         applyModusPonens
-# Now that we have <code>∃ result ∀ x (x ∈ result ↔ [x / y]⊥)</code>, we can apply <code>Abstraction</code> to get <code>x ∈ {y | ⊥} ↔ [x / y]⊥</code>.
+# Now that we have <code>∃ result ∀ x (x ∈ result ↔ [x / y] ⊥)</code>, we can apply <code>Abstraction</code> to get <code>x ∈ {y | ⊥} ↔ [x / y] ⊥</code>.
         Abstraction
-# Moving the substitution which has no effect
+# Removing the substitution which has no effect
         x y (⊥) NullSubstitution
         applyBiconditionalTransitivity
 # gives us <code>x ∈ {y | ⊥} ↔ ⊥</code>
@@ -191,23 +191,25 @@ thm (EmptySetVariable () () (∉ x (abstract y (⊥)))
         eliminateBiconditionalForward
         applyModusPonens
 
-        x (abstract y (⊥)) NotElement
-        eliminateBiconditionalForward
+        y EmptySetAsAbstraction
+        swapEquality
+        (abstract y (⊥)) (∅) x MembershipBuilderLL
+        applyModusPonens
+        addNegation
+
+        eliminateBiconditionalReverse
         applyModusPonens
  )
-thm (EmptySetObject ((A x y)) () (∉ A (abstract y (⊥)))
+thm (EmptySet () () (¬ (∈ A (∅)))
 # The substitution to apply <code>VariableToObject</code> is <code>x = A → x ∉ ∅ ↔ A ∉ ∅</code>
-        x A (abstract y (⊥)) MembershipBuilderRR
+        x A (∅) MembershipBuilderRR
         addNegationInConsequent
 
-        x y EmptySetVariable
+        x EmptySetVariable
 
         VariableToObject
  )
 
-thm (EmptySet () () (∉ A (∅))
-        A emptyElement EmptySetObject
- )
 thm (PairingObject-1 ((A x z w) ) () (∃ w (∀ z (↔ (∈ z w) (∨ (= z A) (= z y)))))
         x A z EqualityBuilderLL
         (= z y) buildDisjunctionRRInConsequent
