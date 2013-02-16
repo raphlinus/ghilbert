@@ -47,6 +47,64 @@ thm (MembershipThereExists ((A x) (B x)) ()
         ImplicitThereExists
         swapBiconditional
  )
+
+# Not an element (<code>∉</code>) is just an abbreviation for negation and element-of.
+defthm (NotElement formula (∉ A B) () () (↔ (∉ A B) (¬ (∈ A B)))
+        (¬ (∈ A B)) BiconditionalReflexivity
+)
+
+
+# Extensionality—various corollaries and convenience theorems (easy consequences of
+# the axiom).
+thm (Extensionality-1 ((A z)  ) () (→ (∀ z (↔ (∈ z A) (∈ z y))) (= A y))
+# This lemma changes <code>x</code> to <code>A</code>, using <code>VariableToObject</code> applied to <code>x = A → ((∀ z (z ∈ x ↔ z ∈ y) → x = y) ↔ (∀ z (z ∈ A ↔ z ∈ y) → A = y))</code>
+        x A z MembershipBuilderLL
+        (∈ z y) buildBiconditionalRRInConsequent
+        z buildForAllInConsequent
+
+        x A y EqualityBuilderRR
+
+        buildImplicationInConsequent
+
+        z x y ExtensionalityVariable
+        VariableToObject
+ )
+
+thm (Extensionality ((A z) (B z)) ()
+  (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B))
+# To prove this, we change <code>y</code> to <code>B</code>, using <code>VariableToObject</code> applied to <code>y = B → ((∀ z (z ∈ A ↔ z ∈ y) → A = y) ↔ (∀ z (z ∈ A ↔ z ∈ B) → A = B))</code>
+        y B z MembershipBuilderLL
+        (∈ z A) buildBiconditionalLLInConsequent
+        z buildForAllInConsequent
+
+        y B A EqualityBuilderLL
+
+        buildImplicationInConsequent
+
+        z A y Extensionality-1
+        VariableToObject
+ )
+thm (applyExtensionality ((A x) (B x))
+  (H (↔ (∈ x A) (∈ x B)))
+  (= A B)
+        H
+        x generalize
+        x A B Extensionality
+        applyModusPonens
+ )
+thm (ExtensionalityBiconditional ((A z) (B z)) ()
+  (↔ (= A B) (∀ z (↔ (∈ z A) (∈ z B))))
+        A B z MembershipBuilderLL
+        z addForAllToConsequent
+
+        z A B Extensionality
+
+        introduceBiconditionalFromImplications
+ )
+
+
+# The first thing we do in terms of constructing sets is the empty set.
+
 thm (axnul () () (∃ x (∀ y (¬ (∈ y x))))
 # The only set theory axiom we use in the proof is the axiom of separation, which says that given the existence of any set (which is implicit in some of the predicate logic steps), we can construct a subset of it which has no elements. Here is our application of separation, which we will use at the end of the proof (after a bunch of logical steps).
         x y z (∧ (∈ y y) (¬ (∈ y y))) SeparationThereExists
@@ -66,9 +124,45 @@ thm (axnul () () (∃ x (∀ y (¬ (∈ y x))))
         x addThereExists
         applyModusPonens
  )
-var (object emptyElement)
-defthm (∅ object (∅) () () (= (∅) (abstract emptyElement (⊥)))
-        (abstract emptyElement (⊥)) BiconditionalReflexivity
+var (object emptyElement emptySet)
+
+# Here is a corollary which we'll use shortly.
+thm (axnul-with-subst () () (∃ emptySet (∀ y (↔ (∈ y emptySet) (subst y z (⊥)))))
+        emptySet y axnul
+
+# We start with ¬ y ∈ emptySet ↔ (y ∈ emptySet ↔ [ y / z ] ⊥)
+        (∈ y emptySet) NegationBiconditional
+
+        y z (⊥) NullSubstitution
+        swapBiconditional
+        (∈ y emptySet) buildBiconditionalLL
+        applyBiconditionalTransitivity
+
+# Combining that with axnul we are done.
+        eliminateBiconditionalReverse
+        y addForAll
+        emptySet addThereExists
+        applyModusPonens
+)
+
+defthm (EmptySet object (∅) () () (= (∅) (abstract y (⊥)))
+# We need to prove { x | ⊥ } = { y | ⊥ }.
+# We start with z ∈ { x | ⊥ } ↔ [ z / x ] ⊥.
+        emptySet z x axnul-with-subst
+        Abstraction
+# But [ z / x ] ⊥ is just ⊥ (because x does not occur free in ⊥).
+        z x (⊥) NullSubstitution
+        applyBiconditionalTransitivity
+# The same process shows z ∈ { y | ⊥ } ↔ ⊥
+        emptySet z y axnul-with-subst
+        Abstraction
+
+        z y (⊥) NullSubstitution
+        applyBiconditionalTransitivity
+# Combining, we get z ∈ { x | ⊥ } ↔ z ∈ { y | ⊥ }, which leads to { x | ⊥ } = { y | ⊥ }
+        swapBiconditional
+        applyBiconditionalTransitivity
+        applyExtensionality
 )
 
 thm (EmptySetVariable () () (∉ x (abstract y (⊥)))
@@ -133,71 +227,7 @@ thm (PairingObject ((A y z w) (B y z w)) () (∃ w (∀ z (↔ (∈ z w) (∨ (=
 
         VariableToObject
  )
-thm (Extensionality-1 ((A z)  ) () (→ (∀ z (↔ (∈ z A) (∈ z y))) (= A y))
-# This lemma changes <code>x</code> to <code>A</code>, using <code>VariableToObject</code> applied to <code>x = A → ((∀ z (z ∈ x ↔ z ∈ y) → x = y) ↔ (∀ z (z ∈ A ↔ z ∈ y) → A = y))</code>
-        x A z MembershipBuilderLL
-        (∈ z y) buildBiconditionalRRInConsequent
-        z buildForAllInConsequent
 
-        x A y EqualityBuilderRR
-
-        buildImplicationInConsequent
-
-        z x y ExtensionalityVariable
-        VariableToObject
- )
-
-thm (Extensionality ((A z) (B z)    ) ()
-  (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B))
-# To prove this, we change <code>y</code> to <code>B</code>, using <code>VariableToObject</code> applied to <code>y = B → ((∀ z (z ∈ A ↔ z ∈ y) → A = y) ↔ (∀ z (z ∈ A ↔ z ∈ B) → A = B))</code>
-        y B z MembershipBuilderLL
-        (∈ z A) buildBiconditionalLLInConsequent
-        z buildForAllInConsequent
-
-        y B A EqualityBuilderLL
-
-        buildImplicationInConsequent
-
-        z A y Extensionality-1
-        VariableToObject
- )
-thm (applyExtensionality ((A x) (B x))
-  (H (↔ (∈ x A) (∈ x B)))
-  (= A B)
-        H
-        x generalize
-        x A B Extensionality
-        applyModusPonens
- )
-thm (ExtensionalityBiconditional ((A z) (B z)) ()
-  (↔ (= A B) (∀ z (↔ (∈ z A) (∈ z B))))
-        A B z MembershipBuilderLL
-        z addForAllToConsequent
-
-        z A B Extensionality
-
-        introduceBiconditionalFromImplications
- )
-thm (ExtensionalityNotFree ((A y) (B y) )
-  (HA (is-not-free-in x (∈ y A)) HB (is-not-free-in x (∈ y B)))
-  (↔ (= A B) (∀ x (↔ (∈ x A) (∈ x B))))
-        A B y ExtensionalityBiconditional
-# The key to the proof is <code>∀ x (x ∈ A ↔ x ∈ B) ↔ ∀ y (y ∈ A ↔ y ∈ B)</code>. It comes about as a variable change, specifically <code>ChangeVariableForAllNotFree</code>. The first step is <code>x is-not-free-in (y ∈ A ↔ y ∈ B)</code>.
-        HA
-        HB
-        biconditionalNotFree
-# Next we need <code>y is-not-free-in (x ∈ A ↔ x ∈ B)</code>.
-        y (↔ (∈ x A) (∈ x B)) DistinctNotFree
-# Finally is <code>x = y → (x ∈ A ↔ x ∈ B) ↔ (y ∈ A ↔ y ∈ B)</code>.
-        x y A MembershipBuilderRR
-        x y B MembershipBuilderRR
-        buildBiconditionalInConsequent
-
-        ChangeVariableForAllNotFree
-# That gives us <code>∀ x (x ∈ A ↔ x ∈ B) ↔ ∀ y (y ∈ A ↔ y ∈ B)</code>. Now we just need to combine with <code>ExtensionalityBiconditional</code>.
-        swapBiconditional
-        applyBiconditionalTransitivity
- )
 tvar (formula φy φz φC)
 thm (SetVariable
   ((φz y result)  (φy z))

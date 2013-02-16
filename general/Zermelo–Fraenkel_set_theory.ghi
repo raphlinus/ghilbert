@@ -61,10 +61,6 @@ stmt (Regularity () () (→ (∃ y (∈ y x)) (∃ y (∧ (∈ y x) (∀ z (→ 
 # Axiom of infinity.<ref>[http://us.metamath.org/mpeuni/ax-inf.html ax-inf], metamath's set.mm, accessed September 13, 2010</ref>
 stmt (Infinity () () (∃ y (∧ (∈ x y) (∀ z (→ (∈ z y) (∃ w (∧ (∈ z w) (∈ w y))))))))
 # 
-# Not an element (<code>∉</code>) is just an abbreviation for negation and element-of.
-term (wff (∉ A B))
-stmt (∉ () () (↔ (∉ A B) (¬ (∈ A B))))
-# 
 # ==Defining sets==
 # What we have presented so far provides the ideas of set theory, but there is one important notational detail to attend to. The above axioms let us conclude that there is a set with no elements, or a set whose only element is a set <code>x</code>, but they do not provide any way to introduce notation such as <code>∅</code> or <code>{ x }</code> for those concepts.
 # 
@@ -75,7 +71,7 @@ term (object (abstract x φ))
 # 
 # Our restricted version of the metamath definition follows. The hypothesis is <code>∃ result ∀ x (x ∈ result ↔ [x / y]φ)</code>, which can be paraphrased as "<code>{ y | φ }</code> is a set". We adopt an axiom that this hypothesis lets us conclude <code>x ∈ { y | φ } ↔ [x / y]φ</code>. All variables are distinct except that <code>y</code> can (and typically does) appear in <code>φ</code>.
 var (object result)
-stmt (Abstraction ((φ x result) )
+stmt (Abstraction ((φ x result))
   ((∃ result (∀ x (↔ (∈ x result) (subst x y φ)))))
   (↔ (∈ x (abstract y φ)) (subst x y φ)))
 # 
