@@ -234,7 +234,7 @@ thm (PairingObject ((A z w) (B z w)) () (∃ w (∀ z (↔ (∈ z w) (∨ (= z A
         VariableToObject
  )
 
-tvar (formula φy φz φC)
+tvar (formula φx φy φz φC)
 thm (SetVariable
   ((φz y result)  (φy z))
   (HSUBZ (→ (= z y) (↔ φz φy)) HEXISTS (∃ result (∀ y (↔ (∈ y result) φy))))
@@ -259,7 +259,7 @@ thm (SetVariable
         applyBiconditionalTransitivity
  )
 thm (SetObject
-  ((C y) (φz y result)  (φy z) (φz y) (φC y))
+  ((C y) (φz y result) (φy z) (φz y) (φC y))
   (HSUBZ (→ (= z y) (↔ φz φy)) HSUBC (→ (= y C) (↔ φy φC)) HEXISTS (∃ result (∀ y (↔ (∈ y result) φy))))
   (↔ (∈ C (abstract z φz)) φC)
 # Our substitution is <code>y = C → ((y ∈ {z | φz} ↔ φy) ↔ (C ∈ {z | φz} ↔ φC))</code>.
@@ -273,6 +273,31 @@ thm (SetObject
 
         VariableToObject
  )
+
+var (object element)
+thm (ChangeVariableAbstraction
+  ((φx y result element) (φy x result element))
+  (
+    HEXISTX (∃ result (∀ element (↔ (∈ element result) (subst element x φx))))
+    HEXISTY (∃ result (∀ element (↔ (∈ element result) (subst element y φy))))
+    HSUB (→ (= x y) (↔ φx φy))
+  )
+  (= (abstract x φx) (abstract y φy))
+        HEXISTX
+        Abstraction
+
+        HSUB
+        element ChangeVariableSubstitution
+        applyBiconditionalTransitivity
+
+        HEXISTY
+        Abstraction
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+)
+
 thm (UnorderedPair-sub () () (→ (= C D) (↔ (∨ (= C A) (= C B)) (∨ (= D A) (= D B))))
         C D A EqualityBuilderRR
         C D B EqualityBuilderRR
@@ -286,7 +311,9 @@ thm (UnorderedPairObject ((A z) (B z)) ()
         result y A B PairingObject
         SetObject
  )
-defthm (Unorderedpair object (unorderedPair A B) () () (= (unorderedPair A B) (abstract y (∨ (= y A) (= y B))))
+
+defthm (UnorderedPairAsAbstraction object (unorderedPair A B) () ()
+  (= (unorderedPair A B) (abstract y (∨ (= y A) (= y B))))
         (abstract y (∨ (= y A) (= y B))) BiconditionalReflexivity
 )
 
