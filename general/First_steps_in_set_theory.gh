@@ -312,16 +312,31 @@ thm (UnorderedPairObject ((A z) (B z)) ()
         SetObject
  )
 
+thm (UnorderedPairWithSubst ((A x result element) (B x result element)) ()
+  (∃ result (∀ element (↔ (∈ element result) (subst element x (∨ (= x A) (= x B))))))
+        result element A B PairingObject
+
+        x element A B UnorderedPair-sub
+        makeSubstExplicit
+        swapBiconditional
+
+        (∈ element result) buildBiconditionalLL
+        element buildForAll
+        result buildThereExists
+        eliminateBiconditionalReverse
+        applyModusPonens
+)
+
 defthm (UnorderedPairAsAbstraction object (unorderedPair A B) () ()
   (= (unorderedPair A B) (abstract y (∨ (= y A) (= y B))))
-        (abstract y (∨ (= y A) (= y B))) BiconditionalReflexivity
+# We need to prove { x | x = A ∨ x = B } = { y | y = A ∨ y = B }.
 )
 
 thm (UnorderedPair ( ) () (↔ (∈ C (unorderedPair A B)) (∨ (= C A) (= C B)))
         C z A B UnorderedPairObject
  )
 thm (UnorderedPairBuilder-1
-  (      (A0 a) (A1 a) (B0 b) (B1 b))
+  ((A0 a) (A1 a) (B0 b) (B1 b))
   ()
   (→ (∧ (= A0 B0) (= A1 B1)) (= (abstract a (∨ (= a A0) (= a A1))) (abstract b (∨ (= b B0) (= b B1)))))
 # Applying builders for equality and disjunction, we get <code>A0 = B0 ∧ A1 = B1 → (z = A0 ∨ z = A1 ↔ z = B0 ∨ z = B1)</code>.
