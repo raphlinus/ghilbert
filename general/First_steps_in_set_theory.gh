@@ -327,9 +327,13 @@ thm (UnorderedPairWithSubst ((A x result element) (B x result element)) ()
         applyModusPonens
 )
 
-defthm (UnorderedPairAsAbstraction object (unorderedPair A B) () ()
+defthm (UnorderedPairAsAbstraction object (unorderedPair A B) ((A y) (B y)) ()
   (= (unorderedPair A B) (abstract y (∨ (= y A) (= y B))))
 # We need to prove { x | x = A ∨ x = B } = { y | y = A ∨ y = B }.
+        result element x A B UnorderedPairWithSubst
+        result element y A B UnorderedPairWithSubst
+        x y A B UnorderedPair-sub
+        ChangeVariableAbstraction
 )
 
 thm (UnorderedPair ( ) () (↔ (∈ C (unorderedPair A B)) (∨ (= C A) (= C B)))
