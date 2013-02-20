@@ -416,7 +416,7 @@ thm (SingletonBuilder () () (→ (= A B) (= (singleton A) (singleton B)))
         applySyllogism
 )
 
-thm (UnionAxiomObject ((A x y z w)) () (∃ y (∀ z (↔ (∈ z y) (∃ w (∧ (∈ z w) (∈ w A))))))
+thm (UnionAxiomObject ((A y z w)) () (∃ y (∀ z (↔ (∈ z y) (∃ w (∧ (∈ z w) (∈ w A))))))
         x A w MembershipBuilderLL
         (∈ z w) buildConjunctionLLInConsequent
         w buildThereExistsInConsequent
@@ -427,7 +427,8 @@ thm (UnionAxiomObject ((A x y z w)) () (∃ y (∀ z (↔ (∈ z y) (∃ w (∧ 
         y z w x UnionAxiom
 
         VariableToObject
- )
+)
+
 thm (Union-sub ((C x) (D x)) () (→ (= C D) (↔ (∃ x (∧ (∈ C x) (∈ x A))) (∃ x (∧ (∈ D x) (∈ x A)))))
         C D x MembershipBuilderRR
         (∈ x A) buildConjunctionRRInConsequent
@@ -444,7 +445,8 @@ thm (Union-changeVariable ((C x′)  (A x′) (C x) (A x)) ()
         ChangeVariableThereExists
  )
 
-thm (UnionObject ( (B x) (A result y x z x′)) () (↔ (∈ B (abstract z (∃ x′ (∧ (∈ z x′) (∈ x′ A))))) (∃ x (∧ (∈ B x) (∈ x A))))
+thm (UnionObject ((B x) (A x z x′)) ()
+  (↔ (∈ B (abstract z (∃ x′ (∧ (∈ z x′) (∈ x′ A))))) (∃ x (∧ (∈ B x) (∈ x A))))
         z y x A Union-sub
         x z A x′ Union-changeVariable
         transformImplicationBiconditionalLeft
