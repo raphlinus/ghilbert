@@ -159,13 +159,11 @@ class handler(app.users.AuthenticatedHandler):
     obj_types = {'commit': 1, 'tree': 2, 'blob': 3, 'tag': 4}
     def encode_type_and_size(self, t, size):
         t_num = self.obj_types[t]
-        if size > 16: hibit = 0x80
-        else: hibit = 0
+        hibit = 0x80 if size >= 16 else 0
         result = [chr(hibit | (t_num << 4) | (size & 15))]
         size >>= 4
         while size:
-            if size > 128: hibit = 0x80
-            else: hibit = 0
+            hibit = 0x80 if size >= 128 else 0
             result.append(chr(hibit | (size & 127)))
             size >>= 7
         return ''.join(result)
