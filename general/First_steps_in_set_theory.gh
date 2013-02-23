@@ -558,7 +558,7 @@ thm (SubsetAntisymmetry () () (→ (∧ (⊆ A B) (⊆ B A)) (= A B))
         A B EqualitySubset
         eliminateBiconditionalForward
  )
-thm (PowerSetAxiomObject ((A x y z w)) () (∃ y (∀ z (↔ (∈ z y) (∀ w (→ (∈ w z) (∈ w A))))))
+thm (PowerSetAxiomObject ((A y z w)) () (∃ y (∀ z (↔ (∈ z y) (∀ w (→ (∈ w z) (∈ w A))))))
         x A w MembershipBuilderLL
         (∈ w z) buildCommonAntecedentInConsequent
         w buildForAllInConsequent
@@ -586,7 +586,8 @@ thm (PowerSet-changeVariable ((C x′)  (A x′) (C x) (A x)) ()
         ChangeVariableForAll
  )
 
-thm (PowerSetObject ( (B x) (A result y x z x′)) () (↔ (∈ B (abstract z (∀ x′ (→ (∈ x′ z) (∈ x′ A))))) (∀ x (→ (∈ x B) (∈ x A))))
+thm (PowerSetObject ((B x) (A x z x′)) ()
+  (↔ (∈ B (abstract z (∀ x′ (→ (∈ x′ z) (∈ x′ A))))) (∀ x (→ (∈ x B) (∈ x A))))
         z y x A PowerSet-sub
         x z A x′ PowerSet-changeVariable
         transformImplicationBiconditionalLeft
@@ -596,13 +597,14 @@ thm (PowerSetObject ( (B x) (A result y x z x′)) () (↔ (∈ B (abstract z (�
         result y x A PowerSetAxiomObject
 
         SetObject
- )
-
-defthm (Power object (power A) () () (= (power A) (abstract z (∀ x (→ (∈ x z) (∈ x A)))))
-        (abstract z (∀ x (→ (∈ x z) (∈ x A)))) BiconditionalReflexivity
 )
 
-thm (PowerSetForAll ((A x) (B x)      ) ()
+defthm (PowerSetAsAbstraction object (power A) () ()
+  (= (power A) (abstract z (∀ x (→ (∈ x z) (∈ x A)))))
+        todo
+)
+
+thm (PowerSetForAll ((A x) (B x)) ()
   (↔ (∈ B (power A)) (∀ x (→ (∈ x B) (∈ x A))))
         B z x′ A x PowerSetObject
  )
