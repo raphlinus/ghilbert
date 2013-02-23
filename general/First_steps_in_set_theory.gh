@@ -458,14 +458,30 @@ thm (UnionObject ((B x) (A x z x′)) ()
         SetObject
  )
 
-defthm (⋃ object (⋃ A) () () (= (⋃ A) (abstract z (∃ x (∧ (∈ z x) (∈ x A)))))
-        (abstract z (∃ x (∧ (∈ z x) (∈ x A)))) BiconditionalReflexivity
+thm (UnionWithSubst ((A x z result element)) ()
+  (∃ result (∀ element (↔ (∈ element result) (subst element z (∃ x (∧ (∈ z x) (∈ x A)))))))
+        result element x A UnionAxiomObject
+
+        z element x A Union-sub
+        makeSubstExplicit
+        swapBiconditional
+
+        (∈ element result) buildBiconditionalLL
+        element buildForAll
+        result buildThereExists
+        eliminateBiconditionalReverse
+        applyModusPonens
 )
 
-thm (Union ((A x) (B x)      ) ()
+defthm (UnionAsAbstraction object (⋃ A) () () (= (⋃ A) (abstract z (∃ x (∧ (∈ z x) (∈ x A)))))
+  todo
+)
+
+thm (Union ((A x) (B x)) ()
   (↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A))))
         B z x′ A x UnionObject
- )
+)
+
 defthm (⊆ formula (⊆ A B) () () (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
         (∀ x (→ (∈ x A) (∈ x B))) BiconditionalReflexivity
 )
