@@ -3,7 +3,7 @@ import (CLASSICAL Classical_propositional_calculus.ghi () "")
 import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
 import (AXIOMS Zermelo–Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")
 
-var (object x y z w result x′)
+var (object x y z w result x′ y′ z′)
 var (object a b)
 tvar (object A B C D A0 A1 B0 B1)
 tvar (formula φ antecedent)
@@ -435,7 +435,7 @@ thm (Union-sub ((C x) (D x)) () (→ (= C D) (↔ (∃ x (∧ (∈ C x) (∈ x A
         x buildThereExistsInConsequent
  )
 
-thm (Union-changeVariable ((C x′)  (A x′) (C x) (A x)) ()
+thm (Union-changeVariable ((C x′) (A x′) (C x) (A x)) ()
   (↔ (∃ x (∧ (∈ C x) (∈ x A)))
     (∃ x′ (∧ (∈ C x′) (∈ x′ A))))
         x x′ C MembershipBuilderLL
@@ -473,8 +473,17 @@ thm (UnionWithSubst ((A x z result element)) ()
         applyModusPonens
 )
 
-defthm (UnionAsAbstraction object (⋃ A) () () (= (⋃ A) (abstract z (∃ x (∧ (∈ z x) (∈ x A)))))
-  todo
+defthm (UnionAsAbstraction object (⋃ A) ((A x z)) ()
+  (= (⋃ A) (abstract z (∃ x (∧ (∈ z x) (∈ x A)))))
+        result element z′ x′ A UnionWithSubst
+
+        result element z x A UnionWithSubst
+
+        z′ z x A Union-sub
+        x z′ A x′ Union-changeVariable
+        transformImplicationBiconditionalLeft
+
+        ChangeVariableAbstraction
 )
 
 thm (Union ((A x) (B x)) ()
