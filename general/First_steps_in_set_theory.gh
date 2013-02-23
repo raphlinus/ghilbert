@@ -495,17 +495,13 @@ thm (Union ((A x) (B x)) ()
         applyBiconditionalTransitivity
 )
 
-defthm (⊆ formula (⊆ A B) () () (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
-        (∀ x (→ (∈ x A) (∈ x B))) BiconditionalReflexivity
-)
-
-thm (Subset ((A x) (B x)    ) ()
-  (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
+defthm (Subset formula (⊆ A B) ((A x) (B x)) () (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B))))
         y x A MembershipBuilderRR
         y x B MembershipBuilderRR
         buildImplicationInConsequent
         ChangeVariableForAll
- )
+)
+
 thm (SubsetTransitivity (   ) () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))
         A B x Subset
         B C x Subset
