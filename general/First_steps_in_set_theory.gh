@@ -502,7 +502,7 @@ defthm (Subset formula (⊆ A B) ((A x) (B x)) () (↔ (⊆ A B) (∀ x (→ (�
         ChangeVariableForAll
 )
 
-thm (SubsetTransitivity (   ) () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))
+thm (SubsetTransitivity () () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))
         A B x Subset
         B C x Subset
         buildConjunction
@@ -523,7 +523,8 @@ thm (SubsetTransitivity (   ) () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C))
         eliminateBiconditionalForward
         applySyllogism
  )
-thm (EqualitySubset (  ) ()
+
+thm (EqualitySubset () ()
   (↔ (= A B) (∧ (⊆ A B) (⊆ B A)))
         A B x ExtensionalityBiconditional
 
@@ -558,6 +559,7 @@ thm (SubsetAntisymmetry () () (→ (∧ (⊆ A B) (⊆ B A)) (= A B))
         A B EqualitySubset
         eliminateBiconditionalForward
  )
+
 thm (PowerSetAxiomObject ((A y z w)) () (∃ y (∀ z (↔ (∈ z y) (∀ w (→ (∈ w z) (∈ w A))))))
         x A w MembershipBuilderLL
         (∈ w z) buildCommonAntecedentInConsequent
@@ -569,7 +571,8 @@ thm (PowerSetAxiomObject ((A y z w)) () (∃ y (∀ z (↔ (∈ z y) (∀ w (→
         y z w x PowerSetAxiom
 
         VariableToObject
- )
+)
+
 thm (PowerSet-sub ((C x) (D x)) () (→ (= C D) (↔ (∀ x (→ (∈ x C) (∈ x A))) (∀ x (→ (∈ x D) (∈ x A)))))
         C D x MembershipBuilderLL
         (∈ x A) buildCommonConsequentInConsequent
@@ -599,6 +602,21 @@ thm (PowerSetObject ((B x) (A x z x′)) ()
         SetObject
 )
 
+thm (PowerSetWithSubst ((A x z result element)) ()
+  (∃ result (∀ element (↔ (∈ element result) (subst element z (∀ x (→ (∈ x z) (∈ x A)))))))
+        result element x A PowerSetAxiomObject
+
+        z element x A PowerSet-sub
+        makeSubstExplicit
+        swapBiconditional
+
+        (∈ element result) buildBiconditionalLL
+        element buildForAll
+        result buildThereExists
+        eliminateBiconditionalReverse
+        applyModusPonens
+)
+
 defthm (PowerSetAsAbstraction object (power A) () ()
   (= (power A) (abstract z (∀ x (→ (∈ x z) (∈ x A)))))
         todo
@@ -609,7 +627,7 @@ thm (PowerSetForAll ((A x) (B x)) ()
         B z x′ A x PowerSetObject
  )
 
-thm (PowerSet (  ) () (↔ (∈ B (power A)) (⊆ B A))
+thm (PowerSet () () (↔ (∈ B (power A)) (⊆ B A))
         B A x PowerSetForAll
 
         B A x Subset
