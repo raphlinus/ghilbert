@@ -617,9 +617,17 @@ thm (PowerSetWithSubst ((A x z result element)) ()
         applyModusPonens
 )
 
-defthm (PowerSetAsAbstraction object (power A) () ()
+defthm (PowerSetAsAbstraction object (power A) ((A x z)) ()
   (= (power A) (abstract z (∀ x (→ (∈ x z) (∈ x A)))))
-        todo
+        result element z′ x′ A PowerSetWithSubst
+
+        result element z x A PowerSetWithSubst
+
+        z′ z x A PowerSet-sub
+        x z′ A x′ PowerSet-changeVariable
+        transformImplicationBiconditionalLeft
+
+        ChangeVariableAbstraction
 )
 
 thm (PowerSetForAll ((A x) (B x)) ()
