@@ -679,14 +679,30 @@ thm (SeparationObject ( (A z) (φ z)) ()
         SetObject
  )
 
-defthm (Separate object (separate x A φ) () () (= (separate x A φ) (abstract y (∧ (∈ y A) (subst y x φ))))
-        (abstract y (∧ (∈ y A) (subst y x φ))) BiconditionalReflexivity
+thm (SeparationWithSubst ((A z result element) (φ z result)) ()
+  (∃ result (∀ element (↔ (∈ element result) (subst element z (∧ (∈ z A) (subst z x φ))))))
+        result element A x φ SeparationThereExistsSubst
+
+        z element A x φ Separation-sub
+        makeSubstExplicit
+        swapBiconditional
+
+        (∈ element result) buildBiconditionalLL
+        element buildForAll
+        result buildThereExists
+        eliminateBiconditionalReverse
+        applyModusPonens
 )
 
-thm (Separation ((A x)     ) ()
+defthm (Separate object (separate x A φ) () () (= (separate x A φ) (abstract y (∧ (∈ y A) (subst y x φ))))
+        todo
+)
+
+thm (Separation ((A x)) ()
   (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ)))
         C z A x φ SeparationObject
- )
+)
+
 thm (ImplicitMembership ((A x) (B x)) ()
   (↔ (∈ A B) (∀ x (→ (= x A) (∈ x B))))
         x A B MembershipBuilderRR
