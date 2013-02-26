@@ -694,8 +694,15 @@ thm (SeparationWithSubst ((A z result element) (φ z result)) ()
         applyModusPonens
 )
 
-defthm (Separate object (separate x A φ) () () (= (separate x A φ) (abstract y (∧ (∈ y A) (subst y x φ))))
-        todo
+defthm (SeparationAsAbstraction object (separate x A φ) ((A z) (φ z)) ()
+  (= (separate x A φ) (abstract z (∧ (∈ z A) (subst z x φ))))
+        result element z′ A x φ SeparationWithSubst
+
+        result element z A x φ SeparationWithSubst
+
+        z′ z A x φ Separation-sub
+
+        ChangeVariableAbstraction
 )
 
 thm (Separation ((A x)) ()
