@@ -67,8 +67,8 @@ stmt (PowerSet () () (↔ (∈ B (power A)) (⊆ B A)))
 # 
 # == Separation ==
 # We define <code>{x ∈ A | φ}</code>, the set of all elements in <code>A</code> which also satisfy <code>φ</code>. Although we write <code>{x ∈ A | φ}</code> informally, for JHilbert it needs to be <code>(separate x A φ)</code>.
-term (object (separate x A φ))
-stmt (Separation ((A x)) ()
+term (object (separate x A φ) (x A))
+stmt (Separation () ()
   (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ))))
 # 
 # == Builders ==
@@ -93,13 +93,6 @@ stmt (UnorderedPairBuilder () () (→ (∧ (= A0 B0) (= A1 B1)) (= (unorderedPai
 # Sets with the same elements are equal.
 stmt (Extensionality ((A z) (B z)) () (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B)))
 stmt (applyExtensionality ((A x) (B x)) ((↔ (∈ x A) (∈ x B))) (= A B))
-# 
-# Here's a variant with explicit freeness hypotheses rather than distinct variable constraints.
-stmt (ExtensionalityNotFree ((A y) (B y) )
-  ((is-not-free-in x (∈ y A))
-   (is-not-free-in x (∈ y B))
-  )
-  (↔ (= A B) (∀ x (↔ (∈ x A) (∈ x B)))))
 # 
 # == References ==
 # <references/>
