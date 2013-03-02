@@ -21,6 +21,8 @@ import hashlib
 import zlib
 import struct
 import binascii
+import os
+import concurrent.futures
 
 import babygit
 import repo
@@ -33,6 +35,29 @@ import app.common
 import app.users  # for authentication
 
 #s = babygit.FsStore()
+
+class DummyFuture:
+    def __init__(self, v):
+        self.v = v
+    def result(self):
+        return self.v
+    def add_done_callback(self, fn):
+        fn(self)
+
+class DummyExecutor:
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        pass
+    def submit(self, fn, *args, **kwargs):
+        return DummyFuture(fn(*args, **kwargs))
+
+# TODO: when running devappserver2, we can actually use threads
+def get_executor(n):
+    if os.environ.get('SERVER_SOFTWARE').startswith('Development'):
+        return DummyExecutor()
+    else:
+        return concurrent.futures.ThreadPoolExecutor(n)
 
 s = appengine.AEStore()
 
@@ -214,6 +239,12 @@ class handler(app.users.AuthenticatedHandler):
                 break
         return ''.join(result), offset
 
+    def put(self, pending, sha, obj):
+        logging.debug('start put ' + sha)
+        self.store.putobj(sha, obj)
+        del pending[sha]
+        logging.debug('done put ' + sha)
+
     def process_packfile(self, data, offset):
         if data[offset:offset+4] != 'PACK':
             return 'bad header'
@@ -221,26 +252,39 @@ class handler(app.users.AuthenticatedHandler):
         if version != 2:
             return 'unknown version ' + `version`
         offset += 12
-        for i in range(n_objs):
-            t, s, offset = self.parse_type_and_size(data, offset)
-            if t < 5:
-                raw, offset = self.read_zlib(data, offset)
-                if s != len(raw):
-                    return 'size mismatch'
-                #logging.debug(`(t, raw)`)
-                self.store.put(store.obj_types[t], raw)
-            elif t == 7:  # OBJ_REF_DELTA
-                refsha = binascii.hexlify(data[offset:offset + 20])
-                offset += 20
-                refobj = self.store.getobj(refsha)
-                if not refobj:
-                    return 'reference obj ' + refsha + ' not found'
-                delta, offset = self.read_zlib(data, offset)
-                obj = babygit.patch_delta(refobj, delta)
-                sha = hashlib.sha1(obj).hexdigest()
-                self.store.putobj(sha, obj)
-            else:
-                return 'delta type ' + `t` + ' nyi'
+        pending = {}
+        with get_executor(50) as ex:
+            for i in range(n_objs):
+                logging.debug(i)
+                t, s, offset = self.parse_type_and_size(data, offset)
+                if t < 5:
+                    raw, offset = self.read_zlib(data, offset)
+                    if s != len(raw):
+                        return 'size mismatch'
+                    #logging.debug(`(t, raw)`)
+                    t = store.obj_types[t]
+                    obj = t + ' ' + str(len(raw)) + '\x00' + raw
+                    sha = hashlib.sha1(obj).hexdigest()
+                    pending[sha] = obj
+                    logging.debug(`i` + ' submit ' + sha)
+                    ex.submit(self.put, pending, sha, obj)
+                    #self.store.put(store.obj_types[t], raw)
+                elif t == 7:  # OBJ_REF_DELTA
+                    refsha = binascii.hexlify(data[offset:offset + 20])
+                    offset += 20
+                    refobj = pending.get(refsha)
+                    if refobj is None:
+                        refobj = self.store.getobj(refsha)
+                    if not refobj:
+                        return 'reference obj ' + refsha + ' not found'
+                    delta, offset = self.read_zlib(data, offset)
+                    obj = babygit.patch_delta(refobj, delta)
+                    sha = hashlib.sha1(obj).hexdigest()
+                    pending[sha] = obj
+                    logging.debug(`i` + ' submit ' + sha + ' (delta)')
+                    ex.submit(self.put, pending, sha, obj)
+                else:
+                    return 'delta type ' + `t` + ' nyi'
         return 'ok'
 
     def post(self, arg):
