@@ -28,7 +28,11 @@ GH.cursormax = function(c1, c2) {
 
 GH.setSelectionRange = function(start, end) {
 	var textarea = document.getElementById("canvas");
-	textarea.setSelectionRange(start, end);
+	// Check that this is not an ACE-editor.
+	if (textarea.className == '') {
+		// TODO: Get this to work for ACE-editors.
+		textarea.setSelectionRange(start, end);
+	}
 };
 
 GH.TextareaEdit = function(textarea) {
@@ -173,6 +177,12 @@ GH.AceEdit = function(editor) {
     this.getValue = function() {
         return session.getValue();
     };
+	this.getCursorPosition = function() {
+		// TODO: Figure out how to covert from {column, row} to index. Document.PositionToIndex
+		// might work, except there is no document.
+		//session.selection.getCursor();
+        return 0;
+    };
     this.addListener = function(callback) {
         self.listener = callback;
     };
@@ -182,6 +192,9 @@ GH.AceEdit = function(editor) {
     session.on('change', function(e) {
         if (self.listener) self.listener();
     });
+	session.selection.on('changeCursor', function(e) {
+        if (self.listener) self.listener();
+	});
     this.appendText = function(text) {
         editor.insert(text);
     };
