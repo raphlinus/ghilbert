@@ -265,9 +265,10 @@ class handler(app.users.AuthenticatedHandler):
                     t = store.obj_types[t]
                     obj = t + ' ' + str(len(raw)) + '\x00' + raw
                     sha = hashlib.sha1(obj).hexdigest()
-                    pending[sha] = obj
-                    logging.debug(`i` + ' submit ' + sha)
-                    ex.submit(self.put, pending, sha, obj)
+                    if not self.store.isknown(sha):
+                        pending[sha] = obj
+                        logging.debug(`i` + ' submit ' + sha)
+                        ex.submit(self.put, pending, sha, obj)
                     #self.store.put(store.obj_types[t], raw)
                 elif t == 7:  # OBJ_REF_DELTA
                     refsha = binascii.hexlify(data[offset:offset + 20])
@@ -280,9 +281,10 @@ class handler(app.users.AuthenticatedHandler):
                     delta, offset = self.read_zlib(data, offset)
                     obj = babygit.patch_delta(refobj, delta)
                     sha = hashlib.sha1(obj).hexdigest()
-                    pending[sha] = obj
-                    logging.debug(`i` + ' submit ' + sha + ' (delta)')
-                    ex.submit(self.put, pending, sha, obj)
+                    if not self.store.isknown(sha):
+                        pending[sha] = obj
+                        logging.debug(`i` + ' submit ' + sha + ' (delta)')
+                        ex.submit(self.put, pending, sha, obj)
                 else:
                     return 'delta type ' + `t` + ' nyi'
         return 'ok'

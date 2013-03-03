@@ -31,11 +31,17 @@ class Stage(db.Model):
     date = db.DateTimeProperty(auto_now=True)
 
 class AEStore(store.Store):
+    def __init__(self):
+        self.known = set()
+
     def getobj(self, sha, verify = False):
         obj = memcache.get(sha, namespace='obj')
         if obj is not None:
+            self.known.add(sha)
             return obj
         result = self.getobjimpl(sha, verify)
+        if result is not None:
+            self.known.add(sha)
         if result and len(result) < 1048576:
             memcache.add(sha, result, namespace='obj')
         return result
@@ -49,6 +55,9 @@ class AEStore(store.Store):
         result = blob_reader.read()
         blob_reader.close()
         return result
+
+    def isknown(self, sha):
+        return sha in self.known
 
     def putobj(self, sha, value):
         if self.getobj(sha):
@@ -64,6 +73,7 @@ class AEStore(store.Store):
         obj.put()
         if len(value) < 1048576:
             memcache.add(sha, value, namespace='obj')
+        self.known.add(sha)
 
     def getstage(self):
         stage = Stage.get_by_key_name('stage')

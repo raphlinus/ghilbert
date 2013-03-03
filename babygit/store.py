@@ -36,6 +36,9 @@ class Store:
         # to not decompress and recompress it. But not done yet.
         raw = self.get_obj_from_pack(sha)
         return zlib.compress(raw)
+
+    def isknown(self, sha):
+        return False
         
     # Everything is expected to implement getlooseobj at a minimum. It
     # returns zlib compressed objects.
