@@ -26,6 +26,11 @@ GH.cursormax = function(c1, c2) {
     return c1[0] > c2[0] ? c1 : c2;
 };
 
+GH.setSelectionRange = function(start, end) {
+	var textarea = document.getElementById("canvas");
+	textarea.setSelectionRange(start, end);
+};
+
 GH.TextareaEdit = function(textarea) {
     var self = this;
     textarea.focus();
@@ -53,8 +58,14 @@ GH.TextareaEdit = function(textarea) {
         }
         return true;
     };
+
+    textarea.onmouseup = function(event) {
+        if (self.listener) self.listener();
+        return true;
+		}
+
     textarea.onkeyup = function(event) {
-        window.onbeforeunload = function() { return "Are you sure you want to leave?";};
+        //window.onbeforeunload = function() { return "Are you sure you want to leave?";};
         var cursor = textarea.selectionEnd;
         var i = cursor - 1;
         if (event.keyCode === 48 && (textarea.value[i] == ')')) {
@@ -97,6 +108,10 @@ GH.TextareaEdit = function(textarea) {
     this.getLine = function(i) {
         return textarea.value.split('\n')[i];
     };
+
+    this.getCursorPosition = function() {
+        return textarea.selectionEnd;
+    };
     this.getValue = function() {
         return textarea.value;
     };
@@ -109,8 +124,14 @@ GH.TextareaEdit = function(textarea) {
             .join('\n');
         if (self.listener) self.listener();
     };
-    this.appendText = function(text) {
-    textarea.value += text;
+		// Insert text at the current cursor position.
+		this.insertText = function(text) {
+			var start = textarea.selectionStart;
+			var value = String(textarea.value);
+			var cursorPosition = this.getCursorPosition();
+			textarea.value = value.substring(0, cursorPosition) + text + value.substring(cursorPosition, value.length);
+			textarea.selectionEnd = start + text.length;
+			textarea.selectionStart = textarea.selectionEnd;
     };
     this.splice = function(start, len, newText) {
         var oldChars;
@@ -215,13 +236,10 @@ GH.saveDraft = function(content) {
             .join("\n"));
 };
 
+GH.setDisplayMode = function(mode) {
+	document.body.className=mode;
+}
+
 function myalert(s) {
     document.getElementById('status').firstChild.nodeValue = s;
 }
-
-GH.setSize = function(size) {
-  document.getElementById("canvas").cols = 60 + size * 20;
-  document.getElementById("canvas").rows = 8 + size * 8;
-  document.getElementById("stack").width = 600 + size * 400;
-  document.getElementById("stack").height = 240 + size * 60;
-};

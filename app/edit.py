@@ -125,10 +125,16 @@ class EditHandler(users.AuthenticatedHandler):
 
 <body>
 """)
-        common.navbar(o)
+        o.write('<div class="editor-header">')
+        o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute; top: 24px;"/></a>')
+        o.write('  <span id="title">');
+        o.write('    <span id="thmname" class="header-box"></span>');
+        o.write("""    <span class="header-box edit-entry" onclick="document.body.className='editor-mode'">edit</span> """);
+        o.write("""    <span class="header-box dictionary-entry" onclick="document.body.className=''">dictionary</span> """);
+        o.write('  </span>');
+        o.write('</div>')
+        o.write('<span id="authetication">%s</span>' % auth);
         o.write("""
-<h1>Editing <em id="thmname"></em></h1>
-
 <script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/sandbox.js" type="text/javascript"></script>
 <script src="/js/inputlayer.js" type="text/javascript"></script>
@@ -137,11 +143,36 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
-<p>
-<div style="display:block;float:left">
-  <label for="number">before: </label><input type="text" id="number" value="%s"/>  <a href="#" id="small" onclick="GH.setSize(0)">small</a> <a href="#" id="medium" onclick="GH.setSize(1)">medium</a> <a href="#" id="large" onclick="GH.setSize(2)">large</a> 
-<br/>
+<div id="editor-body">
+<div id="dictionary">
+    <div style="overflow:hidden" "border-right: 1px solid #bbb">
+        <div class="section-title">Dictionary</div>
+        <button id="inferences">Inference</button>
+        <button id="deductions">Deduction</button>
+        <button id="unified">Unified</button>
+        <span class="section-close" onclick="document.body.className='editor-mode'">X</span>
+        <span style="float: right">
+            <label for="filter">filter: </label><input type="text" id="filter" class="minor-input"/>
+        </span>
+    </div>
+    <div id="panel-container" style="display:block;float:left">
+        <table id="panel" border="1" style="border:1px solid;">
+        </table>
+    </div>
+</div>
+
+<div id="editor-section">
+  <div class="section-title">Editor</div>
+  <label for="number">before: </label><input type="text" id="number" value="%s" class="minor-input"/>
 """ % thmname)
+        # TODO: Uncomment this line once we the stack working fine by itself and we can add an element
+        # for closing the editor.
+        # o.write("""<span class="section-close" onclick="document.body.className='stack-mode'">X</span>""")
+        o.write("""
+  <span id="saving"></span>
+  <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
+<br/>
+""")
         if useAce: o.write("""<div id="canvas"></div>
 <script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -149,30 +180,16 @@ class EditHandler(users.AuthenticatedHandler):
   </script>
 """)
         else:
-            o.write('<textarea id="canvas" cols="80" rows="20" width="640" height="480" tabindex="0"></textarea><br/>\n')
-        o.write("""  <br/>
-  <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
-  <span id="saving"></span>
-<br/>
+            o.write('<textarea id="canvas" cols="60" rows="20" width="640" height="480" tabindex="0"></textarea><br/>\n')
+        o.write("""
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
-  <div id="stack">...</div>
 </div>
-<div width="400" height="800" style="display:block;float:left">
-  <button id="inferences">Inference</button>
-  <button id="deductions">Deduction</button>
-  <button id="unified">Unified</button>
-  <label for="filter">filter: </label><input type="text" id="filter"/>
-  <br/>
-  <table id="panel" border="1" style="border:1px solid;">
-  </table>
-</div>
+<div id="stack">...</div>
 <div id="output" style="clear:left;"></div>
-<p>%s</p>
 <script type="text/javascript">
 
 name = %s;
 GH.Direct.replace_thmname(name);
-GH.updatemultiline([], document.getElementById('stack'));
 
 url = %s;
 // TODO: better handling of raw urls (ideally draw from a specific commit)
@@ -182,7 +199,7 @@ v.set_suppress_errors(true);
 run(uc, '/proofs_upto/%s', v);
 v.set_suppress_errors(false);
 
-""" % (auth, json.encode(thmname), json.encode(url), urllib.quote(arg)))
+""" % (json.encode(thmname), json.encode(url), urllib.quote(arg)))
         if useAce:
             o.write('window.mainpanel = new GH.AceEdit(editor);\n')
         else:

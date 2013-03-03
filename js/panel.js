@@ -77,14 +77,14 @@ GH.Panel = function(ctx) {
 
     function addStep(symName, sym) {
         return function() {
-            function appendText(text) {
-                window.direct.text.appendText(text);
+            function insertText(text) {
+                window.direct.text.insertText(text);
                 window.direct.update();
             }
             // Push on the mandatory hyps using their default names
-            appendText(" " + sym[4].map(function(mand) { return mand[2]; }).join("  "));
+            insertText(sym[4].map(function(mand) { return mand[2]; }).join(' ') + ' ');
             // Push on the sym name itself
-            appendText("  " + symName + "    ");
+            insertText(symName);
         };
     }
     var inferenceCollection = [];
@@ -109,13 +109,20 @@ GH.Panel = function(ctx) {
                         sym[2].map(GH.sexptohtml).join("<br/>"),
                         GH.sexptohtml(sym[3])]});
     }
-    document.getElementById('inferences').onclick = function() {
-        self.table.setContents(inferenceCollection);
+		GH.Panel.highlightButton(GH.Panel.ButtonId.INFERENCES);
+		self.table.setContents(inferenceCollection);
+    document.getElementById(GH.Panel.ButtonId.INFERENCES).onclick = function() {
+			GH.Panel.highlightButton(GH.Panel.ButtonId.INFERENCES);
+      self.table.setContents(inferenceCollection);
+			GH.Panel.resizePanel();
     };
-    document.getElementById('deductions').onclick = function() {
-        self.table.setContents(deductionCollection);
+    document.getElementById(GH.Panel.ButtonId.DEDUCTIONS).onclick = function() {
+			GH.Panel.highlightButton(GH.Panel.ButtonId.DEDUCTIONS);
+      self.table.setContents(deductionCollection);
+		GH.Panel.resizePanel();
     };
-    document.getElementById('unified').onclick = function() {
+    document.getElementById(GH.Panel.ButtonId.UNIFIED).onclick = function() {
+				GH.Panel.highlightButton(GH.Panel.ButtonId.UNIFIED);
         var collection = [];
         self.inferences.forEach(
             function(row) {
@@ -142,9 +149,49 @@ GH.Panel = function(ctx) {
                 }
             });
         self.table.setContents(collection);
+				GH.Panel.resizePanel();
     };
 
     document.getElementById('filter').onkeyup = function() {
         self.table.filter(document.getElementById('filter').value);
     };
 };
+
+// Change the styling on a button that has been selected.
+GH.Panel.highlightButton = function(button) {
+	var buttonId = GH.Panel.ButtonId;
+	var ids = [buttonId.INFERENCES, buttonId.DEDUCTIONS, buttonId.UNIFIED];
+	for (var i = 0; i < ids.length; i++) {
+		document.getElementById(ids[i]).className = (button == ids[i]) ? 'highlighted-button' : '';
+	}
+}
+
+// The list of buttons to press in the dictionary panel.
+GH.Panel.ButtonId = {
+	INFERENCES: 'inferences',
+	DEDUCTIONS: 'deductions',
+	UNIFIED: 'unified'
+};
+
+// Recalculates the height of the dictionary, editor, and stack panels based on the size of the
+// browser window.
+GH.Panel.resizePanel = function() {
+	var container = document.getElementById('panel-container');
+	var panel = document.getElementById('panel');
+	var maxHeight = window.innerHeight - 200;
+	container.style.height = GH.min(maxHeight, panel.scrollHeight + 10);
+
+	var canvas = document.getElementById('canvas');
+	var stack = document.getElementById('stack');
+	// TODO: Possibly limit the height based on how much the canvas is filled.
+	canvas.style.height = maxHeight;
+	stack.style.height = maxHeight;
+}
+
+window.onresize = function() {
+	GH.Panel.resizePanel();
+}
+
+window.onload = function() {
+	GH.Panel.resizePanel();
+}

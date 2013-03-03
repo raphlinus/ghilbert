@@ -228,8 +228,101 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
     return [k, argkinds, freemap];
 };
 
+
+/**
+ * Represents an s-expression.
+ */
+GH.sExpression = function(expression) {
+	this.expression_ = expression;
+	this.operator_ = expression[0];
+	this.operands_ = [];
+	for (var i = 1; i < expression.length; i++) {
+		this.operands_.push(new GH.sExpression(expression[i]));
+	}
+	// Where the expression begins and ends within the textarea.
+	this.begin_ = expression.beg;
+	this.end_ = expression.end;
+};
+
+/**
+ * Displays an s-expression. If the cursor is inside of the s-expression, it is highlighted.
+ * If the cursor is touching a particular symbol, that symbol is further hightlighted.
+ */
+GH.sExpression.prototype.display = function(depth, proofStepHtml, cursorPosition) {
+	var text = GH.sexptohtmlHighlighted(this.expression_, cursorPosition);
+	var isHighlighted = this.begin_ <= cursorPosition && cursorPosition <= this.end_;
+	GH.Direct.stepToHtml(text, depth, isHighlighted, false, this.begin_, this.end_, proofStepHtml);
+};
+
+
+GH.sExpression.prototype.getBeginning = function() {
+	return this.begin_;
+};
+
+
+/**
+ * Represents the input and output of each proof step.
+ *   hypotheses (Array.<ProofStep>): An array of proof steps used as inputs to this step.
+ *   conclusion: (s-expression) An s-expression that is the result of this step.
+ *   begin (number): The cursor position of the beginning of this step.
+ *   end (number): The cursor position of the end of this step.
+ *   sExpressions (Array.<s-expression>): An array of s-expressions used to create this step.
+ *   isError: Whether the expression is signaling an error.
+ */
+GH.ProofStep = function(hypotheses, conclusion, begin, end, sExpressions, isError) {
+	this.hypotheses_ = hypotheses;
+	this.conclusion_ = conclusion;
+	this.begin_ = begin;
+	this.end_ = end;
+	this.isError_ = isError;
+
+	this.sExpressions_ = [];
+	for (var i = 0; i < sExpressions.length; i++) {
+		this.sExpressions_.push(new GH.sExpression(sExpressions[i][1]));
+	}
+};
+
+
+GH.ProofStep.prototype.getBeginning = function() {
+	if (this.hypotheses_.length > 0) {
+		return this.hypotheses_[0].getBeginning();
+	} else {
+		if (this.sExpressions_.length > 0) {
+			return this.sExpressions_[0].getBeginning();
+		} else {
+			return this.begin_;
+		}
+	}
+};
+
+
+/**
+ * Returns an array of strings displaying each proof step.
+ *   depth: The depth of this step within the stack history. Used to
+ *       determine indentation.
+ *   proofStepHtml: An array of string defining html elements for each string.
+ *       The result goes here.
+ *   cursorPosition: The cursor position in the text input box.
+ */
+GH.ProofStep.prototype.display = function(depth, proofStepHtml, cursorPosition) {
+	var result = [];
+	if ((this.getBeginning() <= cursorPosition) && (cursorPosition <= this.end_)) {
+		for (var i = 0; i < this.hypotheses_.length; i++) {
+			this.hypotheses_[i].display(depth + 1, proofStepHtml, cursorPosition);
+		}
+		for (var i = 0; i < this.sExpressions_.length; i++) {
+			this.sExpressions_[i].display(depth + 1, proofStepHtml, cursorPosition);
+		}
+	}
+
+	var text = GH.sexptohtmlHighlighted(this.conclusion_, cursorPosition);
+	var isHighlighted = this.begin_ <= cursorPosition && cursorPosition <= this.end_;
+	GH.Direct.stepToHtml(text, depth, isHighlighted, this.isError_, this.begin_, this.end_, proofStepHtml);
+};
+
 GH.ProofCtx = function() {
     this.stack = [];
+	this.stackHistory = [];
     this.mandstack = [];
     this.defterm = null;
 };
@@ -790,7 +883,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     }
     try {
     for (i = 0; i < proof.length; i++) {
-        this.check_proof_step(hypmap, proof[i], proofctx);
+        this.check_proof_step(hypmap, proof[i],  proofctx);
     }
     if (proofctx.mandstack.length != 0) {
         throw 'Extra mand hyps on stack at end of proof';
@@ -842,11 +935,13 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
         if (proofctx.mandstack.length != 0) {
             throw 'Hyp expected no mand hyps, got ' + proofctx.mandstack.length;
         }
-        proofctx.stack.push(hypmap[step]);
+				var hyp = hypmap[step];
+        proofctx.stack.push(hyp);
+				proofctx.stackHistory.push(new GH.ProofStep([], hyp, step.beg, step.end, proofctx.mandstack, false));
         return;
     }
     if (!this.syms.hasOwnProperty(step)) {
-        throw "Unrecognized proof step '" + step + "'";
+        throw step + " - Unknown Step";
     }
     var v = this.syms[step];
     if (v[0] == 'var' || v[0] == 'tvar') {
@@ -859,11 +954,14 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
     } 
     // This test is now likely redundant...
     if (v[0] == 'stmt' || v[0] == 'thm') {
-        var result = this.match_inference(v, proofctx, proofctx.mandstack);
-        var sp = proofctx.stack.length - v[2].length;
-        proofctx.stack.splice(sp);
-        proofctx.stack.push(result);
-        proofctx.mandstack = [];
+      var result = this.match_inference(v, proofctx, proofctx.mandstack);
+      var sp = proofctx.stack.length - v[2].length;
+      proofctx.stack.splice(sp);
+      proofctx.stack.push(result);
+
+			var removed = proofctx.stackHistory.splice(sp);
+			proofctx.stackHistory.push(new GH.ProofStep(removed, result, step.beg, step.end, proofctx.mandstack, false))
+			proofctx.mandstack = [];
     }
 };
 
