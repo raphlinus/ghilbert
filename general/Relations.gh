@@ -5,8 +5,8 @@ import (BASIC Basic_operations_of_Zermelo–Fraenkel_set_theory.ghi (CLASSICAL F
 tvar (object A B C D A0 A1 B0 B1 α β Z)
 var (object a b x y z w a′ b′ x′ y′ z′)
 tvar (formula φ ψ antecedent)
-defthm (Orderedpair object (orderedPair A B) () () (= (orderedPair A B) (unorderedPair (singleton A) (unorderedPair A B)))
-        (unorderedPair (singleton A) (unorderedPair A B)) BiconditionalReflexivity
+defthm (OrderedPair object (orderedPair A B) () () (= (orderedPair A B) (unorderedPair (singleton A) (unorderedPair A B)))
+        (unorderedPair (singleton A) (unorderedPair A B)) EqualityReflexivity
 )
 thm (OrderedPairBuilder () () (→ (∧ (= A0 A1) (= B0 B1)) (= (orderedPair A0 B0) (orderedPair A1 B1)))
         (= A0 A1) (= B0 B1) ConjunctionRightElimination
@@ -19,7 +19,14 @@ thm (OrderedPairBuilder () () (→ (∧ (= A0 A1) (= B0 B1)) (= (orderedPair A0 
 
         (singleton A0) (singleton A1) (unorderedPair A0 B0) (unorderedPair A1 B1) UnorderedPairBuilder
         applySyllogism
- )
+
+        A0 B0 OrderedPair
+        A1 B1 OrderedPair
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (OrderedPairBuilderLL () () (→ (= B0 B1) (= (orderedPair A B0) (orderedPair A B1)))
         A EqualityReflexivity
         A A B0 B1 OrderedPairBuilder
