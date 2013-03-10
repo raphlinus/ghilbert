@@ -229,7 +229,12 @@ thm (IsElementThereExists ((A x) (B x)) ()
  )
 thm (BinaryUnion (   ) () (↔ (∈ A (∪ B C)) (∨ (∈ A B) (∈ A C)))
 # We apply the definition of the union of two sets, and the <code>Union</code> theorem to get <code>A ∈ ⋃ {B, C} ↔ ∃ x (A ∈ x ∧ x ∈ {B, C})</code>
+        B C BinaryUnionAsUnion
+        A buildMembershipLL
+
         A (unorderedPair B C) x Union
+        applyBiconditionalTransitivity
+
 # Expanding the unordered pair turns that into <code>∃ x (A ∈ x ∧ (x = B ∨ x = C))</code>.
         x B C UnorderedPair
         (∈ A x) buildConjunctionLL
