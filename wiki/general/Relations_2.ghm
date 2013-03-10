@@ -1,0 +1,48 @@
+{{header
+ | title    = Relations 2
+ | subtitle = 
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = Here we pick up where we left off in [[Relations]] and prove additional theorems about ordered pairs, relations, and functions. }}
+{{interfaces
+| imports = [[Interface:Relations 1]]
+| exports = [[Interface:Set theory]]
+}}
+
+We first import [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]].
+
+We also import [[Interface:Relations 1]], which covers set theory up until this point. 
+
+As usual, capital letters starting from {{{A}}} are set expressions (that is, terms or "classes") and lowercase letters starting with {{{x}}} are set variables.
+
+=== Membership in a cartesian product in terms of first and second elements ===
+Another similar relationship between being a member of a cartesian product and being an ordered pair whose elements are members of the classes making up the cartesian product is {{{A ∈ B × C → 1st A ∈ B ∧ 2nd A ∈ C}}}. Metamath has several biconditional versions of this,<ref>[http://us.metamath.org/mpeuni/elxp6.html elxp6], [http://us.metamath.org/mpeuni/elxp7.html elxp7], metamath's set.mm</ref> but we start with this one (the missing piece to biconditionalize it is something saying that {{{A{{{ is an ordered pair).
+
+The proof is a fairly straightforward application of {{{MembershipCartesianProduct}}}. We'll split it up into a series of lemmas.
+
+* #(→ (∧ (= A (orderedPair b c))
+    (∧ (∈ b B) (∈ c C)))
+    (= (1st A) b))# ([/general/Relations_2.gh/FirstSecondCartesianProduct-A-b | FirstSecondCartesianProduct-A-b])
+* #(→ (∧ (= A (orderedPair b c))
+    (∧ (∈ b B) (∈ c C)))
+    (∈ (1st A) B))# ([/general/Relations_2.gh/FirstSecondCartesianProduct-A-B | FirstSecondCartesianProduct-A-B])
+We've now proved {{{1st A ∈ B}}}, which is half of what we are trying to prove. The proof of the other half is very similar.
+* #(→ (∧ (= A (orderedPair b c))
+    (∧ (∈ b B) (∈ c C)))
+    (= (2nd A) c))# ([/general/Relations_2.gh/FirstSecondCartesianProduct-A-c | FirstSecondCartesianProduct-A-c])
+* #(→ (∧ (= A (orderedPair b c))
+    (∧ (∈ b B) (∈ c C)))
+    (∈ (2nd A) C))# ([/general/Relations_2.gh/FirstSecondCartesianProduct-A-C | FirstSecondCartesianProduct-A-C])
+* #(→ (∈ A (× B C)) (∧ (∈ (1st A) B) (∈ (2nd A) C)))# ([/general/Relations_2.gh/FirstSecondCartesianProduct | FirstSecondCartesianProduct])
+
+== To be added ==
+Either here or in other set theory files: induction, recursion, ordinal successors. some kinds of unions, intersection, set difference, and so on.
+
+== Export ==
+We are ready to export to [[Interface:Set theory]].
+
+== References ==
+<references/>
+
+[[Category:Other classical set theory]]

@@ -1,0 +1,178 @@
+{{header
+ | title    = Relations
+ | subtitle = 
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = Here we start with [[Interface:Basic operations of Zermelo–Fraenkel set theory]] and provide ordered pairs, relations, and functions. This is the first part of a series of pages which need to be split partly just to keep their sizes manageable, but also because of [[Example where distinct variable constraints are violated based on automatic expansion of a definition|JHilbert limitations]] }}
+{{interfaces
+| imports = [[Interface:Basic operations of Zermelo–Fraenkel set theory]]
+| exports = [[Interface:Relations 1]]
+}}
+
+We first import [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]].
+
+We also import [[Interface:Basic operations of Zermelo–Fraenkel set theory]], which is the current home of some of the basic results involving singletons, unordered pairs, and the like. 
+
+As usual, capital letters starting from {{{A}}} are set expressions (that is, objects or "classes") and lowercase letters starting with {{{x}}} are set variables.
+
+== Ordered pair ==
+The ordered pair {{{〈A, B〉}}} can be defined in several ways as long as the definition implies the key ordered pair theorem {{{〈A0, B0〉=〈A1, B1〉↔ A0 = A1 ∧ B0 = B1}}}. The most widely adopted definition is {{{〈A, B〉≝ { {A}, {A, B} }}}}, which is the one we use. Because the notation {{{〈A, B〉}}} is not available in JHilbert, we call it {{{(orderedPair A B)}}}.
+
+=== Ordered pair builder ===
+Equals can be substituted for equals in ordered pairs, that is, {{{A0 = A1 ∧ B0 = B1 →〈A0, B0〉=〈A1, B1〉}}}. This forms one direction of the ordered pair theorem (it is the less interesting of the two, as it holds for a wide variety of operations, not just ordered pairs).
+* #(→ (∧ (= A0 A1) (= B0 B1)) (= (orderedPair A0 B0) (orderedPair A1 B1)))# ([/general/Relations.gh/OrderedPairBuilder | OrderedPairBuilder])
+
+We also provide the usual convenience builders.
+* #(→ (= B0 B1) (= (orderedPair A B0) (orderedPair A B1)))# ([/general/Relations.gh/OrderedPairBuilderLL | OrderedPairBuilderLL])
+* #(→ antecedent (= B0 B1))# ⊢ #(→ antecedent (= (orderedPair A B0) (orderedPair A B1)))# ([/general/Relations.gh/buildOrderedPairLLInConsequent | buildOrderedPairLLInConsequent])
+* #(→ (= A0 A1) (= (orderedPair A0 B) (orderedPair A1 B)))# ([/general/Relations.gh/OrderedPairBuilderRR | OrderedPairBuilderRR])
+* #(→ antecedent (= A0 A1))# ⊢ #(→ antecedent (= (orderedPair A0 B) (orderedPair A1 B)))# ([/general/Relations.gh/buildOrderedPairRRInConsequent | buildOrderedPairRRInConsequent])
+
+=== First half of the ordered pair theorem ===
+In this section we prove {{{〈A0, B0〉=〈A1, B1〉→ A0 = A1}}}.
+
+Our first lemma is {{{{A} ∈ 〈A, B〉}}}a simple consequence of our definition of ordered pair.<ref>[http://us.metamath.org/mpeuni/opi1.html opi1], metamath's set.mm, accessed August 5, 2010.</ref>
+* #(∈ (singleton A) (orderedPair A B))# ([/general/Relations.gh/OrderedPairTheoremForwardFirst-1 | OrderedPairTheoremForwardFirst-1])
+
+The next lemma, {{{A ∈ 〈B, C〉 ↔ A = {B} ∨ A = {B, C}}}}, also follows directly from our definition of ordered pair.<ref>[http://us.metamath.org/mpeuni/elop.html elop], metamath's set.mm, accessed August 5, 2010.</ref>
+* #(↔ (∈ A (orderedPair B C)) (∨ (= A (singleton B)) (= A (unorderedPair B C))))# ([/general/Relations.gh/OrderedPairTheoremForwardFirst-2 | OrderedPairTheoremForwardFirst-2])
+
+We're ready for {{{〈A0, B0〉=〈A1, B1〉→ A0 = A1}}}. We rename the variables in an effort to make the proof easier to read: {{{〈A, B〉=〈C, D〉→ A = C}}}<ref>[http://us.metamath.org/mpeuni/opth1.html opth1], metamath's set.mm, accessed August 5, 2010.</ref>
+* #(→ (= (orderedPair A B) (orderedPair C D)) (= A C))# ([/general/Relations.gh/OrderedPairTheoremForwardFirst | OrderedPairTheoremForwardFirst])
+
+=== Second half of the ordered pair theorem ===
+In this section we prove {{{〈A0, B0〉=〈A1, B1〉→ B0 = B1}}}.
+
+Our first lemma is {{{〈C, D〉=〈C, B〉→ D = B}}}.<ref>Taken from a portion of the proof of [http://us.metamath.org/mpeuni/opth.html opth], metamath's set.mm, accessed August 6, 2010.</ref>
+* #(→ (= (orderedPair C D) (orderedPair C B)) (= D B))# ([/general/Relations.gh/OrderedPairTheoremForwardSecond-1 | OrderedPairTheoremForwardSecond-1])
+
+The next lemma is most of the work. It is {{{〈A, B〉=〈C, D〉→ (A = C → D = B)}}}.
+* #(→ (= (orderedPair A B) (orderedPair C D)) (→ (= A C) (= D B)))# ([/general/Relations.gh/OrderedPairTheoremForwardSecond-2 | OrderedPairTheoremForwardSecond-2])
+
+We now combine {{{〈A, B〉=〈C, D〉→ A = C}}} and {{{〈A, B〉=〈C, D〉→ (A = C → D = B)}}} to get {{{〈A, B〉=〈C, D〉→ B = D}}}.
+* #(→ (= (orderedPair A B) (orderedPair C D)) (= B D))# ([/general/Relations.gh/OrderedPairTheoremForwardSecond | OrderedPairTheoremForwardSecond])
+
+=== Ordered pair theorem ===
+We are now ready to combine these results to prove the ordered pair theorem {{{〈A0, B0〉=〈A1, B1〉↔ A0 = A1 ∧ B0 = B1}}}. We prove the forward implication,
+* #(→ (= (orderedPair A0 B0) (orderedPair A1 B1)) (∧ (= A0 A1) (= B0 B1)))# ([/general/Relations.gh/OrderedPairTheoremForward | OrderedPairTheoremForward])
+
+and the biconditionalized theorem.
+* #(↔ (= (orderedPair A0 B0) (orderedPair A1 B1)) (∧ (= A0 A1) (= B0 B1)))# ([/general/Relations.gh/OrderedPairTheorem | OrderedPairTheorem])
+
+== Relations ==
+A relation is a set of ordered pairs. We typically use the letters R, S, T, and U for relations.
+
+Here we prove a theorem form of the definition. The distinct variable constraints are needed for soundness (analogous to the distinct variable constraints in, for example, metamath's dfss2<ref>[http://us.metamath.org/mpeuni/dfss2.html dfss2], metamath's set.mm, accessed 1 Oct 2010</ref>).
+* #(↔ (relation A) (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))))))# ([/general/Relations.gh/Relation | Relation])
+
+A relation for two objects holds if and only if the corresponding ordered pair is an element of the relation. A more conventional notation would just write this as {{{A R B}}} rather than {{{relates A R B}}},<ref>[http://us.metamath.org/mpeuni/wbr.html wbr], metamath's set.mm, accessed September 18, 2010</ref> but JHilbert does not offer that option.
+
+=== The domain of a relation ===
+A relation is a set of ordered pairs, and the domain of a relation is a set consisting of all of the first elements of those ordered pairs.
+
+Our notation is {{{domain R}}} (a slight variation of the common notation {{{dom R}}}). To show that the domain of a relation exists, we will show that the domain is contained in {{{⋃ ⋃ R}}}. That is, we define {{{domain R}}} as {{{{ x ∈ ⋃ ⋃ R | ∃ y 〈x, y〉 ∈ R }}}}<ref>adapted from [http://us.metamath.org/mpeuni/dfdm3.html dfdm3] and [http://us.metamath.org/mpeuni/dmrnssfld dmrnssfld], metamath's set.mm, accessed February 21, 2011</ref> and then show that this definition works as expected, that is that {{{B ∈ domain A ↔ ∃ y 〈B, y〉 ∈ A}}}.<ref>[http://us.metamath.org/mpeuni/eldm2 eldm2], metamath's set.mm, accessed February 21, 2011</ref> One detail: the definition, and the theorems that follow, do not insist that {{{R}}} is a relation. But we will refer to it as a relation simply because the definition and the theorems aren't particularly interesting if it is not.
+
+As usual, we may sometimes need to fold or unfold the definition while specifying the dummy variables in the definition. Unlike some such cases, we do not export this definition, but just use it in this file. That is because our definition of domain is specific to our definition of ordered pair, and isn't really needed once we prove {{{Domain}}} below.
+* #(= (domain R) (separate x (⋃ (⋃ R)) (∃ y (∈ (orderedPair x y) R))))# ([/general/Relations.gh/Domain-def | Domain-def])
+
+The first lemma is {{{〈 A, B 〉 ∈ R → { A, B } ∈ ⋃ R}}}. This is the part where we make use of our definition of the ordered pair.
+* #(→ (∈ (orderedPair A B) R) (∈ (unorderedPair A B) (⋃ R)))# ([/general/Relations.gh/Domain-1 | Domain-1])
+
+Our second lemma is {{{∃ y 〈A, y〉 ∈ R → A ∈ ⋃ ⋃ R}}}, which goes most of the way towards showing that our definition of domain does what we expect it to.
+* #(→ (∃ y (∈ (orderedPair A y) R)) (∈ A (⋃ (⋃ R))))# ([/general/Relations.gh/Domain-2 | Domain-2])
+
+We're now ready to prove the main result, {{{B ∈ domain R ↔ ∃ y 〈B, y〉 ∈ R}}}.<ref>[http://us.metamath.org/mpeuni/eldm2.html eldm2], metamath's set.mm, accessed February, 2011</ref> The proof follows fairly directly from the previous lemma, via {{{FormulaBound}}} and a substitution.
+* #(↔ (∈ B (domain R)) (∃ y (∈ (orderedPair B y) R)))# ([/general/Relations.gh/Domain | Domain])
+
+==== Builder ====
+Here we prove the domain builder from the definition. Another proof would invoke {{{Domain}}} and extensionality, although that would be more awkward as long as JHilbert's automatic expansion of definitions can lead to distinct variable problems.
+* #(→ (= R S) (= (domain R) (domain S)))# ([/general/Relations.gh/DomainBuilder | DomainBuilder])
+
+==== The domain of a singleton relation ====
+Consider a relation which just contains a single ordered pair: {{{{ 〈A, B〉 }}}}. Its domain is simply {{{{ A }}}}.<ref>[http://us.metamath.org/mpeuni/dmsnop.html dmsnop], metamath's set.mm, accessed July 5, 2011</ref>
+
+* #(↔ (∃ y (∈ (orderedPair C y) (singleton (orderedPair A B)))) (= C A))# ([/general/Relations.gh/DomainSingletonRelationLemma | DomainSingletonRelationLemma])
+* #(= (domain (singleton (orderedPair A B))) (singleton A))# ([/general/Relations.gh/DomainSingletonRelation | DomainSingletonRelation])
+
+=== Range ===
+We define [[w:range (mathematics)|range]] analogously to domain: the values which the second members of the ordered pairs in the relation can take on. At least for functions, range is sometimes defined to a be a set which contains the values, but here we pick the definition where it contains exactly the values and no others.
+
+Metamath defines the range as the domain of the [[w:inverse relation|inverse relation]]. We haven't yet proved that the inverse relation exists, so at least for now we handle range much like we handled domain, rather than defining range in terms of domain.<ref>[http://us.metamath.org/mpeuni/df-rn.html df-rn], metamath's set.mm, accessed February 5, 2011</ref>
+
+==== A theorem expressing what the range is ====
+As with domain, we provide a theorem to fold or unfold the definition while specifying the dummy variables in the definition. Also as with domain, we won't need this once we prove {{{Range}}} below.
+* #(= (range R) (separate y (⋃ (⋃ R)) (∃ x (∈ (orderedPair x y) R))))# ([/general/Relations.gh/Range-def | Range-def])
+
+The next lemma is {{{∃ x 〈x, A〉 ∈ R → A ∈ ⋃ ⋃ R}}}, which goes most of the way towards showing that our definition of range does what we expect it to.
+* #(→ (∃ x (∈ (orderedPair x A) R)) (∈ A (⋃ (⋃ R))))# ([/general/Relations.gh/Range-2 | Range-2])
+
+We're now ready to prove the main result, {{{B ∈ range R ↔ ∃ x 〈x, B〉 ∈ R}}}.<ref>[http://us.metamath.org/mpeuni/elrn2.html elrn2], metamath's set.mm, accessed February, 2011</ref> The proof follows fairly directly from the previous lemma, via {{{FormulaBound}}} and a substitution.
+* #(↔ (∈ B (range R)) (∃ x (∈ (orderedPair x B) R)))# ([/general/Relations.gh/Range | Range])
+
+==== Builder ====
+Here we prove the range builder, in a similar way to how we proved the domain builder.
+* #(→ (= R S) (= (range R) (range S)))# ([/general/Relations.gh/RangeBuilder | RangeBuilder])
+
+==== The range of a singleton relation ====
+Analogously to domain, the range of {{{{ 〈A, B〉 }}}} is simply {{{{ B }}}}.<ref>[http://us.metamath.org/mpeuni/rnsnop.html rnsnop], metamath's set.mm, accessed 2011</ref>
+
+* #(↔ (∃ x (∈ (orderedPair x C) (singleton (orderedPair A B)))) (= C B))# ([/general/Relations.gh/RangeSingletonRelationLemma | RangeSingletonRelationLemma])
+* #(= (range (singleton (orderedPair A B))) (singleton B))# ([/general/Relations.gh/RangeSingletonRelation | RangeSingletonRelation])
+
+== The first and second elements of an ordered pair ==
+Here we attend to a notational detail: given an ordered pair, we want an expression for its first or second element. We define the first element of {{{C}}} as {{{⋃ domain { C }}}}.
+
+The builder for {{{1st}}} follows straightforwardly for the builders for the things which make up the definition.
+* #(→ (= A B) (= (1st A) (1st B)))# ([/general/Relations.gh/FirstBuilder | FirstBuilder])
+
+This theorem shows that {{{1st}}} really does extract the first element of an ordered pair. The proof follows readily from {{{DomainSingletonRelation}}} and our definitions, and can be summarized as {{{⋃ domain { 〈A, B〉 } = ⋃ { A } = A}}}.
+* #(= (1st (orderedPair A B)) A)# ([/general/Relations.gh/First | First])
+
+Similarly, the second element of {{{C}}} is {{{⋃ range { C }}}}.
+
+The builder for {{{2nd}}} is proved much like the one for {{{1st}}}.
+* #(→ (= A B) (= (2nd A) (2nd B)))# ([/general/Relations.gh/SecondBuilder | SecondBuilder])
+
+Likewise, {{{2nd}}} really does extract the second element of an ordered pair. The proof is {{{⋃ range { 〈A, B〉 } = ⋃ { B } = B}}}.
+* #(= (2nd (orderedPair A B)) B)# ([/general/Relations.gh/Second | Second])
+
+== Cartesian product ==
+The Cartesian product of two sets is the set of all ordered pairs consisting of one set from the first given set and one set from the second given set.
+
+To show that it exists, we need to define it terms of a larger set which contains it. The larger set is {{{power power (A ∪ B)}}} (this choice depends on our definition of ordered pair). Based on this concept, we define {{{A × B}}} to be {{{{z ∈ power power (A ∪ B) | ∃ a ∃ b z = 〈a, b〉∧ (a ∈ A ∧ b ∈ B)}}}}.
+
+=== Changing quantifiers ===
+We first add the ability to specify the variables of quantification, as we do with most such definitions. Currently we do this for {{{a}}} and {{{b}}}; we could also do it for {{{z}}} if need be.
+* #(= (separate z (power (power (∪ A B)))
+      (∃ a′ (∃ b′ (∧ (= z (orderedPair a′ b′))
+        (∧ (∈ a′ A) (∈ b′ B))))))
+    (separate z (power (power (∪ A B)))
+      (∃ a (∃ b (∧ (= z (orderedPair a b))
+        (∧ (∈ a A) (∈ b B)))))))# ([/general/Relations.gh/CartesianProduct | CartesianProduct])
+
+=== Membership in a Cartesian product ===
+To go from the definition to various theorems which restate what a Cartesian product is, our first lemma is {{{α ∈ A ∧ β ∈ B → 〈α, β〉 ∈ power power (A ∪ B)}}}.
+* #(→ (∧ (∈ α A) (∈ β B)) (∈ (orderedPair α β) (power (power (∪ A B)))))# ([/general/Relations.gh/MembershipCartesianProductLemma | MembershipCartesianProductLemma])
+
+The next lemma combines the previous one with a substitution and adds some quantifiers: {{{∃ a ∃ b (Z = 〈 a, b 〉 ∧ (a ∈ A ∧ b ∈ B)) → Z ∈ power power (A ∪ B)}}}
+* #(→ (∃ a (∃ b (∧ (= Z (orderedPair a b)) (∧ (∈ a A) (∈ b B))))) (∈ Z (power (power (∪ A B)))))# ([/general/Relations.gh/MembershipCartesianProduct-2 | MembershipCartesianProduct-2])
+
+It just takes some logic to turn that into {{{C ∈ A × B ↔ ∃ a ∃ b (C = 〈a, b〉 ∧ a ∈ A ∧ b ∈ B)}}}, which we can take as a basic equivalence which "defines" the meaning of a Cartesian product.<ref>[http://us.metamath.org/mpeuni/elxp.html elxp], metamath's set.mm, accessed February 5, 2011</ref>
+* #(↔ (∈ C (× A B))
+    (∃ a (∃ b (∧
+      (= C (orderedPair a b)) (∧ (∈ a A) (∈ b B))))))# ([/general/Relations.gh/MembershipCartesianProduct | MembershipCartesianProduct])
+
+=== An ordered pair which is a member of a Cartesian product ===
+Here we show that {{{〈 A0, B0 〉 ∈ A × B ↔ A0 ∈ A ∧ B0 ∈ B}}}.<ref>[http://us.metamath.org/mpeuni/opelxp.html opelxp], metamath's set.mm, accessed February 5, 2011</ref>
+* #(↔ (∈ (orderedPair A0 B0) (× A B)) (∧ (∈ A0 A) (∈ B0 B)))# ([/general/Relations.gh/OrderedPairCartesianProduct | OrderedPairCartesianProduct])
+
+== To be added ==
+Either here or in other set theory files: induction, recursion, ordinal successors. some kinds of unions, intersection, set difference, and so on.
+
+== Export ==
+
+== References ==
+<references/>
+
+[[Category:Other classical set theory]]
