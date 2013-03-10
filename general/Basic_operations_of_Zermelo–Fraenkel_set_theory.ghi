@@ -22,8 +22,6 @@ tvar (formula φ ψ φx φy antecedent)
 # 
 # We can test whether one set is an element of another, and define an abbreviation for the negated version.
 term (formula (∈ A B))
-term (wff (∉ A B))
-stmt (∉ () () (↔ (∉ A B) (¬ (∈ A B))))
 # 
 # Here are two ways of combining membership with a substitution:
 stmt (MembershipForAll ((A x) (B x)) ()
@@ -34,7 +32,7 @@ stmt (MembershipThereExists ((A x) (B x)) ()
 # == Empty set ==
 # We assert the existence of the empty set, a set with no elements.
 term (object (∅))
-stmt (EmptySet () () (∉ A (∅)))
+stmt (EmptySet () () (¬ (∈ A (∅))))
 # 
 # == Singleton ==
 # Given a set, we can form a set <code>{ s }</code> which has only it as an element.<ref>[http://us.metamath.org/mpeuni/elsncg.html elsncg], metamath's set.mm, accessed August 7, 2010</ref>
@@ -89,7 +87,7 @@ stmt (Union ((A x) (B x)) () (↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A
 # 
 # The union of two sets is just a special case of the union of a set.
 term (object (∪ A B))
-stmt (∪ () () (= (∪ A B) (⋃ (unorderedPair A B))))
+stmt (BinaryUnionAsUnion () () (= (∪ A B) (⋃ (unorderedPair A B))))
 stmt (BinaryUnion () () (↔ (∈ A (∪ B C)) (∨ (∈ A B) (∈ A C))))
 
 stmt (MembershipUnionRightIntroduction () () (→ (∈ A B) (∈ A (∪ B C))))
@@ -116,8 +114,8 @@ stmt (PowerSet () () (↔ (∈ B (power A)) (⊆ B A)))
 # 
 # == Separation ==
 # We define <code>{x ∈ A | φ}</code>, the set of all elements in <code>A</code> which also satisfy <code>φ</code>. Although we write <code>{x ∈ A | φ}</code> informally, for JHilbert it needs to be <code>(separate x A φ)</code>.
-term (object (separate x A φ))
-stmt (Separation ((A x)) ()
+term (object (separate x A φ) (x A))
+stmt (Separation () ()
   (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ))))
 stmt (FormulaBound ((A z) (B z)) ((→ φ (∈ z A)))
   (↔ (∈ B (separate z A φ)) (subst B z φ)))
