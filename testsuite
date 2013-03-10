@@ -592,3 +592,40 @@ stmt (foo () (φ) φ)
 import (IN in.ghi () "")
 export (OUT out.ghi () "")
 !accept test.gh
+
+# Freemaps and terms
+!shared
+!append in.ghi
+kind (formula)
+tvar (formula p q φ)
+term (formula (∧ p q))
+term (formula (↔ p q))
+
+kind (object)
+tvar (object s t A B C)
+var (object x y)
+
+term (formula (∀ x φ))
+stmt (ForAllReflexivity () () (↔ (∀ x φ) (∀ x φ)))
+
+term (formula (subst s x φ) (x s))
+term (formula (= s t))
+stmt (SubstReflexivity () () (= (subst s x φ) (subst s x φ)))
+
+term (object (separate x A φ) (x A))
+stmt (SeparateReflexivity () () (= (separate x A φ) (separate x A φ)))
+!append test.gh
+import (IN in.ghi () "")
+!end
+
+!accept test.gh
+
+# This looks like something the verifier isn't catching yet...
+#!append in.ghi
+#stmt (KindMismatch () () (= (separate x φ φ) (separate x φ φ)))
+#!reject test.gh
+
+!append in.ghi
+stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
+!reject test.gh
+

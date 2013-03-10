@@ -1106,7 +1106,7 @@ class ImportCtx(InterfaceCtx):
         for j in xrange(len(sexp) - 1):
             el = sexp[j + 1]
             argkind = t[1][j]
-            binding_var = (j in t[2])
+            binding_var = t[2][j] != -1
             newterm.append(self.map_syms(el, mapping, varlist, varmap,
                                          kind, binding_var))
         return newterm
