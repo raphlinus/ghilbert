@@ -57,12 +57,24 @@ thm (buildOrderedPairRRInConsequent ()
         A0 A1 B OrderedPairBuilderRR
         applySyllogism
  )
+
 thm (OrderedPairTheoremForwardFirst-1 () () (∈ (singleton A) (orderedPair A B))
         (singleton A) (unorderedPair A B) UnorderedPairLeftMembership
- )
+
+        A B OrderedPair
+        (singleton A) buildMembershipLL
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 thm (OrderedPairTheoremForwardFirst-2 () () (↔ (∈ A (orderedPair B C)) (∨ (= A (singleton B)) (= A (unorderedPair B C))))
-         A (singleton B) (unorderedPair B C) UnorderedPair
- )
+        B C OrderedPair
+        A buildMembershipLL
+
+        A (singleton B) (unorderedPair B C) UnorderedPair
+        applyBiconditionalTransitivity
+)
+
 thm (OrderedPairTheoremForwardFirst () () (→ (= (orderedPair A B) (orderedPair C D)) (= A C))
 # The first step is <code>〈A, B〉=〈C, D〉 → ({C} ∈ 〈A, B〉 ↔ {C} ∈ 〈C, D〉)</code>, from our builder for <code>∈</code>.
 # 
@@ -90,12 +102,22 @@ thm (OrderedPairTheoremForwardFirst () () (→ (= (orderedPair A B) (orderedPair
         eliminateBiconditionalReverse
         applySyllogism
  )
+
 thm (OrderedPairTheoremForwardSecond-1 () () (→ (= (orderedPair C D) (orderedPair C B)) (= D B))
-# The definition of ordered pair gives us <code>{{C}, {C, D}} = {{C}, {C, B}}</code> and two applications of <code>UnorderedPairSecondMembersEqual</code> give us <code>D = B</code>.
+# The definition of ordered pair gives us <code>{{C}, {C, D}} = {{C}, {C, B}}</code>,
+        C D OrderedPair
+        C B OrderedPair
+        buildEquality
+        eliminateBiconditionalReverse
+
+# and two applications of <code>UnorderedPairSecondMembersEqual</code> give us <code>D = B</code>.
         (singleton C) (unorderedPair C D) (unorderedPair C B) UnorderedPairSecondMembersEqual
+        applySyllogism
+
         C D B UnorderedPairSecondMembersEqual
         applySyllogism
- )
+)
+
 thm (OrderedPairTheoremForwardSecond-2 () () (→ (= (orderedPair A B) (orderedPair C D)) (→ (= A C) (= D B)))
 # We start with <code>〈A, B〉=〈C, D〉→ (〈A, B〉=〈C, B〉 ↔ 〈C, D〉=〈C, B〉)</code>.
         (orderedPair A B) (orderedPair C D) (orderedPair C B) EqualityBuilderRR
