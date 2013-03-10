@@ -292,7 +292,7 @@ thm (UnorderedPairSingleton (  ) ()
 
         applyExtensionality
  )
-thm (UnionBuilder (     ) ()
+thm (UnionBuilder () ()
   (→ (= A B) (= (⋃ A) (⋃ B)))
 # We need <code>x ∈ ⋃ A ↔ x ∈ ⋃ B</code>, or expanding the unions according to <code>Union</code>, <code>∃ y (x ∈ y ∧ y ∈ A) ↔ ∃ y (x ∈ y ∧ y ∈ B)</code>. The first step is <code>A = B → (y ∈ A ↔ y ∈ B)</code>, followed by applying builders for the conjunction and the quantifier.
         A B y MembershipBuilderLL
@@ -328,6 +328,10 @@ thm (UnionIdempotence ( ) () (= (∪ A A) A)
 thm (UnionSingleton () () (= (⋃ (singleton A)) A)
         A SingletonUnorderedPair
         buildUnion
+
+        A A BinaryUnionAsUnion
+        swapEquality
+        applyEqualityTransitivity
 
         A UnionIdempotence
         applyEqualityTransitivity
