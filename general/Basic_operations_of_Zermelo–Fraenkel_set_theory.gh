@@ -108,7 +108,7 @@ thm (SingletonUnorderedPair ( ) ()
 
         applyExtensionality
  )
-thm (SeparationBuilder ((A x) (B x)      ) ()
+thm (SeparationBuilder () ()
   (→ (∧ (= A B) (∀ x (↔ φ ψ))) (= (separate x A φ) (separate x B ψ)))
 # To apply extensionality, we want <code>y ∈ { x ∈ A | φ } ↔ y ∈ { x ∈ B | ψ }</code>. The first step in that direction will be <code>y ∈ A ↔ y ∈ B</code>.
         (= A B) (∀ x (↔ φ ψ)) ConjunctionRightElimination
@@ -131,7 +131,7 @@ thm (SeparationBuilder ((A x) (B x)      ) ()
         y (separate x A φ) (separate x B ψ) Extensionality
         applySyllogism
  )
-thm (buildSeparation ((A x)) (H (↔ φ ψ)) (= (separate x A φ) (separate x A ψ))
+thm (buildSeparation () (H (↔ φ ψ)) (= (separate x A φ) (separate x A ψ))
         H
         x generalize
 
@@ -167,7 +167,7 @@ thm (FormulaBound ((A z) (B z)) (H (→ φ (∈ z A)))
         B FormulaBoundLemma
         applyBiconditionalTransitivity
  )
-thm (ChangeVariableSeparation-1 ((φx y) (φy x) (A y x) (C x) (C y))
+thm (ChangeVariableSeparation-1 ((φx y) (φy x) (C y))
   (H (→ (= x y) (↔ φx φy)))
   (↔ (∈ C (separate x A φx)) (∈ C (separate y A φy)))
 # We start by rewriting <code>C ∈ { x ∈ A | φx }</code> as <code>C ∈ A ∧ [ C / x ] φx</code>.
@@ -186,7 +186,7 @@ thm (ChangeVariableSeparation-1 ((φx y) (φy x) (A y x) (C x) (C y))
  )
 
 thm (ChangeVariableSeparation
-  ((φx y) (φy x) (A y x)      )
+  ((φx y) (φy x))
   (H (→ (= x y) (↔ φx φy)))
   (= (separate x A φx) (separate y A φy))
         H
