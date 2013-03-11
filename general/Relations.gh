@@ -152,13 +152,10 @@ thm (OrderedPairTheorem () () (↔ (= (orderedPair A0 B0) (orderedPair A1 B1)) (
         A0 A1 B0 B1 OrderedPairBuilder
         introduceBiconditionalFromImplications
  )
-defthm (Relation formula (relation A) () () (↔ (relation A) (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))))))
-        (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))))) BiconditionalReflexivity
-)
 tvar (object R S T U)
-thm (Relation ((A y z x) (A y′ z′ x y z x′)) ()
+defthm (Relation formula (relation A) ((A z)) ()
   (↔ (relation A) (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))))))
-# To prove this we need to prove that the truth of the formula doesn't depend on the choice of variables for <code>x</code>, <code>y</code>, and <code>z</code>. In other words, <code>∀ z′ (z′ ∈ A → ∃ x′ ∃ y′ z′ = 〈x′, y′〉) ↔ ∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉)</code>
+# We need to prove that the truth of the formula doesn't depend on the choice of variables for <code>x</code>, <code>y</code>, and <code>z</code>. In other words, <code>∀ z′ (z′ ∈ A → ∃ x′ ∃ y′ z′ = 〈x′, y′〉) ↔ ∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉)</code>
 # 
 # We'll first worry about the explicit substitutions and getting them in the right place relative to the quantifiers. We work from the outside in, so the first step is <code>∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉) ↔ ∀ z′ [z′ / z] (z ∈ A → ∃ x ∃ y z = 〈x, y〉)</code>
         z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y))))) z′ ChangeVariableExplicitForAll
