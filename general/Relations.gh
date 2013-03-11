@@ -358,16 +358,10 @@ thm (DomainSingletonRelationLemma ((B y) (C y) (A y)) ()
         applyBiconditionalTransitivity
  )
 
-thm (DomainSingletonRelation (      
-        ) ()
+thm (DomainSingletonRelation () ()
   (= (domain (singleton (orderedPair A B))) (singleton A))
-# Because we are still in the same proof module as the definition of <code>domain</code>, we need to expand the definition manually (rather than automatically), and specify some distinct variable constraints for <code>x′</code> and <code>y′</code>.
-        (singleton (orderedPair A B)) x′ y′ Domain-def
-        x buildMembershipLL
-        swapBiconditional
 # We start with <code>x ∈ domain { 〈A, B〉 } ↔ ∃ y 〈x, y〉 ∈ { 〈A, B〉 }</code>
         x (singleton (orderedPair A B)) y Domain
-        applyBiconditionalTransitivity
 # The right hand side is equivalent to <code>x = A</code> by our lemma,
         y x A B DomainSingletonRelationLemma
         applyBiconditionalTransitivity
