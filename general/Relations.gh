@@ -468,16 +468,10 @@ thm (RangeSingletonRelationLemma ((A x) (C x) (B x)) ()
         applyBiconditionalTransitivity
  )
 
-thm (RangeSingletonRelation (      
-          ) ()
+thm (RangeSingletonRelation () ()
   (= (range (singleton (orderedPair A B))) (singleton B))
-# Because we are still in the same proof module as the definition of <code>range</code>, we need to expand the definition manually (rather than automatically), and specify some distinct variable constraints for <code>x′</code> and <code>y′</code>.
-        (singleton (orderedPair A B)) x′ y′ Range-def
-        y buildMembershipLL
-        swapBiconditional
 # We start with <code>y ∈ range { 〈A, B〉 } ↔ ∃ x 〈x, y〉 ∈ { 〈A, B〉 }</code>
         y (singleton (orderedPair A B)) x Range
-        applyBiconditionalTransitivity
 # The right hand side is equivalent to <code>y = B</code> by our lemma,
         x y A B RangeSingletonRelationLemma
         applyBiconditionalTransitivity
