@@ -482,8 +482,8 @@ thm (RangeSingletonRelation () ()
 
         applyExtensionality
  )
-defthm (1st object (1st C) () () (= (1st C) (⋃ (domain (singleton C))))
-        (⋃ (domain (singleton C))) BiconditionalReflexivity
+defthm (First-def object (1st C) () () (= (1st C) (⋃ (domain (singleton C))))
+        (⋃ (domain (singleton C))) EqualityReflexivity
 )
 thm (FirstBuilder () () (→ (= A B) (= (1st A) (1st B)))
         A B SingletonBuilder
@@ -493,15 +493,25 @@ thm (FirstBuilder () () (→ (= A B) (= (1st A) (1st B)))
 
         (domain (singleton A)) (domain (singleton B)) UnionBuilder
         applySyllogism
- )
+
+        A First-def
+        B First-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (First () () (= (1st (orderedPair A B)) A)
+        (orderedPair A B) First-def
+
         A B DomainSingletonRelation
         buildUnion
+        applyEqualityTransitivity
 
         A UnionSingleton
-
         applyEqualityTransitivity
- )
+)
+
 defthm (2nd object (2nd C) () () (= (2nd C) (⋃ (range (singleton C))))
         (⋃ (range (singleton C))) BiconditionalReflexivity
 )
