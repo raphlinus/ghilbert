@@ -420,7 +420,7 @@ thm (Range ((B x) (R x)    ) ()
         makeSubstExplicit
         applyBiconditionalTransitivity
  )
-thm (RangeBuilder (     ) () (→ (= R S) (= (range R) (range S)))
+thm (RangeBuilder () () (→ (= R S) (= (range R) (range S)))
 # We prove the builder based on the definition <code>{ y ∈ ⋃ ⋃ R | ∃ x 〈x, y〉 ∈ R }</code>. The first step is <code>R = S → ⋃ ⋃ R = ⋃ ⋃ S</code>.
         R S UnionBuilder
         (⋃ R) (⋃ S) UnionBuilder
@@ -429,7 +429,7 @@ thm (RangeBuilder (     ) () (→ (= R S) (= (range R) (range S)))
         R S (orderedPair x y) MembershipBuilderLL
         x buildThereExistsInConsequent
         y addForAllToConsequent
-# Now we can apply the separation builder.
+# Now we can apply the separation builder,
         composeConjunction
         (⋃ (⋃ R))
           (⋃ (⋃ S))
@@ -438,7 +438,14 @@ thm (RangeBuilder (     ) () (→ (= R S) (= (range R) (range S)))
           (∃ x (∈ (orderedPair x y) S))
           SeparationBuilder
         applySyllogism
- )
+# and the definition of range
+        R y x Range-def
+        S y x Range-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (RangeSingletonRelationLemma ((A x) (C x) (B x)) ()
   (↔ (∃ x (∈ (orderedPair x C) (singleton (orderedPair A B)))) (= C B))
         (orderedPair x C) (orderedPair A B) Singleton
