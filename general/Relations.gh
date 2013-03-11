@@ -296,7 +296,8 @@ thm (Domain-2 ((A y) (R y)) ()
         detachImplicationImplication
         y addThereExistsToAntecedent
  )
-thm (Domain ((B y) (R y)    ) ()
+
+thm (Domain ((B y) (R y)) ()
   (↔ (∈ B (domain R)) (∃ y (∈ (orderedPair B y) R)))
 # We expand <code>domain R</code> so that we can specify the variables involved.
         R x y Domain-def
@@ -312,7 +313,8 @@ thm (Domain ((B y) (R y)    ) ()
         makeSubstExplicit
         applyBiconditionalTransitivity
  )
-thm (DomainBuilder (     ) () (→ (= R S) (= (domain R) (domain S)))
+
+thm (DomainBuilder () () (→ (= R S) (= (domain R) (domain S)))
 # We prove the builder based on the definition <code>{ x ∈ ⋃ ⋃ R | ∃ y 〈x, y〉 ∈ R }</code>. The first step is <code>R = S → ⋃ ⋃ R = ⋃ ⋃ S</code>.
         R S UnionBuilder
         (⋃ R) (⋃ S) UnionBuilder
@@ -321,7 +323,7 @@ thm (DomainBuilder (     ) () (→ (= R S) (= (domain R) (domain S)))
         R S (orderedPair x y) MembershipBuilderLL
         y buildThereExistsInConsequent
         x addForAllToConsequent
-# Now we can apply the separation builder.
+# Now we can apply the separation builder,
         composeConjunction
         (⋃ (⋃ R))
           (⋃ (⋃ S))
@@ -330,7 +332,14 @@ thm (DomainBuilder (     ) () (→ (= R S) (= (domain R) (domain S)))
           (∃ y (∈ (orderedPair x y) S))
           SeparationBuilder
         applySyllogism
- )
+# and the definition of domain.
+        R x y Domain-def
+        S x y Domain-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (DomainSingletonRelationLemma ((B y) (C y) (A y)) ()
   (↔ (∃ y (∈ (orderedPair C y) (singleton (orderedPair A B)))) (= C A))
         (orderedPair C y) (orderedPair A B) Singleton
