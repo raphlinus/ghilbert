@@ -240,14 +240,19 @@ defthm (Domain-def object (domain R) ((R x) (R y)) ()
         x (⋃ (⋃ R)) buildSeparation
         applyEqualityTransitivity
  )
-thm (Domain-1 (   ) ()
+
+thm (Domain-1 () ()
   (→ (∈ (orderedPair A B) R) (∈ (unorderedPair A B) (⋃ R)))
 # We will prove <code>{ A, B } ∈ ⋃ R</code> by <code>Union</code>. That is, we need <code>∃ z ({ A, B } ∈ z ∧ z ∈ ⋃ R</code>. We prove this by presenting such a <code>z</code>, which is just <code>〈 A, B 〉</code> (matters will be clearer if we write it with the definition of ordered pair expanded: <code>{ { A }, { A, B } }</code>.
-# 
+        A B OrderedPair
+        R buildMembershipRR
+        eliminateBiconditionalReverse
+
 # The first step is <code>{ { A }, { A, B } } ∈ R → { A, B } ∈ { { A }, { A, B } } ∧ { { A }, { A, B } } ∈ R</code>.
         (∈ (unorderedPair (singleton A) (unorderedPair A B)) R) ImplicationReflexivity
         (unorderedPair A B) (singleton A) UnorderedPairRightMembership
         introduceLeftConjunctToConsequent
+        applySyllogism
 # Now we need to replace <code>{ { A }, { A, B } }</code> with a variable <code>z</code>.
         z
           (unorderedPair (singleton A) (unorderedPair A B))
