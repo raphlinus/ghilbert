@@ -533,13 +533,16 @@ thm (SecondBuilder () () (→ (= A B) (= (2nd A) (2nd B)))
 )
 
 thm (Second () () (= (2nd (orderedPair A B)) B)
+        (orderedPair A B) SecondInTermsOfRange
+
         A B RangeSingletonRelation
         buildUnion
+        applyEqualityTransitivity
 
         B UnionSingleton
-
         applyEqualityTransitivity
- )
+)
+
 defthm (× object (× A B) () () (= (× A B) (separate z (power (power (∪ A B)))
   (∃ a (∃ b (∧ (= z (orderedPair a b))
     (∧ (∈ a A) (∈ b B)))))))
