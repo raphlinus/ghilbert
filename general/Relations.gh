@@ -512,9 +512,10 @@ thm (First () () (= (1st (orderedPair A B)) A)
         applyEqualityTransitivity
 )
 
-defthm (2nd object (2nd C) () () (= (2nd C) (⋃ (range (singleton C))))
-        (⋃ (range (singleton C))) BiconditionalReflexivity
+defthm (SecondInTermsOfRange object (2nd C) () () (= (2nd C) (⋃ (range (singleton C))))
+        (⋃ (range (singleton C))) EqualityReflexivity
 )
+
 thm (SecondBuilder () () (→ (= A B) (= (2nd A) (2nd B)))
         A B SingletonBuilder
 
@@ -523,7 +524,14 @@ thm (SecondBuilder () () (→ (= A B) (= (2nd A) (2nd B)))
 
         (range (singleton A)) (range (singleton B)) UnionBuilder
         applySyllogism
- )
+
+        A SecondInTermsOfRange
+        B SecondInTermsOfRange
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (Second () () (= (2nd (orderedPair A B)) B)
         A B RangeSingletonRelation
         buildUnion
