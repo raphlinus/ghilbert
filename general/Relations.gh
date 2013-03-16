@@ -543,28 +543,20 @@ thm (Second () () (= (2nd (orderedPair A B)) B)
         applyEqualityTransitivity
 )
 
-defthm (× object (× A B) () () (= (× A B) (separate z (power (power (∪ A B)))
-  (∃ a (∃ b (∧ (= z (orderedPair a b))
-    (∧ (∈ a A) (∈ b B)))))))
-        (separate z (power (power (∪ A B)))
-  (∃ a (∃ b (∧ (= z (orderedPair a b))
-    (∧ (∈ a A) (∈ b B)))))) BiconditionalReflexivity
-)
-thm (CartesianProduct
-  (   (A b′) (B b′)
-      (A b) (B b)
-      (A a′) (B a′)
-     (A a) (B a)
-     
-    (A z) (B z)
-  ) ()
-  (= (separate z (power (power (∪ A B)))
-      (∃ a′ (∃ b′ (∧ (= z (orderedPair a′ b′))
-        (∧ (∈ a′ A) (∈ b′ B))))))
-    (separate z (power (power (∪ A B)))
-      (∃ a (∃ b (∧ (= z (orderedPair a b))
-        (∧ (∈ a A) (∈ b B)))))))
-# First we show <code>∃ a′ ∃ b′ (z = 〈 a′, b′ 〉 ∧ (a′ ∈ A ∧ b′ ∈ B)) ↔ ∃ a ∃ b′ (z = 〈 a, b′ 〉 ∧ (a ∈ A ∧ b′ ∈ B))</code>.
+defthm (CartesianProductAsSeparation object (× A B) ((A a) (B a) (A z) (B z) (A b) (B b)) () 
+  (= (× A B) (separate z (power (power (∪ A B)))
+    (∃ a (∃ b (∧ (= z (orderedPair a b))
+      (∧ (∈ a A) (∈ b B)))))))
+# We need to show { z′ ∈ (power (power A ∪ B)) | ∃ a′ ∃ b′ (z′ = 〈a′, b′〉 ∧ a′ ∈ A ∧ b′ ∈ B) } is equivalent to a similar expression with a′, b′, and z′ replaced by a, b, and z.
+# First step is z′ and z.
+        z′ z (orderedPair a′ b′) EqualityBuilderRR
+        (∧ (∈ a′ A) (∈ b′ B)) buildConjunctionRRInConsequent
+        b′ buildThereExistsInConsequent
+        a′ buildThereExistsInConsequent
+
+        (power (power (∪ A B))) ChangeVariableSeparation
+
+# Next we show <code>∃ a′ ∃ b′ (z = 〈 a′, b′ 〉 ∧ (a′ ∈ A ∧ b′ ∈ B)) ↔ ∃ a ∃ b′ (z = 〈 a, b′ 〉 ∧ (a ∈ A ∧ b′ ∈ B))</code>.
         a′ a b′ OrderedPairBuilderRR
         z buildEqualityLLInConsequent
 
@@ -590,7 +582,9 @@ thm (CartesianProduct
         applyBiconditionalTransitivity
 
         z (power (power (∪ A B))) buildSeparation
- )
+        applyEqualityTransitivity
+)
+
 thm (MembershipCartesianProductLemma () ()
   (→ (∧ (∈ α A) (∈ β B)) (∈ (orderedPair α β) (power (power (∪ A B)))))
 # The ordered pair <code>〈α, β〉</code> has two elements, <code>{ α }</code> and <code>{ α , β }</code>. We start with the former, and the first step is <code>α ∈ A ∧ β ∈ B → { α } ⊆ A</code>
