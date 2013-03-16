@@ -111,6 +111,7 @@ table#panel {
 
 #canvas {
 	margin-top: 6px;
+	resize: none;
 	width: 100%;
 }
 
@@ -301,44 +302,121 @@ body.fullscreen {
 }
 
 .proof-step-div {
-	padding: 5px 10px;
-}
-
-.proof-step-span {
 	border-radius: 5px;
 	color: #333;
 	padding: 5px 10px;
-	margin: 2px;
+	margin: 1px 0;
 }
 
-.proof-step-div:hover .proof-step-span,
-.proof-step-span.highlighted-step,
-.proof-step-span.error-in-step {
+.proof-block .proof-step-div:hover,
+.proof-step-div.error-in-step {
 	background: #fff8f0;
 	border: 1px solid #ffe0c0;
-	padding-left: 9px;  /* To offset the 1 pixel extra border. */
+	padding: 4px 9px;  /* To offset the 1 pixel extra border. */
 	box-shadow: 0px 2px 5px 0px #eee;
 	color: black;
 	cursor: default;
 }
 
-.proof-step-div:hover .proof-step-span,
-.proof-step-span.highlighted-step {
+
+.proof-step-div.indented-step.highlighted-step:hover,
+.gray-block .proof-step-div.indented-step.highlighted-step:hover {
 	background: #fff8f0;
 	border: 1px solid #ffe0c0;
 }
 
-.proof-step-span.error-in-step {
+.proof-block.highlighted-block .proof-step-div:hover {
+	border: 0;
+	box-shadow: 0 0 0 0 #eee;
+	padding: 5px 10px;
+}
+
+.proof-step-div:hover.indented-step {
+	padding: 4px 9px 4px 39px;
+}
+
+.proof-step-div.error-in-step {
 	background: #fff;
 	border: 1px solid #ffc0c0;
 	color: #f00;
 }
 
-.proof-step-div:hover .proof-step-span.error-in-step,
-.proof-step-span.error-in-step.highlighted-step {
+.proof-step-div:hover .error-in-step,
+.proof-step-div.error-in-step.highlighted-step {
 	background: #fff0f0;
 	border: 1px solid #ffc0c0;
 	color: #f00;
+}
+
+.proof-step-name {
+	cursor: default;
+	float: right;
+	margin-right: 5px;
+	color: #888;
+}
+
+a.proof-step-name {
+	color: rgb(162, 114, 56);
+	cursor: pointer;
+}
+
+.proof-step-name.display-on-hover {
+	display: none;
+}
+
+.highlighted-step .proof-step-name.display-on-hover {
+	display: inline;
+}
+
+.highlighted-block .proof-step-name.display-on-hover,
+.highlighted-block highlighted-step .proof-step-name.display-on-hover {
+	display: none;
+}
+
+.proof-block {
+	border: 1px solid #d0d0d0;
+	border-radius: 5px;
+	box-shadow: 0px 2px 5px 0px #f0f0f0;
+	margin: 20px 20px 0 0;
+	padding: 6px;
+}
+
+.proof-block.gray-block.highlighted-block,
+.proof-block.highlighted-block,
+.proof-block.primary-block.highlighted-block {
+	background-color: #fff8f0;
+	border-color: rgb(255, 186, 115);
+}
+
+.proof-block.primary-block {
+	border-color: #aaa;
+	box-shadow: 0px 2px 7px 0px #ddd;
+	color: black;
+}
+
+.proof-block.gray-block {
+	background: #f8f8f8;
+}
+
+.indented-step {
+	padding: 5px 40px;
+}
+
+.proof-step-div.indented-step.highlighted-step {
+	background: #f8f8f8;
+	border: 1px solid #e6e6e6;
+	padding: 4px 9px 4px 39px;;  /* To offset the 1 pixel extra border. */
+}
+
+.gray-block .proof-step-div.indented-step.highlighted-step {
+	background: #fff;
+}
+
+/* Undo the highlighted on the step if the whole block is highlighted. */
+.highlighted-block .proof-step-div.indented-step.highlighted-step {
+	background: none;
+	border: 0;
+	padding: 5px 10px 5px 40px;
 }
 
 textarea:selection,
@@ -381,4 +459,12 @@ textarea:-webkit-selection {
 
 .minor-input {
 	border: 1px solid #bbb;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
 }

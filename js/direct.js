@@ -133,13 +133,14 @@ GH.Direct.prototype.update = function() {
     	pstack = thmctx.proofctx.mandstack;
 			var stackHistory = thmctx.proofctx.stackHistory;
 			for (var i = 0; i < stackHistory.length; i++) {
-				stackHistory[i].display(0, proofStepHtml, cursorPosition);
+				stackHistory[i].display(false, proofStepHtml, cursorPosition);
+				proofStepHtml.push("</div>");
 			}
 			if (pstack.length > 0) {
-    		for (i = 0; i < pstack.length; i++) {
-					GH.Direct.stepToHtmlDefault(GH.sexptohtml(pstack[i][1]), proofStepHtml);
-    		}
-    	}
+				for (i = 0; i < pstack.length; i++) {
+					GH.Direct.stepToHtml(GH.sexptohtml(pstack[i][1]), '', '', '', '', proofStepHtml);
+				}
+			}
 			proofStepHtml.push(GH.Direct.textToHtml('&nbsp;'));
     }
     // keep height from bouncing around in common case
@@ -177,38 +178,26 @@ GH.Direct.textToHtml = function(text) {
 	return html = '<div class=\'proof-step-div\'>' + text + '</div>';
 }
 
-// Display a proof step with default settings, no highlighting.
-GH.Direct.stepToHtmlDefault = function(text, proofStepHtml) {
-	GH.Direct.stepToHtml(text, 0, false, false, 0, 0, proofStepHtml);
-}
-
 // Display a proof step.
 //   text: The text inside the step.
-//   indentation: How many times to indent.
-//   isHighlighted: True if the step is currently highlighted.
-//   isError: True if the step is displayed in red as an error.
-//   textStart: The position of the first character to highlight in the editor when hovering over the proof step.
-//   textEd: The position of the last character to highlight in the editor when hovering over the proof step.
+//   classes: The CSS classes applied to this step.
+//   mouseOverFunc: The function to call on mouseover.
+//   mouseOutFunc: The function to call on mouseout.
+//   name: The name of the proofstep.
 //   proofStepHtml: The full list of proof steps. The output goes here.
-GH.Direct.stepToHtml = function(text, indentation, isHighlighted, isError, textStart, textEnd, proofStepHtml) {
+GH.Direct.stepToHtml = function(text, classes, mouseOverFunc, mouseOutFunc, name, proofStepHtml) {
 	var html = '';
-	html += '<div class=\'proof-step-div\' onmousemove=\'GH.setSelectionRange(' + textStart + ',' + textEnd + ')\'>';
-	if (isError) {
-		if (isHighlighted) {
-			html += '<span class=\'proof-step-span error-in-step highlighted-step\' ';
-		} else {
-			html += '<span class=\'proof-step-span error-in-step\' ';
-		}
-	}	else {
-		if (isHighlighted) {
-			html += '<span class=\'proof-step-span highlighted-step\' ';
-		} else {
-			html += '<span class=\'proof-step-span\' ';
-		}
+	html += '<div class=\'proof-step-div' + classes + '\' ';
+	if (mouseOverFunc != '') {
+		html += 'onmouseover=\'' + mouseOverFunc + '\' ';
 	}
-	html += 'style=\'margin: 1px 0 1px ' + indentation * GH.Direct.INDENTATION + 'px\'>';
+	if (mouseOutFunc != '') {
+		html += 'onmouseout=\''  + mouseOutFunc  + '\' ';
+	}
+	html += '\'>';
 	html += text;
-	html += '</span></div>\n';
+	html += name;
+	html += '</div>\n';
 	proofStepHtml.push(html);
 };
 
@@ -336,7 +325,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			break;
 		case stateType.PROOF_END:
-			this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true));
+			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false));
 			return 'extra junk after proof';
 			break;
 	}
@@ -392,13 +381,13 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			var stackHistory = this.proofctx.stackHistory;
 			var removed = stackHistory.splice(0);
-			stackHistory.push(new GH.ProofStep(removed, e3, tok.beg, tok.end, [], true));
+			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false));
 			return "! " + e3;
 		}
   } else if (state == stateType.PROOF_END) {
     pc = this.proofctx;
     if (pc.mandstack.length != 0) {
-			//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true));
+			//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false));
 	    return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 		}
 		if (pc.stack.length != 1) {

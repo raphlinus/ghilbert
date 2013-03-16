@@ -248,10 +248,11 @@ GH.sExpression = function(expression) {
  * Displays an s-expression. If the cursor is inside of the s-expression, it is highlighted.
  * If the cursor is touching a particular symbol, that symbol is further hightlighted.
  */
-GH.sExpression.prototype.display = function(depth, proofStepHtml, cursorPosition) {
+GH.sExpression.prototype.display = function(indentation, proofStepHtml, cursorPosition) {
 	var text = GH.sexptohtmlHighlighted(this.expression_, cursorPosition);
 	var isHighlighted = this.begin_ <= cursorPosition && cursorPosition <= this.end_;
-	GH.Direct.stepToHtml(text, depth, isHighlighted, false, this.begin_, this.end_, proofStepHtml);
+	var mouseOverFunc = 'GH.setSelectionRange(' + this.begin_ + ',' + this.end_ +')';
+	GH.Direct.stepToHtml(text, indentation, isHighlighted, false, mouseOverFunc, '', '', proofStepHtml);
 };
 
 
@@ -262,19 +263,23 @@ GH.sExpression.prototype.getBeginning = function() {
 
 /**
  * Represents the input and output of each proof step.
+ *   name (string): The name of this proof step.
  *   hypotheses (Array.<ProofStep>): An array of proof steps used as inputs to this step.
  *   conclusion: (s-expression) An s-expression that is the result of this step.
  *   begin (number): The cursor position of the beginning of this step.
  *   end (number): The cursor position of the end of this step.
  *   sExpressions (Array.<s-expression>): An array of s-expressions used to create this step.
  *   isError: Whether the expression is signaling an error.
+ *   isThm: Whether this is a theorem "thm" and not an axiom "stmt".
  */
-GH.ProofStep = function(hypotheses, conclusion, begin, end, sExpressions, isError) {
+GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, isError, isThm) {
+	this.name_ = name;
 	this.hypotheses_ = hypotheses;
 	this.conclusion_ = conclusion;
 	this.begin_ = begin;
 	this.end_ = end;
 	this.isError_ = isError;
+	this.isThm_ = isThm;
 
 	this.sExpressions_ = [];
 	for (var i = 0; i < sExpressions.length; i++) {
@@ -295,30 +300,139 @@ GH.ProofStep.prototype.getBeginning = function() {
 	}
 };
 
+GH.ProofStep.prototype.isInside = function(position) {
+	return ((this.getBeginning() <= position) && (position <= this.end_));
+};
+
+GH.ProofStep.nameToHtml = function(text, isLink, isHypothesis) {
+	var classes = 'proof-step-name' + (isHypothesis ? ' display-on-hover' : '');
+	if (isLink) {
+		return '<a href="/edit/peano/peano_thms.gh/' + text + '"  class=\'' + classes + '\'>' + text + '</a>';
+	} else {
+		return '<span class=\'' + classes + '\'>' + text + '</span>';
+	}
+}
+
 
 /**
- * Returns an array of strings displaying each proof step.
- *   depth: The depth of this step within the stack history. Used to
- *       determine indentation.
- *   proofStepHtml: An array of string defining html elements for each string.
+ * Returns an array of strings recursively displaying each proof step.
+ *   isGrayed: True if the proof-block is a gray color. The blocks alternate
+ *       between white and gray blocks.
+ *   proofStepHtml: An array of strings defining html elements for each proof step.
  *       The result goes here.
  *   cursorPosition: The cursor position in the text input box.
+ *
+ *   Returns true if anything was displayed.
  */
-GH.ProofStep.prototype.display = function(depth, proofStepHtml, cursorPosition) {
-	var result = [];
-	if ((this.getBeginning() <= cursorPosition) && (cursorPosition <= this.end_)) {
-		for (var i = 0; i < this.hypotheses_.length; i++) {
-			this.hypotheses_[i].display(depth + 1, proofStepHtml, cursorPosition);
-		}
-		for (var i = 0; i < this.sExpressions_.length; i++) {
-			this.sExpressions_[i].display(depth + 1, proofStepHtml, cursorPosition);
+GH.ProofStep.prototype.display = function(isGrayed, proofStepHtml, cursorPosition) {
+	var openBlock = false;
+	var oneHyp = (this.hypotheses_.length == 1);
+	// Display details on the hypothesis that the cursor is inside of.
+	for (var i = 0; i < this.hypotheses_.length; i++) {
+		if ((this.hypotheses_[i].isInside(cursorPosition)) || oneHyp) {
+			var newIsGrayed = oneHyp ? isGrayed : !isGrayed;
+			this.hypotheses_[i].display(newIsGrayed, proofStepHtml, cursorPosition);
+			openBlock = true;
 		}
 	}
+	// Display the s-expressions. Commented out for now.
+	/*for (var i = 0; i < this.sExpressions_.length; i++) {
+		this.sExpressions_[i].display(indentation + 1, proofStepHtml, cursorPosition);
+	}*/
 
-	var text = GH.sexptohtmlHighlighted(this.conclusion_, cursorPosition);
-	var isHighlighted = this.begin_ <= cursorPosition && cursorPosition <= this.end_;
-	GH.Direct.stepToHtml(text, depth, isHighlighted, this.isError_, this.begin_, this.end_, proofStepHtml);
+	var primaryBlock = !openBlock;
+	// Only close the block if there is more than one hypothesis. If there is one, keep adding to the
+	// current block.
+	if ((!oneHyp) && (openBlock)) {
+		proofStepHtml.push("</div>");
+		openBlock = false;
+	}
+	// Display the hypotheses and then the conclusion.
+	if (!openBlock) {
+		var classes = 'proof-block' + (primaryBlock ? ' primary-block' : '') + (isGrayed ? ' gray-block' : '');
+		proofStepHtml.push("<div class=\"" + classes + "\">");
+		for (var i = 0; i < this.hypotheses_.length; i++) {
+			this.hypotheses_[i].displayStep(!oneHyp, proofStepHtml, cursorPosition, true);
+		}
+	}
+	this.displayStep(false, proofStepHtml, cursorPosition, false);
 };
+
+/**
+ * Display just this step without recursion.
+ */
+GH.ProofStep.prototype.displayStep = function(isIndented, proofStepHtml, cursorPosition, isHypothesis) {
+	var text = GH.sexptohtmlHighlighted(this.conclusion_, cursorPosition);
+	var isHighlighted;
+	if (isHypothesis) {
+		isHighlighted = this.isInside(cursorPosition);
+	} else {
+		isHighlighted = this.begin_ <= cursorPosition && cursorPosition <= this.end_;
+	}
+	var classes = '';
+	if (isIndented) {
+		classes += ' ' + GH.ProofStep.INDENTED_STEP_;
+	}
+	if (this.Error_) {
+		classes += ' error-in-step';
+	}
+	if (isHighlighted) {
+		classes += ' ' + GH.ProofStep.HIGHLIGHTED_STEP_;
+	}
+	var nameHtml = GH.ProofStep.nameToHtml(this.name_, this.isThm_, isHypothesis);
+
+	var mouseOverFunc = 'GH.ProofStep.handleMouseOver(' + this.begin_ + ',' + this.end_ +', this)';
+	var mouseOutFunc  = 'GH.ProofStep.handleMouseOut(this)';
+	GH.Direct.stepToHtml(text, classes, mouseOverFunc, mouseOutFunc, nameHtml, proofStepHtml);
+}
+
+GH.ProofStep.findCorrespondingBlock_ = function(step) {
+	var correspondingBlock = null;
+	if (!GH.ProofStep.hasClass_(step, GH.ProofStep.INDENTED_STEP_)) {
+		// The parent element is the corresponding block in the conclusion step.
+		correspondingBlock = step.parentElement;
+	} else if (GH.ProofStep.hasClass_(step, GH.ProofStep.HIGHLIGHTED_STEP_)) {
+		// The block above the parent is the corresponding when a hypothesis is highlighted.
+		correspondingBlock = step.parentElement.previousSibling;
+	}
+	return correspondingBlock;
+}
+
+GH.ProofStep.handleMouseOver = function(start, end, hoveredStep) {
+	GH.setSelectionRange(start, end);
+	var highlightBlock = GH.ProofStep.findCorrespondingBlock_(hoveredStep);
+	if (highlightBlock) {
+		if (!GH.ProofStep.hasClass_(highlightBlock, GH.ProofStep.HIGHLIGHTED_BLOCK_)) {
+			highlightBlock.className += ' ' + GH.ProofStep.HIGHLIGHTED_BLOCK_;
+		}
+	}
+}
+
+GH.ProofStep.hasClass_ = function(element, className) {
+	return element.className.match(new RegExp(className));
+}
+
+GH.ProofStep.handleMouseOut = function(unhoveredStep) {
+	var unhighlightBlock = GH.ProofStep.findCorrespondingBlock_(unhoveredStep);
+	if (unhighlightBlock) {
+		unhighlightBlock.className = unhighlightBlock.className.replace(new RegExp(' ' + GH.ProofStep.HIGHLIGHTED_BLOCK_), '');
+	}
+}
+
+/**
+ * Class name of the highlighted step.
+ */
+GH.ProofStep.HIGHLIGHTED_STEP_ = 'highlighted-step';
+
+/**
+ * Class name of the indented step in a proof block. The hypotheses are indented.
+ */
+GH.ProofStep.INDENTED_STEP_ = 'indented-step';
+
+/**
+ * Class name of the highlighted block.
+ */
+GH.ProofStep.HIGHLIGHTED_BLOCK_ = 'highlighted-block';
 
 GH.ProofCtx = function() {
     this.stack = [];
@@ -935,10 +1049,10 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
         if (proofctx.mandstack.length != 0) {
             throw 'Hyp expected no mand hyps, got ' + proofctx.mandstack.length;
         }
-				var hyp = hypmap[step];
-        proofctx.stack.push(hyp);
-				proofctx.stackHistory.push(new GH.ProofStep([], hyp, step.beg, step.end, proofctx.mandstack, false));
-        return;
+		var hyp = hypmap[step];
+		proofctx.stack.push(hyp);
+		proofctx.stackHistory.push(new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, false));
+		return;
     }
     if (!this.syms.hasOwnProperty(step)) {
         throw step + " - Unknown Step";
@@ -953,15 +1067,16 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx) {
         return;
     } 
     // This test is now likely redundant...
-    if (v[0] == 'stmt' || v[0] == 'thm') {
-      var result = this.match_inference(v, proofctx, proofctx.mandstack);
-      var sp = proofctx.stack.length - v[2].length;
-      proofctx.stack.splice(sp);
-      proofctx.stack.push(result);
+	if (v[0] == 'stmt' || v[0] == 'thm') {
+		var result = this.match_inference(v, proofctx, proofctx.mandstack);
+		var sp = proofctx.stack.length - v[2].length;
+		proofctx.stack.splice(sp);
+		proofctx.stack.push(result);
 
-			var removed = proofctx.stackHistory.splice(sp);
-			proofctx.stackHistory.push(new GH.ProofStep(removed, result, step.beg, step.end, proofctx.mandstack, false))
-			proofctx.mandstack = [];
+		var removed = proofctx.stackHistory.splice(sp);
+		var isThm = (v[0] == 'thm');
+		proofctx.stackHistory.push(new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, isThm));
+		proofctx.mandstack = [];
     }
 };
 
