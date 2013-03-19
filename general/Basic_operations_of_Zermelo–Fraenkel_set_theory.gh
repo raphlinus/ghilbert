@@ -522,7 +522,24 @@ thm (SubsetBuilderLL () () (→ (= B0 B1) (↔ (⊆ A B0) (⊆ A B1)))
         applySyllogism
 )
 
-#thm (SubsetBuilderRR () () (→ (= A0 A1) (↔ (⊆ A0 B) (⊆ A1 B))))
+thm (SubsetBuilderRR () () (→ (= A0 A1) (↔ (⊆ A0 B) (⊆ A1 B)))
+        A0 A1 x MembershipBuilderLL
+
+        (∈ x B) BiconditionalReflexivity
+        (∈ x A0) (∈ x A1) (∈ x B) (∈ x B) ImplicationFunction
+        detach2of2
+        applySyllogism
+
+        x buildForAllInConsequent
+
+        A0 B x Subset
+        A1 B x Subset
+        buildBiconditional
+
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 #thm (buildSubsetLL () ((= B0 B1)) (↔ (⊆ A B0) (⊆ A B1)))
 #thm (buildSubsetRR () ((= A0 A1)) (↔ (⊆ A0 B) (⊆ A1 B)))
 
