@@ -27,7 +27,7 @@ def header(o, name, stylesheet = None):
 
 def navbar(o):
     o.write('<div class="header">')
-    o.write('<a href="/"><img src="/static/favicon.ico"/></a> <a href="/">Ghilbert</a>')
+    o.write('  <a href="/"><img src="/static/logo.png" /></a>')
     o.write('</div>')
 
 def error_403(handler):

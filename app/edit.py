@@ -125,7 +125,7 @@ class EditHandler(users.AuthenticatedHandler):
 
 <body>
 """)
-        o.write('<div class="editor-header">')
+        o.write('<div class="header">')
         o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute; top: 24px;"/></a>')
         o.write('  <span id="title">');
         o.write('    <span id="thmname" class="header-box"></span>');
