@@ -336,7 +336,7 @@ thm (UnionSingleton () () (= (⋃ (singleton A)) A)
         A UnionIdempotence
         applyEqualityTransitivity
  )
-thm (SingletonSubset (  ) ()
+thm (SingletonSubset () ()
   (↔ (∈ A B) (⊆ (singleton A) B))
 # We start from the <code>{ A } ⊆ B</code> side, first expanding it to <code>∀ x (x ∈ { A } → x ∈ B)</code>.
         (singleton A) B x Subset
@@ -352,7 +352,7 @@ thm (SingletonSubset (  ) ()
 
         swapBiconditional
  )
-thm (SubsetMembership (   ) ()
+thm (SubsetMembership () ()
   (→ (⊆ A B) (→ (∈ C A) (∈ C B)))
 # First we expand <code>A ⊆ B</code> to <code>∀ x (x ∈ A → x ∈ B)</code>.
         A B x Subset
@@ -373,8 +373,9 @@ thm (SubsetMembership (   ) ()
         buildImplication
         eliminateBiconditionalForward
         applySyllogism
- )
-thm (SubsetUnion (      ) ()
+)
+
+thm (SubsetUnion () ()
   (→ (∧ (⊆ A B) (∈ B C)) (⊆ A (⋃ C)))
         A B x Subset
         (∈ B C) buildConjunctionRR
@@ -426,8 +427,9 @@ thm (MembershipSubsetUnion () () (→ (∈ A B) (⊆ A (⋃ B)))
         A SubsetReflexivity
         A A B SubsetUnion
         detach1of2
- )
-thm (SubsetUnionLeft (  ) ()
+)
+
+thm (SubsetUnionLeft () ()
   (⊆ A (∪ A B))
         (∈ x A) (∈ x B) DisjunctionRightIntroduction
 
@@ -440,14 +442,16 @@ thm (SubsetUnionLeft (  ) ()
         A (∪ A B) x Subset
         eliminateBiconditionalForward
         applyModusPonens
- )
+)
+
 thm (SubsetUnionRightIntroduction () ()
   (→ (⊆ A B) (⊆ A (∪ B C)))
         B C SubsetUnionLeft
         A B (∪ B C) SubsetTransitivity
         detach2of2
- )
-thm (UnorderedPairSubsetForward (   ) ()
+)
+
+thm (UnorderedPairSubsetForward () ()
   (→ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))
 # We begin with <code>A ∈ C → (x = A → x ∈ C)</code> and likewise for <code>B</code>
         x A C MembershipBuilderRR
@@ -476,9 +480,9 @@ thm (UnorderedPairSubsetForward (   ) ()
         (unorderedPair A B) C x Subset
         eliminateBiconditionalForward
         applySyllogism
- )
+)
 
-thm (UnorderedPairSubsetReverse (   ) ()
+thm (UnorderedPairSubsetReverse () ()
   (→ (⊆ (unorderedPair A B) C) (∧ (∈ A C) (∈ B C)))
         A B UnorderedPairLeftMembership
         (unorderedPair A B) C A SubsetMembership
@@ -491,12 +495,35 @@ thm (UnorderedPairSubsetReverse (   ) ()
         applyModusPonens
 
         composeConjunction
- )
+)
 
 thm (UnorderedPairSubset () ()
   (↔ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))
         A C B UnorderedPairSubsetForward
         A B C UnorderedPairSubsetReverse
         introduceBiconditionalFromImplications
- )
+)
+
+thm (SubsetBuilderLL () () (→ (= B0 B1) (↔ (⊆ A B0) (⊆ A B1)))
+        B0 B1 x MembershipBuilderLL
+
+        (∈ x A) BiconditionalReflexivity
+        (∈ x A) (∈ x A) (∈ x B0) (∈ x B1) ImplicationFunction
+        detach1of2
+        applySyllogism
+
+        x buildForAllInConsequent
+
+        A B0 x Subset
+        A B1 x Subset
+        buildBiconditional
+
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+#thm (SubsetBuilderRR () () (→ (= A0 A1) (↔ (⊆ A0 B) (⊆ A1 B))))
+#thm (buildSubsetLL () ((= B0 B1)) (↔ (⊆ A B0) (⊆ A B1)))
+#thm (buildSubsetRR () ((= A0 A1)) (↔ (⊆ A0 B) (⊆ A1 B)))
+
 export (SETS Basic_operations_of_Zermelo–Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")
