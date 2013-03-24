@@ -540,7 +540,16 @@ thm (SubsetBuilderRR () () (→ (= A0 A1) (↔ (⊆ A0 B) (⊆ A1 B)))
         applySyllogism
 )
 
-#thm (buildSubsetLL () ((= B0 B1)) (↔ (⊆ A B0) (⊆ A B1)))
-#thm (buildSubsetRR () ((= A0 A1)) (↔ (⊆ A0 B) (⊆ A1 B)))
+thm (buildSubsetLL () (H (= B0 B1)) (↔ (⊆ A B0) (⊆ A B1))
+        H
+        B0 B1 A SubsetBuilderLL
+        applyModusPonens
+)
+
+thm (buildSubsetRR () (H (= A0 A1)) (↔ (⊆ A0 B) (⊆ A1 B))
+        H
+        A0 A1 B SubsetBuilderRR
+        applyModusPonens
+)
 
 export (SETS Basic_operations_of_Zermelo–Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")
