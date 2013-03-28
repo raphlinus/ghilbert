@@ -1,0 +1,190 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = None yet.
+# | exportedby = [[Basic arithmetic]]
+# }}
+# 
+# This page covers basic arithmetic, up to the familiar laws of arithmetic: commutative, associative, distributive, etc. At least for now, it stops before continuing into number theory (divisibility, primes, etc).
+# 
+# We build on [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]] (including equality):
+# 
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+# 
+# The kind <code>object</code>, defined in first-order logic, represents a natural number:
+kindbind (object nat)
+tvar (nat a b c d a0 a1 b0 b1)
+# 
+# There are two operations, addition and multiplication:
+term (nat (+ a b))
+term (nat (· a b))
+# 
+# == Builders ==
+# Equals can be substituted for equals, in the context of addition and multiplication.  We provide a number of convenience builders in addition to the basic ones.
+# 
+stmt (AdditionBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (= (+ a0 b0) (+ a1 b1))))
+
+stmt (AdditionBuilderLL () () (→ (= b0 b1) (= (+ a b0) (+ a b1))))
+stmt (AdditionBuilderRR () () (→ (= a0 a1) (= (+ a0 b) (+ a1 b))))
+
+stmt (buildAddition () ((= a0 a1) (= b0 b1)) (= (+ a0 b0) (+ a1 b1)))
+
+stmt (buildAdditionLL () ((= b0 b1)) (= (+ a b0) (+ a b1)))
+stmt (buildAdditionRR () ((= a0 a1)) (= (+ a0 b) (+ a1 b)))
+
+stmt (MultiplicationBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (= (· a0 b0) (· a1 b1))))
+
+stmt (MultiplicationBuilderLL () () (→ (= b0 b1) (= (· a b0) (· a b1))))
+stmt (MultiplicationBuilderRR () () (→ (= a0 a1) (= (· a0 b) (· a1 b))))
+
+stmt (buildMultiplication () ((= a0 a1) (= b0 b1)) (= (· a0 b0) (· a1 b1)))
+
+stmt (buildMultiplicationLL () ((= b0 b1)) (= (· a b0) (· a b1)))
+stmt (buildMultiplicationRR () ((= a0 a1)) (= (· a0 b) (· a1 b)))
+# 
+# The converse of some of the builders hold and are known as cancellation laws.
+stmt (AdditionCancellationRight () () (↔ (= (+ a c) (+ b c)) (= a b)))
+stmt (cancelAdditionRight () ((= (+ a c) (+ b c))) (= a b))
+stmt (AdditionCancellationLeft () () (↔ (= (+ c a) (+ c b)) (= a b)))
+stmt (cancelAdditionLeft () ((= (+ c a) (+ c b))) (= a b))
+# 
+# == Commutative, associative, and distributive ==
+# 
+# Both addition and multiplication are commutative and associative:
+# 
+stmt (AdditionCommutativity () () (= (+ a b) (+ b a)))
+stmt (AdditionAssociativity () ()
+  (= (+ (+ a b) c) (+ a (+ b c))))
+
+stmt (MultiplicationCommutativity () () 
+  (= (· a b) (· b a)))
+stmt (MultiplicationAssociativity () ()
+  (= (· (· a b) c) (· a (· b c))))
+# 
+# We also provide a convenience theorem which applies commutativity and associativity in a common way:
+stmt (Addition4 () () (= (+ (+ a b) (+ c d)) (+ (+ a c) (+ b d))))
+# 
+# We can distribute multiplication over addition:
+stmt (LeftDistribution () ()
+  (= (· a (+ b c)) (+ (· a b) (· a c))))
+stmt (RightDistribution () ()
+  (= (· (+ a b) c) (+ (· a c) (· b c))))
+# 
+# == Zero ==
+# 
+# There is a constant called <code>0</code> which serves as an additive [[w:Identity element|identity]]:
+# 
+term (nat (0))
+
+stmt (AdditiveIdentityLeft () () (= (+ (0) a) a))
+stmt (AdditiveIdentityRight () () (= (+ a (0)) a))
+# 
+# It also is a multiplicative zero:
+stmt (MultiplicativeZeroLeft () () (= (· (0) a) (0)))
+stmt (MultiplicativeZeroRight () () (= (· a (0)) (0)))
+# 
+# == One ==
+# There is a constant called <code>1</code>:
+# 
+term (nat (1))
+# 
+# It serves as a multiplicative identity:
+# 
+stmt (MultiplicativeIdentityRight () ()
+  (= (· a (1)) a))
+stmt (MultiplicativeIdentityLeft () ()
+  (= (· (1) a) a))
+# 
+# As with a [[w:Field (mathematics)|field]], the additive identity does not equal the multiplicative identity.
+stmt (ZeroOne () () (¬ (= (0) (1))))
+# 
+# == Order ==
+# We define a formula <code>≤</code> and supply the usual builders (including some convenience builders).
+term (formula (≤ a b))
+
+stmt (LessEqualBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (↔ (≤ a0 b0) (≤ a1 b1))))
+stmt (LessEqualBuilderLL () () (→ (= b0 b1) (↔ (≤ a b0) (≤ a b1))))
+stmt (LessEqualBuilderRR () () (→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b))))
+# 
+# It has the [[w:total order|properties of a total order]]:
+stmt (LessEqualTransitivity () () (→ (∧ (≤ a b) (≤ b c)) (≤ a c)))
+stmt (LessEqualAntisymmetry () () (→ (∧ (≤ a b) (≤ b a)) (= a b)))
+stmt (LessEqualTotality () () (∨ (≤ a b) (≤ b a)))
+# 
+# A number of other properties follow from those.
+stmt (LessEqualReflexivity () () (≤ a a))
+
+term (formula (< a b))
+term (formula (> b a))
+stmt (> () () (↔ (> b a) (< a b)))
+term (formula (≥ b a))
+stmt (≥ () () (↔ (≥ b a) (≤ a b)))
+
+stmt (LessEqualLessThan () () (↔ (≤ a b) (∨ (< a b) (= a b))))
+stmt (LessThanLessEqual () () (↔ (< a b) (∧ (≤ a b) (¬ (= a b)))))
+
+stmt (LessThanBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (↔ (< a0 b0) (< a1 b1))))
+stmt (LessThanBuilderLL () () (→ (= b0 b1) (↔ (< a b0) (< a b1))))
+stmt (LessThanBuilderRR () () (→ (= a0 a1) (↔ (< a0 b) (< a1 b))))
+
+stmt (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c)))
+stmt (LessThanTransitivity () () (→ (∧ (< a b) (< b c)) (< a c)))
+# 
+# Exactly one of <code>a < b</code>, <code>a = b</code>, or <code>a > b</code> hold.
+stmt (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (> a b)))
+stmt (LessThanEquality () () (→ (< a b) (¬ (= a b))))
+stmt (LessThanGreaterThan () () (→ (< a b) (¬ (> a b))))
+stmt (EqualityLessThan () () (→ (= a b) (¬ (< a b))))
+# 
+# We also provide some rules, for convenience.
+stmt (buildLessThan () ((= a0 a1) (= b0 b1)) (↔ (< a0 b0) (< a1 b1)))
+stmt (buildLessThanLL () ((= b0 b1)) (↔ (< a b0) (< a b1)))
+stmt (buildLessThanRR () ((= a0 a1)) (↔ (< a0 b) (< a1 b)))
+# 
+# === Smallest element ===
+# Zero is the smallest natural number.
+stmt (ZeroSmallest () () (≤ (0) a))
+# 
+# === Addition is consistent with the order ===
+# Assuming one of these implies the others fairly directly, but we supply them all as convenience theorems.
+stmt (LessEqualAddition () () (→ (∧ (≤ a0 a1) (≤ b0 b1)) (≤ (+ a0 b0) (+ a1 b1))))
+stmt (LessEqualAdditionRR () () (↔ (≤ a0 a1) (≤ (+ a0 b) (+ a1 b))))
+stmt (LessEqualAdditionLL () () (↔ (≤ b0 b1) (≤ (+ a b0) (+ a b1))))
+
+stmt (LessThanAddition () () (→ (∧ (< a0 a1) (< b0 b1)) (< (+ a0 b0) (+ a1 b1))))
+stmt (LessThanAdditionRR () () (↔ (< a0 a1) (< (+ a0 b) (+ a1 b))))
+stmt (LessThanAdditionLL () () (↔ (< b0 b1) (< (+ a b0) (+ a b1))))
+
+stmt (LessEqualLessThanAddition () () (→ (∧ (≤ a0 a1) (< b0 b1)) (< (+ a0 b0) (+ a1 b1))))
+# 
+# === Multiplication is consistent with the order ===
+stmt (LessEqualMultiplicationRR () () (→ (≤ a b) (≤ (· a c) (· b c))))
+# 
+# == Induction ==
+# There are a number of ways to state [[w:mathematical induction|induction]].
+# 
+# This one is via <code>subst</code>:
+tvar (formula φ)
+var (object k n)
+
+stmt (InductionSubst () () 
+  (→ 
+   (∧ (subst (0) n φ) 
+    (∀ k (→ (subst k n φ) (subst (+ k (1)) n φ)))) (∀ n φ)))
+# 
+# This one has six hypotheses, which despite the large number turns out to be easier to handle than <code>InductionSubst</code>. The first four hypotheses handle the substitution machinery. The last two express the base case and induction step, and because the substitution has already been taken care of, tend to contain more mathematically interesting content and less substitution machinery.
+# 
+tvar (formula φ0 φk φSk φa)
+
+stmt (Induction6 ((a n) (φ0 n) (φk n) (φSk n) (φa n) (φ k) )
+  ((→ (= n (0)) (↔ φ φ0))
+   (→ (= n k) (↔ φ φk))
+   (→ (= n (+ k (1))) (↔ φ φSk))
+   (→ (= n a) (↔ φ φa))
+   φ0
+   (→ φk φSk)
+  )
+  φa)
+# 
+# [[Category:Elementary number theory|{{PAGENAME}}]]

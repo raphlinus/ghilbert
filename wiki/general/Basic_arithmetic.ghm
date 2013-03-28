@@ -1,0 +1,301 @@
+{{header
+ | notes = This page covers basic arithmetic, starting from [[Interface:Peano axioms]] and proceeding as far as all the familiar laws of arithmetic: commutative, associative, distributive, etc.  At least for now, it stops before continuing into number theory (divisibility, primes, etc).
+}}
+{{interfaces
+| imports = [[Interface:Peano axioms]]
+| exports = [[Interface:Basic arithmetic]]
+}}
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Peano axioms|Peano axioms]] and define some variables:
+
+Many of the proofs in this file are based on versions from Raph Levien.<ref>[http://levien.com/garden/ghnew/peano/ Peano], accessed March 2, 2010</ref>
+
+== Builders ==
+We provide rules and variants for the builder axioms.
+* #(→ (= b0 b1) (= (+ a b0) (+ a b1)))# ([/general/Basic_arithmetic.gh/AdditionBuilderLL | AdditionBuilderLL])
+* #(→ (= a0 a1) (= (+ a0 b) (+ a1 b)))# ([/general/Basic_arithmetic.gh/AdditionBuilderRR | AdditionBuilderRR])
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(= (+ a0 b0) (+ a1 b1))# ([/general/Basic_arithmetic.gh/buildAddition | buildAddition])
+* #(= b0 b1)# ⊢ #(= (+ a b0) (+ a b1))# ([/general/Basic_arithmetic.gh/buildAdditionLL | buildAdditionLL])
+* #(= a0 a1)# ⊢ #(= (+ a0 b) (+ a1 b))# ([/general/Basic_arithmetic.gh/buildAdditionRR | buildAdditionRR])
+* #(= a b)# ⊢ #(= (succ a) (succ b))# ([/general/Basic_arithmetic.gh/addSuccessor | addSuccessor])
+* #(= (succ a) (succ b))# ⊢ #(= a b)# ([/general/Basic_arithmetic.gh/removeSuccessor | removeSuccessor])
+* #(→ (= b0 b1) (= (· a b0) (· a b1)))# ([/general/Basic_arithmetic.gh/MultiplicationBuilderLL | MultiplicationBuilderLL])
+* #(→ (= a0 a1) (= (· a0 b) (· a1 b)))# ([/general/Basic_arithmetic.gh/MultiplicationBuilderRR | MultiplicationBuilderRR])
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(= (· a0 b0) (· a1 b1))# ([/general/Basic_arithmetic.gh/buildMultiplication | buildMultiplication])
+* #(= b0 b1)# ⊢ #(= (· a b0) (· a b1))# ([/general/Basic_arithmetic.gh/buildMultiplicationLL | buildMultiplicationLL])
+* #(= a0 a1)# ⊢ #(= (· a0 b) (· a1 b))# ([/general/Basic_arithmetic.gh/buildMultiplicationRR | buildMultiplicationRR])
+
+Proofs using induction, when they build up their substitutions, make heavy use of builders in consequents:
+* #(→ φ (= a0 a1))#, #(→ φ (= b0 b1))# ⊢ #(→ φ (= (+ a0 b0) (+ a1 b1)))# ([/general/Basic_arithmetic.gh/buildAdditionInConsequent | buildAdditionInConsequent])
+
+== Induction ==
+Here we present some induction theorems.
+
+=== Induction5 ===
+This version has five hypotheses, which despite the large number turns out to be easier to handle than expressing base cases and induction steps via {{{subst}}}. The first three hypotheses handle the substitution machinery.  The last two express the base case and induction step, and because the substitution has already been taken care of, tend to contain more mathematically interesting content and less substitution machinery.
+
+* #(→ (= n (0)) (↔ φ φ0))#, #(→ (= n k) (↔ φ φk))#, #(→ (= n (succ k)) (↔ φ φSk))#, #φ0#, #(→ φk φSk)# ⊢ #φ# ([/general/Basic_arithmetic.gh/Induction5 | Induction5])
+
+=== Induction6S ===
+Having presented {{{Induction5}}}, there's an admission to make: it isn't quite enough.  There are two reasons.  The first is that the discrete variable constraints on n (for example, {{{(φ0 n)}}}) are a bit too onerous. For example, suppose we are trying to prove {{{Sm + n = S(m + n)}}} by induction on {{{n}}}. Then {{{φ0}}} would be {{{Sm + 0 = S(m + 0)}}}.  This only passes the constraint {{{(φ0 n)}}} if {{{m}}} is distinct from {{{n}}}, which is not a condition we want to impose.
+
+The second reason is that {{{n}}} in {{{Induction5}}} is a {{{variable}}}, rather than an {{{object}}}. Because the quantifiers and substitution are only needed during the proof, not at the end, this is an unnecessary restriction.
+
+The solution is {{{Induction6S}}}, which adds one more substitution, to separate the result from the variables used in the proof.  The naming conventions in the following are: {{{a}}} is the variable which will appear in the final result, {{{k}}} is the variable which appears in the induction step, and {{{n}}} is a variable which is used only in substitutions (the limitation of {{{Induction5}}} happens because it combines this one with what corresponds to {{{a}}} here).
+
+* #(→ (= n (0)) (↔ φ φ0))#, #(→ (= n k) (↔ φ φk))#, #(→ (= n (succ k)) (↔ φ φSk))#, #(→ (= n a) (↔ φ φa))#, #φ0#, #(→ φk φSk)# ⊢ #φa# ([/general/Basic_arithmetic.gh/Induction6S | Induction6S])
+
+== Addition is commutative ==
+The proof that {{{a + b = b + a}}} will be by induction, but we first prove two results which will underpin the base case and induction step.
+
+=== Commuted version of the AdditiveIdentity axiom ===
+The first step towards proving that addition is commutative will be a commuted version of the AdditiveIdentity axiom. We proceed by induction.
+
+* #(= (+ (0) a) a)# ([/general/Basic_arithmetic.gh/AdditiveIdentityLeft | AdditiveIdentityLeft])
+
+Now that we have a {{{AdditiveIdentityLeft}}}, we'll also add {{{AdditiveIdentityRight}}} as a new name for the {{{AdditiveIdentity}}} axiom:
+* #(= (+ a (0)) a)# ([/general/Basic_arithmetic.gh/AdditiveIdentityRight | AdditiveIdentityRight])
+
+=== Commuted version of the Addition axiom ===
+The proof is by induction on {{{b}}}.
+
+* #(= (+ (succ a) b) (succ (+ a b)))# ([/general/Basic_arithmetic.gh/AdditionCommuted | AdditionCommuted])
+
+=== Proof that addition is commutative ===
+We prove {{{a + b = b + a}}} by induction on {{{a}}}.
+* #(= (+ a b) (+ b a))# ([/general/Basic_arithmetic.gh/AdditionCommutativity | AdditionCommutativity])
+
+== Addition is associative ==
+* #(= (+ (+ a b) c) (+ a (+ b c)))# ([/general/Basic_arithmetic.gh/AdditionAssociativity | AdditionAssociativity])
+
+== Addition cancellation ==
+The converse of {{{AdditionBuilderRR}}}, {{{a + c = b + c → a = b}}}, also holds.
+
+The substitution for our addition cancellation induction is worth breaking out into a lemma:
+* #(
+  → (= n sub) (
+    ↔ (→ (= (+ a n) (+ b n)) (= a b)) 
+    (→ (= (+ a sub) (+ b sub)) (= a b))
+  ))# ([/general/Basic_arithmetic.gh/AdditionCancellationRight-substitution | AdditionCancellationRight-substitution])
+
+Now we can prove our addition cancellation theorem:
+* #(→ (= (+ a c) (+ b c)) (= a b))# ([/general/Basic_arithmetic.gh/AdditionCancellationRightForward | AdditionCancellationRightForward])
+
+As we tend to do with theorems which hold in both directions, we provide the biconditionalized version.
+* #(↔ (= (+ a c) (+ b c)) (= a b))# ([/general/Basic_arithmetic.gh/AdditionCancellationRight | AdditionCancellationRight])
+* #(= (+ a c) (+ b c))# ⊢ #(= a b)# ([/general/Basic_arithmetic.gh/cancelAdditionRight | cancelAdditionRight])
+
+A commuted version is an easy consequence, but will be convenient to have:
+
+* #(↔ (= (+ c a) (+ c b)) (= a b))# ([/general/Basic_arithmetic.gh/AdditionCancellationLeft | AdditionCancellationLeft])
+* #(= (+ c a) (+ c b))# ⊢ #(= a b)# ([/general/Basic_arithmetic.gh/cancelAdditionLeft | cancelAdditionLeft])
+
+== Multiplication is commutative ==
+The proof that multiplication is commutative is analogous to the proof that addition is commutative. It starts with proving commuted versions of the two multiplication axioms by induction, and then using those results to prove {{{n · m = m · n}}} by induction.
+
+=== Commuted version of the MultiplicativeZero axiom ===
+
+* #(= (· (0) a) (0))# ([/general/Basic_arithmetic.gh/MultiplicativeZeroLeft | MultiplicativeZeroLeft])
+
+For parallelism, we also give an additional name to the {{{MultiplicativeZero}}} axiom:
+
+* #(= (· a (0)) (0))# ([/general/Basic_arithmetic.gh/MultiplicativeZeroRight | MultiplicativeZeroRight])
+
+=== Commuted version of the Multiplication axiom ===
+Here we prove {{{Sa · b = a · b + b}}}. We break apart some parts of the proof into separate lemmas.
+
+* #(= (+ (· (succ a) kk) (succ a)) (· (succ a) (succ kk)))# ([/general/Basic_arithmetic.gh/MultiplicationCommuted-left | MultiplicationCommuted-left])
+* #(= (+ (+ (· a kk) kk) (succ a)) (+ (· a (succ kk)) (succ kk)))# ([/general/Basic_arithmetic.gh/MultiplicationCommuted-right | MultiplicationCommuted-right])
+* #(→ (= (· (succ a) kk) (+ (· a kk) kk))
+    (= (· (succ a) (succ kk)) (+ (· a (succ kk)) (succ kk))))# ([/general/Basic_arithmetic.gh/MultiplicationCommuted-step | MultiplicationCommuted-step])
+* #(= (· (succ a) b) (+ (· a b) b))# ([/general/Basic_arithmetic.gh/MultiplicationCommuted | MultiplicationCommuted])
+
+=== Proof that multiplication is commutative ===
+
+The proof is by induction on {{{a}}}.
+* #(= (· a b) (· b a))# ([/general/Basic_arithmetic.gh/MultiplicationCommutativity | MultiplicationCommutativity])
+
+== Rearrangement ==
+Although there are a wide varieties of ways that a term could be rearranged by commutativity and associativity, the following rearrangements turn out to be common:
+* #(= (+ (+ a b) (+ c d)) (+ (+ a c) (+ b d)))# ([/general/Basic_arithmetic.gh/Addition4 | Addition4])
+* #(= (+ (+ a b) c) (+ (+ a c) b))# ([/general/Basic_arithmetic.gh/Addition3 | Addition3])
+
+== Multiplication distributes over addition ==
+* #(= (· a (+ b c)) (+ (· a b) (· a c)))# ([/general/Basic_arithmetic.gh/LeftDistribution | LeftDistribution])
+
+It will be convenient to also have a commuted version of this:
+
+* #(= (· (+ a b) c) (+ (· a c) (· b c)))# ([/general/Basic_arithmetic.gh/RightDistribution | RightDistribution])
+
+== Multiplication is associative ==
+
+* #(= (· (· a b) c) (· a (· b c)))# ([/general/Basic_arithmetic.gh/MultiplicationAssociativity | MultiplicationAssociativity])
+
+== One ==
+One is the successor of zero:
+
+
+It serves as a multiplicative identity:
+* #(= (· a (1)) a)# ([/general/Basic_arithmetic.gh/MultiplicativeIdentityRight | MultiplicativeIdentityRight])
+* #(= (· (1) a) a)# ([/general/Basic_arithmetic.gh/MultiplicativeIdentityLeft | MultiplicativeIdentityLeft])
+
+One does not equal zero.
+* #(≠ (0) (1))# ([/general/Basic_arithmetic.gh/ZeroOne | ZeroOne])
+
+== Inequality ==
+We define an order on natural numbers:
+
+
+===Definition as an equivalence===
+
+The following theorem looks just like the definition for {{{≤}}}.  However, at least as JHilbert is right now, it is subtly different, as it enables one to specify the bound variable on the right hand side. Also note that {{{LessEqual}}} has (and needs) distinct variable constraints between {{{a}}} and {{{n}}} and {{{b}}} and {{{n}}}, whereas the definition ensures that dummy variables are distinct because they are created internally by JHilbert. (See [[Wikiproofs:JHilbert definition soundness]] for more discussion of the definition mechanism).
+
+* #(↔ (≤ a b) (∃ n (= (+ a n) b)))# ([/general/Basic_arithmetic.gh/LessEqual | LessEqual])
+
+=== Builders ===
+The builders for {{{≤}}} follow readily from the builders for addition, equality, and so on.
+* #(→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))# ([/general/Basic_arithmetic.gh/LessEqualBuilderRight | LessEqualBuilderRight])
+
+The builder for adding a common number to the left is similar, and is proved in the same way.
+* #(→ (= b0 b1) (↔ (≤ a b0) (≤ a b1)))# ([/general/Basic_arithmetic.gh/LessEqualBuilderLeft | LessEqualBuilderLeft])
+
+Combining {{{LessEqualBuilderLeft}}} and {{{LessEqualBuilderRright}}} gives us the full builder.
+
+* #(→ (∧ (= a0 a1) (= b0 b1)) (↔ (≤ a0 b0) (≤ a1 b1)))# ([/general/Basic_arithmetic.gh/LessEqualBuilder | LessEqualBuilder])
+
+=== Proving inequality with an object ===
+We can prove {{{a ≤ b}}} by proving {{{∃ n a + n = b}}}. Well, the usual way to do this is to provide a value for {{{n}}}.
+* #(→ (= (+ a c) b) (≤ a b))# ([/general/Basic_arithmetic.gh/LessEqualObject | LessEqualObject])
+
+===Zero is the smallest natural number===
+
+Every number is greater than or equal to zero:
+* #(≤ (0) a)# ([/general/Basic_arithmetic.gh/ZeroSmallest | ZeroSmallest])
+
+=== Predecessor ===
+Any nonzero natural number has a predecessor. We express this as {{{a ≠ 0 → ∃ m Sm = a}}}. The proof will be by induction on {{{a}}}, and we start with the substitution.
+* #(
+  → (= n sub) (
+    ↔ (→ (¬ (= n (0))) (∃ m (= (succ m) n))) 
+    (→ (¬ (= sub (0))) (∃ m (= (succ m) sub)))
+  ))# ([/general/Basic_arithmetic.gh/Predecessor-sub | Predecessor-sub])
+* #(→ (¬ (= a (0))) (∃ m (= (succ m) a)))# ([/general/Basic_arithmetic.gh/Predecessor | Predecessor])
+
+=== Total order ===
+We'll show that ≤ has the [[w:Total order|expected properties of a total order]].
+* If a ≤ b and b ≤ c then a ≤ c (transitivity)
+* If a ≤ b and b ≤ a then a = b (antisymmetry)
+* a ≤ b or b ≤ a (totality). 
+
+==== Transitivity ====
+
+Here we prove that {{{a ≤ b ∧ b ≤ c → a ≤ c}}}.  The proof is simple to sketch out: by the definition of {{{≤}}}, we have {{{∃ ab a + ab = b}}} and {{{∃ bc b + bc = c}}}. Applying the addition builder, we get {{{a + ab + b + bc = b + c}}}.  Rearranging the terms and cancelling the {{{b}}}, we get {{{a + (ab + bc) = c}}}.  That implies {{{a ≤ c}}}, by {{{LessEqualObject}}}.
+
+Formalizing the proof is somewhat tedious, because "rearranging the terms and cancelling" expands to many steps, but the idea is unchanged (and {{{LessEqualObject}}} takes care of much of the predicate logic which might otherwise clutter this sort of proof).
+
+The following lemma includes the rearrangements we will need. It is a straightforward application of commutativity, associativity, and cancellation.
+* #(→ (∧ (= (+ a ab) b) (= (+ b bc) c)) (= (+ a (+ ab bc)) c))# ([/general/Basic_arithmetic.gh/LessEqualTransitivity-1 | LessEqualTransitivity-1])
+
+We are now ready to prove {{{a ≤ b ∧ b ≤ c → a ≤ c}}}.
+* #(→ (∧ (≤ a b) (≤ b c)) (≤ a c))# ([/general/Basic_arithmetic.gh/LessEqualTransitivity | LessEqualTransitivity])
+
+==== Antisymmetry ====
+Before we prove antisymmetry, we prove several lemmas. The first is a substitution (think of it as substituting zero for {{{b}}} in the left hand conjunct).
+* #(→ (∧ (= (+ a b) c) (= b (0))) (= a c))# ([/general/Basic_arithmetic.gh/LessEqualAntisymmetry-1 | LessEqualAntisymmetry-1])
+
+Our second lemma is {{{a + b = 0 → a = 0}}}.
+* #(→ (= (+ a b) (0)) (= a (0)))# ([/general/Basic_arithmetic.gh/LessEqualAntisymmetry-2 | LessEqualAntisymmetry-2])
+
+The next lemma is {{{a + n = b ∧ b + m = a → a = b}}}. The proof proceeds by rearranging the terms to get {{{n + m = 0}}}, and using that to get {{{n = 0}}}.
+* #(→ (∧ (= (+ a n) b) (= (+ b m) a)) (= a b))# ([/general/Basic_arithmetic.gh/LessEqualAntisymmetry-3 | LessEqualAntisymmetry-3])
+
+That lemma gets us most of the way. We just need to deal with a bit of predicate logic to finish our proof of antisymmetry, {{{a ≤ b ∧ b ≤ a → a = b}}}
+* #(→ (∧ (≤ a b) (≤ b a)) (= a b))# ([/general/Basic_arithmetic.gh/LessEqualAntisymmetry | LessEqualAntisymmetry])
+
+==== Totality ====
+This section proves {{{a ≤ b ∨ b ≤ a}}}. The outline of the proof is as follows.  Proceed by induction on {{{b}}}. The base case follows from {{{0 ≤ a}}}. The induction step, {{{a ≤ k ∨ k ≤ a → a ≤ Sk ∨ Sk ≤ a}}}, has two cases. The {{{a ≤ k}}} case is easy: if {{{a}}} is less than {{{k}}}, it is also less than {{{Sk}}}. The {{{k ≤ a}}} case in turn has two cases, which amount to {{{k = a}}} and {{{k < a}}} (although our formal machinery isn't advanced enough to refer to them exactly that way in the proof).  In the first case, {{{k = a}}} easily implies {{{a ≤ Sk}}}. In the {{{k < a}}} case, we will show {{{Sk ≤ a}}} (via several steps, of which applying {{{Predecessor}}} is a key one).
+
+Our first lemma is just working around a problem with JHilbert, as it exists now, and distinct variables. In a just world, it would just be an instance of {{{NullThereExists}}}, but JHilbert expands the definition of {{{a ≤ b}}}, thus introducing a variable which we need a distinct variable constraint for. The proof is just a matter of applying {{{LessEqual}}} so we can name the variable and the constraint.
+* #(↔ (∃ n (≤ a b)) (≤ a b))# ([/general/Basic_arithmetic.gh/NullThereExistsLessEqual | NullThereExistsLessEqual])
+
+While we're at it, we prove another similar lemma we'll need later in the proof of totality.
+* #(↔ (∃ n (∨ (≤ a b) (≤ c d))) (∨ (≤ a b) (≤ c d)))# ([/general/Basic_arithmetic.gh/NullThereExistsDisjunctionLessEqual | NullThereExistsDisjunctionLessEqual])
+
+The key result for the {{{a ≤ k}}} case is {{{a ≤ k → a ≤ Sk}}}.
+* #(→ (≤ a k) (≤ a (succ k)))# ([/general/Basic_arithmetic.gh/LessEqualSuccessor | LessEqualSuccessor])
+
+What we actually need for the {{{a ≤ k}}} case is a slight variation of that, {{{a ≤ k → a ≤ Sk ∨ Sk ≤ a}}}.
+* #(→ (≤ a k) (∨ (≤ a (succ k)) (≤ (succ k) a)))# ([/general/Basic_arithmetic.gh/TotalityLemmaALessEqualK | TotalityLemmaALessEqualK])
+
+The {{{a = k}}} case we express as {{{m = 0 → (k + m = a → a ≤ Sk ∨ Sk ≤ a)}}}. We prove it via several lemmas.
+* #(→ (= m (0)) (→ (= (+ k m) a) (= k a)))# ([/general/Basic_arithmetic.gh/TotalityLemmaAEqualK-1 | TotalityLemmaAEqualK-1])
+* #(→ (= a k) (≤ a k))# ([/general/Basic_arithmetic.gh/TotalityLemmaAEqualK-2a | TotalityLemmaAEqualK-2a])
+* #(→ (= a k) (≤ a (succ k)))# ([/general/Basic_arithmetic.gh/TotalityLemmaAEqualK-2 | TotalityLemmaAEqualK-2])
+* #(→ (= m (0)) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))# ([/general/Basic_arithmetic.gh/TotalityLemmaAEqualK | TotalityLemmaAEqualK])
+
+The {{{k < a}}} case we express as {{{m ≠ 0 → (k + m = a → a ≤ Sk ∨ Sk ≤ a)}}}. Here is an outline of the proof of this case. We will be proving that {{{m ≠ 0}}} and {{{k + m = a}}} imply {{{Sk ≤ a}}}. To do this we need a number {{{n}}} for which {{{Sk + n = a}}}. The predecessor of {{{m}}} is the value we choose.
+* #(→ (¬ (= m (0))) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))# ([/general/Basic_arithmetic.gh/TotalityLemmaKLessThanA | TotalityLemmaKLessThanA])
+
+Taking one step back, the combination of the {{{a = k}}} and {{{k < a}}} cases is the {{{k ≤ a}}} case, {{{k ≤ a → a ≤ Sk ∨ Sk ≤ a}}}.
+* #(→ (≤ k a) (∨ (≤ a (succ k)) (≤ (succ k) a)))# ([/general/Basic_arithmetic.gh/TotalityLemmaKLessEqualA | TotalityLemmaKLessEqualA])
+
+We are ready to return to the proof of {{{a ≤ b ∨ b ≤ a}}} by induction. We first prove the substitution. Conceptually, it is {{{n = sub → (a ≤ n ∨ n ≤ a ↔ a ≤ sub ∨ sub ≤ a)}}}.  However, as long as JHilbert automatically expands definitions, we need to expand each definition of {{{≤}}} so that we can express the distinct variable constraints with the dummy variables.
+* #(
+  → (= n sub) (
+    ↔ (∨ (∃ an (= (+ a an) n)) (∃ na (= (+ n na) a))) 
+    (∨ (∃ an (= (+ a an) sub)) (∃ na (= (+ sub na) a)))
+  ))# ([/general/Basic_arithmetic.gh/Totality-sub | Totality-sub])
+And here is the proof, by induction on {{{b}}}.
+* #(∨ (≤ a b) (≤ b a))# ([/general/Basic_arithmetic.gh/LessEqualTotality | LessEqualTotality])
+
+=== Consequences of total order properties ===
+In the above section, we have proved that {{{≤}}} is a total order.  Total orders have characteristic properties, and due to our import/export system, we can derive many consequences of the total order from this fact without having to prove them (since we have already proved them in [[First-order linear order defined via nonstrict inequality]]).  In addition to theorems, we also get a definition for {{{<}}}, strictly less than.
+
+=== This order is consistent with addition ===
+* #(↔ (≤ a b) (≤ (+ a c) (+ b c)))# ([/general/Basic_arithmetic.gh/LessEqualAdditionRR | LessEqualAdditionRR])
+
+Here is the same theorem with the additions commuted.
+* #(↔ (≤ b0 b1) (≤ (+ a b0) (+ a b1)))# ([/general/Basic_arithmetic.gh/LessEqualAdditionLL | LessEqualAdditionLL])
+
+Combining the two gives the full theorem.
+* #(→ (∧ (≤ a0 a1) (≤ b0 b1)) (≤ (+ a0 b0) (+ a1 b1)))# ([/general/Basic_arithmetic.gh/LessEqualAddition | LessEqualAddition])
+
+Here we prove the analogous theorems for the strict order. We're just expanding {{{a < b}}} into {{{a ≤ b ∧ a ≠ b}}} and showing that both sides of the conjunction work.
+* #(↔ (< a0 a1) (< (+ a0 b) (+ a1 b)))# ([/general/Basic_arithmetic.gh/LessThanAdditionRR | LessThanAdditionRR])
+* #(↔ (< b0 b1) (< (+ a b0) (+ a b1)))# ([/general/Basic_arithmetic.gh/LessThanAdditionLL | LessThanAdditionLL])
+* #(→ (∧ (≤ a0 a1) (< b0 b1)) (< (+ a0 b0) (+ a1 b1)))# ([/general/Basic_arithmetic.gh/LessEqualLessThanAddition | LessEqualLessThanAddition])
+* #(→ (∧ (< a0 a1) (< b0 b1)) (< (+ a0 b0) (+ a1 b1)))# ([/general/Basic_arithmetic.gh/LessThanAddition | LessThanAddition])
+
+=== This order is consistent with multiplication ===
+In systems admitting negative numbers, such as the integers or reals, the term "multiplication is consistent with ≤" will generally refer to a weaker result, such as {{{0 ≤ b ∧ 0 ≤ c → 0 ≤ b · c}}}. But we prove a more powerful theorem, {{{a ≤ b → a · c ≤ b · c}}}. The converse only holds if {{{c ≠ 0}}}.
+* #(→ (≤ a b) (≤ (· a c) (· b c)))# ([/general/Basic_arithmetic.gh/LessEqualMultiplicationRR | LessEqualMultiplicationRR])
+
+== Adding one and successor ==
+
+Before we export to [[Interface:Basic arithmetic]], we have one style point to clear up.  The induction theorems there are stated in terms of {{{k + 1}}} (as that file does not have the successor operation).
+
+* #(= (+ a (1)) (succ a))# ([/general/Basic_arithmetic.gh/SuccessorAddsOne | SuccessorAddsOne])
+* #(→ (= n (0)) (↔ φ φ0))#, #(→ (= n k) (↔ φ φk))#, #(→ (= n (+ k (1))) (↔ φ φSk))#, #(→ (= n a) (↔ φ φa))#, #φ0#, #(→ φk φSk)# ⊢ #φa# ([/general/Basic_arithmetic.gh/Induction6 | Induction6])
+
+Changing {{{succ k}}} to {{{k + 1}}} in the {{{subst}}}-based form of induction is a simple application of builders. We apply the builders via several lemmas:
+
+* #(↔ (subst (+ k (1)) n φ) (subst (succ k) n φ))# ([/general/Basic_arithmetic.gh/InductionSubst-1 | InductionSubst-1])
+* #(↔ (∀ k (→ (subst k n φ) (subst (+ k (1)) n φ)))
+   (∀ k (→ (subst k n φ) (subst (succ k) n φ))))# ([/general/Basic_arithmetic.gh/InductionSubst-2 | InductionSubst-2])
+* #(↔ (→ 
+    (∧ (subst (0) n φ) 
+     (∀ k (→ (subst k n φ) (subst (+ k (1)) n φ)))) (∀ n φ))
+  (→ 
+    (∧ (subst (0) n φ) 
+     (∀ k (→ (subst k n φ) (subst (succ k) n φ)))) (∀ n φ)))# ([/general/Basic_arithmetic.gh/InductionSubst-3 | InductionSubst-3])
+* #(→ 
+   (∧ (subst (0) n φ) 
+    (∀ k (→ (subst k n φ) (subst (+ k (1)) n φ)))) (∀ n φ))# ([/general/Basic_arithmetic.gh/InductionSubst | InductionSubst])
+
+== Export ==
+
+
+== References ==
+<references/>
+
+[[Category:Elementary number theory|{{PAGENAME}}]]

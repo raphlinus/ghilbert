@@ -1,0 +1,69 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (BASIC Basic_arithmetic.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (formula φ)
+var (object k n)
+tvar (nat a b c d a0 a1 b0 b1)
+defthm (Succ nat (succ a) () () (= (succ a) (+ a (1)))
+        (+ a (1)) BiconditionalReflexivity
+)
+thm (Successor () () (↔ (= (succ a) (succ b)) (= a b))
+        a (1) b AdditionCancellationRight
+ )
+thm (AdditiveIdentity () () (= (+ a (0)) a)
+        a AdditiveIdentityRight
+ )
+
+thm (Addition () () (= (+ a (succ b)) (succ (+ a b)))
+        a b (1) AdditionAssociativity
+        swapEquality
+ )
+
+thm (MultiplicativeZero () () (= (· a (0)) (0))
+        a MultiplicativeZeroRight
+ )
+
+thm (Multiplication () () (= (· a (succ b)) (+ a (· a b)))
+        b (1) AdditionCommutativity
+        a buildMultiplicationLL
+
+        a (1) b LeftDistribution
+        applyEqualityTransitivity
+
+        a MultiplicativeIdentityRight
+        (· a b) buildAdditionRR
+        applyEqualityTransitivity
+ )
+thm (Induction () () 
+  (→ 
+   (∧ (subst (0) n φ) 
+    (∀ k (→ (subst k n φ) (subst (succ k) n φ)))) (∀ n φ))
+        n φ k InductionSubst
+ )
+thm (ZeroNotSuccessor () () (¬ (= (0) (succ a)))
+# We start with <code>0 ≤ a</code> and <code>0 < 1</code>.
+        a ZeroSmallest
+
+        (1) ZeroSmallest
+        ZeroOne
+        introduceConjunction
+
+        (0) (1) LessThanLessEqual
+        eliminateBiconditionalForward
+        applyModusPonens
+# Combining these produces <code>0 + 0 < a + 1</code>.
+        introduceConjunction
+        (0) a (0) (1) LessEqualLessThanAddition
+        applyModusPonens
+# Simplifying the left hand side gives <code>0 < a + 1</code>.
+        (0) AdditiveIdentityLeft
+        (+ a (1)) buildLessThanRR
+        eliminateBiconditionalReverse
+        applyModusPonens
+# And strict inequality and equality cannot both hold.
+        (0) (+ a (1)) LessThanEquality
+        applyModusPonens
+ )
+export (PEANO Peano_axioms.ghi (CLASSICAL FIRSTORDER) "")
