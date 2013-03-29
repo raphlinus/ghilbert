@@ -5,7 +5,7 @@ import (PEANO Peano_axioms.ghi (PROPOSITIONAL FIRSTORDER) "")
 
 tvar (formula φ)
 var (object k n)
-tvar (nat a b c d a0 a1 b0 b1)
+tvar (object a b c d a0 a1 b0 b1)
 thm (AdditionBuilderLL () () (→ (= b0 b1) (= (+ a b0) (+ a b1)))
         a EqualityReflexivity
         (= a a) (= b0 b1) ConjunctionRightIntroduction
@@ -102,8 +102,12 @@ thm (buildAdditionInConsequent ()
  )
 tvar (formula φ0 φk φSk)
 
-thm (Induction5 ((φ0 n) (φk n) (φSk n) (φ k) )
-  (HSUB0 (→ (= n (0)) (↔ φ φ0)) HSUBK (→ (= n k) (↔ φ φk)) HSUBSK (→ (= n (succ k)) (↔ φ φSk)) HBASE φ0 HIND (→ φk φSk))
+thm (Induction5 ((φ0 n) (φk n) (φSk n))
+  (HSUB0 (→ (= n (0)) (↔ φ φ0))
+  HSUBK (→ (= n k) (↔ φ φk))
+  HSUBSK (→ (= n (succ k)) (↔ φ φSk))
+  HBASE φ0
+  HIND (→ φk φSk))
   φ
 # The main difference between this and <code>Induction</code> is that the latter uses <code>subst</code> and we use implicit substitutions. The theorem linking the two is <code>makeSubstExplicit</code>. We first show the base case, <code>(subst (0) n φ)</code>.
         HBASE
@@ -125,8 +129,13 @@ thm (Induction5 ((φ0 n) (φk n) (φSk n) (φ k) )
  )
 tvar (formula φa)
 
-thm (Induction6S ((a n) (φ0 n) (φk n) (φSk n) (φa n) (φ k) )
-  (HSUB0 (→ (= n (0)) (↔ φ φ0)) HSUBK (→ (= n k) (↔ φ φk)) HSUBSK (→ (= n (succ k)) (↔ φ φSk)) HSUBA (→ (= n a) (↔ φ φa)) HBASE φ0 HIND (→ φk φSk))
+thm (Induction6S ((a n) (φ0 n) (φk n) (φSk n) (φa n))
+  (HSUB0 (→ (= n (0)) (↔ φ φ0))
+  HSUBK (→ (= n k) (↔ φ φk))
+  HSUBSK (→ (= n (succ k)) (↔ φ φSk))
+  HSUBA (→ (= n a) (↔ φ φa))
+  HBASE φ0
+  HIND (→ φk φSk))
   φa
         HSUB0 HSUBK HSUBSK HBASE HIND Induction5
         a n introduceSubst
@@ -732,9 +741,10 @@ thm (MultiplicationAssociativity (     ) ()
 
         Induction6S
  )
-defthm (1 nat (1) () () (= (1) (succ (0)))
-        (succ (0)) BiconditionalReflexivity
+defthm (One object (1) () () (= (1) (succ (0)))
+        (succ (0)) EqualityReflexivity
 )
+
 thm (MultiplicativeIdentityRight () ()
   (= (· a (1)) a)
         a (0) Multiplication
@@ -745,7 +755,13 @@ thm (MultiplicativeIdentityRight () ()
 # Now we turn <code>a + 0</code> to <code>a</code>.
         a AdditiveIdentityRight
         applyEqualityTransitivity
- )
+
+        One
+        a buildMultiplicationLL
+        a buildEqualityRR
+        eliminateBiconditionalForward
+        applyModusPonens
+)
 
 thm (MultiplicativeIdentityLeft () ()
   (= (· (1) a) a)
@@ -755,22 +771,25 @@ thm (MultiplicativeIdentityLeft () ()
  )
 thm (ZeroOne () () (¬ (= (0) (1)))
         (0) ZeroNotSuccessor
- )
-defthm (≤ formula (≤ a b) () () (↔ (≤ a b) (∃ n (= (+ a n) b)))
-        (∃ n (= (+ a n) b)) BiconditionalReflexivity
+
+        One
+        (0) buildEqualityLL
+        addNegation
+        eliminateBiconditionalForward
+        applyModusPonens
 )
+
 var (object m)
-thm (LessEqual (  (a n)  (b n)) () (↔ (≤ a b) (∃ n (= (+ a n) b)))
-# To restate our "subtle difference" in terms of explaining what we need for our proof, the quantified variable on the left side of the biconditional (which results from the expansion of <code>≤</code>) is different from the quantified variable on the right hand side (<code>n</code>). So we need to switch variables.
-# 
+defthm (LessEqual formula (≤ a b) ((a n) (b n)) () (↔ (≤ a b) (∃ n (= (+ a n) b)))
 # We start with <code>m = n → (a + m = b ↔ a + n = b)</code>,
         m n a AdditionBuilderLL
         b buildEqualityRRInConsequent
 # and apply <code>ChangeVariableThereExists</code>.
         ChangeVariableThereExists
-# We have proved <code>∃ m a + m = b ↔ ∃ n a + n = b</code>, and that is enough since JHilbert is able to recognize that the left side is the definition of <code>a ≤ b</code>.
- )
-thm (LessEqualBuilderRight (   ) () (→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))
+# We have proved <code>∃ m a + m = b ↔ ∃ n a + n = b</code>, and that is enough.
+)
+
+thm (LessEqualBuilderRight () () (→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))
 # What we do here is prove <code>a0 = a1 → (∃ n a0 + n = b ↔ ∃ n a1 + n = b)</code>.  On the right hand side it is OK to use the same variable for both quantifiers because we are folding the definition explicitly using <code>LessEqual</code>.
         a0 a1 n AdditionBuilderRR
         b buildEqualityRRInConsequent
@@ -902,11 +921,7 @@ thm (LessEqualTransitivity-1 () ()
         applySyllogism
  )
 
-thm (LessEqualTransitivity (
-     
-    
-     
-  ) () 
+thm (LessEqualTransitivity () () 
   (→ (∧ (≤ a b) (≤ b c)) (≤ a c))
 # We start by expanding <code>a ≤ b</code> and <code>b ≤ c</code> according to the definition and gathering the quantifiers at the start of the formula.
         a b vab LessEqual
@@ -928,13 +943,7 @@ thm (LessEqualTransitivity (
         vbc addThereExists
         vab addThereExists
         applySyllogism
-# and then we can remove the quantifiers because the variables they quantify over are gone. One detail (at least as long as JHilbert continues to automatically apply definitions): we need to rewrite <code>a ≤ c</code> as <code>∃ ac a + ac = c</code> so that we can express the distinct variable constraint between <code>ab</code> and <code>ac</code>.
-        a c vac LessEqual
-        vbc buildThereExists
-        vab buildThereExists
-        eliminateBiconditionalReverse
-        applySyllogism
-
+# and then we can remove the quantifiers because the variables they quantify over are gone.
         removeThereExistsInConsequent
 
         removeThereExistsInConsequent
