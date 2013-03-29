@@ -1,0 +1,80 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = none yet
+# | exportedby = none yet
+# }}
+# 
+# A ''linear order'' or ''total order'' has an ordering predicate which obeys the familiar properties shown below. Here we present a first-order theory of linear orders (that is, all variables indicate one of the items being ordered, and there is no general way to form sets of items or variables which represent elements of some structure other than the field). This is as opposed to building the linear order within set theory, where the linear order consists of a set plus a [[Relations|relation]] for the ordering predicate.
+# 
+# This interface aims to collect theorems about linear orders, including a variety of convenience theorems and consequences of definitions of a linear order. It contains theorems stated in terms of strict inequality (less-than), theorems stated in terms of less than or equal, and relationships between the two.
+# 
+# We start by importing propositional and predicate logic.
+# 
+param (PROPOSITIONAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (PROPOSITIONAL) "")
+# 
+# == Strict order ==
+# There is a less-than predicate which obeys the usual equality axioms.
+tvar (object x y z x0 y0 z0 x1 y1 z1)
+var (object v v0 v1 v2)
+
+term (formula (< x y))
+# 
+# It is irreflexive, transitive, and total.
+stmt (LessThanIrreflexivity () () (¬ (< x x)))
+stmt (LessThanTransitivity () () (→ (∧ (< x y) (< y z)) (< x z)))
+stmt (LessThanTotality () () (∨ (∨ (< x y) (= x y)) (< y x)))
+# 
+# We also provide greater-than, which is just an abbreviation for less-than with the order of the arguments reversed.
+term (formula (> x y))
+stmt (> () () (↔ (> x y) (< y x)))
+# 
+# === Trichotomy ===
+# Exactly one of <code>x < y</code>, <code>x = y</code>, or <code>y < x</code> hold. Our propositional logic doesn't have a notation which directly states "exactly one of three propositions holds" and even if it did, it might be inconvenient to work with. So we provide multiple theorems to express this idea.
+stmt (LessThanEquality () () (→ (< x y) (¬ (= x y))))
+stmt (LessThanGreaterThan () () (→ (< x y) (¬ (> x y))))
+stmt (EqualityLessThan () () (→ (= x y) (¬ (< x y))))
+# 
+# == Less than or equal to ==
+# There is a predicate for less than or equal to.
+term (formula (≤ x y))
+# 
+# It is transitive, antisymmetric, and total.
+stmt (LessEqualTransitivity () () (→ (∧ (≤ x y) (≤ y z)) (≤ x z)))
+stmt (LessEqualAntisymmetry () () (→ (∧ (≤ x y) (≤ y x)) (= x y)))
+stmt (LessEqualTotality () () (∨ (≤ x y) (≤ y x)))
+# 
+# Other properties include reflexivity.
+stmt (LessEqualReflexivity () () (≤ x x))
+# 
+# == Relationships between less-than, less-equal, and equality ==
+stmt (LessThanLessEqual () () (↔ (< x y) (∧ (≤ x y) (¬ (= x y)))))
+stmt (LessEqualLessThan () () (↔ (≤ x y) (∨ (< x y) (= x y))))
+
+stmt (LessThanLessEqualImplication () () (→ (< x y) (≤ x y)))
+
+stmt (EqualityLessEqual () () (→ (= x y) (≤ x y)))
+
+stmt (LessEqualLessThanTransitivity () () (→ (∧ (≤ x y) (< y z)) (< x z)))
+# 
+# == Builders ==
+# Both predicates obey the usual builders.
+stmt (LessThanBuilder () () (→ (∧ (= x0 x1) (= y0 y1)) (↔ (< x0 y0) (< x1 y1))))
+stmt (LessThanBuilderLL () () (→ (= y0 y1) (↔ (< x y0) (< x y1))))
+stmt (LessThanBuilderRR () () (→ (= x0 x1) (↔ (< x0 y) (< x1 y))))
+
+stmt (buildLessThan () ((= x0 x1) (= y0 y1)) (↔ (< x0 y0) (< x1 y1)))
+stmt (buildLessThanLL () ((= y0 y1)) (↔ (< x y0) (< x y1)))
+stmt (buildLessThanRR () ((= x0 x1)) (↔ (< x0 y) (< x1 y)))
+
+stmt (LessEqualBuilderRR () () (→ (= x0 x1) (↔ (≤ x0 y) (≤ x1 y))))
+stmt (LessEqualBuilderLL () () (→ (= y0 y1) (↔ (≤ x y0) (≤ x y1))))
+stmt (LessEqualBuilder () () (→ (∧ (= x0 x1) (= y0 y1)) (↔ (≤ x0 y0) (≤ x1 y1))))
+
+stmt (buildLessEqual () ((= x0 x1) (= y0 y1)) (↔ (≤ x0 y0) (≤ x1 y1)))
+stmt (buildLessEqualRR () ((= x0 x1)) (↔ (≤ x0 y) (≤ x1 y)))
+stmt (buildLessEqualLL () ((= y0 y1)) (↔ (≤ x y0) (≤ x y1)))
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Total order]]

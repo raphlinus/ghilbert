@@ -1,0 +1,85 @@
+Here we prove [[Interface:First-order linear order]], starting from [[Interface:First-order linear order defined via strict inequality]].
+
+== Import ==
+
+== Less than ==
+We have been provided with a predicate {{{<}}} and a few basic properties. Here are some consequences of that.
+
+
+=== Builders ===
+Here are some convenience builders for less-than.
+* #(→ (= b0 b1) (↔ (< a b0) (< a b1)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanBuilderLL | LessThanBuilderLL])
+* #(→ (= a0 a1) (↔ (< a0 b) (< a1 b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanBuilderRR | LessThanBuilderRR])
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(↔ (< a0 b0) (< a1 b1))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessThan | buildLessThan])
+* #(= b0 b1)# ⊢ #(↔ (< a b0) (< a b1))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessThanLL | buildLessThanLL])
+* #(= a0 a1)# ⊢ #(↔ (< a0 b) (< a1 b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessThanRR | buildLessThanRR])
+
+=== Less than and equality ===
+* #(→ (< a b) (¬ (= a b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanEquality | LessThanEquality])
+
+== Nonstrict order ==
+Here we define {{{≤}}}, as well as {{{>}}} and {{{≥}}}.
+
+We next prove {{{a < b ↔ a ≤ b ∧ a ≠ b}}}. The forward implication is easy, because {{{a < b}}} implies {{{a ≤ b}}} and also {{{a ≠ b}}}.
+* #(→ (< a b) (∧ (≤ a b) (¬ (= a b))))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanLessEqualForward | LessThanLessEqualForward])
+
+The reverse direction starts by taking {{{a ≤ b → (a = b ∨ a < b)}}}.
+* #(→ (∧ (≤ a b) (¬ (= a b))) (< a b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanLessEqualReverse | LessThanLessEqualReverse])
+* #(↔ (< a b) (∧ (≤ a b) (¬ (= a b))))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanLessEqual | LessThanLessEqual])
+
+For parallelism, we also provide the definition of {{{≤}}} as a theorem.
+* #(↔ (≤ a b) (∨ (< a b) (= a b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualLessThan | LessEqualLessThan])
+
+=== Nonstrict order totality ===
+We need to prove that {{{a ≤ b}}} or {{{b ≤ a}}}. Expanding the definition of {{{≤}}}, that is {{{(a < b ∨ a = b) ∨ (b < a ∨ b = a)}}}, which will follow readily from {{{LessThanTotality}}}.
+* #(∨ (≤ a b) (≤ b a))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualTotality | LessEqualTotality])
+
+=== Reflexivity ===
+Reflexivity follows from totality:
+* #(≤ a a)# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualReflexivity | LessEqualReflexivity])
+
+=== Builders ===
+The builder for nonstrict inequality follows from the ones for equality and strict inequality.
+* #(→ (∧ (= a0 a1) (= b0 b1)) (↔ (≤ a0 b0) (≤ a1 b1)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualBuilder | LessEqualBuilder])
+
+Here are a few builders which are consequences of the one we have.
+* #(→ (= b0 b1) (↔ (≤ a b0) (≤ a b1)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualBuilderLL | LessEqualBuilderLL])
+* #(→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualBuilderRR | LessEqualBuilderRR])
+
+Here are rule forms of those builders.
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(↔ (≤ a0 b0) (≤ a1 b1))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessEqual | buildLessEqual])
+* #(= a0 a1)# ⊢ #(↔ (≤ a0 b) (≤ a1 b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessEqualRR | buildLessEqualRR])
+* #(= b0 b1)# ⊢ #(↔ (≤ a b0) (≤ a b1))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/buildLessEqualLL | buildLessEqualLL])
+
+Equality implies {{{≤}}}.
+* #(→ (= a b) (≤ a b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/EqualityLessEqual | EqualityLessEqual])
+
+=== Less than and less equal ===
+* #(→ (< a b) (≤ a b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanLessEqualImplication | LessThanLessEqualImplication])
+
+=== Transitivity ===
+We start by proving that {{{a ≤ b ∧ b < c → a < c}}}.<ref>Exercise 8(b) of Tarski, Alfred, ''Introduction to Logic and to the Methodology of Deductive Sciences'', Dover, 1995, page 167</ref>
+
+* #(→ (∧ (≤ a b) (< b c)) (< a c))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualLessThanTransitivity | LessEqualLessThanTransitivity])
+
+The proof for transitivity for nonstrict inequality, {{{a ≤ b ∧ b ≤ c → a ≤ c}}}, is similar.
+* #(→ (∧ (≤ a b) (≤ b c)) (≤ a c))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualTransitivity | LessEqualTransitivity])
+
+The following theorems imply that no more than one of {{{a < b}}}, {{{a = b}}}, or {{{a > b}}} holds.
+* #(→ (< a b) (¬ (> a b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessThanGreaterThan | LessThanGreaterThan])
+* #(→ (= a b) (¬ (< a b)))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/EqualityLessThan | EqualityLessThan])
+
+=== Antisymmetry ===
+* #(→ (∧ (< a b) (≤ b a)) (= a b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualAntisymmetryLemma | LessEqualAntisymmetryLemma])
+* #(→ (∧ (≤ a b) (≤ b a)) (= a b))# ([/general/First-order_linear_order_defined_via_strict_inequality.gh/LessEqualAntisymmetry | LessEqualAntisymmetry])
+
+== Export ==
+We first export an interface which contains everything we handle here, including the import from [[Interface:First-order linear order defined via nonstrict inequality]].
+
+It will also be helpful to export an interface which does not duplicate the declarations in [[Interface:First-order linear order defined via nonstrict inequality]], for use in a module which has already exported the latter.
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Total order]]

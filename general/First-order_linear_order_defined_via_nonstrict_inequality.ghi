@@ -1,0 +1,33 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = [[First-order linear order defined via nonstrict inequality]]
+# | exportedby = [[Basic arithmetic]]
+# }}
+# 
+# A ''[[w:total order|linear order]]'' or ''total order'' has an ordering predicate which lets us compare any two elements for order.
+# 
+# Here we define a linear order in terms of what is called non-strict inequality, or "less than or equal to".
+# 
+# This is a first-order presentation (that is, not built on set theory).
+# 
+# We start by importing propositional and predicate logic.
+param (PROPOSITIONAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (PROPOSITIONAL) "")
+# 
+# == Non-strict order ==
+# There is an order which obeys the usual equality axioms.
+tvar (object x y z x0 y0 z0 x1 y1 z1)
+
+term (formula (≤ x y))
+stmt (LessEqualBuilder () () (→ (∧ (= x0 x1) (= y0 y1)) (↔ (≤ x0 y0) (≤ x1 y1))))
+# 
+# It is antisymmetric, transitive, and total.
+stmt (LessEqualAntisymmetry () () (→ (∧ (≤ x y) (≤ y x)) (= x y)))
+stmt (LessEqualTransitivity () () (→ (∧ (≤ x y) (≤ y z)) (≤ x z)))
+stmt (LessEqualTotality () () (∨ (≤ x y) (≤ y x)))
+# 
+# That is sufficient. These properties imply the theorems in [[Interface:First-order linear order]].
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Total order]]

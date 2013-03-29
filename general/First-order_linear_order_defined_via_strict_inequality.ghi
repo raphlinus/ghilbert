@@ -1,0 +1,43 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = none yet
+# | exportedby = none yet
+# }}
+# 
+# A ''linear order'' or ''total order'' has an ordering predicate which obeys the familiar properties shown below. Here we present a first-order theory of linear orders (that is, all variables indicate one of the items being ordered, and there is no general way to form sets of items or variables which represent elements of some structure other than the field). This is as opposed to building the linear order within set theory, where the linear order consists of a set plus a [[Relations|relation]] for the ordering predicate.
+# 
+# Our first-order axioms of linear orders are taken from a book by Margaris.<ref>Margaris, theory L, page 113</ref>
+# 
+# We start by importing propositional and predicate logic.
+# 
+param (PROPOSITIONAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (PROPOSITIONAL) "")
+# 
+# == Strict order ==
+# There is an order<ref>Margaris, page 113</ref> which obeys the usual equality axioms.<ref>Margaris, axioms E1, E2=, and E2<, page 113</ref>
+tvar (object x y z x0 y0 z0 x1 y1 z1)
+var (object v v0 v1 v2)
+
+term (formula (< x y))
+stmt (LessThanBuilder () () (→ (∧ (= x0 x1) (= y0 y1)) (↔ (< x0 y0) (< x1 y1))))
+# 
+# It is irreflexive<ref>axiom L1 of Margaris, page 113</ref>, transitive<ref>axiom L2 of Margaris, page 113</ref> and total<ref>axiom L3 of Margaris, page 113</ref>. The totality axiom looks like the [[w:Trichotomy (mathematics)|trichotomy]] law, but it merely states that at least one of <code>x < y</code>, <code>x = y</code>, or <code>y < x</code> hold; trichotomy holds that exactly one of the three holds (trichotomy can be proved from these three axioms, however<ref>Margaris, page 123–134</ref>).
+stmt (LessThanIrreflexivity () () (¬ (< x x)))
+stmt (LessThanTransitivity () () (→ (∧ (< x y) (< y z)) (< x z)))
+stmt (LessThanTotality () () (∨ (∨ (< x y) (= x y)) (< y x)))
+# 
+# == Terms versus variables ==
+# 
+# An astute reader comparing the axioms above with the ones in Margaris will notice that the above ones are stated in terms of terms rather than variables. For example, Margaris' states irreflexivity as <code>∀ x ¬ (x < x)</code> (where <code>x</code> is a variable), whereas we state it above as <code>¬ (x < x)</code>, where <code>x</code> is a term. The axioms using variables would suffice; we could convert them to their term counterparts using <code>VariableToObject</code> combined with the equality axioms. We state the axioms using terms merely to avoid a number of repetitive proofs of this sort.
+# 
+# A similar rationale applies to the distinct variable constraints. In a work like Margaris, the axioms are stated using variables and variables which are given different letters cannot refer to the same variable.
+# 
+# == Footnotes ==
+# <references/>
+# 
+# == Cited works ==
+# * Margaris, Angelo (1990), ''First Order Mathematical Logic'', ISBN 978-0-486-66269-5
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Total order]]
