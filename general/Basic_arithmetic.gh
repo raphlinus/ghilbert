@@ -1071,7 +1071,8 @@ thm (NullThereExistsDisjunctionLessEqual ((a n) (b n) (c n) (d n)) () (↔ (∃ 
         buildDisjunction
         applyBiconditionalTransitivity
  )
-thm (LessEqualSuccessor ((a k)  ) () (→ (≤ a k) (≤ a (succ k)))
+
+thm (LessEqualSuccessor () () (→ (≤ a k) (≤ a (succ k)))
         a k n LessEqual
         eliminateBiconditionalReverse
 # So far we have <code>a ≤ k → ∃ n a + n = k</code>. We take the successor of both sides of the equality and rearrange to get <code>a + Sn = Sk</code>
@@ -1092,13 +1093,15 @@ thm (LessEqualSuccessor ((a k)  ) () (→ (≤ a k) (≤ a (succ k)))
         n a (succ k) NullThereExistsLessEqual
         eliminateBiconditionalReverse
         applySyllogism
- )
-thm (TotalityLemmaALessEqualK ((a k)) () (→ (≤ a k) (∨ (≤ a (succ k)) (≤ (succ k) a)))
+)
+
+thm (TotalityLemmaALessEqualK () () (→ (≤ a k) (∨ (≤ a (succ k)) (≤ (succ k) a)))
         a k LessEqualSuccessor
 
         (≤ a (succ k)) (≤ (succ k) a) DisjunctionRightIntroduction
         applySyllogism
- )
+)
+
 thm (TotalityLemmaAEqualK-1 () () (→ (= m (0)) (→ (= (+ k m) a) (= k a)))
         m (0) k AdditionBuilderLL
 
@@ -1120,15 +1123,15 @@ thm (TotalityLemmaAEqualK-2a () () (→ (= a k) (≤ a k))
 # That gives us <code>a = k → a + 0 = k</code>.
         a (0) k LessEqualObject
         applySyllogism
- )
+)
 
-thm (TotalityLemmaAEqualK-2 ((a k)) () (→ (= a k) (≤ a (succ k)))
+thm (TotalityLemmaAEqualK-2 () () (→ (= a k) (≤ a (succ k)))
         a k TotalityLemmaAEqualK-2a
         a k LessEqualSuccessor
         applySyllogism
- )
+)
 
-thm (TotalityLemmaAEqualK ((a k)) () (→ (= m (0)) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))
+thm (TotalityLemmaAEqualK () () (→ (= m (0)) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))
         m k a TotalityLemmaAEqualK-1
 
         k a EqualitySymmetry eliminateBiconditionalReverse
@@ -1140,8 +1143,9 @@ thm (TotalityLemmaAEqualK ((a k)) () (→ (= m (0)) (→ (= (+ k m) a) (∨ (≤
 
         (= (+ k m) a) addCommonAntecedent
         applySyllogism
- )
-thm (TotalityLemmaKLessThanA (  ) () (→ (¬ (= m (0))) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))
+)
+
+thm (TotalityLemmaKLessThanA () () (→ (¬ (= m (0))) (→ (= (+ k m) a) (∨ (≤ a (succ k)) (≤ (succ k) a))))
         m n Predecessor
 # Next we show <code>Sn = m → (k + m = a → k + Sn = a)</code>
         (succ n) m k AdditionBuilderLL
@@ -1180,8 +1184,9 @@ thm (TotalityLemmaKLessThanA (  ) () (→ (¬ (= m (0))) (→ (= (+ k m) a) (∨
         (= (+ k m) a) addCommonAntecedent
         (¬ (= m (0))) addCommonAntecedent
         applyModusPonens
- )
-thm (TotalityLemmaKLessEqualA ((a k)  ) () (→ (≤ k a) (∨ (≤ a (succ k)) (≤ (succ k) a)))
+)
+
+thm (TotalityLemmaKLessEqualA () () (→ (≤ k a) (∨ (≤ a (succ k)) (≤ (succ k) a)))
 # We start with <code>k ≤ a → ∃ m k + m = a</code>.
         k a m LessEqual
         eliminateBiconditionalReverse
@@ -1215,8 +1220,9 @@ thm (Totality-sub ( (sub an)  (sub na)) () (
         na buildThereExistsInConsequent
 
         buildDisjunctionInConsequent
- )
-thm (LessEqualTotality ( (a n an na) (b n an na) ) () (∨ (≤ a b) (≤ b a))
+)
+
+thm (LessEqualTotality () () (∨ (≤ a b) (≤ b a))
         n (0) an a na Totality-sub
         n k an a na Totality-sub
         n (succ k) an a na Totality-sub
