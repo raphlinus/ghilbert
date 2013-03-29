@@ -1,0 +1,80 @@
+Here we prove [[Interface:First-order linear order]], starting from [[Interface:First-order linear order defined via nonstrict inequality]].
+
+== Import ==
+
+== Consequences ==
+Here we prove various consequences of the order properties.
+
+
+Reflexivity follows from totality:
+* #(≤ a a)# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualReflexivity | LessEqualReflexivity])
+
+Here are a few builders which are consequences of the one we have.
+* #(→ (= b0 b1) (↔ (≤ a b0) (≤ a b1)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualBuilderLL | LessEqualBuilderLL])
+* #(→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualBuilderRR | LessEqualBuilderRR])
+
+Here are rule forms of those builders.
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(↔ (≤ a0 b0) (≤ a1 b1))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessEqual | buildLessEqual])
+* #(= a0 a1)# ⊢ #(↔ (≤ a0 b) (≤ a1 b))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessEqualRR | buildLessEqualRR])
+* #(= b0 b1)# ⊢ #(↔ (≤ a b0) (≤ a b1))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessEqualLL | buildLessEqualLL])
+
+Equality implies {{{≤}}}.
+* #(→ (= a b) (≤ a b))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/EqualityLessEqual | EqualityLessEqual])
+
+== Strict order ==
+Here we define {{{<}}}, as well as {{{>}}} and {{{≥}}}.
+
+We next prove {{{a ≤ b ↔ a < b ∨ a = b}}} (finally justifying the informal name "less than or equal to" for {{{≤}}}). The proof is fairly straightforward expansion of the definition and rearrangement, but it will be easier to break out part of the proof into a lemma.
+* #(↔ (≤ a b) (∧ (∨ (≤ a b) (= a b)) (∨ (¬ (= a b)) (= a b))))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualLessThanLemma | LessEqualLessThanLemma])
+* #(↔ (≤ a b) (∨ (< a b) (= a b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualLessThan | LessEqualLessThan])
+
+For parallelism, we also provide the definition of {{{<}}} as a theorem.
+* #(↔ (< a b) (∧ (≤ a b) (¬ (= a b))))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanLessEqual | LessThanLessEqual])
+
+The builder for {{{<}}} is a consequence of the one for {{{≤}}}.
+
+* #(→ (∧ (= a0 a1) (= b0 b1)) (↔ (< a0 b0) (< a1 b1)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanBuilder | LessThanBuilder])
+* #(→ (= b0 b1) (↔ (< a b0) (< a b1)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanBuilderLL | LessThanBuilderLL])
+* #(→ (= a0 a1) (↔ (< a0 b) (< a1 b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanBuilderRR | LessThanBuilderRR])
+* #(= a0 a1)#, #(= b0 b1)# ⊢ #(↔ (< a0 b0) (< a1 b1))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessThan | buildLessThan])
+* #(= b0 b1)# ⊢ #(↔ (< a b0) (< a b1))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessThanLL | buildLessThanLL])
+* #(= a0 a1)# ⊢ #(↔ (< a0 b) (< a1 b))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/buildLessThanRR | buildLessThanRR])
+
+=== Transitivity ===
+We start by proving that {{{a ≤ b ∧ b < c → a < c}}}.<ref>Exercise 8(b) of Tarski, Alfred, ''Introduction to Logic and to the Methodology of Deductive Sciences'', Dover, 1995, page 167</ref> This has transitivity for {{{<}}} as an immediate consequence, but will occasionally be useful in its own right.
+
+The first lemma constitutes the easy part of the proof.
+* #(→ (∧ (≤ a b) (< b c)) (≤ a c))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualLessThanTransitivity-1 | LessEqualLessThanTransitivity-1])
+
+The harder part of the proof is that {{{a ≤ b ∧ b < c → a ≠ c}}}.  This is fairly easy to sketch out: suppose that {{{a ≤ b ∧ b < c}}} and that {{{a = c}}}. Applying {{{a = c}}} to the first formula gives {{{a ≤ b ∧ b ≤ a}}}, and thus {{{a = b}}} by antisymmetry. But {{{a = b}}} and {{{a = c}}} imply {{{b = c}}}, and this contradicts {{{b < c}}}.  Here is one way to formalize that argument.
+* #(→ (∧ (≤ a b) (< b c)) (¬ (= a c)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualLessThanTransitivity-2 | LessEqualLessThanTransitivity-2])
+
+Combining the two lemmas gives us transitivity for {{{a ≤ b ∧ b < c}}}.
+* #(→ (∧ (≤ a b) (< b c)) (< a c))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessEqualLessThanTransitivity | LessEqualLessThanTransitivity])
+
+Transitivity for {{{<}}} is an immediate consequence.
+* #(→ (< a b) (≤ a b))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanLessEqualImplication | LessThanLessEqualImplication])
+* #(→ (∧ (< a b) (< b c)) (< a c))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanTransitivity | LessThanTransitivity])
+
+=== Strict order totality ===
+Exactly one of {{{a < b}}}, {{{a = b}}}, or {{{a > b}}} holds. We start with the proposition that at least one of the three holds.
+* #(∨ (∨ (< a b) (= a b)) (> a b))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanTotality | LessThanTotality])
+
+The following theorems imply that no more than one of {{{a < b}}}, {{{a = b}}}, or {{{a > b}}} holds.
+* #(→ (< a b) (¬ (= a b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanEquality | LessThanEquality])
+* #(→ (< a b) (¬ (> a b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanGreaterThan | LessThanGreaterThan])
+* #(→ (= a b) (¬ (< a b)))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/EqualityLessThan | EqualityLessThan])
+
+=== Irreflexivity ===
+* #(¬ (< a a))# ([/general/First-order_linear_order_defined_via_nonstrict_inequality.gh/LessThanIrreflexivity | LessThanIrreflexivity])
+
+== Export ==
+We first export an interface which contains everything we handle here, including the import from [[Interface:First-order linear order defined via nonstrict inequality]].
+
+It will also be helpful to export an interface which does not duplicate the declarations in [[Interface:First-order linear order defined via nonstrict inequality]], for use in a module which has already exported the latter.
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Total order]]
