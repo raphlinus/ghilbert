@@ -10,43 +10,67 @@ GH.Direct = function(text, stack) {
     this.stack = stack;
     this.text.addListener(function() { self.update(); });
     this.marker = null;
+
+	// The maxDepth that is visible to the user. Steps with depth above the maxDepth are not visible.
+	this.maxDepth = 0;
 };
 
+GH.Direct.prototype.resetMaxDepth =  function() {
+	this.maxDepth = 0;
+}
+
+GH.Direct.prototype.incrementMaxDepth =  function() {
+	this.maxDepth++;
+}
+
+/**
+ * Split a string in a primary and secondary set of tokens. The secondary tokens
+ * are used for styling the proof.
+ *   - str: The string to split into tokens.
+ *   - offset: The character position of the start of the string within the proof.
+ */
 GH.splitrange = function(str, offset) {
     function token(beg, end) {
-	var tok = new String(str.substring(beg, end));
-	tok.beg = offset + beg;
-	tok.end = offset + end;
-	return tok;
+		var tok = new String(str.substring(beg, end));
+		tok.beg = offset + beg;
+		tok.end = offset + end;
+		return tok;
     }
 
     var result = [];
+	var secondary = [];
     var beg = 0;
     for (var i = 0; i < str.length; i++) {
-	var c = str.charAt(i);
-	if (c == ' ') {
-	    if (i != beg) {
-		result.push(token(beg, i));
-	    }
-	    beg = i + 1;
-	} else if (c == "(" || c == ")") {
-	    if (i != beg) {
-		result.push(token(beg, i));
-	    }
-	    result.push(token(i, i+1));
-	    beg = i + 1;
-	} else if (c == '#') {
-	    if (i != beg) {
-		result.push(token(beg, i));
-	    }
-	    beg = str.length;
-	    break;
-	}
+		var c = str.charAt(i);
+		if (c == ' ') {
+			if (i != beg) {
+				result.push(token(beg, i));
+			}
+			beg = i + 1;
+		} else if (c == "(" || c == ")") {
+			if (i != beg) {
+				result.push(token(beg, i));
+			}
+			result.push(token(i, i+1));
+			beg = i + 1;
+		} else if (c == '#') {
+			// The string '##' indicates that what follows is a styling command.
+			// These commands are placed in the set of secondary tokens.
+			if ((i + 1 < str.length) && (str.charAt(i + 1) == '#')) {
+				var tokens = GH.splitrange(str.substring(i + 2, str.length), offset + i + 2);
+				secondary = tokens.primary;
+			}
+			if (i != beg) {
+				result.push(token(beg, i));
+			}
+			beg = str.length;
+			break;
+		}
     }
     if (beg != str.length) {
-	result.push(token(beg, str.length));
+		result.push(token(beg, str.length));
     }
-    return result;
+    return {primary: result, secondary: secondary};
 };
 
 GH.Direct.replace_thmname = function (newname) {
@@ -74,7 +98,9 @@ GH.Direct.prototype.update = function() {
 	var cursorPosition = this.text.getCursorPosition();
 	for (i = 0; i < this.text.numLines() && status == null; i++) {
 		var line = this.text.getLine(i);
-		var spl = GH.splitrange(line, offset);
+		var tokens = GH.splitrange(line, offset);
+		var spl = tokens.primary;
+		thmctx.applyStyling(tokens.secondary);
 		for (var j = 0; j < spl.length; j++) {
 			try {
 				status = thmctx.tok(spl[j]);	
@@ -127,46 +153,36 @@ GH.Direct.prototype.update = function() {
 		}
 		offset += line.length + 1;
 	}
-		var html = [];
-		var proofStepHtml = [];
+	var html = [];
+	var proofStepHtml = [];
     if (thmctx.proofctx) {
     	pstack = thmctx.proofctx.mandstack;
-			var stackHistory = thmctx.proofctx.stackHistory;
-			for (var i = 0; i < stackHistory.length; i++) {
-				stackHistory[i].display(false, proofStepHtml, cursorPosition);
-				proofStepHtml.push("</div>");
+		var stackHistory = thmctx.proofctx.stackHistory;
+		for (var i = 0; i < stackHistory.length; i++) {
+			var stackHtml = stackHistory[i].displayStack(cursorPosition, this.maxDepth);
+			proofStepHtml = proofStepHtml.concat(stackHtml);
+		}
+		if (pstack.length > 0) {
+			for (i = 0; i < pstack.length; i++) {
+				proofStepHtml.push(GH.Direct.textToHtml(GH.sexptohtml(pstack[i][1])));
 			}
-			if (pstack.length > 0) {
-				for (i = 0; i < pstack.length; i++) {
-					GH.Direct.stepToHtml(GH.sexptohtml(pstack[i][1]), '', '', '', '', proofStepHtml);
-				}
-			}
-			proofStepHtml.push(GH.Direct.textToHtml('&nbsp;'));
+		}
+		proofStepHtml.push(GH.Direct.textToHtml('&nbsp;'));
     }
     // keep height from bouncing around in common case
     while (proofStepHtml.length < GH.Direct.MINIMUM_LINES) {
-			proofStepHtml.splice(0, 0, GH.Direct.textToHtml('&nbsp;'));
+		proofStepHtml.splice(0, 0, GH.Direct.textToHtml('&nbsp;'));
     }
     if (status) {
-			proofStepHtml.push(GH.Direct.textToHtml(loc + ' ' + status));
+		proofStepHtml.push(GH.Direct.textToHtml(loc + ' ' + status));
     } else {
     	if (session) {
     		session.setAnnotations([]);
     	}
     }
-		html = html.concat(proofStepHtml);
-		this.stack.innerHTML = html.join('');
-		for (var i = 0; i < stack.children.length; i++) {
-			this.stack.children[i].onclick = function() {
-				window.direct.update();
-			}
-		}
+	html = html.concat(proofStepHtml);
+	this.stack.innerHTML = html.join('');
 };
-
-/**
- * The amount to indent the proof steps in pixels.
- */
-GH.Direct.INDENTATION = 15;
 
 /**
  * The minimum number of lines in the displayed stack. Blank lines are added if the
@@ -178,29 +194,6 @@ GH.Direct.textToHtml = function(text) {
 	return html = '<div class=\'proof-step-div\'>' + text + '</div>';
 }
 
-// Display a proof step.
-//   text: The text inside the step.
-//   classes: The CSS classes applied to this step.
-//   mouseOverFunc: The function to call on mouseover.
-//   mouseOutFunc: The function to call on mouseout.
-//   name: The name of the proofstep.
-//   proofStepHtml: The full list of proof steps. The output goes here.
-GH.Direct.stepToHtml = function(text, classes, mouseOverFunc, mouseOutFunc, name, proofStepHtml) {
-	var html = '';
-	html += '<div class=\'proof-step-div' + classes + '\' ';
-	if (mouseOverFunc != '') {
-		html += 'onmouseover=\'' + mouseOverFunc + '\' ';
-	}
-	if (mouseOutFunc != '') {
-		html += 'onmouseout=\''  + mouseOutFunc  + '\' ';
-	}
-	html += '\'>';
-	html += text;
-	html += name;
-	html += '</div>\n';
-	proofStepHtml.push(html);
-};
-
 GH.DirectThm = function(vg) {
 	this.vg = vg;
 	this.thmname = null;
@@ -211,6 +204,10 @@ GH.DirectThm = function(vg) {
 	this.fv = null;
 	this.hyps = null;
 	this.concl = null;
+
+	// The depth at the current position in the proof. Proof steps with higher depths
+	// are less important.
+	this.depth = 0;
 };
 
 GH.DirectThm.StateType = {
@@ -231,6 +228,24 @@ GH.DirectThm.prototype.pushEmptySExp_ = function(tok) {
 	var newSExp = [];
 	newSExp.beg = tok.beg;
 	this.sexpstack.push(newSExp);
+}
+
+// Styling tag to increment the depth. Proof steps with a higher depth are
+// less important and less visible.
+GH.DirectThm.INCREMENT_DEPTH_TAG_ = '<d>';
+
+// Styling tag to decrement the depth. Proof steps with a lower depth are
+// more important and more visible.
+GH.DirectThm.DECREMENT_DEPTH_TAG_ = '</d>';
+
+GH.DirectThm.prototype.applyStyling = function(styling) {
+	for (i = 0; i < styling.length; i++) {
+		if (styling[i] == GH.DirectThm.INCREMENT_DEPTH_TAG_) {
+			this.depth++;
+		} else if (styling[i] == GH.DirectThm.DECREMENT_DEPTH_TAG_) {
+			this.depth--;
+		}
+	}
 }
 
 GH.DirectThm.prototype.tok = function(tok) {
@@ -325,7 +340,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			break;
 		case stateType.PROOF_END:
-			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false));
+			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false, 0));
 			return 'extra junk after proof';
 			break;
 	}
@@ -374,20 +389,20 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.concl = thestep || 'null';
   } else if (thestep != null && state == stateType.POST_S_EXPRESSION) {
 		try {
-			this.vg.check_proof_step(this.hypmap, thestep, this.proofctx);
+			this.vg.check_proof_step(this.hypmap, thestep, this.proofctx, this.depth);
 		} catch (e3) {
 			if (e3.found) {
 				throw e3;
 			}
 			var stackHistory = this.proofctx.stackHistory;
 			var removed = stackHistory.splice(0);
-			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false));
+			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false, 0));
 			return "! " + e3;
 		}
   } else if (state == stateType.PROOF_END) {
     pc = this.proofctx;
     if (pc.mandstack.length != 0) {
-			//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false));
+			//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, 0));
 	    return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 		}
 		if (pc.stack.length != 1) {

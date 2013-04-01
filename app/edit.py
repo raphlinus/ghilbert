@@ -140,6 +140,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/inputlayer.js" type="text/javascript"></script>
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
+<script src="/js/proofstep.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
