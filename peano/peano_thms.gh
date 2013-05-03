@@ -28,6 +28,58 @@ thm (19.3 ((ph x))
   x ph ax-4 ph x alnfi impbii
 )
 
+# Reverse the hypothesis and conclusion of con4bii.
+thm (con4biir ()
+  (hyp (<-> ph ps))
+  (<-> (-. ph) (-. ps))
+  hyp ph ps notbi
+  mpbi
+)
+
+# Reorder sylbi a bit.
+thm (sylbi2()
+  (hyp1 (-> ps ch)
+   hyp2 (<-> ps ph))
+  (-> ph ch)
+  hyp2 hyp1 bicomi sylbi
+)
+
+# Commute the conclusion of bitr3i.
+thm (bitr3icom()
+  (hyp1 (<-> ps ph)
+   hyp2 (<-> ps ch))
+  (<-> ch ph)
+  hyp1 hyp2 bitr3i bicomi
+)
+
+thm (orbi1ii ()
+  (hyp1 (\/ ph ps)
+   hyp2 (<-> ph ch))
+  (\/ ch ps)
+  hyp1 hyp2 ps orbi1i mpbi
+)
+
+thm (orbi2ii ()
+  (hyp1 (\/ ph ps)
+   hyp2 (<-> ps ch))
+  (\/ ph ch)
+  hyp1 hyp2 ph orbi2i mpbi
+)
+
+thm (anbi1ii ()
+  (hyp1 (/\ ph ps)
+   hyp2 (<-> ph ch))
+  (/\ ch ps)
+  hyp1 hyp2 ps anbi1i mpbi
+)
+
+thm (anbi2ii ()
+  (hyp1 (/\ ph ps)
+   hyp2 (<-> ps ch))
+  (/\ ph ch)
+  hyp1 hyp2 ph anbi2i mpbi
+)
+
 defthm (df-ex wff (E. x ph) () () (<-> (E. x ph) (-. (A. x (-. ph))))
      (-. (A. x (-. ph))) biid)
 
@@ -91,6 +143,13 @@ thm (albii ()
   (hyp (<-> ph ps))
   (<-> (A. x ph) (A. x ps))
   hyp x gen 19.15i)
+
+thm (albiii ()
+  (hyp1 (A. x ph)
+   hyp2 (<-> ph ps))
+  (A. x ps)
+  hyp1 hyp2 x albii mpbi
+)
 
 # aka 19.6
 thm (alex () ()
@@ -162,6 +221,13 @@ thm (exbii ()
   (hyp (<-> ph ps))
   (<-> (E. x ph) (E. x ps))
   x ph ps 19.18 hyp mpg
+)
+
+thm (exbiii ()
+  (hyp1 (E. x ph)
+   hyp2 (<-> ph ps))
+  (E. x ps)
+  hyp1 hyp2 x exbii mpbi
 )
 
 thm (exbid ((ph x))
@@ -474,6 +540,13 @@ thm (eqtr4 ()
    hyp2 (= C B))
   (= A C)
   hyp1 hyp2 eqcomi eqtr
+)
+
+thm (eqtr5 ()
+  (hyp1 (= A B)
+   hyp2 (= A C))
+  (= C B)
+  hyp1 hyp2 A B C ax-eqtr mp2an eqcomi
 )
 
 thm (eqtrd ()
@@ -1287,6 +1360,22 @@ thm (leeq2i ()
   hyp (= A B) id C leeq2d ax-mp
 )
 
+# Equality inference for less than or equal relation
+thm (leeq1ii ()
+  (hyp1 (<= A C)
+   hyp2 (= A B))
+  (<= B C)
+  hyp1 hyp2 C leeq1i mpbi
+)
+
+# Equality inference for less than or equal relation
+thm (leeq2ii ()
+  (hyp1 (<= C A)
+   hyp2 (= A B))
+  (<= C B)
+  hyp1 hyp2 C leeq2i mpbi
+)
+
 # Addition is strictly monotonic in the first addend
 thm (leadd1 () ()
   (<-> (<= A B) (<= (+ A C) (+ B C)))
@@ -1336,6 +1425,13 @@ thm (lteq2i ()
   (hyp (= A B))
   (<-> (< C A) (< C B))
   hyp (= A B) id C lteq2d ax-mp
+)
+
+thm (lteq2ii ()
+  (hyp1 (< C A)
+   hyp2 (= A B))
+  (< C B)
+  hyp1 hyp2 C lteq2i mpbi
 )
 
 thm (addge01t () ()
@@ -1483,6 +1579,14 @@ thm (lteq1d () (hyp (-> ph (= A B)))
 thm (lteq1i () (h (= A B))
   (<-> (< A C) (< B C))
   h (= A B) id C lteq1d ax-mp)
+
+# Equality inference for less than relation
+thm (lteq1ii ()
+  (hyp1 (< A C)
+   hyp2 (= A B))
+  (< B C)
+  hyp1 hyp2 C lteq1i mpbi
+)
 
 thm (0ne1 () ()
   (-. (= (0) (1)))
@@ -2647,6 +2751,19 @@ thm (divideseq1 () ()
   B A C divideseq1imp eqcoms
     impbid
 )
+# Equality inference for the divides relation.
+thm (divideseq1i ()
+  (hyp (= A B))
+  (<-> (| A C) (| B C))
+  hyp A B C divideseq1 ax-mp
+)
+# Equality inference for the divides relation.
+thm (divideseq1ii ()
+  (hyp1 (| A C)
+   hyp2 (= A B))
+  (| B C)
+  hyp1 hyp2 C divideseq1i mpbi
+)
 # number 39.0
 thm (df-prime-just ((A x) (A y)) ()
     (<-> (A. x (-> (| x A) (\/ (= x (1)) (= x A))))
@@ -2669,6 +2786,33 @@ thm (0orpos () () (\/ (= A (0)) (<= (1) A))
     (1) A z df-le    (= A (0)) orbi2i
   mpbir
 )
+
+defthm (df-2 nat (2) () () (= (2) (+ (1) (1)))
+        (+ (1) (1)) eqid)
+
+defthm (df-3 nat (3) () () (= (3) (+ (2) (1)))
+        (+ (2) (1)) eqid)
+
+defthm (df-4 nat (4) () () (= (4) (+ (3) (1)))
+        (+ (3) (1)) eqid)
+
+defthm (df-5 nat (5) () () (= (5) (+ (4) (1)))
+        (+ (4) (1)) eqid)
+
+defthm (df-6 nat (6) () () (= (6) (+ (5) (1)))
+        (+ (5) (1)) eqid)
+
+defthm (df-7 nat (7) () () (= (7) (+ (6) (1)))
+        (+ (6) (1)) eqid)
+
+defthm (df-8 nat (8) () () (= (8) (+ (7) (1)))
+        (+ (7) (1)) eqid)
+
+defthm (df-9 nat (9) () () (= (9) (+ (8) (1)))
+        (+ (8) (1)) eqid)
+
+defthm (df-10 nat (10) () () (= (10) (+ (9) (1)))
+        (+ (9) (1)) eqid)
 
 # number 42.0
 thm (0ne2 () () (-. (= (0) (+ (1) (1))))
