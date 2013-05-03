@@ -5,16 +5,145 @@
 /**
  * Represents an s-expression.
  */
-GH.sExpression = function(expression) {
+GH.sExpression = function(expression, parent, siblingIndex) {
+	// TODO: Maybe delete this.expression_.
 	this.expression_ = expression;
 	this.operator_ = expression[0];
 	this.operands_ = [];
 	for (var i = 1; i < expression.length; i++) {
-		this.operands_.push(new GH.sExpression(expression[i]));
+		this.operands_.push(new GH.sExpression(expression[i], this, i - 1));
 	}
 	// Where the expression begins and ends within the textarea.
 	this.begin_ = expression.beg;
 	this.end_ = expression.end;
+	this.parent_ = parent;
+	this.siblingIndex_ = siblingIndex;
+	this.hasParentheses_ = (GH.typeOf(expression) != 'string');
+};
+
+GH.sExpression.fromString = function(str) {
+	return new GH.sExpression(GH.sExpression.stringToExpression(str));
+};
+
+GH.sExpression.stringToExpression = function(str) {
+	var depth = 0;
+	var starts = [];
+	var ends = [];
+	var start = null;
+	var end = null;
+	
+	for (var i = 0; i < str.length; i++) {
+		var c = str.charAt(i);
+		if (c != ' ') {
+			if ((start == null) && (depth == 1)) {
+				start = i;
+			}
+		}
+
+		if (c == '(') {
+			depth++;
+		} else if (c == ')') {
+			if ((depth == 1) && (start != null)) {
+				end = i;
+			}
+			depth--;
+		} else if (c == ' ') {
+			if ((depth == 1) && (start != null)) {
+				end = i;
+			}
+		}
+		if (end != null) {
+			starts.push(start);
+			ends.push(end);
+			start = null;
+			end = null;
+		}
+	}
+	if (starts.length > 0) {
+		var expressions = [];
+		for (var i = 0; i < starts.length; i++) {
+			expressions.push(GH.sExpression.stringToExpression(str.substring(starts[i], ends[i])));
+		}
+		return expressions;
+	} else {
+		return str;
+	}
+};
+
+GH.sExpression.prototype.copy = function(newParent) {
+	return new GH.sExpression(this.expression_, newParent, this.siblingIndex);
+};
+
+GH.sExpression.prototype.child = function () {
+	if (this.operands_.length > 1) {
+		alert('Warning this expression has more than one child.');
+	} else if (this.operands_.length == 0) {
+		alert('Warning this expression has no children.');
+	}
+	return this.operands_[0];
+};
+
+GH.sExpression.prototype.left = function () {
+	if (this.operands_.length < 2) {
+		alert('Warning this expression does not have a left side.');
+	}
+	return this.operands_[0];
+};
+
+GH.sExpression.prototype.right = function () {
+	if (this.operands_.length < 2) {
+		alert('Warning this expression does not have a right side.');
+	}
+	return this.operands_[1];
+};
+
+GH.sExpression.prototype.replace = function () {
+	if (this.operands_.length < 2) {
+		alert('Warning this expression does not have a right side.');
+	}
+	return this.operands_[1];
+};
+
+// Find all matches to sexp within this expression.
+GH.sExpression.prototype.findExp = function(sexp) {
+	var result = [];
+	if (this.equals(sexp)) {
+		result.push(this);
+	}
+	for (var i = 0; i < this.operands_.length; i++) {
+		result = result.concat(this.operands_[i].findExp(sexp));
+	}
+	return result;
+};
+
+GH.sExpression.stripParams = function(operator) {
+	delete operator['beg'];
+	delete operator['end'];
+	return operator;
+}
+
+// Returns true is the s-expressions are identical.
+GH.sExpression.prototype.equals = function(sexp) {
+	var numOperands = this.operands_.length;
+	GH.sExpression.stripParams(this.operator_);
+	GH.sExpression.stripParams(sexp.operator_);
+	if (this.operator_.length != sexp.operator_.length) {
+		return false;
+	}
+	for (var i = 0; i < this.operator_.length; i++) {
+		if (this.operator_[i] != sexp.operator_[i]) {
+			return false;
+		}
+	}
+	if ((numOperands != sexp.operands_.length)) {
+		return false;
+	}
+	for (var i = 0; i < numOperands; i++) {
+		if (!this.operands_[i].equals(sexp.operands_[i])) {
+			return false;
+		}
+	}
+	return true;
 };
 
 /**
@@ -28,6 +157,19 @@ GH.sExpression.prototype.display = function(indentation, cursorPosition) {
 	//var mouseOverFunc = 'GH.setSelectionRange(' + this.begin_ + ',' + this.end_ +')';
 	var mouseOverFunc = '';
 	return GH.ProofStep.stepToHtml(text, indentation, isHighlighted, false, mouseOverFunc, '', '', '');
+};
+
+GH.sExpression.prototype.toString = function() {
+	var result = [];	
+	result.push(this.operator_);
+	for (var i = 0; i < this.operands_.length; i++) {
+		result.push(this.operands_[i].toString());
+	}
+	result = result.join(' ');
+	if (this.hasParentheses_) {
+		result = '(' + result + ')';
+	}
+	return result;
 };
 
 
@@ -84,7 +226,7 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 
 	this.sExpressions_ = [];
 	for (var i = 0; i < sExpressions.length; i++) {
-		this.sExpressions_.push(new GH.sExpression(sExpressions[i][1]));
+		this.sExpressions_.push(new GH.sExpression(sExpressions[i][1], null, 0));
 	}
 };
 

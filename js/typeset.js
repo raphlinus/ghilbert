@@ -126,6 +126,7 @@ GH.typesetunary = function(term, prec, op, cursorPosition) {
 };
 
 GH.typesetpostfix = function(term, prec, op, cursorPosition) {
+
     var op_slug = GH.stringslug(op);
     var right_slug = GH.typeset(term[1], cursorPosition);
     if (prec > right_slug.prec) {
@@ -198,8 +199,60 @@ GH.typesetexp = function(term, prec, cursorPosition) {
     return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
 };
 
+GH.numOfDigits = function(num) {
+	if (num >= 10) {
+		return 1 + GH.numOfDigits(num / 10);
+	} else {
+		return 1;
+	}
+};
+
+GH.powerOfTen = function(sexp) {
+	if (sexp[0] == '10') {
+		return 10;
+	} else {
+		if ((sexp[0] == '*') && (sexp[1][0] == '10')) {
+			return 10 * GH.powerOfTen(sexp[2]);
+		}
+	}
+	return 0;
+};
+
+// Returns a number if the sexp is in the correct decimal format.
+GH.decimalNumber = function(sexp) {
+	if (GH.typeOf(sexp) == 'string') {
+		return NaN;
+	}
+
+	var num = parseInt(sexp[0]);
+	if ((0 <= num) && (num <= 10)) {
+		return num;
+	} else if (sexp[0] == '+') {
+		var upperDigit = GH.decimalNumber(sexp[1]);
+		var lowerDigit = GH.decimalNumber(sexp[2]);
+		// Only allow one possible representation.
+		//   The right side should not be zero. 40 is represented as 4 * 10, not 4 * 10 + 0.
+		//   The left side must have more digits than the right.
+		//   An addition can not appear on the left side.
+		if ((GH.numOfDigits(upperDigit) > GH.numOfDigits(lowerDigit)) &&
+			(lowerDigit != 0) &&
+		    (sexp[1][0] != '+')){
+			return upperDigit + lowerDigit;
+		}
+	} else if (sexp[0] == '*') {
+		var digit = GH.decimalNumber(sexp[1]);
+		var base10 = GH.powerOfTen(sexp[2]);
+		// Only allow one possible representation. Ten is expressed as 10, not 1 * 10. Zero cannot be expressed as 0 * 10.
+		if ((base10 != 0) && (1 < digit) && (digit <= 10)) {
+			return digit * base10;
+		}
+	}
+	return NaN;
+};
+
 GH.typeset = function(sexp, cursorPosition) {
-		var str;
+	var str;
+	var decimal = GH.decimalNumber(sexp);
     if (GH.typeOf(sexp) == 'string') {
         var trans = { et: 'η',
             th: 'θ',
@@ -208,19 +261,16 @@ GH.typeset = function(sexp, cursorPosition) {
             ch: 'χ',
             ps: 'ψ'};
         if (sexp in trans) {
-					str = GH.highlightSymbol(trans[sexp], sexp, cursorPosition);
+			str = GH.highlightSymbol(trans[sexp], sexp, cursorPosition);
         } else {
-					str = GH.highlightSymbol(GH.escapeHtml(sexp), sexp, cursorPosition);
+			str = GH.highlightSymbol(GH.escapeHtml(sexp), sexp, cursorPosition);
         }
         return GH.stringslug(str);
-    } else if (sexp[0] == '0') {
-			// TODO: Finish highlighting the other symbols.
-			str = GH.highlightSymbol('0', sexp, cursorPosition);
-      return GH.stringslug(str, cursorPosition);
-    } else if (sexp[0] == '1') {
-				str = GH.highlightSymbol('1', sexp, cursorPosition);
-        return GH.stringslug(str, cursorPosition);
+    } else if (!isNaN(decimal)) {
+		str = GH.highlightSymbol(decimal.toString(), sexp, cursorPosition);
+		return GH.stringslug(str, cursorPosition);
     } else if (sexp[0] == '+') {
+		// TODO: Finish highlighting the other symbols.
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);
     } else if (sexp[0] == '*' || sexp[0] == '∙') {
         return GH.typesetinfix(sexp, 'l', 2300, '∙', cursorPosition);

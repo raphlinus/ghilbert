@@ -182,6 +182,11 @@ GH.Direct.prototype.update = function() {
     }
 	html = html.concat(proofStepHtml);
 	this.stack.innerHTML = html.join('');
+	if (thmctx.proofctx) {
+		return thmctx.proofctx.stackHistory;
+	} else {
+		return null;
+	}
 };
 
 /**
