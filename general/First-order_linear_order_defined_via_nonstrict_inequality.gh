@@ -144,7 +144,8 @@ thm (LessEqualLessThanTransitivity-1 () () (→ (∧ (≤ a b) (< b c)) (≤ a c
 
         a b c LessEqualTransitivity
         applySyllogism
- )
+)
+
 thm (LessEqualLessThanTransitivity-2 () () (→ (∧ (≤ a b) (< b c)) (¬ (= a c)))
 # We start with a substitution, <code>a = c → (a ≤ b ∧ b < a ↔ a ≤ b ∧ b < c)</code>
         a c b LessThanBuilderLL
@@ -153,6 +154,11 @@ thm (LessEqualLessThanTransitivity-2 () () (→ (∧ (≤ a b) (< b c)) (¬ (= a
         eliminateBiconditionalForwardInConsequent
 
         (≤ a b) (≤ b a) (¬ (= b a)) ConjunctionAssociativity
+        b a LessThanLessEqual
+        (≤ a b) buildConjunctionLL
+        swapBiconditional
+        applyBiconditionalTransitivity
+
         swapBiconditional
 
         transformImplicationImplicationConsequent
@@ -178,7 +184,8 @@ thm (LessEqualLessThanTransitivity-2 () () (→ (∧ (≤ a b) (< b c)) (¬ (= a
         applySyllogism
 # And a transposition finishes the job.
         transposeWithNegatedConsequent
- )
+)
+
 thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
         a b c  LessEqualLessThanTransitivity-1
         a b c  LessEqualLessThanTransitivity-2
