@@ -190,10 +190,19 @@ thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
         a b c  LessEqualLessThanTransitivity-1
         a b c  LessEqualLessThanTransitivity-2
         composeConjunction
- )
+
+        a c LessThanLessEqual
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (LessThanLessEqualImplication () () (→ (< a b) (≤ a b))
+        a b LessThanLessEqual
+        eliminateBiconditionalReverse
+
         (≤ a b) (¬ (= a b)) ConjunctionRightElimination
- )
+        applySyllogism
+)
 
 thm (LessThanTransitivity () () (→ (∧ (< a b) (< b c)) (< a c))
         a b LessThanLessEqualImplication
@@ -226,7 +235,13 @@ thm (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (> a b))
         transformDisjunctionRight
 
         swap23ofDisjunction3
- )
+
+        a b GreaterThan
+        eliminateBiconditionalForward
+        (∨ (< a b) (= a b)) disjoinLL
+        applyModusPonens
+)
+
 thm (LessThanEquality () () (→ (< a b) (¬ (= a b)))
         a b LessThanLessEqual
         eliminateBiconditionalReverse
