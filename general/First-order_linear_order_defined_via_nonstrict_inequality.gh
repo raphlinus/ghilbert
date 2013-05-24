@@ -212,7 +212,7 @@ thm (LessThanTransitivity () () (→ (∧ (< a b) (< b c)) (< a c))
         a b c LessEqualLessThanTransitivity
         applySyllogism
  )
-thm (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (> a b))
+thm (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (< b a))
 # The meat of the proof is <code>(a < b ∨ a = b) ∨ (b < a ∨ b = a)</code>.
         a b LessEqualTotality
 
@@ -235,11 +235,6 @@ thm (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (> a b))
         transformDisjunctionRight
 
         swap23ofDisjunction3
-
-        a b GreaterThan
-        eliminateBiconditionalForward
-        (∨ (< a b) (= a b)) disjoinLL
-        applyModusPonens
 )
 
 thm (LessThanEquality () () (→ (< a b) (¬ (= a b)))
@@ -266,7 +261,12 @@ thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
 # A bit of propositional logic turns this into what we need.
         distributeNegationPCP
         convertToImplicationFromDisjunction
- )
+
+        a b GreaterThan
+        addNegation
+        eliminateBiconditionalForward
+        applySyllogism
+)
 
 thm (EqualityLessThan () () (→ (= a b) (¬ (< a b)))
         a b LessThanEquality
