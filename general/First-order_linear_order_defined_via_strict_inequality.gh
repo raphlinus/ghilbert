@@ -45,21 +45,31 @@ thm (LessThanEquality () () (→ (< a b) (¬ (= a b)))
         detachImplicationBiconditional
         transposeWithNegatedConsequent
  )
-defthm (≤ wff (≤ a b) () () (↔ (≤ a b) (∨ (< a b) (= a b)))
+defthm (LessEqualLessThan formula (≤ a b) () () (↔ (≤ a b) (∨ (< a b) (= a b)))
         (∨ (< a b) (= a b)) BiconditionalReflexivity
 )
-defthm (> formula (> b a) () () (↔ (> b a) (< a b))
+defthm (GreaterThan formula (> b a) () () (↔ (> b a) (< a b))
         (< a b) BiconditionalReflexivity
 )
-defthm (≥ wff (≥ b a) () () (↔ (≥ b a) (≤ a b))
+defthm (GreaterEqual formula (≥ b a) () () (↔ (≥ b a) (≤ a b))
         (≤ a b) BiconditionalReflexivity
 )
 thm (LessThanLessEqualForward () () (→ (< a b) (∧ (≤ a b) (¬ (= a b))))
         (< a b) (= a b) DisjunctionRightIntroduction
         a b LessThanEquality
         composeConjunction
- )
+
+        a b LessEqualLessThan
+        eliminateBiconditionalForward
+        (¬ (= a b)) conjoinRR
+        applySyllogism
+)
+
 thm (LessThanLessEqualReverse () () (→ (∧ (≤ a b) (¬ (= a b))) (< a b))
+        a b LessEqualLessThan
+        eliminateBiconditionalReverse
+        (¬ (= a b)) conjoinRR
+
         (< a b) (= a b) DisjunctionCommutativity
         eliminateBiconditionalReverse
 
@@ -68,16 +78,15 @@ thm (LessThanLessEqualReverse () () (→ (∧ (≤ a b) (¬ (= a b))) (< a b))
         applySyllogism
 # That gives us <code>a ≤ b → (a ≠ b → a < b)</code>, so importing we are done.
         import
- )
+        applySyllogism
+)
 
 thm (LessThanLessEqual () () (↔ (< a b) (∧ (≤ a b) (¬ (= a b))))
         a b LessThanLessEqualForward
         a b LessThanLessEqualReverse
         introduceBiconditionalFromImplications
- )
-thm (LessEqualLessThan () () (↔ (≤ a b) (∨ (< a b) (= a b)))
-        (≤ a b) BiconditionalReflexivity
- )
+)
+
 thm (LessEqualTotality () () (∨ (≤ a b) (≤ b a))
         a b LessThanTotality
         swap23ofDisjunction3
@@ -91,7 +100,14 @@ thm (LessEqualTotality () () (∨ (≤ a b) (≤ b a))
         transformDisjunctionRight
 # We are almost done. We're just one step away from <code>a < b ∨ a = b) ∨ (b < a ∨ b = a)</code>, which is what we need.
         swap23ofDisjunction4
- )
+
+        a b LessEqualLessThan
+        b a LessEqualLessThan
+        buildDisjunction
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 thm (LessEqualReflexivity () () (≤ a a)
         a a LessEqualTotality
         conflateDisjunction
