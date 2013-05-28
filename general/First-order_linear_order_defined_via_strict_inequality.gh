@@ -194,12 +194,23 @@ thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
 )
 
 thm (LessEqualTransitivity () () (→ (∧ (≤ a b) (≤ b c)) (≤ a c))
+        b c LessEqualLessThan
+        (≤ a b) buildConjunctionLL
+        eliminateBiconditionalReverse
+
         (≤ a b) (< b c) (= b c) ConjunctionLeftDistribution
         eliminateBiconditionalReverse
+        applySyllogism
+
 # The first part of this proof is <code>a ≤ b ∧ b < c → a ≤ c</code>.
         a b c LessEqualLessThanTransitivity
         (< a c) (= a c) DisjunctionRightIntroduction
         applySyllogism
+
+        a c LessEqualLessThan
+        eliminateBiconditionalForward
+        applySyllogism
+
 # The second part of the proof is <code>a ≤ b ∧ b = c → a ≤ c</code>.
         b c a LessEqualBuilderLL
         eliminateBiconditionalReverseInConsequent
@@ -208,7 +219,8 @@ thm (LessEqualTransitivity () () (→ (∧ (≤ a b) (≤ b c)) (≤ a c))
 # Combining the two parts we are done.
         composeDisjunction
         applySyllogism
- )
+)
+
 thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
         a EqualityReflexivity
 
