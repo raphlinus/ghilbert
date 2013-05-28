@@ -163,9 +163,15 @@ thm (EqualityLessEqual () () (→ (= a b) (≤ a b))
 # The builder gives us <code>a = b → (a ≤ a ↔ a ≤ b)</code>.  But <code>a ≤ a</code> is a theorem, so we are done.
         detachImplicationBiconditional
  )
+
 thm (LessThanLessEqualImplication () () (→ (< a b) (≤ a b))
-        (< a b) (= a b) DisjunctionRightIntroduction
- )
+  (< a b) (= a b) DisjunctionRightIntroduction
+
+  a b LessEqualLessThan
+  eliminateBiconditionalForward
+  applySyllogism
+)
+
 thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
         (< a b) (= a b) (< b c) ConjunctionRightDistribution
         eliminateBiconditionalReverse
