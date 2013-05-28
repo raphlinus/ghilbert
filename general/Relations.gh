@@ -77,30 +77,47 @@ thm (OrderedPairTheoremForwardFirst-2 () () (↔ (∈ A (orderedPair B C)) (∨ 
 
 thm (OrderedPairTheoremForwardFirst () () (→ (= (orderedPair A B) (orderedPair C D)) (= A C))
 # The first step is <code>〈A, B〉=〈C, D〉 → ({C} ∈ 〈A, B〉 ↔ {C} ∈ 〈C, D〉)</code>, from our builder for <code>∈</code>.
-# 
+#
 # But <code>{C} ∈ 〈C, D〉</code> is true unconditionally, so this formula reduces to <code>〈A, B〉=〈C, D〉 → {C} ∈ 〈A, B〉</code>.
-        C D OrderedPairTheoremForwardFirst-1
-        (orderedPair A B) (orderedPair C D) (singleton C) MembershipBuilderLL
-        detachImplicationBiconditionalRight
-# We now apply our other lemma to turn <code>{C} ∈ 〈A, B〉</code> into <code>{C} = {A} ∨ {C} = {A, B}</code>.
-        (singleton C) A B OrderedPairTheoremForwardFirst-2
-        eliminateBiconditionalReverse
-        applySyllogism
-# We'll show that each half of <code>{C} = {A} ∨ {C} = {A, B}</code> implies <code>A ∈ {C}</code>.  The left half follows from <code>{C} = {A} → (A ∈ {C} ↔ A ∈ {A})</code> once we detach the theorem <code>A ∈ {A}</code>.
-        A SingletonMembership
-        (singleton C) (singleton A) A MembershipBuilderLL
-        detachImplicationBiconditionalRight
-# The right half is similar: the builder gives us <code>{C} = {A, B} → (A ∈ {C} ↔ A ∈ {A, B})</code> and we can detach <code>A ∈ {A, B}</code>.
-        A B UnorderedPairLeftMembership
-        (singleton C) (unorderedPair A B) A MembershipBuilderLL
-        detachImplicationBiconditionalRight
-# We now compose the two and combine with our earlier result to get <code>〈A, B〉=〈C, D〉 → A ∈ {C}</code>
-        composeDisjunction
-        applySyllogism
-# Transforming <code>A ∈ {C}</code> to <code>A = C</code> finishes the proof.
-        A C Singleton
-        eliminateBiconditionalReverse
-        applySyllogism
+
+## <d>
+  C D OrderedPairTheoremForwardFirst-1
+  ## <d>
+    (orderedPair A B) (orderedPair C D) (singleton C) MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+
+  # We now apply our other lemma to turn <code>{C} ∈ 〈A, B〉</code> into <code>{C} = {A} ∨ {C} = {A, B}</code>.
+  ## <d>
+    (singleton C) A B OrderedPairTheoremForwardFirst-2
+    eliminateBiconditionalReverse
+  ## </d>
+  applySyllogism
+## </d>
+
+  # We'll show that each half of <code>{C} = {A} ∨ {C} = {A, B}</code> implies <code>A ∈ {C}</code>.  The left half follows from <code>{C} = {A} → (A ∈ {C} ↔ A ∈ {A})</code> once we detach the theorem <code>A ∈ {A}</code>.
+  A SingletonMembership
+  ## <d>
+    (singleton C) (singleton A) A MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+  # The right half is similar: the builder gives us <code>{C} = {A, B} → (A ∈ {C} ↔ A ∈ {A, B})</code> and we can detach <code>A ∈ {A, B}</code>.
+  A B UnorderedPairLeftMembership
+  ## <d>
+    (singleton C) (unorderedPair A B) A MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+
+  # We now compose the two and combine with our earlier result to get <code>〈A, B〉=〈C, D〉 → A ∈ {C}</code>
+  composeDisjunction
+  applySyllogism
+
+  # Transforming <code>A ∈ {C}</code> to <code>A = C</code> finishes the proof.
+  ## <d>
+    A C Singleton
+    eliminateBiconditionalReverse
+  ## </d>
+  applySyllogism
  )
 
 thm (OrderedPairTheoremForwardSecond-1 () () (→ (= (orderedPair C D) (orderedPair C B)) (= D B))
