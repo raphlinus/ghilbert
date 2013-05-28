@@ -28,6 +28,7 @@ import stage
 import store
 
 import webapp2
+from webapp2_extras import json
 
 import app.common
 import app.users  # for authentication
@@ -110,6 +111,9 @@ class handler(app.users.AuthenticatedHandler):
                 self.response.out.write('<br />\n')
                 self.response.out.write('<input type="submit" value="Save">\n')
 
+        elif arg.startswith('gc/'):
+            # TODO: should be POST, this should just serve the form
+            return self.serve_gc()
         else:
             # try to serve a raw blob
             obj = self.repo.traverse(arg)
@@ -319,6 +323,25 @@ class handler(app.users.AuthenticatedHandler):
             commitsha = stage.commit(self.repo, author, msg)
             self.response.out.write('saved ' + cgi.escape(editurl) + ' with commit ' + commitsha + '\n')
 
+    def serve_gc(self):
+        pack = self.store.start_pack()
+        idx = {}
+        off = [0]
+        def gc_action(sha, obj):
+            idx[sha] = off[0]
+            t = babygit.obj_type(obj)
+            s = babygit.obj_size(obj)
+            enc_t_s = self.encode_type_and_size(t, s)
+            pack.write(enc_t_s)
+            off[0] += len(enc_t_s)
+            compressed = zlib.compress(babygit.obj_contents(obj))
+            pack.write(compressed)
+            off[0] += len(compressed)
+        head = self.repo.gethead()
+        self.repo.walk_action([head], [], gc_action)
+        self.store.finish_pack(pack, json.encode(idx))
+        o = self.response.out
+        o.write('<html>Did gc, len(idx) = ' + str(len(idx)) + '\n')
 
     # This is authentication with basic auth, for git clients. Web access
     # uses cookies instead (see app/users.py)

@@ -111,11 +111,8 @@ class Repo:
     def getobj(self, sha, verify = False):
         return self.store.getobj(sha, verify)
 
-    # Return a set of (sha, data) tuples from walking the graph. Note that
-    # this would be place to optimize getting the zlib-compressed data, to
-    # avoid having to recompress, but that's for future.
-    def walk(self, wants, haves):
-        result = []
+    # Walk the graph, calling an action on each object found
+    def walk_action(self, wants, haves, action):
         done = set()
         queue = set(wants)
         while queue:
@@ -126,7 +123,7 @@ class Repo:
             if obj is None:
                 logging.debug('walk, can\'t find ' + `sha`)
                 break
-            result.append((sha, obj))
+            action(sha, obj)
             done.add(sha)
             t = babygit.obj_type(obj)
             if t == 'commit':
@@ -138,6 +135,15 @@ class Repo:
             elif t == 'tree':
                 for mode, name, sha in self.parse_tree(obj):
                     queue.add(sha)
+
+    # Return a set of (sha, data) tuples from walking the graph. Note that
+    # this would be place to optimize getting the zlib-compressed data, to
+    # avoid having to recompress, but that's for future.
+    def walk(self, wants, haves):
+        result = []
+        def action(sha, obj):
+            result.append((sha, obj))
+        self.walk_action(wants, haves, action)
         return result
 
     # return value is a list of tuples (path, change), where change is one of

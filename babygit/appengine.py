@@ -124,3 +124,27 @@ class AEStore(store.Store):
             memcache.set(name, newsha, namespace='ref')
         return True
 
+    def start_pack(self):
+        return Blobwriter()
+    def finish_pack(self, blobwriter, idx):
+        blobinfo = blobwriter.close()
+        idxblobwriter = Blobwriter()
+        idxblobwriter.write(zlib.compress(idx))
+        idxblob = idxblobwriter.close()
+        pack = Pack(idx = idxblob, blob = blobinfo)
+        pack.put()
+
+class Blobwriter:
+    def __init__(self):
+        self.bs = []
+    def write(self, bytes):
+        self.bs.append(bytes)
+    def close(self):
+        fn = files.blobstore.create(mime_type='application/octet-stream')
+        f = files.open(fn, 'a')
+        # TODO: grouping into chunks would probably help optimize RPC's
+        for b in self.bs:
+            f.write(b)
+        f.close()
+        files.finalize(fn)
+        return blobstore.get(files.blobstore.get_blob_key(fn))
