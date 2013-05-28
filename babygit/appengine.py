@@ -33,20 +33,76 @@ class Stage(db.Model):
     tree = db.StringProperty()
     date = db.DateTimeProperty(auto_now=True)
 
+class Blobcache:
+    blocksize = 524288
+    nblocks = 8
+    def __init__(self):
+        self.blocks = {}
+        self.atime = 0
+    def readblock(self, blobinfo, key, blocknum):
+        thekey = key + "_" + str(blocknum)
+        if not self.blocks.has_key(thekey):
+            if len(self.blocks) >= Blobcache.nblocks:
+                # evict
+                minatime = None
+                minkey = None
+                for k in self.blocks:
+                    if minatime is None or self.blocks[k][1] < minatime:
+                        minatime = self.blocks[k][1]
+                        minkey = k
+                del self.blocks[minkey]
+            reader = blobstore.BlobReader(blobinfo)
+            reader.seek(Blobcache.blocksize * blocknum)
+            data = reader.read(Blobcache.blocksize)
+            reader.close()
+            self.blocks[thekey] = [data, self.atime]
+        self.blocks[thekey][1] = self.atime
+        self.atime += 1
+        return self.blocks[thekey][0]
+
+    class Reader:
+        def __init__(self, bc, blobinfo, off):
+            self.bc = bc
+            self.blobinfo = blobinfo
+            self.key = str(blobinfo.key())
+            self.seek(off)
+        def seek(self, off):
+            self.blocknum = off / Blobcache.blocksize
+            self.blockoff = off % Blobcache.blocksize
+        def read(self, size):
+            result = []
+            remaining = size
+            while remaining:
+                block = self.bc.readblock(self.blobinfo, self.key, self.blocknum)
+                blockend = min(Blobcache.blocksize, self.blockoff + remaining)
+                result.append(block[self.blockoff:blockend])
+                n = blockend - self.blockoff
+                remaining -= n
+                self.blockoff += n
+                if self.blockoff == Blobcache.blocksize:
+                    self.blockoff = 0
+                    self.blocknum += 1
+            return ''.join(result)
+
+    def open(self, blobinfo, off):
+        return Blobcache.Reader(self, blobinfo, off)
+
+# Using a global is a bit ugly, but oh well. It's also not great that
+# each copy creates its own "packs", but the lossage is minimal.
+gBlobcache = None
+
 class AEStore(store.Store):
     def __init__(self):
+        global gBlobcache
+        if gBlobcache is None:
+            gBlobcache = Blobcache()
         self.packs = None
+        self.blobcache = gBlobcache
 
-    def getobj(self, sha, verify = False):
+    def getlooseobj(self, sha):
         obj = memcache.get(sha, namespace='obj')
         if obj is not None:
             return obj
-        result = self.getobjimpl(sha, verify)
-        if result and len(result) < 1048576:
-            memcache.add(sha, result, namespace='obj')
-        return result
-
-    def getlooseobj(self, sha):
         obj = Obj.get_by_key_name(sha)
         if not obj:
             return None
@@ -54,6 +110,8 @@ class AEStore(store.Store):
         blob_reader = blobstore.BlobReader(obj.blob, buffer_size = buffer_size)
         result = blob_reader.read()
         blob_reader.close()
+        if result and len(result) < 1048576:
+            memcache.add(sha, result, namespace='obj')
         return result
 
     def putobj(self, sha, value):
@@ -149,6 +207,7 @@ class AEStore(store.Store):
                 idxbytes = blobstore.BlobReader(p.idx).read()
                 idx = json.decode(zlib.decompress(idxbytes))
                 self.packs.append((idx, p.blob))
+            logging.info("getpacks, len(packs) = " + `len(self.packs)`)
         return self.packs
 
     def get_obj_from_pack(self, sha):
@@ -156,8 +215,8 @@ class AEStore(store.Store):
         for idx, blob in packs:
             if idx.has_key(sha):
                 off = idx[sha]
-                reader = blobstore.BlobReader(blob)
-                logging.debug('getting sha ' + sha + ' from ' + `off`)
+                reader = self.blobcache.open(blob, off)
+                #logging.info('getting sha ' + sha + ' from ' + `off`)
                 return self.get_pack_obj(reader, off)
 
 class Blobwriter:
