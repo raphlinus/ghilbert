@@ -1,5 +1,6 @@
 # license
 
+import logging
 import hashlib
 import zlib
 
@@ -72,7 +73,10 @@ class Store:
         if raw is None:
             compressed = self.getlooseobj(sha)
             if compressed:
-                raw = zlib.decompress(compressed)
+                try:
+                    raw = zlib.decompress(compressed)
+                except:
+                    logging.error('error decompressing ' + sha + ': ' + `compressed`)
             else:
                 return None
         if verify:

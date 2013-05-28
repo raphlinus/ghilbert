@@ -100,7 +100,7 @@ class AEStore(store.Store):
         self.blobcache = gBlobcache
 
     def getlooseobj(self, sha):
-        obj = memcache.get(sha, namespace='obj')
+        obj = memcache.get(sha, namespace='cobj')
         if obj is not None:
             return obj
         obj = Obj.get_by_key_name(sha)
@@ -111,7 +111,7 @@ class AEStore(store.Store):
         result = blob_reader.read()
         blob_reader.close()
         if result and len(result) < 1048576:
-            memcache.add(sha, result, namespace='obj')
+            memcache.add(sha, result, namespace='cobj')
         return result
 
     def putobj(self, sha, value):
@@ -120,14 +120,15 @@ class AEStore(store.Store):
             return
         fn = files.blobstore.create(mime_type='application/octet-stream')
         f = files.open(fn, 'a')
-        f.write(zlib.compress(value))
+        compressed = zlib.compress(value)
+        f.write(compressed)
         f.close()
         files.finalize(fn)
         blobinfo = blobstore.get(files.blobstore.get_blob_key(fn))
         obj = Obj(key_name=sha, blob = blobinfo)
         obj.put()
-        if len(value) < 1048576:
-            memcache.add(sha, value, namespace='obj')
+        if len(compressed) < 1048576:
+            memcache.add(sha, compressed, namespace='cobj')
 
     def getstage(self):
         stage = Stage.get_by_key_name('stage')
