@@ -610,7 +610,7 @@ stmt (ForAllReflexivity () () (↔ (∀ x φ) (∀ x φ)))
 
 term (formula (subst s x φ) (x s))
 term (formula (= s t))
-stmt (SubstReflexivity () () (= (subst s x φ) (subst s x φ)))
+stmt (SubstReflexivity () () (↔ (subst s x φ) (subst s x φ)))
 
 term (object (separate x A φ) (x A))
 stmt (SeparateReflexivity () () (= (separate x A φ) (separate x A φ)))
@@ -620,12 +620,11 @@ import (IN in.ghi () "")
 
 !accept test.gh
 
-# This looks like something the verifier isn't catching yet...
-#!append in.ghi
-#stmt (KindMismatch () () (= (separate x φ φ) (separate x φ φ)))
-#!reject test.gh
+!append in.ghi
+stmt (KindMismatchInInterface () () (= (separate x φ φ) (separate x φ φ)))
+!reject test.gh kind mismatch: (separate x φ φ) wanted object found formula
 
 !append in.ghi
 stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
-!reject test.gh
+!reject test.gh Expected a binding variable, found term variable A
 

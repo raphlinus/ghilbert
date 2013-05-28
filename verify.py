@@ -1108,7 +1108,7 @@ class ImportCtx(InterfaceCtx):
             argkind = t[1][j]
             binding_var = t[2][j] >= 0
             newterm.append(self.map_syms(el, mapping, varlist, varmap,
-                                         kind, binding_var))
+                                         argkind, binding_var))
         return newterm
 
     def do_cmd(self, cmd, arg, out):
