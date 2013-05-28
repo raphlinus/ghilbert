@@ -10,6 +10,8 @@ from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext.webapp import blobstore_handlers
 
+from webapp2_extras import json
+
 import store
 
 class Obj(db.Model):
@@ -19,6 +21,7 @@ class Obj(db.Model):
 class Pack(db.Model):
     idx = blobstore.BlobReferenceProperty(indexed=False)
     blob = blobstore.BlobReferenceProperty(indexed=False)
+    date = db.DateTimeProperty(auto_now=True)
 
 class Ref(db.Model):
     # key is the refname (eg 'refs/heads/master')
@@ -31,6 +34,9 @@ class Stage(db.Model):
     date = db.DateTimeProperty(auto_now=True)
 
 class AEStore(store.Store):
+    def __init__(self):
+        self.packs = None
+
     def getobj(self, sha, verify = False):
         obj = memcache.get(sha, namespace='obj')
         if obj is not None:
@@ -131,8 +137,28 @@ class AEStore(store.Store):
         idxblobwriter = Blobwriter()
         idxblobwriter.write(zlib.compress(idx))
         idxblob = idxblobwriter.close()
-        pack = Pack(idx = idxblob, blob = blobinfo)
+        pack = Pack(idx = idxblob, blob = blobinfo, date = datetime.datetime.now())
         pack.put()
+
+    def getpacks(self):
+        if self.packs is None:
+            self.packs = []
+            q = Pack.all()
+            q.order('-date')
+            for p in q.run(limit = 10):
+                idxbytes = blobstore.BlobReader(p.idx).read()
+                idx = json.decode(zlib.decompress(idxbytes))
+                self.packs.append((idx, p.blob))
+        return self.packs
+
+    def get_obj_from_pack(self, sha):
+        packs = self.getpacks()
+        for idx, blob in packs:
+            if idx.has_key(sha):
+                off = idx[sha]
+                reader = blobstore.BlobReader(blob)
+                logging.debug('getting sha ' + sha + ' from ' + `off`)
+                return self.get_pack_obj(reader, off)
 
 class Blobwriter:
     def __init__(self):

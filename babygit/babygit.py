@@ -121,51 +121,8 @@ class FsStore(store.Store):
                 off = 1032 + 24 * n_objs + 4 * found_ix
                 pack_off, = struct.unpack('>I', idx[off:off + 4])
                 #print 'found, ix =', ix, 'pack_off =', pack_off
-                return self.get_pack_obj(fn, pack_off)
-    def read_zlib(self, f, size):
-        result = []
-        d = zlib.decompressobj()
-        sizeremaining = size
-        while sizeremaining > 0:
-            block = d.decompress(f.read(4096))
-            result.append(block)
-            sizeremaining -= len(block)
-        return ''.join(result)
-    def get_pack_obj(self, packfn, offset):
-        f = file(packfn)
-        f.seek(offset)
-        t, size = self.get_type_and_size(f)
-        if t < 5:
-            hdr = store.obj_types[t] + ' ' + str(size) + '\x00'
-            return hdr + self.read_zlib(f, size)
-        elif t == 6:  # OBJ_OFS_DELTA
-            byte = ord(f.read(1))
-            off = byte & 0x7f
-            while byte & 0x80:
-                byte = ord(f.read(1))
-                off = ((off + 1) << 7) + (byte & 0x7f)
-            ref_offset = offset - off
-            delta = self.read_zlib(f, size)
-            ref = self.get_pack_obj(packfn, ref_offset)
-            return patch_delta(ref, delta)
-        elif t == 7:  # OBJ_REF_DELTA
-            ref_sha = binascii.hexlify(f.read(20))
-            #print ref_sha
-            delta = self.read_zlib(f, size)
-            return patch_delta(self.getobj(ref_sha), delta)
-        else:
-            print 'can\'t handle type =', t
-
-    def get_type_and_size(self, f):
-        byte = ord(f.read(1))
-        t = (byte >> 4) & 7
-        size = byte & 15
-        shift = 4
-        while byte & 0x80:
-            byte = ord(f.read(1))
-            size += (byte & 0x7f) << shift
-            shift += 7
-        return (t, size)
+                f = file(fn)
+                return self.get_pack_obj(f, pack_off)
 
 def obj_type(obj):
     return obj[:obj.find(' ')]
