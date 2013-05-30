@@ -301,26 +301,83 @@ body.fullscreen {
     text-decoration: underline;
 }
 
-.proof-step-div {
-	border-radius: 5px;
+.proof-step-div td {
 	color: #333;
-	padding: 5px 10px;
-	margin: 1px 0;
+	/*padding: 5px 10px;*/
+	padding: 5px 1px;
 }
 
-.proof-block .proof-step-orange,
-.proof-step-div.error-in-step {
+.proof-step-div td.first-column {
+	padding-left: 10px;
+}
+
+.proof-step-div td.last-column {
+	padding-right: 10px;
+}
+
+.highlighted-step td {
+	background: #f8f8f8;
+	border-color: e6e6e6;
+}
+
+.proof-block .orange-step td,
+.error-in-step td,
+.highlighted-step.orange-step td,
+.gray-block .highlighted-step.orange-step td {
 	background: #fff8f0;
-	border: 1px solid #ffe0c0;
-	padding: 4px 9px;  /* To offset the 1 pixel extra border. */
-	box-shadow: 0px 2px 5px 0px #eee;
+	border-color: #ffe0c0;
+}
+
+.highlighted-step td,
+.proof-block .orange-step td,
+.error-in-step td {
+	border-width: 1px;
+	border-style: solid;
+	border-left: 0;
+	border-right: 0;
+	padding: 4px 1px; /* 9px;  /* To offset the 1 pixel extra border. */
+	/*box-shadow: 0px 2px 5px 0px #eee;*/
 	color: black;
 	cursor: default;
 }
 
-.proof-block .proof-step-orange.open-top,
-.proof-step-div.highlighted-step.open-top.proof-step-orange,
-.gray-block .proof-step-div.highlighted-step.open-top.proof-step-orange {
+.highlighted-step td.first-column {
+	border-left-color: e6e6e6;
+}
+
+.proof-block .orange-step td.first-column {
+	border-left-color: #ffe0c0;
+}
+
+.highlighted-step td.first-column,
+.proof-block .orange-step td.first-column {
+	border-left-width: 1px;
+	border-left-style: solid;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	padding-left: 9px;
+}
+
+.highlighted-step td.last-column {
+	border-right-color: e6e6e6;
+}
+
+.proof-block .orange-step td.last-column {
+	border-right-color: #ffe0c0;
+}
+
+.highlighted-step td.last-column,
+.proof-block .orange-step td.last-column {
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding-right: 9px;
+}
+
+.proof-block .orange-step.open-top td,
+.highlighted-step.open-top.orange-step td,
+.gray-block .highlighted-step.open-top.orange-step td {
 	border-top: 0;
 	margin-top: 0;
 	border-top-left-radius: 0;
@@ -328,48 +385,95 @@ body.fullscreen {
 	padding-top: 5px;
 }
 
-.proof-block .proof-step-orange.open-bottom,
-.proof-step-div.highlighted-step.open-bottom.proof-step-orange,
-.gray-block .proof-step-div.highlighted-step.open-bottom.proof-step-orange {
+.proof-block .orange-step.open-bottom td,
+.highlighted-step.open-bottom.orange-step td,
+.gray-block .highlighted-step.open-bottom.orange-step td {
 	border-bottom: 0;
 	margin-bottom: 0;
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
-	padding-bottom: 6px;
+	padding-bottom: 5px;
 }
 
-
-.proof-step-div.highlighted-step.proof-step-orange,
-.gray-block .proof-step-div.highlighted-step.proof-step-orange {
-	background: #fff8f0;
-	border: 1px solid #ffe0c0;
+.gray-block .highlighted-step td {
+	background: #fff;
 }
 
+/* Undo the highlighted on the step if the whole block or table is highlighted. */
+.orange-block .highlighted-step td,
+.orange-table .highlighted-step td {
+	background: none;
+	border: 0;
+	/*padding: 5px 10px 5px 40px;*/
+	padding: 5px 1px;
+}
 
-.highlighted-block .proof-step-div.highlighted-step.proof-step-orange,
-.gray-block.highlighted-block .proof-step-div.highlighted-step.proof-step-orange {
+.orange-block .highlighted-step td.first-column,
+.orange-table .highlighted-step td.first-column {
+	padding-left: 10px;
+}
+
+.orange-block .highlighted-step td.last-column,
+.orange-table .highlighted-step td.last-column {
+	padding-right: 10px;
+}
+
+.orange-block .highlighted-step.orange-step td,
+.gray-block.orange-block .highlighted-step.orange-step td {
 	background: #fff8f0;
 	border: 0;
 }
 
-.proof-block.highlighted-block .proof-step-div.proof-step-orange {
+.proof-block.orange-block .orange-step td {
 	border: 0;
 	box-shadow: 0 0 0 0 #eee;
-	padding: 5px 10px;
+	padding: 5px 1px; /* 10px;*/
 }
 
-.proof-step-div.indented-step.proof-step-orange {
+.indented-step.unstyled.orange-step td,
+.indented-step.highlighted-step.unstyled td {
 	padding-left: 39px;
 }
 
-.proof-step-div.error-in-step {
+.orange-block .indented-step.unstyled.orange-step td,
+.orange-block .indented-step.highlighted-step.unstyled td {
+	padding-left: 40px;
+}
+
+.table-border {
+	border: 1px #e6e6e6 solid;
+	border-radius: 5px;
+	padding: 0 3px;
+}
+
+.table-border.orange-table {
+	background-color: #fff8f0;
+	border-color: #ffe0c0;
+	cursor: default;
+}
+
+/**
+ * Currently disabled. Only slightly visible. Not working when the whole block is orange.
+.table-background {
+	background: #fdfdfd;
+}
+
+.gray-block .table-background {
+	background: #fafafa;
+}*/
+
+.table-no-border {
+	padding: 0 4px;
+}
+
+.proof-step-div.error-in-step td {
 	background: #fff;
 	border: 1px solid #ffc0c0;
 	color: #f00;
 }
 
-.proof-step-div:hover .error-in-step,
-.proof-step-div.error-in-step.highlighted-step {
+.proof-step-div:hover .error-in-step td,
+.proof-step-div.error-in-step.highlighted-step td {
 	background: #fff0f0;
 	border: 1px solid #ffc0c0;
 	color: #f00;
@@ -403,8 +507,8 @@ a.proof-step-name.primary-step-name {
 	display: inline;
 }
 
-.highlighted-block .proof-step-name.display-on-hover,
-.highlighted-block highlighted-step .proof-step-name.display-on-hover {
+.orange-block .proof-step-name.display-on-hover,
+.orange-block highlighted-step .proof-step-name.display-on-hover {
 	display: none;
 }
 
@@ -413,12 +517,12 @@ a.proof-step-name.primary-step-name {
 	border-radius: 5px;
 	box-shadow: 0px 2px 5px 0px #f0f0f0;
 	margin: 20px 20px 0 0;
-	padding: 6px;
+	padding: 6px 12px;
 }
 
-.proof-block.gray-block.highlighted-block,
-.proof-block.highlighted-block,
-.proof-block.primary-block.highlighted-block {
+.proof-block.gray-block.orange-block,
+.proof-block.orange-block,
+.proof-block.primary-block.orange-block {
 	background-color: #fff8f0;
 	border-color: rgb(255, 186, 115);
 	cursor: default;
@@ -434,25 +538,8 @@ a.proof-step-name.primary-step-name {
 	background: #f8f8f8;
 }
 
-.indented-step {
+.indented-step.unstyled td {
 	padding-left: 40px;
-}
-
-.proof-step-div.highlighted-step {
-	background: #f8f8f8;
-	border: 1px solid #e6e6e6;
-	padding: 4px 9px 4px 39px;  /* To offset the 1 pixel extra border. */
-}
-
-.gray-block .proof-step-div.highlighted-step {
-	background: #fff;
-}
-
-/* Undo the highlighted on the step if the whole block is highlighted. */
-.highlighted-block .proof-step-div.highlighted-step {
-	background: none;
-	border: 0;
-	padding: 5px 10px 5px 40px;
 }
 
 textarea:selection,

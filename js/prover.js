@@ -2,6 +2,13 @@
 // by Paul Merrell, 2013
 
 GH.Prover = function() {
+	this.depth = 0;
+};
+
+GH.Prover.prototype.indent = function() {
+	for (var i = 0; i < this.depth; i++) {
+		window.direct.text.insertText('  ');
+	}
 };
 
 // Print text into the proof and add a new line.
@@ -11,32 +18,24 @@ GH.Prover.insertText = function(text) {
 
 // Print text into the proof and add a new line.
 GH.Prover.println = function(text) {
-	GH.Prover.insertText(' ' + text + '\n');
+	window.direct.prover.indent();
+	GH.Prover.insertText(text + '\n');
 };
 
 // Insert a known theorem into the proof with all it's mandatory hypotheses.
 GH.Prover.print = function(mandHyps, step) {
+	window.direct.prover.indent();
 	for (var i = 0; i < mandHyps.length; i++) {
-		GH.Prover.insertText(' ' + mandHyps[i].toString());
+		GH.Prover.insertText(mandHyps[i].toString() + ' ');
 	}
-	GH.Prover.println(step);
+	GH.Prover.insertText(step + '\n');
 };
 
 // This is a bit of a hack.
 GH.Prover.printBeforeLastStep = function(text) {
 	var theorems = window.direct.update();
-	var start = theorems[theorems.length - 1].begin_;
+	var start = theorems[theorems.length - 1].begin;
 	window.direct.text.splice(start, 0, text);
-};
-	
-// Print a <d> tag indicating we're entering part of the proof that is less important.
-GH.Prover.printD = function() {
-	GH.Prover.println('## <d>');
-};
-	
-// Print a </d> tag indicating we're exiting part of the proof that is less important.
-GH.Prover.printDD = function() {
-	GH.Prover.println('## </d>');
 };
 
 // Returns a list of the theorems from the stack. The list contains
@@ -50,7 +49,7 @@ GH.Prover.getTheorems = function() {
 	var result = [];
 	for (var i = 0; i < theorems.length; i++) {
 		// TODO: Rename public variables and make conclusion an s-expression.
-		result.push(new GH.sExpression(theorems[i].conclusion_, null, null));
+		result.push(new GH.sExpression(theorems[i].conclusion, null, null));
 	}
 	return result;
 };
@@ -119,6 +118,19 @@ GH.Prover.isPowerOfTen = function(x) {
 GH.Prover.printNum = function(num) {
 	GH.Prover.println(GH.Prover.numToSexp(num));
 };
+
+// TODO: Rename and describe function.
+GH.Prover.findPosition = function(sexp) {
+	var indices = [];
+	// Traverse up the tree from matcher up to the root and record which sibling
+	// of the tree we traverse at each step.
+	while (sexp.parent_ != null) {
+		indices.push(sexp.siblingIndex_);
+		sexp = sexp.parent_;
+	}
+	// Return the indices in reverse to tell how to descend through the tree.
+	return indices.reverse();
+};
 	
 /**
  * FindMatchingPosition takes two s-expressions. An s-expression is represented
@@ -127,16 +139,9 @@ GH.Prover.printNum = function(num) {
  * In this function, sexp moves into the position where matcher is.
  */
 GH.Prover.findMatchingPosition = function(sexp, matcher) {
-	var indices = [];
-	// Traverse up the tree from matcher up to the root and record which sibling
-	// of the tree we traverse at each step.
-	while (matcher.parent_ != null) {
-		indices.push(matcher.siblingIndex_);
-		matcher = matcher.parent_;
-	}
+	var indices = GH.Prover.findPosition(matcher);
 
 	// Traverse down the sexp tree. This is just the reverse of the ascent up.
-	indices.reverse();
 	for (var i = 0; i < indices.length; i++) {
 		sexp = sexp.operands_[indices[i]];
 	}
@@ -151,6 +156,8 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
  * generate all the necessary steps to replace the s-expression.
  */
 GH.Prover.replaceWith = function(generator, sexp) {
+	GH.Prover.println('## <apply \'' + generator.description + '\'>');
+	window.direct.prover.depth++;
 	var name = generator.name(sexp);
 	if (window.direct.vg.syms.hasOwnProperty(name)) {
 		// Uses the proof if it already exists in the repository.
@@ -160,7 +167,25 @@ GH.Prover.replaceWith = function(generator, sexp) {
 		// TODO: Generates a proof when the proof is not in the repository.
 		generator.body(sexp);
 	}
+	var position = GH.Prover.findPosition(sexp);
+	if (position.length > 0) {
+		var subText = '## <substitute ';
+		for (var i = 0; i < position.length; i++) {
+			if (position[i] > 10) {
+				alert('Operator has more than 10 operands.');
+			}
+			subText += position[i];
+		}
+		GH.Prover.println(subText + '>');
+		window.direct.prover.depth++;
+	}
 	result = GH.Prover.getReplaced(sexp);
+	if (position.length > 0) {
+		window.direct.prover.depth--;
+		GH.Prover.println('## </substitute>');
+	}
+	window.direct.prover.depth--;
+	GH.Prover.println('## </apply \'' + generator.description + '\'>');
 	return result;
 };
 
@@ -192,7 +217,7 @@ GH.Prover.getUnorderedHyps = function(sexp, expectedForm, hyps) {
 			return hyps;
 		}
 	} else {
-		var expression = expectedForm.expression_;
+		var expression = expectedForm.getExpression();
 		if ((expression in hyps) && (!hyps[expression].equals(sexp))) {
 			alert(sexp.toString() + ' does not match ' + hyps[expression].toString() + '.');
 			return [];
@@ -248,7 +273,7 @@ GH.Prover.setHypsWithKeys = function(sexp, keys, hyps) {
 		}
 		return sexp;
 	} else {
-		var expression = sexp.expression_;
+		var expression = sexp.getExpression();
 		for (var i = 0; i < keys.length; i++) {
 			if (keys[i] == expression) {
 				var newSexp = hyps[i].copy();
@@ -274,7 +299,9 @@ GH.Prover.addTheorem = function(generator, sexp) {
 	var fakeConclusion = '(= (0) (1))';
 	GH.Prover.insertText(fakeConclusion);
 	GH.Prover.insertText('\n');
+	window.direct.prover.depth++;
 	generator.body(sexp);
+	window.direct.prover.depth--;
 	GH.Prover.println(')');
 	var conclusion = GH.Prover.getLast();
 	window.direct.text.splice(conclusionPosition, fakeConclusion.length, conclusion);
@@ -313,7 +340,7 @@ GH.Prover.replace = function(replacee, replacement) {
 		if (siblingIndex == 0) {
 			GH.Prover.print([], 'sylbi2');
 		} else {
-			GH.Prover.printn([], 'sylib');
+			GH.Prover.print([], 'sylib');
 		}
 	} else if (operator == '<->') {
 		if (siblingIndex == 0) {
@@ -472,19 +499,27 @@ GH.Prover.commute = function(sexp) {
 	
 	var operator = sexp.operator_;
 	var mandHyps = [sexp.left(), sexp.right()];
-	if (operator == '=') {
-		GH.Prover.print([], 'eqcomi');
+	if (operator == '<->') {
+		GH.Prover.print([], 'bicomi');
+		return GH.Prover.getReplaced(sexp);
+	} else if (operator == '/\\') {
+		GH.Prover.print(mandHyps, 'ancom');
+		return GH.Prover.getReplaced(sexp);
+	} else if (operator == '\\/') {
+		GH.Prover.print(mandHyps, 'orcom');
+		return GH.Prover.getReplaced(sexp);
+	} else if (operator == '=') {
+		if (sexp.parent_) {
+			GH.Prover.print(mandHyps, 'eqcom');
+		} else {
+			GH.Prover.print([], 'eqcomi');
+		}
 		return GH.Prover.getReplaced(sexp);
 	} else if (operator == '+') {
-		GH.Prover.printD();
 		GH.Prover.print(mandHyps, 'addcom');
-		GH.Prover.printDD();
-		// TODO: Combine print and getLast. Or construct the s-expression without using getLast.
 		return GH.Prover.getReplaced(sexp);
 	} else if (operator == '*') {
-		GH.Prover.printD();
 		GH.Prover.print(mandHyps, 'mulcom');
-		GH.Prover.printDD();
 		return GH.Prover.getReplaced(sexp);
 	} else {
 		alert('No rule available for commuting the ' + operator + ' operator.');
@@ -618,6 +653,9 @@ GH.Prover.addSingleDigits = {};
 // Each generator has an expected form for the input s-expression.
 GH.Prover.addSingleDigits.expectedForm = GH.sExpression.fromString('(+ A B)');
 
+// Each generator has a description. It is displayed on the right step of the proof step.
+GH.Prover.addSingleDigits.description = 'Add Single-Digits';
+
 // Returns the name of the theorem given an s-expression.
 GH.Prover.addSingleDigits.name = function(sexp) {
 	var hyps = GH.Prover.getHyps(sexp, this.expectedForm);
@@ -657,41 +695,25 @@ GH.Prover.addSingleDigits.body = function(sexp) {
 	// we've reach 10 or until the lower number is zero.
 	if (rightNum < leftNum) {
 		while ((rightNum > 0) && (leftNum < 10)) {
-			GH.Prover.printD();
 			if (rightNum > 1) {
-				GH.Prover.printD();
 				result = GH.Prover.applyRight(GH.Prover.predecessorRight, result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
-				GH.Prover.printD();
 				result = GH.Prover.associateLeft(result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
-				GH.Prover.printD();
 				result = GH.Prover.applyLeft(GH.Prover.successorLeft, result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
 			} else {
 				result = GH.Prover.successorLeft(result);
 			}
-			GH.Prover.printBeforeLastStep(' ## </d> \n');
 			rightNum--;
 			leftNum++;
 		}
 	} else {
 		while ((leftNum > 0) && (rightNum < 10)) {
-			GH.Prover.printD();
 			if (leftNum > 1) {
-				GH.Prover.printD();
 				result = GH.Prover.applyLeft(GH.Prover.predecessorLeft, result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
-				GH.Prover.printD();
 				result = GH.Prover.associateRight(result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
-				GH.Prover.printD();
 				result = GH.Prover.applyRight(GH.Prover.successorRight, result);
-				GH.Prover.printBeforeLastStep(' ## </d> \n');
 			} else {
 				result = GH.Prover.successorRight(result);
 			}
-			GH.Prover.printBeforeLastStep(' ## </d> \n');
 			rightNum++;
 			leftNum--;
 		}
@@ -737,6 +759,8 @@ GH.Prover.distributeLeft = {};
 
 GH.Prover.distributeLeft.expectedForm = GH.sExpression.fromString('(* (+ A B) C)');
 
+GH.Prover.distributeLeft.description = 'Distributive Prop.';
+
 GH.Prover.distributeLeft.name = function(sexp) {
 	return 'distl';
 };
@@ -755,6 +779,8 @@ GH.Prover.undistributeLeft.expectedForm = GH.sExpression.fromString('(+ (* A C) 
 GH.Prover.undistributeLeft.name = function(sexp) {
 	return 'undistl';
 };
+
+GH.Prover.undistributeLeft.description = 'Distributive Prop.';
 
 GH.Prover.undistributeLeft.header = function(sexp) {
 	return '() ()';
@@ -1080,7 +1106,50 @@ GH.Prover.reassociate = function(sexp, oldTree, newTree) {
 	return result;
 };
 
+GH.Prover.oneDigitNotZero = function(sexp) {
+	var predecessor = parseInt(sexp.operator_) - 1;	
+	GH.Prover.print(['(' + predecessor + ')'], 'pa_ax1');
+	var result = GH.Prover.getLast().child().right();
 
+	GH.Prover.print(['(' + predecessor + ')'], 'a1suc');
+	result = GH.Prover.getReplaced(result, GH.Prover.getLast())
+	GH.Prover.successorLeft(result);
+};
+
+GH.Prover.oneDigitInequality = function(leftNum, rightNum) {
+	if (leftNum >= rightNum) {
+		// Not written yet.
+		return;
+	}
+	var diff = rightNum - leftNum;
+	GH.Prover.println('x (' + diff + ') tyex');
+	GH.Prover.println('x (' + diff + ') (' + leftNum + ') addeq2');
+	
+	var result = GH.Prover.getLast().right().right();
+	result = GH.Prover.replaceWith(GH.Prover.addSingleDigits, result);
+	
+	GH.Prover.println('x 19.22i');
+	GH.Prover.println('ax-mp');
+
+    GH.Prover.println('(' + leftNum + ') (' + rightNum + ') x df-le');
+    GH.Prover.println('mpbir');  // Could also use replace.
+
+    // TODO: Put this is a not equal function
+		// TODO: Don't use a fake s-expression.
+		var fakeSexp = {operator_: diff};
+		GH.Prover.oneDigitNotZero(fakeSexp);
+		GH.Prover.println('(0) (' + leftNum + ') (' + diff + ') addcan')
+		GH.Prover.println('mtbir');
+	
+		result = GH.Prover.getLast().child();
+		result = GH.Prover.replaceRight(GH.Prover.addSingleDigits, result);
+		result = GH.Prover.additiveIdentity(result.left());
+		
+	GH.Prover.println('pm3.2i');
+	GH.Prover.println('(' + leftNum + ') (' + rightNum + ') df-lt');
+	GH.Prover.println('bicomi');
+	GH.Prover.println('mpbi');
+};
 
 	
 /** 

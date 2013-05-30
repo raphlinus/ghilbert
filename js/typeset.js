@@ -154,8 +154,17 @@ GH.typesetsubst = function(term, prec, cursorPosition) {
     var sp_slug = GH.spaceslug(1 + ph_slug.prsp);
     var slugs = [open_slug, A_slug, slash_slug, x_slug, close_slug, 
              sp_slug, ph_slug];
-    return GH.combineslugs(slugs, prec);
-                                    
+    return GH.combineslugs(slugs, prec);                          
+};
+
+// First and third terms wrap the second term. Used to add html
+// tags to the typesetting.
+GH.typesethtml = function(term, cursorPosition) {
+    var pre_slug = {str: term[1]};
+    var main_slug = GH.typeset(term[2], cursorPosition);
+    var post_slug = {str: term[3]};
+    var slugs = [pre_slug, main_slug, post_slug];
+    return GH.combineslugs(slugs, main_slug.prec, main_slug.prsp);                          
 };
 
 GH.typesetclab = function(term, cursorPosition) {
@@ -269,6 +278,8 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (!isNaN(decimal)) {
 		str = GH.highlightSymbol(decimal.toString(), sexp, cursorPosition);
 		return GH.stringslug(str, cursorPosition);
+    } else if (sexp[0] == 'table') {
+        return GH.typesethtml(sexp, cursorPosition);
     } else if (sexp[0] == '+') {
 		// TODO: Finish highlighting the other symbols.
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);

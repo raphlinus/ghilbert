@@ -25,6 +25,80 @@ GH.Scanner = function (lines) {
     this.lineno = 0;
     this.toks = [];
     this.tokix = 0;
+
+	this.styleScanner = new GH.StyleScanner();
+};
+
+GH.StyleScanner = function() {
+	this.styleMode = GH.StyleScanner.modeTypes.NONE;
+	this.table = null;
+	this.leftColumns = 0;
+};
+
+GH.StyleScanner.modeTypes = {
+	NONE: 0,
+	TABLE: 1
+};
+
+GH.StyleScanner.prototype.read_column_style = function(tok) {
+	if (tok == '') {
+		return;
+	} else if (tok == '(') {
+		var newTableExpression = new GH.tableExpression(this.table, null, this.leftColumns);
+		this.table.children.push(newTableExpression);
+		this.table = newTableExpression;
+		this.leftColumns = 0;
+	} else if (tok == ')') {
+		this.table = this.table.parent;
+	} else if (tok == '[') {
+		this.leftColumns++;
+	} else if (tok == ']') {
+		this.table.addRightColumn();
+	} else {
+		this.table.addExpression(tok, this.leftColumns);
+		this.leftColumns = 0;
+	}
+};
+
+GH.StyleScanner.prototype.get_styling = function() {
+	if (this.table) {
+		var result = this.table.output();
+		result.splice(0, 1);
+		return result;
+	} else {
+		return null;
+	}
+};
+
+GH.StyleScanner.prototype.clear = function() {
+	this.table = null;
+}
+
+GH.StyleScanner.prototype.read_styling = function(line) {
+	var splitLine = line.split('##');
+	if (splitLine.length != 2) {
+		return;
+	}
+	line = splitLine[1];
+	var initialLength = this.table ? this.table.length : 0;
+	var styleModeTypes = GH.StyleScanner.modeTypes;
+	var toks = line.split(/[ \t]+/);
+	for (var i = 0; i < toks.length; i++) {
+		var tok = toks[i];
+		if (tok == '<table>') {
+			this.styleMode = styleModeTypes.TABLE;
+			this.table = new GH.tableExpression(null, 'root', 0);
+		} else if (tok == '</table>') {
+			// TODO: Add test that there are an equal number of columns.
+			if (this.leftColumns != 0) {
+				alert('Unattached left columns');
+				this.leftColumns = 0;
+			}
+			this.styleMode = styleModeTypes.NONE;
+		} else if (this.styleMode == styleModeTypes.TABLE) {
+			this.read_column_style(tok);
+		}
+	}
 };
 
 GH.Scanner.prototype.get_tok = function() {
@@ -34,8 +108,9 @@ GH.Scanner.prototype.get_tok = function() {
         }
         var line = this.lines[this.lineno];
         this.lineno++;
-        line = line.split('#')[0];
         line = line.replace(/\(|\)/g, ' $& ');
+		this.styleScanner.read_styling(line);
+        line = line.split('#')[0];
         this.toks = line.split(/[ \t]+/);
         this.tokix = this.toks[0] == '' ? 1 : 0;
         if (this.toks[this.toks.length - 1] == '') {
@@ -47,7 +122,48 @@ GH.Scanner.prototype.get_tok = function() {
     return result;
 };
 
+GH.tableExpression = function(parent, expression, leftColumns) {
+	this.parent = parent;
+	this.expression = expression;
+	this.rightColumns = '';
+	this.leftColumns = '';
+	for (var i = 0; i < leftColumns; i++) {
+		this.leftColumns += '</td><td>';
+	}
+	this.children = [];
+};
+
+GH.tableExpression.prototype.addExpression = function(tok, leftColumns) {
+	if (this.expression == null) {
+		this.expression = tok;
+	} else {
+		this.children.push(new GH.tableExpression(this, tok, leftColumns));
+	}
+};
+
+GH.tableExpression.prototype.addRightColumn = function() {
+	this.children[this.children.length - 1].rightColumns += '</td><td>';
+};
+
+GH.tableExpression.prototype.output = function() {
+	var result;
+	if (this.children.length > 0) {
+		var result = [this.expression];
+		for (var i = 0; i < this.children.length; i++) {
+			result.push(this.children[i].output());
+		}
+	} else {
+		result = this.expression;
+	}
+	if ((this.leftColumns != '') || (this.rightColumns != '')) {
+		return ['table', this.leftColumns, result, this.rightColumns];
+	} else {
+		return result;
+	}
+};
+
 GH.read_sexp = function(scanner) {
+	scanner.table = null;
     while (1) {
         var tok = scanner.get_tok();
         if (tok == null) {
@@ -279,11 +395,11 @@ GH.VerifyCtx.prototype.add_term = function(label, term) {
 };
 
 GH.VerifyCtx.prototype.add_assertion = function(kw, label, fv, hyps, concl,
-                varlist, num_hypvars, num_nondummies, syms) {
+                varlist, num_hypvars, num_nondummies, syms, styling) {
     var mand = varlist.slice(num_hypvars, num_nondummies);
     // TODO -- probably want to save all of varlist, as well as num_hypvars,
     // num_nondummies
-    this.add_sym(label, [kw, fv, hyps, concl, mand, syms]);
+    this.add_sym(label, [kw, fv, hyps, concl, mand, syms, styling]);
 };
 
 GH.VerifyCtx.prototype.allvars = function(exp) {
@@ -437,7 +553,7 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
     return this.kinds[v[0]];
 };
 
-GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
+GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
   var i, j, label, fv, hyps, concl, proof, new_hyps, proofctx;
     if (cmd == 'thm') {
         if (arg.length < 5) {
@@ -463,7 +579,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
         // If we go to index variable expression storage we don't need either
         this.add_assertion('thm', label, fv, new_hyps, concl,
                            proofctx.varlist, proofctx.num_hypvars,
-                           proofctx.num_nondummies, this.syms);
+                           proofctx.num_nondummies, this.syms, styling);
         return;
     }
     if (cmd == 'defthm') {
@@ -496,7 +612,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg) {
         this.terms[dsig[0]] = proofctx.defterm;
         this.add_assertion('thm', label, fv, new_hyps, concl,
                            proofctx.varlist, proofctx.num_hypvars,
-                           proofctx.num_nondummies, this.syms);
+                           proofctx.num_nondummies, this.syms, []);
         return;
     }
     if (cmd == 'import' || cmd == 'export') {
@@ -791,7 +907,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     }
     try {
     for (i = 0; i < proof.length; i++) {
-        this.check_proof_step(hypmap, proof[i],  proofctx, 0);
+        this.check_proof_step(hypmap, proof[i],  proofctx, 0, []);
     }
     if (proofctx.mandstack.length != 0) {
         throw 'Extra mand hyps on stack at end of proof';
@@ -845,7 +961,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, depth
         }
 		var hyp = hypmap[step];
 		proofctx.stack.push(hyp);
-		proofctx.stackHistory.push(new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, false, depth));
+		proofctx.stackHistory.push(new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, false, depth, null));
 		return;
     }
     if (!this.syms.hasOwnProperty(step)) {
@@ -869,7 +985,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, depth
 
 		var removed = proofctx.stackHistory.splice(sp);
 		var isThm = (v[0] == 'thm');
-		proofctx.stackHistory.push(new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, isThm, depth));
+		proofctx.stackHistory.push(new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, isThm, depth, v[6]));
 		proofctx.mandstack = [];
     }
 };
@@ -1187,7 +1303,7 @@ GH.ImportCtx.prototype.map_syms = function(sexp, mapping, varlist,
     }
 };
 
-GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
+GH.ImportCtx.prototype.do_cmd = function(cmd, arg, styling) {
     var kind, i, j, v, vv;
     if (cmd == 'stmt') {
         // import context 'stmt' command
@@ -1239,7 +1355,7 @@ GH.ImportCtx.prototype.do_cmd = function(cmd, arg) {
         }
         this.verify.add_assertion('stmt', label, fv, hyps, concl,
                                   varlist, num_hypvars, varlist.length,
-                                  this.vars);
+                                  this.vars, styling);
         return;
     }
     if (cmd == 'term') {
@@ -1340,7 +1456,7 @@ GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
     return true;
 };
 
-GH.ExportCtx.prototype.do_cmd = function(cmd, arg) {
+GH.ExportCtx.prototype.do_cmd = function(cmd, arg, styling) {
     var kind, i, j, v, vv;
     if (cmd == 'stmt') {
         // export context 'stmt' command

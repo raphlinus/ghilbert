@@ -25,14 +25,19 @@ function run(urlctx, url, ctx) {
 	while (true) {
 	    var cmd = GH.read_sexp(s);
 	    if (cmd == null) {
-		return true;
+			return true;
 	    }
 	    if (GH.typeOf(cmd) != 'string') {
-		throw 'Cmd must be atom';
+			throw 'Cmd must be atom';
 	    }
+		// The styling is currently not a part of the core Ghilbert language,
+		// but is included using structured comments. The special case logic
+		// for styling will go away if it gets included in the language.
+		var styling = s.styleScanner.get_styling();
 	    var arg = GH.read_sexp(s);
 	    //log(cmd + ' ' + GH.sexp_to_string(arg));
-	    ctx.do_cmd(cmd, arg);
+	    ctx.do_cmd(cmd, arg, styling);
+		s.styleScanner.clear();
 	}
 	//} catch (e) {
 	//log(url + ':' + s.lineno + ': ' + e);
