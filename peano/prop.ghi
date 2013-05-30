@@ -109,11 +109,20 @@ stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 #        "&" and "=>" informally indicate the relationship between the hypotheses
 #        and the assertion (conclusion), abbreviating the English words "and" and
 #        "implies."  They are not part of the formal language.
+## <table>
+##      ph ] ]
+##  (-> ph ] [ ps)
+##         [ [ ps
+## </table>
 stmt (ax-mp () (ph (-> ph ps)) ps)
 
 #  Inference derived from axiom [[ax-1]].  See [[a1d]] for an explanation of
 #        our informal use of the terms "inference" and "deduction."  See also
 #        the comment in [[syld]].
+## <table>
+##          [ ph
+##   (-> ps [ ph)
+## </table>
 stmt (a1i () (ph) (-> ps ph))
 
 #  Inference derived from axiom [[ax-2]].
@@ -129,6 +138,11 @@ stmt (a2i () ((-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)))
 #        database.  In second place is [[ax-mp]], followed by [[visset]], [[bitri]],
 #        [[imp]], and [[ex]].  The Metamath program command 'show usage' shows the
 #        number of references.)
+## <table>
+##   (-> ph [     ps ] ]    ] )
+##          [ (-> ps ] [ ch ] )
+##   (-> ph [        [ [ ch ] )
+## </table>
 stmt (syl () ((-> ph ps) (-> ps ch)) (-> ph ch))
 
 #  Inference that swaps (commutes) antecedents in an implication.
@@ -493,6 +507,11 @@ stmt (pm2.24d () ((-> ph ps)) (-> ph (-> (-. ps) ch)))
 stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 
 #  Modus tollens inference.
+## <table>
+##                  [    [  [ (-. [ ch)
+##   (-> ph (->     [ ps ]  [     [ ch))
+##   (-> ph     (-. [ ps ]  ]     ]   ))
+## </table>
 stmt (mtoi () ((-. ch) (-> ph (-> ps ch))) (-> ph (-. ps)))
 
 #  Modus tollens deduction.
@@ -757,6 +776,11 @@ stmt (biidd () () (-> ph (<-> ps ps)))
 stmt (bicomi () ((<-> ph ps)) (<-> ps ph))
 
 #  An inference from transitive law for logical equivalence.
+## <table>
+##   (<-> ph ]      [ ps ] ] )
+##           [ (<-> [ ps ] [ ch)
+##   (<-> ph ]      [    [ [ ch)
+## </table>
 stmt (bitri () ((<-> ph ps) (<-> ps ch)) (<-> ph ch))
 
 #  An inference from transitive law for logical equivalence.
@@ -801,15 +825,29 @@ stmt (imbi2i () ((<-> ph ps)) (<-> (-> ch ph) (-> ch ps)))
 stmt (imbi1i () ((<-> ph ps)) (<-> (-> ph ch) (-> ps ch)))
 
 #  Negate both sides of a logical equivalence.
+## <table>
+##   (<->     [ ph ]       [ ps ] )
+##   (<-> (-. [ ph ] ) (-. [ ps ] ))
+## </table>
 stmt (notbii () ((<-> ph ps)) (<-> (-. ph) (-. ps)))
 
 #  Join two logical equivalences to form equivalence of implications.
 stmt (imbi12i () ((<-> ph ps) (<-> ch th)) (<-> (-> ph ch) (-> ps th)))
 
 #  An inference from a biconditional, related to modus ponens.
+## <table>
+##      ph ] ]    ]
+## (<-> ph ] [ ps ] )
+##         [ [ ps ]
+## </table>
 stmt (mpbi () (ph (<-> ph ps)) ps)
 
 #  An inference from a biconditional, related to modus ponens.
+## <table>
+##         [ [ ps ]
+## (<-> ph ] [ ps ] )
+##      ph ] ]    ]
+## </table>
 stmt (mpbir () (ps (<-> ph ps)) ph)
 
 #  An inference from a biconditional, related to modus tollens.
@@ -834,10 +872,21 @@ stmt (mpbird () ((-> ph ch) (-> ph (<-> ps ch))) (-> ph ps))
 stmt (a1bi () (ph) (<-> ps (-> ph ps)))
 
 #  A mixed syllogism inference from an implication and a biconditional.
+## <table>
+##   (-> ph [      ps ] ]    ] )
+##          [ (<-> ps ] [ ch ] )
+##   (-> ph [         [ [ ch ] )
+## </table>
 stmt (sylib () ((-> ph ps) (<-> ps ch)) (-> ph ch))
 
 #  A mixed syllogism inference from a biconditional and an implication.
 #        Useful for substituting an antecedent with a definition.
+
+## <table>
+##   (<-> ph [     ps ] ]    ] )
+##           [ (-> ps ] [ ch ] )
+##   ( -> ph [        [ [ ch ] )
+## </table>
 stmt (sylbi () ((<-> ph ps) (-> ps ch)) (-> ph ch))
 
 #  A mixed syllogism inference from an implication and a biconditional.
@@ -1029,10 +1078,18 @@ stmt (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps)))
 
 #  Inference adding a left disjunct to both sides of a logical
 #        equivalence.
+## <table>
+##   (<->        [ ph ]   [        [ ps)
+##   (<-> (\/ ch [ ph ] ) [ (\/ ch [ ps))
+## </table>
 stmt (orbi2i () ((<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps)))
 
 #  Inference adding a right disjunct to both sides of a logical
 #        equivalence.
+## <table>
+##   (<->     ph ]     ]     [ ps ] )
+##   (<-> (\/ ph ] ch) ] (\/ [ ps ] ch))
+## </table>
 stmt (orbi1i () ((<-> ph ps)) (<-> (\/ ph ch) (\/ ps ch)))
 
 #  Infer the disjunction of two equivalences.
@@ -2538,6 +2595,11 @@ stmt (mtbird () ((-> ph (-. ch)) (-> ph (<-> ps ch))) (-> ph (-. ps)))
 stmt (mtbii () ((-. ps) (-> ph (<-> ps ch))) (-> ph (-. ch)))
 
 #  An inference from a biconditional, similar to modus tollens.
+## <table>
+##                  [ [ (-. [ ch)
+##   (-> ph (<-> ps ] [     [ ch))
+##   (-> ph  (-. ps ] ]     ]   ))
+## </table>
 stmt (mtbiri () ((-. ch) (-> ph (<-> ps ch))) (-> ph (-. ps)))
 
 #  Two truths are equivalent.

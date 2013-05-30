@@ -7,6 +7,18 @@ tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D')
 var (nat v w x y z v' w' x' y' z')
 
+# == Logic ==
+
+# A true statement can be removed from a conjunction.
+thm (anTrue () (hyp ps) (<-> (/\ ps ph) ph)
+  hyp
+  ps ph pm3.2
+  ax-mp
+  ps ph pm3.27
+  impbii
+  bicomi
+)
+
 # == Pure predicate calculus ==
 
 thm (a4i ()
@@ -23,7 +35,11 @@ thm (mpg ()
   (hyp1 (-> (A. x ph) ps)
    hyp2 ph)
   ps
-  hyp2 x gen hyp1 ax-mp
+  hyp2
+  ## <d>
+    x gen
+  ## </d>
+  hyp1 ax-mp
 )
 
 thm (19.3 ((ph x))
@@ -56,6 +72,11 @@ thm (bitr3icom()
   hyp1 hyp2 bitr3i bicomi
 )
 
+## <table>
+##   (\/      ph ] ] ps)
+##       (<-> ph ] [ ch)
+##   (\/         [ [ ch ps)
+## </table>
 thm (orbi1ii ()
   (hyp1 (\/ ph ps)
    hyp2 (<-> ph ch))
@@ -202,6 +223,10 @@ thm (19.22 () ()
     x ph df-ex x ps df-ex imbi12i sylibr
 )
 
+## <table>
+##   (->       [ ph ]        [ ps ] )
+##   (-> (E. x [ ph ]) (E. x [ ps ] ))
+## </table>
 thm (19.22i ()
   (hyp (-> ph ps))
   (-> (E. x ph) (E. x ps))
@@ -490,21 +515,37 @@ thm (eqeq2 () ()
   sylib
 )
 
+## <table>
+##   (=      A ]    ] [    B ] )
+##   (<-> (= A ] C) ] [ (= B ] C))
+## </table>
 thm (eqeq1i ()
   (hyp (= A B))
   (<-> (= A C) (= B C))
   hyp A B C eqeq1 ax-mp)
 
+## <table>
+##   (-> ph (=      A ]    ] [    B ] ))
+##   (-> ph (<-> (= A ] C) ] [ (= B ] C)))
+## </table>
 thm (eqeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (= A C) (= B C)))
   hyp A B C eqeq1 syl)
-
+	
+## <table>
+##   (=        [ A  ] [      [ B)
+##   (<-> (= C [ A) ] [ (= C [ B))
+## </table>
 thm (eqeq2i ()
   (hyp (= A B))
   (<-> (= C A) (= C B))
   hyp A B C eqeq2 ax-mp)
-
+	
+## <table>
+##   (-> ph (=        [ A  ] [      [ B))
+##   (-> ph (<-> (= C [ A) ] [ (= C [ B)))
+## </table>
 thm (eqeq2d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (= C A) (= C B)))
@@ -525,6 +566,11 @@ thm (eqeq12d ()
   hyp2 B eqeq2d bitrd
 )
 
+## <table>
+##   (= A [ B    ] ]  )
+##   (= A [      [ [ C)
+##        [ (= B ] [ C)
+## </table>
 thm (eqtr3 ()
   (hyp1 (= A B)
    hyp2 (= A C))
@@ -574,6 +620,11 @@ thm (syl5eqr ()
   hyp2 eqcomi ph a1i hyp1 eqtrd
 )
 
+## <table>
+##   (-> ph (= A [    B ] ]  ))
+##               [ (= B ] [ C)
+##   (-> ph (= A [      [ [ C))
+## </table>
 thm (syl6eq ()
   (hyp1 (-> ph (= A B))
    hyp2 (= B C))
@@ -1315,6 +1366,81 @@ thm (a1suc () ()
   A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr eqcomi
 )
 
+# Replace an equal statement in the second part of an AND statement using the first part of the AND.
+thm (anReplaceEq () () (<-> (/\ (= A B) (= B C)) (/\ (= A B) (= A C)))
+  (= A B) (= B C) pm3.26
+
+  B A C ax-eqtr
+  B A eqcom
+  (= B C) anbi1i
+  sylbi2
+  jca
+
+  (= A B) (= A C) pm3.26
+  A B C ax-eqtr
+  jca
+
+  impbii
+)
+
+thm (inlineEq () () (<-> (/\ (= A B) (= A C)) (/\ (= A B) (= B C)))
+  (= A B) (= A C) pm3.26
+  A B C ax-eqtr
+  jca
+
+  (= A B) (= B C) pm3.26
+  B A C ax-eqtr
+
+  B A eqcom
+  (= B C) anbi1i
+  sylbi2
+  jca
+  impbii
+)
+
+thm (inlineNeqLem () ()
+  (-> (/\ (= A B) (-. (= B C))) (/\ (= A B) (-. (= A C))))
+
+  A B C ax-eqtr
+  con3i
+  (= A B) anim2i
+  (= A B) (/\ (= A B) (= A C)) pm4.52
+  sylib
+  (-. (= A B)) (= A B) (= A C)
+  ordi
+  con4biir
+  sylib
+  (= A B) exmid
+
+  (= A B) (-. (= A B)) orcom
+  mpbi
+
+  (\/ (-. (= A B)) (= A C))
+  anTrue
+  
+  con4biir
+  sylib
+
+  (= A B) (= A C) pm4.52
+  bicomi
+  sylib
+)
+
+thm (inlineNeq () () (<-> (/\ (= A B) (-. (= B C))) (/\ (= A B) (-. (= A C)))) 
+
+  A B C inlineNeqLem
+  B A C inlineNeqLem
+
+  B A eqcom
+  (-. (= A C)) anbi1i
+  sylbi2
+
+  B A eqcom
+  (-. (= B C)) anbi1i
+  sylib
+  impbii
+)
+
 thm (df-le-just ((A x) (B x) (A y) (B y)) ()
        (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
       x y A addeq2 B eqeq1d exalpha)
@@ -1328,6 +1454,61 @@ defthm (df-le wff (<= A B) ((A x) (B x)) ()
 defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
         (/\ (<= A B) (-. (= A B))) biid)
 
+thm (ltle ()
+  (hyp (<  A B))
+       (<= A B)
+  hyp
+  A B df-lt
+  mpbi
+  pm3.26i
+)
+
+thm (netr ()
+  (hyp (=  A B)
+   hyp2 (-. (= B C)))
+       (-. (= A C))
+  hyp2
+  hyp
+  C eqeq1i
+  mtbir
+)
+
+thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
+  A B df-lt
+
+  A B x df-le
+  (-. (= A B))
+  anbi1i
+  bitri
+
+  x (= (+ A x) B) (-. (= A B)) 19.41
+  bicomi
+  bitri
+
+  A x (0) addcan2
+  bicomi
+  A pa_ax3r
+  (0) A addcom
+  eqtr5
+  (+ A x) eqeq2i
+  bitri
+  notbii
+  (= (+ A x) B) anbi2i
+
+  (+ A x) B A inlineNeq 
+  B A eqcom
+  con4biir
+  (= (+ A x) B) anbi2i
+  bitr3icom
+
+  bicomi
+  bitri
+  bicomi
+
+  x exbii
+  bitri
+)
+
 # Equality deduction for less than or equal relation
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
@@ -1340,6 +1521,10 @@ thm (leeq1d ()
 )
 
 # Equality deduction for less than or equal relation
+## <table>
+##   (-> ph (=         [ A ]       [   [ B ] ))
+##   (-> ph (<-> (<= C [ A ] ) (<= [ C [ B ] )))
+## </table>
 thm (leeq2d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= C A) (<= C B)))
@@ -1351,6 +1536,10 @@ thm (leeq2d ()
 )
 
 # Equality inference for less than or equal relation
+## <table>
+##   (=       A ]   ]       [ B ]   )
+##   (<-> (<= A ] C ] ) (<= [ B ] C))
+## </table>
 thm (leeq1i ()
   (hyp (= A B))
   (<-> (<= A C) (<= B C))
@@ -1358,6 +1547,10 @@ thm (leeq1i ()
 )
 
 # Equality inference for less than or equal relation
+## <table>
+##   (=         [ A ]       [   [ B ] )
+##   (<-> (<= C [ A ] ) (<= [ C [ B ] ))
+## </table>
 thm (leeq2i ()
   (hyp (= A B))
   (<-> (<= C A) (<= C B))
@@ -1635,6 +1828,15 @@ thm (leleo () ()
   bitr4i
   B A eqcom (< A B) orbi1i bitri
   (= A B) (< A B) orcom bitri
+)
+
+thm (nelt0 () (hyp (-. (= x (0)))) (-. (<= x (0)))
+  x nn0nlt0
+  hyp
+  pm3.2ni
+
+  x (0) leleo
+  mtbir
 )
 
 thm (ltadd1 () ()
@@ -2818,6 +3020,27 @@ defthm (df-9 nat (9) () () (= (9) (+ (8) (1)))
 defthm (df-10 nat (10) () () (= (10) (+ (9) (1)))
         (+ (9) (1)) eqid)
 
+thm (2p2eq4 () () (= (+ (2) (2)) (4))
+  df-2
+  (2) addeq2i
+  ## <d>
+    (2) (1) (1) addass
+    eqcomi
+  ## </d>
+  eqtr
+  ## <d>
+    df-3
+    eqcomi
+    (1) addeq1i
+  ## </d>
+  eqtr
+  ## <d>
+    df-4
+    eqcomi
+  ## </d>
+  eqtr
+)
+
 # number 42.0
 thm (0ne2 () () (-. (= (0) (+ (1) (1))))
     (1) pa_ax1  (1) a1suc (0) eqeq2i  mtbi #  (= (* x y) (+ (1) (1)))  mt2bi bicomi
@@ -2846,49 +3069,117 @@ thm (2primelem1 ()
 )
 # number 45.0
 thm (2prime () () (prime (+ (1) (1)))
-  x (+ (1) (1)) y df-divides
+  ## <d>
+    x (+ (1) (1)) y df-divides
+  ## </d>
 
   # y is 0 or >=1.
   y 0orpos
   # x is 0, 1 2, or >= 3
-    x 0orpos
+  x 0orpos
+  ## <d>
     (1) x lefoo3    (= x (0)) orbi2i
+  ## </d>
   mpbi
-  (+ (1) (1)) x lefoo3   (= (1) x) orbi2i (= x (0)) orbi2i   mpbi
+  ## <d>
+    (+ (1) (1)) x lefoo3   (= (1) x) orbi2i (= x (0)) orbi2i
+  ## </d>
+  mpbi
 
 
   # 1<=y and 3<=x means x * y >= 1*3
   (1) y (+ (+ (1) (1)) (1)) x lemul3
   # replace 1*3  with 3
-  (+ (+ (1) (1)) (1)) mulid (+ (+ (1) (1)) (1)) (1) mulcom eqtr3 (* y x) leeq1i bicomi sylib
+  ## <d>
+    ## <d>
+      (+ (+ (1) (1)) (1)) mulid
+    ## </d>
+    (+ (+ (1) (1)) (1)) (1) mulcom
+    eqtr3
+    (* y x) leeq1i
+    bicomi
+  ## </d>
+
+  sylib
   # but it's not true that 3 <= 2
-  1nle0    (1) (0) (+ (1) (1)) leadd2    (+ (1) (1)) pa_ax3 (+ (+ (1) (1)) (1)) leeq2i bitri   notbii   mpbi
+  ## <d>
+    1nle0
+    ## <d>
+      (1) (0) (+ (1) (1)) leadd2
+      ## <d>
+        (+ (1) (1)) pa_ax3 (+ (+ (1) (1)) (1)) leeq2i
+      ## </d>
+      bitri   notbii
+    ## </d>
+  ## </d>
+  mpbi
+
   # so this line of reasoning means that x * y != 2
-  x y mulcom (+ (1) (1)) eqeq1i biimpi (+ (+ (1) (1)) (1)) leeq2d    mtbiri  con2i  syl
+  ## <d>
+    x y mulcom
+    ## <d>
+      (+ (1) (1)) eqeq1i
+    ## </d>
+    biimpi (+ (+ (1) (1)) (1)) leeq2d
+  ## </d>
+  mtbiri  con2i  syl
 
   # y=0 can't give us x*y = 2
-    0ne2
-    y (0) x muleq2    x pa_ax5  syl6eq  (+ (1) (1)) eqeq1d  biimpd
+  0ne2
+  ## <d>
+    y (0) x muleq2
+    ## <d>
+      x pa_ax5
+    ## </d>
+    syl6eq
+    ## <d>
+      (+ (1) (1)) eqeq1d
+    ## </d>
+    biimpd
+  ## </d>
   mtoi
 
   # x=0 can't give us x*y = 2 either
-    0ne2
-    x (0) y muleq1   y pa_ax5r  syl6eq  (+ (1) (1)) eqeq1d  biimpd
+  0ne2
+  ## <d>
+    x (0) y muleq1
+    ## <d>
+      y pa_ax5r
+    ## </d>
+    syl6eq
+    ## <d>
+      (+ (1) (1)) eqeq1d
+    ## </d>
+    biimpd
+  ## </d>
   mtoi
 
-  # That's all the math -- from here on out it's juggling predicates, connectives, and quantifiers.
-  # If the verifier autounified I wouldn't have to carry around all the mandhyps baggage.
-  # Instead I tried to tuck most of it away in a lemma.
+  # That's all the math -- from here on out it's juggling predicates,
+  # connectives, and quantifiers. If the verifier autounified I
+  # wouldn't have to carry around all the mandhyps baggage. Instead I
+  # tried to tuck most of it away in a lemma.
   2primelem1
 
-  (1) x eqcom   (= (+ (1) (1)) x) orbi1i  sylib
-  (+ (1) (1)) x eqcom (= x (1)) orbi2i sylib
+  ## <d>
+    (1) x eqcom   (= (+ (1) (1)) x) orbi1i
+  ## </d>
+  sylib
+  ## <d>
+    (+ (1) (1)) x eqcom (= x (1)) orbi2i
+  ## </d>
+  sylib
   y 19.22i
-  y (\/ (= x (1)) (= x (+ (1) (1)))) 19.9  sylib
-  sylbi x gen
+  ## <d>
+    y (\/ (= x (1)) (= x (+ (1) (1)))) 19.9
+  ## </d>
+  sylib
+  sylbi
 
-
-  (+ (1) (1)) x df-prime   mpbir
+  x gen
+  ## <d>
+    (+ (1) (1)) x df-prime
+  ## </d>
+  mpbir
 )
 # number 46.0
 thm (dividesmul () ()
