@@ -118,7 +118,14 @@ thm (LessEqualBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (↔ (≤ a0 b0) (≤
         a0 a1 b0 b1 EqualityBuilder
 
         buildDisjunctionInConsequent
- )
+
+        a0 b0 LessEqualLessThan
+        a1 b1 LessEqualLessThan
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
 thm (LessEqualBuilderLL () () (→ (= b0 b1) (↔ (≤ a b0) (≤ a b1)))
         a EqualityReflexivity
         a a b0 b1 LessEqualBuilder
@@ -156,12 +163,24 @@ thm (EqualityLessEqual () () (→ (= a b) (≤ a b))
 # The builder gives us <code>a = b → (a ≤ a ↔ a ≤ b)</code>.  But <code>a ≤ a</code> is a theorem, so we are done.
         detachImplicationBiconditional
  )
+
 thm (LessThanLessEqualImplication () () (→ (< a b) (≤ a b))
-        (< a b) (= a b) DisjunctionRightIntroduction
- )
+  (< a b) (= a b) DisjunctionRightIntroduction
+
+  a b LessEqualLessThan
+  eliminateBiconditionalForward
+  applySyllogism
+)
+
 thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
+# First there is some setup, <code>a ≤ b ∧ b < c → (a < b ∧ b < c) ∨ (a = b ∧ b < c)</code>
+        a b LessEqualLessThan
+        (< b c) buildConjunctionRR
+        eliminateBiconditionalReverse
+
         (< a b) (= a b) (< b c) ConjunctionRightDistribution
         eliminateBiconditionalReverse
+        applySyllogism
 
 # The first part of this proof is <code>a < b ∧ b < c → a < c</code>.
         a b c LessThanTransitivity
@@ -172,14 +191,26 @@ thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
 # Combining those two parts we are done.
         composeDisjunction
         applySyllogism
- )
+)
+
 thm (LessEqualTransitivity () () (→ (∧ (≤ a b) (≤ b c)) (≤ a c))
+        b c LessEqualLessThan
+        (≤ a b) buildConjunctionLL
+        eliminateBiconditionalReverse
+
         (≤ a b) (< b c) (= b c) ConjunctionLeftDistribution
         eliminateBiconditionalReverse
+        applySyllogism
+
 # The first part of this proof is <code>a ≤ b ∧ b < c → a ≤ c</code>.
         a b c LessEqualLessThanTransitivity
         (< a c) (= a c) DisjunctionRightIntroduction
         applySyllogism
+
+        a c LessEqualLessThan
+        eliminateBiconditionalForward
+        applySyllogism
+
 # The second part of the proof is <code>a ≤ b ∧ b = c → a ≤ c</code>.
         b c a LessEqualBuilderLL
         eliminateBiconditionalReverseInConsequent
@@ -188,7 +219,8 @@ thm (LessEqualTransitivity () () (→ (∧ (≤ a b) (≤ b c)) (≤ a c))
 # Combining the two parts we are done.
         composeDisjunction
         applySyllogism
- )
+)
+
 thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
         a EqualityReflexivity
 
