@@ -9,7 +9,7 @@ var (nat v w x y z v' w' x' y' z')
 
 # == Logic ==
 
-# A true statement can be removed from a conjunction.
+# A true statement can be removed from a conjunction. Similar to a1bi.
 thm (anTrue () (hyp ps) (<-> (/\ ps ph) ph)
   hyp
   ps ph pm3.2
@@ -49,6 +49,7 @@ thm (19.3 ((ph x))
 )
 
 # Reverse the hypothesis and conclusion of con4bii.
+## <title> Equivalence over Negation </title>
 thm (con4biir ()
   (hyp (<-> ph ps))
   (<-> (-. ph) (-. ps))
@@ -57,6 +58,7 @@ thm (con4biir ()
 )
 
 # Reorder sylbi a bit.
+## <title> Syllogism </title>
 thm (sylbi2()
   (hyp1 (-> ps ch)
    hyp2 (<-> ps ph))
@@ -65,6 +67,7 @@ thm (sylbi2()
 )
 
 # Commute the conclusion of bitr3i.
+## <title> Transitive Property </title>
 thm (bitr3icom()
   (hyp1 (<-> ps ph)
    hyp2 (<-> ps ch))
@@ -72,6 +75,7 @@ thm (bitr3icom()
   hyp1 hyp2 bitr3i bicomi
 )
 
+## <title> Equivalence over Disjunction </title>
 ## <table>
 ##   (\/      ph ] ] ps)
 ##       (<-> ph ] [ ch)
@@ -84,6 +88,7 @@ thm (orbi1ii ()
   hyp1 hyp2 ps orbi1i mpbi
 )
 
+## <title> Equivalence over Disjunction </title>
 thm (orbi2ii ()
   (hyp1 (\/ ph ps)
    hyp2 (<-> ps ch))
@@ -91,6 +96,7 @@ thm (orbi2ii ()
   hyp1 hyp2 ph orbi2i mpbi
 )
 
+## <title> Equivalence over Conjunction </title>
 thm (anbi1ii ()
   (hyp1 (/\ ph ps)
    hyp2 (<-> ph ch))
@@ -98,6 +104,7 @@ thm (anbi1ii ()
   hyp1 hyp2 ps anbi1i mpbi
 )
 
+## <title> Equivalence over Conjunction </title>
 thm (anbi2ii ()
   (hyp1 (/\ ph ps)
    hyp2 (<-> ps ch))
@@ -164,11 +171,13 @@ thm (19.15d () (H1 (-> ph (A. x (<-> ps ch))))
       (-> ph (<-> (A. x ps) (A. x ch)))
      H1 x ps ch 19.15 syl)
 
+## <title> Equivalence over Quantification </title>
 thm (albii ()
   (hyp (<-> ph ps))
   (<-> (A. x ph) (A. x ps))
   hyp x gen 19.15i)
-
+	
+## <title> Equivalence over Quantification </title>
 thm (albiii ()
   (hyp1 (A. x ph)
    hyp2 (<-> ph ps))
@@ -246,12 +255,14 @@ thm (19.18 () ()
   impbid
 )
 
+## <title> Equivalence over Quantification </title>
 thm (exbii ()
   (hyp (<-> ph ps))
   (<-> (E. x ph) (E. x ps))
   x ph ps 19.18 hyp mpg
 )
 
+## <title> Equivalence over Quantification </title>
 thm (exbiii ()
   (hyp1 (E. x ph)
    hyp2 (<-> ph ps))
@@ -473,11 +484,13 @@ thm (vtocle ((A x) (ph x))
   x A tyex hyp x 19.23ai ax-mp
 )
 
+## <title> Reflexive Property </title>
 thm (eqid () ()
   (= A A)
   x A A ax-eqtr anidms vtocle
 )
 
+## <title> Symmetric Property </title>
 thm (eqcom () ()
   (<-> (= A B) (= B A))
   A eqid A B A ax-eqtr mpan2
@@ -485,22 +498,26 @@ thm (eqcom () ()
   impbii
 )
 
+## <title> Symmetric Property </title>
 thm (eqcomi ()
   (hyp (= A B))
   (= B A)
   hyp A B eqcom mpbi)
-
+	
+## <title> Symmetric Property </title>
 thm (eqcomd ()
   (hyp (-> ph (= A B)))
   (-> ph (= B A))
   hyp A B eqcom sylib)
 
+## <title> Symmetric Property </title>
 thm (eqcoms ()
   (hyp (-> (= A B) ph))
   (-> (= B A) ph)
   B A eqcom hyp sylbi
 )
 
+## <title> Equivalence over Equality </title>
 thm (eqeq1 () ()
   (-> (= A B) (<-> (= A C) (= B C)))
   A B C ax-eqtr ex
@@ -508,6 +525,7 @@ thm (eqeq1 () ()
   impbid
 )
 
+## <title> Equivalence over Equality </title>
 thm (eqeq2 () ()
   (-> (= A B) (<-> (= C A) (= C B)))
   A B C eqeq1
@@ -515,6 +533,7 @@ thm (eqeq2 () ()
   sylib
 )
 
+## <title> Equivalence over Equality </title>
 ## <table>
 ##   (=      A ]    ] [    B ] )
 ##   (<-> (= A ] C) ] [ (= B ] C))
@@ -523,7 +542,8 @@ thm (eqeq1i ()
   (hyp (= A B))
   (<-> (= A C) (= B C))
   hyp A B C eqeq1 ax-mp)
-
+	
+## <title> Equivalence over Equality </title>
 ## <table>
 ##   (-> ph (=      A ]    ] [    B ] ))
 ##   (-> ph (<-> (= A ] C) ] [ (= B ] C)))
@@ -532,7 +552,8 @@ thm (eqeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (= A C) (= B C)))
   hyp A B C eqeq1 syl)
-
+	
+## <title> Equivalence over Equality </title>
 ## <table>
 ##   (=        [ A  ] [      [ B)
 ##   (<-> (= C [ A) ] [ (= C [ B))
@@ -541,7 +562,8 @@ thm (eqeq2i ()
   (hyp (= A B))
   (<-> (= C A) (= C B))
   hyp A B C eqeq2 ax-mp)
-
+	
+## <title> Equivalence over Equality </title>
 ## <table>
 ##   (-> ph (=        [ A  ] [      [ B))
 ##   (-> ph (<-> (= C [ A) ] [ (= C [ B)))
@@ -550,7 +572,8 @@ thm (eqeq2d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (= C A) (= C B)))
   hyp A B C eqeq2 syl)
-
+	
+## <title> Equivalence over Equality </title>
 thm (eqeq12i ()
   (hyp1 (= A B)
    hyp2 (= C D))
@@ -558,6 +581,7 @@ thm (eqeq12i ()
   hyp1 A B C eqeq1 ax-mp hyp2 C D B eqeq2 ax-mp bitri
 )
 
+## <title> Transtitive Property </title>
 thm (eqeq12d ()
   (hyp1 (-> ph (= A B))
    hyp2 (-> ph (= C D)))
@@ -566,6 +590,7 @@ thm (eqeq12d ()
   hyp2 B eqeq2d bitrd
 )
 
+## <title> Transtitive Property </title>
 ## <table>
 ##   (= A [ B    ] ]  )
 ##   (= A [      [ [ C)
@@ -578,6 +603,12 @@ thm (eqtr3 ()
   hyp1 hyp2 A B C ax-eqtr mp2an
 )
 
+## <title> Transtitive Property </title>
+## <table>
+##   (= A  [    B ] ] )
+##         [ (= B ] [ C)
+##   (= A  [      [ [ C)
+## </table>
 thm (eqtr ()
   (hyp1 (= A B)
    hyp2 (= B C))
@@ -585,6 +616,12 @@ thm (eqtr ()
   hyp1 eqcomi hyp2 eqtr3
 )
 
+## <title> Transtitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##        [ (= C ] [B )
+##   (= A [    C ] ]  )
+## </table>
 thm (eqtr4 ()
   (hyp1 (= A B)
    hyp2 (= C B))
@@ -592,6 +629,12 @@ thm (eqtr4 ()
   hyp1 hyp2 eqcomi eqtr
 )
 
+## <title> Transtitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##   (= A [    C ] ]  )
+##        [ (= C ] [B )
+## </table>
 thm (eqtr5 ()
   (hyp1 (= A B)
    hyp2 (= A C))
@@ -599,6 +642,7 @@ thm (eqtr5 ()
   hyp1 hyp2 A B C ax-eqtr mp2an eqcomi
 )
 
+## <title> Transtitive Property </title>
 thm (eqtrd ()
   (hyp1 (-> ph (= A B))
    hyp2 (-> ph (= B C)))
@@ -606,6 +650,7 @@ thm (eqtrd ()
   hyp1 hyp2 A eqeq2d mpbid
 )
 
+## <title> Syllogism </title>
 thm (syl5eq ()
   (hyp1 (-> ph (= A B))
    hyp2 (= C A))
@@ -613,6 +658,7 @@ thm (syl5eq ()
   hyp2 ph a1i hyp1 eqtrd
 )
 
+## <title> Syllogism </title>
 thm (syl5eqr ()
   (hyp1 (-> ph (= A B))
    hyp2 (= A C))
@@ -620,6 +666,7 @@ thm (syl5eqr ()
   hyp2 eqcomi ph a1i hyp1 eqtrd
 )
 
+## <title> Syllogism </title>
 ## <table>
 ##   (-> ph (= A [    B ] ]  ))
 ##               [ (= B ] [ C)
@@ -632,6 +679,7 @@ thm (syl6eq ()
   hyp1 hyp2 ph a1i eqtrd
 )
 
+## <title> Syllogism </title>
 thm (syl6eqr ()
   (hyp1 (-> ph (= A B))
    hyp2 (= C B))
@@ -639,6 +687,7 @@ thm (syl6eqr ()
   hyp1 hyp2 eqcomi ph a1i eqtrd
 )
 
+## <title> Syllogism </title>
 thm (sylan9eq ()
   (hyp1 (-> ph (= A B))
    hyp2 (-> ps (= B C)))
@@ -1038,14 +1087,17 @@ thm (eu4 ((ph y) (ps x))
 defthm (df-1 nat (1) () () (= (1) (S (0)))
         (S (0)) eqid)
 
+## <title> Equality over Addition </title>
 thm (addeq1 () ()
   (-> (= A B) (= (+ A C) (+ B C)))
   C eqid A B C C addeq12 mpan2)
-
+	
+## <title> Equality over Addition </title>
 thm (addeq2 () ()
   (-> (= A B) (= (+ C A) (+ C B)))
   C eqid C C A B addeq12 mpan)
-
+	
+## <title> Equality over Addition </title>
 thm (addeq12i ()
   (hyp1 (= A B)
    hyp2 (= C D))
@@ -1053,18 +1105,21 @@ thm (addeq12i ()
   hyp1 hyp2 A B C D addeq12 mp2an
 )
 
+## <title> Equality over Addition </title>
 thm (addeq1d ()
   (h (-> ph (= A B)))
   (-> ph (= (+ A C) (+ B C)))
   h A B C addeq1 syl
 )
 
+## <title> Equality over Addition </title>
 thm (addeq2d ()
   (h (-> ph (= A B)))
   (-> ph (= (+ C A) (+ C B)))
   h A B C addeq2 syl
 )
 
+## <title> Equality over Addition </title>
 thm (addeq12d ()
   (hyp1 (-> ph (= A B))
    hyp2 (-> ph (= C D)))
@@ -1072,26 +1127,37 @@ thm (addeq12d ()
   hyp1 hyp2 jca A B C D addeq12 syl
 )
 
+## <title> Equality over Addition </title>
 thm (addeq1i ()
   (hyp (= A B))
   (= (+ A C) (+ B C))
   hyp A B C addeq1 ax-mp
 )
 
+## <title> Equality over Addition </title>
 thm (addeq2i ()
   (hyp (= A B))
   (= (+ C A) (+ C B))
   C eqid hyp C C A B addeq12 mp2an
 )
 
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* A <r> C) (* B <r> C)))
+## </table>
 thm (muleq1 () ()
   (-> (= A B) (= (* A C) (* B C)))
   C eqid A B C C muleq12 mpan2)
-
+	
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* <r> C A) (* <r> C B)))
+## </table>
 thm (muleq2 () ()
   (-> (= A B) (= (* C A) (* C B)))
   C eqid C C A B muleq12 mpan)
 
+## <title> Equality over Multiplication </title>
 thm (muleq12i ()
   (hyp1 (= A B)
    hyp2 (= C D))
@@ -1099,18 +1165,21 @@ thm (muleq12i ()
   hyp1 hyp2 A B C D muleq12 mp2an
 )
 
+## <title> Equality over Multiplication </title>
 thm (muleq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (= (* A C) (* B C)))
   hyp C eqid A B C C muleq12 mpan2 syl
 )
 
+## <title> Equality over Multiplication </title>
 thm (muleq1i ()
   (hyp (= A B))
   (= (* A C) (* B C))
   hyp A B C muleq1 ax-mp
 )
 
+## <title> Equality over Multiplication </title>
 thm (muleq2i () (hyp (= A B))
   (= (* C A) (* C B))
   hyp A B C muleq2 ax-mp
@@ -1209,6 +1278,7 @@ thm (addass () ()
   finds
 )
 
+## <title> Multiply by 0 </title>
 thm (pa_ax5r () ()
   (= (* (0) A) (0))
 
@@ -1244,6 +1314,10 @@ thm (pa_ax6r () ()
   finds
 )
 
+## <title> Commutative Property </title>
+## <table>
+##   (= (* <r> A <g> B) (* <g> B <r> A))
+## </table>
 thm (mulcom () ()
   (= (* A B) (* B A))
 
@@ -1261,6 +1335,10 @@ thm (mulcom () ()
 )
 
 # One is an identity of multiplication
+## <title> Multiplicative Identity </title>
+## <table>
+##   (= (* A <r> (1)) A)
+## </table>
 thm (mulid () ()
   (= (* A (1)) A)
     df-1  (1) (S (0)) A muleq2 ax-mp
@@ -1417,7 +1495,7 @@ thm (inlineNeqLem () ()
 
   (\/ (-. (= A B)) (= A C))
   anTrue
-
+  
   con4biir
   sylib
 
@@ -1426,7 +1504,7 @@ thm (inlineNeqLem () ()
   sylib
 )
 
-thm (inlineNeq () () (<-> (/\ (= A B) (-. (= B C))) (/\ (= A B) (-. (= A C))))
+thm (inlineNeq () () (<-> (/\ (= A B) (-. (= B C))) (/\ (= A B) (-. (= A C)))) 
 
   A B C inlineNeqLem
   B A C inlineNeqLem
@@ -1473,7 +1551,7 @@ thm (netr ()
   mtbir
 )
 
-thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0))))))
+thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
   A B df-lt
 
   A B x df-le
@@ -1495,7 +1573,7 @@ thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))
   notbii
   (= (+ A x) B) anbi2i
 
-  (+ A x) B A inlineNeq
+  (+ A x) B A inlineNeq 
   B A eqcom
   con4biir
   (= (+ A x) B) anbi2i
@@ -1510,6 +1588,7 @@ thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))
 )
 
 # Equality deduction for less than or equal relation
+## <title> Inequality Equivalence </title>
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= A C) (<= B C)))
@@ -1521,6 +1600,7 @@ thm (leeq1d ()
 )
 
 # Equality deduction for less than or equal relation
+## <title> Inequality Equivalence </title>
 ## <table>
 ##   (-> ph (=         [ A ]       [   [ B ] ))
 ##   (-> ph (<-> (<= C [ A ] ) (<= [ C [ B ] )))
@@ -1536,6 +1616,7 @@ thm (leeq2d ()
 )
 
 # Equality inference for less than or equal relation
+## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=       A ]   ]       [ B ]   )
 ##   (<-> (<= A ] C ] ) (<= [ B ] C))
@@ -1547,6 +1628,7 @@ thm (leeq1i ()
 )
 
 # Equality inference for less than or equal relation
+## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=         [ A ]       [   [ B ] )
 ##   (<-> (<= C [ A ] ) (<= [ C [ B ] ))
@@ -1558,6 +1640,7 @@ thm (leeq2i ()
 )
 
 # Equality inference for less than or equal relation
+## <title> Equivalence over Inequality </title>
 thm (leeq1ii ()
   (hyp1 (<= A C)
    hyp2 (= A B))
@@ -1566,6 +1649,7 @@ thm (leeq1ii ()
 )
 
 # Equality inference for less than or equal relation
+## <title> Equivalence over Inequality </title>
 thm (leeq2ii ()
   (hyp1 (<= C A)
    hyp2 (= A B))
@@ -1574,6 +1658,7 @@ thm (leeq2ii ()
 )
 
 # Addition is strictly monotonic in the first addend
+## <title> Add Both Sides </title>
 thm (leadd1 () ()
   (<-> (<= A B) (<= (+ A C) (+ B C)))
   (+ A x) C B addcan
@@ -1585,6 +1670,10 @@ thm (leadd1 () ()
 )
 
 # Addition is strictly monotonic in the second addend
+## <title> Add Both Sides </title>
+## <table>
+##   (<-> (<= A B) (<= (+ <g> C A) (+ <g> C B)))
+## </table>
 thm (leadd2 () ()
   (<-> (<= A B) (<= (+ C A) (+ C B)))
   A B C leadd1
@@ -1600,6 +1689,7 @@ thm (leadd12 () ()
   A C B leadd1 syl5bb
 )
 
+## <title> Basic Inequality </title>
 thm (1nle0 () ()
   (-. (<= (1) (0)))
   x pa_ax1 (0) (S x) eqcom mtbi
@@ -1608,6 +1698,7 @@ thm (1nle0 () ()
   (1) (0) x df-le mtbir
 )
 
+## <title> Equivalence over Inequality </title>
 thm (lteq2d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (< C A) (< C B)))
@@ -1618,12 +1709,14 @@ thm (lteq2d ()
   3bitr4g
 )
 
+## <title> Equivalence over Inequality </title>
 thm (lteq2i ()
   (hyp (= A B))
   (<-> (< C A) (< C B))
   hyp (= A B) id C lteq2d ax-mp
 )
 
+## <title> Equivalence over Inequality </title>
 thm (lteq2ii ()
   (hyp1 (< C A)
    hyp2 (= A B))
@@ -1643,6 +1736,7 @@ thm (addge02t () ()
 )
 
 # Less than or equal is a reflexive relation
+## <title> Reflexive Property </title>
 thm (leid () ()
   (<= A A)
   A (0) addge01t
@@ -1785,6 +1879,7 @@ thm (lteq1ii ()
   hyp1 hyp2 C lteq1i mpbi
 )
 
+## <title> Basic Inequality </title>
 thm (0ne1 () ()
   (-. (= (0) (1)))
   (0) pa_ax1
@@ -1851,6 +1946,7 @@ thm (ltadd1 () ()
 )
 
 # Multiplication is monotonic in its second argument
+## <title> Multiply Both Sides </title>
 thm (lemul2 () ()
   (-> (<= A B) (<= (* C A) (* C B)))
 
@@ -2257,6 +2353,7 @@ thm (exani ((ps x)) (hyp (-> ph ps)) (-> (E. x ph) ps)
   x ps 19.9 sylib)
 # number 10.0
 
+## <title> Inequality & Multiplication </title>
 thm (lemul3 () ()
   (-> (/\(<= A B) (<= C D)) (<= (* A C) (* B D)))
   A B x df-le C D y df-le anbi12i
@@ -2920,6 +3017,7 @@ thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
        (<-> (E. x (= (* A x) B)) (E. y (= (* A y) B)))
       x y A muleq2 B eqeq1d exalpha)
 
+## <title> Divides Definition </title>
 defthm (df-divides wff (| A B) ((A x) (B x)) ()
        (<-> (| A B) (E. x (= (* A x) B)))
         y A B x df-divides-just)
@@ -2980,12 +3078,15 @@ thm (df-prime-just ((A x) (A y)) ()
   imbi12d
   alpha
 )
+
+## <title> Prime Definition </title>
 defthm (df-prime wff (prime A) ((A x))  ()
   (<-> (prime A) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))
 y A x df-prime-just)
 
 tvar (wff et zi si)
 # number 40.0
+## <title> Natural Number </title>
 thm (0orpos () () (\/ (= A (0)) (<= (1) A))
   # x = 0 \/ 1<= x
     A z lefoo
@@ -2993,30 +3094,39 @@ thm (0orpos () () (\/ (= A (0)) (<= (1) A))
   mpbir
 )
 
+## <title> Definition of 2 </title>
 defthm (df-2 nat (2) () () (= (2) (+ (1) (1)))
         (+ (1) (1)) eqid)
 
+## <title> Definition of 3 </title>
 defthm (df-3 nat (3) () () (= (3) (+ (2) (1)))
         (+ (2) (1)) eqid)
 
+## <title> Definition of 4 </title>
 defthm (df-4 nat (4) () () (= (4) (+ (3) (1)))
         (+ (3) (1)) eqid)
-
+				
+## <title> Definition of 5 </title>
 defthm (df-5 nat (5) () () (= (5) (+ (4) (1)))
         (+ (4) (1)) eqid)
-
+				
+## <title> Definition of 6 </title>
 defthm (df-6 nat (6) () () (= (6) (+ (5) (1)))
         (+ (5) (1)) eqid)
-
+				
+## <title> Definition of 7 </title>
 defthm (df-7 nat (7) () () (= (7) (+ (6) (1)))
         (+ (6) (1)) eqid)
-
+				
+## <title> Definition of 8 </title>
 defthm (df-8 nat (8) () () (= (8) (+ (7) (1)))
         (+ (7) (1)) eqid)
-
+				
+## <title> Definition of 9 </title>
 defthm (df-9 nat (9) () () (= (9) (+ (8) (1)))
         (+ (8) (1)) eqid)
-
+				
+## <title> Definition of 10 </title>
 defthm (df-10 nat (10) () () (= (10) (+ (9) (1)))
         (+ (9) (1)) eqid)
 
@@ -3042,6 +3152,7 @@ thm (2p2eq4 () () (= (+ (2) (2)) (4))
 )
 
 # number 42.0
+## <title> Basic Inequality </title>
 thm (0ne2 () () (-. (= (0) (+ (1) (1))))
     (1) pa_ax1  (1) a1suc (0) eqeq2i  mtbi #  (= (* x y) (+ (1) (1)))  mt2bi bicomi
 )
@@ -3051,6 +3162,7 @@ thm (jctilb () (h1 ch h2 (-> ph ps)) (-> ph (/\ ch ps))
   h2 h1 jctil
 )
 # number 44.0
+## <title> 2 is Prime Lemma </title>
 thm (2primelem1 ()
   (h1 (\/ ph ps)
    h2 (\/ ch (\/ th (\/ ta et)))
@@ -3068,6 +3180,7 @@ thm (2primelem1 ()
   th ta et df-3or sylib   (\/ th ta) et df-or sylib con1d   mpd
 )
 # number 45.0
+## <title> 2 is Prime </title>
 thm (2prime () () (prime (+ (1) (1)))
   ## <d>
     x (+ (1) (1)) y df-divides
@@ -3091,9 +3204,7 @@ thm (2prime () () (prime (+ (1) (1)))
   (1) y (+ (+ (1) (1)) (1)) x lemul3
   # replace 1*3  with 3
   ## <d>
-    ## <d>
-      (+ (+ (1) (1)) (1)) mulid
-    ## </d>
+    (+ (+ (1) (1)) (1)) mulid
     (+ (+ (1) (1)) (1)) (1) mulcom
     eqtr3
     (* y x) leeq1i
@@ -3117,9 +3228,7 @@ thm (2prime () () (prime (+ (1) (1)))
   # so this line of reasoning means that x * y != 2
   ## <d>
     x y mulcom
-    ## <d>
-      (+ (1) (1)) eqeq1i
-    ## </d>
+    (+ (1) (1)) eqeq1i
     biimpi (+ (+ (1) (1)) (1)) leeq2d
   ## </d>
   mtbiri  con2i  syl
@@ -3132,9 +3241,7 @@ thm (2prime () () (prime (+ (1) (1)))
       x pa_ax5
     ## </d>
     syl6eq
-    ## <d>
-      (+ (1) (1)) eqeq1d
-    ## </d>
+    (+ (1) (1)) eqeq1d
     biimpd
   ## </d>
   mtoi
@@ -3147,9 +3254,7 @@ thm (2prime () () (prime (+ (1) (1)))
       y pa_ax5r
     ## </d>
     syl6eq
-    ## <d>
-      (+ (1) (1)) eqeq1d
-    ## </d>
+    (+ (1) (1)) eqeq1d
     biimpd
   ## </d>
   mtoi

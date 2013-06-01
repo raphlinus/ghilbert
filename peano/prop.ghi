@@ -109,6 +109,7 @@ stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 #        "&" and "=>" informally indicate the relationship between the hypotheses
 #        and the assertion (conclusion), abbreviating the English words "and" and
 #        "implies."  They are not part of the formal language.
+## <title> Modus Ponens Axiom </title>
 ## <table>
 ##      ph ] ]
 ##  (-> ph ] [ ps)
@@ -138,6 +139,7 @@ stmt (a2i () ((-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)))
 #        database.  In second place is [[ax-mp]], followed by [[visset]], [[bitri]],
 #        [[imp]], and [[ex]].  The Metamath program command 'show usage' shows the
 #        number of references.)
+## <title> Syllogism </title>
 ## <table>
 ##   (-> ph [     ps ] ]    ] )
 ##          [ (-> ps ] [ ch ] )
@@ -457,32 +459,45 @@ stmt (pm2.01 () () (-> (-> ph (-. ph)) (-. ph)))
 stmt (pm2.01d () ((-> ph (-> ps (-. ps)))) (-> ph (-. ps)))
 
 #  Contraposition.  Theorem *2.03 of [bib/WhiteheadRussell] p. 100.
+## <title> Contraposition </title>
 stmt (con2 () () (-> (-> ph (-. ps)) (-> ps (-. ph))))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con2d () ((-> ph (-> ps (-. ch)))) (-> ph (-> ch (-. ps))))
 
 #  Contraposition.  Theorem *2.15 of [bib/WhiteheadRussell] p. 102.
+## <title> Contraposition </title>
 stmt (con1 () () (-> (-> (-. ph) ps) (-> (-. ps) ph)))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con1d () ((-> ph (-> (-. ps) ch))) (-> ph (-> (-. ch) ps)))
 
 #  Contraposition.  Theorem *2.16 of [bib/WhiteheadRussell] p. 103.
+## <title> Contraposition </title>
 stmt (con3 () () (-> (-> ph ps) (-> (-. ps) (-. ph))))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con3d () ((-> ph (-> ps ch))) (-> ph (-> (-. ch) (-. ps))))
 
 #  A contraposition inference.  (The proof was shortened by O'Cat,
 #        28-Nov-2008.)
+## <title> Contraposition </title>
 stmt (con1i () ((-> (-. ph) ps)) (-> (-. ps) ph))
 
 #  A contraposition inference.  (The proof was shortened by O'Cat,
 #        28-Nov-2008.)
+## <title> Contraposition </title>
+## <table>
+##   (-> <r> ph (-. <g> ps))
+##   (-> <g> ps (-. <r> ph))
+## </table>
 stmt (con2i () ((-> ph (-. ps))) (-> ps (-. ph)))
 
 #  A contraposition inference.
+## <title> Contraposition </title>
 stmt (con3i () ((-> ph ps)) (-> (-. ps) (-. ph)))
 
 #  Theorem *2.5 of [bib/WhiteheadRussell] p. 107.
@@ -504,9 +519,11 @@ stmt (pm2.24i () (ph) (-> (-. ph) ps))
 stmt (pm2.24d () ((-> ph ps)) (-> ph (-> (-. ps) ch)))
 
 #  The rule of modus tollens.
+## <title> Modus Tollens </title>
 stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 
 #  Modus tollens inference.
+## <title> Modus Tollens </title>
 ## <table>
 ##                  [    [  [ (-. [ ch)
 ##   (-> ph (->     [ ps ]  [     [ ch))
@@ -515,6 +532,7 @@ stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 stmt (mtoi () ((-. ch) (-> ph (-> ps ch))) (-> ph (-. ps)))
 
 #  Modus tollens deduction.
+## <title> Modus Tollens </title>
 stmt (mtod () ((-> ph (-. ch)) (-> ph (-> ps ch))) (-> ph (-. ps)))
 
 #  A rule similar to modus tollens.
@@ -693,21 +711,27 @@ stmt (bi2 () () (-> (<-> ph ps) (-> ps ph)))
 stmt (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps))))
 
 #  Infer an implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimpi () ((<-> ph ps)) (-> ph ps))
 
 #  Infer a converse implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimpri () ((<-> ph ps)) (-> ps ph))
 
 #  Deduce an implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimpd () ((-> ph (<-> ps ch))) (-> ph (-> ps ch)))
 
 #  Deduce a converse implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimprd () ((-> ph (<-> ps ch))) (-> ph (-> ch ps)))
 
 #  Deduce a commuted implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimpcd () ((-> ph (<-> ps ch))) (-> ps (-> ph ch)))
 
 #  Deduce a converse commuted implication from a logical equivalence.
+## <title> Equivalence to Implication </title>
 stmt (biimprcd () ((-> ph (<-> ps ch))) (-> ch (-> ph ps)))
 
 #  Infer an equivalence from an implication and its converse.
@@ -773,9 +797,15 @@ stmt (biid () () (<-> ph ph))
 stmt (biidd () () (-> ph (<-> ps ps)))
 
 #  Inference from commutative law for logical equivalence.
+## <title> Commutative Property </title>
+## <table>
+##   (<-> <r> ph <g> ps)
+##   (<-> <g> ps <r> ph)
+## </table>
 stmt (bicomi () ((<-> ph ps)) (<-> ps ph))
 
 #  An inference from transitive law for logical equivalence.
+## <title> Transitive Property </title>
 ## <table>
 ##   (<-> ph ]      [ ps ] ] )
 ##           [ (<-> [ ps ] [ ch)
@@ -825,6 +855,7 @@ stmt (imbi2i () ((<-> ph ps)) (<-> (-> ch ph) (-> ch ps)))
 stmt (imbi1i () ((<-> ph ps)) (<-> (-> ph ch) (-> ps ch)))
 
 #  Negate both sides of a logical equivalence.
+## <title> Negation Equivalence </title>
 ## <table>
 ##   (<->     [ ph ]       [ ps ] )
 ##   (<-> (-. [ ph ] ) (-. [ ps ] ))
@@ -835,6 +866,7 @@ stmt (notbii () ((<-> ph ps)) (<-> (-. ph) (-. ps)))
 stmt (imbi12i () ((<-> ph ps) (<-> ch th)) (<-> (-> ph ch) (-> ps th)))
 
 #  An inference from a biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 ## <table>
 ##      ph ] ]    ]
 ## (<-> ph ] [ ps ] )
@@ -843,6 +875,7 @@ stmt (imbi12i () ((<-> ph ps) (<-> ch th)) (<-> (-> ph ch) (-> ps th)))
 stmt (mpbi () (ph (<-> ph ps)) ps)
 
 #  An inference from a biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 ## <table>
 ##         [ [ ps ]
 ## (<-> ph ] [ ps ] )
@@ -851,27 +884,34 @@ stmt (mpbi () (ph (<-> ph ps)) ps)
 stmt (mpbir () (ps (<-> ph ps)) ph)
 
 #  An inference from a biconditional, related to modus tollens.
+## <title> Modus Tollens </title>
 stmt (mtbi () ((-. ph) (<-> ph ps)) (-. ps))
 
 #  An inference from a biconditional, related to modus tollens.
+## <title> Modus Tollens </title>
 stmt (mtbir () ((-. ps) (<-> ph ps)) (-. ph))
 
 #  An inference from a nested biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpbii () (ps (-> ph (<-> ps ch))) (-> ph ch))
 
 #  An inference from a nested biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpbiri () (ch (-> ph (<-> ps ch))) (-> ph ps))
 
 #  A deduction from a biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpbid () ((-> ph ps) (-> ph (<-> ps ch))) (-> ph ch))
 
 #  A deduction from a biconditional, related to modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpbird () ((-> ph ch) (-> ph (<-> ps ch))) (-> ph ps))
 
 #  Inference rule introducing a theorem as an antecedent.
 stmt (a1bi () (ph) (<-> ps (-> ph ps)))
 
 #  A mixed syllogism inference from an implication and a biconditional.
+## <title> Syllogism </title>
 ## <table>
 ##   (-> ph [      ps ] ]    ] )
 ##          [ (<-> ps ] [ ch ] )
@@ -882,6 +922,7 @@ stmt (sylib () ((-> ph ps) (<-> ps ch)) (-> ph ch))
 #  A mixed syllogism inference from a biconditional and an implication.
 #        Useful for substituting an antecedent with a definition.
 
+## <title> Syllogism </title>
 ## <table>
 ##   (<-> ph [     ps ] ]    ] )
 ##           [ (-> ps ] [ ch ] )
@@ -891,65 +932,83 @@ stmt (sylbi () ((<-> ph ps) (-> ps ch)) (-> ph ch))
 
 #  A mixed syllogism inference from an implication and a biconditional.
 #        Useful for substituting a consequent with a definition.
+## <title> Syllogism </title>
 stmt (sylibr () ((-> ph ps) (<-> ch ps)) (-> ph ch))
 
 #  A mixed syllogism inference from a biconditional and an implication.
+## <title> Syllogism </title>
 stmt (sylbir () ((<-> ps ph) (-> ps ch)) (-> ph ch))
 
 #  A syllogism deduction.
+## <title> Syllogism </title>
 stmt (sylibd () ((-> ph (-> ps ch)) (-> ph (<-> ch th))) (-> ph (-> ps th)))
 
 #  A syllogism deduction.
+## <title> Syllogism </title>
 stmt (sylbid () ((-> ph (<-> ps ch)) (-> ph (-> ch th))) (-> ph (-> ps th)))
 
 #  A syllogism deduction.
+## <title> Syllogism </title>
 stmt (sylibrd () ((-> ph (-> ps ch)) (-> ph (<-> th ch))) (-> ph (-> ps th)))
 
 #  A syllogism deduction.
+## <title> Syllogism </title>
 stmt (sylbird () ((-> ph (<-> ch ps)) (-> ph (-> ch th))) (-> ph (-> ps th)))
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.  Useful for substituting an embedded antecedent with a
 #        definition.
+## <title> Syllogism </title>
 stmt (syl5ib () ((-> ph (-> ps ch)) (<-> th ps)) (-> ph (-> th ch)))
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.
+## <title> Syllogism </title>
 stmt (syl5ibr () ((-> ph (-> ps ch)) (<-> ps th)) (-> ph (-> th ch)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl5bi () ((-> ph (<-> ps ch)) (-> th ps)) (-> ph (-> th ch)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl5cbi () ((-> ph (<-> ps ch)) (-> th ps)) (-> th (-> ph ch)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl5bir () ((-> ph (<-> ps ch)) (-> th ch)) (-> ph (-> th ps)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl5cbir () ((-> ph (<-> ps ch)) (-> th ch)) (-> th (-> ph ps)))
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.
+## <title> Syllogism </title>
 stmt (syl6ib () ((-> ph (-> ps ch)) (<-> ch th)) (-> ph (-> ps th)))
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.  Useful for substituting an embedded consequent with a
 #        definition.
+## <title> Syllogism </title>
 stmt (syl6ibr () ((-> ph (-> ps ch)) (<-> th ch)) (-> ph (-> ps th)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl6bi () ((-> ph (<-> ps ch)) (-> ch th)) (-> ph (-> ps th)))
 
 #  A mixed syllogism inference.
+## <title> Syllogism </title>
 stmt (syl6bir () ((-> ph (<-> ch ps)) (-> ch th)) (-> ph (-> ps th)))
 
 #  A mixed syllogism inference from a doubly nested implication and a
 #        biconditional.
+## <title> Syllogism </title>
 stmt (syl7ib () ((-> ph (-> ps (-> ch th))) (<-> ta ch)) (-> ph (-> ps (-> ta th))))
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the consequent of the first premise.
+## <title> Syllogism </title>
 stmt (syl8ib () ((-> ph (-> ps (-> ch th))) (<-> th ta)) (-> ph (-> ps (-> ch ta))))
 
 #  A mixed syllogism inference, useful for removing a definition from both
@@ -1078,6 +1137,7 @@ stmt (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps)))
 
 #  Inference adding a left disjunct to both sides of a logical
 #        equivalence.
+## <title> Equivalence over Disjunction </title>
 ## <table>
 ##   (<->        [ ph ]   [        [ ps)
 ##   (<-> (\/ ch [ ph ] ) [ (\/ ch [ ps))
@@ -1086,6 +1146,7 @@ stmt (orbi2i () ((<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps)))
 
 #  Inference adding a right disjunct to both sides of a logical
 #        equivalence.
+## <title> Equivalence over Disjunction </title>
 ## <table>
 ##   (<->     ph ]     ]     [ ps ] )
 ##   (<-> (\/ ph ] ch) ] (\/ [ ps ] ch))
@@ -1816,9 +1877,11 @@ stmt (abai () () (<-> (/\ ph ps) (/\ ph (-> ph ps))))
 stmt (anbi2i () ((<-> ph ps)) (<-> (/\ ch ph) (/\ ch ps)))
 
 #  Introduce a right conjunct to both sides of a logical equivalence.
+## <title> Equivalence over Conjunction </title>
 stmt (anbi1i () ((<-> ph ps)) (<-> (/\ ph ch) (/\ ps ch)))
 
 #  Conjoin both sides of two equivalences.
+## <title> Equivalence over Conjunction </title>
 stmt (anbi12i () ((<-> ph ps) (<-> ch th)) (<-> (/\ ph ch) (/\ ps th)))
 
 #  Theorem *5.53 of [bib/WhiteheadRussell] p. 125.
@@ -2526,75 +2589,98 @@ stmt (intnand () ((-> ph (-. ps))) (-> ph (-. (/\ ch ps))))
 stmt (intnanrd () ((-> ph (-. ps))) (-> ph (-. (/\ ps ch))))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpan () (ph (-> (/\ ph ps) ch)) (-> ps ch))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpan2 () (ps (-> (/\ ph ps) ch)) (-> ph ch))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mp2an () (ph ps (-> (/\ ph ps) ch)) ch)
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpani () (ps (-> ph (-> (/\ ps ch) th))) (-> ph (-> ch th)))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpan2i () (ch (-> ph (-> (/\ ps ch) th))) (-> ph (-> ps th)))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mp2ani () (ps ch (-> ph (-> (/\ ps ch) th))) (-> ph th))
 
 #  A deduction based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpand () ((-> ph ps) (-> ph (-> (/\ ps ch) th))) (-> ph (-> ch th)))
 
 #  A deduction based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpan2d () ((-> ph ch) (-> ph (-> (/\ ps ch) th))) (-> ph (-> ps th)))
 
 #  A deduction based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mp2and () ((-> ph ps) (-> ph ch) (-> ph (-> (/\ ps ch) th))) (-> ph th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpdan () ((-> ph ps) (-> (/\ ph ps) ch)) (-> ph ch))
 
 #  An inference based on modus ponens with commutation of antecedents.
+## <title> Modus Ponens </title>
 stmt (mpancom () ((-> ps ph) (-> (/\ ph ps) ch)) (-> ps ch))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanl1 () (ph (-> (/\ (/\ ph ps) ch) th)) (-> (/\ ps ch) th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanl2 () (ps (-> (/\ (/\ ph ps) ch) th)) (-> (/\ ph ch) th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanl12 () (ph ps (-> (/\ (/\ ph ps) ch) th)) (-> ch th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanr1 () (ps (-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph ch) th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanr2 () (ch (-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph ps) th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanr12 () (ps ch (-> (/\ ph (/\ ps ch)) th)) (-> ph th))
 
 #  An inference based on modus ponens.
+## <title> Modus Ponens </title>
 stmt (mpanlr1 () (ps (-> (/\ (/\ ph (/\ ps ch)) th) ta)) (-> (/\ (/\ ph ch) th) ta))
 
 #  Modus-tollens-like theorem.
+## <title> Modus Tollens </title>
 stmt (mtt () () (-> (-. ph) (<-> (-. ps) (-> ps ph))))
 
 #  A false consequent falsifies an antecedent.
 stmt (mt2bi () (ph) (<-> (-. ps) (-> ps (-. ph))))
 
 #  A deduction from a biconditional, similar to modus tollens.
+## <title> Modus Tollens </title>
 stmt (mtbid () ((-> ph (-. ps)) (-> ph (<-> ps ch))) (-> ph (-. ch)))
 
 #  A deduction from a biconditional, similar to modus tollens.
+## <title> Modus Tollens </title>
 stmt (mtbird () ((-> ph (-. ch)) (-> ph (<-> ps ch))) (-> ph (-. ps)))
 
 #  An inference from a biconditional, similar to modus tollens.
+## <title> Modus Tollens </title>
 stmt (mtbii () ((-. ps) (-> ph (<-> ps ch))) (-> ph (-. ch)))
 
 #  An inference from a biconditional, similar to modus tollens.
+## <title> Modus Tollens </title>
 ## <table>
 ##                  [ [ (-. [ ch)
 ##   (-> ph (<-> ps ] [     [ ch))
