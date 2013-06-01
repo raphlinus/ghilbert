@@ -20,58 +20,6 @@ import binascii
 
 import store
 
-def get_delta_hdr_size(data, offset):
-    byte = ord(data[offset])
-    offset += 1
-    size = byte & 0x7f
-    shift = 7
-    while byte & 0x80:
-        byte = ord(data[offset])
-        offset += 1
-        size += (byte & 0x7f) << shift
-        shift += 7
-    return size, offset
-
-def patch_delta(ref, delta):
-    src_size, offset = get_delta_hdr_size(delta, 0)
-    data_off = ref.find('\x00') + 1
-    if src_size != len(ref) - data_off: raise ValueError('size mismatch')
-    result_size, offset = get_delta_hdr_size(delta, offset)
-    size_remaining = result_size
-    result = [obj_type(ref) + ' ' + str(result_size) + '\x00']
-    while offset < len(delta):
-        oo = offset
-        cmd = ord(delta[offset])
-        offset += 1
-        if cmd & 0x80:
-            # copy from reference
-            copy_off = data_off
-            copy_size = 0
-            for i in range(4):
-                if cmd & (1 << i):
-                    copy_off += ord(delta[offset]) << (i << 3)
-                    offset += 1
-            for i in range(3):
-                if cmd & (0x10 << i):
-                    copy_size |= ord(delta[offset]) << (i << 3)
-                    offset += 1
-            if copy_size == 0: copy_size = 0x10000
-            if copy_off + copy_size > len(ref):
-                raise ValueError('size overflow')
-            if copy_size > size_remaining:
-                raise ValueError('output size overflow')
-            result.append(ref[copy_off:copy_off + copy_size])
-            size_remaining -= copy_size
-        elif cmd > 0:
-            if cmd > size_remaining: raise ValueError('output size overflow')
-            result.append(delta[offset:offset + cmd])
-            offset += cmd
-            size_remaining -= cmd
-        else:
-            raise ValueError('caught zero command')
-    if size_remaining: raise ValueError('didn\'t fill output buffer')
-    return ''.join(result)
-
 class FsStore(store.Store):
     def __init__(self, basedir = '_git'):
         self.basedir = basedir

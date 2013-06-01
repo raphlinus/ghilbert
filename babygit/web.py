@@ -240,7 +240,7 @@ class handler(app.users.AuthenticatedHandler):
                 if not refobj:
                     return 'reference obj ' + refsha + ' not found'
                 delta, offset = self.read_zlib(data, offset)
-                obj = babygit.patch_delta(refobj, delta)
+                obj = store.patch_delta(refobj, delta)
                 sha = hashlib.sha1(obj).hexdigest()
                 self.store.putobj(sha, obj)
             else:
