@@ -159,10 +159,19 @@ GH.typesetsubst = function(term, prec, cursorPosition) {
 
 // First and third terms wrap the second term. Used to add html
 // tags to the typesetting.
-GH.typesethtml = function(term, cursorPosition) {
+GH.typesettable = function(term, cursorPosition) {
     var pre_slug = {str: term[1]};
     var main_slug = GH.typeset(term[2], cursorPosition);
     var post_slug = {str: term[3]};
+    var slugs = [pre_slug, main_slug, post_slug];
+    return GH.combineslugs(slugs, main_slug.prec, main_slug.prsp);                          
+};
+
+// Used to add color tags to the typesetting.
+GH.typesetcolor = function(term, cursorPosition) {
+    var pre_slug = {str: '<span class=' + term[1] + '>'};
+    var main_slug = GH.typeset(term[2], cursorPosition);
+    var post_slug = {str: '</span>'};
     var slugs = [pre_slug, main_slug, post_slug];
     return GH.combineslugs(slugs, main_slug.prec, main_slug.prsp);                          
 };
@@ -279,7 +288,9 @@ GH.typeset = function(sexp, cursorPosition) {
 		str = GH.highlightSymbol(decimal.toString(), sexp, cursorPosition);
 		return GH.stringslug(str, cursorPosition);
     } else if (sexp[0] == 'table') {
-        return GH.typesethtml(sexp, cursorPosition);
+        return GH.typesettable(sexp, cursorPosition);
+    } else if (sexp[0] == 'color') {
+        return GH.typesetcolor(sexp, cursorPosition);
     } else if (sexp[0] == '+') {
 		// TODO: Finish highlighting the other symbols.
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);

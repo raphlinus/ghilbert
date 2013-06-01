@@ -210,7 +210,7 @@ GH.ProofBlock.resizeTables = function(block){
 		var table = block.children[i];
 		var lastCell = table.firstChild.lastChild;
 		// The width is equal to the current width plus the difference between the block and the table width.
-		var newWidth = block.offsetWidth - table.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 26;
+		var newWidth = block.offsetWidth - table.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 16;
 		lastCell.setAttribute('style', 'width: ' + newWidth);
 	}
 };
@@ -314,7 +314,8 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.isThm = isThm;
 	this.depth = depth;
 	this.substitution = null;
-	this.styling = styling;
+	this.styling = styling ? styling.table : null;
+	this.title = styling ? styling.title : '';
 
 	this.sExpressions_ = [];
 	for (var i = 0; i < sExpressions.length; i++) {
@@ -344,14 +345,18 @@ GH.ProofStep.prototype.isInside = function(position) {
 };
 
 // Render the proof step name in HTML.
-GH.ProofStep.nameToHtml = function(text, isLink, isPrimary, isHypothesis) {
+GH.ProofStep.nameToHtml = function(name, title, isLink, isPrimary, isHypothesis) {
+	if ((title == '') || (title === undefined)) {
+		title = name;
+	}
+
 	var classes = 'proof-step-name';
 	//classes += (isHypothesis ? ' display-on-hover'  : '');
 	classes += (isPrimary    ? ' primary-step-name' : '');
 	if (isLink) {
-		return '<a href="/edit/peano/peano_thms.gh/' + text + '"  class=\'' + classes + '\'>' + text + '</a>';
+		return '<a href="/edit/peano/peano_thms.gh/' + name + '"  class=\'' + classes + '\'>' + title + '</a>';
 	} else {
-		return '<span class=\'' + classes + '\'>' + text + '</span>';
+		return '<span class=\'' + classes + '\'>' + title + '</span>';
 	}
 };
 
@@ -386,6 +391,21 @@ GH.ProofStep.prototype.displayStack = function(stack, cursorPosition) {
 	}
 };
 
+/**
+ * Switch titles with any hidden statements. The title of hidden statements
+ * is more important than the statements that wrap around them which are typically
+ * simple logical expressions.
+ */
+GH.ProofStep.prototype.maybeSwitchTitles = function(hypImportance, cursorPosition) {
+	if (!this.isInside(cursorPosition)) {
+		for (var i = 0; i < this.hypotheses.length; i++) {
+			if ((!hypImportance[i]) && (this.hypotheses[i].title != '')) {
+				this.title = this.hypotheses[i].title;
+			}
+		}
+	}
+};
+
 
 /**
  * Returns an array of strings recursively displaying each proof step.
@@ -396,6 +416,7 @@ GH.ProofStep.prototype.displayStack = function(stack, cursorPosition) {
 GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
 	// Find which hypotheses are important.
 	var hypImportance = this.findHypImportance();
+	this.maybeSwitchTitles(hypImportance, cursorPosition);
 	var importantHypotheses = [];
 	for (var i = 0; i < this.hypotheses.length; i++) {
 		if (hypImportance[i]) {
@@ -493,6 +514,9 @@ GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
  * Display just this step without recursion.
  */
 GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypothesis, isHighlighted, blockOffset, prevOutsideTable) {
+	var hypImportance = this.findHypImportance();
+	this.maybeSwitchTitles(hypImportance, cursorPosition);
+
 	var inStep = this.begin <= cursorPosition && cursorPosition <= this.end;
 	var classes = '';
 	if (isIndented) {
@@ -504,7 +528,7 @@ GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypo
 	if (isHighlighted) {
 		classes += ' ' + GH.ProofStep.HIGHLIGHTED_STEP_;
 	}
-	var nameHtml = GH.ProofStep.nameToHtml(this.name_, this.isThm, inStep, isHypothesis);
+	var nameHtml = GH.ProofStep.nameToHtml(this.name_, this.title, this.isThm, inStep, isHypothesis);
 	return new GH.RenderableProofStep(this.conclusion, classes, this.begin, this.end, inStep, prevOutsideTable, nameHtml, blockOffset);
 };
 
@@ -533,6 +557,9 @@ GH.RenderableProofStep.styleExpression = function(styling, expression) {
 	if (styling[0] == "table") {
 		var styledExpression = GH.RenderableProofStep.styleExpression(styling[2], expression);
 		return [styling[0], styling[1], styledExpression, styling[3]];
+	} else if (styling[0] == "color") {
+		var styledExpression = GH.RenderableProofStep.styleExpression(styling[2], expression);
+		return [styling[0], styling[1], styledExpression];
 	} else {
 		if (typeof styling == 'string') {
 			return expression;

@@ -29,49 +29,71 @@ GH.Scanner = function (lines) {
 	this.styleScanner = new GH.StyleScanner();
 };
 
+GH.styling = function(table, title) {
+	this.table = table;
+	this.title = title;
+};
+
 GH.StyleScanner = function() {
 	this.styleMode = GH.StyleScanner.modeTypes.NONE;
 	this.table = null;
+	this.title = '';
 	this.leftColumns = 0;
+	this.color = '';
 };
 
 GH.StyleScanner.modeTypes = {
 	NONE: 0,
-	TABLE: 1
+	TABLE: 1,
+	TITLE: 2
 };
 
 GH.StyleScanner.prototype.read_column_style = function(tok) {
 	if (tok == '') {
 		return;
 	} else if (tok == '(') {
-		var newTableExpression = new GH.tableExpression(this.table, null, this.leftColumns);
+		var newTableExpression = new GH.tableExpression(this.table, null, this.leftColumns, this.color);
 		this.table.children.push(newTableExpression);
 		this.table = newTableExpression;
 		this.leftColumns = 0;
+		this.color = '';
 	} else if (tok == ')') {
 		this.table = this.table.parent;
 	} else if (tok == '[') {
 		this.leftColumns++;
 	} else if (tok == ']') {
 		this.table.addRightColumn();
+	} else if (tok == '<r>') {
+		this.color = 'red';
+	} else if (tok == '<m>') {
+		this.color = 'magenta';
+	} else if (tok == '<b>') {
+		this.color = 'blue';
+	} else if (tok == '<c>') {
+		this.color = 'cyan';
+	} else if (tok == '<g>') {
+		this.color = 'green';
+	} else if (tok == '<k>') {
+		this.color = 'black';
 	} else {
-		this.table.addExpression(tok, this.leftColumns);
+		this.table.addExpression(tok, this.leftColumns, this.color);
 		this.leftColumns = 0;
+		this.color = '';
 	}
 };
 
 GH.StyleScanner.prototype.get_styling = function() {
+	var tableStyle = null;
 	if (this.table) {
-		var result = this.table.output();
-		result.splice(0, 1);
-		return result;
-	} else {
-		return null;
+		tableStyle = this.table.output();
+		tableStyle.splice(0, 1);
 	}
+	return new GH.styling(tableStyle, this.title);
 };
 
 GH.StyleScanner.prototype.clear = function() {
 	this.table = null;
+	this.title = '';
 }
 
 GH.StyleScanner.prototype.read_styling = function(line) {
@@ -87,7 +109,7 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 		var tok = toks[i];
 		if (tok == '<table>') {
 			this.styleMode = styleModeTypes.TABLE;
-			this.table = new GH.tableExpression(null, 'root', 0);
+			this.table = new GH.tableExpression(null, 'root', 0, '');
 		} else if (tok == '</table>') {
 			// TODO: Add test that there are an equal number of columns.
 			if (this.leftColumns != 0) {
@@ -95,8 +117,14 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 				this.leftColumns = 0;
 			}
 			this.styleMode = styleModeTypes.NONE;
+		} else if (tok == '<title>') {
+			this.styleMode = styleModeTypes.TITLE;
+		} else if (tok == '</title>') {
+			this.styleMode = styleModeTypes.NONE;
 		} else if (this.styleMode == styleModeTypes.TABLE) {
 			this.read_column_style(tok);
+		} else if (this.styleMode == styleModeTypes.TITLE) {
+			this.title += tok + ' ';
 		}
 	}
 };
@@ -122,9 +150,10 @@ GH.Scanner.prototype.get_tok = function() {
     return result;
 };
 
-GH.tableExpression = function(parent, expression, leftColumns) {
+GH.tableExpression = function(parent, expression, leftColumns, color) {
 	this.parent = parent;
 	this.expression = expression;
+	this.color = color;
 	this.rightColumns = '';
 	this.leftColumns = '';
 	for (var i = 0; i < leftColumns; i++) {
@@ -133,11 +162,11 @@ GH.tableExpression = function(parent, expression, leftColumns) {
 	this.children = [];
 };
 
-GH.tableExpression.prototype.addExpression = function(tok, leftColumns) {
+GH.tableExpression.prototype.addExpression = function(tok, leftColumns, color) {
 	if (this.expression == null) {
 		this.expression = tok;
 	} else {
-		this.children.push(new GH.tableExpression(this, tok, leftColumns));
+		this.children.push(new GH.tableExpression(this, tok, leftColumns, color));
 	}
 };
 
@@ -155,11 +184,14 @@ GH.tableExpression.prototype.output = function() {
 	} else {
 		result = this.expression;
 	}
-	if ((this.leftColumns != '') || (this.rightColumns != '')) {
-		return ['table', this.leftColumns, result, this.rightColumns];
-	} else {
-		return result;
+
+	if (this.color != '') {
+		result = ['color', this.color, result];
 	}
+	if ((this.leftColumns != '') || (this.rightColumns != '')) {
+		result = ['table', this.leftColumns, result, this.rightColumns];
+	}
+	return result;
 };
 
 GH.read_sexp = function(scanner) {
@@ -612,7 +644,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
         this.terms[dsig[0]] = proofctx.defterm;
         this.add_assertion('thm', label, fv, new_hyps, concl,
                            proofctx.varlist, proofctx.num_hypvars,
-                           proofctx.num_nondummies, this.syms, []);
+                           proofctx.num_nondummies, this.syms, styling);
         return;
     }
     if (cmd == 'import' || cmd == 'export') {
