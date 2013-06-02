@@ -1270,10 +1270,9 @@ class ExportCtx(InterfaceCtx):
                 raise VerifyError('The term symbol ' + termname +
                                   ' does not exist in the verify context.')
 
-            # Check that ther term from the verify context agrees with that
+            # Check that the term from the verify context agrees with that
             # declared in the export context.
-
-            if kind != tkind:
+            if kind != tkind and tkind != self.verify.kinds.get(kind):
                 raise VerifyError('Term ' + local_termname +
                                   ' kind mismatch with verify context term ' +
                                   termname +
