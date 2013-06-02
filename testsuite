@@ -457,9 +457,7 @@ stmt (id () () (→ wff-term1 wff-term1))
 kindbind (formula wff)
 kindbind (natural nat)
 export (OUT_EXPORTING_KINDBOUND_ARG out.ghi () "")
-# This one should be an accept; commented out until ghilbert can be fixed
-#!accept test.gh
-!reject test.gh
+!accept test.gh
 
 # cannot export to an interface with the wrong kinds
 !append out.ghi
@@ -475,6 +473,20 @@ kindbind (formula wff)
 kindbind (natural nat)
 export (OUT_WITH_KIND_MISMATCH_ARG out.ghi () "")
 !reject test.gh Term signature mismatch with verify context for →
+
+# cannot export to an interface with the wrong argument count
+!append in-argcount.ghi
+kind (formula)
+tvar (formula p q r)
+term (formula (myterm p))
+!append out-argcount.ghi
+kind (formula)
+tvar (formula p q r)
+term (formula (myterm p q))
+!append test-argcount.gh
+import (IN_ARGCOUNT in-argcount.ghi () "")
+export (OUT_ARGCOUNT out-argcount.ghi () "")
+!reject test-argcount.gh Term signature mismatch with verify context for myterm; kinds being exported to: ['formula', 'formula']; kinds in verify context: ['formula']
 
 # kindbind in interfaces
 !shared
