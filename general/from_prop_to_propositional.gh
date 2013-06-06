@@ -1,0 +1,81 @@
+# The file peano/prop.ghi and general/Classical_propositional_calculus.ghi are
+# very similar. The only real difference is that the names are different, but
+# most of the theorems, terms, etc are identical. The goal of this file is to
+# show that Classical_propositional_calculus.ghi follows from prop.ghi. We could
+# do so directly, which would highlight the identical or near-identical theorems.
+# But because it is less work, at least for now we just prove
+# general/Axioms_of_intuitionistic_propositional_logic.ghi and
+# general/Law_of_the_excluded_middle.ghi.
+
+import (PROP ../peano/prop.ghi () "")
+
+kindbind (wff formula)
+
+tvar (formula p q r s antecedent)
+
+defthm (NotNot formula (¬ p) () () (<-> (¬ p) (-. p))
+  (-. p) biid
+)
+
+defthm (ImplicationImplication formula (→ p q) () () (<-> (→ p q) (-> p q))
+  (-> p q) biid
+)
+
+defthm (OrOr formula (∨ p q) () () (<-> (∨ p q) (\/ p q))
+  (\/ p q) biid
+)
+
+defthm (AndAnd formula (∧ p q) () () (<-> (∧ p q) (/\ p q))
+  (/\ p q) biid
+)
+
+defthm (BiconditionalBiconditional formula (↔ p q) () () (<-> (↔ p q) (<-> p q))
+  (<-> p q) biid
+)
+
+import (TRUTH truth.ghi (PROP) "")
+
+defthm (df-falsity formula (⊥) () () (<-> (⊥) (¬ (⊤)))
+  (¬ (⊤)) biid
+)
+
+# Convert -> to →
+thm (symbolizeImplication () (H (-> p q)) (→ p q)
+  H
+  p q ImplicationImplication biimpri
+  ax-mp
+)
+
+# Convert → to ->
+thm (desymbolizeImplication () (H (→ p q)) (-> p q)
+  H
+  p q ImplicationImplication biimpi
+  ax-mp
+)
+
+thm (applyModusPonens () (H p HIMP (→ p q)) q
+  H
+
+  HIMP
+  desymbolizeImplication
+
+  ax-mp
+)
+
+thm (Simp () () (→ p (→ q p))
+  p q ax-1
+
+  q p ImplicationImplication biimpri
+  p imim2i
+  ax-mp
+
+  symbolizeImplication
+)
+
+#thm (Frege () () (→ (→ p (→ q r)) (→ (→ p q) (→ p r)))
+#)
+
+#export (INTUITIONISTIC_AXIOMS Axioms_of_intuitionistic_propositional_logic.ghi () "")
+#export (MIDDLE Law_of_the_excluded_middle.ghi (INTUITIONISTIC_AXIOMS) "")
+#export (RESULT Classical_propositional_calculus.ghi () "")
+
