@@ -969,4 +969,262 @@ thm (con2bii () (1 (<-> ph (-. ps))) (<-> ps (-. ph))
      impbii
 )
 
+defthm (df-or wff (\/ ph ps) () () (<-> (\/ ph ps) (-> (-. ph) ps))
+     (-> (-. ph) ps) biid
+)
+
+thm (df-an () () (<-> (/\ ph ps) (-. (-> ph (-. ps))))
+     ph ps df-and-1
+     ph ps df-and-2
+     impbii
+)
+
+thm (pm4.64 () () (<-> (-> (-. ph) ps) (\/ ph ps))
+     ph ps df-or
+     bicomi
+)
+
+thm (pm2.54 () () (-> (-> (-. ph) ps) (\/ ph ps))
+     ph ps df-or
+     biimpri
+)
+
+thm (pm4.63 () () (<-> (-. (-> ph (-. ps))) (/\ ph ps))
+     ph ps df-an
+     bicomi
+)
+
+thm (dfor2-lemma () () (<-> (-> (-. ph) ps) (-> (-> ph ps) ps))
+  ph ps pm2.6
+
+  ph ps pm2.21
+  ps imim1i
+  impbii
+)
+
+thm (dfor2 () () (<-> (\/ ph ps) (-> (-> ph ps) ps))
+  ph ps df-or
+  ph ps dfor2-lemma
+  bitri
+)
+
+thm (ori () (1 (\/ ph ps)) (-> (-. ph) ps)
+  1
+  ph ps df-or
+  biimpi
+  ax-mp
+)
+
+thm (orri () (1 (-> (-. ph) ps)) (\/ ph ps)
+  1
+  ph ps df-or
+  biimpri
+  ax-mp
+)
+
+thm (ord () (1 (-> ph (\/ ps ch))) (-> ph (-> (-. ps) ch))
+  1
+  ps ch df-or
+  biimpi
+  syl
+)
+
+thm (orrd () (1 (-> ph (-> (-. ps) ch))) (-> ph (\/ ps ch))
+  1
+  ps ch df-or
+  biimpri
+  syl
+)
+
+thm (imor () () (<-> (-> ph ps) (\/ (-. ph) ps))
+  ph notnot
+  ps imbi1i
+
+  (-. ph) ps df-or
+  bicomi
+
+  bitri
+)
+
+# Not really sure why we want this in addition to imor
+thm (pm4.62 () () (<-> (-> ph (-. ps)) (\/ (-. ph) (-. ps)))
+  ph (-. ps) imor
+)
+
+# Likewise, this one is a trivial corollary of pm4.64
+thm (pm4.66 () () (<-> (-> (-. ph) (-. ps)) (\/ ph (-. ps)))
+  ph (-. ps) pm4.64
+)
+
+thm (iman () () (<-> (-> ph ps) (-. (/\ ph (-. ps))))
+  ps notnot
+  ph imbi2i
+
+  ph (-. ps) df-an
+  con2bii
+
+  bitri
+)
+
+thm (annim () () (<-> (/\ ph (-. ps)) (-. (-> ph ps)))
+  ph ps iman
+  con2bii
+)
+
+thm (pm4.61 () () (<-> (-. (-> ph ps)) (/\ ph (-. ps)))
+  ph ps annim
+  bicomi
+)
+
+thm (pm4.65 () () (<-> (-. (-> (-. ph) ps)) (/\ (-. ph) (-. ps)))
+  (-. ph) ps pm4.61
+)
+
+thm (pm4.67 () () (<-> (-. (-> (-. ph) (-. ps))) (/\ (-. ph) ps))
+  (-. ph) ps pm4.63
+)
+
+thm (imnan () () (<-> (-> ph (-. ps)) (-. (/\ ph ps)))
+  ph ps df-an
+  con2bii
+)
+
+thm (oridm () () (<-> (\/ ph ph) ph)
+  ph ph df-or
+  ph pm4.81
+  bitri
+)
+
+thm (pm4.25 () () (<-> ph (\/ ph ph))
+  ph oridm
+  bicomi
+)
+
+thm (pm1.2 () () (-> (\/ ph ph) ph)
+  ph oridm
+  biimpi
+)
+
+thm (orcom () () (<-> (\/ ph ps) (\/ ps ph))
+  ph ps df-or
+
+  ph ps con1b
+  bitri
+
+  ps ph df-or
+  bicomi
+  bitri
+)
+
+thm (pm1.4 () () (-> (\/ ph ps) (\/ ps ph))
+  ph ps orcom
+  biimpi
+)
+
+# Unidirectional version of dfor2
+thm (pm2.62 () () (-> (\/ ph ps) (-> (-> ph ps) ps))
+  ph ps dfor2
+  biimpi
+)
+
+thm (pm2.621 () () (-> (-> ph ps) (-> (\/ ph ps) ps))
+  ph ps pm2.62
+  com12
+)
+
+thm (pm2.68 () () (-> (-> (-> ph ps) ps) (\/ ph ps))
+  ph ps dfor2
+  biimpri
+)
+
+thm (orel1 () () (-> (-. ph) (-> (\/ ph ps) ps))
+  ph ps df-or
+  biimpi
+  com12
+)
+
+# Swap the order of the disjuncts in orel1
+thm (orel2 () () (-> (-. ph) (-> (\/ ps ph) ps))
+  ph ps orel1
+  ps ph orcom
+  syl5ib
+)
+
+thm (pm2.25 () () (\/ ph (-> (\/ ph ps) ps))
+  ph ps orel1
+  orri
+)
+
+thm (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps))
+  ph ps df-or
+  biimpi
+)
+
+# The builders for disjunction follow from the ones for implication
+thm (orbi2i () (HEQ (<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps))
+  ch ph df-or
+
+  HEQ
+  (-. ch) imbi2i
+  bitri
+
+  ch ps df-or
+  bicomi
+  bitri
+)
+
+thm (orbi1i () (HEQ (<-> ph ps)) (<-> (\/ ph ch) (\/ ps ch))
+  ph ch orcom
+
+  HEQ
+  ch orbi2i
+  bitri
+
+  ch ps orcom
+  bitri
+)
+
+tvar (wff p0 p1 q0 q1)
+thm (orbi12i () (1 (<-> p0 p1) 2 (<-> q0 q1)) (<-> (\/ p0 q0) (\/ p1 q1))
+  1 q0 orbi1i
+  2 p1 orbi2i
+  bitri
+)
+
+thm (or12 () () (<-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch)))
+  ps ch df-or
+  ph orbi2i
+
+  ph (-> (-. ps) ch) df-or
+  bitri
+
+  (-. ph) (-. ps) ch bi2.04
+  bitri
+
+  ps (-> (-. ph) ch) df-or
+  bicomi
+  bitri
+
+  ph ch df-or
+  ps orbi2i
+  bicomi
+  bitri
+)
+
+thm (pm1.5 () () (-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch)))
+  ph ps ch or12
+  biimpi
+)
+
+thm (orass () () (<-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch)))
+  (\/ ph ps) ch orcom
+
+  ch ph ps or12
+  bitri
+
+  ch ps orcom
+  ph orbi2i
+  bitri
+)
+
 export (PROP prop.ghi (PROP_MIN) "")
