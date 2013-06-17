@@ -120,6 +120,7 @@ stmt (ax-mp () (ph (-> ph ps)) ps)
 #  Inference derived from axiom [[ax-1]].  See [[a1d]] for an explanation of
 #        our informal use of the terms "inference" and "deduction."  See also
 #        the comment in [[syld]].
+## <title> Axiom 1 Inference </title>
 ## <table>
 ##          [ ph
 ##   (-> ps [ ph)
@@ -167,6 +168,7 @@ stmt (com12 () ((-> ph (-> ps ch))) (-> ps (-> ph ch)))
 #        [[pm2.43i]] vs. [[pm2.43d]]).  When an inference is converted to a theorem
 #        by eliminating an "is a set" hypothesis, we sometimes suffix the theorem
 #        form with "g" (for "more general") as in [[uniex]] vs. [[uniexg]].
+## <title> Axiom 1 Deduction </title>
 stmt (a1d () ((-> ph ps)) (-> ph (-> ch ps)))
 
 #  Deduction distributing an embedded antecedent.
@@ -331,6 +333,7 @@ stmt (syl9r () ((-> ph (-> ps ch)) (-> th (-> ch ta))) (-> th (-> ph (-> ps ta))
 #  Principle of identity.  Theorem *2.08 of [bib/WhiteheadRussell] p. 101.
 #      For another version of the proof directly from axioms, see [[id1]].
 #      (The proof was shortened by Stefan Allan, 20-Mar-2006.)
+## <title> Identity </title>
 stmt (id () () (-> ph ph))
 
 #  Principle of identity.  Theorem *2.08 of [bib/WhiteheadRussell] p. 101.  This
@@ -344,13 +347,16 @@ stmt (id () () (-> ph ph))
 #      [[http://www.mathsci.appstate.edu/~jlh/primer/hirst.pdf]].
 #      For a shorter version of the proof that takes advantage of previously
 #      proved theorems, see [[id]].
+## <title> Identity </title>
 stmt (id1 () () (-> ph ph))
 
 #  Principle of identity with antecedent.
+## <title> Identity </title>
 stmt (idd () () (-> ph (-> ps ps)))
 
 #  This theorem, called "Assertion," can be thought of as closed form of
 #      modus ponens [[ax-mp]].  Theorem *2.27 of [bib/WhiteheadRussell] p. 104.
+## <title> Modus Ponens </title>
 stmt (pm2.27 () () (-> ph (-> (-> ph ps) ps)))
 
 #  Absorption of redundant antecedent.  Also called the "Contraction" or
@@ -403,18 +409,26 @@ stmt (con4d () ((-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps)))
 
 #  From a wff and its negation, anything is true.  Theorem *2.21 of
 #      [bib/WhiteheadRussell] p. 104.  Also called the Duns Scotus law.
+## <title> Contradiction Implies Anything </title>
 stmt (pm2.21 () () (-> (-. ph) (-> ph ps)))
 
 #  A contradiction implies anything.  Inference from [[pm2.21]].
+## <title> Contradiction Implies Anything </title>
 stmt (pm2.21i () ((-. ph)) (-> ph ps))
 
 #  A contradiction implies anything.  Deduction from [[pm2.21]].
+## <title> Contradiction Implies Anything </title>
+## <table>
+##   (-> ph     [ (-. [ ps ]   ))
+##   (-> ph (-> [     [ ps ] ch))
+## </table>
 stmt (pm2.21d () ((-> ph (-. ps))) (-> ph (-> ps ch)))
 
 #  Theorem *2.24 of [bib/WhiteheadRussell] p. 104.
 stmt (pm2.24 () () (-> ph (-> (-. ph) ps)))
 
 #  A contradiction implies anything.  Inference from [[pm2.24]].
+## <title> Contradiction Implies Anything </title>
 stmt (pm2.24ii () (ph (-. ph)) ps)
 
 #  Proof by contradiction.  Theorem *2.18 of [bib/WhiteheadRussell] p. 103.
@@ -439,16 +453,20 @@ stmt (looinv () () (-> (-> (-> ph ps) ps) (-> (-> ps ph) ph)))
 #  Converse of double negation.  Theorem *2.14 of [bib/WhiteheadRussell] p. 102.
 #      (The proof was shortened by David Harvey, 5-Sep-1999.  An even shorter
 #      proof found by Josh Purinton, 29-Dec-2000.)
+## <title> Double Negative </title>
 stmt (notnot2 () () (-> (-. (-. ph)) ph))
 
 #  Inference from double negation.
+## <title> Double Negative </title>
 stmt (notnotri () ((-. (-. ph))) ph)
 
 #  Converse of double negation.  Theorem *2.12 of [bib/WhiteheadRussell]
 #      p. 101.
+## <title> Double Negative </title>
 stmt (notnot1 () () (-> ph (-. (-. ph))))
 
 #  Infer double negation.
+## <title> Double Negative </title>
 stmt (notnoti () (ph) (-. (-. ph)))
 
 #  Reductio ad absurdum.  Theorem *2.01 of [bib/WhiteheadRussell] p. 100.  (The
@@ -520,6 +538,11 @@ stmt (pm2.24d () ((-> ph ps)) (-> ph (-> (-. ps) ch)))
 
 #  The rule of modus tollens.
 ## <title> Modus Tollens </title>
+## <table>
+##          [    [   [ (-. [ ps)
+##  (->     [ ph ]   [     [ ps)
+##      (-. [ ph ] ) ]     ]
+## </table>
 stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 
 #  Modus tollens inference.
@@ -720,6 +743,10 @@ stmt (biimpri () ((<-> ph ps)) (-> ps ph))
 
 #  Deduce an implication from a logical equivalence.
 ## <title> Equivalence to Implication </title>
+## <table>
+##   (-> ph (<-> [ ps ch ] ))
+##   (-> ph (->  [ ps ch ] ))
+## </table>
 stmt (biimpd () ((-> ph (<-> ps ch))) (-> ph (-> ps ch)))
 
 #  Deduce a converse implication from a logical equivalence.
@@ -735,6 +762,12 @@ stmt (biimpcd () ((-> ph (<-> ps ch))) (-> ps (-> ph ch)))
 stmt (biimprcd () ((-> ph (<-> ps ch))) (-> ch (-> ph ps)))
 
 #  Infer an equivalence from an implication and its converse.
+## <title> Infer Equivalence </title>
+## <table>
+##   (-> <r> ph <g> ps)
+##   (-> <g> ps <r> ph)
+##   (<-> <r> ph <g> ps)
+## </table>
 stmt (impbii () ((-> ph ps) (-> ps ph)) (<-> ph ps))
 
 #  Relate the biconditional connective to primitive connectives.  See
@@ -761,6 +794,7 @@ stmt (dfbi1gb () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))
 stmt (bi2.04 () () (<-> (-> ph (-> ps ch)) (-> ps (-> ph ch))))
 
 #  Double negation.  Theorem *4.13 of [bib/WhiteheadRussell] p. 117.
+## <title> Double Negative </title>
 stmt (notnot () () (<-> ph (-. (-. ph))))
 
 #  Theorem *4.8 of [bib/WhiteheadRussell] p. 122.
@@ -885,14 +919,29 @@ stmt (mpbir () (ps (<-> ph ps)) ph)
 
 #  An inference from a biconditional, related to modus tollens.
 ## <title> Modus Tollens </title>
+## <table>
+##           [    [   [ (-. [ ps)
+##  (<->     [ ph ]   [     [ ps)
+##       (-. [ ph ] ) ]     ]
+## </table>
 stmt (mtbi () ((-. ph) (<-> ph ps)) (-. ps))
 
 #  An inference from a biconditional, related to modus tollens.
 ## <title> Modus Tollens </title>
+## <table>
+##                 ] [ (-. [ ps)
+##   (<->    [ ph  ] [     [ ps)
+##       (-. [ ph) ] ]     ]
+## </table>
 stmt (mtbir () ((-. ps) (<-> ph ps)) (-. ph))
 
 #  An inference from a nested biconditional, related to modus ponens.
 ## <title> Modus Ponens </title>
+## <table>
+##               [ ps ]
+##   (-> ph (<-> [ ps ] ch))
+##   (-> ph      [    [ ch))
+## </table>
 stmt (mpbii () (ps (-> ph (<-> ps ch))) (-> ph ch))
 
 #  An inference from a nested biconditional, related to modus ponens.
@@ -908,6 +957,11 @@ stmt (mpbid () ((-> ph ps) (-> ph (<-> ps ch))) (-> ph ch))
 stmt (mpbird () ((-> ph ch) (-> ph (<-> ps ch))) (-> ph ps))
 
 #  Inference rule introducing a theorem as an antecedent.
+## <title> Theorem as antecedent </title>
+## <table>
+##               [ ph ]
+##   (<-> ps (-> [ ph ] ps))
+## </table>
 stmt (a1bi () (ph) (<-> ps (-> ph ps)))
 
 #  A mixed syllogism inference from an implication and a biconditional.
@@ -1023,6 +1077,11 @@ stmt (3imtr4i () ((-> ph ps) (<-> ch ph) (<-> th ps)) (-> ch th))
 stmt (con1bii () ((<-> (-. ph) ps)) (<-> (-. ps) ph))
 
 #  A contraposition inference.
+## <title> Contraposition </title>
+## <table>
+##   (<-> <r> ph (-. <g> ps))
+##   (<-> <g> ps (-. <r> ph))
+## </table>
 stmt (con2bii () ((<-> ph (-. ps))) (<-> ps (-. ph)))
 term (wff (\/ ph ps))
 term (wff (/\ ph ps))
@@ -1068,6 +1127,7 @@ stmt (orrd () ((-> ph (-> (-. ps) ch))) (-> ph (\/ ps ch)))
 
 #  Implication in terms of disjunction.  Theorem *4.6 of
 #      [bib/WhiteheadRussell] p. 120.
+## <title> Implies OR </title>
 stmt (imor () () (<-> (-> ph ps) (\/ (-. ph) ps)))
 
 #  Theorem *4.62 of [bib/WhiteheadRussell] p. 120.
@@ -1107,6 +1167,7 @@ stmt (pm1.2 () () (-> (\/ ph ph) ph))
 
 #  Commutative law for disjunction.  Theorem *4.31 of [bib/WhiteheadRussell]
 #      p. 118.
+## <title> Commutative Property </title>
 stmt (orcom () () (<-> (\/ ph ps) (\/ ps ph)))
 
 #  Axiom *1.4 of [bib/WhiteheadRussell] p. 96.
@@ -1188,21 +1249,27 @@ stmt (orordi () () (<-> (\/ ph (\/ ps ch)) (\/ (\/ ph ps) (\/ ph ch))))
 stmt (orordir () () (<-> (\/ (\/ ph ps) ch) (\/ (\/ ph ch) (\/ ps ch))))
 
 #  Introduction of a disjunct.  Axiom *1.3 of [bib/WhiteheadRussell] p. 96.
+## <title> Introduce a Disjunct </title>
 stmt (olc () () (-> ph (\/ ps ph)))
 
 #  Introduction of a disjunct.  Theorem *2.2 of [bib/WhiteheadRussell] p. 104.
+## <title> Introduce a Disjunct </title>
 stmt (orc () () (-> ph (\/ ph ps)))
 
 #  Deduction introducing a disjunct.
+## <title> Introduce a Disjunct </title>
 stmt (orci () (ph) (\/ ph ps))
 
 #  Deduction introducing a disjunct.
+## <title> Introduce a Disjunct </title>
 stmt (olci () (ph) (\/ ps ph))
 
 #  Deduction introducing a disjunct.
+## <title> Introduce a Disjunct </title>
 stmt (orcd () ((-> ph ps)) (-> ph (\/ ps ch)))
 
 #  Deduction introducing a disjunct.
+## <title> Introduce a Disjunct </title>
 stmt (olcd () ((-> ph ps)) (-> ph (\/ ch ps)))
 
 #  Deduction eliminating disjunct.
@@ -1277,9 +1344,19 @@ stmt (ancl () () (-> (-> ph ps) (-> ph (/\ ph ps))))
 stmt (ancr () () (-> (-> ph ps) (-> ph (/\ ps ph))))
 
 #  Deduction conjoining antecedent to left of consequent.
+## <title> Add Antecedent </title>
+## <table>
+##   (-> ph [        [ ps)
+##   (-> ph [ (/\ ph [ ps))
+## </table>
 stmt (ancli () ((-> ph ps)) (-> ph (/\ ph ps)))
 
 #  Deduction conjoining antecedent to right of consequent.
+## <title> Add Antecedent </title>
+## <table>
+##   (-> ph     [ ps ] )
+##   (-> ph (/\ [ ps ] ph))
+## </table>
 stmt (ancri () ((-> ph ps)) (-> ph (/\ ps ph)))
 
 #  Deduction conjoining antecedent to left of consequent in nested
@@ -1579,75 +1656,111 @@ stmt (exp45 () ((-> (/\ ph (/\ ps (/\ ch th))) ta)) (-> ph (-> ps (-> ch (-> th 
 stmt (impac () ((-> ph (-> ps ch))) (-> (/\ ph ps) (/\ ch ps)))
 
 #  Inference adding a conjunct to the left of an antecedent.
+## <title> Add Conjunct </title>
+## <table>
+##   (->        [ ph  [ ps)
+##   (-> (/\ ch [ ph) [ ps)
+## </table>
 stmt (adantl () ((-> ph ps)) (-> (/\ ch ph) ps))
 
 #  Inference adding a conjunct to the right of an antecedent.
+## <title> Add Conjunct </title>
+## <table>
+##   (->     ph ] [    ]   [ ps)
+##   (-> (/\ ph ] [ ch ] ) [ ps)
+## </table>
 stmt (adantr () ((-> ph ps)) (-> (/\ ph ch) ps))
 
 #  Deduction adding a conjunct to the left of an antecedent.
+## <title> Add Conjunct </title>
 stmt (adantld () ((-> ph (-> ps ch))) (-> ph (-> (/\ th ps) ch)))
 
 #  Deduction adding a conjunct to the right of an antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrd () ((-> ph (-> ps ch))) (-> ph (-> (/\ ps th) ch)))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
+## <table>
+##   (-> (/\        [ ph  [ ps) ch)
+##   (-> (/\ (/\ th [ ph) [ ps) ch)
+## </table>
 stmt (adantll () ((-> (/\ ph ps) ch)) (-> (/\ (/\ th ph) ps) ch))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantlr () ((-> (/\ ph ps) ch)) (-> (/\ (/\ ph th) ps) ch))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrl () ((-> (/\ ph ps) ch)) (-> (/\ ph (/\ th ps)) ch))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrr () ((-> (/\ ph ps) ch)) (-> (/\ ph (/\ ps th)) ch))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantlll () ((-> (/\ (/\ ph ps) ch) th)) (-> (/\ (/\ (/\ ta ph) ps) ch) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantllr () ((-> (/\ (/\ ph ps) ch) th)) (-> (/\ (/\ (/\ ph ta) ps) ch) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantlrl () ((-> (/\ (/\ ph ps) ch) th)) (-> (/\ (/\ ph (/\ ta ps)) ch) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantlrr () ((-> (/\ (/\ ph ps) ch) th)) (-> (/\ (/\ ph (/\ ps ta)) ch) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrll () ((-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph (/\ (/\ ta ps) ch)) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrlr () ((-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph (/\ (/\ ps ta) ch)) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrrl () ((-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph (/\ ps (/\ ta ch))) th))
 
 #  Deduction adding a conjunct to antecedent.
+## <title> Add Conjunct </title>
 stmt (adantrrr () ((-> (/\ ph (/\ ps ch)) th)) (-> (/\ ph (/\ ps (/\ ch ta))) th))
 
 #  Deduction adding conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2antrr () ((-> ph ps)) (-> (/\ (/\ ph ch) th) ps))
 
 #  Deduction adding conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2antlr () ((-> ph ps)) (-> (/\ (/\ ch ph) th) ps))
 
 #  Deduction adding conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2antrl () ((-> ph ps)) (-> (/\ ch (/\ ph th)) ps))
 
 #  Deduction adding conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2antll () ((-> ph ps)) (-> (/\ ch (/\ th ph)) ps))
 
 #  Deduction adding two conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2ant2l () ((-> (/\ ph ps) ch)) (-> (/\ (/\ th ph) (/\ ta ps)) ch))
 
 #  Deduction adding two conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2ant2r () ((-> (/\ ph ps) ch)) (-> (/\ (/\ ph th) (/\ ps ta)) ch))
 
 #  Deduction adding two conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2ant2lr () ((-> (/\ ph ps) ch)) (-> (/\ (/\ th ph) (/\ ps ta)) ch))
 
 #  Deduction adding two conjuncts to antecedent.
+## <title> Add Conjuncts </title>
 stmt (ad2ant2rl () ((-> (/\ ph ps) ch)) (-> (/\ (/\ ph th) (/\ ta ps)) ch))
 
 #  Simplification of a conjunction.
@@ -1731,6 +1844,7 @@ stmt (anidmdbi () () (<-> (-> ph (/\ ps ps)) (-> ph ps)))
 
 #  Commutative law for conjunction.  Theorem *4.3 of [bib/WhiteheadRussell]
 #      p. 118.
+## <title> Commutative Property </title>
 stmt (ancom () () (<-> (/\ ph ps) (/\ ps ph)))
 
 #  Inference commuting conjunction in antecedent.  //Notational convention//:
@@ -1738,9 +1852,11 @@ stmt (ancom () () (<-> (/\ ph ps) (/\ ps ph)))
 #        an antecedent, leaving the consequent unchanged.  The "s" means that the
 #        inference eliminates the need for a syllogism ([[syl]]) -type inference
 #        in a proof.
+## <title> Commutative Property </title>
 stmt (ancoms () ((-> (/\ ph ps) ch)) (-> (/\ ps ph) ch))
 
 #  Deduction commuting conjunction in antecedent.
+## <title> Commutative Property </title>
 stmt (ancomsd () ((-> ph (-> (/\ ps ch) th))) (-> ph (-> (/\ ch ps) th)))
 
 #  Theorem *3.22 of [bib/WhiteheadRussell] p. 111.
@@ -1989,6 +2105,12 @@ stmt (dfbi2 () () (<-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph))))
 stmt (dfbi () () (/\ (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph))) (-> (/\ (-> ph ps) (-> ps ph)) (<-> ph ps))))
 
 #  Deduce an equivalence from two implications.
+## <title> Deduce Equivalence </title>
+## <table>
+##   (-> ph (->  [ <r> ps <g> ch ] ))
+##   (-> ph (->  [ <g> ch <r> ps ] ))
+##   (-> ph (<-> [ <r> ps <g> ch ] ))
+## </table>
 stmt (impbid () ((-> ph (-> ps ch)) (-> ph (-> ch ps))) (-> ph (<-> ps ch)))
 
 #  Infer an equivalence from two implications.
@@ -2002,27 +2124,35 @@ stmt (impbida () ((-> (/\ ph ps) ch) (-> (/\ ph ch) ps)) (-> ph (<-> ps ch)))
 
 #  Commutative law for equivalence.  Theorem *4.21 of [bib/WhiteheadRussell]
 #      p. 117.
+## <title> Commutative Property </title>
 stmt (bicom () () (<-> (<-> ph ps) (<-> ps ph)))
 
 #  Commute two sides of a biconditional in a deduction.
+## <title> Commutative Property </title>
 stmt (bicomd () ((-> ph (<-> ps ch))) (-> ph (<-> ch ps)))
 
 #  Contraposition.  Theorem *4.11 of [bib/WhiteheadRussell] p. 117.
+## <title> Contraposition </title>
 stmt (notbi () () (<-> (<-> ph ps) (<-> (-. ph) (-. ps))))
 
 #  A contraposition inference.
+## <title> Contraposition </title>
 stmt (con4bii () ((<-> (-. ph) (-. ps))) (<-> ph ps))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con4bid () ((-> ph (<-> (-. ps) (-. ch)))) (-> ph (<-> ps ch)))
 
 #  Contraposition.  Theorem *4.12 of [bib/WhiteheadRussell] p. 117.
+## <title> Contraposition </title>
 stmt (con2bi () () (<-> (<-> ph (-. ps)) (<-> ps (-. ph))))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con2bid () ((-> ph (<-> ps (-. ch)))) (-> ph (<-> ch (-. ps))))
 
 #  A contraposition deduction.
+## <title> Contraposition </title>
 stmt (con1bid () ((-> ph (<-> (-. ps) ch))) (-> ph (<-> (-. ch) ps)))
 
 #  Deduction form of [[bitri]].

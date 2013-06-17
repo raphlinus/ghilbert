@@ -9,16 +9,6 @@ var (nat v w x y z v' w' x' y' z')
 
 # == Logic ==
 
-# A true statement can be removed from a conjunction. Similar to a1bi.
-thm (anTrue () (hyp ps) (<-> (/\ ps ph) ph)
-  hyp
-  ps ph pm3.2
-  ax-mp
-  ps ph pm3.27
-  impbii
-  bicomi
-)
-
 # == Pure predicate calculus ==
 
 thm (a4i ()
@@ -68,6 +58,11 @@ thm (sylbi2()
 
 # Commute the conclusion of bitr3i.
 ## <title> Transitive Property </title>
+## <table>
+##  (<-> ps [         [ [ ph ] )
+##  (<-> ps [      ch ] ]    ] )
+##          [ (<-> ch ] [ ph ] )
+## </table>
 thm (bitr3icom()
   (hyp1 (<-> ps ph)
    hyp2 (<-> ps ch))
@@ -488,6 +483,369 @@ thm (vtocle ((A x) (ph x))
 thm (eqid () ()
   (= A A)
   x A A ax-eqtr anidms vtocle
+)
+
+## <title> Commute Conjunction </title>
+## <table>
+##   (/\ <r> ph <g> ps)
+##   (/\ <g> ps <r> ph)
+## </table>
+thm (ancomi () (hyp (/\ ph ps)) (/\ ps ph)
+  hyp
+  ph ps ancom
+  mpbi
+)
+
+## <title> Commute Disjunction </title>
+## <table>
+##   (\/ <r> ph <g> ps)
+##   (\/ <g> ps <r> ph)
+## </table>
+thm (orcomi () (hyp (\/ ph ps)) (\/ ps ph)
+  hyp
+  ph ps orcom
+  mpbi
+)
+
+## <title> Definition of True </title>
+defthm (df-tru wff (T) () () (<-> (T) (= (0) (0)))
+        (= (0) (0)) biid)
+
+## <title> Definition of False </title>
+defthm (df-fal wff (F) () () (<-> (F) (-. (T)))
+        (-. (T)) biid)
+
+## <title> T is true </title>
+thm (tru () () (T)
+  (0) eqid
+  df-tru
+  mpbir
+)
+
+## <title> F is false </title>
+thm (notfal () () (-. (F))
+  tru
+  notnoti
+  df-fal
+  mtbir
+)
+
+## <title> Remove Implies </title>
+## <table>
+##            [ ph ]
+##   (<-> (-> [ ph ] ps) ps)
+## </table>
+thm (impRemove1 () (hyp ph) (<-> (-> ph ps) ps)
+  hyp
+  ps a1bi
+  bicomi
+)
+
+thm (impTru1i () (hyp (-> (T) ps)) ps
+  tru hyp ax-mp
+)
+
+## <title> Remove Implies </title>
+## <table>
+##               [ ph ]
+##   (<-> (-> ps [ ph ] ) (T))
+## </table>
+thm (impRemove2 () (hyp ph) (<-> (-> ps ph) (T))
+  tru
+  (-> ps ph) a1i
+  hyp ps a1i
+  (T) a1i
+  impbii
+)
+
+# impRemovel2i shouldn't be needed.
+
+## <title> Remove Implies </title>
+## <table>
+##            [ (-. [ ph ] )
+##   (<-> (-> [     [ ph ] ps) (T))
+## </table>
+thm (impNotRemove1 () (hyp (-. ph)) (<-> (-> ph ps) (T))
+  tru
+  (-> ph ps) a1i
+  hyp
+  (T) a1i
+  ps pm2.21d
+  impbii
+)
+
+thm (impNotRemove2 () (hyp (-. ph)) (<-> (-> ps ph) (-. ps))
+  hyp
+  (-> ps ph) id
+  mtoi
+  ps ph pm2.21
+  impbii
+)
+
+## <title> Remove Equivalence </title>
+## <table>
+##             [ ph ]
+##   (<-> (<-> [ ph ] ps) ps)
+## </table>
+thm (biRemove1 () (hyp ph) (<-> (<-> ph ps) ps)
+  hyp
+  (<-> ph ps) id
+  mpbii
+  ps id
+  ph a1d
+
+  hyp
+  ps a1i
+  ps a1i
+
+  impbid
+  impbii
+)
+
+## <title> Remove Equivalence </title>
+## <table>
+##                [ ph ]
+##   (<-> (<-> ps [ ph ] ) ps)
+## </table>
+thm (biRemove2 () (hyp ph) (<-> (<-> ps ph) ps)
+  hyp
+  ps biRemove1
+  ph ps bicom
+  bitr3icom
+)
+
+
+## <title> Remove Equivalence </title>
+## <table>
+##                [ (-. [ ph ] )
+##   (<-> (<-> ps [     [ ph ] ) ps)
+## </table>
+thm (biNotRemove2 () (hyp (-. ph)) (<-> (<-> ps ph) (-. ps))
+  hyp
+  (<-> ps ph) id
+  biimpd
+  mtoi
+  ps ph pm2.21
+
+  hyp
+  ps pm2.21i
+  (-. ps) a1i
+  impbid
+  impbii
+)
+
+## <title> Remove Equivalence </title>
+## <table>
+##             [ (-. [ ph ] )
+##   (<-> (<-> [     [ ph ] ps) ps)
+## </table>
+thm (biNotRemove1 () (hyp (-. ph)) (<-> (<-> ph ps) (-. ps))
+  hyp ps biNotRemove2
+  ps ph bicom
+  bitr3icom
+)
+
+## <title> Remove AND </title>
+## <table>
+##            [ ph ]
+##   (<-> (/\ [ ph ] ps) ps)
+## </table>
+thm (anRemove1 () (hyp ph) (<-> (/\ ph ps) ps)
+  ps id
+  ph adantl
+  hyp
+  ps a1i
+  ancri
+  impbii
+)
+
+
+## <title> Remove AND </title>
+## <table>
+##               [ ph ]
+##   (<-> (/\ ps [ ph ] ) ps)
+## </table>
+thm (anRemove2 () (hyp ph) (<-> (/\ ps ph) ps)
+ ps id
+ ph adantr
+ hyp
+ ps a1i
+ ancli
+ impbii
+)
+
+## <title> Remove AND </title>
+## <table>
+##            [ (-. [ ph ] )
+##   (<-> (/\ [     [ ph ] ps) (F))
+## </table>
+thm (anNotRemove1 () (hyp (-. ph)) (<-> (/\ ph ps) (F))
+  ph ps imnan
+  con2bii
+  hyp
+  (-. ps) impNotRemove1
+  con4biir
+  bitri
+  df-fal
+  bicomi
+  bitri
+)
+
+## <title> Remove AND </title>
+## <table>
+##               [ (-. [ ph ] )
+##   (<-> (/\ ps [     [ ph ] ) (F))
+## </table>
+thm (anNotRemove2 () (hyp (-. ph)) (<-> (/\ ps ph) (F))
+  hyp
+  ps anNotRemove1
+  ph ps ancom
+  bitr3icom
+)
+
+## <title> Remove OR </title>
+## <table>
+##            [ ph ]
+##   (<-> (\/ [ ph ] ps) (T))
+## </table>
+thm (orRemove1 () (hyp ph) (<-> (\/ ph ps) (T))
+  tru
+  (\/ ph ps) a1i
+  hyp
+  ps orci
+  (T) a1i
+  impbii
+)
+
+## <title> Remove OR </title>
+## <table>
+##               [ ph ]
+##   (<-> (\/ ps [ ph ] ) (T))
+## </table>
+thm (orRemove2 () (hyp ph) (<-> (\/ ps ph) (T))
+  tru
+  (\/ ps ph) a1i
+  hyp
+  ps olci
+  (T) a1i
+  impbii
+)
+
+
+## <title> Remove OR </title>
+## <table>
+##            [ (-. [ ph ] )
+##   (<-> (\/ [     [ ph ] ps) ps)
+## </table>
+thm (orNotRemove1 () (hyp (-. ph)) (<-> (\/ ph ps) ps)
+  (-. ph) ps imor
+  bicomi
+
+  ph notnot
+  ps orbi1i
+  bicomi
+  bitr3icom
+
+  hyp ps impRemove1
+  bitri
+)
+
+## <title> Remove OR </title>
+## <table>
+##               [ (-. [ ph ] )
+##   (<-> (\/ ps [     [ ph ] ) ps)
+## </table>
+thm (orNotRemove2 () (hyp (-. ph)) (<-> (\/ ps ph) ps)
+  hyp
+  ps orNotRemove1
+  ph ps orcom
+  bitr3icom
+)
+
+thm (impRemoveT1 () () (<-> (-> (T) ps) ps)       tru    ps impRemove1 )
+thm (impRemoveT2 () () (<-> (-> ps (T)) (T))      tru    ps impRemove2 )
+thm (impRemoveF1 () () (<-> (-> (F) ps) (T))      notfal ps impNotRemove1 )
+thm (impRemoveF2 () () (<-> (-> ps (F)) (-. ps))  notfal ps impNotRemove2 )
+
+thm (biRemoveT1 () () (<-> (<-> (T) ps) ps)       tru    ps biRemove1 )
+thm (biRemoveT2 () () (<-> (<-> ps (T)) ps)       tru    ps biRemove2 )
+thm (biRemoveF1 () () (<-> (<-> (F) ps) (-. ps))  notfal ps biNotRemove1 )
+thm (biRemoveF2 () () (<-> (<-> ps (F)) (-. ps))  notfal ps biNotRemove2 )
+
+thm (anRemoveT1 () () (<-> (/\ (T) ps) ps)   tru    ps anRemove1 )
+thm (anRemoveT2 () () (<-> (/\ ps (T)) ps)   tru    ps anRemove2 )
+thm (anRemoveF1 () () (<-> (/\ (F) ps) (F))  notfal ps anNotRemove1 )
+thm (anRemoveF2 () () (<-> (/\ ps (F)) (F))  notfal ps anNotRemove2 )
+
+thm (orRemoveT1 () () (<-> (\/ (T) ps) (T))   tru    ps orRemove1 )
+thm (orRemoveT2 () () (<-> (\/ ps (T)) (T))   tru    ps orRemove2 )
+thm (orRemoveF1 () () (<-> (\/ (F) ps) ps)    notfal ps orNotRemove1 )
+thm (orRemoveF2 () () (<-> (\/ ps (F)) ps)    notfal ps orNotRemove2 )
+
+# ax-mp with the order of the first and second hypotheses reversed.
+## <title> Modus Ponens </title>
+## <table>
+##  (-> ph ] [ ps)
+##      ph ] ]
+##         [ [ ps
+## </table>
+thm (ax-mpRemove () (hyp (-> ph ps) hyp2 ph ) ps
+  hyp2  hyp  ax-mp
+)
+
+# mto with the order of the first and second hypotheses reversed.
+## <title> Modus Tollens </title>
+## <table>
+##  (->     [ ph ]   [     [ ps)
+##          [    [   [ (-. [ ps)
+##      (-. [ ph ] ) ]     ]
+## </table>
+thm (mtoRemove () (hyp (-> ph ps) hyp2 (-. ps)) (-. ph)
+  hyp2  hyp  mto
+)
+
+# mpbi with the order of the first and second hypotheses reversed.
+## <title> Modus Ponens </title>
+## <table>
+## (<-> ph ] [ ps ] )
+##      ph ] ]    ]
+##         [ [ ps ]
+## </table>
+thm (mpbiRemove () (hyp (<-> ph ps) hyp2 ph ) ps
+  hyp2  hyp  mpbi
+)
+
+# mpbir with the order of the first and second hypotheses reversed.
+## <title> Modus Ponens </title>
+## <table>
+## (<-> ph ] [ ps ] )
+##         [ [ ps ]
+##      ph ] ]    ]
+## </table>
+thm (mpbirRemove () (hyp (<-> ph ps) hyp2 ps ) ph
+  hyp2  hyp  mpbir
+)
+
+# mtbi with the order of the first and second hypotheses reversed.
+## <title> Modus Tollens </title>
+## <table>
+##  (<->     [ ph ]   [     [ ps)
+##           [    [   [ (-. [ ps)
+##       (-. [ ph ] ) ]     ]
+## </table>
+thm (mtbiRemove () (hyp (<-> ph ps) hyp2 (-. ph)) (-. ps)
+  hyp2  hyp  mtbi
+)
+
+# mtbir with the order of the first and second hypotheses reversed.
+## <title> Modus Tollens </title>
+## <table>
+##   (<->    [ ph  ] [     [ ps)
+##                 ] [ (-. [ ps)
+##       (-. [ ph) ] ]     ]
+## </table>
+thm (mtbirRemove () (hyp (<-> ph ps) hyp2 (-. ps)) (-. ph)
+  hyp2  hyp  mtbir
 )
 
 ## <title> Symmetric Property </title>
@@ -1494,7 +1852,7 @@ thm (inlineNeqLem () ()
   mpbi
 
   (\/ (-. (= A B)) (= A C))
-  anTrue
+  anRemove1
   
   con4biir
   sylib
@@ -1532,8 +1890,15 @@ defthm (df-le wff (<= A B) ((A x) (B x)) ()
 defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
         (/\ (<= A B) (-. (= A B))) biid)
 
-thm (ltle ()
-  (hyp (<  A B))
+thm (ltle () () (-> (< A B) (<= A B))
+  (<= A B) (-. (= A B)) pm3.26
+  A B df-lt
+  bicomi
+  sylbi2
+)
+
+thm (ltlei ()
+  (hyp (< A B))
        (<= A B)
   hyp
   A B df-lt
@@ -1923,6 +2288,71 @@ thm (leleo () ()
   bitr4i
   B A eqcom (< A B) orbi1i bitri
   (= A B) (< A B) orcom bitri
+)
+
+thm (ltcom () () (<-> (< A B) (-. (<= B A)))
+  A B axlttri
+  A B eqcom
+  (< B A) orbi1i
+  con4biir
+  bitri
+  B A leleo
+  (< B A) (= B A) orcom
+  bitri
+  bicomi
+  con4biir
+  bitri
+)
+
+thm (ltcomi () (hyp (< A B)) (-. (<= B A))
+  hyp
+  A B axlttri
+  mpbi
+  A B eqcom
+  (< B A) orbi1i
+  mtbi
+  B A leleo
+  (< B A) (= B A) orcom
+  bitri
+  bicomi
+  mtbi
+)
+
+thm (lecom () () (<-> (<= A B) (-. (< B A)))
+  B A ltcom
+  notbii
+  bicomi
+  (<= A B) notnot
+  bicomi
+  bitr3icom
+)
+
+thm (lttri () (hyp (< A B) hyp2 (< B C)) (< A C)
+  hyp2 ltcomi
+  C B ltle
+  mto
+  hyp
+  (= A C) id B lteq1d
+  mpbii
+  mto
+
+  hyp ltlei
+  hyp2 ltlei
+  pm3.2i
+  A B C letr
+  ax-mp
+  A C lecom
+  mpbi
+
+  pm3.2i
+
+  (= A C) (< C A) ioran
+  bicomi
+  mpbi
+
+  A C axlttri
+  bicomi
+  mpbi
 )
 
 thm (nelt0 () (hyp (-. (= x (0)))) (-. (<= x (0)))
