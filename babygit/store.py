@@ -23,6 +23,9 @@ def get_delta_hdr_size(data, offset):
         shift += 7
     return size, offset
 
+def obj_type(obj):
+    return obj[:obj.find(' ')]
+
 def patch_delta(ref, delta):
     src_size, offset = get_delta_hdr_size(delta, 0)
     data_off = ref.find('\x00') + 1

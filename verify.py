@@ -1212,7 +1212,7 @@ class ExportCtx(InterfaceCtx):
                     return False
                 kind_v = v[1]
                 kind_vv = vv[1]
-                if kind_v != kind_vv:
+                if not self.kinds_match(kind_v, kind_vv):
                     return False
                 if vexp in invmap:
                     return False
@@ -1238,7 +1238,12 @@ class ExportCtx(InterfaceCtx):
             if not self.export_match(sexp[i + 1], vexp[i + 1], varmap, invmap, vsyms):
                 return False
         return True
-        
+
+    def kinds_match(self, export_kind, verify_kind):
+        # I suspect we also should follow self.verify.kinds in the other direction,
+        # but would like a test case before putting it in.
+        return (export_kind == verify_kind or 
+            verify_kind == self.verify.kinds.get(export_kind))
 
     def do_cmd(self, cmd, arg, out):
         """ ExportCtx command processing """
@@ -1270,21 +1275,27 @@ class ExportCtx(InterfaceCtx):
                 raise VerifyError('The term symbol ' + termname +
                                   ' does not exist in the verify context.')
 
-            # Check that ther term from the verify context agrees with that
+            # Check that the term from the verify context agrees with that
             # declared in the export context.
-
-            if kind != tkind:
+            if not self.kinds_match(kind, tkind):
                 raise VerifyError('Term ' + local_termname +
                                   ' kind mismatch with verify context term ' +
                                   termname +
                                   '; exporting to kind ' + kind +
                                   ' but is ' + tkind + ' in verify context')
 
-            if argkinds != targkinds:
+            if (len(argkinds) != len(targkinds)):
                 raise VerifyError(\
                     'Term signature mismatch with verify context for ' + local_termname +
                     '; kinds being exported to: ' + str(argkinds) +
                     '; kinds in verify context: ' + str(targkinds))
+
+            for i in range(len(argkinds)):
+                if not self.kinds_match(argkinds[i], targkinds[i]):
+                    raise VerifyError(\
+                        'Term signature mismatch with verify context for ' + local_termname +
+                        '; kinds being exported to: ' + str(argkinds) +
+                        '; kinds in verify context: ' + str(targkinds))
 
             if freemap != tfreemap:
                 raise VerifyError(\
