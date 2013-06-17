@@ -184,7 +184,7 @@ GH.Panel.resizePanel = function() {
 	var canvas = document.getElementById('canvas');
 	var stack = document.getElementById('stack');
 	// TODO: Possibly limit the height based on how much the canvas is filled.
-	canvas.style.height = maxHeight;
+	canvas.style.height = maxHeight - 50;
 	stack.style.height = maxHeight;
 }
 

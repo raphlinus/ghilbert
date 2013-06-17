@@ -287,6 +287,10 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (!isNaN(decimal)) {
 		str = GH.highlightSymbol(decimal.toString(), sexp, cursorPosition);
 		return GH.stringslug(str, cursorPosition);
+    } else if (sexp[0] == 'T') {
+        return GH.stringslug('T', cursorPosition);
+    } else if (sexp[0] == 'F') {
+        return GH.stringslug('F', cursorPosition);
     } else if (sexp[0] == 'table') {
         return GH.typesettable(sexp, cursorPosition);
     } else if (sexp[0] == 'color') {

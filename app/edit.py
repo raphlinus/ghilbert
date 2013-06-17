@@ -184,6 +184,7 @@ class EditHandler(users.AuthenticatedHandler):
         else:
             o.write('<textarea id="canvas" cols="60" rows="20" width="640" height="480" tabindex="0"></textarea><br/>\n')
         o.write("""
+  <div id="suggest"></div>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
 </div>
 <div id="stack">...</div>
@@ -206,7 +207,7 @@ v.set_suppress_errors(false);
             o.write('window.mainpanel = new GH.AceEdit(editor);\n')
         else:
             o.write("window.mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));\n")
-        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'));
+        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'), document.getElementById('suggest'));
 window.direct.vg = v;
 var number = document.getElementById('number');
 number.onchange = function() {

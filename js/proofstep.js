@@ -6,10 +6,14 @@
  * Represents an s-expression.
  */
 GH.sExpression = function(expression, parent, siblingIndex) {
-	this.operator_ = expression[0];
 	this.operands_ = [];
-	for (var i = 1; i < expression.length; i++) {
-		this.operands_.push(new GH.sExpression(expression[i], this, i - 1));
+	if (GH.typeOf(expression) != 'string') {
+		this.operator_ = expression[0];
+		for (var i = 1; i < expression.length; i++) {
+			this.operands_.push(new GH.sExpression(expression[i], this, i - 1));
+		}
+	} else {
+		this.operator_ = expression;
 	}
 	// Where the expression begins and ends within the textarea.
 	this.begin = expression.beg;
@@ -635,14 +639,14 @@ GH.ProofStep.stepToHtml = function(text, classes, mouseOverFunc, mouseOutFunc, c
 		if (i == 0) {
 			classname = 'first-column';
 		}
-		if (i == cellTexts.length - 1) {
-			classname += ' last-column';
-			cellText += name;
-		}
 		cell.setAttribute('class', classname);
 		cell.innerHTML = cellText;
 		row.appendChild(cell);
-	}
+	}		
+	var cell = document.createElement("td");
+	cell.setAttribute('class', 'last-column');
+	cell.innerHTML = name;
+	row.appendChild(cell);		
 
 	return row;
 };

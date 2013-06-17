@@ -128,14 +128,28 @@ GH.TextareaEdit = function(textarea) {
             .join('\n');
         if (self.listener) self.listener();
     };
-		// Insert text at the current cursor position.
-		this.insertText = function(text) {
-			var start = textarea.selectionStart;
-			var value = String(textarea.value);
-			var cursorPosition = this.getCursorPosition();
-			textarea.value = value.substring(0, cursorPosition) + text + value.substring(cursorPosition, value.length);
-			textarea.selectionEnd = start + text.length;
-			textarea.selectionStart = textarea.selectionEnd;
+	// Insert text at the current cursor position.
+	this.insertText = function(text) {
+		var start = textarea.selectionStart;
+		var value = String(textarea.value);
+		var cursorPosition = this.getCursorPosition();
+		textarea.value = value.substring(0, cursorPosition) + text + value.substring(cursorPosition, value.length);
+		textarea.selectionEnd = start + text.length;
+		textarea.selectionStart = textarea.selectionEnd;
+    };
+	// Insert text at the beginning and restore the original cursor position.
+	this.insertBeginning = function(text) {
+		var start = textarea.selectionStart;
+		var value = String(textarea.value);
+		textarea.value = text + value;
+		textarea.selectionEnd = start + text.length;
+		textarea.selectionStart = textarea.selectionEnd;
+    };
+	// Move the cursor to the end.
+	this.moveCursorToEnd = function(text) {
+		var end = textarea.value.length;
+		textarea.selectionStart = end;
+		textarea.selectionEnd = end;
     };
     this.splice = function(start, len, newText) {
         var oldChars;
