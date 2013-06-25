@@ -141,7 +141,18 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
-<script src="/js/prover.js" type="text/javascript"></script>
+<script src="/js/prover/prover.js" type="text/javascript"></script>
+<script src="/js/prover/associator.js" type="text/javascript"></script>
+<script src="/js/prover/commuter.js" type="text/javascript"></script>
+<script src="/js/prover/distributor.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator.js" type="text/javascript"></script>
+<script src="/js/prover/evaluatorAdd.js" type="text/javascript"></script>
+<script src="/js/prover/evaluatorMultiply.js" type="text/javascript"></script>
+<script src="/js/prover/remover.js" type="text/javascript"></script>
+<script src="/js/prover/replacer.js" type="text/javascript"></script>
+<script src="/js/prover/repositioner.js" type="text/javascript"></script>
+<script src="/js/prover/symbolTree.js" type="text/javascript"></script>
+<script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 

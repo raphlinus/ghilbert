@@ -176,7 +176,7 @@ GH.Direct.prototype.update = function() {
     		session.setAnnotations([]);
     	}
     }
-	this.prover.update(thmctx.proofctx.stackHistory);
+	this.prover.update(thmctx.proofctx.stackHistory, thmctx.proofctx.mandstack);
 		
 	if (thmctx.proofctx) {
 		return thmctx.proofctx.stackHistory;
