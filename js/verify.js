@@ -118,6 +118,7 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			}
 			this.styleMode = styleModeTypes.NONE;
 		} else if (tok == '<title>') {
+			this.title = '';
 			this.styleMode = styleModeTypes.TITLE;
 		} else if (tok == '</title>') {
 			this.styleMode = styleModeTypes.NONE;

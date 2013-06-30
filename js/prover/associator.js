@@ -46,7 +46,7 @@ GH.ProofGenerator.associatorRight.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.associatorRight.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.Prover.getType(sexp) != 'wff')) {
+	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];
@@ -87,7 +87,7 @@ GH.ProofGenerator.associatorLeft.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.associatorLeft.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.Prover.getType(sexp) != 'wff')) {
+	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];

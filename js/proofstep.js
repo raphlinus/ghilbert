@@ -23,6 +23,14 @@ GH.sExpression = function(expression, parent, siblingIndex) {
 	this.hasParentheses_ = (GH.typeOf(expression) != 'string');
 };
 
+// This is currently not used.
+GH.sExpression.getRoot = function(sexp) {
+	while(sexp.parent_) {
+		sexp = sexp.parent_;
+	}
+	return sexp;
+};
+
 GH.sExpression.fromString = function(str) {
 	return new GH.sExpression(GH.sExpression.stringToExpression(str));
 };

@@ -136,3 +136,17 @@ GH.symbolTree.getSymbolOrder = function(oldList, newList) {
 	}
 	return order;
 };
+
+GH.symbolTree.addTrees = function(originalTree, addition, addRight) {
+	if (originalTree == null) {
+		return addition;
+	} else if (addition == null) {
+		return originalTree;
+	} else {
+		if (addRight) {
+			return new GH.symbolTree(null, originalTree, addition);
+		} else {
+			return new GH.symbolTree(null, addition, originalTree);
+		}
+	}
+};

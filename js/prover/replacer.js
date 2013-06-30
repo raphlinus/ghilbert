@@ -1,42 +1,67 @@
-GH.replacer = function(prover) {
+GH.ProofGenerator.replacer = function(prover) {
 	this.prover = prover;
 };
 
-GH.replacer.prototype.addReplaceThm = function(sexp) {
+GH.ProofGenerator.replacer.prototype.isApplicable = function(sexp) {
+	return true;	
+};
+
+GH.ProofGenerator.replacer.prototype.stepName = function(sexp) {
 	var position = GH.Prover.findPosition(sexp);
-	var name = '';
+	var temp = sexp;
+	while (temp.parent_ != null) {
+		temp = temp.parent_;
+	}
+	if (position.length == 1) {
+		// Do not generate a new replacement theorem for basic one-line replacements.
+		var replaceOperations = GH.ProofGenerator.replacer.REPLACE_OPERATIONS;
+		for (var i = 0; i < replaceOperations.length; i++) {
+			if (sexp.parent_.operator_ == replaceOperations[i][0]) {
+				stepName = replaceOperations[i][2][sexp.siblingIndex_];
+				if (stepName) {
+					return stepName;
+				}
+			}
+		}
+	}
+
+	var result = position.length ? 'replace' : '';
+	for (var i = 0; i < position.length; i++) {
+		var name = GH.operatorUtil.getName(temp.operator_);
+		result += name + position[i];
+		temp = temp.operands_[position[i]];
+	}
+	return result;
+};
+
+GH.ProofGenerator.replacer.prototype.hyps = function(sexp) {
+	return [];
+};
+
+GH.ProofGenerator.replacer.prototype.addTheorem = function(sexp) {
+	// Add theorem is current not working if the expression is not a wff. Using inline that case.
+	if (GH.operatorUtil.getRootType(sexp) != 'wff') {
+		return false;
+	}
+
+	var position = GH.Prover.findPosition(sexp);
+	var name = this.stepName(sexp);
 	// What happens when position.length is 1?
 	if (position.length > 0) {
 		var replacement = this.prover.getLast();
-		name = GH.replacer.replaceThmName(sexp, position);
-		if (!this.prover.symbolDefined(name)) {
-			var replaceThm = this.createGeneric(position.slice(0), sexp, replacement, name);
-			this.prover.insertBeginning(replaceThm);
-		}
+		var replaceThm = this.createGeneric(position.slice(0), sexp, replacement, name);
+		this.prover.insertBeginning(replaceThm);
 		this.prover.depth++;
 	}
 	this.prover.println(name);
 	if (position.length > 0) {
 		this.prover.depth--;
 	}
-
-	// TODO: Check that this is working right.
-	var replaced = this.prover.getLast();
-	if (sexp.parent_) {
-		return GH.Prover.findMatchingPosition(replaced, sexp);
-	} else {
-		if (GH.Prover.getType(sexp) == 'wff') {
-			return replaced;
-		} else {
-			return replaced.right();
-		}
-	}
-	// TODO: Don't generate a new replacement theorem for basic one-line replacements.
+	return true;
 };
 
 
-
-GH.replacer.prototype.createGeneric = function(position, replacee, replacement, name) {
+GH.ProofGenerator.replacer.prototype.createGeneric = function(position, replacee, replacement, name) {
 	var output = [];
 	while (replacee.parent_ != null) {
 		replacee = replacee.parent_;
@@ -51,9 +76,9 @@ GH.replacer.prototype.createGeneric = function(position, replacee, replacement, 
 	var middleString = GH.sexp_to_string(middle);
 	var endString    = GH.sexp_to_string(end);
 
-	GH.replacer.removeStyling(start);
-	GH.replacer.removeStyling(middle);
-	GH.replacer.removeStyling(end);
+	GH.ProofGenerator.replacer.removeStyling(start);
+	GH.ProofGenerator.replacer.removeStyling(middle);
+	GH.ProofGenerator.replacer.removeStyling(end);
 	var startExp  = new GH.sExpression(start,  null, null);
 	var middleExp = new GH.sExpression(middle, null, null);
 	var endExp    = new GH.sExpression(end,    null, null);
@@ -84,37 +109,7 @@ GH.replacer.prototype.createGeneric = function(position, replacee, replacement, 
 	return output;
 };
 
-GH.replacer.replaceThmName = function(sexp, position) {
-	var temp = sexp;
-	while (temp.parent_ != null) {
-		temp = temp.parent_;
-	}
-	var result = '';
-	for (var i = 0; i < position.length; i++) {
-		var operator = temp.operator_;		
-		var name = '';
- 		       if (operator == '-.') {		name = 'not';
-		} else if (operator == '->') {		name = 'imp';		
-		} else if (operator == '<->') {		name = 'bi';
-		} else if (operator == '\\/') {		name = 'or';
-		} else if (operator == '/\\') {		name = 'an';
-		} else if (operator == 'A.') {		name = 'al';
-		} else if (operator == 'E.') {		name = 'ex';
-		} else if (operator == '=') {		name = 'eq';
-		} else if (operator == '<=') {		name = 'le';
-		} else if (operator == '<') {		name = 'lt';
-		} else if (operator == '+') {		name = 'add';
-		} else if (operator == '*') {		name = 'mul';
-		} else {
-			alert('Operator ' + operator + ' is not named.');
-		}
-		result += name + position[i];
-		temp = temp.operands_[position[i]];
-	}
-	return result;
-};
-
-GH.replacer.prototype.spaceColumns = function(strings) {
+GH.ProofGenerator.replacer.prototype.spaceColumns = function(strings) {
 	var matches = [];
 	for (var i = 0; i < strings.length; i++) {
 		var re = / \[| \]/g;
@@ -143,7 +138,7 @@ GH.replacer.prototype.spaceColumns = function(strings) {
 	return strings;
 };
 
-GH.replacer.removeStyling = function(sexp) {
+GH.ProofGenerator.replacer.removeStyling = function(sexp) {
     if (typeof sexp == 'string') {
 		sexp = sexp.replace(/ |\[|\]/g, '')
 	}
@@ -151,17 +146,17 @@ GH.replacer.removeStyling = function(sexp) {
 		if (typeof sexp[i] == 'string') {
 			sexp[i] = sexp[i].replace(/ |\[|\]/g, '')
 		} else {
-			GH.replacer.removeStyling(sexp[i]);
+			GH.ProofGenerator.replacer.removeStyling(sexp[i]);
 		}
 	}
 };
 
-GH.replacer.prototype.genericCopies = function(start, end, middle, positions, replacee, replacement, usedVariables) {
+GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle, positions, replacee, replacement, usedVariables) {
 	var operand = positions.splice(0, 1);
 	var operator = replacee.operator_;
 	start.push(operator);
 	end.push(operator);
-	var types = GH.Prover.getOperatorTypes(operator);
+	var types = GH.operatorUtil.getOperatorTypes(operator);
 	for (var i = 0; i < types.length - 1; i++) {
 		if (i != operand) {
 			var variable = this.grabNextVariable(usedVariables, types[i]);
@@ -174,7 +169,7 @@ GH.replacer.prototype.genericCopies = function(start, end, middle, positions, re
 				this.genericCopies(start[i + 1], end[i + 1], middle, positions, replacee.operands_[i], replacement, usedVariables);
 			} else {
 				var operator = replacement.operator_;
-				var types = GH.Prover.getOperatorTypes(operator);
+				var types = GH.operatorUtil.getOperatorTypes(operator);
 				var leftVariable  = this.grabNextVariable(usedVariables, types[0]);
 				var rightVariable = this.grabNextVariable(usedVariables, types[1]);
 				
@@ -188,16 +183,16 @@ GH.replacer.prototype.genericCopies = function(start, end, middle, positions, re
 	}
 };
 
-GH.replacer.prototype.grabNextVariable = function(usedVariables, type) {
-	if (GH.replacer.VARIABLE_NAMES[type].length <= usedVariables[type]) {
+GH.ProofGenerator.replacer.prototype.grabNextVariable = function(usedVariables, type) {
+	if (GH.ProofGenerator.replacer.VARIABLE_NAMES[type].length <= usedVariables[type]) {
 		alert('No more unused variable names.');
 	}
-	var result = GH.replacer.VARIABLE_NAMES[type][usedVariables[type]];
+	var result = GH.ProofGenerator.replacer.VARIABLE_NAMES[type][usedVariables[type]];
 	usedVariables[type]++;
 	return result;
 };
 
-GH.replacer.VARIABLE_NAMES = {
+GH.ProofGenerator.replacer.VARIABLE_NAMES = {
 	wff: ['ph', 'ps', 'ch', 'th', 'ta'],
 	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\''], 
 	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\'']
@@ -207,7 +202,7 @@ GH.replacer.VARIABLE_NAMES = {
 // Each operator has two groups of theorems. The first group is for when the expression
 // has a parent. The second group is for when the expression does not. Within each group
 // there is one theorem for each operand.
-GH.replacer.REPLACE_OPERATIONS = [
+GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 	[ '-.', ['con4biir'], ['mtbi']],
 	[ '->', ['imbi1i', 'imbi2i'], ['sylbi2', 'sylib']],
 	['<->', ['bibi1i', 'bibi2i'], ['bitr3icom', 'bitri']],
@@ -236,7 +231,7 @@ GH.replacer.REPLACE_OPERATIONS = [
  *
  * Returns true if the replacement was successful.
  */
-GH.replacer.prototype.replace = function(replacee, output) {
+GH.ProofGenerator.replacer.prototype.replace = function(replacee, output) {
 	var parent = replacee.parent_;
 	var operandIndex = replacee.siblingIndex_;
 	if (!parent) {
@@ -244,18 +239,18 @@ GH.replacer.prototype.replace = function(replacee, output) {
 	}
 		
 	var operator = parent.operator_;
-	var types = GH.Prover.getOperatorTypes(operator);
+	var types = GH.operatorUtil.getOperatorTypes(operator);
 	if (types == null) {
 		return false;
 	}
 
-	var replaceOperations = GH.replacer.REPLACE_OPERATIONS;
+	var replaceOperations = GH.ProofGenerator.replacer.REPLACE_OPERATIONS;
 	for (var i = 0; i < replaceOperations.length; i++) {
 		if (operator == replaceOperations[i][0]) {
 			var mandHyps = [];
 			var stepName = null;
-			var operatorTypes = GH.Prover.getOperatorTypes(operator);
-			if ((parent.parent_) || (GH.Prover.getType(parent) != 'wff')) {
+			var operatorTypes = GH.operatorUtil.getOperatorTypes(operator);
+			if ((parent.parent_) || (GH.operatorUtil.getType(parent) != 'wff')) {
 				// Add all the operands that are not getting replaced.
 				for (var j = 0; j < types.length - 1; j++) {
 					if (j != operandIndex) {
@@ -282,39 +277,25 @@ GH.replacer.prototype.replace = function(replacee, output) {
 };
 
 // Replace the s-expression replacee using the last statement on the proof stack.
-GH.replacer.prototype.getReplaced = function(replacee) {
+GH.ProofGenerator.replacer.prototype.inline = function(replacee) {
 	var printOutput = [];
-	this.createReplaceThm(replacee, printOutput);
+	this.replace(replacee, printOutput);
 	for (var i = 0; i < printOutput.length; i++) {
 		this.prover.println(printOutput[i]);
 	}
 	result = this.prover.getLast();
 	result = GH.Prover.findMatchingPosition(result, replacee);
-	return result;
+	return true;
 };
 
-// Replace the s-expression replacee using the last statement on the proof stack.
-GH.replacer.prototype.createReplaceThm = function(replacee, output) {
-	// TODO: Return output.
-
-	var replacement = this.prover.getLast();
-	if (replacee.parent_) {
-		this.replace(replacee, output);
-		//var replaced = this.replace(replacee, output);
-		//return GH.Prover.findMatchingPosition(replaced, replacee);
-	}/* else {
-		return replacement.right();
-	}*/
-};
-
-GH.replacer.prototype.isReplaceable = function(replacee, replacement) {
+GH.ProofGenerator.replacer.prototype.isApplicable = function(replacee, replacement) {
 	// Replacing does nothing if the left and right sides are equal.
 	if ((replacement.operands_.length != 2) || (replacement.left().equals(replacement.right()))) {
 		return false;
 	}
 	// Check that the operator is an equivalence operator.
-	var operatorTypes = GH.Prover.getOperatorTypes(replacement.operator_);
-	if ((!operatorTypes) || (replacement.operator_ != GH.Prover.EQUIVALENCE_OPERATOR[operatorTypes[0]])) {
+	var operatorTypes = GH.operatorUtil.getOperatorTypes(replacement.operator_);
+	if ((!operatorTypes) || (replacement.operator_ != GH.operatorUtil.EQUIVALENCE_OPERATOR[operatorTypes[0]])) {
 		return false;
 	}
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());

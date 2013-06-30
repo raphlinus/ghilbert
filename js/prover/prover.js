@@ -5,13 +5,15 @@ GH.Prover = function(suggestArea, direct) {
 	this.depth = 0;
 	this.direct = direct;
 	this.conclusions = [];
-	this.stackExp = null;
+	this.mutableExp = null;
+	this.stackLength = 0;
 	this.suggestButtons_ = document.createElement('div');
 	suggestArea.appendChild(this.suggestButtons_);
 
 	this.remover = new GH.remover(this);
-	this.replacer = new GH.replacer(this);
+	this.replacer = new GH.ProofGenerator.replacer(this);
 	this.repositioner = new GH.repositioner(this);
+
 	this.commuter = new GH.ProofGenerator.commuter(this);
 	this.evaluator = new GH.ProofGenerator.evaluator(this);
 	this.distributorLeft  = new GH.ProofGenerator.distributorLeft(this);
@@ -20,6 +22,28 @@ GH.Prover = function(suggestArea, direct) {
 	this.undistributorRight = new GH.ProofGenerator.undistributorRight(this);
 	this.associatorLeft  = new GH.ProofGenerator.associatorLeft(this);
 	this.associatorRight = new GH.ProofGenerator.associatorRight(this);
+
+	this.generators = [
+		{name: 'Commuter',   gen: this.commuter},
+		{name: 'Evaluate',   gen: this.evaluator},
+		{name: 'Dist. L',    gen: this.distributorLeft},
+		{name: 'Dist. R',    gen: this.distributorRight},
+		{name: 'Undist. L',  gen: this.undistributorLeft},
+		{name: 'Undist. R',  gen: this.undistributorRight},
+		{name: 'Ass. L',     gen: this.associatorLeft},
+		{name: 'Ass. R',     gen: this.associatorRight},
+	];
+};
+
+GH.Prover.prototype.updateMutableExp = function(theorems, stack) {
+	this.mutableExp = null;
+	if (stack.length == 1) {
+		this.mutableExp = new GH.sExpression(stack[0][1], null, null);
+	} else if (stack.length == 0) {
+		if (this.conclusions.length >= 1) {
+			this.mutableExp = this.conclusions[this.conclusions.length - 1];
+		}
+	}
 };
 
 GH.Prover.prototype.update = function(theorems, stack) {
@@ -27,48 +51,27 @@ GH.Prover.prototype.update = function(theorems, stack) {
 	while(this.suggestButtons_.firstChild){
     	this.suggestButtons_.removeChild(this.suggestButtons_.firstChild);
 	}
+	this.stackLength = stack.length;
 	
 	this.conclusions = GH.Prover.getConclusions(theorems);
-	this.stackExp = null;
-	if (stack.length == 1) {
-		this.stackExp = new GH.sExpression(stack[0][1], null, null);
-		if (this.evaluator.isApplicable(this.stackExp)) {
-			this.addSuggestion('Evaluate', 'window.direct.prover.handleEvaluate()');
-		}
-		if (this.distributorLeft.isApplicable(this.stackExp)) {
-			this.addSuggestion('Dist. L', 'window.direct.prover.handleDistributeLeft()');
-		}
-		if (this.distributorRight.isApplicable(this.stackExp)) {
-			this.addSuggestion('Dist. R', 'window.direct.prover.handleDistributeRight()');
-		}
-		if (this.undistributorLeft.isApplicable(this.stackExp)) {
-			this.addSuggestion('Undist. L', 'window.direct.prover.handleUndistributeLeft()');
-		}
-		if (this.undistributorRight.isApplicable(this.stackExp)) {
-			this.addSuggestion('Undist. R', 'window.direct.prover.handleUndistributeRight()');
-		}
-		if (this.associatorLeft.isApplicable(this.stackExp)) {
-			this.addSuggestion('Ass. L', 'window.direct.prover.handleAssociateLeft()');
-		}
-		if (this.associatorRight.isApplicable(this.stackExp)) {
-			this.addSuggestion('Ass. R', 'window.direct.prover.handleAssociateRight()');
+	this.updateMutableExp(theorems, stack);
+	if (this.mutableExp) {
+		for (var i = 0; i < this.generators.length; i++) {
+			var generator = this.generators[i];
+			if (generator.gen.isApplicable(this.mutableExp)) {
+				this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')');
+			}
 		}
 	}
 
-	if (stack.length == 0) {
-		if (this.conclusions.length >= 1) {
-			var lastConclusion = this.conclusions[this.conclusions.length - 1];
-			if (this.commuter.isApplicable(lastConclusion)) {
-				this.addSuggestion('Commute', 'window.direct.prover.handleCommute()');
-			}
-		}
-	
+	if (stack.length == 0) {	
 		if (this.conclusions.length >= 2) {
 			var prevConclusion = this.conclusions[this.conclusions.length - 2];
-			if (prevConclusion && this.replacer.isReplaceable(prevConclusion, lastConclusion)) {
+			var lastConclusion = this.mutableExp;
+			if (prevConclusion && this.replacer.isApplicable(prevConclusion, lastConclusion)) {
 				this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()');
 			}
-			if (prevConclusion && this.remover.maybeRemove(prevConclusion, lastConclusion)) {
+			if (prevConclusion && this.remover.isApplicable(prevConclusion, lastConclusion)) {
 				this.addSuggestion('Remove', 'window.direct.prover.handleRemove()');
 			}
 		}
@@ -120,9 +123,9 @@ GH.Prover.prototype.print = function(mandHyps, step) {
 
 GH.Prover.prototype.makeString = function(mandHyps, step, output) {
 	var result = '';
-	for (var i = 0; i < this.depth; i++) {
+/*	for (var i = 0; i < this.depth; i++) {
 		result += '  ';
-	}
+	}*/
 	for (var i = 0; i < mandHyps.length; i++) {
 		result += mandHyps[i].toString() + ' ';
 	}
@@ -184,12 +187,7 @@ GH.Prover.findPosition = function(sexp) {
  */
 GH.Prover.findMatchingPosition = function(sexp, matcher) {
 	var indices = GH.Prover.findPosition(matcher);
-
-	var matcherRoot = matcher;
-	while(matcherRoot.parent_) {
-		matcherRoot = matcherRoot.parent_;
-	}
-	if (GH.Prover.getType(matcherRoot) != 'wff') {
+	if (GH.operatorUtil.getRootType(matcher) != 'wff') {
 		// If the original expression is not a wff, the result is an equilance statement. Take the right part.	
 		sexp = sexp.right();
 	}
@@ -202,18 +200,15 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
 };
 
 /**
- * Replace an s-expression using a proof generator. The proof generator can automatically
+ * Apply a proof generator. The proof generator can automatically
  * generate theorems. Those theorems may or may not be in the repository. This function
  * is designed to work in either case. If the theorem is in the repository this function
  * will look it up and use it. If it is not in the repository, this function will
- * generate all the necessary steps to replace the s-expression.
+ * generate all the necessary steps to apply the generator.
  */
-GH.Prover.prototype.replaceWith = function(generator, sexp) {
+GH.Prover.prototype.apply = function(generator, sexp) {
 	var name = generator.stepName(sexp);
-	this.depth++;
-	this.println('## <d>');
-	this.depth++;
-	if (this.direct.vg.syms.hasOwnProperty(name)) {
+	if (this.symbolDefined(name)) {
 		// Uses the proof if it already exists in the repository.
 		var hyps = generator.hyps(sexp);
 		this.print(hyps, name);
@@ -227,11 +222,59 @@ GH.Prover.prototype.replaceWith = function(generator, sexp) {
 			}
 		}
 	}
+};
+
+/**
+ * Replace an s-expression using a proof generator. The proof generator can automatically
+ * generate theorems. Those theorems may or may not be in the repository. This function
+ * is designed to work in either case. If the theorem is in the repository this function
+ * will look it up and use it. If it is not in the repository, this function will
+ * generate all the necessary steps to replace the s-expression.
+ */
+GH.Prover.prototype.replaceWith = function(generator, sexp) {
+	if (!generator.isApplicable(sexp)) {
+		return sexp;
+	}
+	this.println('## <d>');
+	this.depth++;
+	this.apply(generator, sexp);
 	this.depth--;
 	this.println('## </d>');
-	this.depth--;
+	return this.replace(sexp);
+};
 
-	return this.replacer.addReplaceThm(sexp);
+// Like replaceWith, but when you have an ordinary function not a generator.
+// Ideally functions would be converted into generators so that the generated
+// theorems can be saved and reused.
+GH.Prover.prototype.replaceFunc = function(func, sexp, caller) {
+	this.println('## <d>');
+	this.depth++;
+	func.call(caller, sexp);
+	this.depth--;
+	this.println('## </d>');
+	return this.replace(sexp);
+};
+
+/**
+ * Replace an s-expression using a proof generator. The proof generator can automatically
+ * generate theorems. Those theorems may or may not be in the repository. This function
+ * is designed to work in either case. If the theorem is in the repository this function
+ * will look it up and use it. If it is not in the repository, this function will
+ * generate all the necessary steps to replace the s-expression.
+ */
+GH.Prover.prototype.replace = function(sexp) {
+	this.apply(this.replacer, sexp);
+	
+	var replaced = this.getLast();
+	if (sexp.parent_) {
+		return GH.Prover.findMatchingPosition(replaced, sexp);
+	} else {
+		if (GH.operatorUtil.getType(sexp) == 'wff') {
+			return replaced;
+		} else {
+			return replaced.right();
+		}
+	}
 };
 
 GH.Prover.prototype.handleRemove = function() {
@@ -269,34 +312,6 @@ GH.Prover.prototype.symbolDefined = function(name) {
 		}
 	}
 	return false;
-};
-
-GH.Prover.EQUIVALENCE_OPERATOR = {
-	wff: '<->',
-	nat: '=',
-	bind: '='
-};
-
-GH.Prover.getOperatorTypes = function(operator) {
-	if (operator == '-.') 	return ['wff', 'wff'];
-	if (operator == '->') 	return ['wff', 'wff', 'wff'];
-	if (operator == '<->') 	return ['wff', 'wff', 'wff'];
-	if (operator == '\\/') 	return ['wff', 'wff', 'wff'];
-	if (operator == '/\\') 	return ['wff', 'wff', 'wff'];
-	if (operator == 'A.') 	return ['bind', 'wff', 'wff'];
-	if (operator == 'E.') 	return ['bind', 'wff', 'wff'];
-	if (operator == '=') 	return ['nat', 'nat', 'wff'];
-	if (operator == '<=') 	return ['nat', 'nat', 'wff'];
-	if (operator == '<') 	return ['nat', 'nat', 'wff'];
-	if (operator == '+') 	return ['nat', 'nat', 'nat'];
-	if (operator == '*') 	return ['nat', 'nat', 'nat'];
-	return null;
-};
-
-GH.Prover.getType = function(sexp) {
-	var operator = sexp.operator_;
-	var operatorTypes = GH.Prover.getOperatorTypes(operator);
-	return operatorTypes && operatorTypes[operatorTypes.length - 1];
 };
 
 /**
@@ -400,41 +415,18 @@ GH.Prover.prototype.setHypsWithKeys = function(sexp, keys, hyps) {
 	}	
 };
 
-/**
- * Generates a full theorem using a proof generator and an s-expression.
- * The name of the theorem, its inputs, and the body of the proof are all based on the
- * s-expression. A placeholder conclusion is initially used to prevent Ghilbert from
- * complaining. Once the real conclusion is generated, it replaces the fake conclusion.
- */
-GH.Prover.prototype.addTheorem = function(generator, sexp) {
-	this.insertText('thm (' + generator.stepName(this, sexp) + ' ' + generator.header(this, sexp) + ' ');
-	var conclusionPosition = this.direct.text.getCursorPosition();
-	var fakeConclusion = '(= (0) (1))';
-	this.insertText(fakeConclusion);
-	this.insertText('\n');
-	this.depth++;
-	generator.body(prover, sexp);
-	this.depth--;
-	this.println(')');
-	var conclusion = this.getLast();
-	this.direct.text.splice(conclusionPosition, fakeConclusion.length, conclusion);
-	this.direct.update();
-};
-
 GH.ProofGenerator = {};
-
-GH.Prover.prototype.replace = function(sexp) {
-	return this.replacer.getReplaced(sexp);
-};
 
 GH.Prover.prototype.reposition = function(sexp, oldPosition, newPosition) {
 	return this.repositioner.reposition(sexp, oldPosition, newPosition);
 };
 
 GH.Prover.prototype.clearStack = function() {
-	var begin = this.stackExp.begin;
-	var end = this.stackExp.end;
-	this.direct.text.splice(begin, end - begin, '');
+	if (this.stackLength == 1) {
+		var begin = this.mutableExp.begin;
+		var end = this.mutableExp.end;
+		this.direct.text.splice(begin, end - begin, '');
+	}
 };
 
 GH.Prover.prototype.associateLeft = function(sexp) {
@@ -473,60 +465,15 @@ GH.Prover.prototype.commute = function(sexp) {
 	}
 };
 
-GH.Prover.prototype.handleCommute = function() {
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	var lastConclusion = this.conclusions[this.conclusions.length - 1];
-	this.commute(lastConclusion);
-};
-
-GH.Prover.prototype.handleEvaluate = function() {
+GH.Prover.prototype.handleClick = function(name) {
 	this.clearStack();
 	this.direct.text.moveCursorToEnd();
 	this.insertText(' ');
-	this.replaceWith(this.evaluator, this.stackExp);
-};
-
-GH.Prover.prototype.handleDistributeLeft = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.distributorLeft, this.stackExp);
-};
-
-GH.Prover.prototype.handleDistributeRight = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.distributorRight, this.stackExp);
-};
-
-GH.Prover.prototype.handleUndistributeLeft = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.undistributorLeft, this.stackExp);
-};
-
-GH.Prover.prototype.handleUndistributeRight = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.undistributorRight, this.stackExp);
-};
-
-GH.Prover.prototype.handleAssociateLeft = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.associatorLeft, this.stackExp);
-};
-
-GH.Prover.prototype.handleAssociateRight = function() {
-	this.clearStack();
-	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
-	this.replaceWith(this.associatorRight, this.stackExp);
+	for (var i = 0; i < this.generators.length; i++) {
+		if (this.generators[i].name == name) {
+			this.replaceWith(this.generators[i].gen, this.mutableExp);
+		}
+	}
 };
 
 GH.Prover.findMatch = function(sexp, matchee) {
@@ -549,13 +496,22 @@ GH.Prover.prototype.handleSubstitute = function() {
 	var replacee = this.conclusions[this.conclusions.length - 2];
 	var replacement = this.conclusions[this.conclusions.length - 1];
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());
-	replacee = this.replacer.addReplaceThm(myMatch);
+	replacee = this.replace(myMatch);
 
 	// TODO: Replace a value multiple times if it appears multiple times.
 	/*while (myMatch) {
 		replacee = this.replacer.addReplaceThm(myMatch);
 		myMatch = GH.Prover.findMatch(replacee, replacement.left());
 	}*/
+};
+
+// Call a function, but increase the depth so it is hidden by default.
+GH.Prover.prototype.applyHidden = function(applyFunc, sexp, caller) {
+	this.println('## <d>');
+	this.depth++;
+	applyFunc.call(caller, sexp);
+	this.depth--;
+	this.println('## </d>');
 };
 
 // Apply a function to the right side of an s-expression. This does not change

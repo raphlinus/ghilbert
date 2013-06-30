@@ -7,7 +7,7 @@ GH.Prover.prototype.oneDigitNotZero = function(sexp) {
 	var result = this.getLast().child().right();
 
 	this.print(['(' + predecessor + ')'], 'a1suc');
-	result = this.replacer.getReplaced(result, this.getLast())
+	result = this.replace(result, this.getLast())
 	this.successorLeft(result);
 };
 

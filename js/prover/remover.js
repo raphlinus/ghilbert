@@ -87,6 +87,10 @@ GH.remover.prototype.removeBoolean = function(removee, output) {
 	}
 };
 
+GH.remover.prototype.isApplicable = function(removee, remover) {
+	return this.maybeRemove(removee, remover) != null;
+};
+
 GH.remover.prototype.maybeRemove = function(removee, remover) {
 	var output = [];
 	var isNegated = false;

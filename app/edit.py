@@ -153,6 +153,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/repositioner.js" type="text/javascript"></script>
 <script src="/js/prover/symbolTree.js" type="text/javascript"></script>
 <script src="/js/prover/numUtil.js" type="text/javascript"></script>
+<script src="/js/prover/operatorUtil.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 

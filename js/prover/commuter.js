@@ -44,17 +44,12 @@ GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.commuter.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.Prover.getType(sexp) != 'wff')) {
+	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];
 	}
 };
 
-GH.ProofGenerator.commuter.prototype.inline = function(sexp) {
-	return false;
-};
-
-GH.ProofGenerator.commuter.prototype.addTheorem = function(sexp) {
-	return false;
-};
+GH.ProofGenerator.commuter.prototype.inline = function(sexp) {	    return false; };
+GH.ProofGenerator.commuter.prototype.addTheorem = function(sexp) {	return false; };
