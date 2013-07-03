@@ -1483,7 +1483,22 @@ thm (addeq12d ()
   hyp1 hyp2 jca A B C D addeq12 syl
 )
 
+## <title> Equality over Succession </title>
+## <table>
+##  (=    A  ] [    B)
+##  (= (S A) ] [ (S B)
+## </table>	
+thm (pa_ax2i () (hyp (= A B)) (= (S A) (S B))
+  hyp
+  A B pa_ax2
+  mpbi
+)
+
 ## <title> Equality over Addition </title>
+## <table>
+##  (=    A ]       [ B ] )
+##  (= (+ A ] C) (+ [ B ] C))
+## </table>
 thm (addeq1i ()
   (hyp (= A B))
   (= (+ A C) (+ B C))
@@ -1491,6 +1506,10 @@ thm (addeq1i ()
 )
 
 ## <title> Equality over Addition </title>
+## <table>
+##  (=      [ A ]        [ B )
+##  (= (+ C [ A ] ) (+ C [ B))
+## </table>
 thm (addeq2i ()
   (hyp (= A B))
   (= (+ C A) (+ C B))
@@ -1812,6 +1831,26 @@ thm (addcan2 () ()
     B A C addcan bitri
 )
 
+## <title> Inequality over Addition </title>
+## <table>
+##   (-. (=    [ A ]   ]      [ B ] ))
+##   (-. (= (+ [ A ] C ] ) (+ [ B ] C)))
+## </table>
+thm (addneq1i () (hyp (-. (= A B)))  (-. (= (+ A C) (+ B C)))
+  A C B addcan
+  hyp mtbirRemove
+)
+
+## <title> Inequality over Addition </title>
+## <table>
+##   (-. (=      [ A ]      [   [ B ))
+##   (-. (= (+ C [ A ] ) (+ [ C [ B)))
+## </table>
+thm (addneq2i () (hyp (-. (= A B))) (-. (= (+ C A) (+ C B)))
+  C A B addcan2
+  hyp mtbirRemove
+)
+
 # Successor is equivalent to adding one
 thm (a1suc () ()
   (= (S A) (+ A (1)))
@@ -2024,6 +2063,13 @@ thm (leeq2i ()
 
 # Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+# Equality inference for less than relation
+## <title> Equivalence over Inequality </title>
+## <table>
+##  (<=    A ] ]   ] [ C)
+##      (= A ] [ B ] ] )
+##  (<=      [ [ B ] [ C)
+## </table>
 thm (leeq1ii ()
   (hyp1 (<= A C)
    hyp2 (= A B))
@@ -2033,6 +2079,11 @@ thm (leeq1ii ()
 
 # Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+## <table>
+##  (<= C   [ A ] ] )
+##       (= [ A ] [ B)
+##  (<= C   [   [ [ B)
+## </table>
 thm (leeq2ii ()
   (hyp1 (<= C A)
    hyp2 (= A B))
@@ -2064,12 +2115,78 @@ thm (leadd2 () ()
   B C addcom (+ C A) leeq2i bitri
 )
 
+## <title> Addition Over Inequality </title>
+## <table>
+##  (<=    A ]       [ B ] )
+##  (<= (+ A ] C) (+ [ B ] C))
+## </table>
+thm (leadd1i () (hyp (<= A B)) (<= (+ A C) (+ B C))
+  A B C leadd1
+  hyp
+  mpbiRemove
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (<=      [ A ]        [ B )
+##  (<= (+ C [ A ] ) (+ C [ B ))
+## </table>
+thm (leadd2i () (hyp (<= A B)) (<= (+ C A) (+ C B))
+  A B C leadd2
+  hyp
+  mpbiRemove
+)
+
 # Inequality relation for two equal sums
 thm (leadd12 () ()
   (-> (= (+ A B) (+ C D)) (<-> (<= A C) (<= D B)))
   (= (+ A B) (+ C D)) id (+ C B) leeq1d
   D B C leadd2 syl6bbr
   A C B leadd1 syl5bb
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (-. (<=    A ]       [ B ] ))
+##  (-. (<= (+ A ] C) (+ [ B ] C)))
+## </table>
+thm (gtadd1i () (hyp (-. (<= A B))) (-. (<= (+ A C) (+ B C)))
+  A B C leadd1
+  hyp
+  mtbiRemove
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (-. (<=      [ A ]        [ B ))
+##  (-. (<= (+ C [ A ] ) (+ C [ B )))
+## </table>
+thm (gtadd2i () (hyp (-. (<= A B))) (-. (<= (+ C A) (+ C B)))
+  A B C leadd2
+  hyp
+  mtbiRemove
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (-. (<    A ]       [ B ] ))
+##  (-. (< (+ A ] C) (+ [ B ] C)))
+## </table>
+thm (geadd1i () (hyp (-. (< A B))) (-. (< (+ A C) (+ B C)))
+  A B C ltadd1
+  hyp
+  mtbiRemove
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (-. (<      [ A ]        [ B ))
+##  (-. (< (+ C [ A ] ) (+ C [ B )))
+## </table>
+thm (geadd2i () (hyp (-. (< A B))) (-. (< (+ C A) (+ C B)))
+  A B C ltadd2
+  hyp
+  mtbiRemove
 )
 
 ## <title> Basic Inequality </title>
@@ -2100,6 +2217,11 @@ thm (lteq2i ()
 )
 
 ## <title> Equivalence over Inequality </title>
+## <table>
+##  (< C   [ A ] ] )
+##      (= [ A ] [ B)
+##  (< C   [   [ [ B)
+## </table>
 thm (lteq2ii ()
   (hyp1 (< C A)
    hyp2 (= A B))
@@ -2238,6 +2360,18 @@ thm (lenltt () ()
   finds
 )
 
+thm (0le () () (<= (0) A)
+  (0) A lenltt
+   bicomi
+   A nn0nlt0
+   mpbiRemove
+)
+
+thm (ge0 () () (-. (< A (0)))
+  A 0le
+  lecomi
+)
+
 # Equality deduction for less than relation
 thm (lteq1d () (hyp (-> ph (= A B)))
   (-> ph (<-> (< A C) (< B C)))
@@ -2255,6 +2389,12 @@ thm (lteq1i () (h (= A B))
   h (= A B) id C lteq1d ax-mp)
 
 # Equality inference for less than relation
+## <title> Equivalence over Inequality </title>
+## <table>
+##  (<    A ] ]   ] [ C)
+##     (= A ] [ B ] ] )
+##  (<      [ [ B ] [ C)
+## </table>
 thm (lteq1ii ()
   (hyp1 (< A C)
    hyp2 (= A B))
@@ -2345,6 +2485,12 @@ thm (lecom () () (<-> (<= A B) (-. (< B A)))
   bitr3icom
 )
 
+thm (lecomi () (hyp (<= A B)) (-. (< B A))
+  hyp
+  A B lecom
+  mpbi
+)
+
 thm (lttri () (hyp (< A B) hyp2 (< B C)) (< A C)
   hyp2 ltcomi
   C B ltle
@@ -2382,8 +2528,58 @@ thm (nelt0 () (hyp (-. (= x (0)))) (-. (<= x (0)))
   mtbir
 )
 
-thm (ltadd1 () ()
-  (<-> (< A B) (< (+ A C) (+ B C)))
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (replaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee
+  substitution
+ps anbi2i
+bitri
+)
+
+thm (axlttri2 () () (<-> (< A B) (/\ (-. (= A B)) (<= A B)))
+  A B axlttri
+  (= A B) (< B A) ioran bitri
+  A B lecom
+  ## <d>
+    bicomi
+  ## </d>
+  replaceBi1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ (-.  [ ps ]   ]    ] ) th))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (/\ (-.  [    [   [ ch ] ) th))
+## </table>
+thm (replaceBi1An0Not0 () (
+     replacee (<-> ph (/\ (-. ps) th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ (-. ch) th))
+  replacee
+  substitution
+  con4biir
+  th anbi1i
+  bitri
+)
+
+thm (axgrtri () () (<-> (-. (<= A B)) (/\ (-. (= A B)) (-. (< A B))))
+  B A axlttri2
+  B A ltcom bitr3icom
+  B A lecom  replaceBi1An1
+  B A eqcom  replaceBi1An0Not0
+)
+
+## <title> Inequality Over Addition </title>
+thm (ltadd1 () () (<-> (< A B) (< (+ A C) (+ B C)))
   A B C leadd1
     A C B addcan bicomi notbii
   anbi12i
@@ -2391,6 +2587,43 @@ thm (ltadd1 () ()
     A B df-lt
       (+ A C) (+ B C) df-lt
   3bitr4i
+)
+
+## <title> Inequality Over Addition </title>
+thm (ltadd2 () () (<-> (< A B) (< (+ C A) (+ C B)))
+   A B df-lt
+  (+ C A) (+ C B) df-lt
+  A B C leadd2
+    C A B addcan2 bicomi notbii
+  anbi12i
+  bicomi
+  bitri
+  ## <d>
+    bicomi
+  ## </d>
+  bitri
+)
+
+## <title> Inequality Over Addition </title>
+## <table>
+##  (<    A ]       [ B ] )
+##  (< (+ A ] C) (+ [ B ] C))
+## </table>
+thm (ltadd1i () (hyp (< A B)) (< (+ A C) (+ B C))
+  hyp
+  A B C ltadd1
+  mpbi
+)
+
+## <title> Inequality Over Addition </title>
+## <table>
+##  (<      [ A ]        [ B )
+##  (< (+ C [ A ] ) (+ C [ B ))
+## </table>
+thm (ltadd2i () (hyp (< A B)) (< (+ C A) (+ C B))
+  hyp
+  A B C ltadd2
+  mpbi
 )
 
 # Multiplication is monotonic in its second argument
