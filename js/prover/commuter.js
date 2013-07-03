@@ -11,6 +11,8 @@ GH.ProofGenerator.commuter.OPERATIONS = [
   ['/\\', 'ancom', 'ancomi'],
   ['\\/', 'orcom', 'orcomi'],
   [ '=' , 'eqcom', 'eqcomi'],
+  [ '<' , 'ltcom', 'ltcomi'],
+  ['<=' , 'lecom', 'lecomi'],
   [ '+' , 'addcom', 'addcom'],
   [ '*' , 'mulcom', 'mulcom']
 ];

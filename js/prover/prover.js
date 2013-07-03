@@ -6,7 +6,7 @@ GH.Prover = function(suggestArea, direct) {
 	this.direct = direct;
 	this.conclusions = [];
 	this.mutableExp = null;
-	this.stackLength = 0;
+	this.stack = [];
 	this.suggestButtons_ = document.createElement('div');
 	suggestArea.appendChild(this.suggestButtons_);
 
@@ -51,7 +51,7 @@ GH.Prover.prototype.update = function(theorems, stack) {
 	while(this.suggestButtons_.firstChild){
     	this.suggestButtons_.removeChild(this.suggestButtons_.firstChild);
 	}
-	this.stackLength = stack.length;
+	this.stack = stack;
 	
 	this.conclusions = GH.Prover.getConclusions(theorems);
 	this.updateMutableExp(theorems, stack);
@@ -72,7 +72,7 @@ GH.Prover.prototype.update = function(theorems, stack) {
 				this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()');
 			}
 			if (prevConclusion && this.remover.isApplicable(prevConclusion, lastConclusion)) {
-				this.addSuggestion('Remove', 'window.direct.prover.handleRemove()');
+				this.addSuggestion('Remove', 'window.direct.prover.remove()');
 			}
 		}
 	}
@@ -158,6 +158,11 @@ GH.Prover.getConclusions = function(theorems) {
 GH.Prover.prototype.getLast = function() {
 	var theorems = this.getTheorems();
 	return theorems[theorems.length -  1];
+};
+	
+// Return the last expression on the proof stack.
+GH.Prover.prototype.getMutableExp = function() {
+	return this.mutableExp;
 };
 	
 // Convert a number to an s-expression and insert it into the stack.
@@ -277,7 +282,7 @@ GH.Prover.prototype.replace = function(sexp) {
 	}
 };
 
-GH.Prover.prototype.handleRemove = function() {
+GH.Prover.prototype.remove = function() {
 	this.direct.text.moveCursorToEnd();
 	this.insertText(' ');
 	var removee = this.conclusions[this.conclusions.length - 2];
@@ -422,11 +427,20 @@ GH.Prover.prototype.reposition = function(sexp, oldPosition, newPosition) {
 };
 
 GH.Prover.prototype.clearStack = function() {
-	if (this.stackLength == 1) {
+	if (this.stack.length == 1) {
 		var begin = this.mutableExp.begin;
 		var end = this.mutableExp.end;
 		this.direct.text.splice(begin, end - begin, '');
 	}
+};
+
+// TODO: Fix this. This is a terrible way to make an s-expression.
+GH.Prover.prototype.makeNumber = function(num) {
+	this.printNum(num);
+	this.direct.update();
+	var sexp = this.getMutableExp();
+	this.clearStack();
+	return sexp;
 };
 
 GH.Prover.prototype.associateLeft = function(sexp) {

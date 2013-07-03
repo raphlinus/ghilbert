@@ -21,7 +21,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.isApplicable = function(sexp) {
 	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
 	var rightNum = GH.numUtil.sexpToNum(sexp.right());
 	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return false
+		return false;
 	}
 	// If the full expression already is a decimal number, there is nothing to evaluate.
 	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
@@ -260,6 +260,8 @@ GH.ProofGenerator.evaluatorAdd.prototype.reorganizeDigits_ = function(sexp) {
 
 // Add two arbitrary numbers.
 GH.ProofGenerator.evaluatorAdd.prototype.addNumbers_ = function(sexp) {
+	this.prover.print([sexp.copy()], 'eqid');
+	sexp = this.prover.getLast().right();
 	sexp = this.reorganizeDigits_(sexp);
 	sexp = this.addIndividualDigits_(sexp);
 	return this.addCleanUp_(sexp);

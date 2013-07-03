@@ -17,6 +17,7 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == '=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<') 	return ['nat', 'nat', 'wff'];
+	if (operator == 'S') 	return ['nat', 'nat'];
 	if (operator == '+') 	return ['nat', 'nat', 'nat'];
 	if (operator == '*') 	return ['nat', 'nat', 'nat'];
 	return null;
@@ -47,6 +48,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '=') {		return 'Eq';
 	} else if (operator == '<=') {		return 'Le';
 	} else if (operator == '<') {		return 'Lt';
+	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
 	} else if (operator == '*') {		return 'Mul';
 	} else {

@@ -33,6 +33,14 @@ GH.numUtil.numToSexp = function(num) {
 		return '(+ ' + upperDigits + ' ' + lowerDigits + ') ';
 	}
 };
+
+// TODO: Create a proper converter that works for numbers past 10.
+GH.numUtil.numToFullSexp = function(num) {
+	if (num > 10) {
+		alert('numToFullSexp not specified for numbers above 10.');
+	}
+	return new GH.sExpression([num.toString()], null, null);
+};
 	
 // Convert an s-expression into a number.
 // Simply performs all the multiplication and additions within the expression.

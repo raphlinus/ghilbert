@@ -10,6 +10,7 @@ GH.ProofGenerator.distributorLeft.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.distributorLeft.prototype.stepName = function(sexp) {
+	// TODO: Add ianor and ioran.
 	var distributerOperator = sexp.operator_;
 	var distributedOperator = sexp.left().operator_;
 	if ((distributerOperator == '*') && (distributedOperator == '+')) {

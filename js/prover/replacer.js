@@ -169,9 +169,9 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 				this.genericCopies(start[i + 1], end[i + 1], middle, positions, replacee.operands_[i], replacement, usedVariables);
 			} else {
 				var operator = replacement.operator_;
-				var types = GH.operatorUtil.getOperatorTypes(operator);
-				var leftVariable  = this.grabNextVariable(usedVariables, types[0]);
-				var rightVariable = this.grabNextVariable(usedVariables, types[1]);
+				var replacerTypes = GH.operatorUtil.getOperatorTypes(operator);
+				var leftVariable  = this.grabNextVariable(usedVariables, replacerTypes[0]);
+				var rightVariable = this.grabNextVariable(usedVariables, replacerTypes[1]);
 				
 				middle.push(operator);
 				middle.push(' [ ' + leftVariable + ' ] ')
@@ -213,6 +213,7 @@ GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 	['=',   ['eqeq1i', 'eqeq2i'], ['eqtr5',   'eqtr'   ]],
 	['<=',  ['leeq1i', 'leeq2i'], ['leeq1ii', 'leeq2ii']],
 	['<',   ['lteq1i', 'lteq2i'], ['lteq1ii', 'lteq2ii']],
+	['S',	['pa_ax2i'], [null]],
 	['+',	['addeq1i','addeq2i'], [null, null]],
 	['*',   ['muleq1i','muleq2i'], [null, null]]
 ];
