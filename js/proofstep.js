@@ -20,15 +20,18 @@ GH.sExpression = function(expression, parent, siblingIndex) {
 	this.end = expression.end;
 	this.parent_ = parent;
 	this.siblingIndex_ = siblingIndex;
-	this.hasParentheses_ = (GH.typeOf(expression) != 'string');
+	this.isString_ = (GH.typeOf(expression) == 'string');
+
+	// Set to true later, if the expression is a proven statement on the proof stack.
+	this.isProven = false;
 };
 
-// This is currently not used.
-GH.sExpression.getRoot = function(sexp) {
-	while(sexp.parent_) {
-		sexp = sexp.parent_;
+GH.sExpression.prototype.getRoot = function() {
+	var result = this;
+	while(result.parent_) {
+		result = result.parent_;
 	}
-	return sexp;
+	return result;
 };
 
 GH.sExpression.fromString = function(str) {
@@ -82,17 +85,30 @@ GH.sExpression.stringToExpression = function(str) {
 
 // Construct the expression from the operator and operands.
 GH.sExpression.prototype.getExpression = function() {
-	var expression = [];
-	expression.push(this.operator_);
-	for (var i = 0; i < this.operands_.length; i++) {
-		expression.push(this.operands_[i].getExpression());
+	if (this.isString_) {
+		return this.operator_;
+	} else {
+		var expression = [];
+		expression.push(this.operator_);
+		for (var i = 0; i < this.operands_.length; i++) {
+			expression.push(this.operands_[i].getExpression());
+		}
+		return expression;
 	}
-	return expression;
 };
 
 GH.sExpression.prototype.copy = function(newParent) {
 	return new GH.sExpression(this.getExpression(), newParent, this.siblingIndex);
 };
+
+/**
+GH.sExpression.prototype.joinEq = function(sibling) {
+	this.parent_ = new GH.sExpression(['='], null, null);
+	sibling.parent_ = this.parent_;
+	this.siblingIndex_ = 0;
+	sibling.siblingIndex_ = 1;
+	this.parent_.operands_ = [this, sibling];
+};*/
 
 GH.sExpression.prototype.child = function () {
 	if (this.operands_.length > 1) {
@@ -186,7 +202,7 @@ GH.sExpression.prototype.toString = function() {
 		result.push(this.operands_[i].toString());
 	}
 	result = result.join(' ');
-	if (this.hasParentheses_) {
+	if (!this.isString_) {
 		result = '(' + result + ')';
 	}
 	return result;
@@ -569,7 +585,7 @@ GH.RenderableProofStep.styleExpression = function(styling, expression) {
 	if (styling[0] == "table") {
 		var styledExpression = GH.RenderableProofStep.styleExpression(styling[2], expression);
 		return [styling[0], styling[1], styledExpression, styling[3]];
-	} else if (styling[0] == "color") {
+	} else if (styling[0] == 'htmlSpan') {
 		var styledExpression = GH.RenderableProofStep.styleExpression(styling[2], expression);
 		return [styling[0], styling[1], styledExpression];
 	} else {
@@ -785,7 +801,9 @@ GH.ProofStep.hasClass_ = function(element, className) {
 
 // Add a class to an element.
 GH.ProofStep.addClass_ = function(element, className) {
-	element.className += ' ' + className;
+	if (!GH.ProofStep.hasClass_(element, className)) {
+		element.className += ' ' + className;
+	}
 };
 
 // Remove a class from an element.

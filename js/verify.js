@@ -187,7 +187,7 @@ GH.tableExpression.prototype.output = function() {
 	}
 
 	if (this.color != '') {
-		result = ['color', this.color, result];
+		result = ['htmlSpan', this.color, result];
 	}
 	if ((this.leftColumns != '') || (this.rightColumns != '')) {
 		result = ['table', this.leftColumns, result, this.rightColumns];

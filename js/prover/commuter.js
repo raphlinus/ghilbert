@@ -13,15 +13,15 @@ GH.ProofGenerator.commuter.OPERATIONS = [
   [ '=' , 'eqcom', 'eqcomi'],
   [ '<' , 'ltcom', 'ltcomi'],
   ['<=' , 'lecom', 'lecomi'],
-  [ '+' , 'addcom', 'addcom'],
-  [ '*' , 'mulcom', 'mulcom']
+  [ '+' , 'addcom', null],
+  [ '*' , 'mulcom', null]
 ];
 
 GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
 	var commuteOperations = GH.ProofGenerator.commuter.OPERATIONS;
 	for (var i = 0; i < commuteOperations.length; i++) {
 		if (sexp.operator_ == commuteOperations[i][0]) {
-			if (sexp.parent_) {
+			if (!sexp.isProven) {
 				return commuteOperations[i][1];
 			} else {
 				return commuteOperations[i][2];
@@ -46,7 +46,7 @@ GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.commuter.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
+	if (!sexp.isProven) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];

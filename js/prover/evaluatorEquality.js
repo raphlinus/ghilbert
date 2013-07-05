@@ -25,7 +25,13 @@ GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
-	return true;
+	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
+	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	if (isNaN(leftNum) || isNaN(rightNum)) {
+		return false;
+	}
+	// This is a hack to just make sure we're at least in the right file.
+	return this.prover.symbolDefined('eqid');
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.hyps = function(sexp) {
@@ -151,9 +157,9 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftN
 
 	if (operator == '=') {
 		this.leftNumNotZero(diff);
-	} else if (operator == '<=') {
-		this.prover.print([sexp], 'ge0');
 	} else if (operator == '<') {
+		this.prover.print([sexp], 'ge0');
+	} else if (operator == '<=') {
 		this.numMoreThanZero(sexp);
 	}
 
@@ -161,9 +167,9 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftN
 	
 	if (operator == '=') {
 		this.prover.print([sexp], 'addneq2i');
-	} else if (operator == '<=') {
-		this.prover.print([sexp], 'geadd2i');
 	} else if (operator == '<') {
+		this.prover.print([sexp], 'geadd2i');
+	} else if (operator == '<=') {
 		this.prover.print([sexp], 'gtadd2i');
 	}
 

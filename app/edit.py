@@ -103,6 +103,7 @@ class EditHandler(users.AuthenticatedHandler):
         o.write("""<head>
 <title>Edit</title>
 <link rel=stylesheet href="/static/editor.css" type="text/css">
+<link rel=stylesheet href="/static/prover.css" type="text/css">
 <link rel=stylesheet href="/static/common.css" type="text/css">
 <style type="text/css">
 """)
@@ -198,10 +199,12 @@ class EditHandler(users.AuthenticatedHandler):
         else:
             o.write('<textarea id="canvas" cols="60" rows="20" width="640" height="480" tabindex="0"></textarea><br/>\n')
         o.write("""
-  <div id="suggest"></div>
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
 </div>
-<div id="stack">...</div>
+<div id="right-panel">
+  <div id="stack">...</div>
+  <div id="suggest"></div>
+</div>
 <div id="output" style="clear:left;"></div>
 <script type="text/javascript">
 

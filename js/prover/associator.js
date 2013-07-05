@@ -6,8 +6,8 @@ GH.ProofGenerator.associatorRight = function(prover) {
 };
 
 // A set of operators and the theorem for associating them.
-// The first step is for when the expression has a parent.
-// The second step is when the expression has no parent.
+// The first step is for when the expression is part of another expression or is unproven.
+// The second step is when the expression is proven.
 GH.ProofGenerator.associatorRight.OPERATIONS = [
   ['<->', 'biass', 'biassi'],
   ['/\\', 'anass', 'anassi'],
@@ -16,11 +16,11 @@ GH.ProofGenerator.associatorRight.OPERATIONS = [
   [ '*' , 'mulass', 'mulass']
 ];
 
-GH.ProofGenerator.associatorRight.getStepName = function(sexp) {
+GH.ProofGenerator.associatorRight.getStepName = function (sexp) {
 	var associateOperations = GH.ProofGenerator.associatorRight.OPERATIONS;
 	for (var i = 0; i < associateOperations.length; i++) {
 		if (sexp.operator_ == associateOperations[i][0]) {
-			if (sexp.parent_) {
+			if (!sexp.isProven) {
 				return associateOperations[i][1];
 			} else {
 				return associateOperations[i][2];
@@ -46,7 +46,7 @@ GH.ProofGenerator.associatorRight.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.associatorRight.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
+	if (!sexp.isProven) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];
@@ -66,13 +66,26 @@ GH.ProofGenerator.associatorLeft = function(prover) {
   this.expectedForm = GH.sExpression.fromString('(operator A (operator B C))');
 };
 
+GH.ProofGenerator.associatorLeft.OPERATIONS = [
+  ['<->', 'biassl', 'biassli'],
+  ['/\\', 'anassl', 'anassli'],
+  ['\\/', 'orassl', 'orassli'],
+  [ '+' , 'addassl', 'addassl'],
+  [ '*' , 'mulassl', 'mulassl']
+];
+
 GH.ProofGenerator.associatorLeft.prototype.stepName = function(sexp) {
-	var name = GH.ProofGenerator.associatorRight.getStepName(sexp);
-	if (name != null) {
-		return name + 'Left';
-	} else {
-		return null;
+	var associateOperations = GH.ProofGenerator.associatorLeft.OPERATIONS;
+	for (var i = 0; i < associateOperations.length; i++) {
+		if (sexp.operator_ == associateOperations[i][0]) {
+			if (!sexp.isProven) {
+				return associateOperations[i][1];
+			} else {
+				return associateOperations[i][2];
+			}
+		}
 	}
+	return null;
 };
 
 GH.ProofGenerator.associatorLeft.prototype.isApplicable = function(sexp) {
@@ -82,12 +95,11 @@ GH.ProofGenerator.associatorLeft.prototype.isApplicable = function(sexp) {
 	if (sexp.operator_.toString() != sexp.right().operator_.toString()) {
 		return false;
 	}
-	var stepName = GH.ProofGenerator.associatorRight.getStepName(sexp);
-	return this.prover.symbolDefined(stepName);
+	return (this.stepName(sexp) != null);
 };
 
 GH.ProofGenerator.associatorLeft.prototype.hyps = function(sexp) {
-	if ((sexp.parent_) || (GH.operatorUtil.getType(sexp) != 'wff')) {
+	if (!sexp.isProven) {
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];

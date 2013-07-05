@@ -2,11 +2,18 @@ GH.ProofGenerator.replacer = function(prover) {
 	this.prover = prover;
 };
 
-GH.ProofGenerator.replacer.prototype.isApplicable = function(sexp) {
-	return true;	
-};
-
 GH.ProofGenerator.replacer.prototype.stepName = function(sexp) {
+	// TODO: Reenable this without breaking anything.
+	/*if ((GH.operatorUtil.getRootType(sexp) != 'wff') && (!sexp.parent_)) {
+		// An orphan non-wff must be an expression that is being evaluated directly from the stack
+		// and not in a theorem. However, the second to last theorem if it exists will normally have the
+		// expression we want to replace. Except sometimes it doesn't.
+		var theorems = this.prover.getTheorems();
+		if (theorems.length >= 2) {
+			sexp = theorems[theorems.length - 2].right();
+		}
+	}*/
+	
 	var position = GH.Prover.findPosition(sexp);
 	var temp = sexp;
 	while (temp.parent_ != null) {
@@ -39,8 +46,9 @@ GH.ProofGenerator.replacer.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.replacer.prototype.addTheorem = function(sexp) {
-	// Add theorem is current not working if the expression is not a wff. Using inline that case.
 	if (GH.operatorUtil.getRootType(sexp) != 'wff') {
+		// addThorem is not currently working with non-wffs, but there's no reason it
+		// couldn't work. Use inline for now.
 		return false;
 	}
 
@@ -286,6 +294,7 @@ GH.ProofGenerator.replacer.prototype.inline = function(replacee) {
 	}
 	result = this.prover.getLast();
 	result = GH.Prover.findMatchingPosition(result, replacee);
+	// replacee.joinEq(result.copy());
 	return true;
 };
 
@@ -295,8 +304,7 @@ GH.ProofGenerator.replacer.prototype.isApplicable = function(replacee, replaceme
 		return false;
 	}
 	// Check that the operator is an equivalence operator.
-	var operatorTypes = GH.operatorUtil.getOperatorTypes(replacement.operator_);
-	if ((!operatorTypes) || (replacement.operator_ != GH.operatorUtil.EQUIVALENCE_OPERATOR[operatorTypes[0]])) {
+	if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator_)) {
 		return false;
 	}
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());

@@ -5,10 +5,28 @@ GH.Prover = function(suggestArea, direct) {
 	this.depth = 0;
 	this.direct = direct;
 	this.conclusions = [];
-	this.mutableExp = null;
+	this.activeExp = null;
 	this.stack = [];
-	this.suggestButtons_ = document.createElement('div');
-	suggestArea.appendChild(this.suggestButtons_);
+
+	this.primaryArea = document.createElement('div');
+	this.secondaryArea = document.createElement('div');
+	this.primaryButtons = document.createElement('span');
+	this.secondaryButtons = document.createElement('span');
+	this.activeExpDisplay = document.createElement('span');
+	this.secondaryExpDisplay = document.createElement('span');
+	this.primaryButtons.setAttribute('class', 'suggest-button');
+	this.secondaryButtons.setAttribute('class', 'suggest-button');
+	this.primaryArea.setAttribute('class', 'suggest-area');
+	this.secondaryArea.setAttribute('class', 'suggest-area secondary');
+	this.activeExpDisplay.setAttribute('class', 'suggest-exp');
+	this.secondaryExpDisplay.setAttribute('class', 'suggest-exp');
+	
+	suggestArea.appendChild(this.secondaryArea);
+	suggestArea.appendChild(this.primaryArea);
+	this.primaryArea.appendChild(this.activeExpDisplay);
+	this.primaryArea.appendChild(this.primaryButtons);
+	this.secondaryArea.appendChild(this.secondaryExpDisplay);
+	this.secondaryArea.appendChild(this.secondaryButtons);
 
 	this.remover = new GH.remover(this);
 	this.replacer = new GH.ProofGenerator.replacer(this);
@@ -24,7 +42,7 @@ GH.Prover = function(suggestArea, direct) {
 	this.associatorRight = new GH.ProofGenerator.associatorRight(this);
 
 	this.generators = [
-		{name: 'Commuter',   gen: this.commuter},
+		{name: 'Commute',   gen: this.commuter},
 		{name: 'Evaluate',   gen: this.evaluator},
 		{name: 'Dist. L',    gen: this.distributorLeft},
 		{name: 'Dist. R',    gen: this.distributorRight},
@@ -35,55 +53,232 @@ GH.Prover = function(suggestArea, direct) {
 	];
 };
 
-GH.Prover.prototype.updateMutableExp = function(theorems, stack) {
-	this.mutableExp = null;
+GH.Prover.prototype.updateActiveExp = function(theorems, stack) {
+	this.activeExp = null;
 	if (stack.length == 1) {
-		this.mutableExp = new GH.sExpression(stack[0][1], null, null);
+		this.activeExp = new GH.sExpression(stack[0][1], null, null);
 	} else if (stack.length == 0) {
 		if (this.conclusions.length >= 1) {
-			this.mutableExp = this.conclusions[this.conclusions.length - 1];
+			this.activeExp = this.conclusions[this.conclusions.length - 1];
 		}
+	}
+	this.displayActiveExp();
+};
+
+// Handle selecting a child of the select expression.
+GH.Prover.prototype.onChildClick = function(operandNum) {
+	this.activeExp = this.activeExp.operands_[operandNum];
+	this.displayActiveExp();
+};
+
+// Get the index into whichever child is selected.
+GH.Prover.getSelectedIndex = function(elem) {
+	for (var i = 0; i < elem.childElementCount; i++) {
+		var child = elem.children[i];
+		if (GH.ProofStep.hasClass_(child, 'selected-ancestor') ||
+		    GH.ProofStep.hasClass_(child, 'selectable-ancestor') ||
+		    GH.ProofStep.hasClass_(child, 'selected-exp')) {
+			return i;
+		}
+	}
+	alert('No selected element found.');
+};
+
+/**
+ * Move the activeExp back to one of its ancestors.
+ * This is currently disabled directly, but used indirectly for uncles. 
+ * It should be used directly for something like  (prime 1 + 1), but it breaks the child clicking.
+ */
+GH.Prover.prototype.onAncestorClick = function(clickedAncestor) {
+	var currentElement = clickedAncestor;
+	while (!GH.ProofStep.hasClass_(currentElement, 'selected-exp')) {
+		selectedIndex = GH.Prover.getSelectedIndex(currentElement);
+		currentElement = currentElement.children[selectedIndex];
+		this.activeExp = this.activeExp.parent_;
+	}	
+	this.displayActiveExp();
+};
+
+// Move the activeExp back to the parent of the uncle and the currect activeExp.
+GH.Prover.prototype.onUncleClick = function(clickedUncle) {
+	this.onUncleMouseOut(clickedUncle);
+	this.onAncestorClick(clickedUncle.parentElement);
+};
+
+// Apply CSS styling when hovering over an uncle.
+GH.Prover.prototype.onUncleMouseOver = function(uncle) {
+	uncle.parentElement.className += ' hovered-ancestor';
+};
+
+// Remove CSS styling when hovering over an uncle.
+GH.Prover.prototype.onUncleMouseOut = function(uncle) {
+	GH.ProofStep.removeClass_(uncle.parentElement, 'hovered-ancestor');
+};
+
+// Add click handles to the children and uncles of the activeExp.
+GH.Prover.addClickHandlers = function(displayedExp, counter) {
+	if (displayedExp.className == 'selectable-child') {
+		displayedExp.setAttribute('onclick', 'window.direct.prover.onChildClick(' + counter.operand + ')');
+		counter.operand++;
+	}
+	for (var i = 0; i < displayedExp.childElementCount; i++) {
+		var child = displayedExp.children[i];
+		GH.Prover.addClickHandlers(child, counter);
+	}
+	if (displayedExp.className == 'selected-uncle') {
+		displayedExp.setAttribute('onclick', 'window.direct.prover.onUncleClick(this)');
+		displayedExp.setAttribute('onmouseover', 'window.direct.prover.onUncleMouseOver(this)');
+		displayedExp.setAttribute('onmouseout', 'window.direct.prover.onUncleMouseOut(this)');
+		counter.parent++;
+	}
+	/*
+	if (displayedExp.className == 'selectable-ancestor') {
+		displayedExp.setAttribute('onclick', 'window.direct.prover.onAncestorClick(this)');
+		counter.parent++;
+	}*/
+};
+
+// Find the selected state of the current expression.
+GH.Prover.getSelectionState = function(expression, index, selectedIndex, isAncestor) {
+	var selectionState;
+	if (index == selectedIndex) {
+		if (isAncestor) {
+			selectionState = 'selected-ancestor';
+		} else {
+			selectionState = 'selected-exp';
+		}
+		var exp = (index >= 0) ? expression[index] : expression;
+		if (exp.length == 1) {
+			selectionState += ' no-child';
+		}
+	} else {
+		selectionState = 'selected-uncle';
+	}
+	return selectionState;
+};
+
+// Traverses the expression tree up to the where the current selection. Set classes and click handlers.
+GH.Prover.prototype.displayActiveExp = function() {
+	if (!this.activeExp) {
+		this.updateSuggestButtons();
+		return;
+	}	
+
+	var root = this.activeExp.getRoot();
+	var rootExpressionToShow = root.getExpression();
+	var position = GH.Prover.findPosition(this.activeExp);
+
+	if (!root.isProven) {
+		this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
+		this.updateSuggestButtons();
+		return;
+	}
+
+	// if (position.length != 0) && (rootExpressionToShow.length == 2) { selectionState = 'selectable-ancestor';}  // Currently disabled.
+	var selectionState = GH.Prover.getSelectionState(rootExpressionToShow, -1, -1, position.length > 0);
+	rootExpressionToShow = ['htmlSpan', selectionState, rootExpressionToShow];
+	expressionToShow = rootExpressionToShow[2];
+	for (var i = 0; i < position.length; i++) {
+		var pos = position[i] + 1;
+		for (var j = 1; j < expressionToShow.length; j++) {
+			selectionState = GH.Prover.getSelectionState(expressionToShow, j, pos, (i != position.length - 1));
+			expressionToShow[j] = ['htmlSpan', selectionState, expressionToShow[j]];
+		}
+		expressionToShow = expressionToShow[pos];
+		expressionToShow = expressionToShow[2];
+	}
+	for (var i = 1; i < expressionToShow.length; i++) {
+		expressionToShow[i] = ['htmlSpan', 'selectable-child', expressionToShow[i]];
+	}
+	this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
+	GH.Prover.addClickHandlers(this.activeExpDisplay, {operand: 0, parent: 0});
+	this.updateSuggestButtons();
+};
+
+GH.Prover.highlightMatch = function(expression, match) {
+	var position = GH.Prover.findPosition(match);
+	if (position.length > 0) {
+		var expressionRoot = expression;
+		for (var i = 0; i < position.length; i++) {
+			var pos = position[i] + 1;
+			if (i < position.length - 1) {
+				expression = expression[pos];
+			} else {
+				expression[pos] = ['htmlSpan', 'matching-exp', expression[pos]];
+			}
+		}
+		return expressionRoot;
+	} else {
+		return ['htmlSpan', 'matching-exp', expression];
 	}
 };
 
 GH.Prover.prototype.update = function(theorems, stack) {
-	// Remove the existing buttons.
-	while(this.suggestButtons_.firstChild){
-    	this.suggestButtons_.removeChild(this.suggestButtons_.firstChild);
-	}
-	this.stack = stack;
-	
+	this.stack = stack;	
 	this.conclusions = GH.Prover.getConclusions(theorems);
-	this.updateMutableExp(theorems, stack);
-	if (this.mutableExp) {
-		for (var i = 0; i < this.generators.length; i++) {
-			var generator = this.generators[i];
-			if (generator.gen.isApplicable(this.mutableExp)) {
-				this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')');
-			}
+	this.updateActiveExp(theorems, stack);
+};
+
+GH.Prover.prototype.updateSuggestButtons = function() {
+	// Remove the existing buttons.
+	while(this.primaryButtons.firstChild){
+    	this.primaryButtons.removeChild(this.primaryButtons.firstChild);
+	}
+	while(this.secondaryButtons.firstChild){
+    	this.secondaryButtons.removeChild(this.secondaryButtons.firstChild);
+	}
+
+	GH.ProofStep.removeClass_(this.secondaryArea, 'active');
+	if (this.activeExp) {
+		GH.ProofStep.addClass_(this.primaryArea, 'active');
+	} else {
+		GH.ProofStep.removeClass_(this.primaryArea, 'active');
+		return;
+	}
+	
+	for (var i = 0; i < this.generators.length; i++) {
+		var generator = this.generators[i];
+		if (generator.gen.isApplicable(this.activeExp)) {
+			this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')', true);
 		}
 	}
 
-	if (stack.length == 0) {	
+	this.secondaryExpDisplay.innerHTML = '';
+	if ((this.stack.length == 0) && (this.activeExp.parent_ == null)) {	
 		if (this.conclusions.length >= 2) {
 			var prevConclusion = this.conclusions[this.conclusions.length - 2];
-			var lastConclusion = this.mutableExp;
-			if (prevConclusion && this.replacer.isApplicable(prevConclusion, lastConclusion)) {
-				this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()');
-			}
-			if (prevConclusion && this.remover.isApplicable(prevConclusion, lastConclusion)) {
-				this.addSuggestion('Remove', 'window.direct.prover.remove()');
+			var lastConclusion = this.activeExp;
+			if (prevConclusion) {
+				var match = null;
+				if (this.replacer.isApplicable(prevConclusion, lastConclusion)) {
+					this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()', false);
+					match = GH.Prover.findMatch(prevConclusion, lastConclusion.left())
+				}
+				if (this.remover.isApplicable(prevConclusion, lastConclusion)) {
+					this.addSuggestion('Remove', 'window.direct.prover.remove()', false);
+					match = GH.Prover.findMatch(prevConclusion, lastConclusion)
+				}
+				if (match) {
+					var expression = prevConclusion.getExpression();
+					GH.Prover.highlightMatch(expression, match);
+					this.secondaryExpDisplay.innerHTML = GH.sexptohtmlHighlighted(expression, -1);
+					GH.ProofStep.addClass_(this.secondaryArea, 'active');
+				}
 			}
 		}
 	}
 };
 
-GH.Prover.prototype.addSuggestion = function(name, clickHandler) {
+GH.Prover.prototype.addSuggestion = function(name, clickHandler, isPrimary) {
 	var suggestion = document.createElement('input');
 	suggestion.setAttribute('type', 'button');
 	suggestion.setAttribute('value', name);
 	suggestion.setAttribute('onclick', clickHandler);
-	this.suggestButtons_.appendChild(suggestion);
+	if (isPrimary) {
+		this.primaryButtons.appendChild(suggestion);
+	} else {
+		this.secondaryButtons.appendChild(suggestion);
+	}
 };
 
 GH.Prover.prototype.indent = function() {
@@ -149,7 +344,9 @@ GH.Prover.getConclusions = function(theorems) {
 	var result = [];
 	for (var i = 0; i < theorems.length; i++) {
 		// TODO: Rename public variables and make conclusion an s-expression.
-		result.push(new GH.sExpression(theorems[i].conclusion, null, null));
+		var conclusion = new GH.sExpression(theorems[i].conclusion, null, null);
+		conclusion.isProven = true;
+		result.push(conclusion);
 	}
 	return result;
 };
@@ -161,8 +358,8 @@ GH.Prover.prototype.getLast = function() {
 };
 	
 // Return the last expression on the proof stack.
-GH.Prover.prototype.getMutableExp = function() {
-	return this.mutableExp;
+GH.Prover.prototype.getActiveExp = function() {
+	return this.activeExp;
 };
 	
 // Convert a number to an s-expression and insert it into the stack.
@@ -268,6 +465,12 @@ GH.Prover.prototype.replaceFunc = function(func, sexp, caller) {
  * generate all the necessary steps to replace the s-expression.
  */
 GH.Prover.prototype.replace = function(sexp) {
+	var replacement = this.getLast();
+	// When evaluating a wff, the replacement doesn't apply.
+	// TODO: Consider doing a remove in this case.
+	if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator_)) {
+		return replacement;
+	}
 	this.apply(this.replacer, sexp);
 	
 	var replaced = this.getLast();
@@ -284,7 +487,7 @@ GH.Prover.prototype.replace = function(sexp) {
 
 GH.Prover.prototype.remove = function() {
 	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
+	this.println('');
 	var removee = this.conclusions[this.conclusions.length - 2];
 	var remover = this.conclusions[this.conclusions.length - 1];
 	var output = this.remover.maybeRemove(removee, remover);
@@ -428,8 +631,8 @@ GH.Prover.prototype.reposition = function(sexp, oldPosition, newPosition) {
 
 GH.Prover.prototype.clearStack = function() {
 	if (this.stack.length == 1) {
-		var begin = this.mutableExp.begin;
-		var end = this.mutableExp.end;
+		var begin = this.activeExp.begin;
+		var end = this.activeExp.end;
 		this.direct.text.splice(begin, end - begin, '');
 	}
 };
@@ -438,7 +641,7 @@ GH.Prover.prototype.clearStack = function() {
 GH.Prover.prototype.makeNumber = function(num) {
 	this.printNum(num);
 	this.direct.update();
-	var sexp = this.getMutableExp();
+	var sexp = this.getActiveExp();
 	this.clearStack();
 	return sexp;
 };
@@ -482,12 +685,13 @@ GH.Prover.prototype.commute = function(sexp) {
 GH.Prover.prototype.handleClick = function(name) {
 	this.clearStack();
 	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
+	this.println('');
 	for (var i = 0; i < this.generators.length; i++) {
 		if (this.generators[i].name == name) {
-			this.replaceWith(this.generators[i].gen, this.mutableExp);
+			this.activeExp = this.replaceWith(this.generators[i].gen, this.activeExp);
 		}
 	}
+	this.displayActiveExp();
 };
 
 GH.Prover.findMatch = function(sexp, matchee) {
@@ -506,11 +710,13 @@ GH.Prover.findMatch = function(sexp, matchee) {
 
 GH.Prover.prototype.handleSubstitute = function() {
 	this.direct.text.moveCursorToEnd();
-	this.insertText(' ');
+	this.println('');
 	var replacee = this.conclusions[this.conclusions.length - 2];
 	var replacement = this.conclusions[this.conclusions.length - 1];
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());
-	replacee = this.replace(myMatch);
+	this.activeExp = this.replace(myMatch);
+	this.activeExp.getRoot().isProven = true;
+	this.displayActiveExp();
 
 	// TODO: Replace a value multiple times if it appears multiple times.
 	/*while (myMatch) {

@@ -56,3 +56,8 @@ GH.operatorUtil.getName = function(operator) {
 		return '';
 	}
 };
+
+GH.operatorUtil.isEquivalenceOperator = function(operator) {
+	var operatorTypes = GH.operatorUtil.getOperatorTypes(operator);
+	return ((operatorTypes) && (operator == GH.operatorUtil.EQUIVALENCE_OPERATOR[operatorTypes[0]]));
+};

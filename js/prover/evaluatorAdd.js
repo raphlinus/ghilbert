@@ -58,14 +58,38 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
 	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 
+	if (isNaN(leftNum) || isNaN(rightNum)) {
+		var extraReplacement = ((!sexp.parent_) && (GH.operatorUtil.getType(sexp) != 'wff'));
+		if (isNaN(leftNum)) {
+			sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
+		}
+		if (isNaN(rightNum)) {
+			sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
+		}
+		if (extraReplacement) {
+			this.prover.replaceWith(this.prover.evaluator, sexp);
+		} else {
+			this.prover.apply(this.prover.evaluator, sexp);
+		}
+		return true;
+	}
+
+	/*if (isNaN(leftNum) && isNaN(rightNum)) {
+		sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
+		sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
+		this.prover.apply(this.prover.evaluator, sexp);
+		return true;
+	}
 	if (isNaN(leftNum)) {
 		sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
-		return this.prover.replaceWith(this.prover.evaluator, sexp);
+		this.prover.apply(this.prover.evaluator, sexp);
+		return true;
 	}
 	if (isNaN(rightNum)) {
 		sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
-		return this.prover.replaceWith(this.prover.evaluator, sexp);
-	}
+		this.prover.apply(this.prover.evaluator, sexp);
+		return true;
+	}*/
 
 	if (leftNum == 0) {
 		return false;

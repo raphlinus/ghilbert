@@ -168,8 +168,8 @@ GH.typesettable = function(term, cursorPosition) {
 };
 
 // Used to add color tags to the typesetting.
-GH.typesetcolor = function(term, cursorPosition) {
-    var pre_slug = {str: '<span class=' + term[1] + '>'};
+GH.typesetHtmlSpan = function(term, cursorPosition) {
+    var pre_slug = {str: '<span class=\'' + term[1] + '\'>'};
     var main_slug = GH.typeset(term[2], cursorPosition);
     var post_slug = {str: '</span>'};
     var slugs = [pre_slug, main_slug, post_slug];
@@ -242,8 +242,8 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.stringslug('F', cursorPosition);
     } else if (sexp[0] == 'table') {
         return GH.typesettable(sexp, cursorPosition);
-    } else if (sexp[0] == 'color') {
-        return GH.typesetcolor(sexp, cursorPosition);
+    } else if (sexp[0] == 'htmlSpan') {
+        return GH.typesetHtmlSpan(sexp, cursorPosition);
     } else if (sexp[0] == '+') {
 		// TODO: Finish highlighting the other symbols.
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);
