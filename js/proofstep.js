@@ -833,7 +833,7 @@ GH.ProofStep.handleMouseOut = function() {
 // Handle clicking on a proof step.
 GH.ProofStep.handleClick = function(start, end, incrementClicks) {
 	GH.setSelectionRange(start, end);
-	window.direct.update();
+	window.direct.update(true);
 };
 
 /**

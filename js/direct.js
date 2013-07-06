@@ -9,9 +9,15 @@ GH.Direct = function(text, stack, suggestArea) {
     this.text = text;
     this.text.clearImtrans();  // todo: hack
     this.stack = stack;
-    this.text.addListener(function() { self.update(); });
+    this.text.addListener(function() { self.update(true); });
     this.marker = null;
 	this.prover = new GH.Prover(suggestArea, this);
+
+	this.thmctx = null;
+	this.auLink = document.getElementById("autounify");
+	this.status = null;
+	this.session = null;
+	this.offset = 0;
 };
 
 /**
@@ -73,79 +79,103 @@ GH.Direct.replace_thmname = function (newname) {
     name = newname; // replace global 'name'.
 };
 
-GH.Direct.prototype.update = function() {
-	var session = this.text.getSession();  // for ACE editing
-	if (session && this.marker !== null) {
-		session.removeMarker(this.marker);
-		this.marker = null;
+GH.Direct.counter = 0;
+
+GH.Direct.prototype.update = function(refreshProofs) {
+	GH.Direct.counter++;
+	this.session = this.text.getSession();  // for ACE editing
+	if (this.session) {
+		if (this.marker !== null) {
+			this.session.removeMarker(this.marker);
+			this.marker = null;
+		}
+   		this.session.setAnnotations([]);
 	}
-	var auLink = document.getElementById("autounify");
-	auLink.style.display='none';
-	var thmctx = new GH.DirectThm(this.vg);
-	this.thmctx = thmctx;
-	var status = null;
-	var i, loc;
-	var offset = 0;
+	this.auLink.style.display='none';
+	if (this.thmctx) {
+		this.thmctx.clearNewSyms();
+	}
+	this.thmctx = new GH.DirectThm(this.vg);
+	this.status = null;
+	this.offset = 0;
 	var cursorPosition = this.text.getCursorPosition();
 	this.stack.innerHTML = '';
-	for (i = 0; i < this.text.numLines() && status == null; i++) {
-		var line = this.text.getLine(i);
-		thmctx.styleScanner.read_styling(line.replace(/\(|\)/g, ' $& '));
-		var tokens = GH.splitrange(line, offset);
-		var spl = tokens.primary;
-		thmctx.applyStyling(tokens.secondary);
-		for (var j = 0; j < spl.length; j++) {
-			try {
-				status = thmctx.tok(spl[j]);	
-			} catch (ex) {
-				if (ex.found && (ex.found.beg)) {
-					auLink.style.display = 'inline';
-					auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
-					+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
-					var that = this;
-					auLink.onclick = function() {
-						if (auLink.onmouseout) {
-							auLink.onmouseout();
-						}
-						that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
-						that.update();
-						if (auLink.style.display != 'none') {
-							auLink.onmouseover();
-						}
-						return false;
-					};
-					var textarea = document.getElementById("canvas");
-					if (textarea.setSelectionRange) {
-						auLink.onmouseover = function() {
-							var cursor = textarea.selectionEnd;
-							auLink.onmouseout = function() {
-								textarea.setSelectionRange(cursor, cursor);
-								delete auLink.onmouseout;
-							};
-							textarea.setSelectionRange(ex.found.beg,
-								ex.found.end);
-						};			  
-					}
-
-				}
-				status = "! " + ex;
-			}
-			if (status) {
-				if (session) {
-					var range = new this.text.Range(i, spl[j].beg-offset, i, spl[j].end-offset);
-					var text = status;
-					if (text.slice(0, 2) === '! ') {
-						text = text.slice(2);
-					}
-				    this.marker = session.addMarker(range, "gh_error", "text", false);
-				    session.setAnnotations([{row:i, column:spl[j].beg-offset, text:text, type:"error"}]);
-				}
-				loc = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end;
-				break;
-			}
-		}
-		offset += line.length + 1;
+	for (var i = 0; i < this.text.numLines() && this.status == null; i++) {
+		this.parseText(this.text.getLine(i));
 	}
+	if (refreshProofs) {
+		this.updateProofs(cursorPosition);
+	}
+};
+
+GH.Direct.prototype.addAutoUnifyLink = function(ex) {
+	var auLink = this.auLink;
+	if (ex.found && (ex.found.beg)) {
+		auLink.style.display = 'inline';
+		auLink.innerHTML = "AutoUnify: Replace " + ex.found + "[" + ex.found.beg
+		+ ":" + ex.found.end + "]" + " with " + ex.expected + "?";
+		var that = this;
+		auLink.onclick = function() {
+			if (auLink.onmouseout) {
+				auLink.onmouseout();
+			}
+			that.text.splice(ex.found.beg, ex.found.end - ex.found.beg, ex.expected);
+			that.update(true);
+			if (auLink.style.display != 'none') {
+				auLink.onmouseover();
+			}
+			return false;
+		};
+		var textarea = document.getElementById("canvas");
+		if (textarea.setSelectionRange) {
+			auLink.onmouseover = function() {
+				var cursor = textarea.selectionEnd;
+				auLink.onmouseout = function() {
+					textarea.setSelectionRange(cursor, cursor);
+					delete auLink.onmouseout;
+				};
+				textarea.setSelectionRange(ex.found.beg,
+					ex.found.end);
+			};			  
+		}
+	}
+};
+
+// Parses Ghilbert text and updates thmctx based on the text.
+GH.Direct.prototype.parseText = function(text) {
+	var thmctx = this.thmctx;
+	thmctx.styleScanner.read_styling(text.replace(/\(|\)/g, ' $& '));
+	var tokens = GH.splitrange(text, this.offset);
+	var spl = tokens.primary;
+	thmctx.applyStyling(tokens.secondary);
+	for (var j = 0; j < spl.length; j++) {
+		try {
+			this.status = thmctx.tok(spl[j]);	
+		} catch (ex) {
+			this.addAutoUnifyLink(ex);
+			this.status = "! " + ex;
+		}
+		if (this.status) {
+			if (this.session) {
+				var range = new this.text.Range(i, spl[j].beg - this.offset, i, spl[j].end - this.offset);
+				var text = this.status;
+				if (text.slice(0, 2) === '! ') {
+					text = text.slice(2);
+				}
+				this.marker = this.session.addMarker(range, "gh_error", "text", false);
+				this.session.setAnnotations([{row:i, column:spl[j].beg - this.offset, text:text, type:"error"}]);
+			}
+			this.status = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end + ' ' + this.status;
+			this.stack.appendChild(GH.Direct.textToHtml(this.status));
+			break;
+		}
+	}
+	this.offset += text.length + 1;
+};
+
+// Display the proofs in the right panel.
+GH.Direct.prototype.updateProofs = function(cursorPosition) {
+	var thmctx = this.thmctx;
     if (thmctx.proofctx) {
     	pstack = thmctx.proofctx.mandstack;
 		thmctx.history.push(thmctx.proofctx.stackHistory);
@@ -168,22 +198,50 @@ GH.Direct.prototype.update = function() {
 		}
 		this.stack.appendChild(GH.Direct.textToHtml('&nbsp;'));
     }
-	this.thmctx.clearNewSyms();
-    if (status) {
-		this.stack.appendChild(GH.Direct.textToHtml(loc + ' ' + status));
-    } else {
-    	if (session) {
-    		session.setAnnotations([]);
-    	}
-    }
 	this.prover.update(thmctx.proofctx.stackHistory, thmctx.proofctx.mandstack);
-		
-	if (thmctx.proofctx) {
-		return thmctx.proofctx.stackHistory;
+}
+
+GH.Direct.prototype.getTheorems = function() {	
+	if (this.thmctx.proofctx) {
+		return this.thmctx.proofctx.stackHistory;
 	} else {
 		return null;
 	}
 };
+
+GH.Direct.prototype.getStack = function() {	
+	if (this.thmctx.proofctx) {
+		return this.thmctx.proofctx.mandstack;
+	} else {
+		return null;
+	}
+};
+
+GH.Direct.prototype.insertText = function(text) {
+	this.text.moveCursorToEnd();
+	this.text.insertText(text);
+
+	// Remove line breaks.
+	text = text.replace(/(\r\n|\n|\r)/gm,"");
+	this.parseText(text);
+}
+
+// Insert an array of text into the beginning of the proof.
+GH.Direct.prototype.insertBeginning = function(text) {
+	var position = 0;
+	for (var i = 0; i < text.length; i++) {
+		this.text.splice(position, 0, text[i] + '\n');
+		position += text[i].length + 1;
+	}
+	this.update(false);
+};
+
+GH.Direct.prototype.removeExpression = function(expression) {
+	var begin = expression.begin;
+	var end = expression.end;
+	this.text.splice(begin, end - begin, '');
+	this.update(false);
+}
 
 /**
  * The minimum number of lines in the displayed stack. Blank lines are added if the

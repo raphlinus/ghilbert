@@ -79,7 +79,7 @@ GH.Panel = function(ctx) {
         return function() {
             function insertText(text) {
                 window.direct.text.insertText(text);
-                window.direct.update();
+                window.direct.update(true);
             }
             // Push on the mandatory hyps using their default names
             insertText(sym[4].map(function(mand) { return mand[2]; }).join(' ') + ' ');

@@ -201,8 +201,8 @@ GH.ProofGenerator.replacer.prototype.grabNextVariable = function(usedVariables, 
 };
 
 GH.ProofGenerator.replacer.VARIABLE_NAMES = {
-	wff: ['ph', 'ps', 'ch', 'th', 'ta'],
-	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\''], 
+	wff: ['ph', 'ps', 'ch', 'th', 'ta', 'et', 'zi', 'si', 'ph\'', 'ps\'', 'ch\'', 'th\'', 'ta\''],
+	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\'', 'A0', 'A1', 'A2', 'A3'], 
 	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\'']
 };
 

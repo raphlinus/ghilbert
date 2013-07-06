@@ -283,22 +283,18 @@ GH.Prover.prototype.addSuggestion = function(name, clickHandler, isPrimary) {
 
 GH.Prover.prototype.indent = function() {
 	for (var i = 0; i < this.depth; i++) {
-		this.direct.text.insertText('  ');
+		this.direct.insertText('  ');
 	}
 };
 
 // Print text into the proof.
 GH.Prover.prototype.insertText = function(text) {
-	this.direct.text.insertText(text);
+	this.direct.insertText(text);
 };
 
 // Insert an array of text into the beginning of the proof.
 GH.Prover.prototype.insertBeginning = function(text) {
-	var position = 0;
-	for (var i = 0; i < text.length; i++) {
-		this.direct.text.splice(position, 0, text[i] + '\n');
-		position += text[i].length + 1;
-	}
+	this.direct.insertBeginning(text);
 };
 
 // Print text into the proof and add a new line.
@@ -331,8 +327,11 @@ GH.Prover.prototype.makeString = function(mandHyps, step, output) {
 // Returns a list of the theorems from the stack. The list contains
 // all the conclusions of theorems converted into s-expressions.
 GH.Prover.prototype.getTheorems = function() {
-	// TODO: It may be better to get the theorems from GH.Prover.update instead.
-	var theorems = this.direct.update();
+	// The update is commented out because it's unnecessary and slow, but I'm leaving it
+	// here because it is really useful for debugging. Just uncomment it and you can see
+	// the proofs changing while you're debugging.
+	this.direct.update(true);
+	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
 };
 
@@ -486,15 +485,15 @@ GH.Prover.prototype.replace = function(sexp) {
 };
 
 GH.Prover.prototype.remove = function() {
-	this.direct.text.moveCursorToEnd();
 	this.println('');
+	this.conclusions = this.getTheorems();
 	var removee = this.conclusions[this.conclusions.length - 2];
 	var remover = this.conclusions[this.conclusions.length - 1];
 	var output = this.remover.maybeRemove(removee, remover);
 	for (var i = 0; i < output.length; i++) {
 		this.println(output[i]);
 	}
-	this.direct.update();
+	this.direct.update(false);
 	
 	output = [];
 	removee = this.conclusions[this.conclusions.length - 1];
@@ -502,7 +501,8 @@ GH.Prover.prototype.remove = function() {
 	for (var i = 0; i < output.length; i++) {
 		this.println(output[i]);
 	}
-	this.direct.update();
+	// TODO: Check if this is hurting efficiency.
+	this.direct.update(true);
 	// TODO: Replace a wff multiple times if it appears multiple times.
 };
 
@@ -631,18 +631,16 @@ GH.Prover.prototype.reposition = function(sexp, oldPosition, newPosition) {
 
 GH.Prover.prototype.clearStack = function() {
 	if (this.stack.length == 1) {
-		var begin = this.activeExp.begin;
-		var end = this.activeExp.end;
-		this.direct.text.splice(begin, end - begin, '');
+		this.direct.removeExpression(this.activeExp);
 	}
 };
 
 // TODO: Fix this. This is a terrible way to make an s-expression.
 GH.Prover.prototype.makeNumber = function(num) {
 	this.printNum(num);
-	this.direct.update();
-	var sexp = this.getActiveExp();
-	this.clearStack();
+	this.direct.update(false);
+	var sexp = new GH.sExpression(this.direct.getStack()[0][1], null, null)
+	this.direct.removeExpression(sexp);
 	return sexp;
 };
 
@@ -684,13 +682,17 @@ GH.Prover.prototype.commute = function(sexp) {
 
 GH.Prover.prototype.handleClick = function(name) {
 	this.clearStack();
-	this.direct.text.moveCursorToEnd();
 	this.println('');
+	var result;
 	for (var i = 0; i < this.generators.length; i++) {
 		if (this.generators[i].name == name) {
-			this.activeExp = this.replaceWith(this.generators[i].gen, this.activeExp);
+			result = this.replaceWith(this.generators[i].gen, this.activeExp);
 		}
 	}
+	this.direct.update(true);
+
+	// The result gets overwritten by the update.
+	this.activeExp = result;
 	this.displayActiveExp();
 };
 
@@ -709,12 +711,14 @@ GH.Prover.findMatch = function(sexp, matchee) {
 };
 
 GH.Prover.prototype.handleSubstitute = function() {
-	this.direct.text.moveCursorToEnd();
 	this.println('');
 	var replacee = this.conclusions[this.conclusions.length - 2];
 	var replacement = this.conclusions[this.conclusions.length - 1];
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());
-	this.activeExp = this.replace(myMatch);
+	var result = this.replace(myMatch);
+
+	this.direct.update(true);
+	this.activeExp = result;
 	this.activeExp.getRoot().isProven = true;
 	this.displayActiveExp();
 
