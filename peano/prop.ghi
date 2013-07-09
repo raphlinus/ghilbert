@@ -883,9 +883,19 @@ stmt (3bitr4i () ((<-> ph ps) (<-> ch ph) (<-> th ps)) (<-> ch th))
 stmt (3bitr4ri () ((<-> ph ps) (<-> ch ph) (<-> th ps)) (<-> th ch))
 
 #  Introduce an antecedent to both sides of a logical equivalence.
+## <title> Equivalence over Implication </title>
+## <table>
+##   (<->        [ ph ]   [        [ ps)
+##   (<-> (-> ch [ ph ] ) [ (-> ch [ ps))
+## </table>
 stmt (imbi2i () ((<-> ph ps)) (<-> (-> ch ph) (-> ch ps)))
 
 #  Introduce a consequent to both sides of a logical equivalence.
+## <title> Equivalence over Implication </title>
+## <table>
+##   (<->     ph ]     ]     [ ps ] )
+##   (<-> (-> ph ] ch) ] (-> [ ps ] ch))
+## </table>
 stmt (imbi1i () ((<-> ph ps)) (<-> (-> ph ch) (-> ps ch)))
 
 #  Negate both sides of a logical equivalence.
@@ -1308,6 +1318,12 @@ stmt (pm3.2 () () (-> ph (-> ps (/\ ph ps))))
 stmt (pm3.21 () () (-> ph (-> ps (/\ ps ph))))
 
 #  Infer conjunction of premises.
+## <title> Conjunction from premises </title>
+## <table>
+##       ph ] ]
+##          [ [ ps
+##   (/\ ph ] [ ps)
+## </table>
 stmt (pm3.2i () (ph ps) (/\ ph ps))
 
 #  Theorem *3.37 (Transp) of [bib/WhiteheadRussell] p. 112.
@@ -1990,10 +2006,19 @@ stmt (condan () ((-> (/\ ph (-. ps)) ch) (-> (/\ ph (-. ps)) (-. ch))) (-> ph ps
 stmt (abai () () (<-> (/\ ph ps) (/\ ph (-> ph ps))))
 
 #  Introduce a left conjunct to both sides of a logical equivalence.
+## <title> Equivalence over Conjunction </title>
+## <table>
+##   (<->        [ ph ]   [        [ ps)
+##   (<-> (/\ ch [ ph ] ) [ (/\ ch [ ps))
+## </table>
 stmt (anbi2i () ((<-> ph ps)) (<-> (/\ ch ph) (/\ ch ps)))
 
 #  Introduce a right conjunct to both sides of a logical equivalence.
 ## <title> Equivalence over Conjunction </title>
+## <table>
+##   (<->     ph ]     ]     [ ps ] )
+##   (<-> (/\ ph ] ch) ] (/\ [ ps ] ch))
+## </table>
 stmt (anbi1i () ((<-> ph ps)) (<-> (/\ ph ch) (/\ ps ch)))
 
 #  Conjoin both sides of two equivalences.
@@ -2419,9 +2444,18 @@ stmt (orddi () () (<-> (\/ (/\ ph ps) (/\ ch th)) (/\ (/\ (\/ ph ch) (\/ ph th))
 stmt (anddi () () (<-> (/\ (\/ ph ps) (\/ ch th)) (\/ (\/ (/\ ph ch) (/\ ph th)) (\/ (/\ ps ch) (/\ ps th)))))
 
 #  Inference adding a biconditional to the left in an equivalence.
+## <title> Equivalence over Equivalence </title>
+## <table>
+##   (<->        [ ph ]   [        [ ps)
+##   (<-> (-> ch [ ph ] ) [ (-> ch [ ps))
+## </table>
 stmt (bibi2i () ((<-> ph ps)) (<-> (<-> ch ph) (<-> ch ps)))
 
 #  Inference adding a biconditional to the right in an equivalence.
+## <table>
+##   (<->      ph ]     ]      [ ps ] )
+##   (<-> (<-> ph ] ch) ] (<-> [ ps ] ch))
+## </table>
 stmt (bibi1i () ((<-> ph ps)) (<-> (<-> ph ch) (<-> ps ch)))
 
 #  The equivalence of two equivalences.

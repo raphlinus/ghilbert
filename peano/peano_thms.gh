@@ -3,8 +3,8 @@
 import (PROP prop.ghi () "")
 import (PEANO_MIN peano_min.ghi (PROP) "")
 
-tvar (wff ph ps ch th ta)
-tvar (nat A B C D A' B' C' D')
+tvar (wff ph ps ch th ta ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
 var (nat v w x y z v' w' x' y' z')
 
 # == Pure predicate calculus ==
@@ -38,6 +38,10 @@ thm (19.3 ((ph x))
 
 # Reverse the hypothesis and conclusion of con4bii.
 ## <title> Equivalence over Negation </title>
+## <table>
+##   (<->     [ ph ]       [ ps ] )
+##   (<-> (-. [ ph ] ) (-. [ ps ] ))
+## </table>
 thm (con4biir ()
   (hyp (<-> ph ps))
   (<-> (-. ph) (-. ps))
@@ -47,6 +51,11 @@ thm (con4biir ()
 
 # Reorder sylbi a bit.
 ## <title> Syllogism </title>
+## <table>
+##   (->      ps ] ]    ] ch)
+##       (<-> ps ] [ ph ] )
+##   (->         [ [ ph ] ch)
+## </table>
 thm (sylbi2()
   (hyp1 (-> ps ch)
    hyp2 (<-> ps ph))
@@ -70,9 +79,9 @@ thm (bitr3icom()
 
 ## <title> Equivalence over Disjunction </title>
 ## <table>
-##   (\/      ph ] ] ps)
-##       (<-> ph ] [ ch)
-##   (\/         [ [ ch ps)
+##   (\/      ph ] ]    ] ps)
+##       (<-> ph ] [ ch ] )
+##   (\/         [ [ ch ] ps)
 ## </table>
 thm (orbi1ii ()
   (hyp1 (\/ ph ps)
@@ -82,6 +91,11 @@ thm (orbi1ii ()
 )
 
 ## <title> Equivalence over Disjunction </title>
+## <table>
+##   (\/ ph       [ ps ] ]    ] )
+##           (<-> [ ps ] [ ch ] )
+##   (\/ ph       [    [ [ ch ] )
+## </table>
 thm (orbi2ii ()
   (hyp1 (\/ ph ps)
    hyp2 (<-> ps ch))
@@ -90,6 +104,11 @@ thm (orbi2ii ()
 )
 
 ## <title> Equivalence over Conjunction </title>
+## <table>
+##   (/\      ph ] ]    ] ps)
+##       (<-> ph ] [ ch ] )
+##   (\/         [ [ ch ] ps)
+## </table>
 thm (anbi1ii ()
   (hyp1 (/\ ph ps)
    hyp2 (<-> ph ch))
@@ -98,6 +117,11 @@ thm (anbi1ii ()
 )
 
 ## <title> Equivalence over Conjunction </title>
+## <table>
+##   (/\ ph       [ ps ] ]    ] )
+##           (<-> [ ps ] [ ch ] )
+##   (/\ ph       [    [ [ ch ] )
+## </table>
 thm (anbi2ii ()
   (hyp1 (/\ ph ps)
    hyp2 (<-> ps ch))
@@ -210,12 +234,21 @@ thm (19.15d () (H1 (-> ph (A. x (<-> ps ch))))
      H1 x ps ch 19.15 syl)
 
 ## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (A. x [ ph ] ) (A. x [ ps ] ))
+## </table>
 thm (albii ()
   (hyp (<-> ph ps))
   (<-> (A. x ph) (A. x ps))
   hyp x gen 19.15i)
 
 ## <title> Equivalence over Quantification </title>
+## <table>
+##   (A. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (A. x       [    [ [ ps ] )
+## </table>
 thm (albiii ()
   (hyp1 (A. x ph)
    hyp2 (<-> ph ps))
@@ -294,6 +327,10 @@ thm (19.18 () ()
 )
 
 ## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (E. x [ ph ] ) (E. x [ ps ] ))
+## </table>
 thm (exbii ()
   (hyp (<-> ph ps))
   (<-> (E. x ph) (E. x ps))
@@ -301,6 +338,11 @@ thm (exbii ()
 )
 
 ## <title> Equivalence over Quantification </title>
+## <table>
+##   (E. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (E. x       [    [ [ ps ] )
+## </table>
 thm (exbiii ()
   (hyp1 (E. x ph)
    hyp2 (<-> ph ps))
@@ -584,10 +626,6 @@ thm (impRemove1 () (hyp ph) (<-> (-> ph ps) ps)
   bicomi
 )
 
-thm (impTru1i () (hyp (-> (T) ps)) ps
-  tru hyp ax-mp
-)
-
 ## <title> Remove Implies </title>
 ## <table>
 ##               [ ph ]
@@ -600,8 +638,6 @@ thm (impRemove2 () (hyp ph) (<-> (-> ps ph) (T))
   (T) a1i
   impbii
 )
-
-# impRemovel2i shouldn't be needed.
 
 ## <title> Remove Implies </title>
 ## <table>
@@ -617,6 +653,11 @@ thm (impNotRemove1 () (hyp (-. ph)) (<-> (-> ph ps) (T))
   impbii
 )
 
+## <title> Remove Equivalence </title>
+## <table>
+##               [ (-. [ ph ] )
+##   (<-> (-> ps [     [ ph ] ) (-. ps))
+## </table>
 thm (impNotRemove2 () (hyp (-. ph)) (<-> (-> ps ph) (-. ps))
   hyp
   (-> ps ph) id
@@ -661,7 +702,7 @@ thm (biRemove2 () (hyp ph) (<-> (<-> ps ph) ps)
 ## <title> Remove Equivalence </title>
 ## <table>
 ##                [ (-. [ ph ] )
-##   (<-> (<-> ps [     [ ph ] ) ps)
+##   (<-> (<-> ps [     [ ph ] ) (-. ps))
 ## </table>
 thm (biNotRemove2 () (hyp (-. ph)) (<-> (<-> ps ph) (-. ps))
   hyp
@@ -1593,6 +1634,10 @@ thm (muleq1d ()
 )
 
 ## <title> Equality over Multiplication </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (* A ] C) (* [ B ] C))
+## </table>
 thm (muleq1i ()
   (hyp (= A B))
   (= (* A C) (* B C))
@@ -1600,6 +1645,10 @@ thm (muleq1i ()
 )
 
 ## <title> Equality over Multiplication </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (* C [ A ] ) (* C [ B))
+## </table>
 thm (muleq2i () (hyp (= A B))
   (= (* C A) (* C B))
   hyp A B C muleq2 ax-mp
@@ -1630,6 +1679,7 @@ thm (finds ((A x) (ch x) (th x) (ta x) (ph y))
   vtocl
 )
 
+## <title> Additive Identity Axiom </title>
 thm (pa_ax3r () ()
   (= (+ (0) A) A)
 
@@ -1768,7 +1818,8 @@ thm (mulid () ()
       A pa_ax5 A addeq1i  eqtr   A (0) addcom eqtr4 A pa_ax3
     eqtr
   eqtr)
-
+	
+## <title> Multiplicative Identity </title>
 thm (mulidr() () (= (* (1) A) A)
   A mulid
   A (1) mulcom
@@ -1790,6 +1841,7 @@ thm (add4 () ()
 )
 
 # Distribution of addition through multiplication
+## <title> Distributive Property </title>
 thm (distr () ()
   (= (* A (+ B C)) (+ (* A B) (* A C)))
 
@@ -1809,6 +1861,7 @@ thm (distr () ()
 )
 
 # Distribution of addition through multiplication, left argument
+## <title> Distributive Property </title>
 thm (distl () ()
   (= (* (+ A B) C) (+ (* A C) (* B C)))
 
@@ -1816,18 +1869,21 @@ thm (distl () ()
    C A mulcom C B mulcom addeq12i eqtr)
 
 # Distribution of addition through multiplication, both arguments
+## <title> Distributive Property </title>
 thm (distrl () ()
   (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
   (+ A B) C D distr
     A B C distl A B D distl addeq12i eqtr)
 
 # Undistribute left.
+## <title> Distributive Property </title>
 thm (undistl() () (= (+ (* A B) (* C B)) (* (+ A C) B))
   A C B distl
   eqcomi
 )
 
 # Undistribute right.
+## <title> Distributive Property </title>
 thm (undistr() () (= (+ (* A B) (* A C)) (* A (+ B C)))
   A B C distr
   eqcomi
@@ -2253,6 +2309,10 @@ thm (lteq2d ()
 )
 
 ## <title> Equivalence over Inequality </title>
+## <table>
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (< C [ A ] ) (< [ C [ B ] ))
+## </table>
 thm (lteq2i ()
   (hyp (= A B))
   (<-> (< C A) (< C B))
@@ -2403,6 +2463,7 @@ thm (lenltt () ()
   finds
 )
 
+## <title> No Natural Numbers Below Zero </title>
 thm (0le () () (<= (0) A)
   (0) A lenltt
    bicomi
@@ -2410,6 +2471,7 @@ thm (0le () () (<= (0) A)
    mpbiRemove
 )
 
+## <title> No Natural Numbers Below Zero </title>
 thm (ge0 () () (-. (< A (0)))
   A 0le
   lecomi
@@ -2427,6 +2489,11 @@ thm (lteq1d () (hyp (-> ph (= A B)))
 )
 
 # Equality inference for less than relation
+## <title> Equivalence over Inequality </title>
+## <table>
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (< A ] C ] ) (< [ B ] C))
+## </table>
 thm (lteq1i () (h (= A B))
   (<-> (< A C) (< B C))
   h (= A B) id C lteq1d ax-mp)
@@ -2491,6 +2558,7 @@ thm (leleo () ()
   (= A B) (< A B) orcom bitri
 )
 
+## <title> Commute Inequality </title>
 thm (ltcom () () (<-> (< A B) (-. (<= B A)))
   A B axlttri
   A B eqcom
@@ -2505,6 +2573,7 @@ thm (ltcom () () (<-> (< A B) (-. (<= B A)))
   bitri
 )
 
+## <title> Commute Inequality </title>
 thm (ltcomi () (hyp (< A B)) (-. (<= B A))
   hyp
   A B axlttri
@@ -2519,6 +2588,7 @@ thm (ltcomi () (hyp (< A B)) (-. (<= B A))
   mtbi
 )
 
+## <title> Commute Inequality </title>
 thm (lecom () () (<-> (<= A B) (-. (< B A)))
   B A ltcom
   notbii
@@ -2528,6 +2598,7 @@ thm (lecom () () (<-> (<= A B) (-. (< B A)))
   bitr3icom
 )
 
+## <title> Commute Inequality </title>
 thm (lecomi () (hyp (<= A B)) (-. (< B A))
   hyp
   A B lecom
@@ -2587,6 +2658,7 @@ ps anbi2i
 bitri
 )
 
+## <title> Convert between inequalities </title>
 thm (axlttri2 () () (<-> (< A B) (/\ (-. (= A B)) (<= A B)))
   A B axlttri
   (= A B) (< B A) ioran bitri
@@ -2614,6 +2686,7 @@ thm (replaceBi1An0Not0 () (
   bitri
 )
 
+## <title> Convert between inequalities </title>
 thm (axgrtri () () (<-> (-. (<= A B)) (/\ (-. (= A B)) (-. (< A B))))
   B A axlttri2
   B A ltcom bitr3icom
