@@ -10,7 +10,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.stepName = function(sexp) {
 		return 'pa_ax3r';
 	}
 	if (rightNum == 0) {
-		return 'pa_ax3'
+		return 'pa_ax3';
 	}
 
 	return leftNum + 'plus' + rightNum;
@@ -43,8 +43,22 @@ GH.ProofGenerator.evaluatorAdd.prototype.hyps = function(sexp) {
 	return [];
 };
 
-GH.ProofGenerator.evaluatorAdd.prototype.addTheorem = function(sexp) {
-	return false;
+GH.ProofGenerator.evaluatorAdd.prototype.canAddTheorem = function(sexp) {
+	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
+	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	return ((1 < rightNum) && (rightNum <= 10) && (1 <= leftNum) && (leftNum <= 10));
+};
+
+GH.ProofGenerator.evaluatorAdd.prototype.addTheorem = function(sexp) {	
+	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
+	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var sum = leftNum + rightNum;
+	this.prover.println('## <title> One-digit Addition </title>');
+	this.prover.println('thm (' + this.stepName(sexp) + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(sum) + ')');
+	this.prover.depth++;
+	this.inline(sexp);
+	this.prover.depth--;
+	this.prover.println(')');
 };
 
 GH.ProofGenerator.evaluatorAdd.sameDigits = function(leftNum, rightNum) {
@@ -59,7 +73,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 
 	if (isNaN(leftNum) || isNaN(rightNum)) {
-		var extraReplacement = ((!sexp.parent_) && (GH.operatorUtil.getType(sexp) != 'wff'));
+		var extraReplacement = ((!sexp.parent) && (GH.operatorUtil.getType(sexp) != 'wff'));
 		if (isNaN(leftNum)) {
 			sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
 		}
@@ -74,31 +88,16 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 		return true;
 	}
 
-	/*if (isNaN(leftNum) && isNaN(rightNum)) {
-		sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
-		sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
-		this.prover.apply(this.prover.evaluator, sexp);
-		return true;
-	}
-	if (isNaN(leftNum)) {
-		sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
-		this.prover.apply(this.prover.evaluator, sexp);
-		return true;
-	}
-	if (isNaN(rightNum)) {
-		sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
-		this.prover.apply(this.prover.evaluator, sexp);
-		return true;
-	}*/
-
 	if (leftNum == 0) {
 		return false;
 	} else if (rightNum == 0) {
 		return false;
-	} else if ((leftNum == 1) && (rightNum > 0) && (rightNum < 10)) {
+	} else if ((leftNum == 1) && (rightNum < 10)) {
 		this.successorRight_(rightNum);
-	} else if ((rightNum == 1) && (leftNum > 0) && (leftNum < 10)) {
+	} else if ((rightNum == 1) && (leftNum < 10)) {
 		this.successorLeft_(leftNum);
+	} else if ((rightNum == 10) && (leftNum < 10)) {
+		this.prover.commute(sexp);
 	} else if ((rightNum < 10) && (leftNum < 10)) {
 		this.addSingleDigits_(sexp, leftNum, rightNum);
 	} else {
@@ -128,7 +127,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.successorRight_ = function(rightNum) {
 // Replace a single-digit number with its predessor on the left.
 // For example, 5 = 4 + 1.
 GH.ProofGenerator.evaluatorAdd.prototype.predecessorLeft_ = function(sexp) {
-	var num = sexp.operator_;
+	var num = sexp.operator;
 	this.prover.print([], 'df-' + num);
 	return this.prover.replace(sexp);
 };
@@ -136,7 +135,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.predecessorLeft_ = function(sexp) {
 // Replace a single-digit number with its predecessor on the right.
 // For example, 5 = 1 + 4.
 GH.ProofGenerator.evaluatorAdd.prototype.predecessorRight_ = function(sexp) {
-	var num = sexp.operator_;
+	var num = sexp.operator;
 	this.prover.print([], 'df-' + num);
 	var replacement = this.prover.getLast();
 	this.prover.commute(replacement.right());
@@ -151,7 +150,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.incrementLeft_ = function(sexp) {
 	result = GH.Prover.applyRight(this.predecessorRight_, result, this);
 	result = this.prover.associateLeft(result);
 	this.successorLeft_(leftNum);
-	return this.prover.replace(result.left()).parent_;
+	return this.prover.replace(result.left()).parent;
 };
 
 // Increment the right number and decrement the left.
@@ -162,7 +161,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.incrementRight_ = function(sexp) {
 	result = GH.Prover.applyLeft(this.predecessorLeft_, result, this);
 	result = this.prover.associateRight(result);
 	this.successorRight_(rightNum);
-	return this.prover.replace(result.right()).parent_;
+	return this.prover.replace(result.right()).parent;
 };
 
 // The body of the addSingleDigits proof generator. Takes an expression like 2 + 2
@@ -170,7 +169,6 @@ GH.ProofGenerator.evaluatorAdd.prototype.incrementRight_ = function(sexp) {
 GH.ProofGenerator.evaluatorAdd.prototype.addSingleDigits_ = function(sexp, leftNum, rightNum) {
 	this.prover.print([sexp.copy()], 'eqid');
 	var result = this.prover.getLast().right();
-	
 
 	// We increment the higher number and decrement the lower number until
 	// we've reach 10 or until the lower number is zero.
@@ -207,7 +205,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.addSingleDigits_ = function(sexp, leftN
 
 // Replace a number x with 1 * x.
 GH.ProofGenerator.evaluatorAdd.prototype.multiplyByOneLeft = function(sexp) {
-	if (((sexp.operator_ == '+') || (sexp.operator_ == '*')) && (sexp.left().operator_ == '1')) {
+	if (((sexp.operator == '+') || (sexp.operator == '*')) && (sexp.left().operator == '1')) {
 		return sexp;
 	}
 	// TODO: Clean this up.
@@ -220,9 +218,9 @@ GH.ProofGenerator.evaluatorAdd.prototype.multiplyByOneLeft = function(sexp) {
 
 // Multiply the powers of ten by 1. For example: 100 + 8 = 1 * 100 + 8.
 GH.ProofGenerator.evaluatorAdd.prototype.multiplyTensByOne = function(sexp) {
-	if (((sexp.operator_ == '*') && (sexp.left().operator_ == '10')) || (sexp.operator_ == '10')) {
+	if (((sexp.operator == '*') && (sexp.left().operator == '10')) || (sexp.operator == '10')) {
 		return this.multiplyByOneLeft(sexp);
-	} else if (sexp.operator_ == '+') {
+	} else if (sexp.operator == '+') {
 		var result = GH.Prover.applyLeft(this.multiplyTensByOne, sexp, this);
 		return GH.Prover.applyRight(this.multiplyTensByOne, result, this);
 	} else {
@@ -232,7 +230,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.multiplyTensByOne = function(sexp) {
 
 // Find a symbol tree describing how the digits are currently arranged.
 GH.ProofGenerator.evaluatorAdd.findOriginalTree = function(sexp, digitTable) {
-	if (sexp.operator_ == '+') {
+	if (sexp.operator == '+') {
 		return new GH.symbolTree(
 		    null, 
 		    GH.ProofGenerator.evaluatorAdd.findOriginalTree(sexp.left(), digitTable),
@@ -294,7 +292,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.addNumbers_ = function(sexp) {
 // Undistribute to the left all additions when possible.
 GH.ProofGenerator.evaluatorAdd.prototype.undistributeAllLeft_ =  function(sexp) {
 	var result = this.prover.undistributeLeft(sexp);
-	if (sexp.operator_ == '+') {
+	if (sexp.operator == '+') {
 		result = GH.Prover.applyLeft(this.undistributeAllLeft_, result, this);
 		return GH.Prover.applyRight(this.undistributeAllLeft_, result, this);
 	} else {
@@ -304,7 +302,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.undistributeAllLeft_ =  function(sexp) 
 
 // Find the lowest digits that still need to be added together.
 GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_ = function(sexp) {
-	if (sexp.operator_ == '+') {
+	if (sexp.operator == '+') {
 		var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
 		var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 		if ((leftNum < 10) && (rightNum < 10)) {
@@ -312,7 +310,7 @@ GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_ = function(sexp) {
 		}
 		var nextDigits = GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_(sexp.right());
 		return nextDigits || GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_(sexp.left());
-	} else if (sexp.operator_ == '*') {
+	} else if (sexp.operator == '*') {
 		return GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_(sexp.left());
 	} else {
 		return null;
@@ -325,7 +323,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.addIndividualDigits_ =  function(sexp) 
 	sexp = sexp.copy();
 	var nextDigitsToAdd = GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_(sexp);
 	if (!nextDigitsToAdd) {
-		return sexp;
+		return originalSexp;
 	}
 
 	while (nextDigitsToAdd) {
@@ -333,33 +331,33 @@ GH.ProofGenerator.evaluatorAdd.prototype.addIndividualDigits_ =  function(sexp) 
 		sexp = this.prover.evaluate(nextDigitsToAdd);
 		var carry = false;
 		// Grab the number being carried if there is one and move it out of the lower digit.
-		if (sexp.operator_ == '10') {
+		if (sexp.operator == '10') {
 			carry = true;
-			if (sexp.parent_.operator_ == '*') {
-				sexp = sexp.parent_;
+			if (sexp.parent.operator == '*') {
+				sexp = sexp.parent;
 			}
-		} else if (sexp.operator_ == '+') {
+		} else if (sexp.operator == '+') {
 			carry = true;
-			if (sexp.parent_.operator_ == '*') {
-				sexp = this.prover.distributeLeft(sexp.parent_);
+			if (sexp.parent.operator == '*') {
+				sexp = this.prover.distributeLeft(sexp.parent);
 			}
-			if ((sexp.parent_.operator_ == '+') && (sexp.siblingIndex_ == 1)) {
-				sexp = this.prover.associateLeft(sexp.parent_).left().right();
+			if ((sexp.parent.operator == '+') && (sexp.siblingIndex == 1)) {
+				sexp = this.prover.associateLeft(sexp.parent).left().right();
 			}
 		}
 
 		// Move the carry into the higher digit.
-		if (carry && sexp.parent_.operator_ == '+'){
-			sexp = this.multiplyTensByOne(sexp).parent_;
-			if (sexp.left().operator_ == '+') {
+		if (carry && sexp.parent.operator == '+'){
+			sexp = this.multiplyTensByOne(sexp).parent;
+			if (sexp.left().operator == '+') {
 				sexp = this.prover.associateRight(sexp).right();
 			}
 			sexp = this.prover.undistributeLeft(sexp);
 			sexp = this.prover.associateRight(sexp.left());
 		}
 
-		while (sexp.parent_.operator_ != '=') {
-			sexp = sexp.parent_;
+		while (sexp.parent.operator != '=') {
+			sexp = sexp.parent;
 		}
 		nextDigitsToAdd = GH.ProofGenerator.evaluatorAdd.getNextDigitsToAdd_(sexp);
 	}
@@ -370,13 +368,13 @@ GH.ProofGenerator.evaluatorAdd.prototype.addIndividualDigits_ =  function(sexp) 
 
 // Associate right all additions and simplify one multiplications: 1 * 10 = 10.
 GH.ProofGenerator.evaluatorAdd.prototype.addCleanUp_ =  function(sexp) {
-	if ((sexp.operator_ == '+') && (sexp.left().operator_ == '+')) {
+	while ((sexp.operator == '+') && (sexp.left().operator == '+')) {
 		sexp = this.prover.associateRight(sexp);
 	}
-	if ((sexp.operator_ == '*') && (sexp.left().operator_ == '1')) {
+	if ((sexp.operator == '*') && (sexp.left().operator == '1')) {
 		sexp = this.prover.evaluate(sexp);
 	}
-	if ((sexp.operator_ == '*') || (sexp.operator_ == '+')) {
+	if ((sexp.operator == '*') || (sexp.operator == '+')) {
 		sexp = GH.Prover.applyLeft(this.addCleanUp_, sexp, this);
 		sexp = GH.Prover.applyRight(this.addCleanUp_, sexp, this);
 	}

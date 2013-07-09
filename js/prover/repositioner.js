@@ -23,7 +23,7 @@ GH.repositioner.prototype.associateAllRight = function(expTree) {
 		return this.associateAllRight({sexp: result, tree: tree});
 	} else if (tree.right) {
 		var result = this.associateAllRight({sexp: sexp.right(), tree: tree.right});
-		return {sexp: result.sexp.parent_, tree: tree};
+		return {sexp: result.sexp.parent, tree: tree};
 	} else {
 		return expTree;
 	}
@@ -40,7 +40,7 @@ GH.repositioner.prototype.associateAllLeft = function(expTree) {
 		return this.associateAllLeft({sexp: result, tree: tree});
 	} else if (tree.left) {
 		var result = this.associateAllLeft({sexp: sexp.left(), tree: tree.left});
-		return {sexp: result.sexp.parent_, tree: tree};
+		return {sexp: result.sexp.parent, tree: tree};
 	} else {
 		return expTree;
 	}
@@ -99,7 +99,7 @@ GH.repositioner.prototype.bubble = function(sexp, position, listLength) {
 		sexp = this.prover.associateLeft(sexp);
 	}
 	for (var i = 0; i < leftness; i++) {
-		sexp = sexp.parent_;
+		sexp = sexp.parent;
 	}
 	return sexp;
 };
@@ -130,9 +130,9 @@ GH.repositioner.prototype.reassociate = function(sexp, oldTree, newTree) {
 	}
 	var result = sexp;
 	result = this.reassociate(result.left(),  oldTree.left,  newTree.left);
-	result = result.parent_;
+	result = result.parent;
 	result = this.reassociate(result.right(), oldTree.right, newTree.right);
-	result = result.parent_;
+	result = result.parent;
 	
 	return result;
 };

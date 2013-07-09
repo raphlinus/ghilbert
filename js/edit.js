@@ -171,6 +171,7 @@ GH.TextareaEdit = function(textarea) {
         };
         textarea.setSelectionRange(newSelectionEnd, newSelectionEnd);
         this.undoStack.push([textarea.value, undoFunc]);
+		return oldChars;
     };
     this.getSession = function() {
         return null;

@@ -19,7 +19,7 @@ GH.ProofGenerator.associatorRight.OPERATIONS = [
 GH.ProofGenerator.associatorRight.getStepName = function (sexp) {
 	var associateOperations = GH.ProofGenerator.associatorRight.OPERATIONS;
 	for (var i = 0; i < associateOperations.length; i++) {
-		if (sexp.operator_ == associateOperations[i][0]) {
+		if (sexp.operator == associateOperations[i][0]) {
 			if (!sexp.isProven) {
 				return associateOperations[i][1];
 			} else {
@@ -38,7 +38,7 @@ GH.ProofGenerator.associatorRight.prototype.isApplicable = function(sexp) {
 	if (this.prover.getHyps(sexp, this.expectedForm) == null) {
 		return false;
 	}
-	if (sexp.operator_.toString() != sexp.left().operator_.toString()) {
+	if (sexp.operator.toString() != sexp.left().operator.toString()) {
 		return false;
 	}
 	var stepName = this.stepName(sexp);
@@ -54,7 +54,7 @@ GH.ProofGenerator.associatorRight.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.associatorRight.prototype.inline = function(sexp) {      return false;  };
-GH.ProofGenerator.associatorRight.prototype.addTheorem = function(sexp) {  return false;  };
+GH.ProofGenerator.associatorRight.prototype.canAddTheorem = function(sexp) {  return false;  };
 
 
 
@@ -77,7 +77,7 @@ GH.ProofGenerator.associatorLeft.OPERATIONS = [
 GH.ProofGenerator.associatorLeft.prototype.stepName = function(sexp) {
 	var associateOperations = GH.ProofGenerator.associatorLeft.OPERATIONS;
 	for (var i = 0; i < associateOperations.length; i++) {
-		if (sexp.operator_ == associateOperations[i][0]) {
+		if (sexp.operator == associateOperations[i][0]) {
 			if (!sexp.isProven) {
 				return associateOperations[i][1];
 			} else {
@@ -92,7 +92,7 @@ GH.ProofGenerator.associatorLeft.prototype.isApplicable = function(sexp) {
 	if (this.prover.getHyps(sexp, this.expectedForm) == null) {
 		return false;
 	}
-	if (sexp.operator_.toString() != sexp.right().operator_.toString()) {
+	if (sexp.operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
 	return (this.stepName(sexp) != null);
@@ -114,4 +114,4 @@ GH.ProofGenerator.associatorLeft.prototype.inline = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.associatorLeft.prototype.addTheorem = function(sexp) {  return false;  };
+GH.ProofGenerator.associatorLeft.prototype.canAddTheorem = function(sexp) {  return false;  };

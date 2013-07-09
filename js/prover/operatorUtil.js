@@ -24,15 +24,15 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 };
 
 GH.operatorUtil.getType = function(sexp) {
-	var operator = sexp.operator_;
+	var operator = sexp.operator;
 	var operatorTypes = GH.operatorUtil.getOperatorTypes(operator);
 	return operatorTypes && operatorTypes[operatorTypes.length - 1];
 };
 
 GH.operatorUtil.getRootType = function(sexp) {
 	var root = sexp;
-	while(root.parent_) {
-		root = root.parent_;
+	while(root.parent) {
+		root = root.parent;
 	}
 	return GH.operatorUtil.getType(root);
 };

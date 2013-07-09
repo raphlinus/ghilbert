@@ -20,7 +20,7 @@ GH.ProofGenerator.commuter.OPERATIONS = [
 GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
 	var commuteOperations = GH.ProofGenerator.commuter.OPERATIONS;
 	for (var i = 0; i < commuteOperations.length; i++) {
-		if (sexp.operator_ == commuteOperations[i][0]) {
+		if (sexp.operator == commuteOperations[i][0]) {
 			if (!sexp.isProven) {
 				return commuteOperations[i][1];
 			} else {
@@ -33,7 +33,7 @@ GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
 
 GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
 	// TODO: Maybe use expected form here.
-	if (sexp.operands_.length != 2) {
+	if (sexp.operands.length != 2) {
 		return false;
 	}
 	// Commuting is unnecessary if the left and right sides are equal.
@@ -53,5 +53,5 @@ GH.ProofGenerator.commuter.prototype.hyps = function(sexp) {
 	}
 };
 
-GH.ProofGenerator.commuter.prototype.inline = function(sexp) {	    return false; };
-GH.ProofGenerator.commuter.prototype.addTheorem = function(sexp) {	return false; };
+GH.ProofGenerator.commuter.prototype.inline = function(sexp) {	   		return false; };
+GH.ProofGenerator.commuter.prototype.canAddTheorem = function(sexp) {	return false; };

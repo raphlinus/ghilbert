@@ -18,17 +18,17 @@ GH.remover.REMOVE_SHORTHAND_OPERATIONS = [
 ];
 
 GH.remover.prototype.remove = function(removee, isNegated, output) {
-	var parent = removee.parent_;
-	var operandIndex = removee.siblingIndex_;
+	var parent = removee.parent;
+	var operandIndex = removee.siblingIndex;
 	if (!parent) {
 		// The remover and the removee are identical.
 		return false;
 	}
 		
-	var operator = parent.operator_;
+	var operator = parent.operator;
 	
 	var shorthandOperations = GH.remover.REMOVE_SHORTHAND_OPERATIONS;
-	if (!parent.parent_) {
+	if (!parent.parent) {
 		for (var i = 0; i < shorthandOperations.length; i++) {
 			if (operator == shorthandOperations[i][0]) {
 				var stepName = null;
@@ -51,8 +51,8 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 		if (operator == removeOperations[i][0]) {
 			var mandHyps = [];
 			var stepName = null;
-			//if (parent.parent_) {
-			mandHyps.push(parent.operands_[1 - operandIndex]);
+			//if (parent.parent) {
+			mandHyps.push(parent.operands[1 - operandIndex]);
 			if (!isNegated) {
 				stepName = removeOperations[i][1][operandIndex];
 			} else {
@@ -66,7 +66,7 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 	}
 
 	// Recursively replace the entire replacee follow the expression up to the root.
-	if (parent.parent_) {
+	if (parent.parent) {
 		return this.prover.replacer.replace(parent, output);
 	} else {
 		output.push('mpbi');
@@ -75,13 +75,13 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 };
 
 GH.remover.prototype.removeBoolean = function(removee, output) {
-	var myMatch = GH.Prover.findMatch(removee, new GH.sExpression('T'));	
-	if (myMatch && myMatch.parent_) {
+	var myMatch = GH.Prover.findMatch(removee, GH.sExpression.fromRaw('T'));	
+	if (myMatch && myMatch.parent) {
 		output.push('tru');
 		this.remove(myMatch, false, output);
 	}
-	myMatch = GH.Prover.findMatch(removee, new GH.sExpression('F'));	
-	if (myMatch && myMatch.parent_) {
+	myMatch = GH.Prover.findMatch(removee, GH.sExpression.fromRaw('F'));	
+	if (myMatch && myMatch.parent) {
 		output.push('notfal');
 		this.remove(myMatch, true, output);
 	}
@@ -95,12 +95,12 @@ GH.remover.prototype.maybeRemove = function(removee, remover) {
 	var output = [];
 	var isNegated = false;
 	var myMatch = GH.Prover.findMatch(removee, remover);
-	if (myMatch && myMatch.parent_ && (myMatch.parent_.operator_ == '-.')) {
+	if (myMatch && myMatch.parent && (myMatch.parent.operator == '-.')) {
 		output.push('notnoti');
 		isNegated = true;
-		myMatch = myMatch.parent_;
+		myMatch = myMatch.parent;
 	}
-	if ((!myMatch) && (remover.operator_ == '-.')) {
+	if ((!myMatch) && (remover.operator == '-.')) {
 		isNegated = true;
 		myMatch = GH.Prover.findMatch(removee, remover.child());
 	}

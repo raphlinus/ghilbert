@@ -11,8 +11,8 @@ GH.ProofGenerator.distributorLeft.prototype.isApplicable = function(sexp) {
 
 GH.ProofGenerator.distributorLeft.prototype.stepName = function(sexp) {
 	// TODO: Add ianor and ioran.
-	var distributerOperator = sexp.operator_;
-	var distributedOperator = sexp.left().operator_;
+	var distributerOperator = sexp.operator;
+	var distributedOperator = sexp.left().operator;
 	if ((distributerOperator == '*') && (distributedOperator == '+')) {
 		return 'distl';
 	} else {
@@ -25,8 +25,8 @@ GH.ProofGenerator.distributorLeft.prototype.hyps = function(sexp) {
 	return this.prover.getHyps(sexp, this.expectedForm);
 };
 
-GH.ProofGenerator.distributorLeft.prototype.inline = function(sexp) {      return false;  };
-GH.ProofGenerator.distributorLeft.prototype.addTheorem = function(sexp) {  return false;  };
+GH.ProofGenerator.distributorLeft.prototype.inline = function(sexp) {         return false;  };
+GH.ProofGenerator.distributorLeft.prototype.canAddTheorem = function(sexp) {  return false;  };
 
 
 
@@ -43,10 +43,10 @@ GH.ProofGenerator.distributorRight.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.distributorRight.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.operator_;
-	var distributedOperator = sexp.right().operator_;
+	var distributerOperator = sexp.operator;
+	var distributedOperator = sexp.right().operator;
 	if ((distributerOperator == '*') && (distributedOperator == '+')) {
-		return 'distl';
+		return 'distr';
 	} else {
 		return null;
 	}
@@ -57,8 +57,8 @@ GH.ProofGenerator.distributorRight.prototype.hyps = function(sexp) {
 	return this.prover.getHyps(sexp, this.expectedForm);
 };
 
-GH.ProofGenerator.distributorRight.prototype.inline = function(sexp) {      return false;  };
-GH.ProofGenerator.distributorRight.prototype.addTheorem = function(sexp) {  return false;  };
+GH.ProofGenerator.distributorRight.prototype.inline = function(sexp) {         return false;  };
+GH.ProofGenerator.distributorRight.prototype.canAddTheorem = function(sexp) {  return false;  };
 
 
 
@@ -73,15 +73,15 @@ GH.ProofGenerator.undistributorLeft.prototype.isApplicable = function(sexp) {
 	if (this.hyps(sexp) == null) {
 		return false;
 	}
-	if (sexp.left().operator_.toString() != sexp.right().operator_.toString()) {
+	if (sexp.left().operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
 	return (this.stepName(sexp) != null);
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.left().operator_;
-	var distributedOperator = sexp.operator_;
+	var distributerOperator = sexp.left().operator;
+	var distributedOperator = sexp.operator;
 	if ((distributerOperator == '*') && (distributedOperator == '+')) {
 		return 'undistl';
 	} else {
@@ -101,7 +101,7 @@ GH.ProofGenerator.undistributorLeft.prototype.inline = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.undistributorLeft.prototype.addTheorem = function(sexp) {         return false;  };
+GH.ProofGenerator.undistributorLeft.prototype.canAddTheorem = function(sexp) {         return false;  };
 
 
 
@@ -118,15 +118,15 @@ GH.ProofGenerator.undistributorRight.prototype.isApplicable = function(sexp) {
 	if (this.hyps(sexp) == null) {
 		return false;
 	}
-	if (sexp.left().operator_.toString() != sexp.right().operator_.toString()) {
+	if (sexp.left().operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
 	return (this.stepName(sexp) != null);
 };
 
 GH.ProofGenerator.undistributorRight.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.left().operator_;
-	var distributedOperator = sexp.operator_;
+	var distributerOperator = sexp.left().operator;
+	var distributedOperator = sexp.operator;
 	if ((distributerOperator == '*') && (distributedOperator == '+')) {
 		return 'undistr';
 	} else {
@@ -146,4 +146,4 @@ GH.ProofGenerator.undistributorRight.prototype.inline = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.undistributorRight.prototype.addTheorem = function(sexp) {   return false;  };
+GH.ProofGenerator.undistributorRight.prototype.canAddTheorem = function(sexp) {   return false;  };

@@ -198,7 +198,11 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 		}
 		this.stack.appendChild(GH.Direct.textToHtml('&nbsp;'));
     }
-	this.prover.update(thmctx.proofctx.stackHistory, thmctx.proofctx.mandstack);
+	if (thmctx && thmctx.proofctx) {
+		this.prover.update(thmctx.proofctx.stackHistory, thmctx.proofctx.mandstack);
+	} else {
+		this.prover.update([], []);
+	}
 }
 
 GH.Direct.prototype.getTheorems = function() {	
@@ -226,22 +230,27 @@ GH.Direct.prototype.insertText = function(text) {
 	this.parseText(text);
 }
 
-// Insert an array of text into the beginning of the proof.
-GH.Direct.prototype.insertBeginning = function(text) {
-	var position = 0;
-	for (var i = 0; i < text.length; i++) {
-		this.text.splice(position, 0, text[i] + '\n');
-		position += text[i].length + 1;
-	}
-	this.update(false);
-};
-
 GH.Direct.prototype.removeExpression = function(expression) {
 	var begin = expression.begin;
 	var end = expression.end;
 	this.text.splice(begin, end - begin, '');
 	this.update(false);
-}
+};
+
+// This is called when starting on a new theorem that the current theorem needs.
+// It removes the current partially complete theorem which will infer with the new one.
+// It is restored later.
+GH.Direct.prototype.removeCurrentTheorem = function() {
+	var thmCount = this.thmctx.history.length;
+	var begin = 0;
+	if (thmCount >= 2) {
+		begin = this.thmctx.history[thmCount - 2][0].end
+	}
+	var end = this.text.getValue().length;
+	var currentThm = this.text.splice(begin, end - begin, '');
+	this.update(false);
+	return currentThm;
+};
 
 /**
  * The minimum number of lines in the displayed stack. Blank lines are added if the
@@ -413,6 +422,9 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.newSyms.push(this.thmname);
 
 				this.state = stateType.THM;
+				// Make the end of the stack history equal to the final end to the theorem.
+				var stackHistory = this.proofctx.stackHistory;
+				stackHistory[stackHistory.length - 1].end = tok.end;
 				this.concl = null;
 				this.hypmap = {};
 			} else {
@@ -460,6 +472,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 		if (thestep.length & 1) {
 			return 'Odd length hypothesis list';
 		}
+		this.hyps = [];
 		for (i = 0; i < thestep.length; i += 2) {
 			var hypname = thestep[i];
 			if (GH.typeOf(hypname) != 'string') {

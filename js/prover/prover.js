@@ -56,7 +56,7 @@ GH.Prover = function(suggestArea, direct) {
 GH.Prover.prototype.updateActiveExp = function(theorems, stack) {
 	this.activeExp = null;
 	if (stack.length == 1) {
-		this.activeExp = new GH.sExpression(stack[0][1], null, null);
+		this.activeExp = GH.sExpression.fromRaw(stack[0][1]);
 	} else if (stack.length == 0) {
 		if (this.conclusions.length >= 1) {
 			this.activeExp = this.conclusions[this.conclusions.length - 1];
@@ -67,7 +67,7 @@ GH.Prover.prototype.updateActiveExp = function(theorems, stack) {
 
 // Handle selecting a child of the select expression.
 GH.Prover.prototype.onChildClick = function(operandNum) {
-	this.activeExp = this.activeExp.operands_[operandNum];
+	this.activeExp = this.activeExp.operands[operandNum];
 	this.displayActiveExp();
 };
 
@@ -94,7 +94,7 @@ GH.Prover.prototype.onAncestorClick = function(clickedAncestor) {
 	while (!GH.ProofStep.hasClass_(currentElement, 'selected-exp')) {
 		selectedIndex = GH.Prover.getSelectedIndex(currentElement);
 		currentElement = currentElement.children[selectedIndex];
-		this.activeExp = this.activeExp.parent_;
+		this.activeExp = this.activeExp.parent;
 	}	
 	this.displayActiveExp();
 };
@@ -244,7 +244,7 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 	}
 
 	this.secondaryExpDisplay.innerHTML = '';
-	if ((this.stack.length == 0) && (this.activeExp.parent_ == null)) {	
+	if ((this.stack.length == 0) && (this.activeExp.parent == null)) {	
 		if (this.conclusions.length >= 2) {
 			var prevConclusion = this.conclusions[this.conclusions.length - 2];
 			var lastConclusion = this.activeExp;
@@ -292,11 +292,6 @@ GH.Prover.prototype.insertText = function(text) {
 	this.direct.insertText(text);
 };
 
-// Insert an array of text into the beginning of the proof.
-GH.Prover.prototype.insertBeginning = function(text) {
-	this.direct.insertBeginning(text);
-};
-
 // Print text into the proof and add a new line.
 GH.Prover.prototype.println = function(text) {
 	this.indent();
@@ -330,7 +325,7 @@ GH.Prover.prototype.getTheorems = function() {
 	// The update is commented out because it's unnecessary and slow, but I'm leaving it
 	// here because it is really useful for debugging. Just uncomment it and you can see
 	// the proofs changing while you're debugging.
-	this.direct.update(true);
+	// this.direct.update(true);
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
 };
@@ -343,7 +338,7 @@ GH.Prover.getConclusions = function(theorems) {
 	var result = [];
 	for (var i = 0; i < theorems.length; i++) {
 		// TODO: Rename public variables and make conclusion an s-expression.
-		var conclusion = new GH.sExpression(theorems[i].conclusion, null, null);
+		var conclusion = GH.sExpression.fromRaw(theorems[i].conclusion);
 		conclusion.isProven = true;
 		result.push(conclusion);
 	}
@@ -363,17 +358,26 @@ GH.Prover.prototype.getActiveExp = function() {
 	
 // Convert a number to an s-expression and insert it into the stack.
 GH.Prover.prototype.printNum = function(num) {
-	this.println(GH.numUtil.numToSexp(num));
+	this.println(GH.numUtil.numToSexpString(num));
 };
+
+GH.Prover.prototype.openNumberAdder = function() {
+	var num = window.prompt('Enter a number:', '');
+	num = parseInt(num);
+	if ((!isNaN(num)) && (num >= 0)) {
+		this.printNum(num);
+		this.direct.update(true);
+	}
+}
 
 // TODO: Rename and describe function.
 GH.Prover.findPosition = function(sexp) {
 	var indices = [];
 	// Traverse up the tree from matcher up to the root and record which sibling
 	// of the tree we traverse at each step.
-	while (sexp.parent_ != null) {
-		indices.push(sexp.siblingIndex_);
-		sexp = sexp.parent_;
+	while (sexp.parent != null) {
+		indices.push(sexp.siblingIndex);
+		sexp = sexp.parent;
 	}
 	
 	// Return the indices in reverse to tell how to descend through the tree.
@@ -395,7 +399,7 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
 
 	// Traverse down the sexp tree. This is just the reverse of the ascent up.
 	for (var i = 0; i < indices.length; i++) {
-		sexp = sexp.operands_[indices[i]];
+		sexp = sexp.operands[indices[i]];
 	}
 	return sexp;
 };
@@ -415,16 +419,28 @@ GH.Prover.prototype.apply = function(generator, sexp) {
 		this.print(hyps, name);
 	} else {
 		// If not already defined, generate the proof either as a new theorem or inline.
-		var added = generator.addTheorem(sexp);
-		if (!added) {
-			added = generator.inline(sexp);
+		if (generator.canAddTheorem(sexp)) {
+			var result = this.getLast();
+			var savedThm = this.direct.removeCurrentTheorem();
+			var savedDepth = this.depth;
+			this.depth = 0;
+			this.println('');
+			this.println('');
+			generator.addTheorem(sexp, result);
+			this.direct.insertText(savedThm.join(''));
+			this.depth = savedDepth;
+			this.depth++;
+			this.println(name);
+			this.depth--;
+			this.direct.update(false);
+		} else {
+			var added = generator.inline(sexp);
 			if (!added) {
 				alert(name + ' is not in the repository and cannot be generated.');
 			}
 		}
 	}
 };
-
 /**
  * Replace an s-expression using a proof generator. The proof generator can automatically
  * generate theorems. Those theorems may or may not be in the repository. This function
@@ -467,13 +483,13 @@ GH.Prover.prototype.replace = function(sexp) {
 	var replacement = this.getLast();
 	// When evaluating a wff, the replacement doesn't apply.
 	// TODO: Consider doing a remove in this case.
-	if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator_)) {
+	if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator)) {
 		return replacement;
 	}
 	this.apply(this.replacer, sexp);
 	
 	var replaced = this.getLast();
-	if (sexp.parent_) {
+	if (sexp.parent) {
 		return GH.Prover.findMatchingPosition(replaced, sexp);
 	} else {
 		if (GH.operatorUtil.getType(sexp) == 'wff') {
@@ -529,20 +545,20 @@ GH.Prover.prototype.symbolDefined = function(name) {
  * wrong order.
  */
 GH.Prover.prototype.getUnorderedHyps = function(sexp, expectedForm, hyps) {
-	var operandsExpected = expectedForm.operands_.length;
-	var operandsActual   =         sexp.operands_.length;
+	var operandsExpected = expectedForm.operands.length;
+	var operandsActual   =         sexp.operands.length;
 	// Every variable in the expected form may represent a large expression that has many operands, so it is
 	// not a problem if there are operands when we expect none.
 	if ((operandsExpected != operandsActual) && (operandsExpected != 0)) {
 		return null;
 	} else if (operandsExpected > 0) {
-		var operatorExpected = expectedForm.operator_.toString();
-		var operatorActual   =         sexp.operator_.toString();
+		var operatorExpected = expectedForm.operator.toString();
+		var operatorActual   =         sexp.operator.toString();
 		if ((operatorExpected != operatorActual) && (operatorExpected != 'operator')) {
 			return null;
 		} else {
 			for (var i = 0; i < operandsExpected; i++) {
-				hyps = this.getUnorderedHyps(sexp.operands_[i], expectedForm.operands_[i], hyps);
+				hyps = this.getUnorderedHyps(sexp.operands[i], expectedForm.operands[i], hyps);
 				if (hyps == null) {
 					return null;
 				}
@@ -602,10 +618,10 @@ GH.Prover.prototype.setHyps = function(expectedForm, newHyps) {
 // For example, if sexp = A * B, and keys = [A, B] and hyps = [2, 3 + 4],
 // then this function returns the expression 2 * (3 + 4).
 GH.Prover.prototype.setHypsWithKeys = function(sexp, keys, hyps) {
-	var operandsNum = sexp.operands_.length;
+	var operandsNum = sexp.operands.length;
 	if (operandsNum > 0) {
 		for (var i = 0; i < operandsNum; i++) {
-			sexp = this.setHypsWithKeys(sexp.operands_[i], keys, hyps).parent_;
+			sexp = this.setHypsWithKeys(sexp.operands[i], keys, hyps).parent;
 		}
 		return sexp;
 	} else {
@@ -613,8 +629,8 @@ GH.Prover.prototype.setHypsWithKeys = function(sexp, keys, hyps) {
 		for (var i = 0; i < keys.length; i++) {
 			if (keys[i] == expression) {
 				var newSexp = hyps[i].copy();
-				sexp.parent_.operands_[sexp.siblingIndex_] = newSexp;
-				newSexp.parent_ = sexp.parent_;
+				sexp.parent.operands[sexp.siblingIndex] = newSexp;
+				newSexp.parent = sexp.parent;
 				return newSexp;
 			}
 		}
@@ -636,13 +652,13 @@ GH.Prover.prototype.clearStack = function() {
 };
 
 // TODO: Fix this. This is a terrible way to make an s-expression.
-GH.Prover.prototype.makeNumber = function(num) {
+/*GH.Prover.prototype.makeNumber = function(num) {
 	this.printNum(num);
 	this.direct.update(false);
-	var sexp = new GH.sExpression(this.direct.getStack()[0][1], null, null)
+	var sexp = GH.sExpression.fromRaw(this.direct.getStack()[0][1])
 	this.direct.removeExpression(sexp);
 	return sexp;
-};
+};*/
 
 GH.Prover.prototype.associateLeft = function(sexp) {
 	return this.replaceWith(this.associatorLeft, sexp);
@@ -700,8 +716,8 @@ GH.Prover.findMatch = function(sexp, matchee) {
 	if (sexp.equals(matchee)) {
 		return sexp;
 	} else {
-		for (var i = 0; i < sexp.operands_.length; i++) {
-			var foundMatch = GH.Prover.findMatch(sexp.operands_[i], matchee);
+		for (var i = 0; i < sexp.operands.length; i++) {
+			var foundMatch = GH.Prover.findMatch(sexp.operands[i], matchee);
 			if (foundMatch) {
 				return foundMatch;
 			}
@@ -741,35 +757,35 @@ GH.Prover.prototype.applyHidden = function(applyFunc, sexp, caller) {
 // Apply a function to the right side of an s-expression. This does not change
 // the position of the s-expression.
 GH.Prover.applyRight = function(applyFunc, sexp, caller) {
-	return applyFunc.call(caller, sexp.right()).parent_;
+	return applyFunc.call(caller, sexp.right()).parent;
 };
 
 // Apply a function to the right side of an s-expression. This does not change
 // the position of the s-expression.
 GH.Prover.applyLeft = function(applyFunc, sexp, caller) {
-	return applyFunc.call(caller, sexp.left()).parent_;
+	return applyFunc.call(caller, sexp.left()).parent;
 };
 
 // Apply a function to the right side of an s-expression. This does not change
 // the position of the s-expression.
 GH.Prover.prototype.applyRight = function(applyFunc, sexp) {
-	return applyFunc.call(this, sexp.right()).parent_;
+	return applyFunc.call(this, sexp.right()).parent;
 };
 
 // Apply a function to the left side of an s-expression. This does not change
 // the position of the s-expression.
 GH.Prover.prototype.applyLeft = function(applyFunc, sexp) {
-	return applyFunc.call(this, sexp.left()).parent_;
+	return applyFunc.call(this, sexp.left()).parent;
 };
 
 // Replace the left side of an s-expression. This does not change the position
 // of the s-expression.
 GH.Prover.prototype.replaceLeft = function(generator, sexp) {
-	return this.replaceWith(generator, sexp.left()).parent_;
+	return this.replaceWith(generator, sexp.left()).parent;
 };
 
 // Replace the right side of an s-expression. This does not change the position
 // of the s-expression.
 GH.Prover.prototype.replaceRight = function(generator, sexp) {
-	return this.replaceWith(generator, sexp.right()).parent_;
+	return this.replaceWith(generator, sexp.right()).parent;
 };

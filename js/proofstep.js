@@ -5,37 +5,65 @@
 /**
  * Represents an s-expression.
  */
-GH.sExpression = function(expression, parent, siblingIndex) {
-	this.operands_ = [];
-	if (GH.typeOf(expression) != 'string') {
-		this.operator_ = expression[0];
-		for (var i = 1; i < expression.length; i++) {
-			this.operands_.push(new GH.sExpression(expression[i], this, i - 1));
-		}
-	} else {
-		this.operator_ = expression;
-	}
+ GH.sExpression = function(operator, begin, end, isString) {
+	this.parent = null;
+	this.operator = operator;
+	this.operands = [];
+	this.siblingIndex = null;
+
+	// If the expression comes from a string.	
+	this.isString = isString;
+
 	// Where the expression begins and ends within the textarea.
-	this.begin = expression.beg;
-	this.end = expression.end;
-	this.parent_ = parent;
-	this.siblingIndex_ = siblingIndex;
-	this.isString_ = (GH.typeOf(expression) == 'string');
+	this.begin = begin;
+	this.end = end;
 
 	// Set to true later, if the expression is a proven statement on the proof stack.
 	this.isProven = false;
 };
 
+GH.sExpression.prototype.appendOperand = function(operand) {
+	operand.parent = this;
+	operand.siblingIndex = this.operands.length;
+	this.operands.push(operand);
+};
+ 
+GH.sExpression.fromRaw = function(expression) {
+	var isString = (GH.typeOf(expression) == 'string');
+	var operator = isString ? expression : expression[0];
+	var result = new GH.sExpression(operator, expression.beg, expression.end, isString);
+
+	if (!isString) {
+		for (var i = 1; i < expression.length; i++) {
+			result.appendOperand(GH.sExpression.fromRaw(expression[i]));
+		}		
+	}
+	return result;
+};
+
+// Create an s-expression for a number between 0 and 10.
+GH.sExpression.createDigit = function(num) {
+	return new GH.sExpression(num.toString(), -1, -1, false);
+};
+
+GH.sExpression.createOperator = function(operator, operands) {
+	var result = new GH.sExpression(operator, -1, -1, false);
+	for (var i = 0; i < operands.length; i++) {
+		result.appendOperand(operands[i]);
+	}
+	return result;
+};
+
 GH.sExpression.prototype.getRoot = function() {
 	var result = this;
-	while(result.parent_) {
-		result = result.parent_;
+	while(result.parent) {
+		result = result.parent;
 	}
 	return result;
 };
 
 GH.sExpression.fromString = function(str) {
-	return new GH.sExpression(GH.sExpression.stringToExpression(str));
+	return GH.sExpression.fromRaw(GH.sExpression.stringToExpression(str));
 };
 
 GH.sExpression.stringToExpression = function(str) {
@@ -85,59 +113,50 @@ GH.sExpression.stringToExpression = function(str) {
 
 // Construct the expression from the operator and operands.
 GH.sExpression.prototype.getExpression = function() {
-	if (this.isString_) {
-		return this.operator_;
+	if (this.isString) {
+		return this.operator;
 	} else {
 		var expression = [];
-		expression.push(this.operator_);
-		for (var i = 0; i < this.operands_.length; i++) {
-			expression.push(this.operands_[i].getExpression());
+		expression.push(this.operator);
+		for (var i = 0; i < this.operands.length; i++) {
+			expression.push(this.operands[i].getExpression());
 		}
 		return expression;
 	}
 };
 
-GH.sExpression.prototype.copy = function(newParent) {
-	return new GH.sExpression(this.getExpression(), newParent, this.siblingIndex);
+GH.sExpression.prototype.copy = function() {
+	return GH.sExpression.fromRaw(this.getExpression());
 };
 
-/**
-GH.sExpression.prototype.joinEq = function(sibling) {
-	this.parent_ = new GH.sExpression(['='], null, null);
-	sibling.parent_ = this.parent_;
-	this.siblingIndex_ = 0;
-	sibling.siblingIndex_ = 1;
-	this.parent_.operands_ = [this, sibling];
-};*/
-
 GH.sExpression.prototype.child = function () {
-	if (this.operands_.length > 1) {
+	if (this.operands.length > 1) {
 		alert('Warning this expression has more than one child.');
-	} else if (this.operands_.length == 0) {
+	} else if (this.operands.length == 0) {
 		alert('Warning this expression has no children.');
 	}
-	return this.operands_[0];
+	return this.operands[0];
 };
 
 GH.sExpression.prototype.left = function () {
-	if (this.operands_.length < 2) {
+	if (this.operands.length < 2) {
 		alert('Warning this expression does not have a left side.');
 	}
-	return this.operands_[0];
+	return this.operands[0];
 };
 
 GH.sExpression.prototype.right = function () {
-	if (this.operands_.length < 2) {
+	if (this.operands.length < 2) {
 		alert('Warning this expression does not have a right side.');
 	}
-	return this.operands_[1];
+	return this.operands[1];
 };
 
 GH.sExpression.prototype.replace = function () {
-	if (this.operands_.length < 2) {
+	if (this.operands.length < 2) {
 		alert('Warning this expression does not have a right side.');
 	}
-	return this.operands_[1];
+	return this.operands[1];
 };
 
 // Find all matches to sexp within this expression.
@@ -146,8 +165,8 @@ GH.sExpression.prototype.findExp = function(sexp) {
 	if (this.equals(sexp)) {
 		result.push(this);
 	}
-	for (var i = 0; i < this.operands_.length; i++) {
-		result = result.concat(this.operands_[i].findExp(sexp));
+	for (var i = 0; i < this.operands.length; i++) {
+		result = result.concat(this.operands[i].findExp(sexp));
 	}
 	return result;
 };
@@ -160,22 +179,22 @@ GH.sExpression.stripParams = function(operator) {
 
 // Returns true is the s-expressions are identical.
 GH.sExpression.prototype.equals = function(sexp) {
-	var numOperands = this.operands_.length;
-	GH.sExpression.stripParams(this.operator_);
-	GH.sExpression.stripParams(sexp.operator_);
-	if (this.operator_.length != sexp.operator_.length) {
+	var numOperands = this.operands.length;
+	GH.sExpression.stripParams(this.operator);
+	GH.sExpression.stripParams(sexp.operator);
+	if (this.operator.length != sexp.operator.length) {
 		return false;
 	}
-	for (var i = 0; i < this.operator_.length; i++) {
-		if (this.operator_[i] != sexp.operator_[i]) {
+	for (var i = 0; i < this.operator.length; i++) {
+		if (this.operator[i] != sexp.operator[i]) {
 			return false;
 		}
 	}
-	if ((numOperands != sexp.operands_.length)) {
+	if ((numOperands != sexp.operands.length)) {
 		return false;
 	}
 	for (var i = 0; i < numOperands; i++) {
-		if (!this.operands_[i].equals(sexp.operands_[i])) {
+		if (!this.operands[i].equals(sexp.operands[i])) {
 			return false;
 		}
 	}
@@ -197,12 +216,12 @@ GH.sExpression.prototype.display = function(stack, indentation, cursorPosition) 
 
 GH.sExpression.prototype.toString = function() {
 	var result = [];	
-	result.push(this.operator_);
-	for (var i = 0; i < this.operands_.length; i++) {
-		result.push(this.operands_[i].toString());
+	result.push(this.operator);
+	for (var i = 0; i < this.operands.length; i++) {
+		result.push(this.operands[i].toString());
 	}
 	result = result.join(' ');
-	if (!this.isString_) {
+	if (!this.isString) {
 		result = '(' + result + ')';
 	}
 	return result;
@@ -347,7 +366,7 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 
 	this.sExpressions_ = [];
 	for (var i = 0; i < sExpressions.length; i++) {
-		this.sExpressions_.push(new GH.sExpression(sExpressions[i][1], null, 0));
+		this.sExpressions_.push(GH.sExpression.fromRaw(sExpressions[i][1]));
 	}
 };
 
@@ -382,7 +401,7 @@ GH.ProofStep.nameToHtml = function(name, title, isLink, isPrimary, isHypothesis)
 	//classes += (isHypothesis ? ' display-on-hover'  : '');
 	classes += (isPrimary    ? ' primary-step-name' : '');
 	if (isLink) {
-		return '<a href="/edit/peano/peano_thms.gh/' + name + '"  class=\'' + classes + '\'>' + title + '</a>';
+		return '<a href="/edit' + url + '/' + name + '"  class=\'' + classes + '\'>' + title + '</a>';
 	} else {
 		return '<span class=\'' + classes + '\'>' + title + '</span>';
 	}

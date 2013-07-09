@@ -188,6 +188,7 @@ class EditHandler(users.AuthenticatedHandler):
         o.write("""
   <span id="saving"></span>
   <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
+  <input type="button" id="number-adder" onclick="window.direct.prover.openNumberAdder()" name="numberAdder" value="number"/>
 <br/>
 """)
         if useAce: o.write("""<div id="canvas"></div>

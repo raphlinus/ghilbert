@@ -24,6 +24,6 @@ GH.ProofGenerator.evaluatorSuccessor.prototype.inline = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.evaluatorSuccessor.prototype.addTheorem = function(sexp) {
+GH.ProofGenerator.evaluatorSuccessor.prototype.canAddTheorem = function(sexp) {
 	return false;
 };
