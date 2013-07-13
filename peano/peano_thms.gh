@@ -339,7 +339,7 @@ thm (exbii ()
 
 ## <title> Equivalence over Quantification </title>
 ## <table>
-##   (E. x       [ ph ] )
+##   (E. x       [ ph ] ]    ] )
 ##          (<-> [ ph ] [ ps ] )
 ##   (E. x       [    [ [ ps ] )
 ## </table>
@@ -2064,6 +2064,14 @@ thm (ltlei ()
   pm3.26i
 )
 
+thm (ltneq () () (-> (< A B) (-. (= A B)))
+  (<= A B) (-. (= A B)) pm3.27
+  A B df-lt
+  bicomi
+
+  sylbi2 
+)
+
 thm (netr ()
   (hyp (=  A B)
    hyp2 (-. (= B C)))
@@ -3204,6 +3212,302 @@ thm (sqle () ()
     B A B A ltmul anidms con3i sylbi A B lenltt sylibr
   impbii)
 
+
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<       [ B ]      [   [ C ] )
+##   (-> (< A [ B ] ) (< [ A [ C ] ))
+## </table>
+thm (ltTrlt () (hyp (< B C)) (-> (< A B) (< A C))
+  A B C lttr
+  hyp
+  (< A B) anRemove2
+  (< A C) imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<        [ B ]      [   [ C ] )
+##   (-> (<= A [ B ] ) (< [ A [ C ] ))
+## </table>
+thm (ltTrle () (hyp (< B C)) (-> (<= A B) (< A C))
+  A B C lelttr
+  hyp
+  (<= A B) anRemove2
+  (< A C) imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<       [ B ]      [   [ C ] )
+##   (-> (= A [ B ] ) (< [ A [ C ] ))
+## </table>
+thm (ltTreq () (hyp (< B C)) (-> (= A B) (< A C))
+  (= A B) id C lteq1d
+  hyp
+ 
+  (< A C) biRemove2
+  (= A B) imbi2i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=      [ B ]       [   [ C ] )
+##   (-> (= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+thm (leTreq () (hyp (<= B C)) (-> (= A B) (<= A C))
+  (= A B) id C leeq1d
+  hyp
+ 
+  (<= A C) biRemove2
+  (= A B) imbi2i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=      [ B ]       [   [ C ] )
+##   (-> (= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+thm (leTrlt () (hyp (<= B C)) (-> (< A B) (< A C))
+  A B C lelttr2
+  hyp
+  (< A B) anRemove2
+  (< A C) imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=       [ B ]       [   [ C ] )
+##   (-> (<= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+thm (leTrle () (hyp (<= B C)) (-> (<= A B) (<= A C))
+  A B C letr
+  hyp
+  (<= A B) anRemove2
+  (<= A C) imbi1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee
+  substitution
+  ch anbi1i
+  th imbi1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee
+  substitution
+  ph anbi2i
+  th imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=       [ B ]            [   [ C ] ))
+##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+thm (gtTrgt () (hyp (-. (<= B C))) (-> (-. (<= A B)) (-. (<= A C)))
+  C B A lttr
+  ## <d>
+    C B ltcom
+  ## </d>
+  BiReplaceImp0An0
+  ## <d>
+    B A ltcom
+  ## </d>
+  BiReplaceImp0An1
+  ## <d>
+    C A ltcom
+  ## </d>
+  sylib
+  ## <d>
+    (-. (<= B C)) (-. (<= A B)) ancom
+  ## </d>
+  sylbi2
+  hyp
+  (-. (<= A B)) anRemove2
+  (-. (<= A C)) imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<        [ B ]            [   [ C ] ))
+##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+thm (geTrgt () (hyp (-. (< B C))) (-> (-. (<= A B)) (-. (<= A C)))
+  C B A lelttr
+  ## <d>
+    C B lecom
+  ## </d>
+  BiReplaceImp0An0
+  ## <d>
+    B A ltcom
+  ## </d>
+  BiReplaceImp0An1
+  ## <d>
+    C A ltcom
+  ## </d>
+  sylib
+  ## <d>
+    (-. (< B C)) (-. (<= A B)) ancom
+  ## </d>
+  sylbi2
+  hyp
+  (-. (<= A B)) anRemove2
+  (-. (<= A C)) imbi1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee
+  substitution
+  th bibi1i
+  ph imbi2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee
+  substitution
+  ps bibi2i
+  ph imbi2i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<       [ B ]           [   [ C ] ))
+##   (-> (-. (= A [ B ] )) (-. (< [ A [ C ] )))
+## </table>
+thm (geTreq () (hyp (-. (< B C))) (-> (= A B) (-. (< A C)))
+  (= A B) id C lteq1d
+
+  (< A C) (< B C) notbi
+  sylib
+  hyp
+  (-. (< A C)) biRemove2
+  (= A B) imbi2i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=      [ B ]            [   [ C ] ))
+##   (-> (-. (= A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+thm (gtTreq () (hyp (-. (<= B C))) (-> (= A B) (-. (<= A C)))
+  (= A B) id C leeq1d
+
+  (<= A C) (<= B C) notbi
+  sylib
+  hyp
+
+  (-. (<= A C)) biRemove2
+  (= A B) imbi2i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=      [ B ]            [   [ C ] ))
+##   (-> (-. (< A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+thm (gtTrge () (hyp (-. (<= B C))) (-> (-. (< A B)) (-. (<= A C)))
+  C B A lelttr2
+
+  ## <d>
+    C B ltcom
+  ## </d>
+  BiReplaceImp0An0
+
+  ## <d>
+    B A lecom
+  ## </d>
+  BiReplaceImp0An1
+
+  ## <d>
+    C A ltcom
+  ## </d>
+  sylib
+  hyp
+
+  (-. (< A B)) anRemove1
+  (-. (<= A C)) imbi1i
+  mpbi
+)
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<       [ B ]           [   [ C ] ))
+##   (-> (-. (< A [ B ] )) (-. (< [ A [ C ] )))
+## </table>
+thm (geTrge () (hyp (-. (< B C))) (-> (-. (< A B)) (-. (< A C)))
+  C B A letr
+  ## <d>
+    C B lecom
+  ## </d>
+  BiReplaceImp0An0
+  ## <d>
+    B A lecom
+  ## </d>
+  BiReplaceImp0An1
+  ## <d>
+    C A lecom
+  ## </d>
+  sylib
+
+  hyp
+  (-. (< A B)) anRemove1
+  (-. (< A C)) imbi1i
+  mpbi
+)
+
 # number 17.0
 thm (muleq12d ()
   (hyp1 (-> ph (= A B))
@@ -3852,19 +4156,177 @@ thm (divideseq1 () ()
   B A C divideseq1imp eqcoms
     impbid
 )
+
 # Equality inference for the divides relation.
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (| A ] C ] ) (< [ B ] C))
+## </table>
 thm (divideseq1i ()
   (hyp (= A B))
   (<-> (| A C) (| B C))
   hyp A B C divideseq1 ax-mp
 )
-# Equality inference for the divides relation.
+
+# Equality inference for the Divides relation.
+## <title> Equivalence over divides </title>
+## <table>
+##  (|    A ] ]   ] [ C)
+##     (= A ] [ B ] ] )
+##  (|      [ [ B ] [ C)
+## </table>
 thm (divideseq1ii ()
   (hyp1 (| A C)
    hyp2 (= A B))
   (| B C)
   hyp1 hyp2 C divideseq1i mpbi
 )
+
+# number 48.0
+thm (divideseq2imp () ()
+  (-> (= A B) (-> (| C A) (| C B)))
+  A B (* C z) eqeq2    biimpd
+  z 19.22d
+  C B z df-divides biimpri    syl6
+
+  C A z df-divides biimpi
+
+  syl5
+)
+# number 49.0
+thm (divideseq2 () ()
+  (-> (= A B) (<-> (| C A) (| C B)))
+   A B C divideseq2imp
+   B A C divideseq2imp eqcoms
+  impbid
+)
+
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (| C [ A ] ) (| [ C [ B ] ))
+## </table>
+thm (divideseq2i ()
+  (hyp (= A B))
+  (<-> (| C A) (| C B))
+  hyp A B C divideseq2 ax-mp
+)
+
+## <title> Equivalence over Divides </title>
+## <table>
+##  (| C   [ A ] ] )
+##      (= [ A ] [ B)
+##  (| C   [   [ [ B)
+## </table>
+thm (divideseq2ii ()
+  (hyp1 (| C A)
+   hyp2 (= A B))
+  (| C B)
+  hyp1 hyp2 C divideseq2i mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee
+  substitution
+con4biir
+ph imbi2i
+mpbi
+)
+
+thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B)))  
+  x C A lemul2
+  (< (* A C) B) anim1i
+  (* A x) (* A C) B lelttr
+  syl
+  (* A x) B ltneq
+  syl
+  (< B (* A (+ C (1)))) adantr
+  ## <d>
+    (<= x C) (< (* A C) B) (< B (* A (+ C (1)))) anass
+  ## </d>
+  sylbi2 
+
+  (+ C (1)) x A lemul2
+  (< B (* A (+ C (1))) ) anim2i
+
+  B (* A (+ C (1))) (* A x) lelttr2
+  syl
+  B (* A x) ltneq
+
+  ## <d>
+    B (* A x) eqcom
+  ## </d>
+  BiReplaceImp1Not0
+  syl
+
+  ## <d>
+    (< B (* A (+ C (1)))) (<= (+ C (1)) x) ancom
+  ## </d>
+  sylbi2
+
+  ## <d>
+    (+ C (1)) x lecom
+  ## </d>
+  BiReplaceImp0An0
+  C x nnltp1let
+
+  ## <d>
+    (+ C (1)) x lecom
+  ## </d>
+  bitri
+  ## <d>
+    C x ltcom
+  ## </d>
+  bitr3icom
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceImp0An0
+
+  (< (* A C) B) adantr
+  ## <d>
+    (-. (<= x C)) (< B (* A (+ C (1)))) (< (* A C) B) anass
+  ## </d>
+  sylbi2 
+
+  ## <d>
+    (< B (* A (+ C (1)))) (< (* A C) B) ancom
+  ## </d>
+  BiReplaceImp0An1
+  jaoi
+  (<= x C) (-. (<= x C)) (/\ (< (* A C) B) (< B (* A (+ C (1))))) andir
+  ## <d>
+    bicomi
+  ## </d>
+
+  sylbi2 
+  (<= x C) exmid
+  (/\ (< (* A C) B) (< B (* A (+ C (1))))) anRemove1
+  (-. (= (* A x) B)) imbi1i
+  mpbi
+  (-. (= (* A x) B)) x alnfi
+  syl
+  x (= (* A x) B) alnex
+  sylib
+
+  A B x df-divides
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceImp1Not0
+)
+
+
 # number 39.0
 thm (df-prime-just ((A x) (A y)) ()
     (<-> (A. x (-> (| x A) (\/ (= x (1)) (= x A))))
@@ -3880,6 +4342,44 @@ thm (df-prime-just ((A x) (A y)) ()
 defthm (df-prime wff (prime A) ((A x))  ()
   (<-> (prime A) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))
 y A x df-prime-just)
+
+# Equality theorem for primeness
+thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
+    A B x divideseq2
+      A B x eqeq2
+      (= x (1)) orbi2d
+    imbi12d
+    x 19.21ai
+    19.15d
+
+      A x df-prime
+        B x df-prime
+    3bitr4g
+)
+
+## <title> Equivalence over Prime </title>
+## <table>
+##   (=          [ A ]          [ B ]   )
+##   (<-> (prime [ A ] ) (prime [ B ] ))
+## </table>
+thm (primeeqi ()
+  (hyp (= A B))
+  (<-> (prime A) (prime B))
+  hyp A B primeeq ax-mp
+)
+
+## <title> Equivalence over Prime </title>
+## <table>
+##  (prime    [ A ] ]   ] )
+##         (= [ A ] [ B ] )
+##  (prime    [   [ [ B ] )
+## </table>
+thm (primeeqii ()
+  (hyp1 (prime A)
+   hyp2 (= A B))
+   (prime B)
+  hyp1 hyp2 primeeqi mpbi
+)
 
 tvar (wff et zi si)
 # number 40.0
@@ -4136,27 +4636,6 @@ thm (exfactoriallem1 ((A x) (A y)) ()
    x exbid
 )
 
-# number 48.0
-thm (divideseq2imp () ()
-  (-> (= A B) (-> (| C A) (| C B)))
-
-
-  A B (* C z) eqeq2    biimpd
-  z 19.22d
-  C B z df-divides biimpri    syl6
-
-  C A z df-divides biimpi
-
-  syl5
-)
-# number 49.0
-thm (divideseq2 () ()
-  (-> (= A B) (<-> (| C A) (| C B)))
-   A B C divideseq2imp
-   B A C divideseq2imp eqcoms
-  impbid
-)
-
 # number 51.0
 thm (dividessym () () (| A A)
     x (1) tyex
@@ -4391,19 +4870,6 @@ thm (exfactorial ((A x) (A y)) ()
     finds
 )
 
-# Equality theorem for primeness
-thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
-    A B x divideseq2
-      A B x eqeq2
-      (= x (1)) orbi2d
-    imbi12d
-    x 19.21ai
-    19.15d
-
-      A x df-prime
-        B x df-prime
-    3bitr4g
-)
 # number 57.0
 thm (dividesle () () (-> (| A (S B)) (<= A (S B)))
     A (S B) x df-divides biimpi
