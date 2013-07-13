@@ -42,8 +42,7 @@ GH.Prover = function(suggestArea, direct) {
 	this.associatorRight = new GH.ProofGenerator.associatorRight(this);
 
 	this.generators = [
-		{name: 'Commute',   gen: this.commuter},
-		{name: 'Evaluate',   gen: this.evaluator},
+		{name: 'Commute',    gen: this.commuter},
 		{name: 'Dist. L',    gen: this.distributorLeft},
 		{name: 'Dist. R',    gen: this.distributorRight},
 		{name: 'Undist. L',  gen: this.undistributorLeft},
@@ -242,6 +241,9 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 			this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')', true);
 		}
 	}
+	if (this.evaluator.isApplicable(this.activeExp)) {
+		this.addSuggestion('Evaluate', 'window.direct.prover.handleEvaluate()', true);
+	}
 
 	this.secondaryExpDisplay.innerHTML = '';
 	if ((this.stack.length == 0) && (this.activeExp.parent == null)) {	
@@ -325,7 +327,7 @@ GH.Prover.prototype.getTheorems = function() {
 	// The update is commented out because it's unnecessary and slow, but I'm leaving it
 	// here because it is really useful for debugging. Just uncomment it and you can see
 	// the proofs changing while you're debugging.
-	// this.direct.update(true);
+	this.direct.update(true);
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
 };
@@ -441,6 +443,7 @@ GH.Prover.prototype.apply = function(generator, sexp) {
 		}
 	}
 };
+
 /**
  * Replace an s-expression using a proof generator. The proof generator can automatically
  * generate theorems. Those theorems may or may not be in the repository. This function
@@ -458,6 +461,18 @@ GH.Prover.prototype.replaceWith = function(generator, sexp) {
 	this.depth--;
 	this.println('## </d>');
 	return this.replace(sexp);
+};
+
+GH.Prover.prototype.applyWith = function(generator, sexp) {
+	if (!generator.isApplicable(sexp)) {
+		return sexp;
+	}
+	this.println('## <d>');
+	this.depth++;
+	this.apply(generator, sexp);
+	this.depth--;
+	this.println('## </d>');
+	return this.getLast();
 };
 
 // Like replaceWith, but when you have an ordinary function not a generator.
@@ -483,9 +498,9 @@ GH.Prover.prototype.replace = function(sexp) {
 	var replacement = this.getLast();
 	// When evaluating a wff, the replacement doesn't apply.
 	// TODO: Consider doing a remove in this case.
-	if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator)) {
+	/*if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator)) {
 		return replacement;
-	}
+	}*/
 	this.apply(this.replacer, sexp);
 	
 	var replaced = this.getLast();
@@ -520,6 +535,7 @@ GH.Prover.prototype.remove = function() {
 	// TODO: Check if this is hurting efficiency.
 	this.direct.update(true);
 	// TODO: Replace a wff multiple times if it appears multiple times.
+	return this.getLast();
 };
 
 GH.Prover.prototype.symbolDefined = function(name) {
@@ -685,7 +701,11 @@ GH.Prover.prototype.undistributeRight = function(sexp) {
 };
 
 GH.Prover.prototype.evaluate = function(sexp) {
-	return this.replaceWith(this.evaluator, sexp);
+	if (GH.operatorUtil.getType(sexp) == 'wff') {
+		return this.applyWith(this.evaluator, sexp);
+	} else {
+		return this.replaceWith(this.evaluator, sexp);
+	}
 };
 
 GH.Prover.prototype.commute = function(sexp) {
@@ -705,6 +725,17 @@ GH.Prover.prototype.handleClick = function(name) {
 			result = this.replaceWith(this.generators[i].gen, this.activeExp);
 		}
 	}
+	this.direct.update(true);
+
+	// The result gets overwritten by the update.
+	this.activeExp = result;
+	this.displayActiveExp();
+};
+
+GH.Prover.prototype.handleEvaluate = function() {
+	this.clearStack();
+	this.println('');
+	var result = this.evaluate(this.activeExp);
 	this.direct.update(true);
 
 	// The result gets overwritten by the update.

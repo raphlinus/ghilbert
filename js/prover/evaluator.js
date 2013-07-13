@@ -6,6 +6,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push([['*'], new GH.ProofGenerator.evaluatorMultiply(prover)]);
   this.generators.push([['=', '<', '<='], new GH.ProofGenerator.evaluatorEquality(prover)]);
   this.generators.push([['S'], new GH.ProofGenerator.evaluatorSuccessor(prover)]);
+  this.generators.push([['|'], new GH.ProofGenerator.evaluatorDivides(prover)]);
 };
 
 GH.ProofGenerator.evaluator.prototype.stepName = function(sexp) {

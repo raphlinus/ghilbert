@@ -46,6 +46,11 @@ GH.sExpression.createDigit = function(num) {
 	return new GH.sExpression(num.toString(), -1, -1, false);
 };
 
+// Create an s-expression for a variable.
+GH.sExpression.createVariable = function(name) {
+	return new GH.sExpression(name, -1, -1, true);
+};
+
 GH.sExpression.createOperator = function(operator, operands) {
 	var result = new GH.sExpression(operator, -1, -1, false);
 	for (var i = 0; i < operands.length; i++) {

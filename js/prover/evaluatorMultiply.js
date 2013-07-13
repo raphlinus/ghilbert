@@ -5,6 +5,15 @@ GH.ProofGenerator.evaluatorMultiply = function(prover) {
 GH.ProofGenerator.evaluatorMultiply.prototype.stepName = function(sexp) {
 	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
 	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	if (isNaN(leftNum) || isNaN(rightNum)) {
+		return null;
+	}
+	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
+		return null;
+	}
+	
+	leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
+	rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 
 	if (leftNum == 0) {
 		return 'pa_ax5r';

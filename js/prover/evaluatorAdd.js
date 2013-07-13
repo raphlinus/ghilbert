@@ -3,8 +3,17 @@ GH.ProofGenerator.evaluatorAdd = function(prover) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.stepName = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
+	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	if (isNaN(leftNum) || isNaN(rightNum)) {
+		return null;
+	}
+	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
+		return null;
+	}
+	
+	leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
+	rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 
 	if (leftNum == 0) {
 		return 'pa_ax3r';

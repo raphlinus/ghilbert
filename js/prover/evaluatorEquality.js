@@ -7,21 +7,30 @@ GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
 	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
 	var rightNum = GH.numUtil.sexpToNum(sexp.right());
 
+	// TODO: Prove things like 3 <= 3.
+	// TODO: Prove things like 1 + 5 = 2 * 3 here.
 	if (leftNum == rightNum) {
 		return 'eqid';
 	}
-
 	var operatorName;
 
     if (sexp.operator == '=') {
 		operatorName = 'equals';
 	} else if (sexp.operator == '<') {
-		operatorName = 'less';
+		if (leftNum < rightNum) {
+			operatorName = 'less';
+		} else {
+			operatorName = 'greaterEq';
+		}
 	} else if (sexp.operator == '<=') {
-		operatorName = 'lessEq';
+		if (leftNum < rightNum) {
+			operatorName = 'lessEq';
+		} else {
+			operatorName = 'greater';
+		}
 	}
 
-	return leftNum + 'times' + rightNum;
+	return leftNum + operatorName + rightNum;
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
@@ -53,32 +62,47 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
 	var rightNum = GH.numUtil.sexpToNum(sexp.right());
 	var operator = sexp.operator;
-
+	var inequality;
 	if (leftNum == rightNum) {
 		return false;
 	} else if (leftNum == 0) {
 		if (operator == '=') {
-			this.rightNumNotZero(rightNum);
+			inequality = this.rightNumNotZero(rightNum);
 		} else if (operator == '<=') {
-			this.prover.print([sexp.right()], '0le')
+			inequality = this.prover.print([sexp.right()], '0le')
 		} else if (operator == '<') {
-			this.zeroLessThanNum(sexp.right());
+			inequality = this.zeroLessThanNum(sexp.right());
 		}
 		// this.rightNumNotZero(rightNum);
 	} else if (rightNum == 0) {
 		if (operator == '=') {
-			this.leftNumNotZero(leftNum);
+			inequality = this.leftNumNotZero(leftNum);
 		} else if (operator == '<=') {
-			this.prover.print([sexp.left()], 'ge0');
+			inequality = this.prover.print([sexp.left()], 'ge0');
 		} else if (operator == '<') {
-			this.numMoreThanZero(sexp.left());
+			inequality = this.numMoreThanZero(sexp.left());
 		}
 		//this.leftNumNotZero(leftNum);
 	} else if (leftNum < rightNum) {
-		this.handleRightGreater(leftNum, rightNum, operator);
+		inequality = this.handleRightGreater(leftNum, rightNum, operator);
 	} else {
-		this.handleLeftGreater(leftNum, rightNum, operator);
+		inequality = this.handleLeftGreater(leftNum, rightNum, operator);
 	}
+
+	var leftSide = sexp.left().copy();
+	leftSide = this.prover.evaluate(leftSide);
+	if (leftSide.parent && leftSide.parent.operator == '=') {
+		this.prover.commute(leftSide.parent);
+		inequality = this.prover.replace(inequality.left()).parent;
+	}
+
+	var rightSide = sexp.right().copy();
+	rightSide = this.prover.evaluate(rightSide);
+	if (rightSide.parent && rightSide.parent.operator == '=') {
+		this.prover.commute(rightSide.parent);
+		inequality = this.prover.replace(inequality.right()).parent;
+	}
+
 	return true;
 };
 
@@ -104,7 +128,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.zeroLessThanNum = function(sexp) {
 	this.prover.print([sexp], '0le');
 	this.prover.println('pm3.2i');
 	this.prover.getLast(); // To update the prover.
-	this.prover.remove();
+	return this.prover.remove();
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.numMoreThanZero = function(sexp) {
@@ -116,7 +140,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.numMoreThanZero = function(sexp) {
 	this.prover.print([sexp], 'ge0')
 	this.prover.println('pm3.2i');
 	this.prover.getLast(); // TODO: Check if this is still necessary. To update the prover.
-	this.prover.remove();
+	return this.prover.remove();
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.handleRightGreater = function(leftNum, rightNum, operator) {
@@ -148,6 +172,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleRightGreater = function(left
 	}
 	result = this.prover.replaceLeft(this.prover.evaluator, result);
 	result = this.prover.replaceRight(this.prover.evaluator, result);
+	return result;
 };
 
 
@@ -176,4 +201,5 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftN
 	result = this.prover.getLast().child();
 	result = this.prover.replaceRight(this.prover.evaluator, result);
 	result = this.prover.replaceLeft(this.prover.evaluator, result);
+	return result;
 };

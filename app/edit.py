@@ -148,6 +148,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/distributor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator.js" type="text/javascript"></script>
 <script src="/js/prover/evaluatorAdd.js" type="text/javascript"></script>
+<script src="/js/prover/evaluatorDivides.js" type="text/javascript"></script>
 <script src="/js/prover/evaluatorEquality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluatorMultiply.js" type="text/javascript"></script>
 <script src="/js/prover/evaluatorSuccessor.js" type="text/javascript"></script>

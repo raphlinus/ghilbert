@@ -67,7 +67,7 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 
 	// Recursively replace the entire replacee follow the expression up to the root.
 	if (parent.parent) {
-		return this.prover.replacer.replace(parent, output);
+		return this.prover.replacer.replace(parent, '<->', output);
 	} else {
 		output.push('mpbi');
 		return true;
