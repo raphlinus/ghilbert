@@ -4,6 +4,15 @@ GH.ProofGenerator.distributorLeft = function(prover) {
   this.expectedForm = GH.sExpression.fromString('(operator (operator A B) C)');
 };
 
+GH.ProofGenerator.distributorLeft.OPERATIONS = [
+	[ '*',   '+',  'distl'],
+	['\\/', '/\\', 'ordir'],
+	['/\\', '\\/', 'andir'],
+	['u.',  'i^i', 'undir'],
+	['i^i', 'u.',  'indir'],
+	// orordi could be included, but not terribly useful and probably distracting.
+];
+
 GH.ProofGenerator.distributorLeft.prototype.isApplicable = function(sexp) {
 	// TODO: Check that the step name is defined.
 	return ((this.hyps(sexp) != null) && (this.stepName(sexp) != null));
@@ -11,13 +20,10 @@ GH.ProofGenerator.distributorLeft.prototype.isApplicable = function(sexp) {
 
 GH.ProofGenerator.distributorLeft.prototype.stepName = function(sexp) {
 	// TODO: Add ianor and ioran.
-	var distributerOperator = sexp.operator;
-	var distributedOperator = sexp.left().operator;
-	if ((distributerOperator == '*') && (distributedOperator == '+')) {
-		return 'distl';
-	} else {
-		return null;
-	}
+	return GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.distributorLeft.OPERATIONS,
+	    sexp.operator,
+        sexp.left().operator);
 };
 
 // Returns the mandatory hypotheses using the expected form.
@@ -28,7 +34,15 @@ GH.ProofGenerator.distributorLeft.prototype.hyps = function(sexp) {
 GH.ProofGenerator.distributorLeft.prototype.inline = function(sexp) {         return false;  };
 GH.ProofGenerator.distributorLeft.prototype.canAddTheorem = function(sexp) {  return false;  };
 
-
+GH.ProofGenerator.distributorLeft.getOperation = function(operations, distributerOperator, distributedOperator) {
+	for (var i = 0; i < operations.length; i++) {
+		var operation = operations[i];
+		if ((distributerOperator == operation[0]) && (distributedOperator == operation[1])) {
+			return operation[2];
+		}		
+	}
+	return null;
+};
 
 
 
@@ -38,18 +52,25 @@ GH.ProofGenerator.distributorRight = function(prover) {
   this.expectedForm = GH.sExpression.fromString('(operator A (operator B C))');
 };
 
+GH.ProofGenerator.distributorRight.OPERATIONS = [
+	[ '*',   '+',  'distr'],
+	['\\/', '/\\', 'ordi'],
+	['/\\', '\\/', 'andi'],
+	['e.',  'u.',  'elun'],
+	['e.',  'i^i', 'elin'],
+	['u.',  'i^i', 'undi'],
+	['i^i', 'u.',  'indi'],
+];
+
 GH.ProofGenerator.distributorRight.prototype.isApplicable = function(sexp) {
 	return ((this.hyps(sexp) != null) && (this.stepName(sexp) != null));
 };
 
 GH.ProofGenerator.distributorRight.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.operator;
-	var distributedOperator = sexp.right().operator;
-	if ((distributerOperator == '*') && (distributedOperator == '+')) {
-		return 'distr';
-	} else {
-		return null;
-	}
+	return GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.distributorRight.OPERATIONS,
+	    sexp.operator,
+        sexp.right().operator);
 };
 
 // Returns the mandatory hypotheses using the expected form.
@@ -66,7 +87,7 @@ GH.ProofGenerator.distributorRight.prototype.canAddTheorem = function(sexp) {  r
 // Undistribute to the left like this: a * c + b * c = (a + b) * c.
 GH.ProofGenerator.undistributorLeft = function(prover) {
   this.prover = prover;
-  this.expectedForm = GH.sExpression.fromString('(operator (operator A B) (operator C B))');
+  this.expectedForm = GH.sExpression.fromString('(operator (operator A C) (operator B C))');
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.isApplicable = function(sexp) {
@@ -80,10 +101,12 @@ GH.ProofGenerator.undistributorLeft.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.left().operator;
-	var distributedOperator = sexp.operator;
-	if ((distributerOperator == '*') && (distributedOperator == '+')) {
-		return 'undistl';
+	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.distributorLeft.OPERATIONS,
+        sexp.left().operator,
+	    sexp.operator);
+	if (forwardName != null) {
+		return 'undo' + forwardName;  // TODO: Get undistr to work.
 	} else {
 		return null;
 	}
@@ -95,7 +118,11 @@ GH.ProofGenerator.undistributorLeft.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.inline = function(sexp) {
-	this.prover.print(this.hyps(sexp), 'distl');
+	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.distributorLeft.OPERATIONS,
+        sexp.left().operator,
+	    sexp.operator);
+	this.prover.print(this.hyps(sexp), forwardName);
 	var result = this.prover.getLast();
 	this.prover.commute(result);
 	return true;
@@ -114,6 +141,16 @@ GH.ProofGenerator.undistributorRight = function(prover) {
   this.expectedForm = GH.sExpression.fromString('(operator (operator A B) (operator A C))');
 };
 
+GH.ProofGenerator.undistributorRight.OPERATIONS = [
+	[ '*',   '+',  'distr'],
+	['\\/', '/\\', 'ordi'],
+	['/\\', '\\/', 'andi'],
+	['e.',  '\\/', 'elun'],
+	['e.',  '/\\', 'elin'],
+	['u.',  'i^i', 'undi'],
+	['i^i', 'u.',  'indi'],
+];
+
 GH.ProofGenerator.undistributorRight.prototype.isApplicable = function(sexp) {
 	if (this.hyps(sexp) == null) {
 		return false;
@@ -125,10 +162,12 @@ GH.ProofGenerator.undistributorRight.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.undistributorRight.prototype.stepName = function(sexp) {
-	var distributerOperator = sexp.left().operator;
-	var distributedOperator = sexp.operator;
-	if ((distributerOperator == '*') && (distributedOperator == '+')) {
-		return 'undistr';
+	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.undistributorRight.OPERATIONS,
+        sexp.left().operator,
+	    sexp.operator);
+	if (forwardName != null) {
+		return 'undo' + forwardName;
 	} else {
 		return null;
 	}
@@ -140,7 +179,11 @@ GH.ProofGenerator.undistributorRight.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.undistributorRight.prototype.inline = function(sexp) {
-	this.prover.print(this.hyps(sexp), 'distr');
+	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
+	    GH.ProofGenerator.undistributorRight.OPERATIONS,
+	    sexp.left().operator,
+        sexp.operator);
+	this.prover.print(this.hyps(sexp), forwardName);
 	var result = this.prover.getLast();
 	this.prover.commute(result);
 	return true;

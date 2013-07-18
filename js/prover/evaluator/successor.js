@@ -1,5 +1,6 @@
 GH.ProofGenerator.evaluatorSuccessor = function(prover) {
   this.prover = prover;
+  this.operators = ['S'];
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.stepName = function(sexp) {
@@ -8,8 +9,7 @@ GH.ProofGenerator.evaluatorSuccessor.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.isApplicable = function(sexp) {
-	var num = GH.numUtil.decimalNumberSexp(sexp.child());
-	return !isNaN(num);
+	return true;
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.hyps = function(sexp) {
@@ -26,4 +26,9 @@ GH.ProofGenerator.evaluatorSuccessor.prototype.inline = function(sexp) {
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.canAddTheorem = function(sexp) {
 	return false;
+};
+
+GH.ProofGenerator.evaluatorSuccessor.prototype.calculate = function(sexp) {
+	var num = this.prover.calculate(sexp.child());
+	return num + 1;
 };

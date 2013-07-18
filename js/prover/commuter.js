@@ -7,21 +7,40 @@ GH.ProofGenerator.commuter = function(prover) {
 // The first step is for when the expression has a parent.
 // The second step is when the expression has no parent.
 GH.ProofGenerator.commuter.OPERATIONS = [
-  ['<->', 'bicom', 'bicomi'],
-  ['/\\', 'ancom', 'ancomi'],
-  ['\\/', 'orcom', 'orcomi'],
-  [ '=' , 'eqcom', 'eqcomi'],
-  [ '<' , 'ltcom', 'ltcomi'],
-  ['<=' , 'lecom', 'lecomi'],
+  ['<->', 'bicom',  'bicomi'],
+  ['/\\', 'ancom',  'ancomi'],
+  ['\\/', 'orcom',  'orcomi'],
+  [ '=' , 'eqcom',  null],
+  [ '<' , 'ltcom',  null],
+  ['<=' , 'lecom',  null],
   [ '+' , 'addcom', null],
-  [ '*' , 'mulcom', null]
+  [ '*' , 'mulcom', null],
+  ['=_' , 'seqcom', 'seqcomi'],
+  ['u.' , 'uncom',  null],
+  ['i^i', 'incom',  null],
 ];
 
+GH.ProofGenerator.commuter.NEGATED_OPERATIONS = ['<', '<='];
+
+GH.ProofGenerator.commuter.prototype.isNegated = function(sexp) {
+	if (sexp.operator == '-.') {
+		if (GH.ProofGenerator.commuter.NEGATED_OPERATIONS.indexOf(sexp.child().operator) >= 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+};
+
 GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
+	if (this.isNegated(sexp)) {
+		return 'not' + this.stepName(sexp.child());
+	}
+
 	var commuteOperations = GH.ProofGenerator.commuter.OPERATIONS;
 	for (var i = 0; i < commuteOperations.length; i++) {
 		if (sexp.operator == commuteOperations[i][0]) {
-			if (!sexp.isProven) {
+			if (true) { // !sexp.isProven) {     // TODO: Resolve these problems.
 				return commuteOperations[i][1];
 			} else {
 				return commuteOperations[i][2];
@@ -32,7 +51,12 @@ GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
-	// TODO: Maybe use expected form here.
+	if (this.isNegated(sexp)) {
+		return true;
+	}
+	if (this.isNegated(sexp)) {
+		return true;
+	}
 	if (sexp.operands.length != 2) {
 		return false;
 	}
@@ -46,12 +70,23 @@ GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.commuter.prototype.hyps = function(sexp) {
-	if (!sexp.isProven) {
+	if (true) { // !sexp.isProven) {     // TODO: Resolve these problems.
 		return this.prover.getHyps(sexp, this.expectedForm);
 	} else {
 		return [];
 	}
 };
 
-GH.ProofGenerator.commuter.prototype.inline = function(sexp) {	   		return false; };
+GH.ProofGenerator.commuter.prototype.inline = function(sexp) {
+	if (!this.isNegated(sexp)) {
+		return false;
+	}
+	var result = this.prover.commute(sexp.child()).parent;
+	if (sexp.parent) {
+		this.prover.print([result.child().child()], 'notnotbi');
+	} else {
+		this.prover.print([], 'notnotri');
+	}
+	return true;
+};
 GH.ProofGenerator.commuter.prototype.canAddTheorem = function(sexp) {	return false; };

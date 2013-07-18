@@ -5,44 +5,54 @@ GH.ProofGenerator.replacer = function(prover) {
 GH.ProofGenerator.replacer.VARIABLE_NAMES = {
 	wff: ['ph', 'ps', 'ch', 'th', 'ta', 'et', 'zi', 'si', 'ph\'', 'ps\'', 'ch\'', 'th\'', 'ta\''],
 	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\'', 'A0', 'A1', 'A2', 'A3'], 
-	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\'']
+	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\''],
+	set: ['S', 'T', 'U', 'V', 'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']
 };
 
-// A set of theorems for replacing some part of an expression. One for each operator.
-// Each operator has two groups of theorems. The first group is for when the expression
-// has a parent. The second group is for when the expression does not. Within each group
-// there is one theorem for each operand.
+// A set of theorems for replacing some part of an expression.
+// The first operator is the equivalence operator that is needed in the second hypothesis statement.
+// Then there are a list of operators that this equivalence can be applied to. These operators are
+// in the first hypothesis statement. For each of those, there is the name of the operator, the step
+// name when it is applied to each operand, then the resulting equivalence operator, then there is
+// an optional operator if the operator in the first hypothesis statement changed.
 GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 ['<->',
-   [[ '-.', ['con4biir'], ['mtbi'], '<->'],
-	[ '->', ['imbi1i', 'imbi2i'], ['sylbi2', 'sylib'], '<->'],
-	['<->', ['bibi1i', 'bibi2i'], ['bitr3icom', 'bitri'], '<->'],
-	['\\/', ['orbi1i', 'orbi2i'], ['orbi1ii', 'orbi2ii'], '<->'],
-	['/\\',	['anbi1i', 'anbi2i'], ['anbi1ii', 'anbi2ii'], '<->'],
-	['A.',  [null,     'albii' ], [null,      'albiii' ], '<->'],
-	['E.',  [null,     'exbii' ], [null,      'exbiii' ], '<->']]],
+   [[ '-.', ['con4biir'], '<->'],
+	[ '->', ['imbi1i', 'imbi2i'], '<->'],
+	['<->', ['bibi1i', 'bibi2i'], '<->'],
+	['\\/', ['orbi1i', 'orbi2i'], '<->'],
+	['/\\',	['anbi1i', 'anbi2i'], '<->'],
+	['A.',  [null,     'albii' ], '<->'],
+	['E.',  [null,     'exbii' ], '<->'],
+	['{|}', [null,     'abeq2i'], '=_']]],
 ['->',
-   [[ '->', [null,     'imim2i'], [null,      'syl'],  '->'],
-	['\\/', ['orim1i', 'orim2i'], ['orim1i', 'orim2i'], '->'],
-	['/\\',	['anim1i', 'anim2i'], ['anim1i', 'anim2i'], '->'],
-	['E.',  [null,     '19.22i'], [null,     '19.22i'],   '->']]],
+   [[ '->', [null,     'imim2i'], '->'],
+	['\\/', ['orim1i', 'orim2i'], '->'],
+	['/\\',	['anim1i', 'anim2i'], '->'],
+	['E.',  [null,     '19.22i'], '->']]],
 ['=',
-   [['=',   ['eqeq1i', 'eqeq2i'], ['eqtr5',   'eqtr'   ], '<->'],
-	['<=',  ['leeq1i', 'leeq2i'], ['leeq1ii', 'leeq2ii'], '<->'],
-	['<',   ['lteq1i', 'lteq2i'], ['lteq1ii', 'lteq2ii'], '<->'],
-	['|',   ['divideseq1i', 'divideseq2i'], ['divideseq1ii', 'divideseq2ii'], '<->'],
-	['prime', ['primeeqi'], ['primeeqii'], '<->'],
-	['S',	['pa_ax2i'], [null], '='],
-	['+',	['addeq1i','addeq2i'], [null, null], '='],
-	['*',   ['muleq1i','muleq2i'], [null, null], '=']]],
+   [['=',   ['eqeq1i', 'eqeq2i'], '<->'],
+	['<=',  ['leeq1i', 'leeq2i'], '<->'],
+	['<',   ['lteq1i', 'lteq2i'], '<->'],
+	['|',   ['divideseq1i', 'divideseq2i'], '<->'],
+	['prime', ['primeeqi'], '<->'],
+	['S',	['pa_ax2i'], '='],
+	['+',	['addeq1i','addeq2i'], '='],
+	['*',   ['muleq1i','muleq2i'], '='],
+	['e.',  ['eleq1i', null], '<->']]],
 ['<',
-   [['<',   [null, 'ltTrlt'], [null, null], '->', '<'],
-	['<=',  [null, 'ltTrle'], [null, null], '->', '<'],
-	['=',	[null, 'ltTreq'], [null, null], '->', '<']]],
+   [['<',   [null, 'ltTrlt'], '->', '<'],
+	['<=',  [null, 'ltTrle'], '->', '<'],
+	['=',	[null, 'ltTreq'], '->', '<']]],
 ['<=',
-   [['<',   [null, 'leTrlt'], [null, null], '->', '<'],
-	['<=',  [null, 'leTrle'], [null, null], '->', '<='],
-	['=',	[null, 'leTreq'], [null, null], '->', '<=']]],
+   [['<',   [null, 'leTrlt'], '->', '<'],
+	['<=',  [null, 'leTrle'], '->', '<='],
+	['=',	[null, 'leTreq'], '->', '<=']]],
+['=_',
+   [['=_',  ['seqseq1i', 'seqseq2i'], '<->'],
+	['e.',  [null, 'eleq2i'], '<->'],
+	['u.',  ['uneq1i', 'uneq2i'], '=_'],
+	['i^i', ['ineq1i', 'ineq2i'], '=_']]],
 ];
 
 GH.ProofGenerator.replacer.SHORTHAND_OPERATIONS = {
@@ -116,7 +126,7 @@ GH.ProofGenerator.replacer.prototype.createGeneric = function(position, replacee
 	var start = [];
 	var end = [];
 	var middle = [];
-	var usedVariables = { wff: 0, nat: 0, bind: 0};
+	var usedVariables = { wff: 0, nat: 0, bind: 0, set: 0};
 	this.genericCopies(start, end, middle, position.slice(0), replacee, replacement, usedVariables);
 
 	var startString  = GH.sexp_to_string(start);
@@ -203,8 +213,8 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 	start.push(operator);
 	if (positions.length == 0) {
 		var replaceOperation = GH.ProofGenerator.replacer.getReplaceOperation(replacee.operator, replacement.operator);
-		if (replaceOperation.length > 4) {
-			end.push(replaceOperation[4]);
+		if (replaceOperation.length > 3) {
+			end.push(replaceOperation[3]);
 		} else {
 			end.push(operator);
 		}
@@ -322,7 +332,7 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 		}
 		stepName = replaceOperation[1][operandIndex];
 		var success = this.addStep(mandHyps, stepName, output);
-		resultOperator = replaceOperation[3];
+		resultOperator = replaceOperation[2];
 		if (!success) {
 			return false;
 		}
@@ -353,10 +363,6 @@ GH.ProofGenerator.replacer.prototype.isApplicable = function(replacee, replaceme
 	if ((replacement.operands.length != 2) || (replacement.left().equals(replacement.right()))) {
 		return false;
 	}
-	// Check that the operator is an equivalence operator.
-	/*if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator)) {
-		return false;
-	}*/
 	var myMatch = GH.Prover.findMatch(replacee, replacement.left());
 	if (!myMatch) {
 		return false;

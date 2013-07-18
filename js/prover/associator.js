@@ -13,7 +13,9 @@ GH.ProofGenerator.associatorRight.OPERATIONS = [
   ['/\\', 'anass', 'anassi'],
   ['\\/', 'orass', 'orassi'],
   [ '+' , 'addass', 'addass'],
-  [ '*' , 'mulass', 'mulass']
+  [ '*' , 'mulass', 'mulass'],
+  ['u.' , 'unass', 'unass'],
+  ['i^i', 'inass', 'inass'],
 ];
 
 GH.ProofGenerator.associatorRight.getStepName = function (sexp) {
@@ -71,7 +73,9 @@ GH.ProofGenerator.associatorLeft.OPERATIONS = [
   ['/\\', 'anassl', 'anassli'],
   ['\\/', 'orassl', 'orassli'],
   [ '+' , 'addassl', 'addassl'],
-  [ '*' , 'mulassl', 'mulassl']
+  [ '*' , 'mulassl', 'mulassl'],
+  ['u.' , 'unassl', 'unassl'],
+  ['i^i', 'inassl', 'inassl'],
 ];
 
 GH.ProofGenerator.associatorLeft.prototype.stepName = function(sexp) {

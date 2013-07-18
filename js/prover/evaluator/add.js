@@ -1,19 +1,11 @@
 GH.ProofGenerator.evaluatorAdd = function(prover) {
   this.prover = prover;
+  this.operators = ['+'];
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.stepName = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return null;
-	}
-	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
-		return null;
-	}
-	
-	leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if (leftNum == 0) {
 		return 'pa_ax3r';
@@ -26,22 +18,12 @@ GH.ProofGenerator.evaluatorAdd.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.isApplicable = function(sexp) {
-	// TODO: Change all of this to always apply unless there is a variable.
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return false;
-	}
-	// If the full expression already is a decimal number, there is nothing to evaluate.
-	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
-		return false;
-	}
 	return true;
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.hyps = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if (leftNum == 0) {
 		return [sexp.right()];
@@ -53,15 +35,13 @@ GH.ProofGenerator.evaluatorAdd.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.canAddTheorem = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 	return ((1 < rightNum) && (rightNum <= 10) && (1 <= leftNum) && (leftNum <= 10));
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.addTheorem = function(sexp) {	
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
-	var sum = leftNum + rightNum;
+	var sum = this.calculate(sexp);
 	this.prover.println('## <title> One-digit Addition </title>');
 	this.prover.println('thm (' + this.stepName(sexp) + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(sum) + ')');
 	this.prover.depth++;
@@ -78,24 +58,8 @@ GH.ProofGenerator.evaluatorAdd.sameDigits = function(leftNum, rightNum) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
-
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		var extraReplacement = ((!sexp.parent) && (GH.operatorUtil.getType(sexp) != 'wff'));
-		if (isNaN(leftNum)) {
-			sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
-		}
-		if (isNaN(rightNum)) {
-			sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
-		}
-		if (extraReplacement) {
-			this.prover.replaceWith(this.prover.evaluator, sexp);
-		} else {
-			this.prover.apply(this.prover.evaluator, sexp);
-		}
-		return true;
-	}
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if (leftNum == 0) {
 		return false;
@@ -154,7 +118,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.predecessorRight_ = function(sexp) {
 // Increment the left number and decrement the right.
 // For example, 5 + 3 = 6 + 2.
 GH.ProofGenerator.evaluatorAdd.prototype.incrementLeft_ = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
+	var leftNum  = this.prover.calculate(sexp.left());
 	var result = sexp.copy();
 	result = GH.Prover.applyRight(this.predecessorRight_, result, this);
 	result = this.prover.associateLeft(result);
@@ -165,7 +129,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.incrementLeft_ = function(sexp) {
 // Increment the right number and decrement the left.
 // For example, 5 + 3 = 4 + 4.
 GH.ProofGenerator.evaluatorAdd.prototype.incrementRight_ = function(sexp) {
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var rightNum = this.prover.calculate(sexp.right());
 	var result = sexp.copy();	
 	result = GH.Prover.applyLeft(this.predecessorLeft_, result, this);
 	result = this.prover.associateRight(result);
@@ -238,14 +202,14 @@ GH.ProofGenerator.evaluatorAdd.prototype.multiplyTensByOne = function(sexp) {
 };
 
 // Find a symbol tree describing how the digits are currently arranged.
-GH.ProofGenerator.evaluatorAdd.findOriginalTree = function(sexp, digitTable) {
+GH.ProofGenerator.evaluatorAdd.prototype.findOriginalTree = function(sexp, digitTable) {
 	if (sexp.operator == '+') {
 		return new GH.symbolTree(
 		    null, 
-		    GH.ProofGenerator.evaluatorAdd.findOriginalTree(sexp.left(), digitTable),
-			GH.ProofGenerator.evaluatorAdd.findOriginalTree(sexp.right(), digitTable));
+		    this.findOriginalTree(sexp.left(), digitTable),
+			this.findOriginalTree(sexp.right(), digitTable));
 	} else {
-		var num = GH.numUtil.sexpToNum(sexp);
+		var num = this.prover.calculate(sexp);
 		var symbol = String.fromCharCode(65 + digitTable.length);
 		digitTable.push([symbol, num]);
 		return new GH.symbolTree(symbol, null, null);
@@ -281,7 +245,7 @@ GH.ProofGenerator.evaluatorAdd.calculateNewTree = function(digitTable, originalT
 // Reorganize the numbers so that common digits are together. For example: 45 + 67 = (40 + 60) + (5 + 7)
 GH.ProofGenerator.evaluatorAdd.prototype.reorganizeDigits_ = function(sexp) {
 	var digitTable = [];
-	var originalTree = GH.ProofGenerator.evaluatorAdd.findOriginalTree(sexp, digitTable);
+	var originalTree = this.findOriginalTree(sexp, digitTable);
 	var newTree = GH.ProofGenerator.evaluatorAdd.calculateNewTree(digitTable, originalTree);
 
 	var result = this.prover.repositioner.repositionTree(sexp, originalTree, newTree);
@@ -388,4 +352,10 @@ GH.ProofGenerator.evaluatorAdd.prototype.addCleanUp_ =  function(sexp) {
 		sexp = GH.Prover.applyRight(this.addCleanUp_, sexp, this);
 	}
 	return sexp;
+};
+
+GH.ProofGenerator.evaluatorAdd.prototype.calculate = function(sexp) {
+	var leftNum = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return leftNum + rightNum;
 };

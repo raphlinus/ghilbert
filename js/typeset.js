@@ -217,6 +217,34 @@ GH.typesetexp = function(term, prec, cursorPosition) {
     return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
 };
 
+GH.isSetInExpectedForm = function(sexp) {
+	return (sexp[0] == '{}') ||
+           ((sexp[0] == 'u.') && (sexp[1][0] == '{}') && GH.isSetInExpectedForm(sexp[2]));
+};
+
+GH.getSetElements = function(set, result) {
+	if (set[0] == '{}'){
+		result.push(set[1]);
+		return result;
+	} else {
+		result.push(set[1][1]);
+		return GH.getSetElements(set[2], result);
+	}
+};
+
+GH.typesetSet = function(term, cursorPosition) {
+	var slugs = [GH.stringslug('{')];
+	var elements = GH.getSetElements(term, []);
+	for (var i = 0; i < elements.length; i++) {
+		slugs.push(GH.typeset(elements[i], cursorPosition));
+		if (i < elements.length - 1) {
+		    slugs.push(GH.stringslug(','));
+		}
+	}
+    slugs.push(GH.stringslug('}'));
+    return GH.combineslugs(slugs, 9999);
+};
+
 GH.typeset = function(sexp, cursorPosition) {
 	var str;
 	var decimal = GH.numUtil.decimalNumber(sexp);
@@ -312,10 +340,14 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetinfix(sexp, 'n', 1050, '⊆', cursorPosition);
     } else if (sexp[0] == 'C.' || sexp[0] == '⊂') {
         return GH.typesetinfix(sexp, 'n', 1050, '⊂', cursorPosition);
-    } else if (sexp[0] == 'i^i') {
-        return GH.typesetinfix(sexp, 'n', 3500, '∩', cursorPosition);
+    } else if (GH.isSetInExpectedForm(sexp)) {
+        return GH.typesetSet(sexp, cursorPosition);
+	} else if (sexp[0] == 'i^i') {
+        return GH.typesetinfix(sexp, 'r', 3500, '∩', cursorPosition);
     } else if (sexp[0] == 'u.') {
-        return GH.typesetinfix(sexp, 'n', 3500, '∪', cursorPosition);
+        return GH.typesetinfix(sexp, 'r', 3500, '∪', cursorPosition);
+    } else if (sexp[0] == '{/}') {
+        return GH.stringslug('∅', cursorPosition);
     } else if (sexp[0] == '<,>') {
         return GH.typesetop(sexp, cursorPosition);
     } else if (sexp[0] == 'exp') {

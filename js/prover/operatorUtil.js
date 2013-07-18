@@ -1,11 +1,5 @@
 GH.operatorUtil = {};
 
-GH.operatorUtil.EQUIVALENCE_OPERATOR = {
-	wff: '<->',
-	nat: '=',
-	bind: '='
-};
-
 GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == '-.') 	return ['wff', 'wff'];
 	if (operator == '->') 	return ['wff', 'wff', 'wff'];
@@ -22,6 +16,12 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'S') 	return ['nat', 'nat'];
 	if (operator == '+') 	return ['nat', 'nat', 'nat'];
 	if (operator == '*') 	return ['nat', 'nat', 'nat'];
+	if (operator == '=_') 	return ['set', 'set', 'wff'];
+	if (operator == '{|}') 	return ['bind', 'wff', 'set'];
+	if (operator == 'e.') 	return ['nat', 'set', 'wff'];
+	if (operator == '{}') 	return ['nat', 'set'];
+	if (operator == 'u.') 	return ['set', 'set', 'set'];
+	if (operator == 'i^i') 	return ['set', 'set', 'set'];
 	return null;
 };
 
@@ -55,13 +55,26 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
 	} else if (operator == '*') {		return 'Mul';
+	} else if (operator == 'e.') {		return 'El';
+	} else if (operator == '=_') {		return 'Seq';
+	} else if (operator == '{|}') {		return 'Ab';
+	} else if (operator == '{}') {		return 'Sn';
+	} else if (operator == 'u.') {		return 'Un';
+	} else if (operator == 'i^i') {		return 'In';
 	} else {
 		alert('Operator ' + operator + ' is not named.');
 		return '';
 	}
 };
 
-GH.operatorUtil.isEquivalenceOperator = function(operator) {
-	var operatorTypes = GH.operatorUtil.getOperatorTypes(operator);
-	return ((operatorTypes) && (operator == GH.operatorUtil.EQUIVALENCE_OPERATOR[operatorTypes[0]]));
+GH.operatorUtil.isReduced = function(sexp) {
+	var type = GH.operatorUtil.getType(sexp);
+	if (!type) {
+		return true;
+	}
+	if (type == 'nat') {
+		return GH.numUtil.isReduced(sexp);
+	} else if (type == 'set') {
+		return GH.setUtil.isReduced(sexp);
+	}
 };

@@ -1,20 +1,13 @@
 GH.ProofGenerator.evaluatorMultiply = function(prover) {
   this.prover = prover;
+  this.operators = ['*'];
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.stepName = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return null;
-	}
-	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
-		return null;
-	}
-	
-	leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
+	// TODO: Add a check that the numbers are reduced and not 0 * 5.
 	if (leftNum == 0) {
 		return 'pa_ax5r';
 	}
@@ -32,22 +25,12 @@ GH.ProofGenerator.evaluatorMultiply.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.isApplicable = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return false
-	}
-	// If the full expression already is a decimal number, there is nothing to evaluate.
-	if (!isNaN(GH.numUtil.decimalNumberSexp(sexp))) {
-		// If the whole 
-		return false;
-	}
 	return true;
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.hyps = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if ((leftNum == 0) || (leftNum == 1)) {
 		return [sexp.right()];
@@ -59,24 +42,8 @@ GH.ProofGenerator.evaluatorMultiply.prototype.hyps = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
-	
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		var extraReplacement = ((!sexp.parent) && (GH.operatorUtil.getType(sexp) != 'wff'));
-		if (isNaN(leftNum)) {
-			sexp = this.prover.replaceLeft(this.prover.evaluator, sexp);
-		}
-		if (isNaN(rightNum)) {
-			sexp = this.prover.replaceRight(this.prover.evaluator, sexp);
-		}
-		if (extraReplacement) {
-			this.prover.replaceWith(this.prover.evaluator, sexp);
-		} else {
-			this.prover.apply(this.prover.evaluator, sexp);
-		}
-		return true;
-	}
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if ((leftNum == 0) || (leftNum == 1) || (rightNum == 0) || (rightNum == 1)) {
 		return false;
@@ -101,9 +68,7 @@ GH.ProofGenerator.evaluatorMultiply.prototype.canAddTheorem = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.addTheorem = function(sexp) {	
-	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
-	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
-	var product = leftNum * rightNum;
+	var product = this.calculate(sexp);
 	this.prover.println('## <title> One-digit Multiplication </title>');
 	this.prover.println('thm (' + this.stepName(sexp) + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(product) + ')');
 	this.prover.depth++;
@@ -176,32 +141,6 @@ GH.ProofGenerator.evaluatorMultiply.prototype.pullOutMultiplier = function(sexp)
 	return sexp;
 };
 
-/*
-GH.ProofGenerator.evaluatorMultiply.prototype.multiplyRightSingleDigit = function(sexp) {
-	sexp = sexp.copy();
-	while(sexp.left().operator == '+') {
-		sexp = this.prover.distributeLeft(sexp);
-		// The associateLeft isn't really necessary. It's done to remove some parentheses.
-		if (sexp.parent.operator == '+') {
-			sexp = this.prover.associateLeft(sexp.parent);
-		}
-		sexp = sexp.right();
-	}
-	
-	sexp = this.pullInMultiplier(sexp);
-	if (sexp.parent) {
-		sexp = sexp.parent;
-		while(sexp.left().operator == '+') {
-			sexp = sexp.left();
-			sexp = this.pullInMultiplier(sexp.right()).parent;
-		}
-		sexp = sexp.left();
-		sexp = this.pullInMultiplier(sexp);
-	}
-	sexp = sexp.getRoot().right();
-};*/
-
-
 // The left side is a single digit or a number times a power of ten.
 // The right side is a single digit.
 // This maybe should go into inline.
@@ -226,20 +165,7 @@ GH.ProofGenerator.evaluatorMultiply.prototype.multiplyRightSingleDigit = functio
 		sexp = sexp.parent.left();
 		sexp = this.multiplyTwoDigits(sexp).parent;
 		sexp = this.prover.evaluate(sexp);
-	}	
-	
-
-/*	sexp = this.pullInMultiplier(sexp);
-	if (sexp.parent) {
-		sexp = sexp.parent;
-		while(sexp.left().operator == '+') {
-			sexp = sexp.left();
-			sexp = this.pullInMultiplier(sexp.right()).parent;
-		}
-		sexp = sexp.left();
-		sexp = this.pullInMultiplier(sexp);
 	}
-	sexp = sexp.getRoot().right();*/
 };
 
 // Multiply any number x, a single digit d and a power of ten b: (x * d) * b. For example (435 * 7) * 100
@@ -274,4 +200,10 @@ GH.ProofGenerator.evaluatorMultiply.prototype.multiplyNumbers = function(sexp) {
 		sexp = this.doubleMultiply(sexp).parent;
 		sexp = this.prover.evaluate(sexp);
 	}	
+};
+
+GH.ProofGenerator.evaluatorMultiply.prototype.calculate = function(sexp) {
+	var leftNum = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return leftNum * rightNum;
 };

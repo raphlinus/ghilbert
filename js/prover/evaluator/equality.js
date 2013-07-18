@@ -1,11 +1,12 @@
 // Evaluates equality and inequality expressions like 2 = 3 and 2 < 3.
 GH.ProofGenerator.evaluatorEquality = function(prover) {
   this.prover = prover;
+  this.operators = ['=', '<', '<='];
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	// TODO: Prove things like 3 <= 3.
 	// TODO: Prove things like 1 + 5 = 2 * 3 here.
@@ -34,18 +35,13 @@ GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
-	if (isNaN(leftNum) || isNaN(rightNum)) {
-		return false;
-	}
 	// This is a hack to just make sure we're at least in the right file.
 	return this.prover.symbolDefined('eqid');
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.hyps = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	if (leftNum == rightNum) {
 		return [sexp.left()];
@@ -59,10 +55,11 @@ GH.ProofGenerator.evaluatorEquality.prototype.canAddTheorem = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
-	var leftNum  = GH.numUtil.sexpToNum(sexp.left());
-	var rightNum = GH.numUtil.sexpToNum(sexp.right());
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 	var operator = sexp.operator;
 	var inequality;
+
 	if (leftNum == rightNum) {
 		return false;
 	} else if (leftNum == 0) {
@@ -88,27 +85,12 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 	} else {
 		inequality = this.handleLeftGreater(leftNum, rightNum, operator);
 	}
-
-	var leftSide = sexp.left().copy();
-	leftSide = this.prover.evaluate(leftSide);
-	if (leftSide.parent && leftSide.parent.operator == '=') {
-		this.prover.commute(leftSide.parent);
-		inequality = this.prover.replace(inequality.left()).parent;
-	}
-
-	var rightSide = sexp.right().copy();
-	rightSide = this.prover.evaluate(rightSide);
-	if (rightSide.parent && rightSide.parent.operator == '=') {
-		this.prover.commute(rightSide.parent);
-		inequality = this.prover.replace(inequality.right()).parent;
-	}
-
-	return true;
+	return inequality;
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.rightNumNotZero = function(num) {
 	var predecessor = num - 1;
-	var sexp = GH.numUtil.numToSexp(predecessor);
+	var sexp = GH.numUtil.createNum(predecessor);
 	this.prover.print([sexp], 'pa_ax1');
 	var result = this.prover.getLast();
 	return this.prover.evaluate(result.child().right()).parent.parent;
@@ -124,7 +106,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.zeroLessThanNum = function(sexp) {
 		this.prover.println('(0) ' + sexp.toString() + ' axlttri2');
 	}
 	this.prover.applyHidden(axlttri2Func, sexp, this);
-	this.rightNumNotZero(GH.numUtil.sexpToNum(sexp));
+	this.rightNumNotZero(this.prover.calculate(sexp));
 	this.prover.print([sexp], '0le');
 	this.prover.println('pm3.2i');
 	this.prover.getLast(); // To update the prover.
@@ -136,7 +118,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.numMoreThanZero = function(sexp) {
 		this.prover.println(sexp.toString() + ' (0) axgrtri');
 	}
 	this.prover.applyHidden(axgrtriFunc, sexp, this);
-	this.leftNumNotZero(GH.numUtil.sexpToNum(sexp));	
+	this.leftNumNotZero(this.prover.calculate(sexp));	
 	this.prover.print([sexp], 'ge0')
 	this.prover.println('pm3.2i');
 	this.prover.getLast(); // TODO: Check if this is still necessary. To update the prover.
@@ -145,7 +127,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.numMoreThanZero = function(sexp) {
 
 GH.ProofGenerator.evaluatorEquality.prototype.handleRightGreater = function(leftNum, rightNum, operator) {
 	var diff = rightNum - leftNum;
-	var sexp = GH.numUtil.numToSexp(diff);
+	var sexp = GH.numUtil.createNum(diff);
 
 	// TODO: Refactor by creating an expression like 0 < diff and then evaluate it.
 	if (operator == '=') {
@@ -156,7 +138,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleRightGreater = function(left
 		this.zeroLessThanNum(sexp);
 	}
 
-	sexp = GH.numUtil.numToSexp(leftNum);
+	sexp = GH.numUtil.createNum(leftNum);
 	
 	if (operator == '=') {
 		this.prover.print([sexp], 'addneq2i');
@@ -178,7 +160,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleRightGreater = function(left
 
 GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftNum, rightNum, operator) {
 	var diff = leftNum - rightNum;
-	var sexp = GH.numUtil.numToSexp(diff);
+	var sexp = GH.numUtil.createNum(diff);
 
 	if (operator == '=') {
 		this.leftNumNotZero(diff);
@@ -188,7 +170,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftN
 		this.numMoreThanZero(sexp);
 	}
 
-	sexp = GH.numUtil.numToSexp(rightNum);
+	sexp = GH.numUtil.createNum(rightNum);
 	
 	if (operator == '=') {
 		this.prover.print([sexp], 'addneq2i');
@@ -202,4 +184,17 @@ GH.ProofGenerator.evaluatorEquality.prototype.handleLeftGreater = function(leftN
 	result = this.prover.replaceRight(this.prover.evaluator, result);
 	result = this.prover.replaceLeft(this.prover.evaluator, result);
 	return result;
+};
+
+GH.ProofGenerator.evaluatorEquality.prototype.calculate = function(sexp) {
+	var leftNum = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	if (operator == '=') {
+		return leftNum == rightNum;
+	} else if (operator == '<') {
+		return leftNum < rightNum;
+	} else if (operator == '<=') {
+		return leftNum <= rightNum;
+	}
+	return null;
 };

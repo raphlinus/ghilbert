@@ -35,7 +35,7 @@ GH.numUtil.numToSexpString = function(num) {
 };
 
 // Same as GH.numUtil.numToSexpString, but convert to a proper s-expression object type.
-GH.numUtil.numToSexp = function(num) {
+GH.numUtil.createNum = function(num) {
 	if (num < 0) {
 		alert('Negative numbers not yet supported.');
 		return;
@@ -58,12 +58,12 @@ GH.numUtil.numToSexp = function(num) {
 	if (remainder == 0) {
 		// If the lower digits are all zero, return the value of the upper digit.
 		var multiplier = GH.sExpression.createDigit(value);
-		var base = GH.numUtil.numToSexp(digit);
+		var base = GH.numUtil.createNum(digit);
 		return GH.sExpression.createOperator('*', [multiplier, base]);
 	} else {
 		// If there are lower digits, add the upper and lower digit numbers.
-		var lowerDigits = GH.numUtil.numToSexp(remainder);
-		var upperDigits = GH.numUtil.numToSexp(upperDigit);
+		var lowerDigits = GH.numUtil.createNum(remainder);
+		var upperDigits = GH.numUtil.createNum(upperDigit);
 		return GH.sExpression.createOperator('+', [upperDigits, lowerDigits]);
 	}
 };
@@ -74,29 +74,6 @@ GH.numUtil.numToFullSexp = function(num) {
 		alert('numToFullSexp not specified for numbers above 10.');
 	}
 	return GH.sExpression.fromRaw([num.toString()]);
-};
-	
-// Convert an s-expression into a number.
-// Simply performs all the multiplication and additions within the expression.
-GH.numUtil.sexpToNum = function(sexp) {
-	if (sexp.operator == '*') {
-		return GH.numUtil.sexpToNum(sexp.left()) * GH.numUtil.sexpToNum(sexp.right());
-	} else if (sexp.operator == '+') {
-		return GH.numUtil.sexpToNum(sexp.left()) + GH.numUtil.sexpToNum(sexp.right());
-	} else {
-		return parseInt(sexp.operator);
-	}
-};
-
-// Returns the number of digits of a number. The number can be in long form or short form.
-GH.numUtil.getDigitNum = function(sexp) {
-	if (sexp.operator == '+') {
-		return GH.numUtil.getDigitNum(sexp.left());
-	} else if (sexp.operator == '*') {
-		return GH.numUtil.numOfDigits(GH.numUtil.sexpToNum(sexp.right()));
-	} else {
-		return 1;
-	}
 };
 
 
@@ -196,4 +173,8 @@ GH.numUtil.decimalNumberSexp = function(sexp) {
 		}
 	}
 	return NaN;
+};
+
+GH.numUtil.isReduced = function(sexp) {
+	return !isNaN(GH.numUtil.decimalNumberSexp(sexp));
 };

@@ -2,7 +2,7 @@
 // by Paul Merrell, 2013
 
 GH.Prover = function(suggestArea, direct) {
-	this.depth = 0;
+	this.depth = 1;
 	this.direct = direct;
 	this.conclusions = [];
 	this.activeExp = null;
@@ -230,11 +230,14 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 	GH.ProofStep.removeClass_(this.secondaryArea, 'active');
 	if (this.activeExp) {
 		GH.ProofStep.addClass_(this.primaryArea, 'active');
+		if (this.activeExp.getRoot().isProven) {
+			this.addSuggestion('Copy', 'window.direct.prover.handleCopy()', true);
+		}
 	} else {
 		GH.ProofStep.removeClass_(this.primaryArea, 'active');
 		return;
 	}
-	
+
 	for (var i = 0; i < this.generators.length; i++) {
 		var generator = this.generators[i];
 		if (generator.gen.isApplicable(this.activeExp)) {
@@ -258,7 +261,11 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 				}
 				if (this.remover.isApplicable(prevConclusion, lastConclusion)) {
 					this.addSuggestion('Remove', 'window.direct.prover.remove()', false);
-					match = GH.Prover.findMatch(prevConclusion, lastConclusion)
+					match = GH.Prover.findMatch(prevConclusion, lastConclusion)				
+					if ((!match) && (lastConclusion.operator == '-.')) {
+						isNegated = true;
+						match = GH.Prover.findMatch(prevConclusion, lastConclusion.child());
+					}
 				}
 				if (match) {
 					var expression = prevConclusion.getExpression();
@@ -327,6 +334,8 @@ GH.Prover.prototype.getTheorems = function() {
 	// The update is commented out because it's unnecessary and slow, but I'm leaving it
 	// here because it is really useful for debugging. Just uncomment it and you can see
 	// the proofs changing while you're debugging.
+	
+	// TODO: Fix problems with 3 | 7. Then comment this out again.	
 	this.direct.update(true);
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
@@ -497,10 +506,6 @@ GH.Prover.prototype.replaceFunc = function(func, sexp, caller) {
 GH.Prover.prototype.replace = function(sexp) {
 	var replacement = this.getLast();
 	// When evaluating a wff, the replacement doesn't apply.
-	// TODO: Consider doing a remove in this case.
-	/*if (!GH.operatorUtil.isEquivalenceOperator(replacement.operator)) {
-		return replacement;
-	}*/
 	this.apply(this.replacer, sexp);
 	
 	var replaced = this.getLast();
@@ -685,7 +690,11 @@ GH.Prover.prototype.associateRight = function(sexp) {
 };
 
 GH.Prover.prototype.distributeLeft = function(sexp) {
-	return this.replaceWith(this.distributorLeft, sexp);
+	if (GH.operatorUtil.getType(sexp) == 'wff') {
+		return this.applyWith(this.distributorLeft, sexp);
+	} else {
+		return this.replaceWith(this.distributorLeft, sexp);
+	}
 };
 
 GH.Prover.prototype.distributeRight = function(sexp) {
@@ -708,12 +717,21 @@ GH.Prover.prototype.evaluate = function(sexp) {
 	}
 };
 
+GH.Prover.prototype.calculate = function(sexp) {
+	return this.evaluator.calculate(sexp);
+};
+
 GH.Prover.prototype.commute = function(sexp) {
 	if (sexp.left().equals(sexp.right())) {  // No need to commute when both sides are the same.
 		return sexp;
 	} else {
 		return this.replaceWith(this.commuter, sexp);
 	}
+};
+
+GH.Prover.prototype.handleCopy = function() {
+	this.print([this.activeExp], '');
+	this.direct.update(true);
 };
 
 GH.Prover.prototype.handleClick = function(name) {
