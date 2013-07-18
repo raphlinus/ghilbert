@@ -36,6 +36,12 @@ thm (19.3 ((ph x))
   x ph ax-4 ph x alnfi impbii
 )
 
+thm (notnotbi () () (<-> (-. (-. ph)) ph)
+  ph notnot2
+  ph notnot1
+  impbii
+)
+
 # Reverse the hypothesis and conclusion of con4bii.
 ## <title> Equivalence over Negation </title>
 ## <table>
@@ -925,7 +931,7 @@ thm (mtbiRemove () (hyp (<-> ph ps) hyp2 (-. ph)) (-. ps)
 ## <title> Modus Tollens </title>
 ## <table>
 ##   (<->    [ ph  ] [     [ ps)
-##                 [ [ (-. [ ps)
+##           [     [ [ (-. [ ps)
 ##       (-. [ ph) ] ]     ]
 ## </table>
 thm (mtbirRemove () (hyp (<-> ph ps) hyp2 (-. ps)) (-. ph)
@@ -1877,8 +1883,8 @@ thm (distrl () ()
 
 # Undistribute left.
 ## <title> Distributive Property </title>
-thm (undistl() () (= (+ (* A B) (* C B)) (* (+ A C) B))
-  A C B distl
+thm (undistl() () (= (+ (* A C) (* B C)) (* (+ A B) C))
+  A B C distl
   eqcomi
 )
 
@@ -2946,7 +2952,7 @@ export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
 
 import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
 
-tvar (set S T U V)
+tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
 
 
 thm (eqri ((S x) (T x))
@@ -2971,6 +2977,23 @@ thm (seqcom () () (<-> (=_ S T) (=_ T S))
   bitr4i
 )
 
+thm (seqcomi () (hyp (=_ S T)) (=_ T S)
+  hyp
+  S T seqcom
+  mpbi
+)
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=       A ]    ] [     B ] )
+##   (<-> (e. A ] S) ] [ (e. B ] S))
+## </table>
+thm (eleq1i () (hyp (= A B)) (<-> (e. A S) (e. B S))
+  hyp
+  A B S ax-eleq1
+  ax-mp
+)
+
 thm (eleq2 () ()
   (-> (=_ S T) (<-> (e. A S) (e. A T)))
   S T x df-seq
@@ -2978,6 +3001,11 @@ thm (eleq2 () ()
   cla4g sylbi
 )
 
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=_        [ S  ] [       [ T )
+##   (<-> (e. A [ S) ] [ (e. A [ T ))
+## </table>
 thm (eleq2i ()
   (hyp (=_ S T))
   (<-> (e. A S) (e. A T))
@@ -3011,6 +3039,14 @@ thm (elin () ()
 
   x A S ax-eleq1 x A T ax-eleq1 anbi12d
     S T x df-in
+  elab2
+)
+
+thm (elun () ()
+  (<-> (e. A (u. S T)) (\/ (e. A S) (e. A T)))
+
+  x A S ax-eleq1 x A T ax-eleq1 orbi12d
+    S T x df-un
   elab2
 )
 
@@ -3086,6 +3122,11 @@ thm (abeq2 () ()
 )
 
 # Equality inference for set abstraction
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (<->       [ ph  ] [        [ ps )
+##   (=_ ({|} x [ ph) ] [ ({|} x [ ps ))
+## </table>
 thm (abeq2i () (h (<-> ph ps))
   (=_ ({|} x ph) ({|} x ps))
   h x gen x ph ps abeq2 ax-mp
@@ -3095,6 +3136,770 @@ thm (abeq2i () (h (<-> ph ps))
 thm (abeq2d ((ph x)) (h (-> ph (<-> ps ch)))
   (-> ph (=_ ({|} x ps) ({|} x ch)))
   h x 19.21ai x ps ch abeq2 syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (<->  [ ps ]   ]    ]  th)))
+##   (<->                [ ps ]   [ ch ] )
+##   (<-> ph (A. x (<->  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Al1Bi0 () (
+     replacee (<-> ph (A. x (<-> ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x (<-> ch th)))
+  replacee
+  substitution
+th bibi1i
+x albii
+ph bibi2i
+mpbi
+)
+
+thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
+  S U x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi0
+  T U x df-seq
+
+  ## <d>
+    bicomi
+  ## </d>
+
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (<-> ps  [ ch ]   ]    ] )))
+##   (<->                   [ ch ]   [ th ] )
+##   (<-> ph (A. x (<-> ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Al1Bi1 () (
+     replacee (<-> ph (A. x (<-> ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (A. x (<-> ps th)))
+  replacee
+  substitution
+  ps bibi2i
+  x albii
+  ph bibi2i
+  mpbi
+)
+
+
+thm (seqseq2i () (hyp (=_ S T)) (<-> (=_ U S) (=_ U T))
+  U S x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi1
+  U T x df-seq
+  ## <d>
+    bicomi
+  ## </d>
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ S ({|} x  [ ph ]   ]    ] ))
+##   (<->          [ ph ]   [ ps ] )
+##   (=_ S ({|} x  [    [   [ ps ] ))
+## </table>
+thm (BiReplaceSeq1Ab1 () (
+     replacee (=_ S ({|} x ph))
+     substitution (<-> ph ps)) 
+     (=_ S ({|} x ps))
+  replacee
+  substitution
+x abeq2i
+S seqseq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ S  [ T ]   ]   ] )
+##   (=_    [ T ]   [ U ] )
+##   (=_ S  [   [   [ U ] )
+## </table>
+thm (SeqReplaceSeq1 () (
+     replacee (=_ S T)
+     substitution (=_ T U)) 
+     (=_ S U)
+  replacee
+  substitution
+S seqseq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (\/ (e. A  [ S ]   ]   ] ) ph)))
+##   (=_                     [ S ]   [ T ] )
+##   (=_ U ({|} x (\/ (e. A  [   [   [ T ] ) ph)))
+## </table>
+thm (SeqReplacerSeq0Ab1Or0El0 () (
+     replacee (=_ U ({|} x (\/ (e. A S) ph)))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (\/ (e. A T) ph)))
+  replacee
+  substitution
+A eleq2i
+ph orbi1i
+x abeq2i
+U seqseq2i
+mpbi
+)
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_     S ]    ] [     T ] )
+##   (=_ (u. S ] U) ] [ (u. T ] U))
+## </table>
+thm (uneq1i () (hyp (=_ S T)) (=_ (u. S U) (u. T U))
+  S U x df-un
+  hyp
+  SeqReplacerSeq0Ab1Or0El0
+ 
+  T U x df-un
+
+  ## <d>
+    (u. T U) ({|} x (\/ (e. x T) (e. x U))) seqcom
+  ## </d>
+  mpbi
+  SeqReplaceSeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (\/ ph (e. A  [ S ]   ]   ] ))))
+##   (=_                        [ S ]   [ T ] )
+##   (=_ U ({|} x (\/ ph (e. A  [   [   [ T ] ))))
+## </table>
+thm (SeqReplaceSeq0Ab1Or1El0 () (
+     replacee (=_ U ({|} x (\/ ph (e. A S))))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (\/ ph (e. A T))))
+  replacee
+  substitution
+A eleq2i
+ph orbi2i
+x abeq2i
+U seqseq2i
+mpbi
+)
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_       [ S  ] [       [ T)
+##   (=_ (u. U [ S) ] [ (u. U [ T))
+## </table>
+thm (uneq2i () (hyp (=_ S T)) (=_ (u. U S) (u. U T))
+  U S x df-un
+  hyp  
+  SeqReplaceSeq0Ab1Or1El0
+  U T x df-un
+  
+  ## <d>
+    (u. U T) ({|} x (\/ (e. x U) (e. x T))) seqcom
+  ## </d>
+  mpbi
+  SeqReplaceSeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (/\ (e. A  [ S ]   ]   ] ) ph)))
+##   (=_                   [ S ]   [ T ] )
+##   (=_ U ({|} x (/\ (e. A  [   [   [ T ] ) ph)))
+## </table>
+thm (SeqReplaceSeq0Ab1An0El0 () (
+     replacee (=_ U ({|} x (/\ (e. A S) ph)))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (/\ (e. A T) ph)))
+  replacee
+  substitution
+A eleq2i
+ph anbi1i
+x abeq2i
+U seqseq2i
+mpbi
+)
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_      S ]    ] [      T ] )
+##   (=_ (i^i S ] U) ] [ (i^i T ] U))
+## </table>
+thm (ineq1i () (hyp (=_ S T)) (=_ (i^i S U) (i^i T U))
+  S U x df-in
+  hyp  
+  SeqReplaceSeq0Ab1An0El0
+  T U x df-in
+  ## <d>
+    (i^i T U) ({|} x (/\ (e. x T) (e. x U))) seqcom
+  ## </d>
+  mpbi  
+  SeqReplaceSeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (/\ ph (e. A  [ S ]   ]   ] ))))
+##   (=_                        [ S ]   [ T ] )
+##   (=_ U ({|} x (/\ ph (e. A  [   [   [ T ] ))))
+## </table>
+thm (SeqReplaceSeq0Ab1An1El0 () (
+     replacee (=_ U ({|} x (/\ ph (e. A S))))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (/\ ph (e. A T))))
+  replacee
+  substitution
+A eleq2i
+ph anbi2i
+x abeq2i
+U seqseq2i
+mpbi
+)
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_        [ S  ] [        [ T)
+##   (=_ (i^i U [ S) ] [ (i^i U [ T))
+## </table>
+thm (ineq2i () (hyp (=_ S T)) (=_ (i^i U S) (i^i U T))
+  U S x df-in
+  hyp  
+  SeqReplaceSeq0Ab1An1El0
+  U T x df-in
+  ## <d>
+    (i^i U T) ({|} x (/\ (e. x U) (e. x T))) seqcom
+  ## </d>
+  mpbi 
+  SeqReplaceSeq1
+)
+
+
+thm (uncom () () (=_ (u. S T) (u. T S))
+  S T x df-un
+  ## <d>
+    (e. x S) (e. x T) orcom
+  ## </d>
+    BiReplaceSeq1Ab1
+  T S x df-un
+  ## <d>
+    (u. T S) ({|} x (\/ (e. x T) (e. x S))) seqcom
+  ## </d>
+  mpbi
+
+  SeqReplaceSeq1
+)
+
+thm (incom () () (=_ (i^i S T) (i^i T S))
+  S T x df-in
+  ## <d>
+    (e. x S) (e. x T) ancom
+  ## </d>
+  BiReplaceSeq1Ab1
+  T S x df-in
+  ## <d>
+    (i^i T S) ({|} x (/\ (e. x T) (e. x S))) seqcom
+  ## </d>
+  mpbi
+  SeqReplaceSeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee
+  substitution
+ps anbi2i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1An0 () (
+     replacee (<-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ ch th))
+  replacee
+  substitution
+th anbi1i
+ph bibi2i
+mpbi
+)
+
+thm (inass () () (=_ (i^i (i^i S T) U) (i^i S (i^i T U)))
+  x S (i^i T U) elin
+  x T U elin
+  BiReplaceBi1An1  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) anass
+    ## <d>
+      (/\ (/\ (e. x S) (e. x T)) (e. x U)) (/\ (e. x S) (/\ (e. x T) (e. x U))) bicom
+    ## </d>
+    mpbi
+  ## </d>
+  bitri
+  x (i^i S T) U elin
+  x S T elin
+  
+    BiReplaceBi1An0
+  
+  ## <d>
+    (e. x (i^i (i^i S T) U)) (/\ (/\ (e. x S) (e. x T)) (e. x U)) bicom
+  ## </d>
+  mpbi
+  
+  bitri
+  x gen
+  (i^i S (i^i T U)) (i^i (i^i S T) U)  x df-seq  
+  
+  ## <d>
+    (=_ (i^i S (i^i T U)) (i^i (i^i S T) U)) (A. x (<-> (e. x (i^i S (i^i T U))) (e. x (i^i (i^i S T) U)))) bicom
+  ## </d>
+  mpbi
+  mpbi
+
+  ## <d>
+    (i^i S (i^i T U)) (i^i (i^i S T) U) seqcom
+  ## </d>
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1Or1 () (
+     replacee (<-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (\/ ps th))
+  replacee
+  substitution
+ps orbi2i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (<->     [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (BiReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (<-> ps ch)) 
+     (<-> ph ch)
+  replacee
+  substitution
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Or0 () (
+     replacee (<-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (\/ ch th))
+  replacee
+  substitution
+th orbi1i
+ph bibi2i
+mpbi
+)
+
+
+thm (unass () () (=_ (u. (u. S T) U) (u. S (u. T U)))
+  x S (u. T U) elun
+  x T U elun
+  BiReplaceBi1Or1
+
+## <d>
+  (e. x S) (e. x T) (e. x U) orass
+  ## <d>
+    bicomi
+  ## </d>
+## </d>
+  BiReplaceBi1
+  x (u. S T) U elun
+  x S T elun
+  BiReplaceBi1Or0
+
+## <d>
+  bicomi
+## </d>
+
+BiReplaceBi1
+x gen
+
+  (u. S (u. T U)) (u. (u. S T) U)  x df-seq
+
+## <d>
+  bicomi
+## </d>
+
+mpbi
+  
+  ## <d>
+    (u. S (u. T U)) (u. (u. S T) U) seqcom
+  ## </d>
+  mpbi
+)
+
+thm (undi () () (=_ (u. S (i^i T U)) (i^i (u. S T) (u. S U))) 
+  x S (i^i T U) elun
+  x T U elin  
+  BiReplaceBi1Or1
+  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) ordi
+  ## </d>
+  bitri
+  x S T elun    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An0
+  x S U elun
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceBi1An1
+
+  x (u. S T) (u. S U) elin    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  bitri
+  x gen  
+
+  (u. S (i^i T U)) (i^i (u. S T) (u. S U)) x df-seq
+  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+ )
+
+ thm (undir () () (=_ (u. (i^i T U) S) (i^i (u. T S) (u. U S))) 
+  x (i^i T U) S elun
+  x T U elin  
+  BiReplaceBi1Or0
+  
+  ## <d>
+    (e. x T) (e. x U) (e. x S) ordir
+  ## </d>
+  bitri
+  x T S elun  
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An0
+  x U S elun  
+    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An1
+  x (u. T S) (u. U S) elin  
+  ## <d>
+    bicomi
+  ## </d> 
+  bitri
+
+  x gen 
+  (u. (i^i T U) S) (i^i (u. T S) (u. U S)) x df-seq  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+thm (indir () () (=_ (i^i (u. T U) S) (u. (i^i T S) (i^i U S))) 
+  x (u. T U) S elin
+  x T U elun
+  
+  BiReplaceBi1An0
+  
+  ## <d>
+    (e. x T) (e. x U) (e. x S) andir
+  ## </d>
+  bitri
+  x T S elin  
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceBi1Or0
+  x U S elin  
+  ## <d>
+    bicomi
+  ## </d>  
+  BiReplaceBi1Or1
+  x (i^i T S) (i^i U S) elun  
+  ## <d>
+    bicomi
+  ## </d>
+  
+  bitri
+  x gen  
+  (i^i (u. T U) S) (u. (i^i T S) (i^i U S)) x df-seq
+  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+thm (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U)))
+  x S (u. T U) elin
+  x T U elun   
+  BiReplaceBi1An1
+  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) andi
+  ## </d>
+  bitri
+  
+  ## <d>
+    x S T elin
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  BiReplaceBi1Or0
+  
+  ## <d>
+    x S U elin
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  BiReplaceBi1Or1
+  
+  ## <d>
+    x (i^i S T) (i^i S U) elun
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  bitri
+
+  x gen
+  (i^i S (u. T U)) (u. (i^i S T) (i^i S U)) x df-seq    
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+
+
+thm (unionAttach1 () (hyp (e. A S)) (e. A (u. S U))
+  tru
+  A S U elun
+  hyp
+   
+  (e. A U) orRemove1
+  (e. A (u. S U)) bibi2i
+  mpbi
+  mpbir
+)
+
+thm (unionAttach2 () (hyp (e. A S)) (e. A (u. U S))
+  tru
+  A U S elun
+  hyp
+   
+  (e. A U) orRemove2
+  (e. A (u. U S)) bibi2i
+  mpbi
+  mpbir
+)
+
+thm (notInUnion () (hyp (-. (e. A S)) hyp2 (-. (e. A T))) (-. (e. A (u. S T)))
+  A S T elun
+  hyp 
+  (e. A T) orNotRemove1
+  (e. A (u. S T)) bibi2i
+  mpbi
+  hyp2  
+  mtbirRemove
+  # TODO: Apply the two hypotheses together.
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-. (-.  [ ph ]   ]    ] )) ch)
+##   (<->         [ ph ]   [ ps ] )
+##   (-> (-. (-.  [    [   [ ps ] )) ch)
+## </table>
+thm (BiReplaceImp0Not0Not0 () (
+     replacee (-> (-. (-. ph)) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. (-. ps)) ch)
+  replacee
+  substitution
+con4biir
+con4biir
+ch imbi1i
+mpbi
+)
+
+thm (emptyIn1 () (hyp (-. (e. A S))) (=_ (i^i ({} A) S) ({/}))
+  (i^i ({} A) S) ({/}) x df-seq
+
+  x noel    
+  (e. x (i^i ({} A) S)) biNotRemove2
+  x albii
+  (=_ (i^i ({} A) S) ({/})) bibi2i
+  mpbi
+
+  x ({} A) S elin
+  x A elsnc  
+  BiReplaceBi1An0
+  x A S ax-eleq1
+  hyp  
+  (e. x S) biNotRemove2
+  (= x A) imbi2i
+  mpbi
+  con2i
+  (= x A) anim2i
+  sylbi
+  (= x A) pm3.24  
+  mtoRemove
+  
+  x gen  
+  mpbirRemove
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_  [ S ]   ]   ]  U)
+##   (=_  [ S ]   [ T ] )
+##   (=_  [   [   [ T ]  U)
+## </table>
+thm (SeqReplaceSeq0 () (
+     replacee (=_ S U)
+     substitution (=_ S T)) 
+     (=_ T U)
+  replacee
+  substitution
+U seqseq1i
+mpbi
+)
+
+thm (emptyIn2 () (hyp (-. (e. A S))) (=_ (i^i S ({} A)) ({/}))
+  hyp
+  emptyIn1  
+  ## <d>
+    ({} A) S incom
+  ## </d>
+    SeqReplaceSeq0
+)
+
+thm (inidm() () (=_ (i^i S S) S)
+  (i^i S S) S x df-seq
+  x S S elin
+  (e. x S) anidm  
+  bitri
+  x gen  
+  mpbirRemove
+)
+
+thm (unidm() () (=_ (u. S S) S)
+  (u. S S) S x df-seq
+  x S S elun
+  (e. x S) oridm  
+  bitri
+  x gen  
+  mpbirRemove
+)
+
+thm (inEmpty1() () (=_ (i^i S ({/})) ({/}))
+  (i^i S ({/})) ({/}) x df-seq
+  x S ({/}) elin
+  x noel
+  
+  (e. x S) anNotRemove2
+  (e. x (i^i S ({/}))) bibi2i
+  mpbi
+  notfal  
+  mtbirRemove
+
+  (e. x ({/})) biNotRemove1
+  x albii
+  (=_ (i^i S ({/})) ({/})) bibi2i
+  mpbi
+
+  x noel
+  x gen
+    
+  mpbirRemove
+)
+
+thm (inEmpty2() () (=_ (i^i ({/}) S) ({/}))
+  S inEmpty1  
+  ## <d>
+    S ({/}) incom
+  ## </d>
+  SeqReplaceSeq0
+)
+
+thm (unid() () (=_ (u. S ({/})) S)
+  (u. S ({/})) S x df-seq
+  x S ({/}) elun
+  x noel
+  (e. x S) orNotRemove2
+  (e. x (u. S ({/}))) bibi2i
+  mpbi
+  x gen
+  mpbirRemove
+)
+
+thm (unidr() () (=_ (u. ({/}) S) S)
+  (u. ({/}) S) S x df-seq
+  x ({/}) S elun
+  x noel
+  (e. x S) orNotRemove1
+  (e. x (u. ({/}) S)) bibi2i
+  mpbi
+  x gen
+  mpbirRemove
 )
 
 # Proofs in progress:
