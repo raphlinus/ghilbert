@@ -1588,8 +1588,8 @@ thm (pa_ax2i () (hyp (= A B)) (= (S A) (S B))
 
 ## <title> Equality over Addition </title>
 ## <table>
-##  (=    A ]       [ B ] )
-##  (= (+ A ] C) (+ [ B ] C))
+##  (=    A ]    ]    [ B ] )
+##  (= (+ A ] C) ] (+ [ B ] C))
 ## </table>
 thm (addeq1i ()
   (hyp (= A B))
@@ -1599,8 +1599,8 @@ thm (addeq1i ()
 
 ## <title> Equality over Addition </title>
 ## <table>
-##  (=      [ A ]        [ B )
-##  (= (+ C [ A ] ) (+ C [ B))
+##  (=      [ A ]   [    [ B )
+##  (= (+ C [ A ] ) [ (+ C [ B))
 ## </table>
 thm (addeq2i ()
   (hyp (= A B))
@@ -1964,6 +1964,29 @@ thm (a1suc () ()
   df-1 A addeq2i
   A (0) pa_ax4 eqtr
   A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr eqcomi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (= A  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (-. (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceNot0Eq1 () (
+     replacee (-. (= A B))
+     substitution (= B C)) 
+     (-. (= A C))
+  replacee
+  substitution
+A eqeq2i
+con4biir
+mpbi
+)
+
+thm (pa_ax1plus () () (-. (= (0) (+ A (1))))
+  A pa_ax1
+  A a1suc
+  EqReplaceNot0Eq1
 )
 
 # Replace an equal statement in the second part of an AND statement using the first part of the AND.
@@ -3832,6 +3855,7 @@ thm (emptyIn2 () (hyp (-. (e. A S))) (=_ (i^i S ({} A)) ({/}))
     SeqReplaceSeq0
 )
 
+## <title> Intersection is Idempotent </title>
 thm (inidm() () (=_ (i^i S S) S)
   (i^i S S) S x df-seq
   x S S elin
@@ -3841,6 +3865,7 @@ thm (inidm() () (=_ (i^i S S) S)
   mpbirRemove
 )
 
+## <title> Union is Idempotent </title>
 thm (unidm() () (=_ (u. S S) S)
   (u. S S) S x df-seq
   x S S elun
