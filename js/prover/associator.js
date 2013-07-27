@@ -18,7 +18,7 @@ GH.ProofGenerator.associatorRight.OPERATIONS = [
   ['i^i', 'inass', 'inass'],
 ];
 
-GH.ProofGenerator.associatorRight.getStepName = function (sexp) {
+GH.ProofGenerator.associatorRight.getActionName = function (sexp) {
 	var associateOperations = GH.ProofGenerator.associatorRight.OPERATIONS;
 	for (var i = 0; i < associateOperations.length; i++) {
 		if (sexp.operator == associateOperations[i][0]) {
@@ -32,8 +32,10 @@ GH.ProofGenerator.associatorRight.getStepName = function (sexp) {
 	return null;
 };
 
-GH.ProofGenerator.associatorRight.prototype.stepName = function(sexp) {
-	return GH.ProofGenerator.associatorRight.getStepName(sexp);
+GH.ProofGenerator.associatorRight.prototype.action = function(sexp) {
+	var hyps = (!sexp.isProven) ? this.prover.getHyps(sexp, this.expectedForm) : [];
+	var name = GH.ProofGenerator.associatorRight.getActionName(sexp);
+	return new GH.action(name, hyps);
 };
 
 GH.ProofGenerator.associatorRight.prototype.isApplicable = function(sexp) {
@@ -43,18 +45,9 @@ GH.ProofGenerator.associatorRight.prototype.isApplicable = function(sexp) {
 	if (sexp.operator.toString() != sexp.left().operator.toString()) {
 		return false;
 	}
-	var stepName = this.stepName(sexp);
-	return this.prover.symbolDefined(stepName);
+	var action = this.action(sexp);
+	return this.prover.symbolDefined(action.name);
 };
-
-GH.ProofGenerator.associatorRight.prototype.hyps = function(sexp) {
-	if (!sexp.isProven) {
-		return this.prover.getHyps(sexp, this.expectedForm);
-	} else {
-		return [];
-	}
-};
-
 GH.ProofGenerator.associatorRight.prototype.inline = function(sexp) {      return false;  };
 GH.ProofGenerator.associatorRight.prototype.canAddTheorem = function(sexp) {  return false;  };
 
@@ -78,14 +71,15 @@ GH.ProofGenerator.associatorLeft.OPERATIONS = [
   ['i^i', 'inassl', 'inassl'],
 ];
 
-GH.ProofGenerator.associatorLeft.prototype.stepName = function(sexp) {
+GH.ProofGenerator.associatorLeft.prototype.action = function(sexp) {
+	var hyps = (!sexp.isProven) ? this.prover.getHyps(sexp, this.expectedForm) : [];
 	var associateOperations = GH.ProofGenerator.associatorLeft.OPERATIONS;
 	for (var i = 0; i < associateOperations.length; i++) {
 		if (sexp.operator == associateOperations[i][0]) {
 			if (!sexp.isProven) {
-				return associateOperations[i][1];
+				return new GH.action(associateOperations[i][1], hyps);
 			} else {
-				return associateOperations[i][2];
+				return new GH.action(associateOperations[i][2], hyps);
 			}
 		}
 	}
@@ -99,20 +93,13 @@ GH.ProofGenerator.associatorLeft.prototype.isApplicable = function(sexp) {
 	if (sexp.operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
-	return (this.stepName(sexp) != null);
-};
-
-GH.ProofGenerator.associatorLeft.prototype.hyps = function(sexp) {
-	if (!sexp.isProven) {
-		return this.prover.getHyps(sexp, this.expectedForm);
-	} else {
-		return [];
-	}
+	return (this.action(sexp).name != null);
 };
 
 GH.ProofGenerator.associatorLeft.prototype.inline = function(sexp) {
-	var stepName = GH.ProofGenerator.associatorRight.getStepName(sexp);
-	this.prover.print(this.hyps(sexp), stepName);
+	var hyps = (!sexp.isProven) ? this.prover.getHyps(sexp, this.expectedForm) : [];
+	var name = GH.ProofGenerator.associatorRight.getActionName(sexp);
+	this.prover.print(hyps, name);
 	var result = this.prover.getLast();
 	this.prover.commute(result);
 	return true;

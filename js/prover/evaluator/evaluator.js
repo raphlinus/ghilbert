@@ -28,12 +28,12 @@ GH.ProofGenerator.evaluator.prototype.findGenerator = function(operator) {
 	return null;
 };
 
-GH.ProofGenerator.evaluator.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluator.prototype.action = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
-		return generator.stepName(sexp);
+		return generator.action(sexp);
 	} else {
-		return null;
+		return new GH.action(null, []);
 	}
 };
 
@@ -58,29 +58,19 @@ GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
 	}
 };
 
-GH.ProofGenerator.evaluator.prototype.hyps = function(sexp) {	
-	var generator = this.findGenerator(sexp.operator);
-	if (generator) {
-		return generator.hyps(sexp);
-	} else {
-		return null;
-	}
-};
-
 GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
 		if (GH.operatorUtil.getType(sexp) != 'wff') {
 			var allReduced = true;
 			for (var i = 0; i < sexp.operands.length; i++) {
-				// TODO: Add isReduced for sets.
 				if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
 					sexp = this.prover.replaceWith(this.prover.evaluator, sexp.operands[i]).parent;
 					allReduced = false;
 				}
 			}
 			if (!allReduced) {
-				this.prover.replaceWith(this.prover.evaluator, sexp);
+				this.prover.evaluate(sexp);
 				return true;
 			} else {
 				return generator.inline(sexp);

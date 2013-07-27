@@ -4,14 +4,14 @@ GH.ProofGenerator.evaluatorEquality = function(prover) {
   this.operators = ['=', '<', '<='];
 };
 
-GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorEquality.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
 	// TODO: Prove things like 3 <= 3.
 	// TODO: Prove things like 1 + 5 = 2 * 3 here.
 	if (leftNum == rightNum) {
-		return 'eqid';
+		return new GH.action('eqid', [sexp.left()]);
 	}
 	var operatorName;
 
@@ -31,23 +31,12 @@ GH.ProofGenerator.evaluatorEquality.prototype.stepName = function(sexp) {
 		}
 	}
 
-	return leftNum + operatorName + rightNum;
+	return new GH.action(leftNum + operatorName + rightNum, []);
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
 	// This is a hack to just make sure we're at least in the right file.
 	return this.prover.symbolDefined('eqid');
-};
-
-GH.ProofGenerator.evaluatorEquality.prototype.hyps = function(sexp) {
-	var leftNum  = this.prover.calculate(sexp.left());
-	var rightNum = this.prover.calculate(sexp.right());
-
-	if (leftNum == rightNum) {
-		return [sexp.left()];
-	}
-
-	return [];
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.canAddTheorem = function(sexp) {
@@ -91,7 +80,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 GH.ProofGenerator.evaluatorEquality.prototype.rightNumNotZero = function(num) {
 	var predecessor = num - 1;
 	var sexp = GH.numUtil.createNum(predecessor);
-	this.prover.print([sexp], 'pa_ax1');
+	this.prover.print([sexp], 'pa_ax1plus');
 	var result = this.prover.getLast();
 	return this.prover.evaluate(result.child().right()).parent.parent;
 };

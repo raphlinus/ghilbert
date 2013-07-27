@@ -14,21 +14,17 @@ GH.ProofGenerator.distributorLeft.OPERATIONS = [
 ];
 
 GH.ProofGenerator.distributorLeft.prototype.isApplicable = function(sexp) {
-	// TODO: Check that the step name is defined.
-	return ((this.hyps(sexp) != null) && (this.stepName(sexp) != null));
+	return ((this.prover.getHyps(sexp, this.expectedForm) != null) && (this.action(sexp).name != null));
 };
 
-GH.ProofGenerator.distributorLeft.prototype.stepName = function(sexp) {
+GH.ProofGenerator.distributorLeft.prototype.action = function(sexp) {
 	// TODO: Add ianor and ioran.
-	return GH.ProofGenerator.distributorLeft.getOperation(
+	var name = GH.ProofGenerator.distributorLeft.getOperation(
 	    GH.ProofGenerator.distributorLeft.OPERATIONS,
 	    sexp.operator,
         sexp.left().operator);
-};
-
-// Returns the mandatory hypotheses using the expected form.
-GH.ProofGenerator.distributorLeft.prototype.hyps = function(sexp) {
-	return this.prover.getHyps(sexp, this.expectedForm);
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
+	return new GH.action(name, hyps);
 };
 
 GH.ProofGenerator.distributorLeft.prototype.inline = function(sexp) {         return false;  };
@@ -63,19 +59,16 @@ GH.ProofGenerator.distributorRight.OPERATIONS = [
 ];
 
 GH.ProofGenerator.distributorRight.prototype.isApplicable = function(sexp) {
-	return ((this.hyps(sexp) != null) && (this.stepName(sexp) != null));
+	return ((this.prover.getHyps(sexp, this.expectedForm) != null) && (this.action(sexp).name != null));
 };
 
-GH.ProofGenerator.distributorRight.prototype.stepName = function(sexp) {
-	return GH.ProofGenerator.distributorLeft.getOperation(
+GH.ProofGenerator.distributorRight.prototype.action = function(sexp) {
+	var name = GH.ProofGenerator.distributorLeft.getOperation(
 	    GH.ProofGenerator.distributorRight.OPERATIONS,
 	    sexp.operator,
         sexp.right().operator);
-};
-
-// Returns the mandatory hypotheses using the expected form.
-GH.ProofGenerator.distributorRight.prototype.hyps = function(sexp) {
-	return this.prover.getHyps(sexp, this.expectedForm);
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
+	return new GH.action(name, hyps);
 };
 
 GH.ProofGenerator.distributorRight.prototype.inline = function(sexp) {         return false;  };
@@ -91,30 +84,26 @@ GH.ProofGenerator.undistributorLeft = function(prover) {
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.isApplicable = function(sexp) {
-	if (this.hyps(sexp) == null) {
+	if (this.prover.getHyps(sexp, this.expectedForm) == null) {
 		return false;
 	}
 	if (sexp.left().operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
-	return (this.stepName(sexp) != null);
+	return (this.action(sexp).name != null);
 };
 
-GH.ProofGenerator.undistributorLeft.prototype.stepName = function(sexp) {
+GH.ProofGenerator.undistributorLeft.prototype.action = function(sexp) {
 	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
 	    GH.ProofGenerator.distributorLeft.OPERATIONS,
         sexp.left().operator,
 	    sexp.operator);
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
 	if (forwardName != null) {
-		return 'undo' + forwardName;  // TODO: Get undistr to work.
+		return new GH.action('undo' + forwardName, hyps);  // TODO: Get undistr to work.
 	} else {
-		return null;
+		return new GH.action(null, hyps);
 	}
-};
-
-// Returns the mandatory hypotheses using the expected form.
-GH.ProofGenerator.undistributorLeft.prototype.hyps = function(sexp) {
-	return this.prover.getHyps(sexp, this.expectedForm);
 };
 
 GH.ProofGenerator.undistributorLeft.prototype.inline = function(sexp) {
@@ -122,7 +111,8 @@ GH.ProofGenerator.undistributorLeft.prototype.inline = function(sexp) {
 	    GH.ProofGenerator.distributorLeft.OPERATIONS,
         sexp.left().operator,
 	    sexp.operator);
-	this.prover.print(this.hyps(sexp), forwardName);
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
+	this.prover.print(hyps, forwardName);
 	var result = this.prover.getLast();
 	this.prover.commute(result);
 	return true;
@@ -152,30 +142,26 @@ GH.ProofGenerator.undistributorRight.OPERATIONS = [
 ];
 
 GH.ProofGenerator.undistributorRight.prototype.isApplicable = function(sexp) {
-	if (this.hyps(sexp) == null) {
+	if (this.prover.getHyps(sexp, this.expectedForm) == null) {
 		return false;
 	}
 	if (sexp.left().operator.toString() != sexp.right().operator.toString()) {
 		return false;
 	}
-	return (this.stepName(sexp) != null);
+	return (this.action(sexp).name != null);
 };
 
-GH.ProofGenerator.undistributorRight.prototype.stepName = function(sexp) {
+GH.ProofGenerator.undistributorRight.prototype.action = function(sexp) {
 	var forwardName = GH.ProofGenerator.distributorLeft.getOperation(
 	    GH.ProofGenerator.undistributorRight.OPERATIONS,
         sexp.left().operator,
 	    sexp.operator);
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
 	if (forwardName != null) {
-		return 'undo' + forwardName;
+		return new GH.action('undo' + forwardName, hyps);
 	} else {
-		return null;
+		return new GH.action(null, hyps);
 	}
-};
-
-// Returns the mandatory hypotheses using the expected form.
-GH.ProofGenerator.undistributorRight.prototype.hyps = function(sexp) {
-	return this.prover.getHyps(sexp, this.expectedForm);
 };
 
 GH.ProofGenerator.undistributorRight.prototype.inline = function(sexp) {
@@ -183,7 +169,8 @@ GH.ProofGenerator.undistributorRight.prototype.inline = function(sexp) {
 	    GH.ProofGenerator.undistributorRight.OPERATIONS,
 	    sexp.left().operator,
         sexp.operator);
-	this.prover.print(this.hyps(sexp), forwardName);
+	var action = this.action(sexp);
+	this.prover.print(action.hyps, forwardName);
 	var result = this.prover.getLast();
 	this.prover.commute(result);
 	return true;

@@ -70,7 +70,7 @@ GH.ProofGenerator.replacer.SHORTHAND_OPERATIONS = {
     ImpReplaceImp1: 'syl'
 };
 
-GH.ProofGenerator.replacer.prototype.stepName = function(sexp, replacement) {
+GH.ProofGenerator.replacer.prototype.action = function(sexp, replacement) {
 	var position = GH.Prover.findPosition(sexp);
 	var temp = sexp;
 	while (temp.parent != null) {
@@ -87,14 +87,10 @@ GH.ProofGenerator.replacer.prototype.stepName = function(sexp, replacement) {
 	}
 	var shorthand = GH.ProofGenerator.replacer.SHORTHAND_OPERATIONS[result];
 	if (shorthand) {
-		return shorthand;
+		return new GH.action(shorthand, []);
 	} else {
-		return result;
+		return new GH.action(result, []);
 	}
-};
-
-GH.ProofGenerator.replacer.prototype.hyps = function(sexp) {
-	return [];
 };
 
 GH.ProofGenerator.replacer.prototype.canAddTheorem = function(sexp) {
@@ -110,7 +106,7 @@ GH.ProofGenerator.replacer.prototype.canAddTheorem = function(sexp) {
 
 GH.ProofGenerator.replacer.prototype.addTheorem = function(sexp, replacement) {
 	var position = GH.Prover.findPosition(sexp);
-	var name = this.stepName(sexp, replacement);
+	var name = this.action(sexp, replacement).name;
 	var replaceThm = this.createGeneric(position.slice(0), sexp, replacement, name);
 	// this.prover.insertBeginning(replaceThm);
 	for (var i = 0; i < replaceThm.length; i++) {
@@ -273,11 +269,11 @@ GH.ProofGenerator.replacer.getReplaceOperation = function(replaceeOperator, repl
 	return null;
 };
 
-GH.ProofGenerator.replacer.prototype.addStep = function(mandHyps, stepName, output) {
-	if ((!stepName) || (!this.prover.symbolDefined(stepName))) {
+GH.ProofGenerator.replacer.prototype.addAction = function(mandHyps, name, output) {
+	if ((!name) || (!this.prover.symbolDefined(name))) {
 		return false;
 	}
-	this.prover.makeString(mandHyps, stepName, output);
+	this.prover.makeString(mandHyps, name, output);
 	return true;
 }
 
@@ -300,13 +296,13 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 	var operandIndex = replacee.siblingIndex;
 	if (!parent) {
 		if (GH.operatorUtil.getType(replacee) == 'wff') {
-			stepName = 'null';
+			var actionName = 'null';
 			if (replacementOperator == '->') {
-				stepName = 'ax-mp';
+				actionName = 'ax-mp';
 			} else if (replacementOperator == '<->') {
-				stepName = 'mpbi';
+				actionName = 'mpbi';
 			}
-			return this.addStep([], stepName, output);
+			return this.addAction([], actionName, output);
 		} else {
 			return true;
 		}
@@ -322,7 +318,7 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 	var replaceOperation = GH.ProofGenerator.replacer.getReplaceOperation(replaceeOperator, replacementOperator);
 	if (replaceOperation != null) {
 		var mandHyps = [];
-		var stepName = null;
+		var actionName = null;
 		var operatorTypes = GH.operatorUtil.getOperatorTypes(replaceeOperator);
 		// Add all the operands that are not getting replaced.
 		for (var j = 0; j < types.length - 1; j++) {
@@ -330,8 +326,8 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 				mandHyps.push(parent.operands[j]);
 			}
 		}
-		stepName = replaceOperation[1][operandIndex];
-		var success = this.addStep(mandHyps, stepName, output);
+		actionName = replaceOperation[1][operandIndex];
+		var success = this.addAction(mandHyps, actionName, output);
 		resultOperator = replaceOperation[2];
 		if (!success) {
 			return false;

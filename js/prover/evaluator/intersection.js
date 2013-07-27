@@ -3,26 +3,14 @@ GH.ProofGenerator.evaluatorIntersection = function(prover) {
   this.operators = ['i^i'];
 };
 
-GH.ProofGenerator.evaluatorIntersection.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorIntersection.prototype.action = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	var intersection = this.calculate(sexp);
 	if ((leftSet.length == intersection.length) && (rightSet.length == intersection.length)) {
-		return 'inidm';
+		return new GH.action('inidm', [sexp.left()]);
 	}
-	return 'doIntersection';
-};
-
-
-GH.ProofGenerator.evaluatorIntersection.prototype.hyps = function(sexp) {
-	// TODO: Reorganize the proofGenerators so that the stepName and hyps are in one function together.
-	var leftSet = this.prover.calculate(sexp.left());
-	var rightSet = this.prover.calculate(sexp.right());
-	var intersection = this.calculate(sexp);
-	if ((leftSet.length == intersection.length) && (rightSet.length == intersection.length)) {
-		return [sexp.left()];
-	}
-	return [];
+	return new GH.action('doIntersection', []);
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.isApplicable = function(sexp) {

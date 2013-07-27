@@ -32,22 +32,26 @@ GH.ProofGenerator.commuter.prototype.isNegated = function(sexp) {
 	}
 };
 
-GH.ProofGenerator.commuter.prototype.stepName = function(sexp) {
+GH.ProofGenerator.commuter.prototype.action = function(sexp) {
 	if (this.isNegated(sexp)) {
-		return 'not' + this.stepName(sexp.child());
+		var action = this.action(sexp.child());
+		action.name = 'not' + positiveAction.name;
+		return action;
 	}
 
+	//var hyps = !sexp.isProven ? this.prover.getHyps(sexp, this.expectedForm) : []; // TODO: Resolve these problems.
+	var hyps = this.prover.getHyps(sexp, this.expectedForm);
 	var commuteOperations = GH.ProofGenerator.commuter.OPERATIONS;
 	for (var i = 0; i < commuteOperations.length; i++) {
 		if (sexp.operator == commuteOperations[i][0]) {
 			if (true) { // !sexp.isProven) {     // TODO: Resolve these problems.
-				return commuteOperations[i][1];
+				return new GH.action(commuteOperations[i][1], hyps);
 			} else {
-				return commuteOperations[i][2];
+				return new GH.action(commuteOperations[i][2], hyps);
 			}
 		}
 	}
-	return null;
+	return new GH.action(null, []);
 };
 
 GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
@@ -65,16 +69,8 @@ GH.ProofGenerator.commuter.prototype.isApplicable = function(sexp) {
 		return false;
 	}
 
-	var stepName = this.stepName(sexp);
-	return this.prover.symbolDefined(stepName);
-};
-
-GH.ProofGenerator.commuter.prototype.hyps = function(sexp) {
-	if (true) { // !sexp.isProven) {     // TODO: Resolve these problems.
-		return this.prover.getHyps(sexp, this.expectedForm);
-	} else {
-		return [];
-	}
+	var action = this.action(sexp);
+	return this.prover.symbolDefined(action.name);
 };
 
 GH.ProofGenerator.commuter.prototype.inline = function(sexp) {

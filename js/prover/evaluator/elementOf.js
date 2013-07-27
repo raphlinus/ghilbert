@@ -3,28 +3,18 @@ GH.ProofGenerator.evaluatorElementOf = function(prover) {
   this.operators = ['e.'];
 };
 
-GH.ProofGenerator.evaluatorElementOf.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorElementOf.prototype.action = function(sexp) {
 	if ((sexp.right().operator == '{}') && (this.calculate(sexp))) {
-		return 'snid';
+		return new GH.action('snid', [sexp.left()]);
 	}
 	if (sexp.right().operator == '{/}') {
-		return 'noel';
+		return new GH.action('noel', [sexp.left()]);
 	}
-	return 'elementOf';
+	return new GH.action('elementOf', []);
 };
 
 GH.ProofGenerator.evaluatorElementOf.prototype.isApplicable = function(sexp) {
 	return true;
-};
-
-GH.ProofGenerator.evaluatorElementOf.prototype.hyps = function(sexp) {
-	if ((sexp.right().operator == '{}') && (this.calculate(sexp))) {
-		return [sexp.left()];
-	}
-	if (sexp.right().operator == '{/}') {
-		return [sexp.left()];
-	}
-	return [];
 };
 
 GH.ProofGenerator.evaluatorElementOf.prototype.inline = function(sexp) {

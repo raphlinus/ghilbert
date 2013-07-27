@@ -179,11 +179,12 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
     if (thmctx.proofctx) {
     	pstack = thmctx.proofctx.mandstack;
 		thmctx.history.push(thmctx.proofctx.stackHistory);
+		thmctx.hierarchies.push(thmctx.proofctx.hierarchy);
 		var shownHistory = thmctx.history[thmctx.history.length - 1];
 		for (var i = thmctx.history.length - 2; i >= 0; i--) {
 			for (var j = 0; j < thmctx.history[i].length; j++) {
-				if (cursorPosition <= thmctx.history[i][j].end) {
-					shownHistory = thmctx.history[i]
+				if (cursorPosition <= thmctx.hierarchies[i].end) {
+					shownHistory = thmctx.history[i];
 				}
 			}
 		}
@@ -244,7 +245,7 @@ GH.Direct.prototype.removeCurrentTheorem = function() {
 	var thmCount = this.thmctx.history.length;
 	var begin = 0;
 	if (thmCount >= 2) {
-		begin = this.thmctx.history[thmCount - 2][0].end
+		begin = this.thmctx.hierarchies[thmCount - 2].end;
 	}
 	var end = this.text.getValue().length;
 	var currentThm = this.text.splice(begin, end - begin, '');
@@ -280,11 +281,13 @@ GH.DirectThm = function(vg) {
 
 	// A set of the previous stack histories. Used when there are multiple proofs in the editor.
 	this.history = [];
+
+	// A set of the previous stack hierarchies. Used when there are multiple proofs in the editor.
+	this.hierarchies = [];
 	
 	this.styleScanner = new GH.StyleScanner();
 
-	// The depth at the current position in the proof. Proof steps with higher depths are less important.
-	this.depth = 0;
+	this.tagNames = [];
 };
 
 GH.DirectThm.StateType = {
@@ -315,18 +318,27 @@ GH.DirectThm.prototype.pushEmptySExp_ = function(tok) {
 
 // Styling tag to increment the depth. Proof steps with a higher depth are
 // less important and less visible.
-GH.DirectThm.INCREMENT_DEPTH_TAG_ = '<d>';
+GH.DirectThm.INCREMENT_DEPTH_TAG_ = '<d';
 
 // Styling tag to decrement the depth. Proof steps with a lower depth are
 // more important and more visible.
-GH.DirectThm.DECREMENT_DEPTH_TAG_ = '</d>';
+GH.DirectThm.DECREMENT_DEPTH_TAG_ = '</d';
 
 // Update the depth based on the styling.
 GH.DirectThm.prototype.applyStyling = function(styling) {
-	if (styling[0] == GH.DirectThm.INCREMENT_DEPTH_TAG_) {
-		this.depth++;
-	} else if (styling[0] == GH.DirectThm.DECREMENT_DEPTH_TAG_) {
-		this.depth--;
+	if (styling[0] && styling[0].indexOf(GH.DirectThm.INCREMENT_DEPTH_TAG_) == 0) {
+		var newHierarchy = new GH.ProofHierarchy(null, styling[0].beg);
+		this.proofctx.hierarchy.appendChild(newHierarchy);
+		this.proofctx.hierarchy = newHierarchy;
+
+		var splitStyling = styling.join(' ').split('\'');
+		var tagName = (splitStyling.length == 3) ? splitStyling[1] : null;
+		this.tagNames.push(tagName);
+	} else if (styling[0] && styling[0].indexOf(GH.DirectThm.DECREMENT_DEPTH_TAG_) == 0) {
+		this.proofctx.hierarchy.end = styling[styling.length - 1].end
+		this.proofctx.hierarchy = this.proofctx.hierarchy.parent;
+
+		var newTagName = this.tagNames.pop();
 	}
 }
 
@@ -397,7 +409,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			} else if (tok == ')') {
 				pc = this.proofctx;
 				if (pc.mandstack.length != 0) {
-					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, 0, null));
+					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, null));
 					return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 				}
 				if (pc.stack.length != 1) {
@@ -422,9 +434,8 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.newSyms.push(this.thmname);
 
 				this.state = stateType.THM;
-				// Make the end of the stack history equal to the final end to the theorem.
-				var stackHistory = this.proofctx.stackHistory;
-				stackHistory[stackHistory.length - 1].end = tok.end;
+				// Make the end of the hierarchy equal to the final end to the theorem.
+				this.proofctx.hierarchy.end = tok.end;
 				this.concl = null;
 				this.hypmap = {};
 			} else {
@@ -453,7 +464,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			break;
 		case stateType.PROOF_END:
-			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false, 0, null));
+			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false, null));
 			return 'extra junk after proof';
 			break;
 	}
@@ -464,6 +475,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.fv = thestep;
 		if (this.proofctx) {
 			this.history.push(this.proofctx.stackHistory);
+			this.hierarchies.push(this.proofctx.hierarchy);
 		}
 		this.proofctx = new GH.ProofCtx();
 		this.proofctx.varlist = [];
@@ -506,14 +518,15 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.concl = thestep || 'null';
   } else if (thestep != null && state == stateType.POST_S_EXPRESSION) {
 		try {
-			this.vg.check_proof_step(this.hypmap, thestep, this.proofctx, this.depth);
+			var tagName = (this.tagNames.length > 0) ? this.tagNames[this.tagNames.length - 1] : null;
+			this.vg.check_proof_step(this.hypmap, thestep, this.proofctx, tagName);
 		} catch (e3) {
 			if (e3.found) {
 				throw e3;
 			}
 			var stackHistory = this.proofctx.stackHistory;
 			var removed = stackHistory.splice(0);
-			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false, 0, null));
+			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false, null));
 			return "! " + e3;
 		}
   }

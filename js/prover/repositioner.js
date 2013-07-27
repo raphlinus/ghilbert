@@ -34,16 +34,18 @@ GH.repositioner.prototype.associateAllRight = function(expTree) {
 GH.repositioner.prototype.associateAllLeft = function(expTree) {
 	var sexp = expTree.sexp;
 	var tree = expTree.tree;
+	var result;
 	if (tree.right && tree.right.right) {
-		var result = this.prover.associateLeft(sexp);
+		result = this.prover.associateLeft(sexp);
 		tree.associateLeft();
-		return this.associateAllLeft({sexp: result, tree: tree});
+		result = this.associateAllLeft({sexp: result, tree: tree});
 	} else if (tree.left) {
 		var result = this.associateAllLeft({sexp: sexp.left(), tree: tree.left});
-		return {sexp: result.sexp.parent, tree: tree};
+		result = {sexp: result.sexp.parent, tree: tree};
 	} else {
-		return expTree;
+		result = expTree;
 	}
+	return result;
 };
 
 // Repositions the terms in an s-expression. Uses commutation and association rules to 
@@ -54,14 +56,23 @@ GH.repositioner.prototype.associateAllLeft = function(expTree) {
 // get into the new tree position.
 GH.repositioner.prototype.repositionTree = function(sexp, oldTree, newTree) {
 	// TODO: Optimize by not modifying left or right if they were not changed.
+	sexp = this.prover.openExp(sexp, 'Rearrange Terms');
+	sexp = this.prover.openExp(sexp, 'Associate All Left');
 	var leftAssociated = this.associateAllLeft({sexp: sexp, tree: oldTree});
-//	var result = leftAssociated.
+	leftAssociated.sexp = this.prover.closeExp(leftAssociated.sexp);
+
+	leftAssociated.sexp = this.prover.openExp(leftAssociated.sexp, 'Reorder Terms');
 	var symbolOrder = GH.symbolTree.getSymbolOrder(oldTree.getSymbolList(), newTree.getSymbolList());
 	var reordered = this.reorder(leftAssociated.sexp, symbolOrder);
+	reordered.sexp = this.prover.closeExp(reordered.sexp);
 	
 	// leftAssociated.tree was set before the reordering, so it is not a perfect representation
 	// of the state of the left, but for the reassociation step the order is irrelevant.
-	return this.reassociate(reordered, leftAssociated.tree, newTree);
+	reordered.sexp = this.prover.openExp(reordered.sexp, 'Change Associations');
+	var result = this.reassociate(reordered, leftAssociated.tree, newTree);
+	result = this.prover.closeExp(result);
+	result = this.prover.closeExp(result);
+	return result;
 };
 	
 // Uses a bubble sort.

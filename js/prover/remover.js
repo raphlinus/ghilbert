@@ -31,16 +31,16 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 	if (!parent.parent) {
 		for (var i = 0; i < shorthandOperations.length; i++) {
 			if (operator == shorthandOperations[i][0]) {
-				var stepName = null;
+				var actionName = null;
 				if (!isNegated) {
-					stepName = shorthandOperations[i][1][operandIndex];
+					actionName = shorthandOperations[i][1][operandIndex];
 				} else {
-					stepName = shorthandOperations[i][2][operandIndex];
+					actionName = shorthandOperations[i][2][operandIndex];
 				}
-				if ((!stepName) || (!this.prover.symbolDefined(stepName))) {
+				if ((!actionName) || (!this.prover.symbolDefined(actionName))) {
 					return false;
 				}
-				this.prover.makeString([], stepName, output);
+				this.prover.makeString([], actionName, output);
 				return true;
 			}
 		}
@@ -50,18 +50,18 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 	for (var i = 0; i < removeOperations.length; i++) {
 		if (operator == removeOperations[i][0]) {
 			var mandHyps = [];
-			var stepName = null;
+			var actionName = null;
 			//if (parent.parent) {
 			mandHyps.push(parent.operands[1 - operandIndex]);
 			if (!isNegated) {
-				stepName = removeOperations[i][1][operandIndex];
+				actionName = removeOperations[i][1][operandIndex];
 			} else {
-				stepName = removeOperations[i][2][operandIndex];
+				actionName = removeOperations[i][2][operandIndex];
 			}
-			if ((!stepName) || (!this.prover.symbolDefined(stepName))) {
+			if ((!actionName) || (!this.prover.symbolDefined(actionName))) {
 				return false;
 			}
-			this.prover.makeString(mandHyps, stepName, output);
+			this.prover.makeString(mandHyps, actionName, output);
 		}
 	}
 

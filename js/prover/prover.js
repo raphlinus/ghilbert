@@ -7,6 +7,7 @@ GH.Prover = function(suggestArea, direct) {
 	this.conclusions = [];
 	this.activeExp = null;
 	this.stack = [];
+	this.openExps = [];
 
 	this.primaryArea = document.createElement('div');
 	this.secondaryArea = document.createElement('div');
@@ -50,6 +51,36 @@ GH.Prover = function(suggestArea, direct) {
 		{name: 'Ass. L',     gen: this.associatorLeft},
 		{name: 'Ass. R',     gen: this.associatorRight},
 	];
+};
+
+GH.Prover.prototype.openExp = function(sexp, name) {
+	var thmCount = this.direct.getTheorems().length;
+	this.openExps.push({sexp: sexp, thmCount: thmCount, modified: false, name: name, styling: []});
+	this.incrementDepth(name);
+	return sexp.copy();
+};
+
+GH.Prover.prototype.closeExp = function(sexp) {
+	var closedExp = this.openExps.pop();
+	var result;
+	var thmCount = this.direct.getTheorems().length;
+	if (thmCount > closedExp.thmCount) {
+		result = this.replace(closedExp.sexp);
+	} else {
+		if (closedExp.modified) {
+			result = sexp;
+		} else {
+			result = closedExp.sexp;
+		}
+	}
+	
+	if (closedExp.modified == true) {
+		this.decrementDepth(closedExp.name);
+	} else {
+		this.depth--;
+	}
+	
+	return result;
 };
 
 GH.Prover.prototype.updateActiveExp = function(theorems, stack) {
@@ -291,9 +322,16 @@ GH.Prover.prototype.addSuggestion = function(name, clickHandler, isPrimary) {
 };
 
 GH.Prover.prototype.indent = function() {
+	var text = this.indentText();
+	this.direct.insertText(text);
+};
+
+GH.Prover.prototype.indentText = function() {
+	var text = '';
 	for (var i = 0; i < this.depth; i++) {
-		this.direct.insertText('  ');
+		text += '  ';
 	}
+	return text;
 };
 
 // Print text into the proof.
@@ -301,14 +339,28 @@ GH.Prover.prototype.insertText = function(text) {
 	this.direct.insertText(text);
 };
 
+GH.Prover.prototype.onModify = function() {
+	for (var i = 0; i < this.openExps.length; i++) {
+		var openExp = this.openExps[i];
+		if (!openExp.modified) {
+			openExp.modified = true;
+			for (var j = 0; j < openExp.styling.length; j++) {
+				this.insertText(openExp.styling[j]);
+			}
+		}
+	}
+};
+
 // Print text into the proof and add a new line.
 GH.Prover.prototype.println = function(text) {
+	this.onModify();
 	this.indent();
 	this.insertText(text + '\n');
 };
 
 // Insert a known theorem into the proof with all it's mandatory hypotheses.
 GH.Prover.prototype.print = function(mandHyps, step) {
+	this.onModify();
 	this.indent();
 	for (var i = 0; i < mandHyps.length; i++) {
 		this.insertText(mandHyps[i].toString() + ' ');
@@ -335,7 +387,7 @@ GH.Prover.prototype.getTheorems = function() {
 	// here because it is really useful for debugging. Just uncomment it and you can see
 	// the proofs changing while you're debugging.
 	
-	// TODO: Fix problems with 3 | 7. Then comment this out again.	
+	// TODO: Fix problems with 3 + 3 and 3 | 7. Theorems get repeated. Then comment this out again.	
 	this.direct.update(true);
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
@@ -423,34 +475,69 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
  * generate all the necessary steps to apply the generator.
  */
 GH.Prover.prototype.apply = function(generator, sexp) {
-	var name = generator.stepName(sexp);
-	if (this.symbolDefined(name)) {
+	var action = generator.action(sexp);
+	if (this.symbolDefined(action.name)) {
 		// Uses the proof if it already exists in the repository.
-		var hyps = generator.hyps(sexp);
-		this.print(hyps, name);
+		this.print(action.hyps, action.name);
 	} else {
 		// If not already defined, generate the proof either as a new theorem or inline.
 		if (generator.canAddTheorem(sexp)) {
 			var result = this.getLast();
 			var savedThm = this.direct.removeCurrentTheorem();
 			var savedDepth = this.depth;
+			var savedOpenExps = this.openExps;
 			this.depth = 0;
+			this.openExps = [];
 			this.println('');
 			this.println('');
 			generator.addTheorem(sexp, result);
 			this.direct.insertText(savedThm.join(''));
 			this.depth = savedDepth;
+			this.openExps = savedOpenExps;
 			this.depth++;
-			this.println(name);
+			this.println(action.name);
 			this.depth--;
 			this.direct.update(false);
 		} else {
 			var added = generator.inline(sexp);
 			if (!added) {
-				alert(name + ' is not in the repository and cannot be generated.');
+				alert(action.name + ' is not in the repository and cannot be generated.');
 			}
 		}
 	}
+};
+
+GH.Prover.prototype.incrementDepth = function(name) {
+	if (name) {
+		name = ' \'' + name + '\'';
+	} else {
+		name = '';
+	}
+	var text = this.indentText() + '## <d' + name + '>\n';
+	var lastUnmodified = null;
+	if (this.openExps.length > 0) {
+		var lastOpen = this.openExps[this.openExps.length - 1];
+		if (!lastOpen.modified) {
+			lastUnmodified = lastOpen;
+		}
+	}
+	if (lastUnmodified) {
+		lastUnmodified.styling.push(text);
+	} else {
+		this.insertText(text);
+	}
+	this.depth++;
+};
+
+GH.Prover.prototype.decrementDepth = function(name) {
+	this.depth--;
+	if (name) {
+		name = ' \'' + name + '\'';
+	} else {
+		name = '';
+	}
+	this.indent();
+	this.insertText('## </d' + name + '>\n');
 };
 
 /**
@@ -464,11 +551,9 @@ GH.Prover.prototype.replaceWith = function(generator, sexp) {
 	if (!generator.isApplicable(sexp)) {
 		return sexp;
 	}
-	this.println('## <d>');
-	this.depth++;
+	this.incrementDepth();
 	this.apply(generator, sexp);
-	this.depth--;
-	this.println('## </d>');
+	this.decrementDepth();
 	return this.replace(sexp);
 };
 
@@ -476,23 +561,24 @@ GH.Prover.prototype.applyWith = function(generator, sexp) {
 	if (!generator.isApplicable(sexp)) {
 		return sexp;
 	}
-	this.println('## <d>');
-	this.depth++;
 	this.apply(generator, sexp);
-	this.depth--;
-	this.println('## </d>');
 	return this.getLast();
+};
+
+
+GH.Prover.prototype.openWith = function(generator, sexp, name) {
+	sexp = this.openExp(sexp, 'Distributive Property');
+	sexp = this.applyWith(generator, sexp);
+	return this.closeExp(sexp);
 };
 
 // Like replaceWith, but when you have an ordinary function not a generator.
 // Ideally functions would be converted into generators so that the generated
 // theorems can be saved and reused.
 GH.Prover.prototype.replaceFunc = function(func, sexp, caller) {
-	this.println('## <d>');
-	this.depth++;
+	this.incrementDepth();
 	func.call(caller, sexp);
-	this.depth--;
-	this.println('## </d>');
+	this.decrementDepth();
 	return this.replace(sexp);
 };
 
@@ -662,6 +748,11 @@ GH.Prover.prototype.setHypsWithKeys = function(sexp, keys, hyps) {
 
 GH.ProofGenerator = {};
 
+GH.action = function(name, hyps) {
+	this.name = name;
+	this.hyps = hyps;
+};
+
 GH.Prover.prototype.reposition = function(sexp, oldPosition, newPosition) {
 	return this.repositioner.reposition(sexp, oldPosition, newPosition);
 };
@@ -672,48 +763,66 @@ GH.Prover.prototype.clearStack = function() {
 	}
 };
 
-// TODO: Fix this. This is a terrible way to make an s-expression.
-/*GH.Prover.prototype.makeNumber = function(num) {
-	this.printNum(num);
-	this.direct.update(false);
-	var sexp = GH.sExpression.fromRaw(this.direct.getStack()[0][1])
-	this.direct.removeExpression(sexp);
-	return sexp;
-};*/
-
 GH.Prover.prototype.associateLeft = function(sexp) {
-	return this.replaceWith(this.associatorLeft, sexp);
+	sexp = this.openExp(sexp, 'Associative Property');
+	sexp = this.applyWith(this.associatorLeft, sexp);
+	return this.closeExp(sexp);
+	return result;
 };
 
 GH.Prover.prototype.associateRight = function(sexp) {
-	return this.replaceWith(this.associatorRight, sexp);
+	sexp = this.openExp(sexp, 'Associative Property');
+	sexp = this.applyWith(this.associatorRight, sexp);
+	return this.closeExp(sexp);
+	return result;
 };
 
 GH.Prover.prototype.distributeLeft = function(sexp) {
-	if (GH.operatorUtil.getType(sexp) == 'wff') {
-		return this.applyWith(this.distributorLeft, sexp);
-	} else {
-		return this.replaceWith(this.distributorLeft, sexp);
-	}
+	sexp = this.openExp(sexp, 'Distributive Property');
+	sexp = this.applyWith(this.distributorLeft, sexp);
+	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.distributeRight = function(sexp) {
-	return this.replaceWith(this.distributorRight, sexp);
+	sexp = this.openExp(sexp, 'Distributive Property');
+	sexp = this.applyWith(this.distributorRight, sexp);
+	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeLeft = function(sexp) {
-	return this.replaceWith(this.undistributorLeft, sexp);
+	sexp = this.openExp(sexp, 'Distributive Property');
+	sexp = this.applyWith(this.undistributorLeft, sexp);
+	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeRight = function(sexp) {
-	return this.replaceWith(this.undistributorRight, sexp);
+	sexp = this.openExp(sexp, 'Distributive Property');
+	sexp = this.applyWith(this.undistributorRight, sexp);
+	return this.closeExp(sexp);
 };
 
-GH.Prover.prototype.evaluate = function(sexp) {
+GH.Prover.prototype.evaluate = function(sexp, name) {
 	if (GH.operatorUtil.getType(sexp) == 'wff') {
+		// TODO: Check that this case is actually different.
 		return this.applyWith(this.evaluator, sexp);
 	} else {
-		return this.replaceWith(this.evaluator, sexp);
+		name = name ? name : 'Evaluate';
+		sexp = this.openExp(sexp, name);
+		sexp = this.applyWith(this.evaluator, sexp);
+		return this.closeExp(sexp);
+		
+	}
+};
+
+// Reverse the process of the normal evaluation. Evaluation compresses expressions.
+// This is a way of expanding them.
+GH.Prover.prototype.unevaluate = function(sexp, replacee) {
+	var result = this.evaluate(sexp);
+	result = this.commute(result.parent);
+	if (GH.operatorUtil.getType(sexp) == 'wff') {
+		return this.remove();
+	} else {
+		return this.replace(replacee);
 	}
 };
 
@@ -725,7 +834,9 @@ GH.Prover.prototype.commute = function(sexp) {
 	if (sexp.left().equals(sexp.right())) {  // No need to commute when both sides are the same.
 		return sexp;
 	} else {
-		return this.replaceWith(this.commuter, sexp);
+		sexp = this.openExp(sexp, 'Commutative Property');
+		sexp = this.applyWith(this.commuter, sexp);
+		return this.closeExp(sexp);
 	}
 };
 
@@ -796,11 +907,10 @@ GH.Prover.prototype.handleSubstitute = function() {
 
 // Call a function, but increase the depth so it is hidden by default.
 GH.Prover.prototype.applyHidden = function(applyFunc, sexp, caller) {
-	this.println('## <d>');
-	this.depth++;
-	applyFunc.call(caller, sexp);
-	this.depth--;
-	this.println('## </d>');
+	this.incrementDepth();
+	var result = applyFunc.call(caller, sexp);
+	this.decrementDepth();
+	return result;
 };
 
 // Apply a function to the right side of an s-expression. This does not change

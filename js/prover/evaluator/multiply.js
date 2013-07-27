@@ -3,42 +3,29 @@ GH.ProofGenerator.evaluatorMultiply = function(prover) {
   this.operators = ['*'];
 };
 
-GH.ProofGenerator.evaluatorMultiply.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorMultiply.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
 	// TODO: Add a check that the numbers are reduced and not 0 * 5.
 	if (leftNum == 0) {
-		return 'pa_ax5r';
+		return new GH.action('pa_ax5r', [sexp.right()]);
 	}
 	if (rightNum == 0) {
-		return 'pa_ax5'
+		return new GH.action('pa_ax5', [sexp.left()]);
 	}
 	if (leftNum == 1) {
-		return 'mulidr'
+		return new GH.action('mulidr', [sexp.right()]);
 	}
 	if (rightNum == 1) {
-		return 'mulid'
+		return new GH.action('mulid', [sexp.left()]);
 	}
 
-	return leftNum + 'times' + rightNum;
+	return new GH.action(leftNum + 'times' + rightNum, []);
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.isApplicable = function(sexp) {
 	return true;
-};
-
-GH.ProofGenerator.evaluatorMultiply.prototype.hyps = function(sexp) {
-	var leftNum  = this.prover.calculate(sexp.left());
-	var rightNum = this.prover.calculate(sexp.right());
-
-	if ((leftNum == 0) || (leftNum == 1)) {
-		return [sexp.right()];
-	}
-	if ((rightNum == 0) || (rightNum == 1)) {
-		return [sexp.left()];
-	}
-	return [];
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
@@ -70,7 +57,7 @@ GH.ProofGenerator.evaluatorMultiply.prototype.canAddTheorem = function(sexp) {
 GH.ProofGenerator.evaluatorMultiply.prototype.addTheorem = function(sexp) {	
 	var product = this.calculate(sexp);
 	this.prover.println('## <title> One-digit Multiplication </title>');
-	this.prover.println('thm (' + this.stepName(sexp) + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(product) + ')');
+	this.prover.println('thm (' + this.action(sexp).name + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(product) + ')');
 	this.prover.depth++;
 	this.inline(sexp);
 	this.prover.depth--;

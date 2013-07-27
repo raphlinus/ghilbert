@@ -3,17 +3,13 @@ GH.ProofGenerator.evaluatorSuccessor = function(prover) {
   this.operators = ['S'];
 };
 
-GH.ProofGenerator.evaluatorSuccessor.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorSuccessor.prototype.action = function(sexp) {
 	var num = GH.numUtil.decimalNumberSexp(sexp.child());
-	return 'succeed' + num;
+	return new GH.action('succeed' + num, []);
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.isApplicable = function(sexp) {
 	return true;
-};
-
-GH.ProofGenerator.evaluatorSuccessor.prototype.hyps = function(sexp) {
-	return [];
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.inline = function(sexp) {

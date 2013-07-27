@@ -180,7 +180,7 @@ GH.sExpression.stripParams = function(operator) {
 	delete operator['beg'];
 	delete operator['end'];
 	return operator;
-}
+};
 
 // Returns true is the s-expressions are identical.
 GH.sExpression.prototype.equals = function(sexp) {
@@ -262,7 +262,7 @@ GH.ProofBlock.resizeTables = function(block){
 		var table = block.children[i];
 		var lastCell = table.firstChild.lastChild;
 		// The width is equal to the current width plus the difference between the block and the table width.
-		var newWidth = block.offsetWidth - table.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 16;
+		var newWidth = block.offsetWidth - table.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 20;
 		lastCell.setAttribute('style', 'width: ' + newWidth);
 	}
 };
@@ -321,6 +321,40 @@ GH.ProofBlock.prototype.addTable = function(table, blockElement, cursorPosition)
 	blockElement.appendChild(tableElement);
 };
 
+GH.ProofBlock.hideableOperators = ['<->', '=', '=_', '<', '<='];  // Consider putting -> in.
+
+// Render the proof step. Hide parts on the left-side of an expression that are identical in the previous
+// step.
+GH.ProofBlock.renderVisibleParts = function(prevStep, step, tableElement, cursorPosition) {
+	var isHidden = false;
+	if (prevStep != null) {
+		var hideableOperators = GH.ProofBlock.hideableOperators;
+		var sexp = step.expression_;
+		var prevSexp = prevStep.expression_;
+		var operator = String(sexp[0]);
+		if (operator == String(prevSexp[0])) {
+			var hideable = false;
+			for (var i = 0; i < hideableOperators.length && !hideable; i++) {
+				hideable = hideable || (operator == hideableOperators[i]);
+			}
+			if (hideable) {
+				var prevLeft = GH.sExpression.fromRaw(prevSexp[1]);
+				var left = GH.sExpression.fromRaw(sexp[1]);
+				isHidden = left.equals(prevLeft)
+			}
+		}
+	}
+
+	if (isHidden) {
+		var sexp = step.expression_;
+		sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
+		tableElement.appendChild(step.render(cursorPosition));
+		sexp[1] = sexp[1][2]; // Revert the s-expression.
+	} else {
+		tableElement.appendChild(step.render(cursorPosition));
+	}
+};
+
 // Add a one line table with no border or styling to it.
 GH.ProofBlock.prototype.addOneLineTable = function(i, blockElement, cursorPosition) {
 	var tableElement = document.createElement("table");
@@ -328,8 +362,10 @@ GH.ProofBlock.prototype.addOneLineTable = function(i, blockElement, cursorPositi
 	tableElement.className = 'table-no-border';
 
 	var step = this.steps[i];
+	var notLast = (i < this.steps.length - 1);
+	var prevStep = (i > 0) && notLast ? this.steps[i - 1] : null;
 	step.classes_ += ' unstyled';
-	tableElement.appendChild(step.render(cursorPosition));
+	GH.ProofBlock.renderVisibleParts(prevStep, step, tableElement, cursorPosition);
 
 	blockElement.appendChild(tableElement);
 };
@@ -342,6 +378,75 @@ GH.proofTable = function(styling, begin, end) {
 	this.end = end;
 };
 
+/**
+ * This represents a hierarchy of proof steps. A proofHierarchy either contains a single
+ * proof step or it contains a list of children that are proofHierarchies themselves.
+ * If it has children, the children contains all the proof steps between a pair of <d> and
+ * </d> tags.
+ *   - step: A single proof step or null.
+ *   - begin: The cursor position where the hierarchy begins.
+ */
+GH.ProofHierarchy = function(step, begin) {
+	this.parent = null;
+	this.step = step;
+	this.children = []; // An array of proofHierarchies.
+	if (step) {
+		step.hierarchy = this;
+		this.end = step.end;
+	} else {
+		this.end = 1e10;
+	}
+	this.begin = begin;
+	this.siblingIndex = -1;
+};
+
+GH.ProofHierarchy.prototype.appendChild = function(child) {
+	child.siblingIndex = this.children.length;
+	child.parent = this;
+	this.children.push(child);
+	if (child.begin < this.begin) {
+		this.begin = child.begin;
+	}
+};
+
+GH.ProofHierarchy.prototype.removeChild = function(siblingIndex) {
+	for (var i = siblingIndex + 1; i < this.children.length; i++) {
+		this.children[i].siblingIndex--;
+	}
+	this.children.splice(siblingIndex, 1);
+};
+
+// Find the highest position with the hierarchy that a statement is not the conclusion of.
+GH.ProofHierarchy.prototype.findPosition = function() {
+	if (this.parent && (this.siblingIndex == this.parent.children.length - 1)) {
+		return this.parent.findPosition();
+	} else {
+		return this.parent;
+	}
+};
+
+// Return true, if the step at this part of the hierarchy is important at a particular cursor position.
+GH.ProofHierarchy.prototype.isImportant = function(cursorPosition) {
+	var position = this.findPosition();
+	return (position.begin <= cursorPosition) && (cursorPosition <= position.end);
+};
+
+// Returns the depth of the position.
+GH.ProofHierarchy.prototype.getDepth = function() {
+	var position = this.findPosition();
+	var depth = 0;
+	while(position.parent) {
+		position = position.parent;
+		depth++;
+	}
+	return depth;
+};
+
+// Lower this proof hierarchy. It will acquire a new parent and become a grandchild of its current parent.
+GH.ProofHierarchy.prototype.reparent = function(newParent) {
+	this.parent.removeChild(this.siblingIndex);
+	newParent.appendChild(this);
+};
 
 /**
  * Represents the input and output of each proof step.
@@ -356,7 +461,7 @@ GH.proofTable = function(styling, begin, end) {
  *   depth: The depth of the proof step. Proof steps with a higher depth are less important and less visible.
  *   styling: The way to style the statements.
  */
-GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, isError, isThm, depth, styling) {
+GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, isError, isThm, styling) {
 	this.name_ = name;
 	this.hypotheses = hypotheses;
 	this.conclusion = conclusion;
@@ -364,10 +469,10 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.end = end;
 	this.isError = isError;
 	this.isThm = isThm;
-	this.depth = depth;
 	this.substitution = null;
 	this.styling = styling ? styling.table : null;
-	this.title = styling ? styling.title : '';
+	this.title = styling && styling.title ? styling.title : '';
+	this.hierarchy = null;
 
 	this.sExpressions_ = [];
 	for (var i = 0; i < sExpressions.length; i++) {
@@ -391,9 +496,14 @@ GH.ProofStep.prototype.getBeginning = function() {
 	}
 };
 
-// Returns true, if the position is inside this proof step.
-GH.ProofStep.prototype.isInside = function(position) {
+// Returns true, if the position is inside this proof step or its descendants.
+GH.ProofStep.prototype.isInsideBroad = function(position) {
 	return ((this.getBeginning() <= position) && (position <= this.end));
+};
+
+// Returns true, if the position is inside this proof step.
+GH.ProofStep.prototype.isInsideNarrow = function(position) {
+	return ((this.begin <= position) && (position <= this.end))
 };
 
 // Render the proof step name in HTML.
@@ -412,23 +522,6 @@ GH.ProofStep.nameToHtml = function(name, title, isLink, isPrimary, isHypothesis)
 	}
 };
 
-
-// Return true or false if each hypothesis is important. A hypothesis is
-// important, if none of the other hypotheses has a lower depth.
-GH.ProofStep.prototype.findHypImportance = function() {
-	var lowestDepth = 100000;
-	for (var i = 0; i < this.hypotheses.length; i++) {
-		if (this.hypotheses[i].depth < lowestDepth) {
-			lowestDepth = this.hypotheses[i].depth;
-		}
-	}
-	var hypImportance = [];
-	for (var i = 0; i < this.hypotheses.length; i++) {
-		hypImportance.push(this.hypotheses[i].depth == lowestDepth);
-	}
-	return hypImportance;
-};
-
 // Html for adding a new cell to a table.
 GH.ProofStep.NEW_CELL  = '</td><td>';
 
@@ -443,21 +536,11 @@ GH.ProofStep.prototype.displayStack = function(stack, cursorPosition) {
 	}
 };
 
-/**
- * Switch titles with any hidden statements. The title of hidden statements
- * is more important than the statements that wrap around them which are typically
- * simple logical expressions.
- */
-GH.ProofStep.prototype.maybeSwitchTitles = function(hypImportance, cursorPosition) {
-	if (!this.isInside(cursorPosition)) {
-		for (var i = 0; i < this.hypotheses.length; i++) {
-			if ((!hypImportance[i]) && (this.hypotheses[i].title != '')) {
-				this.title = this.hypotheses[i].title;
-			}
-		}
-	}
+GH.ProofStep.createBlock = function(isGrayed, blocks) {
+	var classes = 'proof-block' + (blocks.length == 0 ? ' ' + GH.ProofStep.PRIMARY_BLOCK_ : '') + (isGrayed ? ' gray-block' : '');
+	var newBlock = new GH.ProofBlock(classes)
+	return [newBlock];
 };
-
 
 /**
  * Returns an array of strings recursively displaying each proof step.
@@ -466,94 +549,97 @@ GH.ProofStep.prototype.maybeSwitchTitles = function(hypImportance, cursorPositio
  *   cursorPosition: The cursor position in the text input box.
  */
 GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
-	// Find which hypotheses are important.
-	var hypImportance = this.findHypImportance();
-	this.maybeSwitchTitles(hypImportance, cursorPosition);
-	var importantHypotheses = [];
+	var lowestDepth = 1e10;
+	var mostImportantHyp = null;
 	for (var i = 0; i < this.hypotheses.length; i++) {
-		if (hypImportance[i]) {
-			importantHypotheses.push(this.hypotheses[i]);
+		var depth = this.hypotheses[i].hierarchy.getDepth();
+		if (depth < lowestDepth) {
+			lowestDepth = depth;
+			if (this.hypotheses[i].hierarchy.isImportant(cursorPosition)) {
+				mostImportantHyp = this.hypotheses[i];
+			} else {
+				mostImportantHyp = null;
+			}		
+		} else if (depth == lowestDepth) {
+			mostImportantHyp = null;   // There can only be one most important hyp or none.
+		}
+	}
+	var isExpanded = this.isInsideNarrow(cursorPosition);
+	var highlightedIndex = -1;
+	for (var i = 0; i < this.hypotheses.length; i++) {
+		if ((this.hypotheses[i] != mostImportantHyp) && (this.hypotheses[i].isInsideBroad(cursorPosition))) {
+			highlightedIndex = i;
+			isExpanded = true;
 		}
 	}
 
-	var oneHyp = (importantHypotheses.length == 1);
+	var visibleHypotheses;
+	if (isExpanded) {
+		visibleHypotheses = this.hypotheses;
+	} else if (mostImportantHyp) {
+		visibleHypotheses = [mostImportantHyp];
+	} else {
+		visibleHypotheses = [];
+	}
+
+	var oneHyp = !!mostImportantHyp;
 	var blocks = [];
 	var displayedHyps = [];
 
 	// Display a new block for the hypothesis that the cursor is inside of, but only if that hypothesis
 	// is not the one important hypothesis, since a single important hypothesis should be not be separated
 	// to the current block.
-	var cursorInside = ((this.begin <= cursorPosition) && (cursorPosition <= this.end));
-	var isExpanded = cursorInside;
 	var highlighted = [];
-	var importantHighlighted = [];
 	for (var i = 0; i < this.hypotheses.length; i++) {
-		var iHighlighted;
-		if ((!hypImportance[i] || !oneHyp) && (this.hypotheses[i].isInside(cursorPosition))) {
+		if (i == highlightedIndex) {
 			var newBlocks = this.hypotheses[i].display(!isGrayed, cursorPosition);
 			blocks = blocks.concat(newBlocks);
-			isExpanded = true;
-			iHighlighted = true;
+			highlighted.push(true);
 		} else {
-			iHighlighted = false;
-		}
-		highlighted.push(iHighlighted);
-		if (hypImportance[i]) {
-			importantHighlighted.push(iHighlighted);
+			highlighted.push(false);
 		}
 	}
 
-
-	// If we're expanded show all the hypotheses. Otherwise, only show the important ones.
-	var displayableHyps = isExpanded ? this.hypotheses : importantHypotheses;
-	var highlighted     = isExpanded ? highlighted     : importantHighlighted;
-	for (var i = 0; i < displayableHyps.length; i++) {
+	for (var i = 0; i < visibleHypotheses.length; i++) {
 		var blockOffset = highlighted[i] ? 1 : 0;
-		var isIndented = (displayableHyps.length > 1) && ((!oneHyp) || (!hypImportance[i]));
-		var prevOutsideTable = oneHyp && isExpanded && hypImportance[i];
-		displayedHyps.push(displayableHyps[i].displayStep(isIndented, cursorPosition, true, highlighted[i], blockOffset, prevOutsideTable));
+		var isIndented = (visibleHypotheses.length > 1) && (visibleHypotheses[i] != mostImportantHyp);
+		var prevOutsideTable = oneHyp && isExpanded && (visibleHypotheses[i] == mostImportantHyp);
+		displayedHyps.push(visibleHypotheses[i].displayStep(isIndented, cursorPosition, true, highlighted[i], blockOffset, prevOutsideTable));
 	}
 
-	var oneHypSteps = 0;
-	if (!oneHyp) {
-		var classes = 'proof-block' + (blocks.length == 0 ? ' ' + GH.ProofStep.PRIMARY_BLOCK_ : '') + (isGrayed ? ' gray-block' : '');
-		var newBlock = new GH.ProofBlock(classes)
-		newBlock.steps = displayedHyps;
-		blocks.push(newBlock);
-	} else {
-		// Display the single important hypothesis.
-		var newBlocks = importantHypotheses[0].display(isGrayed, cursorPosition);
-		// Remove the conclusion. It gets added as a displayedHyp.
-		var lastBlock = newBlocks[newBlocks.length - 1];
-		lastBlock.steps.pop();
-		oneHypSteps = lastBlock.steps.length;
-		blocks = blocks.concat(newBlocks);
-		
-		for (var i = 0; i < displayedHyps.length; i++) {
-			lastBlock.steps.push(displayedHyps[i]);
-		}
+	var newBlocks = [];
+	// Add the hypotheses to an existing block if there is a most important hypotheses.
+	if (mostImportantHyp) {
+		newBlocks = mostImportantHyp.display(isGrayed, cursorPosition);
 	}
+	// Otherwise add the hypotheses to a new block.
+	if (newBlocks.length == 0) {
+		newBlocks = GH.ProofStep.createBlock(isGrayed, blocks);
+	}
+	var lastBlock = newBlocks[newBlocks.length - 1];
+	if (lastBlock.steps.length > 0) {
+		// Remove the conclusion. It gets added as a displayedHyp.
+		lastBlock.steps.pop();
+	}
+	var oneHypSteps = lastBlock.steps.length;
+	for (var i = 0; i < displayedHyps.length; i++) {
+		lastBlock.steps.push(displayedHyps[i]);
+	}
+	blocks = blocks.concat(newBlocks);
 
     // Hook up the highlighted from the conclusion of a block to the step in the previous block.
-	if ((blocks.length > 1) && (isExpanded)) {
-		var highlightedIndex = 0;
-		for (var i = 0; i < highlighted.length; i++) {
-			if (highlighted[i]) {
-				highlightedIndex = i;
-			}
-		}
+	if (blocks.length > 1) {
 		var steps = blocks[blocks.length - 2].steps;
 		steps[steps.length - 1].setConclusionMouseOver(1, highlightedIndex + oneHypSteps);
 	}
 
-	// Add stuff to whatever is the last block.
-	var lastBlock = blocks[blocks.length - 1];
+	// Add conclusion to the last block.
 	lastBlock.steps.push(this.displayStep(false, cursorPosition, false, false, 0, false));
 
 	// Only add the styling when none of the unimportant hypotheses are hidden.
 	var numBlockHypotheses = lastBlock.steps.length;
 	var numTableHypotheses = numBlockHypotheses - oneHypSteps;
-	if (isExpanded || (this.begin <= cursorPosition && cursorPosition <= this.end)) {
+	if (isExpanded) {
 		var begin = numBlockHypotheses - numTableHypotheses;
 		var styling = (this.styling && (numTableHypotheses == this.styling.length)) ? this.styling : null;
 		lastBlock.tableList.push(new GH.proofTable(styling, begin, numBlockHypotheses));
@@ -566,9 +652,6 @@ GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
  * Display just this step without recursion.
  */
 GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypothesis, isHighlighted, blockOffset, prevOutsideTable) {
-	var hypImportance = this.findHypImportance();
-	this.maybeSwitchTitles(hypImportance, cursorPosition);
-
 	var inStep = this.begin <= cursorPosition && cursorPosition <= this.end;
 	var classes = '';
 	if (isIndented) {

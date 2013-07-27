@@ -3,18 +3,14 @@ GH.ProofGenerator.evaluatorDivides = function(prover) {
   this.operators = ['|'];
 };
 
-GH.ProofGenerator.evaluatorDivides.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorDivides.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	return leftNum + 'divides' + rightNum;
+	return new GH.action(leftNum + 'divides' + rightNum, []);
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.isApplicable = function(sexp) {
 	return true;
-};
-
-GH.ProofGenerator.evaluatorDivides.prototype.hyps = function(sexp) {
-	return [];
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.inline = function(sexp) {

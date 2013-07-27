@@ -3,29 +3,17 @@ GH.ProofGenerator.evaluatorUnion = function(prover) {
   this.operators = ['u.'];
 };
 
-GH.ProofGenerator.evaluatorUnion.prototype.stepName = function(sexp) {
+GH.ProofGenerator.evaluatorUnion.prototype.action = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	if (rightSet.length == 0) {
-		return 'unid';
+		return new GH.action('unid', [sexp.left()]);
 	} else if (leftSet.length == 0) {
-		return 'unidr';
+		return new GH.action('unidr', [sexp.right()]);
 	} else if (GH.ProofGenerator.evaluatorUnion.equalSets(leftSet, rightSet)) {
-		return 'unidm';
+		return new GH.action('unidm', [sexp.left()]);
 	}
-};
-
-GH.ProofGenerator.evaluatorUnion.prototype.hyps = function(sexp) {
-	var leftSet = this.prover.calculate(sexp.left());
-	var rightSet = this.prover.calculate(sexp.right());
-	if (rightSet.length == 0) {
-		return [sexp.left()];
-	} else if (leftSet.length == 0) {
-		return [sexp.right()];
-	} else if (GH.ProofGenerator.evaluatorUnion.equalSets(leftSet, rightSet)) {
-		return [sexp.left()];
-	}
-	return [];
+	return new GH.action('undefinedUnion', []);
 };
 
 GH.ProofGenerator.evaluatorUnion.prototype.isApplicable = function(sexp) {

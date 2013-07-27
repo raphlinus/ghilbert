@@ -78,3 +78,27 @@ GH.operatorUtil.isReduced = function(sexp) {
 		return GH.setUtil.isReduced(sexp);
 	}
 };
+
+// Creates an s-expression from an operator and several operands.
+GH.operatorUtil.create = function(operator, operands) {
+	var types = GH.operatorUtil.getOperatorTypes(operator);
+	if (operands.length != types.length - 1) {
+		alert(operands.length + ' operands for a ' + operator + ' operation.');
+	}
+	var sexpOperands = [];
+	for (var i = 0; i < operands.length; i++) {
+		// Add the operands if it's already an s-expression, otherwise convert it.
+		if (operands[i] instanceof GH.sExpression) {
+			sexpOperands.push(operands[i].copy());
+		} else {
+			if (types[i] == 'nat') {
+				sexpOperands.push(GH.numUtil.createNum(operands[i]));
+			} else if (types[i] == 'set') {
+				sexpOperands.push(GH.setUtil.createSet(operands[i]));
+			} else {
+				alert('Creating type ' + types[i] + ' is not supported.');
+			}
+		}
+	}
+	return new GH.sExpression.createOperator(operator, sexpOperands);
+};
