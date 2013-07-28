@@ -725,7 +725,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
     if (cmd == 'term' || cmd == 'param' || cmd == 'kind') {
         throw 'Interface file command encountered in proof file.';
     }
-    log ('Unrecognized command ' + cmd);
+    throw 'Unrecognized command ' + cmd;
 };
 
 // Check that the defthm conclusion <conc> properly matches the
