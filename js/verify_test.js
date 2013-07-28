@@ -28,12 +28,17 @@ GhilbertTest.TestUrlContext.prototype.open_append = function (url) {
   }
 }
 
-GhilbertTest.TestUrlContext.prototype.append_current = function (text) {
+GhilbertTest.TestUrlContext.prototype.append_current = function (text, lineno) {
+  if (this.current_url === undefined) {
+    print(lineno + ": unable to parse tests: found text without !append");
+    throw("aborting");
+  }
   this.files[this.current_url] += text;
 }
 
 GhilbertTest.TestUrlContext.prototype.revert = function () {
   this.files = JSON.parse(JSON.stringify(this._stash));
+  this.current_url = undefined
 }
 
 GhilbertTest.TestUrlContext.prototype.stash = function () {
@@ -49,7 +54,7 @@ GhilbertTest.run_verifier = function (url_context, url, context) {
   var scanner = new GH.Scanner(url_context.resolve(url).split(/\r?\n/));
   while (true) {
     var command = GH.read_sexp(scanner);
-    if (command == null) {
+    if (command === null || command === undefined) {
       return true;
     }
     if (GH.typeOf(command) != 'string') {
@@ -126,10 +131,10 @@ GhilbertTest.run = function(test_source) {
       }
     }
     else {
-      // Hmm, the python verifier strips away comments here. I guess we should do the same,
-      // although I'm not sure putting them into the files which we send to the verifier
-      // really causes any trouble.
-      url_context.append_current(line);
+      var trimmed = line.trim()
+      if (trimmed !== '' && trimmed[0] !== '#') {
+        url_context.append_current(line, lineno);
+      }
     }
   }
   return [tests, failures];
