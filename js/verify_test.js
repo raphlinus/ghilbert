@@ -1,6 +1,15 @@
 // Run with "rhino js/verify_test.js testsuite"
 
 load(["js/verify.js"]);
+load(["js/proofstep.js"]);
+
+load(["js/prover/numUtil.js"]);
+load(["js/showthm.js"]);
+
+// HTML for s-expressions is used in error messages. For now just print the HTML;
+// in the future perhaps the testsuites should run in a browser or we should
+// do plain text s-expression output.
+load(["js/typeset.js"]);
 
 // I guess we might as well namespace things
 if (typeof GhilbertTest == 'undefined') {
