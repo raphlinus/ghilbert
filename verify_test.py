@@ -29,7 +29,6 @@ class TestUrlCtx:
           self.current_url = url
           if not self.d.has_key(url):
                self.d[url] = ''
-          self.saved_value = self.d[url]
      def append_current(self, text):
           self.d[self.current_url] += text
      def revert(self):
