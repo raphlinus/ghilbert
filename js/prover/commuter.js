@@ -35,7 +35,7 @@ GH.ProofGenerator.commuter.prototype.isNegated = function(sexp) {
 GH.ProofGenerator.commuter.prototype.action = function(sexp) {
 	if (this.isNegated(sexp)) {
 		var action = this.action(sexp.child());
-		action.name = 'not' + positiveAction.name;
+		action.name = 'not' + action.name;
 		return action;
 	}
 

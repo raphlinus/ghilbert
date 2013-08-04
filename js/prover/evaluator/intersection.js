@@ -27,40 +27,42 @@ GH.ProofGenerator.evaluatorIntersection.prototype.inline = function(sexp) {
 	var intersection = this.calculate(sexp);
 	if (leftSet.indexOf(rightSet[0]) == -1) {
 		if (rightSet.length == 1) {
-			this.removeRightSingleton(sexp, rightSet[0], leftSet);
+			return this.removeRightSingleton(sexp, rightSet[0], leftSet);
 		} else {
-			this.removeRightElement(sexp);
+			return this.removeRightElement(sexp);
 		}
 	} else if (rightSet.indexOf(leftSet[0]) == -1) {
 		if (leftSet.length == 1) {
-			this.removeLeftSingleton(sexp, leftSet[0], rightSet);
+			return this.removeLeftSingleton(sexp, leftSet[0], rightSet);
 		} else {
-			this.removeLeftElement(sexp);
+			return this.removeLeftElement(sexp);
 		}
 	} else if (leftSet[0] == rightSet[0]) {
 		if (leftSet.length == 1) {
-			this.removeRightElement(sexp);
+			return this.removeRightElement(sexp);
 		} else if (rightSet.length == 1) {
-			this.removeLeftElement(sexp);
+			return this.removeLeftElement(sexp);
 		} else {
-			this.intersectingElements(sexp);
+			return this.intersectingElements(sexp);
 		}
 	} else {
 		alert('Intersecting unordered sets.');
 	}
-	return true;
+	return null;
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.removeRightSingleton = function(sexp, rightNum, leftSet) {
 	var inLeftSet = GH.sExpression.createOperator('e.', [sexp.right().child(), sexp.left()]);
 	this.prover.evaluate(inLeftSet);
 	this.prover.print([], 'emptyIn2');
+	return this.prover.getLast();
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.removeLeftSingleton = function(sexp, leftNum, rightSet) {
 	var inRightSet = GH.sExpression.createOperator('e.', [sexp.left().child(), sexp.right()]);
 	this.prover.evaluate(inRightSet);
 	this.prover.print([], 'emptyIn1');
+	return this.prover.getLast();
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.removeRightElement = function(sexp) {
@@ -68,7 +70,7 @@ GH.ProofGenerator.evaluatorIntersection.prototype.removeRightElement = function(
 	var result = this.prover.distributeRight(sexp);
 	result = this.prover.evaluate(result.left()).parent;
 	result = this.prover.evaluate(result.right()).parent;
-	result = this.prover.evaluate(result);
+	return this.prover.evaluate(result);
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.removeLeftElement = function(sexp) {
@@ -76,14 +78,14 @@ GH.ProofGenerator.evaluatorIntersection.prototype.removeLeftElement = function(s
 	var result = this.prover.distributeLeft(sexp);
 	result = this.prover.evaluate(result.left()).parent;
 	result = this.prover.evaluate(result.right()).parent;
-	result = this.prover.evaluate(result);
+	return this.prover.evaluate(result);
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.intersectingElements = function(sexp) {
 	sexp = sexp.copy();
 	var result = this.prover.undistributeRight(sexp);
 	result = this.prover.evaluate(result.right()).parent;
-	this.prover.evaluate(result);
+	return this.prover.evaluate(result);
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.calculate = function(sexp) {

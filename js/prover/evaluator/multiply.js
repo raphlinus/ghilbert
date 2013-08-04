@@ -35,15 +35,15 @@ GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
 	if ((leftNum == 0) || (leftNum == 1) || (rightNum == 0) || (rightNum == 1)) {
 		return false;
 	} else if ((leftNum < 10) && (rightNum < 10)) {
-		this.multiplySingleDigits(sexp, leftNum, rightNum);
+		return this.multiplySingleDigits(sexp, leftNum, rightNum);
 	} else if (GH.numUtil.powerOfTenSexp(sexp.right()) != 0) {
-		this.multiplyRightPowerOf10(sexp);
+		return this.multiplyRightPowerOf10(sexp);
 	} else if (GH.numUtil.powerOfTenSexp(sexp.left()) != 0) {
-		this.multiplyLeftPowerOf10(sexp);
+		return this.multiplyLeftPowerOf10(sexp);
 	} else if (rightNum < 10) {
-		this.multiplyRightSingleDigit(sexp);
+		return this.multiplyRightSingleDigit(sexp);
 	} else {
-		this.multiplyNumbers(sexp);
+		return this.multiplyNumbers(sexp);
 	}
 	return true;
 };
@@ -64,31 +64,38 @@ GH.ProofGenerator.evaluatorMultiply.prototype.addTheorem = function(sexp) {
 	this.prover.println(')');
 };
 
-GH.ProofGenerator.evaluatorMultiply.prototype.multiplySingleDigits = function(sexp, leftNum, rightNum) {
-	sexp = sexp.copy();
-	var expansion;
-	var createDigit = GH.sExpression.createDigit;
-	var createOperator = GH.sExpression.createOperator;
-	switch(leftNum) {
-		case 2:		expansion = createOperator('+', [createDigit(1), createDigit(1)]);   break;
-		case 3:		expansion = createOperator('+', [createDigit(2), createDigit(1)]);   break;
-		case 4:		expansion = createOperator('+', [createDigit(2), createDigit(2)]);   break;
-		case 5:		expansion = createOperator('+', [createDigit(4), createDigit(1)]);   break;
-		case 6:		expansion = createOperator('+', [createDigit(5), createDigit(1)]);   break;
-		case 7:		expansion = createOperator('+', [createDigit(5), createDigit(2)]);   break;
-		case 8:		expansion = createOperator('+', [createDigit(5), createDigit(3)]);   break;
-		case 9:		expansion = createOperator('+', [createDigit(5), createDigit(4)]);   break;
+GH.ProofGenerator.evaluatorMultiply.findSmallerDigits = function(num) {
+	switch(num) {
+		case 2:		return [1, 1];  // 2 = 1 + 1
+		case 3:		return [2, 1];  // 3 = 2 + 1
+		case 4:		return [2, 2];  // 4 = 2 + 2
+		case 5:		return [4, 1];  // 5 = 4 + 1
+		case 6:		return [5, 1];  // 6 = 5 + 1
+		case 7:		return [5, 2]; 	// 7 = 5 + 2
+		case 8:		return [5, 3]; 	// 8 = 5 + 3
+		case 9:		return [5, 4]; 	// 9 = 5 + 4
 	}
-	expansion = this.prover.evaluate(expansion);
-	expansion = this.prover.commute(expansion.parent);
-	var result = this.prover.replace(sexp.left());
-	result = this.prover.distributeLeft(result.parent);
+}
+
+GH.ProofGenerator.evaluatorMultiply.prototype.multiplySingleDigits = function(sexp, leftNum, rightNum) {
+	sexp = this.prover.openExp(sexp, 'One-Digit Multiplication');
+	// Replace the smaller digit.
+	if (leftNum < rightNum) {
+		var smallerDigits = GH.ProofGenerator.evaluatorMultiply.findSmallerDigits(leftNum);
+		result = this.prover.unevaluate(GH.operatorUtil.create('+', smallerDigits), sexp.left(), 'Seperate into Smaller Digits');
+		result = this.prover.distributeLeft(result);
+	} else {
+		var smallerDigits = GH.ProofGenerator.evaluatorMultiply.findSmallerDigits(rightNum);
+		result = this.prover.unevaluate(GH.operatorUtil.create('+', smallerDigits), sexp.right(), 'Seperate into Smaller Digits');
+		result = this.prover.distributeRight(result);
+	}
 	
-	result = this.prover.replaceLeft(this.prover.evaluator, result);
-	result = this.prover.replaceRight(this.prover.evaluator, result);
-	// result = this.prover.apply(this.prover.evaluator, result);
-	result = this.prover.replaceWith(this.prover.evaluator, result);
-	return result;
+	result = this.prover.openExp(result, 'Multiply Smaller Digits');
+	result = this.prover.evaluate(result.left(), 'Multiply Left Side').parent;
+	result = this.prover.evaluate(result.right(), 'Multiply Right Side').parent;
+	result = this.prover.closeExp(result);
+	result = this.prover.evaluate(result, 'Sum the Total');
+	return this.prover.closeExp(result);
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.multiplyRightPowerOf10 = function(sexp) {
@@ -132,18 +139,24 @@ GH.ProofGenerator.evaluatorMultiply.prototype.pullOutMultiplier = function(sexp)
 // The right side is a single digit.
 // This maybe should go into inline.
 GH.ProofGenerator.evaluatorMultiply.prototype.multiplyTwoDigits = function(sexp) {
+	sexp = this.prover.openExp(sexp, 'Multiply Two Digits');
 	if (sexp.left().operator == '*') {
 		sexp = this.pullInMultiplier(sexp);
 		sexp = this.prover.evaluate(sexp.left()).parent;
 	}
 	sexp = this.prover.evaluate(sexp);
-	return sexp;
+	return this.prover.closeExp(sexp);
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.multiplyRightSingleDigit = function(sexp) {
-	sexp = sexp.copy();
+	sexp = this.prover.openExp(sexp, 'One-Digit times Multiple-Digits');
+	sexp = this.prover.openExp(sexp, 'Rearrange Digits');
 	while(sexp.left().operator == '+') {
 		sexp = this.prover.distributeLeft(sexp);
+		sexp = sexp.right();
+	}
+	sexp = this.prover.closeExp(sexp);
+	while(sexp.operator == '+') {
 		sexp = sexp.right();
 	}
 
@@ -153,22 +166,32 @@ GH.ProofGenerator.evaluatorMultiply.prototype.multiplyRightSingleDigit = functio
 		sexp = this.multiplyTwoDigits(sexp).parent;
 		sexp = this.prover.evaluate(sexp);
 	}
+	return this.prover.closeExp(sexp);
 };
 
 // Multiply any number x, a single digit d and a power of ten b: (x * d) * b. For example (435 * 7) * 100
 GH.ProofGenerator.evaluatorMultiply.prototype.doubleMultiply = function(sexp) {
-	sexp = this.prover.evaluate(sexp.left()).parent;
-	return this.prover.evaluate(sexp);
+	sexp = this.prover.openExp(sexp, 'Multiply Two Individual Digits');
+	sexp = this.prover.evaluate(sexp.left(), 'Multiply Significant Digits').parent;
+	sexp = this.prover.evaluate(sexp, 'Multiply Base');
+	return this.prover.closeExp(sexp);
 }
 
 GH.ProofGenerator.evaluatorMultiply.prototype.multiplyNumbers = function(sexp) {
-	sexp = sexp.copy();
+	sexp = this.prover.openExp(sexp, 'Multiplication');
+	sexp = this.prover.openExp(sexp, 'Distribute Digits');
 	while(sexp.right().operator == '+') {
 		sexp = this.prover.distributeRight(sexp);
 		// The associateLeft isn't really necessary. It's done to remove some parentheses.
 		if (sexp.parent.operator == '+') {
 			sexp = this.prover.associateLeft(sexp.parent);
 		}
+		sexp = sexp.right();
+	}
+	sexp = this.prover.closeExp(sexp);
+
+	sexp = this.prover.openExp(sexp, 'Pull Out Base 10');
+	while(sexp.operator == '+') {
 		sexp = sexp.right();
 	}
 	sexp = this.pullOutMultiplier(sexp);
@@ -181,12 +204,19 @@ GH.ProofGenerator.evaluatorMultiply.prototype.multiplyNumbers = function(sexp) {
 		sexp = sexp.left();
 		sexp = this.pullOutMultiplier(sexp);
 	}
-	sexp = this.doubleMultiply(sexp);
-	while(sexp.parent.operator != '=') {
-		sexp = sexp.parent.right();
-		sexp = this.doubleMultiply(sexp).parent;
-		sexp = this.prover.evaluate(sexp);
-	}	
+	sexp = this.prover.closeExp(sexp);
+	sexp = this.prover.openExp(sexp, 'Multiply Each Digit');
+	while(sexp.operator == '+') {
+		sexp = this.doubleMultiply(sexp.right()).parent;
+		sexp = sexp.left();
+	}
+	sexp = this.doubleMultiply(sexp).parent;
+	sexp = this.prover.closeExp(sexp);
+	while(sexp.parent && sexp.parent == '+') {
+		sexp = sexp.parent;
+	}
+	sexp = this.prover.evaluate(sexp, 'Sum the Total');
+	return this.prover.closeExp(sexp);
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.calculate = function(sexp) {

@@ -17,7 +17,7 @@ GH.ProofGenerator.evaluatorSuccessor.prototype.inline = function(sexp) {
 	var result = this.prover.getLast();
 	result = result.copy();
 	this.prover.evaluate(result.right());
-	return true;
+	return this.prover.getLast();
 };
 
 GH.ProofGenerator.evaluatorSuccessor.prototype.canAddTheorem = function(sexp) {

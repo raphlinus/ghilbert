@@ -148,12 +148,22 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/distributor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/evaluator.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/add.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/and.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/constant.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/div.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/divides.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/elementOf.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/equality.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/exponent.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/ifn.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/intersection.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/lessThan.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/lessThanEqual.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/modulo.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/multiply.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/properSubset.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/setEquality.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/subset.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/successor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/union.js" type="text/javascript"></script>
 <script src="/js/prover/remover.js" type="text/javascript"></script>
@@ -163,6 +173,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script src="/js/prover/setUtil.js" type="text/javascript"></script>
 <script src="/js/prover/operatorUtil.js" type="text/javascript"></script>
+<script src="/js/prover/operationExchanger.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 
@@ -195,6 +206,7 @@ class EditHandler(users.AuthenticatedHandler):
   <span id="saving"></span>
   <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
   <input type="button" id="number-adder" onclick="window.direct.prover.openNumberAdder()" name="numberAdder" value="number"/>
+  <input type="button" id="set-adder" onclick="window.direct.prover.openSetAdder()" name="setAdder" value="set"/>
 <br/>
 """)
         if useAce: o.write("""<div id="canvas"></div>

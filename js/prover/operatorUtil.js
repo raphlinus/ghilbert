@@ -11,17 +11,27 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == '=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<') 	return ['nat', 'nat', 'wff'];
+	if (operator == '>=') 	return ['nat', 'nat', 'wff'];
+	if (operator == '>') 	return ['nat', 'nat', 'wff'];
 	if (operator == '|') 	return ['nat', 'nat', 'wff'];
 	if (operator == 'prime') 	return ['nat', 'wff'];
 	if (operator == 'S') 	return ['nat', 'nat'];
 	if (operator == '+') 	return ['nat', 'nat', 'nat'];
 	if (operator == '*') 	return ['nat', 'nat', 'nat'];
+	if (operator == 'div') 	return ['nat', 'nat', 'nat'];
+	if (operator == 'mod') 	return ['nat', 'nat', 'nat'];
+	if (operator == 'exp') 	return ['nat', 'nat', 'nat'];
 	if (operator == '=_') 	return ['set', 'set', 'wff'];
+	if (operator == 'C_') 	return ['set', 'set', 'wff'];
+	if (operator == 'C.') 	return ['set', 'set', 'wff'];
 	if (operator == '{|}') 	return ['bind', 'wff', 'set'];
+	if (operator == 'min') 	return ['set', 'nat'];
 	if (operator == 'e.') 	return ['nat', 'set', 'wff'];
 	if (operator == '{}') 	return ['nat', 'set'];
 	if (operator == 'u.') 	return ['set', 'set', 'set'];
 	if (operator == 'i^i') 	return ['set', 'set', 'set'];
+	if (operator == 'ifn') 	return ['wff', 'nat', 'nat', 'nat'];
+	if (operator == 'iota') return ['set', 'nat'];
 	return null;
 };
 
@@ -55,12 +65,20 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
 	} else if (operator == '*') {		return 'Mul';
+	} else if (operator == 'div') {		return 'Div';
+	} else if (operator == 'mod') {		return 'Mod';
+	} else if (operator == 'exp') {		return 'Exp';
 	} else if (operator == 'e.') {		return 'El';
 	} else if (operator == '=_') {		return 'Seq';
+	} else if (operator == 'C_') {		return 'Ss';
+	} else if (operator == 'C.') {		return 'Pss';
 	} else if (operator == '{|}') {		return 'Ab';
+	} else if (operator == 'min') {		return 'Min';
 	} else if (operator == '{}') {		return 'Sn';
 	} else if (operator == 'u.') {		return 'Un';
 	} else if (operator == 'i^i') {		return 'In';
+	} else if (operator == 'ifn') {		return 'Ifn';
+	} else if (operator == 'iota') {	return 'Iota';
 	} else {
 		alert('Operator ' + operator + ' is not named.');
 		return '';
@@ -76,6 +94,8 @@ GH.operatorUtil.isReduced = function(sexp) {
 		return GH.numUtil.isReduced(sexp);
 	} else if (type == 'set') {
 		return GH.setUtil.isReduced(sexp);
+	} else if (type == 'wff') {
+		return sexp.isProven;
 	}
 };
 
@@ -91,14 +111,26 @@ GH.operatorUtil.create = function(operator, operands) {
 		if (operands[i] instanceof GH.sExpression) {
 			sexpOperands.push(operands[i].copy());
 		} else {
-			if (types[i] == 'nat') {
-				sexpOperands.push(GH.numUtil.createNum(operands[i]));
-			} else if (types[i] == 'set') {
-				sexpOperands.push(GH.setUtil.createSet(operands[i]));
-			} else {
-				alert('Creating type ' + types[i] + ' is not supported.');
-			}
+			sexpOperands.push(GH.operatorUtil.createType(types[i], operands[i]))
 		}
 	}
 	return new GH.sExpression.createOperator(operator, sexpOperands);
+};
+
+// Create an expression with the given type and value.
+GH.operatorUtil.createType = function(type, value) {
+	if (type == 'nat') {
+		return GH.numUtil.createNum(value);
+	} else if (type == 'set') {
+		return GH.setUtil.createSet(value);
+	} else {
+		alert('Creating type ' + type + ' is not supported.');
+	}
+};
+
+// Reduce the s-expression to the given value.
+GH.operatorUtil.reduce = function(sexp, value) {
+	// Get the type of the s-expression.
+	var types = GH.operatorUtil.getOperatorTypes(sexp.operator);
+	return GH.operatorUtil.createType(types[types.length - 1], value);
 };

@@ -352,6 +352,10 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetop(sexp, cursorPosition);
     } else if (sexp[0] == 'exp') {
         return GH.typesetexp(sexp, 2500, cursorPosition);
+    } else if (sexp[0] == 'mod') {
+        return GH.typesetinfix(sexp, 'n', 2500, ' mod ', cursorPosition);
+    } else if (sexp[0] == 'div') {
+        return GH.typesetinfix(sexp, 'n', 2500, '&divide', cursorPosition);
     } else {
         var slugs = [GH.stringslug('('), GH.stringslug(GH.escapeHtml(sexp[0]))];
         for (var i = 1; i < sexp.length; i++) {

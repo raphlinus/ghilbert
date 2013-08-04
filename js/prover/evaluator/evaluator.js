@@ -4,14 +4,24 @@ GH.ProofGenerator.evaluator = function(prover) {
 
   this.generators = [];
   this.generators.push(new GH.ProofGenerator.evaluatorAdd(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorAnd(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorMultiply(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorEquality(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorLessThan(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorLessThanEqual(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSuccessor(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDivides(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorDiv(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorElementOf(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSingleton(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorUnion(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorIntersection(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorSetEquality(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorSubset(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorProperSubset(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorModulo(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorExponent(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorIfn(prover));
   this.generators.push(this.constant);
 };
 
@@ -28,13 +38,24 @@ GH.ProofGenerator.evaluator.prototype.findGenerator = function(operator) {
 	return null;
 };
 
-GH.ProofGenerator.evaluator.prototype.action = function(sexp) {
+
+GH.ProofGenerator.evaluator.prototype.generatorAction = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
 		return generator.action(sexp);
 	} else {
 		return new GH.action(null, []);
 	}
+};
+
+GH.ProofGenerator.evaluator.prototype.action = function(sexp) {
+	// Return null if any of the operands are not reduced.
+	for (var i = 0; i < sexp.operands.length; i++) {
+		if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+			return new GH.action(null, []);
+		}
+	}
+	return this.generatorAction(sexp);
 };
 
 GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
@@ -64,8 +85,9 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 		if (GH.operatorUtil.getType(sexp) != 'wff') {
 			var allReduced = true;
 			for (var i = 0; i < sexp.operands.length; i++) {
-				if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
-					sexp = this.prover.replaceWith(this.prover.evaluator, sexp.operands[i]).parent;
+				if ((!GH.operatorUtil.isReduced(sexp.operands[i])) &&
+				     (GH.operatorUtil.getType(sexp.operands[i]) != 'wff')) {// Don't evaluate wffs. They don't have parents.
+					sexp = this.prover.evaluate(sexp.operands[i]).parent;
 					allReduced = false;
 				}
 			}
@@ -76,16 +98,25 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 				return generator.inline(sexp);
 			}
 		} else {
-			var result = generator.inline(sexp);
+			var result = this.prover.reduce(sexp);
+			var action = this.generatorAction(result);
+			// There might be an action available if an operand is not reduced.
+			if (this.prover.symbolDefined(action.name)) {
+				this.prover.print(action.hyps, action.name);
+				result = this.prover.getLast();
+			} else {
+				result = generator.inline(result);
+			}
 			if (!result) {
 				return false;
 			}
 			for (var i = 0; i < sexp.operands.length; i++) {
 				if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
-					var copy = sexp.operands[i].copy();
+					result = this.prover.unevaluate(sexp.operands[i], result.operands[i]).parent;
+					/* var copy = sexp.operands[i].copy();
 					copy = this.prover.evaluate(copy);
 					this.prover.commute(copy.parent);
-					result = this.prover.replace(result.operands[i]).parent;
+					result = this.prover.replace(result.operands[i]).parent;*/
 				}
 			}
 			return true;

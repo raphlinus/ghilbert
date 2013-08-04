@@ -244,8 +244,13 @@ GH.Direct.prototype.removeExpression = function(expression) {
 GH.Direct.prototype.removeCurrentTheorem = function() {
 	var thmCount = this.thmctx.history.length;
 	var begin = 0;
-	if (thmCount >= 2) {
-		begin = this.thmctx.hierarchies[thmCount - 2].end;
+	if (thmCount >= 1) {
+		// If the last theorem is still open cut it out, otherwise cut everything past it.
+		if (this.thmctx.hierarchies[thmCount - 1].isOpen()) {
+			begin = (thmCount >= 2) ? this.thmctx.hierarchies[thmCount - 2].end : 0;
+		} else {
+			begin = this.thmctx.hierarchies[thmCount - 1].end;
+		}
 	}
 	var end = this.text.getValue().length;
 	var currentThm = this.text.splice(begin, end - begin, '');

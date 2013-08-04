@@ -41,6 +41,7 @@ GH.Prover = function(suggestArea, direct) {
 	this.undistributorRight = new GH.ProofGenerator.undistributorRight(this);
 	this.associatorLeft  = new GH.ProofGenerator.associatorLeft(this);
 	this.associatorRight = new GH.ProofGenerator.associatorRight(this);
+	this.operationExchanger = new GH.ProofGenerator.operationExchanger(this);
 
 	this.generators = [
 		{name: 'Commute',    gen: this.commuter},
@@ -50,6 +51,7 @@ GH.Prover = function(suggestArea, direct) {
 		{name: 'Undist. R',  gen: this.undistributorRight},
 		{name: 'Ass. L',     gen: this.associatorLeft},
 		{name: 'Ass. R',     gen: this.associatorRight},
+		{name: 'exchange',   gen: this.operationExchanger},
 	];
 };
 
@@ -272,7 +274,11 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 	for (var i = 0; i < this.generators.length; i++) {
 		var generator = this.generators[i];
 		if (generator.gen.isApplicable(this.activeExp)) {
-			this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')', true);
+			if (generator.gen.addSuggestion) {
+				generator.gen.addSuggestion(this.activeExp);
+			} else {
+				this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')', true);
+			}
 		}
 	}
 	if (this.evaluator.isApplicable(this.activeExp)) {
@@ -288,7 +294,8 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 				var match = null;
 				if (this.replacer.isApplicable(prevConclusion, lastConclusion)) {
 					this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()', false);
-					match = GH.Prover.findMatch(prevConclusion, lastConclusion.left())
+					var leftSide = lastConclusion.operator == '-.' ? lastConclusion.child().left() : lastConclusion.left();
+					match = GH.Prover.findMatch(prevConclusion, leftSide);
 				}
 				if (this.remover.isApplicable(prevConclusion, lastConclusion)) {
 					this.addSuggestion('Remove', 'window.direct.prover.remove()', false);
@@ -370,9 +377,6 @@ GH.Prover.prototype.print = function(mandHyps, step) {
 
 GH.Prover.prototype.makeString = function(mandHyps, step, output) {
 	var result = '';
-/*	for (var i = 0; i < this.depth; i++) {
-		result += '  ';
-	}*/
 	for (var i = 0; i < mandHyps.length; i++) {
 		result += mandHyps[i].toString() + ' ';
 	}
@@ -386,9 +390,7 @@ GH.Prover.prototype.getTheorems = function() {
 	// The update is commented out because it's unnecessary and slow, but I'm leaving it
 	// here because it is really useful for debugging. Just uncomment it and you can see
 	// the proofs changing while you're debugging.
-	
-	// TODO: Fix problems with 3 + 3 and 3 | 7. Theorems get repeated. Then comment this out again.	
-	this.direct.update(true);
+	// this.direct.update(true);
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
 };
@@ -433,6 +435,16 @@ GH.Prover.prototype.openNumberAdder = function() {
 	}
 }
 
+GH.Prover.prototype.openSetAdder = function() {
+	var set = window.prompt('Enter a set of numbers:', '');
+	set = set.split(',');
+	for (var i = 0; i < set.length; i++) {
+		set[i] = parseInt(set[i]);
+	}
+	this.println(GH.setUtil.createSet(set).toString());
+	this.direct.update(true);
+}
+
 // TODO: Rename and describe function.
 GH.Prover.findPosition = function(sexp) {
 	var indices = [];
@@ -474,8 +486,8 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
  * will look it up and use it. If it is not in the repository, this function will
  * generate all the necessary steps to apply the generator.
  */
-GH.Prover.prototype.apply = function(generator, sexp) {
-	var action = generator.action(sexp);
+GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
+	var action = generator.action(sexp, opt_args);
 	if (this.symbolDefined(action.name)) {
 		// Uses the proof if it already exists in the repository.
 		this.print(action.hyps, action.name);
@@ -547,21 +559,21 @@ GH.Prover.prototype.decrementDepth = function(name) {
  * will look it up and use it. If it is not in the repository, this function will
  * generate all the necessary steps to replace the s-expression.
  */
-GH.Prover.prototype.replaceWith = function(generator, sexp) {
+GH.Prover.prototype.replaceWith = function(generator, sexp, opt_args) {
 	if (!generator.isApplicable(sexp)) {
 		return sexp;
 	}
 	this.incrementDepth();
-	this.apply(generator, sexp);
+	this.apply(generator, sexp, opt_args);
 	this.decrementDepth();
 	return this.replace(sexp);
 };
 
-GH.Prover.prototype.applyWith = function(generator, sexp) {
+GH.Prover.prototype.applyWith = function(generator, sexp, opt_args) {
 	if (!generator.isApplicable(sexp)) {
 		return sexp;
 	}
-	this.apply(generator, sexp);
+	this.apply(generator, sexp, opt_args);
 	return this.getLast();
 };
 
@@ -643,6 +655,17 @@ GH.Prover.prototype.symbolDefined = function(name) {
 		}
 	}
 	return false;
+};
+
+GH.Prover.prototype.reduce = function(sexp) {
+	sexp = sexp.copy();
+	for (var i = 0; i < sexp.operands.length; i++) {
+		if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+			var value = this.calculate(sexp.operands[i]);
+			sexp.operands[i] = GH.operatorUtil.reduce(sexp.operands[i], value);
+		}
+	}
+	return sexp;
 };
 
 /**
@@ -763,6 +786,13 @@ GH.Prover.prototype.clearStack = function() {
 	}
 };
 
+GH.Prover.prototype.operationExchange = function(sexp, newOperation) {
+	sexp = this.openExp(sexp, 'Convert to ' + newOperation);
+	sexp = this.applyWith(this.operationExchanger, sexp, newOperation);
+	return this.closeExp(sexp);
+	return result;
+};
+
 GH.Prover.prototype.associateLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Associative Property');
 	sexp = this.applyWith(this.associatorLeft, sexp);
@@ -804,25 +834,32 @@ GH.Prover.prototype.undistributeRight = function(sexp) {
 GH.Prover.prototype.evaluate = function(sexp, name) {
 	if (GH.operatorUtil.getType(sexp) == 'wff') {
 		// TODO: Check that this case is actually different.
-		return this.applyWith(this.evaluator, sexp);
+		var result = this.applyWith(this.evaluator, sexp);
+		result.isProven = true;
+		return result;
 	} else {
 		name = name ? name : 'Evaluate';
 		sexp = this.openExp(sexp, name);
 		sexp = this.applyWith(this.evaluator, sexp);
 		return this.closeExp(sexp);
-		
 	}
 };
 
 // Reverse the process of the normal evaluation. Evaluation compresses expressions.
 // This is a way of expanding them.
-GH.Prover.prototype.unevaluate = function(sexp, replacee) {
-	var result = this.evaluate(sexp);
-	result = this.commute(result.parent);
+GH.Prover.prototype.unevaluate = function(sexp, replacee, name) {
 	if (GH.operatorUtil.getType(sexp) == 'wff') {
+		// TODO: Check that this case is actually different.
+		var result = this.evaluate(sexp);
+		result = this.commute(result.parent);
 		return this.remove();
 	} else {
-		return this.replace(replacee);
+		name = name ? name : 'Evaluate';
+		sexp = this.openExp(sexp, name);
+		var result = this.evaluate(sexp);
+		result = this.commute(result.parent);
+		result = this.replace(replacee);
+		return this.closeExp(result);
 	}
 };
 
@@ -845,13 +882,13 @@ GH.Prover.prototype.handleCopy = function() {
 	this.direct.update(true);
 };
 
-GH.Prover.prototype.handleClick = function(name) {
+GH.Prover.prototype.handleClick = function(name, opt_args) {
 	this.clearStack();
 	this.println('');
 	var result;
 	for (var i = 0; i < this.generators.length; i++) {
 		if (this.generators[i].name == name) {
-			result = this.replaceWith(this.generators[i].gen, this.activeExp);
+			result = this.replaceWith(this.generators[i].gen, this.activeExp, opt_args);
 		}
 	}
 	this.direct.update(true);
@@ -890,7 +927,8 @@ GH.Prover.prototype.handleSubstitute = function() {
 	this.println('');
 	var replacee = this.conclusions[this.conclusions.length - 2];
 	var replacement = this.conclusions[this.conclusions.length - 1];
-	var myMatch = GH.Prover.findMatch(replacee, replacement.left());
+	var leftSide = replacement.operator == '-.' ? replacement.child().left() : replacement.left();
+	var myMatch = GH.Prover.findMatch(replacee, leftSide);
 	var result = this.replace(myMatch);
 
 	this.direct.update(true);

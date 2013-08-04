@@ -23,16 +23,16 @@ GH.ProofGenerator.evaluatorElementOf.prototype.inline = function(sexp) {
 	var index = rightSet.indexOf(leftNum);
 
 	if (index >= 0) {
-		this.insideSet(sexp, leftNum, rightSet, index);
+		return this.insideSet(sexp, leftNum, rightSet, index);
 	} else {
 		if (sexp.right().operator == '{}') {
-			this.notInSingleton(sexp);
+			return this.notInSingleton(sexp);
 		} else {
-			this.notInsideSet(sexp, leftNum, rightSet);
+			return this.notInsideSet(sexp, leftNum, rightSet);
 		}
 	}
 	
-	return true;
+	return null;
 };
 
 GH.ProofGenerator.evaluatorElementOf.prototype.notInSingleton = function(sexp) {
@@ -57,7 +57,7 @@ GH.ProofGenerator.evaluatorElementOf.prototype.insideSet = function(sexp, leftNu
 		this.prover.print([precedingSet], 'unionAttach2');
 	}
 	result = this.prover.getLast();
-	this.prover.evaluate(result.right());
+	return this.prover.evaluate(result.right());
 };
 
 GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, leftNum, rightSet) {
@@ -67,6 +67,7 @@ GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, lef
 	var inRightPart = GH.sExpression.createOperator('e.', [sexp.left(), sexp.right().right()]);
 	this.prover.evaluate(inRightPart);
 	this.prover.print([], 'notInUnion');
+	return this.prover.getLast();
 };
 
 GH.ProofGenerator.evaluatorElementOf.prototype.canAddTheorem = function(sexp) {

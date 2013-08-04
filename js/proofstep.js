@@ -131,7 +131,9 @@ GH.sExpression.prototype.getExpression = function() {
 };
 
 GH.sExpression.prototype.copy = function() {
-	return GH.sExpression.fromRaw(this.getExpression());
+	var newCopy = GH.sExpression.fromRaw(this.getExpression());
+	newCopy.isProven = this.isProven;
+	return newCopy;
 };
 
 GH.sExpression.prototype.child = function () {
@@ -394,10 +396,17 @@ GH.ProofHierarchy = function(step, begin) {
 		step.hierarchy = this;
 		this.end = step.end;
 	} else {
-		this.end = 1e10;
+		this.end = GH.ProofHierarchy.MAX_SIZE;
 	}
 	this.begin = begin;
 	this.siblingIndex = -1;
+};
+
+GH.ProofHierarchy.MAX_SIZE = 1e10;
+
+// Returns true if the hierarchy is still open and being added to.
+GH.ProofHierarchy.prototype.isOpen = function() {
+	return (this.end == GH.ProofHierarchy.MAX_SIZE);
 };
 
 GH.ProofHierarchy.prototype.appendChild = function(child) {

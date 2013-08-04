@@ -88,6 +88,11 @@ GH.numUtil.numOfDigits = function(num) {
 	}
 };
 
+// Returns the most significant digit. For example, for 536, returns 500.
+GH.numUtil.mostSignificantDigit = function(num) {
+	return num - num % Math.pow(10, GH.numUtil.numOfDigits(num) - 1);
+};
+
 GH.numUtil.powerOfTen = function(sexp) {
 	if (sexp[0] == '10') {
 		return 10;

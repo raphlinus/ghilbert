@@ -10,7 +10,7 @@ GH.ProofGenerator.evaluatorUnion.prototype.action = function(sexp) {
 		return new GH.action('unid', [sexp.left()]);
 	} else if (leftSet.length == 0) {
 		return new GH.action('unidr', [sexp.right()]);
-	} else if (GH.ProofGenerator.evaluatorUnion.equalSets(leftSet, rightSet)) {
+	} else if (GH.setUtil.equals(leftSet, rightSet)) {
 		return new GH.action('unidm', [sexp.left()]);
 	}
 	return new GH.action('undefinedUnion', []);
@@ -37,8 +37,7 @@ GH.ProofGenerator.evaluatorUnion.prototype.inline = function (sexp) {
 	var result = this.prover.repositioner.repositionTree(sexp, originalTree, sortedTree);
 	
 	// Second, remove duplicates.
-	this.removeDuplicates(result);
-	return true;
+	return this.removeDuplicates(result);
 };
 
 GH.ProofGenerator.evaluatorUnion.prototype.createSymbolTree = function(sexp, symbolList) {
@@ -84,32 +83,8 @@ GH.ProofGenerator.evaluatorUnion.prototype.removeDuplicates = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorUnion.prototype.calculate = function(sexp) {
-	// TODO: Sort during the concatenation.
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	var sortedSet = leftSet.concat(rightSet).sort();
-	return GH.ProofGenerator.evaluatorUnion.removeArrayDuplicates(sortedSet);
-};
-
-GH.ProofGenerator.evaluatorUnion.removeArrayDuplicates = function(inputArray) {
-	var outputArray = [];
-	for (var  i = 0; i < inputArray.length; i++) {
-		if ((i == 0) || (inputArray[i] != inputArray[i - 1])) {
-			outputArray.push(inputArray[i]);
-		}
-	}
-	return outputArray;
-};
-
-// TODO: Maybe calculate this using evaluatorSetEquality.
-GH.ProofGenerator.evaluatorUnion.equalSets = function(leftSet, rightSet) {
-	if (leftSet.length != rightSet.length) {
-		return false;
-	}
-	for (var i = 0; i < leftSet.length; i++) {
-		if (leftSet[i] != rightSet[i]) {
-			return false;
-		}
-	}
-	return true;
+	return GH.setUtil.removeArrayDuplicates(sortedSet);
 };

@@ -57,17 +57,17 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 	} else if (rightNum == 0) {
 		return false;
 	} else if ((leftNum == 1) && (rightNum < 10)) {
-		this.successorRight_(rightNum);
+		return this.successorRight_(rightNum);
 	} else if ((rightNum == 1) && (leftNum < 10)) {
-		this.successorLeft_(leftNum);
+		return this.successorLeft_(leftNum);
 	} else if ((rightNum == 10) && (leftNum < 10)) {
-		this.prover.commute(sexp);
+		return this.prover.commute(sexp);
 	} else if ((rightNum < 10) && (leftNum < 10)) {
-		this.addSingleDigits_(sexp, leftNum, rightNum);
+		return this.addSingleDigits_(sexp, leftNum, rightNum);
 	} else {
-		this.addNumbers_(sexp)
+		return this.addNumbers_(sexp)
 	}
-	return true;
+	return false;
 };
 
 // Replace a single-digit number on the left with its successor.
@@ -171,7 +171,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.addSingleDigits_ = function(sexp, leftN
 GH.ProofGenerator.evaluatorAdd.prototype.multiplyByOneLeft = function(sexp) {
 	if (((sexp.operator == '+') || (sexp.operator == '*')) && (sexp.left().operator == '1')) {
 		return sexp;
-	}	
+	}
 	return this.prover.unevaluate(GH.operatorUtil.create('*', [1, sexp]), sexp);
 };
 
@@ -338,7 +338,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.carry_ =  function(sexp) {
 	}
 
 	// Move the carry into the higher digit.
-	if (sexp.parent.operator == '+'){
+	if (sexp.parent && sexp.parent.operator == '+'){
 		sexp = this.multiplyTensByOne(sexp).parent;
 		if (sexp.left().operator == '+') {
 			sexp = this.prover.associateRight(sexp).right();
