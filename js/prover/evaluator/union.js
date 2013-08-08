@@ -34,10 +34,14 @@ GH.ProofGenerator.evaluatorUnion.prototype.inline = function (sexp) {
 		return a[0] - b[0];
 	});
 	var sortedTree = this.createSortedTree(symbolList);
-	var result = this.prover.repositioner.repositionTree(sexp, originalTree, sortedTree);
+	sexp = this.prover.openExp(sexp, 'Place in numeric order');
+	sexp = this.prover.repositioner.repositionTree(sexp, originalTree, sortedTree);
+	sexp = this.prover.closeExp(sexp);
 	
 	// Second, remove duplicates.
-	return this.removeDuplicates(result);
+	sexp = this.prover.openExp(sexp, 'Remove Duplicates');
+	sexp = this.removeDuplicates(result);
+	return this.prover.closeExp(sexp);
 };
 
 GH.ProofGenerator.evaluatorUnion.prototype.createSymbolTree = function(sexp, symbolList) {
@@ -70,11 +74,11 @@ GH.ProofGenerator.evaluatorUnion.prototype.removeDuplicates = function(sexp) {
 		if (sexp.right().operator == 'u.') {
 			if (this.prover.calculate(sexp.left().child()) == this.prover.calculate(sexp.right().left().child())) {
 				sexp = this.prover.associateLeft(sexp);
-				sexp = this.prover.evaluate(sexp.left()).parent;
+				sexp = this.prover.evaluate(sexp.left(), 'Union is Idempotent').parent;
 			}
 		} else {
 			if (this.prover.calculate(sexp.left().child()) == this.prover.calculate(sexp.right().child())) {
-				sexp = this.prover.evaluate(sexp).parent;
+				sexp = this.prover.evaluate(sexp, 'Union is Idempotent').parent;
 			}
 		}
 		sexp = sexp.right();

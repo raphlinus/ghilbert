@@ -22,7 +22,7 @@ GH.setUtil.sexpToArray = function(sexp) {
 
 GH.setUtil.createSet = function(setArray) {
 	if (setArray.length == 0) {
-		return new GH.sExpression('{/}', -1, -1, true);  // Empty Set
+		return new GH.sExpression('({/})', -1, -1, true);  // Empty Set
 	} else if (setArray.length == 1) {
 		return new GH.sExpression.createOperator('{}', [GH.numUtil.createNum(setArray[0])]);
 	} else {

@@ -2,13 +2,6 @@ GH.ProofGenerator.replacer = function(prover) {
 	this.prover = prover;
 };
 
-GH.ProofGenerator.replacer.VARIABLE_NAMES = {
-	wff: ['ph', 'ps', 'ch', 'th', 'ta', 'et', 'zi', 'si', 'ph\'', 'ps\'', 'ch\'', 'th\'', 'ta\''],
-	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\'', 'A0', 'A1', 'A2', 'A3'], 
-	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\''],
-	set: ['S', 'T', 'U', 'V', 'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']
-};
-
 // A set of theorems for replacing some part of an expression.
 // The first operator is the equivalence operator that is needed in the second hypothesis statement.
 // Then there are a list of operators that this equivalence can be applied to. These operators are
@@ -176,8 +169,8 @@ GH.ProofGenerator.replacer.prototype.createGeneric = function(position, replacee
 	var start = [];
 	var end = [];
 	var middle = [];
-	var usedVariables = { wff: 0, nat: 0, bind: 0, set: 0};
-	this.genericCopies(start, end, middle, position.slice(0), replacee, replacement, usedVariables);
+	var varGenerator = new GH.Prover.variableGenerator();
+	this.genericCopies(start, end, middle, position.slice(0), replacee, replacement, varGenerator);
 
 	var startString  = GH.sexp_to_string(start);
 	var middleString = GH.sexp_to_string(middle);
@@ -259,7 +252,7 @@ GH.ProofGenerator.replacer.removeStyling = function(sexp) {
 	}
 };
 
-GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle, positions, replacee, replacement, usedVariables) {
+GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle, positions, replacee, replacement, varGenerator) {
 	var operand = positions.splice(0, 1);
 	var operator = replacee.operator;
 	start.push(operator);
@@ -279,14 +272,14 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 	var types = GH.operatorUtil.getOperatorTypes(operator);
 	for (var i = 0; i < types.length - 1; i++) {
 		if (i != operand) {
-			var variable = this.grabNextVariable(usedVariables, types[i]);
+			var variable = varGenerator.generate(types[i]);
 			start.push(variable);
 			end.push(variable);
 		} else {
 			if (positions.length > 0) {
 				start.push([]);
 				end.push([]);
-				this.genericCopies(start[i + 1], end[i + 1], middle, positions, replacee.operands[i], replacement, usedVariables);
+				this.genericCopies(start[i + 1], end[i + 1], middle, positions, replacee.operands[i], replacement, varGenerator);
 			} else {
 				var operator = replacement.operator;
 				if (GH.ProofGenerator.replacer.isNegated(replacement)) {
@@ -296,8 +289,8 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 					operator = replacement.child().operator;
 				}
 				var replacerTypes = GH.operatorUtil.getOperatorTypes(operator);
-				var leftVariable  = this.grabNextVariable(usedVariables, replacerTypes[0]);
-				var rightVariable = this.grabNextVariable(usedVariables, replacerTypes[1]);
+				var leftVariable  = varGenerator.generate(replacerTypes[0]);
+				var rightVariable = varGenerator.generate(replacerTypes[1]);
 				
 				middle.push(operator);
 				middle.push(' [ ' + leftVariable + ' ] ')
@@ -307,15 +300,6 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 			}
 		}
 	}
-};
-
-GH.ProofGenerator.replacer.prototype.grabNextVariable = function(usedVariables, type) {
-	if (GH.ProofGenerator.replacer.VARIABLE_NAMES[type].length <= usedVariables[type]) {
-		alert('No more unused variable names.');
-	}
-	var result = GH.ProofGenerator.replacer.VARIABLE_NAMES[type][usedVariables[type]];
-	usedVariables[type]++;
-	return result;
 };
 
 GH.ProofGenerator.replacer.getReplaceOperation = function(replaceeOperator, replacementOperator) {

@@ -343,7 +343,11 @@ GH.DirectThm.prototype.applyStyling = function(styling) {
 		this.proofctx.hierarchy.end = styling[styling.length - 1].end
 		this.proofctx.hierarchy = this.proofctx.hierarchy.parent;
 
+		var lastStep = this.proofctx.hierarchy.getLastStep();
 		var newTagName = this.tagNames.pop();
+		if (newTagName) {
+			lastStep.title = newTagName;
+		}
 	}
 }
 

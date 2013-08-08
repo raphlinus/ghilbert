@@ -174,6 +174,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/setUtil.js" type="text/javascript"></script>
 <script src="/js/prover/operatorUtil.js" type="text/javascript"></script>
 <script src="/js/prover/operationExchanger.js" type="text/javascript"></script>
+<script src="/js/prover/variableGenerator.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 

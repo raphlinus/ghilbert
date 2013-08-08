@@ -130,46 +130,42 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.arbitraryNumbers = function(s
 	
 	var roundDown = GH.numUtil.mostSignificantDigit(leftNum);
 	if (rightResult > roundDown) {
-		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, roundDown]));
+		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, roundDown]), 'Number Get Lower Rounding Down');
 		rightResult = roundDown;
 		result = this.close(result);
 		result = this.prover.evaluate(result);
-		result = this.prover.openExp(result);
 	}
 	
 	if (base >= rightNum) {
+		result = result && this.prover.openExp(result, 'First Digit is Lower');
 		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, base]));
 		result = this.prover.getLast().child().right();
 		result = this.prover.evaluate(result);
-		result = this.close(result);
-		result = this.prover.openExp(result);
 		rightResult = base;
+		result = this.close(result);
 	}
 	
 	while (base / 10 >= rightNum) {
+		result = result && this.prover.openExp(result, 'Fewer Digits');
 		base /= 10;
 		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, base]));
 		rightResult = base;
 		result = this.close(result);
-		result = this.prover.openExp(result);
 	}
 	if ((rightNum != base) && (base > 10)) {
+		result = result && this.prover.openExp(result, 'First Digit is Lower');
 		base /= 10;
 		var rightMultiplier  = Math.floor(rightNum  / base);
 		var newNum = (rightMultiplier + 1) * base;
 		result = this.addToBothSides(sexp, rightResult - newNum, 0, newNum);
-		result = this.close(result);
-		result = this.prover.openExp(result);
 		rightResult = newNum;
-		//result = this.prover.openExp(result.right());
+		result = this.close(result);
 	}
 	if (rightNum != rightResult) {
-		if (!result) {
-			result = this.prover.openExp(sexp	);
-		}
+		result = result && this.prover.openExp(result, 'Lower Remaining Digits');
 		result = this.addToBothSides(sexp, rightResult - rightNum, 0, rightNum);
+		result = this.close(result);
 	}
-	result = this.close(result);
 	if (result.parent) {
 		result = result.parent;
 	}

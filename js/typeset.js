@@ -309,7 +309,9 @@ GH.typeset = function(sexp, cursorPosition) {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '∉', cursorPosition);
             } else if (sexp[1][0] == 'C_' || sexp[1][0] == '⊆') {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '⊈', cursorPosition);
-            } else if (sexp[1][0] == 'C.' || sexp[1][0] == '⊂') {
+            } else if (sexp[1][0] == 'E.' || sexp[1][0] == '∃') {
+				return GH.typesetbinder(sexp[1], 40, '&#8708', cursorPosition);
+			} else if (sexp[1][0] == 'C.' || sexp[1][0] == '⊂') {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '⊄', cursorPosition);
             }
         }

@@ -32,7 +32,7 @@ GH.ProofGenerator.evaluatorSubset.prototype.inline = function(sexp) {
 		var setDiff = GH.setUtil.createSet(diff);
 		this.prover.print([sexp.left(), setDiff], 'ssUnion');
 		var result = this.prover.getLast();
-		this.prover.evaluate(result.right());
+		this.prover.evaluate(result.right(), 'Reorder Elements');
 		return this.prover.getLast();
 	}
 	return null;

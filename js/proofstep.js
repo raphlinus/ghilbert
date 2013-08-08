@@ -27,6 +27,12 @@ GH.sExpression.prototype.appendOperand = function(operand) {
 	operand.siblingIndex = this.operands.length;
 	this.operands.push(operand);
 };
+
+GH.sExpression.prototype.replaceOperand = function(operand, index) {
+	operand.parent = this;
+	operand.siblingIndex = index;
+	this.operands[index] = operand;
+};
  
 GH.sExpression.fromRaw = function(expression) {
 	var isString = (GH.typeOf(expression) == 'string');
@@ -455,6 +461,18 @@ GH.ProofHierarchy.prototype.getDepth = function() {
 GH.ProofHierarchy.prototype.reparent = function(newParent) {
 	this.parent.removeChild(this.siblingIndex);
 	newParent.appendChild(this);
+};
+
+GH.ProofHierarchy.prototype.getLastStep = function() {
+	if (this.step) {
+		return this.step;
+	} else {
+		if (this.children.length > 0) {
+			return this.children[this.children.length - 1].getLastStep();
+		} else {
+			return null;
+		}
+	}
 };
 
 /**
