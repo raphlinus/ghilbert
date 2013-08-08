@@ -2931,6 +2931,23 @@ thm (replaceBi1An0Not0 () (
   bitri
 )
 
+## <title> Substitution </title>
+## <table>
+##   (<-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->      [ ph ]   [ ps ] )
+##   (<-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceBi0An0 () (
+     replacee (<-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (<-> (/\ ps ch) th)
+  replacee
+  substitution
+ch anbi1i
+th bibi1i
+mpbi
+)
+
 ## <title> Inequality Conversion </title>
 thm (axgrtri () () (<-> (-. (<= A B)) (/\ (-. (= A B)) (-. (< A B))))
   B A axlttri2
@@ -3449,6 +3466,7 @@ thm (eqri ((S x) (T x))
 )
 
 # Set equality is reflexive
+## <title> Reflexive Property </title>
 thm (seqid () () (=_ S S)
   (e. x S)  biid  x gen
   S  S  x  df-seq  biimpri  ax-mp
@@ -4374,6 +4392,19 @@ thm (notInUnion () (hyp (-. (e. A S)) hyp2 (-. (e. A T))) (-. (e. A (u. S T)))
   # TODO: Apply the two hypotheses together.
 )
 
+thm (notInSingleton () (hyp (-. (= A B)))  (-. (e. A ({} B)))
+  A B elsnc
+  hyp  
+  mtbirRemove
+)
+
+thm (notInSingletonUnion () (hyp (-. (= A B)) hyp2 (-. (e. A S))) (-. (e. A (u. ({} B) S)))
+  hyp  
+  notInSingleton
+  hyp2
+  notInUnion
+)
+
 ## <title> Substitution </title>
 ## <table>
 ##   (-> (-. (-.  [ ph ]   ]    ] )) ch)
@@ -5143,6 +5174,7 @@ ph bibi2i
 mpbi
 )
 
+## <title> Subset of a Union </title>
 thm (ssUnion () () (C_ S (u. S T))
   S seqid
   S (u. S T) df-ss
@@ -6055,6 +6087,23 @@ thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
     3bitr4g
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> (= A  [ B ]   ]   ] ) ph)
+##   (=        [ B ]   [ C ] )
+##   (-> (= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceImp0Eq1 () (
+     replacee (-> (= A B) ph)
+     substitution (= B C)) 
+     (-> (= A C) ph)
+  replacee
+  substitution
+A eqeq2i
+ph imbi1i
+mpbi
+)
+
 ## <title> Equivalence over Prime </title>
 ## <table>
 ##   (=          [ A ]          [ B ]   )
@@ -6623,6 +6672,7 @@ thm (sindlem1 ()
 )
 
 # Strong Induction.
+## <title> Strong Induction </title>
 thm (sind ((A x) (ta x) (ph y))                    # ph(x) is some term in x; ph(A) is to be proved
   (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
    hyp3 (-> (= x (S y)) (<-> ph th))               # th is ph(y')
@@ -6675,6 +6725,101 @@ hyp4
     a4i    a4i
   z 19.22i    ax-mp    z  ph  ex-nf    ax-mp
 vtocl
+)
+
+# Strong Induction using + 1 instead of successor.
+## <title> Strong Induction </title>
+thm (sindplus1 ((A x) (ta x) (ph y))               # ph(x) is some term in x; ph(A) is to be proved
+  (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   hyp2 (-> (= x (+ y (1))) (<-> ph th))           # th is ph(y+1)
+   hyp3 (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   basis ps
+   induction (-> (A. x (-> (<= x y) ph)) th))      # ph(x) holds for all x<=y  -->  ph(y') holds
+   ta
+
+  hyp1
+  hyp2
+  y a1suc
+  eqcomi  
+  EqReplaceImp0Eq1
+
+  hyp3
+  basis
+  induction
+  sind
+)
+
+# Induction tool
+thm (infDescentLem1 () () (-> (= y A) (<-> (-. ([/] y x ph)) (-. ([/] A x ph))))
+  y A x ph dfsbcq
+  ([/] y x ph) ([/] A x ph) notbi  
+  sylib
+)
+
+## <title> Proof By Infinite Descent </title>
+thm (infiniteDescent() 
+    (hyp (A. w (-> ([/] w x ph) (E. y (/\ (< y w) ([/] y x ph))))))
+    (-. ([/] A x ph))
+  y (0) x ph infDescentLem1
+  y (+ z (1)) x ph infDescentLem1
+  y A x ph infDescentLem1
+
+  # Universal Instantiate for w = 0
+  hyp
+  w (0) x ph dfsbcq
+  w (0) y lteq2
+  (< y w) (< y (0)) ([/] y x ph) anbi1
+  syl
+  y exbid
+  imbi12d
+  cla4g
+  ax-mp
+
+  y ge0  
+  ([/] y x ph) anNotRemove1
+  y exbii
+  ([/] (0) x ph) imbi2i
+  mpbi
+  y (F) df-ex
+  notfal  
+  y gen
+  notnoti
+  mtbirRemove
+  mtoRemove
+
+  (<= y z) ([/] y x ph) df-an
+  y (+ z (1)) ltle2
+  y z (1) leadd1  
+  ## <d>
+    (<= y z) (<= (+ y (1)) (+ z (1))) bicom
+  ## </d>
+  mpbi
+  bitri  
+  ## <d>
+    (< y (+ z (1))) (<= y z) bicom
+  ## </d>
+  mpbi  
+  BiReplaceBi0An0
+  con2bii
+  y albii
+  y (/\ (< y (+ z (1))) ([/] y x ph)) df-ex
+  con2bii
+  bitri
+
+  # Universal Instantiation of w = z + 1
+  hyp
+  w (+ z (1)) x ph dfsbcq
+  w (+ z (1)) y lteq2
+  (< y w) (< y (+ z (1))) ([/] y x ph) anbi1
+  syl
+  y exbid
+  imbi12d
+  cla4g
+  ax-mp
+
+  con3i
+  sylbi
+  sindplus1
 )
 
 # Zero doesn't divide any positive number
