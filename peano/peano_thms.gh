@@ -1327,6 +1327,12 @@ thm (sbcie ((A x) (ps x))
   hyp ceqsex bitri
 )
 
+thm (sbid () () (<-> ([/] x x ph) ph)
+  ph biid
+  (= x x) a1i
+  sbcie
+)
+
 thm (cla4g ((ps x) (A x))
   (hyp (-> (= x A) (<-> ph ps)))
   (-> (A. x ph) ps)
@@ -2033,6 +2039,116 @@ thm (EqReplaceNot0Eq1 () (
   substitution
 A eqeq2i
 con4biir
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (-> ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (-> ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Imp1 () (
+     replacee (<-> ph (-. (-> ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (-> ps th)))
+  replacee
+  substitution
+ps imbi2i
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x  [ ps ]   ]    ] )))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (-. (E. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceBi1Not0Ex1 () (
+     replacee (<-> ph (-. (E. x ps)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (E. x ch)))
+  replacee
+  substitution
+x exbii
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x (/\ ps  [ ch ]   ]    ] ))))
+##   (<->                      [ ch ]   [ th ] )
+##   (<-> ph (-. (E. x (/\ ps  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceBi1Not0Ex1An1 () (
+     replacee (<-> ph (-. (E. x (/\ ps ch))))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (E. x (/\ ps th))))
+  replacee
+  substitution
+ps anbi2i
+x exbii
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (/\ ph (/\  [ ps ]   ]    ]  th)))
+##   (->               [ ps ]   [ ch ] )
+##   (E. x (/\ ph (/\  [    [   [ ch ]  th)))
+## </table>
+thm (ImpReplaceEx1An1An0 () (
+     replacee (E. x (/\ ph (/\ ps th)))
+     substitution (-> ps ch)) 
+     (E. x (/\ ph (/\ ch th)))
+  replacee
+  substitution
+th anim1i
+ph anim2i
+x 19.22i
+ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (/\ ph (/\ ps  [ ch ]   ]    ] )))
+##   (->                  [ ch ]   [ th ] )
+##   (E. x (/\ ph (/\ ps  [    [   [ th ] )))
+## </table>
+thm (ImpReplaceEx1An1An1 () (
+     replacee (E. x (/\ ph (/\ ps ch)))
+     substitution (-> ch th)) 
+     (E. x (/\ ph (/\ ps th)))
+  replacee
+  substitution
+ps anim2i
+ph anim2i
+x 19.22i
+ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (/\ ph (/\ (-.  [ ps ]   ]    ] ) th)))
+##   (<->                  [ ps ]   [ ch ] )
+##   (E. x (/\ ph (/\ (-.  [    [   [ ch ] ) th)))
+## </table>
+thm (BiReplaceEx1An1An0Not0 () (
+     replacee (E. x (/\ ph (/\ (-. ps) th)))
+     substitution (<-> ps ch)) 
+     (E. x (/\ ph (/\ (-. ch) th)))
+  replacee
+  substitution
+con4biir
+th anbi1i
+ph anbi2i
+x exbii
 mpbi
 )
 
@@ -5973,6 +6089,35 @@ thm (divideseq2ii ()
   hyp1 hyp2 C divideseq2i mpbi
 )
 
+## <title> Substitution </title>
+## <table>
+##   (E. x (= A  [ B ]   ]   ] ))
+##   (=          [ B ]   [ C ] )
+##   (E. x (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEx1Eq1 () (
+     replacee (E. x (= A B))
+     substitution (= B C)) 
+     (E. x (= A C))
+  replacee
+  substitution
+A eqeq2i
+x exbii
+mpbi
+)
+
+thm (proveDivides () (hyp (= (* A B) C)) (| A C)
+  x B tyex
+  x B A muleq2  
+  ImpReplaceEx1
+  hyp
+  EqReplaceEx1Eq1
+  A C x df-divides
+  
+  bicomi
+  mpbi
+)
+
 thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B)))  
   x C A lemul2
   (< (* A C) B) anim1i
@@ -6059,28 +6204,34 @@ thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B))
 
 # number 39.0
 thm (df-prime-just ((A x) (A y)) ()
-    (<-> (A. x (-> (| x A) (\/ (= x (1)) (= x A))))
-         (A. y (-> (| y A) (\/ (= y (1)) (= y A)))))
+    (<-> (/\ (-. (<= A (1))) (A. x (-> (| x A) (\/ (= x (1)) (= x A))))) 
+         (/\ (-. (<= A (1))) (A. y (-> (| y A) (\/ (= y (1)) (= y A))))))
     x y A divideseq1
     x y (1) eqeq1
     x y A eqeq1  orbi12d
   imbi12d
   alpha
+  (-. (<= A (1))) anbi2i
 )
 
 ## <title> Prime Definition </title>
 defthm (df-prime wff (prime A) ((A x))  ()
-  (<-> (prime A) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))
-y A x df-prime-just)
+  (<-> (prime A) (/\ (-. (<= A (1))) (A. x (-> (| x A) (\/ (= x (1)) (= x A))))))
+A y x df-prime-just)
 
-# Equality theorem for primeness
+# Equality theorem for primeness.
 thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
+    A B (1) leeq1
+    (<= A (1)) (<= B (1)) notbi  
+    sylib
+
     A B x divideseq2
       A B x eqeq2
       (= x (1)) orbi2d
     imbi12d
     x 19.21ai
     19.15d
+    anbi12d
 
       A x df-prime
         B x df-prime
@@ -6101,6 +6252,45 @@ thm (EqReplaceImp0Eq1 () (
   substitution
 A eqeq2i
 ph imbi1i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps (-. (E. x  [ ch ]   ]    ] ))))
+##   (<->                      [ ch ]   [ th ] )
+##   (<-> ph (/\ ps (-. (E. x  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceBi1An1Not0Ex1 () (
+     replacee (<-> ph (/\ ps (-. (E. x ch))))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps (-. (E. x th))))
+  replacee
+  substitution
+x exbii
+con4biir
+ps anbi2i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps (-. (E. x (/\ ch  [ th ]   ]    ] )))))
+##   (<->                             [ th ]   [ ta ] )
+##   (<-> ph (/\ ps (-. (E. x (/\ ch  [    [   [ ta ] )))))
+## </table>
+thm (BiReplaceBi1An1Not0Ex1An1 () (
+     replacee (<-> ph (/\ ps (-. (E. x (/\ ch th)))))
+     substitution (<-> th ta)) 
+     (<-> ph (/\ ps (-. (E. x (/\ ch ta)))))
+  replacee
+  substitution
+ch anbi2i
+x exbii
+con4biir
+ps anbi2i
+ph bibi2i
 mpbi
 )
 
@@ -6126,6 +6316,60 @@ thm (primeeqii ()
    hyp2 (= A B))
    (prime B)
   hyp1 hyp2 primeeqi mpbi
+)
+
+thm (notPrime () (hyp (| B A) hyp2 (/\ (< (1) B) (< B A))) (-. (prime A))
+  A x df-prime
+  x (-> (| x A) (\/ (= x (1)) (= x A)))  alex
+  (-. (<= A (1))) anbi2i
+  bitri
+
+
+  (| x A) (-. (\/ (= x (1)) (= x A))) df-an
+  (\/ (= x (1)) (= x A)) notnotbi
+  BiReplaceBi1Not0Imp1
+
+  ## <d>
+    (/\ (| x A) (-. (\/ (= x (1)) (= x A)))) (-. (-> (| x A) (\/ (= x (1)) (= x A)))) bicom
+  ## </d>
+  mpbi
+
+  BiReplaceBi1An1Not0Ex1
+  (= x (1)) (= x A) ioran  
+  BiReplaceBi1An1Not0Ex1An1
+  x B tyex
+  x B A divideseq1
+  x B (1) lteq2
+  x B A lteq1
+  anbi12d
+  anbi12d
+
+  hyp
+  hyp2
+  pm3.2i
+
+  (/\ (| x A) (/\ (< (1) x) (< x A))) biRemove2
+  (= x B) imbi2i
+  mpbi
+
+  ImpReplaceEx1
+  (1) x ltneq
+  ImpReplaceEx1An1An0
+
+  x A ltneq
+  ImpReplaceEx1An1An1
+
+  ## <d>
+    (1) x eqcom
+  ## </d>
+  BiReplaceEx1An1An0Not0
+  
+  notnoti
+  (-. (<= A (1))) anNotRemove2
+  (prime A) bibi2i
+  mpbi
+  notfal  
+  mtbirRemove
 )
 
 tvar (wff et zi si)
@@ -6205,6 +6449,108 @@ thm (0ne2 () () (-. (= (0) (+ (1) (1))))
 thm (jctilb () (h1 ch h2 (-> ph ps)) (-> ph (/\ ch ps))
   h2 h1 jctil
 )
+
+
+## <title> Substitution </title>
+## <table>
+##   (-. (<=  [ A ]   ]   ]  C))
+##   (=       [ A ]   [ B ] )
+##   (-. (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceNot0Le0 () (
+     replacee (-. (<= A C))
+     substitution (= A B)) 
+     (-. (<= B C))
+  replacee
+  substitution
+C gteq1i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (<= A  [ B ]   ]   ] ))
+##   (=         [ B ]   [ C ] )
+##   (-. (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceNot0Le1 () (
+     replacee (-. (<= A B))
+     substitution (= B C)) 
+     (-. (<= A C))
+  replacee
+  substitution
+A gteq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (<  [ A ]   ]   ]  C))
+##   (=      [ A ]   [ B ] )
+##   (-. (<  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceNot0Lt0 () (
+     replacee (-. (< A C))
+     substitution (= A B)) 
+     (-. (< B C))
+  replacee
+  substitution
+C geeq1i
+mpbi
+)
+
+thm (1plus1gt1 () () (-. (<= (+ (1) (1)) (1)))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      ## <d 'Number is Not Zero'>
+        (0) pa_ax1plus
+        ## <d 'Evaluate'>
+          (1) pa_ax3r
+          EqReplaceNot0Eq1
+        ## </d 'Evaluate'>
+        ## <d 'Commutative Property'>
+          (0) (1) eqcom
+          mtbi
+        ## </d 'Commutative Property'>
+      ## </d 'Number is Not Zero'>
+      ## <d 'Greater Than Or Equal To Zero'>
+        (1) ge0
+      ## </d 'Greater Than Or Equal To Zero'>
+      axgrtrii
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      df-2
+      ## <d 'Commutative Property'>
+        (2) (+ (1) (1)) eqcom
+        mpbi
+      ## </d 'Commutative Property'>
+        EqReplaceNot0Le0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+        EqReplaceNot0Le1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+
+  ## <d 'Evaluate'>
+    df-2
+    ## <d 'Commutative Property'>
+      (2) (+ (1) (1)) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+  ## </d 'Evaluate'>
+
+  ## <d>
+    (+ (1) (1)) (2) eqcom
+  ## </d>  
+  mpbi
+  
+  EqReplaceNot0Le0
+)
+
 # number 44.0
 ## <title> 2 is Prime Lemma </title>
 thm (2primelem1 ()
@@ -6226,6 +6572,7 @@ thm (2primelem1 ()
 # number 45.0
 ## <title> 2 is Prime </title>
 thm (2prime () () (prime (+ (1) (1)))
+  1plus1gt1
   ## <d>
     x (+ (1) (1)) y df-divides
   ## </d>
@@ -6323,8 +6670,9 @@ thm (2prime () () (prime (+ (1) (1)))
   ## </d>
   sylib
   sylbi
-
   x gen
+
+  pm3.2i
   ## <d>
     (+ (1) (1)) x df-prime
   ## </d>
@@ -6757,12 +7105,12 @@ thm (infDescentLem1 () () (-> (= y A) (<-> (-. ([/] y x ph)) (-. ([/] A x ph))))
 )
 
 ## <title> Proof By Infinite Descent </title>
-thm (infiniteDescent() 
+thm (infiniteDescent()
     (hyp (A. w (-> ([/] w x ph) (E. y (/\ (< y w) ([/] y x ph))))))
-    (-. ([/] A x ph))
+    (-. ph)
   y (0) x ph infDescentLem1
   y (+ z (1)) x ph infDescentLem1
-  y A x ph infDescentLem1
+  y x x ph infDescentLem1
 
   # Universal Instantiate for w = 0
   hyp
@@ -6775,13 +7123,13 @@ thm (infiniteDescent()
   cla4g
   ax-mp
 
-  y ge0  
+  y ge0
   ([/] y x ph) anNotRemove1
   y exbii
   ([/] (0) x ph) imbi2i
   mpbi
   y (F) df-ex
-  notfal  
+  notfal
   y gen
   notnoti
   mtbirRemove
@@ -6789,16 +7137,16 @@ thm (infiniteDescent()
 
   (<= y z) ([/] y x ph) df-an
   y (+ z (1)) ltle2
-  y z (1) leadd1  
+  y z (1) leadd1
   ## <d>
     (<= y z) (<= (+ y (1)) (+ z (1))) bicom
   ## </d>
   mpbi
-  bitri  
+  bitri
   ## <d>
     (< y (+ z (1))) (<= y z) bicom
   ## </d>
-  mpbi  
+  mpbi
   BiReplaceBi0An0
   con2bii
   y albii
@@ -6820,6 +7168,8 @@ thm (infiniteDescent()
   con3i
   sylbi
   sindplus1
+  x ph sbid  
+  mtbi
 )
 
 # Zero doesn't divide any positive number
@@ -6830,8 +7180,110 @@ thm (not0divides () () (-. (| (0) (S A)))
     x  (= (0) (S A))  ex-nf    syl
   mto
 )
-# number 60.0
 
+# number 60.0
+thm (lesuc1 () ()
+  (<-> (<= A B) (<= (S A) (S B)))
+  A  B  (1)  leadd1
+  A  a1suc    (+ B (1))  leeq1i    bitr4i
+  B  a1suc    (S A)  leeq2i    bitr4i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<= A  [ B ]   ]   ] ))
+##   (=             [ B ]   [ C ] )
+##   (<-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Le1 () (
+     replacee (<-> ph (<= A B))
+     substitution (= B C)) 
+     (<-> ph (<= A C))
+  replacee
+  substitution
+A leeq2i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=  [ A ]   ]   ]  C))
+##   (=           [ A ]   [ B ] )
+##   (<-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Le0 () (
+     replacee (<-> ph (<= A C))
+     substitution (= A B)) 
+     (<-> ph (<= B C))
+  replacee
+  substitution
+C leeq1i
+ph bibi2i
+mpbi
+)
+
+thm (sucGt () ()  (-. (<= (+ A (1)) (0)))
+  (1) (0) A leadd1
+  A pa_ax3r
+  
+    EqReplaceBi1Le1
+  
+  ## <d>
+    (1) A addcom
+  ## </d>
+  EqReplaceBi1Le0  
+  ## <d 'Number is Not Zero'>
+    (0) pa_ax1plus
+    ## <d 'Evaluate'>
+      (1) pa_ax3r
+      EqReplaceNot0Eq1
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (0) (1) eqcom
+      mtbi
+    ## </d 'Commutative Property'>
+  ## </d 'Number is Not Zero'>
+  ## <d 'Greater Than Or Equal To Zero'>
+    (1) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+  
+  mtbiRemove
+  A ge0
+  (+ A (1)) geTrgt
+  ax-mp
+)
+
+
+thm (suc2Gt () ()  (-. (<= (S (S A)) (1)))
+  A sucGt
+  A a1suc
+  
+  ## <d>
+    (S A) (+ A (1)) eqcom
+  ## </d>
+  mpbi
+  
+  EqReplaceNot0Le0
+  (S A) (0) (1) leadd1  
+  mtbi
+  
+  ## <d 'Evaluate'>
+    (1) pa_ax3r
+    EqReplaceNot0Le1
+  ## </d 'Evaluate'>
+
+  (S A) a1suc  
+  ## <d>
+    (S (S A)) (+ (S A) (1)) eqcom
+  ## </d>
+  mpbi
+  
+  EqReplaceNot0Le0
+)
+
+# number 61.0
 # Every multitude has either a proper multitude divisor or a prime multitude divisor
 thm (primedivisor.1 ((A x) (A z)) ()
     (\/ (E. z (/\ (< (S (S z)) (S (S A))) (| (S (S z)) (S (S A)))))
@@ -6853,7 +7305,12 @@ x (prime (S (S A))) 19.3  biimpri
 syl
 
 # Case 2: A'' is not prime.
-  (S (S A)) x df-prime   notbii  biimpi
+  (S (S A)) x df-prime
+  A suc2Gt  
+  (A. x (-> (| x (S (S A))) (\/ (= x (1)) (= x (S (S A)))))) anRemove1
+  (prime (S (S A))) bibi2i
+  mpbi
+notbii  biimpi
   (-> (| x (S (S A))) (\/ (= x (1)) (= x (S (S A))))) notnot  biimpri   x 19.20i    con3i   syl
   x (-. (-> (| x (S (S A))) (\/ (= x (1)) (= x (S (S A)))))) df-ex  sylibr
   (| x (S (S A))) (\/ (= x (1)) (= x (S (S A)))) pm4.61   biimpi  x 19.22i   syl
@@ -6894,7 +7351,7 @@ syl
    x  (E. z (/\ (< (S (S z)) (S (S A))) (| (S (S z)) (S (S A)))))  ex-nf    syl
 nsyl4    orri
 )
-# number 61.0
+# number 62.0
 # Induction tool
 thm (primedivisor.2 ((A x)) ()
     (-> (= y A) (<-> (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S y)))))
@@ -6903,14 +7360,6 @@ thm (primedivisor.2 ((A x)) ()
     (S (S y))  (S (S A)) (S (S x))  divideseq2    syl
     (prime (S (S x)))  anbi2d
     x exbid
-)
-
-# number 62.0
-thm (lesuc1 () ()
-  (<-> (<= A B) (<= (S A) (S B)))
-  A  B  (1)  leadd1
-  A  a1suc    (+ B (1))  leeq1i    bitr4i
-  B  a1suc    (S A)  leeq2i    bitr4i
 )
 
 # The "divides" relation is transitive
@@ -10507,8 +10956,12 @@ thm (gcdcom () () (= (gcd A B) (gcd B A))
 # number 7.0
 thm (primegcd () () (-> (prime (S A)) (\/ (| (S A) (S B)) (= (gcd (S A) (S B)) (1))))
 A  (S B)  gcddiv1
-  (S A)  x  df-prime    biimpi
-    x  (gcd (S A) (S B))  (S A)    divideseq1
+  (S A)  x  df-prime    biimpi  
+  (-. (<= (S A) (1))) 
+  (A. x (-> (| x (S A)) (\/ (= x (1)) (= x (S A)))))
+  pm3.27
+  syl
+  x  (gcd (S A) (S B))  (S A)    divideseq1
       x  (gcd (S A) (S B))  (1)  eqeq1
       x  (gcd (S A) (S B))  (S A)  eqeq1  orbi12d
     imbi12d
@@ -10566,31 +11019,12 @@ thm (0primeideal () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0))))
 
 # number 7.4
 thm (0notprime () () (-. (prime (0)))
-
-
-x  (S (1))  tyex
-  (S (1))  divides0
-    x  (S (1))  (0)  divideseq1    biimprd
-  mpi
-    (1)  pa_ax1    (0)  (S (1))  eqcom    biimpri  con3i   ax-mp
-    x  (S (1))  (0)  eqeq1    biimpd    con3d    mpi
-      (0)  pa_ax1
-        df-1    (0)  eqeq2i    biimpi    con3i    ax-mp
-        (0)  (1)  pa_ax2    biimpri   con3i  ax-mp
-        df-1    (S (1))  eqeq1i    biimpi   eqcoms  con3i     ax-mp
-        x  (S (1))  (1)  eqeq1   biimpd    con3d    mpi
-      jca    ancomd
-      (= x (1))  (= x (0))  pm4.56    sylib
-    jca
-    (| x (0))  (\/ (= x (1)) (= x (0)))  annim     sylib
-    x  19.22i
-    ax-mp
-
-
-  x  (-. (-> (| x (0)) (\/ (= x (1)) (= x (0)))))  df-ex
-  (-> (| x (0)) (\/ (= x (1)) (= x (0))))  notnot    x  albii    notbii    bitr4i
-  (0)  x  df-prime  biimpi    con3i  sylbi
-ax-mp
+  (0) x df-prime
+  (1) 0le 
+  notnoti
+  (A. x (-> (| x (0)) (\/ (= x (1)) (= x (0))))) anNotRemove1
+  (prime (0)) bibi2i
+  mpbi
 )
 
 # Euclid's lemma, assuming A and B are not 0.
