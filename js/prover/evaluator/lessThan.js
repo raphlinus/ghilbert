@@ -1,14 +1,20 @@
-GH.ProofGenerator.evaluatorLessThan = function(prover) {
+﻿GH.ProofGenerator.evaluatorLessThan = function(prover) {
   this.prover = prover;
   this.operators = ['<'];
+};
+
+GH.ProofGenerator.evaluatorLessThan.prototype.variableAction = function(sexp) {
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	if (rightNum == 0) {
+		return new GH.action('ge0', [sexp.left()]);
+	}
+	return null;
 };
 
 GH.ProofGenerator.evaluatorLessThan.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	if (rightNum == 0) {
-		return new GH.action('ge0', [GH.numUtil.createNum(leftNum)]);
-	}
 	if (leftNum < rightNum) {
 		operatorName = 'less';
 	} else {
@@ -35,11 +41,11 @@ GH.ProofGenerator.evaluatorLessThan.prototype.inline = function(sexp) {
 	} else if (leftNum == rightNum) {
 		this.prover.evaluate(GH.operatorUtil.create('=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '<');
+		return this.prover.operationExchange(result, '≥');
 	} else if (leftNum > rightNum) {
 		this.prover.evaluate(GH.operatorUtil.create('<=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '<');
+		return this.prover.operationExchange(result, '≥');
 	} 
 	return null;
 };
@@ -161,7 +167,13 @@ GH.ProofGenerator.evaluatorLessThan.prototype.arbitraryNumbers = function(sexp, 
 };
 
 GH.ProofGenerator.evaluatorLessThan.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return ((rightNum <= 10) && (leftNum <= 10) && (leftNum < rightNum));
+};
+
+GH.ProofGenerator.evaluatorLessThan.prototype.theoremName = function(sexp) {
+	return 'One-Digit Inequality';
 };
 
 GH.ProofGenerator.evaluatorLessThan.prototype.calculate = function(sexp) {

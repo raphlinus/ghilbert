@@ -3,16 +3,20 @@ GH.ProofGenerator.evaluatorUnion = function(prover) {
   this.operators = ['u.'];
 };
 
-GH.ProofGenerator.evaluatorUnion.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorUnion.prototype.variableAction = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
-	if (rightSet.length == 0) {
+	if (rightSet && (rightSet.length == 0)) {
 		return new GH.action('unid', [sexp.left()]);
-	} else if (leftSet.length == 0) {
+	} else if (leftSet && (leftSet.length == 0)) {
 		return new GH.action('unidr', [sexp.right()]);
-	} else if (GH.setUtil.equals(leftSet, rightSet)) {
+	} else if (GH.setUtil.equals(leftSet, rightSet) || sexp.left().equals(sexp.right())) {
 		return new GH.action('unidm', [sexp.left()]);
 	}
+	return null;
+};
+
+GH.ProofGenerator.evaluatorUnion.prototype.action = function(sexp) {
 	return new GH.action('undefinedUnion', []);
 };
 

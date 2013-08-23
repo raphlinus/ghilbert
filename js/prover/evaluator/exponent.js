@@ -3,7 +3,7 @@ GH.ProofGenerator.evaluatorExponent = function(prover) {
   this.operators = ['exp'];
 };
 
-GH.ProofGenerator.evaluatorExponent.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorExponent.prototype.variableAction = function(sexp) {
 	var base  = this.prover.calculate(sexp.left());
 	var exponent = this.prover.calculate(sexp.right());
 
@@ -11,7 +11,13 @@ GH.ProofGenerator.evaluatorExponent.prototype.action = function(sexp) {
 		return new GH.action('exp0', [sexp.left()]);
 	} else if (exponent == 1) {
 		return new GH.action('expid', [sexp.left()]);
-	} 
+	}
+}
+
+GH.ProofGenerator.evaluatorExponent.prototype.action = function(sexp) {
+	var base  = this.prover.calculate(sexp.left());
+	var exponent = this.prover.calculate(sexp.right());
+
 	return new GH.action(base + 'power' + exponent, []);
 };
 

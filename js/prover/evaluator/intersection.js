@@ -3,13 +3,18 @@ GH.ProofGenerator.evaluatorIntersection = function(prover) {
   this.operators = ['i^i'];
 };
 
-GH.ProofGenerator.evaluatorIntersection.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorIntersection.prototype.variableAction = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	var intersection = this.calculate(sexp);
-	if ((leftSet.length == intersection.length) && (rightSet.length == intersection.length)) {
+	if ((leftSet && rightSet && (leftSet.length == intersection.length) && (rightSet.length == intersection.length)) ||
+	     (sexp.left().equals(sexp.right()))) {
 		return new GH.action('inidm', [sexp.left()]);
 	}
+	return null;
+};
+
+GH.ProofGenerator.evaluatorIntersection.prototype.action = function(sexp) {
 	return new GH.action('doIntersection', []);
 };
 
@@ -92,6 +97,9 @@ GH.ProofGenerator.evaluatorIntersection.prototype.calculate = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	var intersection = [];
+	if (!leftSet && !rightSet) {
+		return [];
+	}
 	for (var i = 0; i < leftSet.length; i++) {
 		var match = false;
 		for (var j = 0; j < rightSet.length; j++) {

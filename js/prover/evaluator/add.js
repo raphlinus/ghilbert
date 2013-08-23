@@ -3,7 +3,7 @@ GH.ProofGenerator.evaluatorAdd = function(prover) {
   this.operators = ['+'];
 };
 
-GH.ProofGenerator.evaluatorAdd.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorAdd.prototype.variableAction = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
@@ -13,6 +13,13 @@ GH.ProofGenerator.evaluatorAdd.prototype.action = function(sexp) {
 	if (rightNum == 0) {
 		return new GH.action('pa_ax3', [sexp.left()]);
 	}
+	return null;
+}
+
+GH.ProofGenerator.evaluatorAdd.prototype.action = function(sexp) {
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+
 	if (!GH.numUtil.isReduced(sexp.left()) || (!GH.numUtil.isReduced(sexp.right()))) {
 		return new GH.action(null, []);
 	}
@@ -26,19 +33,11 @@ GH.ProofGenerator.evaluatorAdd.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.evaluatorAdd.prototype.canAddTheorem = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	return ((1 < rightNum) && (rightNum <= 10) && (1 <= leftNum) && (leftNum <= 10) &&
-	        GH.numUtil.isReduced(sexp.left()) && GH.numUtil.isReduced(sexp.right()));
+	return ((1 <= rightNum) && (rightNum <= 10) && (1 <= leftNum) && (leftNum <= 10));
 };
 
-GH.ProofGenerator.evaluatorAdd.prototype.addTheorem = function(sexp) {	
-	var sum = this.calculate(sexp);
-	sexp = sexp.copy();
-	this.prover.println('## <title> One-digit Addition </title>');
-	this.prover.println('thm (' + this.action(sexp).name + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(sum) + ')');
-	this.prover.depth++;
-	this.inline(sexp);
-	this.prover.depth--;
-	this.prover.println(')');
+GH.ProofGenerator.evaluatorAdd.prototype.theoremName = function(sexp) {	
+	return 'One-digit Addition';
 };
 
 GH.ProofGenerator.evaluatorAdd.sameDigits = function(leftNum, rightNum) {

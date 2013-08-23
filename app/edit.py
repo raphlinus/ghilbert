@@ -124,7 +124,7 @@ class EditHandler(users.AuthenticatedHandler):
 </head>
         
 
-<body>
+<body class="editor-mode">
 """)
         o.write('<div class="header">')
         o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute; top: 24px;"/></a>')
@@ -143,9 +143,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/direct.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
 <script src="/js/prover/prover.js" type="text/javascript"></script>
-<script src="/js/prover/associator.js" type="text/javascript"></script>
-<script src="/js/prover/commuter.js" type="text/javascript"></script>
-<script src="/js/prover/distributor.js" type="text/javascript"></script>
+<script src="/js/prover/archiveSearcher.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/evaluator.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/add.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/and.js" type="text/javascript"></script>
@@ -157,23 +155,27 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/exponent.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/ifn.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/intersection.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/interval.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/lessThan.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/lessThanEqual.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/modulo.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/multiply.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/properSubset.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/prime.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/setEquality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/subset.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/successor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/union.js" type="text/javascript"></script>
 <script src="/js/prover/remover.js" type="text/javascript"></script>
 <script src="/js/prover/replacer.js" type="text/javascript"></script>
+<script src="/js/prover/conditionalReplacer.js" type="text/javascript"></script>
+<script src="/js/prover/existGeneralizer.js" type="text/javascript"></script>
+<script src="/js/prover/instantiator.js" type="text/javascript"></script>
 <script src="/js/prover/repositioner.js" type="text/javascript"></script>
 <script src="/js/prover/symbolTree.js" type="text/javascript"></script>
 <script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script src="/js/prover/setUtil.js" type="text/javascript"></script>
 <script src="/js/prover/operatorUtil.js" type="text/javascript"></script>
-<script src="/js/prover/operationExchanger.js" type="text/javascript"></script>
 <script src="/js/prover/variableGenerator.js" type="text/javascript"></script>
 <script src="/js/panel.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
@@ -197,7 +199,7 @@ class EditHandler(users.AuthenticatedHandler):
 </div>
 
 <div id="editor-section">
-  <div class="section-title">Editor</div>
+  <span class="section-title">Editor</span>
   <label for="number">before: </label><input type="text" id="number" value="%s" class="minor-input"/>
 """ % thmname)
         # TODO: Uncomment this line once we the stack working fine by itself and we can add an element

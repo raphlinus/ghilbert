@@ -29,15 +29,34 @@ GH.Scanner = function (lines) {
 	this.styleScanner = new GH.StyleScanner();
 };
 
-GH.styling = function(table, title) {
+GH.styling = function(table, title, suggest) {
 	this.table = table;
 	this.title = title;
+	// Remove the quotation marks from the suggestion names.
+	if (suggest) {
+		for (var i = 0; i < suggest.length; i++) {
+			var suggestName = '';
+			var lastToken = true;
+			while (suggest[i].length > 1) {
+				if (!lastToken) {
+					suggestName = ' ' + suggestName;
+				}
+				lastToken = false;
+				suggestName = suggest[i].pop() + suggestName;
+			}
+			suggestName = suggestName.replace(/'/, '')
+			suggestName = suggestName.replace(/'/, '')
+			suggest[i].push(suggestName);
+		}
+	}
+	this.suggest = suggest;
 };
 
 GH.StyleScanner = function() {
 	this.styleMode = GH.StyleScanner.modeTypes.NONE;
 	this.table = null;
 	this.title = '';
+	this.suggest = null;
 	this.leftColumns = 0;
 	this.color = '';
 };
@@ -45,7 +64,9 @@ GH.StyleScanner = function() {
 GH.StyleScanner.modeTypes = {
 	NONE: 0,
 	TABLE: 1,
-	TITLE: 2
+	TITLE: 2,
+	SUGGEST: 3,
+	SUGGEST_FUNC: 4,
 };
 
 GH.StyleScanner.prototype.read_column_style = function(tok) {
@@ -88,13 +109,29 @@ GH.StyleScanner.prototype.get_styling = function() {
 		tableStyle = this.table.output();
 		tableStyle.splice(0, 1);
 	}
-	return new GH.styling(tableStyle, this.title);
+	return new GH.styling(tableStyle, this.title, this.suggest);
 };
 
 GH.StyleScanner.prototype.clear = function() {
 	this.table = null;
 	this.title = '';
+	this.suggest = null;
 }
+
+GH.StyleScanner.prototype.addSuggestToken = function(tok) {
+	var modeTypes = GH.StyleScanner.modeTypes;
+	if (tok == '(') {
+		this.styleMode = modeTypes.SUGGEST_FUNC;
+	} else if (tok == ')') {
+		this.styleMode = modeTypes.SUGGEST;
+	} else {
+		if (this.styleMode == modeTypes.SUGGEST) {
+			this.suggest.push([]);
+		}
+		this.suggest[this.suggest.length - 1].push(tok);
+	}
+
+};
 
 GH.StyleScanner.prototype.read_styling = function(line) {
 	var splitLine = line.split('##');
@@ -122,10 +159,18 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.styleMode = styleModeTypes.TITLE;
 		} else if (tok == '</title>') {
 			this.styleMode = styleModeTypes.NONE;
+		} else if (tok == '<suggest>') {
+			this.suggest = [];
+			this.styleMode = styleModeTypes.SUGGEST;
+		} else if (tok == '</suggest>') {
+			this.styleMode = styleModeTypes.NONE;
 		} else if (this.styleMode == styleModeTypes.TABLE) {
 			this.read_column_style(tok);
 		} else if (this.styleMode == styleModeTypes.TITLE) {
 			this.title += tok + ' ';
+		} else if ((this.styleMode == styleModeTypes.SUGGEST) ||
+		           (this.styleMode == styleModeTypes.SUGGEST_FUNC)) {
+			this.addSuggestToken(tok);
 		}
 	}
 };
@@ -995,7 +1040,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
         }
 		var hyp = hypmap[step];
 		proofctx.stack.push(hyp);
-		var styling = tagName ? new GH.styling(null, tagName) : null;
+		var styling = tagName ? new GH.styling(null, tagName, '') : null;
 		var proofStep = new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;
@@ -1023,9 +1068,9 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
 
 		var removed = proofctx.stackHistory.splice(sp);
 		var isThm = (v[0] == 'thm');
-		var styling = v[6] ? v[6] : new GH.styling(null, null);
+		var styling = v[6] ? v[6] : new GH.styling(null, null, '');
 		if (tagName) {
-			styling = new GH.styling(styling.table, tagName);
+			styling = new GH.styling(styling.table, tagName, '');
 		}
 		var proofStep = new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, isThm, styling);
 		proofctx.stackHistory.push(proofStep);

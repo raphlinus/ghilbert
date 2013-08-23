@@ -186,6 +186,16 @@ GH.typesetclab = function(term, cursorPosition) {
     return GH.combineslugs(slugs, 9999);
 };
 
+GH.typesetInterval = function(term, cursorPosition) {
+    var open_slug = GH.stringslug('{');
+    var x_slug = GH.typeset(term[1], cursorPosition);
+    var slash_slug = GH.stringslug('...');
+    var ph_slug = GH.typeset(term[2], cursorPosition);
+    var close_slug = GH.stringslug('}');
+    var slugs = [open_slug, x_slug, slash_slug, ph_slug, close_slug];
+    return GH.combineslugs(slugs, 9999);
+};
+
 GH.typesetsingleton = function(term, cursorPosition) {
     var open_slug = GH.stringslug('{');
     var A_slug = GH.typeset(term[1], cursorPosition);
@@ -334,6 +344,8 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetsubst(sexp, 40, cursorPosition);
     } else if (sexp[0] == '{|}') {
         return GH.typesetclab(sexp, cursorPosition);
+    } else if (sexp[0] == '{...}') {
+        return GH.typesetInterval(sexp, cursorPosition);
     } else if (sexp[0] == '{}') {
         return GH.typesetsingleton(sexp, cursorPosition);
     } else if (sexp[0] == 'e.' || sexp[0] == '∈') {

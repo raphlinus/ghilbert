@@ -18,3 +18,11 @@ GH.Prover.variableGenerator.prototype.generate = function(type) {
 	this.usedVariables[type]++;
 	return result;
 };
+
+GH.Prover.variableGenerator.isVariable = function(name) {
+	var varNames = GH.Prover.variableGenerator.VARIABLE_NAMES;
+	return ((varNames.wff.indexOf(name) >= 0) ||
+	        (varNames.nat.indexOf(name) >= 0) ||
+	        (varNames.bind.indexOf(name) >= 0) ||
+	        (varNames.set.indexOf(name) >= 0));
+};

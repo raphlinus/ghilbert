@@ -29,31 +29,19 @@ GH.Prover = function(suggestArea, direct) {
 	this.secondaryArea.appendChild(this.secondaryExpDisplay);
 	this.secondaryArea.appendChild(this.secondaryButtons);
 
+	this.archiveSearcher = new GH.archiveSearcher(this);
 	this.remover = new GH.remover(this);
 	this.replacer = new GH.ProofGenerator.replacer(this);
+	this.conditionalReplacer = new GH.ProofGenerator.conditionalReplacer(this);
+	this.existGeneralizer = new GH.ProofGenerator.existGeneralizer(this);
+	this.instantiator = new GH.ProofGenerator.instantiator(this);
 	this.repositioner = new GH.repositioner(this);
-
-	this.commuter = new GH.ProofGenerator.commuter(this);
 	this.evaluator = new GH.ProofGenerator.evaluator(this);
-	this.distributorLeft  = new GH.ProofGenerator.distributorLeft(this);
-	this.distributorRight = new GH.ProofGenerator.distributorRight(this);
-	this.undistributorLeft  = new GH.ProofGenerator.undistributorLeft(this);
-	this.undistributorRight = new GH.ProofGenerator.undistributorRight(this);
-	this.associatorLeft  = new GH.ProofGenerator.associatorLeft(this);
-	this.associatorRight = new GH.ProofGenerator.associatorRight(this);
-	this.operationExchanger = new GH.ProofGenerator.operationExchanger(this);
-
-	this.generators = [
-		{name: 'Commute',    gen: this.commuter},
-		{name: 'Dist. L',    gen: this.distributorLeft},
-		{name: 'Dist. R',    gen: this.distributorRight},
-		{name: 'Undist. L',  gen: this.undistributorLeft},
-		{name: 'Undist. R',  gen: this.undistributorRight},
-		{name: 'Ass. L',     gen: this.associatorLeft},
-		{name: 'Ass. R',     gen: this.associatorRight},
-		{name: 'exchange',   gen: this.operationExchanger},
-	];
 };
+
+// When debugging is true, the theorems are redisplayed at every step which
+// is very useful for debugging, but also very slow.
+GH.Prover.DEBUGGING = false;
 
 GH.Prover.prototype.openExp = function(sexp, name) {
 	var thmCount = this.direct.getTheorems().length;
@@ -246,6 +234,7 @@ GH.Prover.highlightMatch = function(expression, match) {
 };
 
 GH.Prover.prototype.update = function(theorems, stack) {
+	this.archiveSearcher.createArchive(this.direct.vg.syms);
 	this.stack = stack;	
 	this.conclusions = GH.Prover.getConclusions(theorems);
 	this.updateActiveExp(theorems, stack);
@@ -260,6 +249,7 @@ GH.Prover.prototype.updateSuggestButtons = function() {
     	this.secondaryButtons.removeChild(this.secondaryButtons.firstChild);
 	}
 
+	this.archiveSearcher.addSuggestions(this.activeExp);
 	GH.ProofStep.removeClass_(this.secondaryArea, 'active');
 	if (this.activeExp) {
 		GH.ProofStep.addClass_(this.primaryArea, 'active');
@@ -271,18 +261,21 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 		return;
 	}
 
-	for (var i = 0; i < this.generators.length; i++) {
-		var generator = this.generators[i];
-		if (generator.gen.isApplicable(this.activeExp)) {
-			if (generator.gen.addSuggestion) {
-				generator.gen.addSuggestion(this.activeExp);
-			} else {
-				this.addSuggestion(generator.name, 'window.direct.prover.handleClick(\'' + generator.name + '\')', true);
-			}
-		}
-	}
 	if (this.evaluator.isApplicable(this.activeExp)) {
 		this.addSuggestion('Evaluate', 'window.direct.prover.handleEvaluate()', true);
+	}
+	
+	if ((this.stack.length == 0) && (this.conclusions.length >= 1)) {
+		var lastConclusion = this.conclusions[this.conclusions.length - 1];
+		if (this.conditionalReplacer.isApplicable(lastConclusion)) {
+			this.addSuggestion('Cond.', 'window.direct.prover.handleConditional()', true);
+		}
+		if (this.existGeneralizer.isApplicable(lastConclusion)) {
+			this.addSuggestion('Exist.', 'window.direct.prover.handleExistGeneralize()', true);
+		}
+		if (this.instantiator.isApplicable(this.activeExp)) {
+			this.addSuggestion('Instant.', 'window.direct.prover.handleInstantiate()', true);
+		}
 	}
 
 	this.secondaryExpDisplay.innerHTML = '';
@@ -387,10 +380,9 @@ GH.Prover.prototype.makeString = function(mandHyps, step, output) {
 // Returns a list of the theorems from the stack. The list contains
 // all the conclusions of theorems converted into s-expressions.
 GH.Prover.prototype.getTheorems = function() {
-	// The update is commented out because it's unnecessary and slow, but I'm leaving it
-	// here because it is really useful for debugging. Just uncomment it and you can see
-	// the proofs changing while you're debugging.
-	// this.direct.update(true);
+	if (GH.Prover.DEBUGGING) {
+		this.direct.update(true);
+	}
 	var theorems = this.direct.getTheorems();
 	return GH.Prover.getConclusions(theorems);
 };
@@ -487,8 +479,8 @@ GH.Prover.findMatchingPosition = function(sexp, matcher) {
  * generate all the necessary steps to apply the generator.
  */
 GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
-	var action = generator.action(sexp, opt_args);
-	if (this.symbolDefined(action.name)) {
+	var action = generator.action(sexp);
+	if (this.symbolDefined(action.name, opt_args)) {
 		// Uses the proof if it already exists in the repository.
 		this.print(action.hyps, action.name);
 	} else {
@@ -511,7 +503,7 @@ GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
 			this.depth--;
 			this.direct.update(false);
 		} else {
-			var added = generator.inline(sexp);
+			var added = generator.inline(sexp, opt_args);
 			if (!added) {
 				alert(action.name + ' is not in the repository and cannot be generated.');
 			}
@@ -566,7 +558,9 @@ GH.Prover.prototype.replaceWith = function(generator, sexp, opt_args) {
 	this.incrementDepth();
 	this.apply(generator, sexp, opt_args);
 	this.decrementDepth();
-	return this.replace(sexp);
+	sexp = this.replace(sexp);
+
+	return sexp;
 };
 
 GH.Prover.prototype.applyWith = function(generator, sexp, opt_args) {
@@ -786,48 +780,50 @@ GH.Prover.prototype.clearStack = function() {
 	}
 };
 
+GH.Prover.prototype.reverseLastSteps = function() {
+	this.direct.reverseLastSteps();
+};
+
 GH.Prover.prototype.operationExchange = function(sexp, newOperation) {
 	sexp = this.openExp(sexp, 'Convert to ' + newOperation);
-	sexp = this.applyWith(this.operationExchanger, sexp, newOperation);
-	return this.closeExp(sexp);
-	return result;
+	sexp = this.archiveSearcher.applyAction(sexp, newOperation);
+	sexp = this.closeExp(sexp);
+	return sexp;
 };
 
 GH.Prover.prototype.associateLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Associative Property');
-	sexp = this.applyWith(this.associatorLeft, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Ass. L');
 	return this.closeExp(sexp);
-	return result;
 };
 
 GH.Prover.prototype.associateRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Associative Property');
-	sexp = this.applyWith(this.associatorRight, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Ass. R');
 	return this.closeExp(sexp);
-	return result;
 };
 
 GH.Prover.prototype.distributeLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.applyWith(this.distributorLeft, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Dist. L');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.distributeRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.applyWith(this.distributorRight, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Dist. R');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.applyWith(this.undistributorLeft, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Undist. L');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.applyWith(this.undistributorRight, sexp);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Undist. R');
 	return this.closeExp(sexp);
 };
 
@@ -872,7 +868,7 @@ GH.Prover.prototype.commute = function(sexp) {
 		return sexp;
 	} else {
 		sexp = this.openExp(sexp, 'Commutative Property');
-		sexp = this.applyWith(this.commuter, sexp);
+		sexp = this.archiveSearcher.applyAction(sexp, 'Commute');
 		return this.closeExp(sexp);
 	}
 };
@@ -880,22 +876,6 @@ GH.Prover.prototype.commute = function(sexp) {
 GH.Prover.prototype.handleCopy = function() {
 	this.print([this.activeExp], '');
 	this.direct.update(true);
-};
-
-GH.Prover.prototype.handleClick = function(name, opt_args) {
-	this.clearStack();
-	this.println('');
-	var result;
-	for (var i = 0; i < this.generators.length; i++) {
-		if (this.generators[i].name == name) {
-			result = this.replaceWith(this.generators[i].gen, this.activeExp, opt_args);
-		}
-	}
-	this.direct.update(true);
-
-	// The result gets overwritten by the update.
-	this.activeExp = result;
-	this.displayActiveExp();
 };
 
 GH.Prover.prototype.handleEvaluate = function() {
@@ -907,6 +887,64 @@ GH.Prover.prototype.handleEvaluate = function() {
 	// The result gets overwritten by the update.
 	this.activeExp = result;
 	this.displayActiveExp();
+};
+
+GH.Prover.prototype.handleArchive = function(suggestionType, suggestionIndex) {
+	this.clearStack();
+	this.println('');
+	var result = this.archiveSearcher.applySuggestion(this.activeExp, suggestionType, suggestionIndex);
+	this.direct.update(true);
+
+	// The result gets overwritten by the update.
+	this.activeExp = result;
+	this.displayActiveExp();
+};
+
+GH.Prover.prototype.handleConditional = function() {
+	var sexp = window.prompt('Enter an expression to replace:', 'x');
+	var replacement = GH.sExpression.fromString(sexp);
+	var condition = GH.operatorUtil.create('=', [this.activeExp, replacement]);
+	this.condition(this.getLast(), condition);
+	this.direct.update(true);  // TODO: Delete once we can close the expression earlier.
+};
+
+GH.Prover.prototype.handleExistGeneralize = function() {
+	var sexp = window.prompt('Enter a binding variable:', 'x');
+	var example = GH.sExpression.fromString(sexp);
+	this.existGeneralize(this.activeExp, example);
+};
+
+GH.Prover.prototype.handleInstantiate = function() {
+	var num = window.prompt('Enter a number:');
+	var instant = GH.numUtil.createNum(num);
+	this.instantiate(this.activeExp, instant);
+	this.direct.update(true);  // TODO: Delete once we can close the expression earlier.
+};
+
+// Adds a condition and expresses how an expression would change if the condition was met.
+// For example, it can transform      x + 3 < 7
+//                    into (x = 2) -> x + 3 < 7 <-> 2 + 3 < 7 
+//                      or (3 = y) -> x + 3 < 7 <-> x + y < 7
+GH.Prover.prototype.condition = function(sexp, condition) {
+	// sexp = this.openExp(sexp, 'Conditional Replacement');
+	sexp = this.applyWith(this.conditionalReplacer, sexp, condition);
+	// return this.closeExp(sexp);
+	return sexp;
+};
+
+// Performs existential generalization.
+GH.Prover.prototype.existGeneralize = function(sexp, example) {
+	sexp = this.openExp(sexp, 'Existential Generalization');
+	sexp = this.applyWith(this.existGeneralizer, sexp, example);
+	return this.closeExp(sexp);
+};
+
+// Performs universal instantiation.
+GH.Prover.prototype.instantiate = function(sexp, example) {
+	// sexp = this.openExp(sexp, 'Universal Instantiation');
+	sexp = this.applyWith(this.instantiator, sexp, example);
+	// return this.closeExp(sexp);
+	return sexp;
 };
 
 GH.Prover.findMatch = function(sexp, matchee) {

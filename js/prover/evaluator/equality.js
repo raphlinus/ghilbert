@@ -1,16 +1,22 @@
-// Evaluates equality and inequality expressions like 2 = 3 and 2 < 3.
+﻿// Evaluates equality and inequality expressions like 2 = 3 and 2 < 3.
 GH.ProofGenerator.evaluatorEquality = function(prover) {
   this.prover = prover;
   this.operators = ['='];
 };
 
+GH.ProofGenerator.evaluatorEquality.prototype.variableAction = function(sexp) {
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	if ((leftNum == rightNum) || (sexp.left().equals(sexp.right()))) {
+		return new GH.action('eqid', [sexp.left()]);
+	}
+	return null;
+};
+
 GH.ProofGenerator.evaluatorEquality.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	if (leftNum == rightNum) {
-		return new GH.action('eqid', [sexp.left()]);
-	}
-	return new GH.action(leftNum + 'equals' + rightNum, []);
+	return new GH.action(leftNum + 'notEqual' + rightNum, []);
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
@@ -19,7 +25,13 @@ GH.ProofGenerator.evaluatorEquality.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return ((rightNum <= 10) && (leftNum <= 10));
+};
+
+GH.ProofGenerator.evaluatorEquality.prototype.theoremName = function(sexp) {
+	return 'One-Digit Inequality';
 };
 
 GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
@@ -38,11 +50,11 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 	} else if (leftNum < rightNum) {
 		this.prover.evaluate(GH.operatorUtil.create('<', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '=');
+		return this.prover.operationExchange(result, '≠');
 	} else {
 		this.prover.evaluate(GH.operatorUtil.create('<=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '=');
+		return this.prover.operationExchange(result, '≠');
 	}
 	return null;
 };

@@ -238,6 +238,20 @@ GH.Direct.prototype.removeExpression = function(expression) {
 	this.update(false);
 };
 
+// Reverse the order of the last two steps.
+GH.Direct.prototype.reverseLastSteps = function() {
+	var steps = this.thmctx.proofctx.stackHistory;
+	var last = steps[steps.length - 1];
+	var secondLast = steps[steps.length - 2];
+	var secondSize = (secondLast.end - secondLast.getBeginning());
+	var secondLastText = this.text.splice(secondLast.getBeginning(), secondSize, '');
+	secondLastText = ' ' + secondLastText.join('');
+
+	var insertionPoint = last.end - secondSize;
+	this.text.splice(insertionPoint, insertionPoint, secondLastText);
+	this.update(true);
+};
+
 // This is called when starting on a new theorem that the current theorem needs.
 // It removes the current partially complete theorem which will infer with the new one.
 // It is restored later.

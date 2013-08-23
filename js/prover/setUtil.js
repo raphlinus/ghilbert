@@ -43,7 +43,7 @@ GH.setUtil.removeArrayDuplicates = function(inputArray) {
 };
 
 GH.setUtil.equals = function(leftSet, rightSet) {
-	if (leftSet.length != rightSet.length) {
+	if (!leftSet || !rightSet || (leftSet.length != rightSet.length)) {
 		return false;
 	}
 	for (var i = 0; i < leftSet.length; i++) {

@@ -3,7 +3,7 @@ GH.ProofGenerator.evaluatorMultiply = function(prover) {
   this.operators = ['*'];
 };
 
-GH.ProofGenerator.evaluatorMultiply.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorMultiply.prototype.variableAction = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
@@ -20,6 +20,12 @@ GH.ProofGenerator.evaluatorMultiply.prototype.action = function(sexp) {
 	if (rightNum == 1) {
 		return new GH.action('mulid', [sexp.left()]);
 	}
+	return null;
+};
+
+GH.ProofGenerator.evaluatorMultiply.prototype.action = function(sexp) {
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
 
 	return new GH.action(leftNum + 'times' + rightNum, []);
 };
@@ -54,14 +60,8 @@ GH.ProofGenerator.evaluatorMultiply.prototype.canAddTheorem = function(sexp) {
 	return ((leftNum < 10) && (rightNum < 10));
 };
 
-GH.ProofGenerator.evaluatorMultiply.prototype.addTheorem = function(sexp) {	
-	var product = this.calculate(sexp);
-	this.prover.println('## <title> One-digit Multiplication </title>');
-	this.prover.println('thm (' + this.action(sexp).name + ' () () (= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(product) + ')');
-	this.prover.depth++;
-	this.inline(sexp);
-	this.prover.depth--;
-	this.prover.println(')');
+GH.ProofGenerator.evaluatorMultiply.prototype.theoremName = function(sexp) {	
+	return 'One-digit Multiplication';
 };
 
 GH.ProofGenerator.evaluatorMultiply.findSmallerDigits = function(num) {

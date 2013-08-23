@@ -11,6 +11,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorLessThanEqual(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSuccessor(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDivides(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorPrime(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDiv(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorElementOf(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSingleton(prover));
@@ -22,6 +23,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorModulo(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorExponent(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorIfn(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorInterval(prover));
   this.generators.push(this.constant);
 };
 
@@ -41,6 +43,12 @@ GH.ProofGenerator.evaluator.prototype.findGenerator = function(operator) {
 
 GH.ProofGenerator.evaluator.prototype.generatorAction = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
+	if (generator.variableAction) {
+		var variableAction = generator.variableAction(sexp);
+		if (variableAction != null) {
+			return variableAction;
+		}
+	}
 	if (generator) {
 		return generator.action(sexp);
 	} else {
@@ -51,7 +59,8 @@ GH.ProofGenerator.evaluator.prototype.generatorAction = function(sexp) {
 GH.ProofGenerator.evaluator.prototype.action = function(sexp) {
 	// Return null if any of the operands are not reduced.
 	for (var i = 0; i < sexp.operands.length; i++) {
-		if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+		var operand = sexp.operands[i];
+		if ((!GH.operatorUtil.isReduced(operand)) && (!this.hasVariables(operand))) {
 			return new GH.action(null, []);
 		}
 	}
@@ -63,16 +72,19 @@ GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
 	if (sexp.isProven) {
 		return false;
 	}
-	// We cannot evaluate an expression with variables in it.
-	if (this.hasVariables(sexp)) {
-		return false;
-	}
 	// If the sexp is already a reduced decimal number, there's nothing more to do.
 	if (GH.operatorUtil.isReduced(sexp)) {
 		return false;
 	}
 	var generator = this.findGenerator(sexp.operator);
+	
 	if (generator) {
+		// Only certain actions can handle expressions with variables in them.
+		if (this.hasVariables(sexp)) {
+			if (!generator.variableAction || (generator.variableAction(sexp) == null)) {
+				return false;
+			}
+		}
 		return generator.isApplicable(sexp);
 	} else {
 		return false;
@@ -110,13 +122,12 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 			if (!result) {
 				return false;
 			}
+			if (result.operator == '-.') {
+				result = result.child();
+			}
 			for (var i = 0; i < sexp.operands.length; i++) {
 				if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
 					result = this.prover.unevaluate(sexp.operands[i], result.operands[i]).parent;
-					/* var copy = sexp.operands[i].copy();
-					copy = this.prover.evaluate(copy);
-					this.prover.commute(copy.parent);
-					result = this.prover.replace(result.operands[i]).parent;*/
 				}
 			}
 			return true;
@@ -129,6 +140,11 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 GH.ProofGenerator.evaluator.prototype.canAddTheorem = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
+		for (var i = 0; i < sexp.operands.length; i++) {
+			if (!GH.numUtil.isReduced(sexp.operands[i])) {
+				return false;
+			}
+		}
 		return generator.canAddTheorem(sexp);
 	} else {
 		return false;
@@ -138,12 +154,34 @@ GH.ProofGenerator.evaluator.prototype.canAddTheorem = function(sexp) {
 GH.ProofGenerator.evaluator.prototype.addTheorem = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
-		generator.addTheorem(sexp);
+		var result = this.calculate(sexp);
+		var type = GH.operatorUtil.getType(sexp);
+		var conclusion = sexp.toString();
+		if (type == 'wff') {
+			if (!result) {
+				conclusion = '(-. ' + sexp.toString() + ')';
+			}
+		} else if (type == 'nat') {
+			conclusion = '(= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(result) + ')'
+		} else {
+			alert('Adding theorem with type ' + type + ' is not yet supported.');
+		}
+
+		sexp = sexp.copy();
+		this.prover.println('## <title> ' + generator.theoremName(sexp) + ' </title>');
+		this.prover.println('thm (' + this.action(sexp).name + ' () () ' + conclusion);
+		this.prover.depth++;
+		generator.inline(sexp);
+		this.prover.depth--;
+		this.prover.println(')');
 	}
 };
 
 GH.ProofGenerator.evaluator.prototype.calculate = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
+	if (this.hasVariables(sexp)) {
+		return null;
+	}
 	if (generator) {
 		return generator.calculate(sexp);
 	} else {

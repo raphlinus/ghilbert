@@ -1,4 +1,4 @@
-GH.ProofGenerator.evaluatorProperSubset = function(prover) {
+﻿GH.ProofGenerator.evaluatorProperSubset = function(prover) {
   this.prover = prover;
   this.operators = ['C.'];
 };
@@ -32,12 +32,12 @@ GH.ProofGenerator.evaluatorProperSubset.prototype.inline = function(sexp) {
 		var subset   = GH.operatorUtil.create('C_', [sexp.left(), sexp.right()]);
 		this.prover.evaluate(subset);
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, 'C.');
+		return this.prover.operationExchange(result, '⊄');
 	} else {
 		var equality = GH.operatorUtil.create('=_', [sexp.left(), sexp.right()]);
 		this.prover.evaluate(equality);
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, 'C.');
+		return this.prover.operationExchange(result, '⊄');
 	}
 	return null;
 };

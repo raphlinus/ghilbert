@@ -6,7 +6,9 @@ GH.remover.REMOVE_OPERATIONS = [
 	[ '->', ['impRemove1', 'impRemove2'], ['impNotRemove1', 'impNotRemove2']],
 	['<->', [ 'biRemove1',  'biRemove2'], [ 'biNotRemove1',  'biNotRemove2']],
 	['\\/', [ 'orRemove1',  'orRemove2'], [ 'orNotRemove1',  'orNotRemove2']], 
-	['/\\',	[ 'anRemove1',  'anRemove2'], [ 'anNotRemove1',  'anNotRemove2']]
+	['/\\',	[ 'anRemove1',  'anRemove2'], [ 'anNotRemove1',  'anNotRemove2']],
+	[ 'A.', [        null,  'alRemove2'], [ null,            'alNotRemove2']],
+	[ 'E.', [        null,  'exRemove2'], [ null,            'exNotRemove2']],
 ];
 
 // TODO: Use shorthand operations.
@@ -37,11 +39,10 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 				} else {
 					actionName = shorthandOperations[i][2][operandIndex];
 				}
-				if ((!actionName) || (!this.prover.symbolDefined(actionName))) {
-					return false;
+				if ((actionName) && (this.prover.symbolDefined(actionName))) {
+					this.prover.makeString([], actionName, output);
+					return true;
 				}
-				this.prover.makeString([], actionName, output);
-				return true;
 			}
 		}
 	}

@@ -1,14 +1,20 @@
-GH.ProofGenerator.evaluatorLessThanEqual = function(prover) {
+﻿GH.ProofGenerator.evaluatorLessThanEqual = function(prover) {
   this.prover = prover;
   this.operators = ['<='];
+};
+
+GH.ProofGenerator.evaluatorLessThanEqual.prototype.variableAction = function(sexp) {
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	if (leftNum == 0) {
+		return new GH.action('0le', [sexp.right()]);
+	}
+	return null;
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	if (leftNum == 0) {
-		return new GH.action('0le', [GH.numUtil.createNum(rightNum)]);
-	}
 	if (leftNum <= rightNum) {
 		operatorName = 'lessEq';
 	} else {
@@ -29,11 +35,11 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.inline = function(sexp) {
 	} else if (leftNum < rightNum) {
 		this.prover.evaluate(GH.operatorUtil.create('<', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '<=');
+		return this.prover.operationExchange(result, '≤');
 	} else if (leftNum == rightNum) {
 		this.prover.evaluate(GH.operatorUtil.create('=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '<=');
+		return this.prover.operationExchange(result, '≤');
 	} else if (leftNum > rightNum) {
 		if ((leftNum <= 10) && (rightNum <= 10)) {
 			return this.addToBothSides(sexp, leftNum - rightNum, 0, rightNum);
@@ -173,7 +179,13 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.arbitraryNumbers = function(s
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return ((rightNum <= 10) && (leftNum <= 10) && (leftNum > rightNum));
+};
+
+GH.ProofGenerator.evaluatorLessThanEqual.prototype.theoremName = function(sexp) {
+	return 'One-Digit Inequality';
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.calculate = function(sexp) {

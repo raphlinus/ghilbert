@@ -32,6 +32,7 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'i^i') 	return ['set', 'set', 'set'];
 	if (operator == 'ifn') 	return ['wff', 'nat', 'nat', 'nat'];
 	if (operator == 'iota') return ['set', 'nat'];
+	if (operator == '{...}') return ['nat', 'nat', 'set'];
 	return null;
 };
 
@@ -79,6 +80,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'i^i') {		return 'In';
 	} else if (operator == 'ifn') {		return 'Ifn';
 	} else if (operator == 'iota') {	return 'Iota';
+	} else if (operator == '{...}') {	return 'Intv';
 	} else {
 		alert('Operator ' + operator + ' is not named.');
 		return '';
@@ -99,6 +101,16 @@ GH.operatorUtil.isReduced = function(sexp) {
 	}
 };
 
+GH.operatorUtil.allReduced = function(sexp) {
+	// Return false if any of the operands are not reduced.
+	for (var i = 0; i < sexp.operands.length; i++) {
+		if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+			return false;
+		}
+	}
+	return true;
+};
+
 // Creates an s-expression from an operator and several operands.
 GH.operatorUtil.create = function(operator, operands) {
 	var types = GH.operatorUtil.getOperatorTypes(operator);
@@ -110,6 +122,8 @@ GH.operatorUtil.create = function(operator, operands) {
 		// Add the operands if it's already an s-expression, otherwise convert it.
 		if (operands[i] instanceof GH.sExpression) {
 			sexpOperands.push(operands[i].copy());
+		} else if (typeof operands[i] == 'string') {
+			sexpOperands.push(GH.sExpression.fromRaw(operands[i]));
 		} else {
 			sexpOperands.push(GH.operatorUtil.createType(types[i], operands[i]))
 		}

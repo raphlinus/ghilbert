@@ -3,12 +3,15 @@ GH.ProofGenerator.evaluatorSetEquality = function(prover) {
   this.operators = ['=_'];
 };
 
-GH.ProofGenerator.evaluatorSetEquality.prototype.action = function(sexp) {
+GH.ProofGenerator.evaluatorSetEquality.prototype.variableAction = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
-	if (GH.setUtil.equals(leftSet, rightSet)) {
+	if (GH.setUtil.equals(leftSet, rightSet) || sexp.left().equals(sexp.right())) {
 		return new GH.action('seqid', [sexp.left()]);
 	}
+};
+
+GH.ProofGenerator.evaluatorSetEquality.prototype.action = function(sexp) {
 	return new GH.action('undefined', []);
 };
 

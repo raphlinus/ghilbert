@@ -4,13 +4,19 @@ GH.ProofGenerator.evaluatorElementOf = function(prover) {
   this.repeator = new GH.ProofGenerator.repeatedElementOf(prover);
 };
 
-GH.ProofGenerator.evaluatorElementOf.prototype.action = function(sexp) {
-	if ((sexp.right().operator == '{}') && (this.calculate(sexp))) {
+GH.ProofGenerator.evaluatorElementOf.prototype.variableAction = function(sexp) {
+	if ((sexp.right().operator == '{}') &&
+	        ((this.calculate(sexp)) || (sexp.right().child().equals(sexp.left())))) {
 		return new GH.action('snid', [sexp.left()]);
 	}
+	
 	if (sexp.right().operator == '{/}') {
 		return new GH.action('noel', [sexp.left()]);
 	}
+	return null;
+};
+
+GH.ProofGenerator.evaluatorElementOf.prototype.action = function(sexp) {
 	return new GH.action('elementOf', []);
 };
 
@@ -95,7 +101,7 @@ GH.ProofGenerator.evaluatorElementOf.prototype.canAddTheorem = function(sexp) {
 GH.ProofGenerator.evaluatorElementOf.prototype.calculate = function(sexp) {
 	var leftNum = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
-	return (rightSet.indexOf(leftNum) >= 0);
+	return rightSet && (rightSet.indexOf(leftNum) >= 0);
 };
 
 

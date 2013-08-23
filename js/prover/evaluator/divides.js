@@ -25,23 +25,9 @@ GH.ProofGenerator.evaluatorDivides.prototype.inline = function(sexp) {
 
 GH.ProofGenerator.evaluatorDivides.prototype.proveDivision = function(sexp, leftNum, rightNum) {
 	var xNum = rightNum / leftNum;
-	var x = GH.sExpression.createVariable('x');
-	var xNum = GH.numUtil.createNum(xNum);
-	this.prover.print([sexp.left(), sexp.right(), x], 'df-divides');
-
-	// TODO: Implement this using an evaluatorExists.	
-	this.prover.print([x, xNum], 'tyex');
-	var existence = this.prover.getLast();
-	this.prover.print([sexp.left(), x, xNum], 'mulcant2');
-	var cancellation = this.prover.getLast();
-	cancellation = this.prover.evaluate(cancellation.left());
-	this.prover.remove();
-	cancellation = this.prover.getLast();
-	cancellation = this.prover.commute(cancellation);
-	existence = this.prover.replace(existence.right());
-	existence = this.prover.evaluate(existence.right());
-	
-	return this.prover.remove();
+	this.prover.evaluate(GH.operatorUtil.create('*', [leftNum, xNum]));
+	this.prover.print([], 'proveDivides');
+	return this.prover.getLast();
 };
 
 // Prove that A does not divide B.
