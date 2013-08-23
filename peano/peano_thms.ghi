@@ -4,12 +4,29 @@ param (PROP prop.ghi () "")
 param (PEANO_MIN peano_min.ghi (PROP) "")
 
 tvar (wff ph ps ch th ta)
-tvar (nat A B C D A' B' C' D')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
 var (nat v w x y z v' w' x' y' z')
 
 term (wff (E. x ph))
 term (wff (< A B))
 term (wff (<= A B))
+
+kind (set)
+tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
+
+term (set ({|} x ph))
+term (wff (e. A S))
+term (wff (=_ S T))
+term (set ({/}))
+term (set ({} A))
+term (set (u. S T))
+term (set (i^i S T))
+term (wff (C_ S T))
+term (wff (C. S T))
+term (nat (mod A B))
+term (nat (div A B))
+term (wff (| A B))
+term (nat (exp A B))
 
 # == Pure predicate calculus ==
 stmt (a4i () ((A. x ph)) ph)
@@ -211,6 +228,9 @@ stmt (mulidr() () (= (* (1) A) A))
 
 ## <title> No Natural Numbers Below Zero </title>
 stmt (0le () () (<= (0) A))
+
+## <title> No Natural Numbers Below Zero </title>
+stmt (ge0 () () (-. (< A (0))))
 
 ## <title> Convert between inequalities </title>
 stmt (axlttri2 () () (<-> (< A B) (/\ (-. (= A B)) (<= A B))))
@@ -760,3 +780,331 @@ stmt (lteq1ii () ((< A C) (= A B)) (< B C))
 ##  (< C   [   [ [ B)
 ## </table>
 stmt (lteq2ii () ((< C A) (= A B)) (< C B))
+
+## <title> Convert between inequalities </title>
+stmt (axlttri2i () ((-. (= A B)) (<= A B)) (< A B))
+
+## <title> Multiplication is Monotonic </title>
+## <table>
+##  (<    B ] ]     ]      [ C ] ]   )
+##  (<      [ [ (0) ]      [   [ [ A )
+##  (< (* B ] [  A  ] ) (* [ C ] [ A ))
+## </table>
+stmt (ltmul2i () ((< B C) (< (0) A)) (< (* B A) (* C A)))
+
+stmt (emptyIn1 () ((-. (e. A S))) (=_ (i^i ({} A) S) ({/})))
+
+stmt (emptyIn2 () ((-. (e. A S))) (=_ (i^i S ({} A)) ({/})))
+
+## <title> Multiplication is Monotonic </title>
+## <table>
+##  (-. (<=    B ] ]   ]      [ C ] ]     ))
+##  (-. (<=      [ [ A ]      [   [ [ (0) ))
+##  (-. (<= (+ B ] [ A ] ) (+ [ C ] [  A  )))
+## </table>
+stmt (gtmul2i () ((-. (<= B C)) (-. (<= A (0))))  (-. (<= (* B A) (* C A))))
+
+## <title> Modulo Value </title>
+stmt (modvali () ((< C B)  (= (+ (* B D) C) A)) (= (mod A B) C))
+
+## <title> Combine Set Inclusions </title>
+stmt (dfpssi () ((C_ S T) (-. (=_ S T))) (C. S T))
+
+## <title> Sets are not equal </title>
+stmt (notSeq () ((e. A S) (-. (e. A T))) (-. (=_ S T)))
+
+## <title> Sets are not equal </title>
+stmt (notSeq2 () ((-. (e. A S)) (e. A T)) (-. (=_ S T)))
+
+## <title> Not a Subset </title>
+stmt (notSs () ((e. A S) (-. (e. A T))) (-. (C_ S T)))
+
+## <title> Subset of a Union </title>
+stmt (ssUnion () () (C_ S (u. S T)))
+
+## <title> Inequality Conversion </title>
+stmt (axgrtrii () ((-. (= A B)) (-. (< A B))) (-. (<= A B)))
+
+stmt (divval () ((-. (<= B (0))) (= (+ (* B C) (mod A B)) A)) (= (div A B) C))
+
+stmt (proveDivides () ((= (* A B) C)) (| A C))
+
+stmt (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B))))
+
+stmt (unionAttach1 () ((e. A S)) (e. A (u. S U)))
+
+stmt (unionAttach2 () ((e. A S)) (e. A (u. U S)))
+
+stmt (notInSingleton () ((-. (= A B)))  (-. (e. A ({} B))))
+
+stmt (notInSingletonUnion () ((-. (= A B)) (-. (e. A S))) (-. (e. A (u. ({} B) S))))
+
+stmt (pa_ax1plus () () (-. (= (0) (+ A (1)))))
+
+stmt (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B))))
+
+stmt (exp0 () () (= (exp A (0)) (1)))
+
+## <title> Exponent Right Identity </title>
+stmt (expid () () (= (exp A (1)) A))
+
+## <title> Union is Idempotent </title>
+stmt (unidm() () (=_ (u. S S) S))
+
+## <title> Union Identity </title>
+stmt (unid() () (=_ (u. S ({/})) S))
+
+## <title> Union Identity </title>
+stmt (unidr() () (=_ (u. ({/}) S) S))
+
+## <title> Intersection is Idempotent </title>
+stmt (inidm() () (=_ (i^i S S) S))
+
+## <title> Reflexive Property </title>
+stmt (seqid () () (=_ S S))
+
+stmt (snid () () (e. A ({} A)))
+
+## <title> Empty Set Contains Nothing </title>
+stmt (noel () () (-. (e. A ({/}))))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<       [ B ]      [   [ C ] )
+##   (-> (< A [ B ] ) (< [ A [ C ] ))
+## </table>
+stmt (ltTrlt () ((< B C)) (-> (< A B) (< A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<        [ B ]      [   [ C ] )
+##   (-> (<= A [ B ] ) (< [ A [ C ] ))
+## </table>
+stmt (ltTrle () ((< B C)) (-> (<= A B) (< A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<       [ B ]      [   [ C ] )
+##   (-> (= A [ B ] ) (< [ A [ C ] ))
+## </table>
+stmt (ltTreq () ((< B C)) (-> (= A B) (< A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=      [ B ]       [   [ C ] )
+##   (-> (= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+stmt (leTreq () ((<= B C)) (-> (= A B) (<= A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=      [ B ]       [   [ C ] )
+##   (-> (= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+stmt (leTrlt () ((<= B C)) (-> (< A B) (< A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (<=       [ B ]       [   [ C ] )
+##   (-> (<= A [ B ] ) (<= [ A [ C ] ))
+## </table>
+stmt (leTrle () ((<= B C)) (-> (<= A B) (<= A C)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=       [ B ]            [   [ C ] ))
+##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+stmt (gtTrgt () ((-. (<= B C))) (-> (-. (<= A B)) (-. (<= A C))))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<        [ B ]            [   [ C ] ))
+##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+stmt (geTrgt () ((-. (< B C))) (-> (-. (<= A B)) (-. (<= A C))))
+
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<   [ B ]          [   [ C ] ))
+##   (-> (= A [ B ] ) (-. (< [ A [ C ] )))
+## </table>
+stmt (geTreq () ((-. (< B C))) (-> (= A B) (-. (< A C))))
+
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=  [ B ]           [   [ C ] ))
+##   (-> (= A [ B ] ) (-. (<= [ A [ C ] )))
+## </table>
+stmt (gtTreq () ((-. (<= B C))) (-> (= A B) (-. (<= A C))))
+
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<=      [ B ]            [   [ C ] ))
+##   (-> (-. (< A [ B ] )) (-. (<= [ A [ C ] )))
+## </table>
+stmt (gtTrge () ((-. (<= B C))) (-> (-. (< A B)) (-. (<= A C))))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (-. (<       [ B ]           [   [ C ] ))
+##   (-> (-. (< A [ B ] )) (-. (< [ A [ C ] )))
+## </table>
+stmt (geTrge () ((-. (< B C))) (-> (-. (< A B)) (-. (< A C))))
+
+# This is identical to eqtr. So ideally we would use eqtr instead.
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+stmt (EqReplaceEq1 () ((= A B) (= B C)) (= A C))
+
+## <title> Equivalence over Inequality </title>
+## <table>
+##   (=          A ]   ]           [ B ]   )
+##   (<-> (-. (< A ] C ] )) (-. (< [ B ] C)))
+## </table>
+stmt (geeq1i ()
+  ((= A B))
+   (<-> (-. (< A C)) (-. (< B C))))
+
+## <title> Equivalence over Inequality </title>
+## <table>
+##   (=            [ A ]           [   [ B ] )
+##   (<-> (-. (< C [ A ] )) (-. (< [ C [ B ] )))
+## </table>
+stmt (geeq2i ()
+  ((= A B))
+  (<-> (-. (< C A)) (-. (< C B))))
+
+## <title> Equivalence over Inequality </title>
+## <table>
+##   (=           A ]   ]            [ B ]   )
+##   (<-> (-. (<= A ] C ] )) (-. (<= [ B ] C)))
+## </table>
+stmt (gteq1i ()
+  ((= A B))
+  (<-> (-. (<= A C)) (-. (<= B C))))
+
+## <title> Equivalence over Inequality </title>
+## <table>
+##   (=             [ A ]            [   [ B ] )
+##   (<-> (-. (<= C [ A ] )) (-. (<= [ C [ B ] )))
+## </table>
+stmt (gteq2i ()
+  ((= A B))
+  (<-> (-. (<= C A)) (-. (<= C B))))
+
+# Equality inference for the divides relation.
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (| A ] C ] ) (< [ B ] C))
+## </table>
+stmt (divideseq1i ()
+  ((= A B))
+  (<-> (| A C) (| B C)))
+
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (| C [ A ] ) (| [ C [ B ] ))
+## </table>
+stmt (divideseq2i ()
+  ((= A B))
+  (<-> (| C A) (| C B)))
+
+## <title> Equality over Exponentiation </title>
+stmt (expeq1i () ((= A B)) (= (exp A C) (exp B C)))
+
+## <title> Equality over Exponentiation </title>
+stmt (expeq2i () ((= A B)) (= (exp C A) (exp C B)))
+
+## <title> Operator Conversion </title>
+stmt (ltneq () () (-> (< A B) (-. (= A B))))
+
+## <title> Inequality Conversion </title>
+stmt (ltle () () (-> (< A B) (<= A B)))
+
+## <title> Inequality Conversion </title>
+stmt (gtneq () () (-> (-. (<= A B)) (-. (= A B))))
+
+## <title> Inequality Conversion </title>
+stmt (gtge () () (-> (-. (<= A B)) (-. (< A B))))
+
+## <title> Equality Conversion </title>
+stmt (eqle() () (-> (= A B) (<= A B)))
+
+## <title> Equality Conversion </title>
+stmt (eqge() () (-> (= A B) (-. (< A B))))
+
+stmt (pssNeq () () (-> (C. S T) (-. (=_ S T))))
+
+stmt (pssSs () ()  (-> (C. S T) (C_ S T)))
+
+stmt (nssNpss () () (-> (-. (C_ S T)) (-. (C. S T))))
+
+stmt (seqNpss () () (-> (=_ S T) (-. (C. S T))))
+
+stmt (undi () () (=_ (u. S (i^i T U)) (i^i (u. S T) (u. S U))))
+
+stmt (undir () () (=_ (u. (i^i T U) S) (i^i (u. T S) (u. U S))))
+
+stmt (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U))))
+
+stmt (indir () () (=_ (i^i (u. T U) S) (u. (i^i T S) (i^i U S))))
+
+stmt (seqseq1i () ((=_ S T)) (<-> (=_ S U) (=_ T U)))
+
+stmt (seqseq2i () ((=_ S T)) (<-> (=_ U S) (=_ U T)))
+
+## <title> Equivalence over Subset </title>
+## <table>
+##   (=_     S ]    ] [     T ] )
+##   (=_ (C_ S ] U) ] [ (C_ T ] U))
+## </table>
+stmt (sseq1i () ((=_ S T)) (<-> (C_ S U) (C_ T U)))
+
+stmt (sseq2i () ((=_ S T)) (<-> (C_ U S) (C_ U T)))
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_     S ]    ] [     T ] )
+##   (=_ (u. S ] U) ] [ (u. T ] U))
+## </table>
+stmt (uneq1i () ((=_ S T)) (=_ (u. S U) (u. T U)))
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_       [ S  ] [       [ T)
+##   (=_ (u. U [ S) ] [ (u. U [ T))
+## </table>
+stmt (uneq2i () ((=_ S T)) (=_ (u. U S) (u. U T)))
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_      S ]    ] [      T ] )
+##   (=_ (i^i S ] U) ] [ (i^i T ] U))
+## </table>
+stmt (ineq1i () ((=_ S T)) (=_ (i^i S U) (i^i T U)))
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_        [ S  ] [        [ T)
+##   (=_ (i^i U [ S) ] [ (i^i U [ T))
+## </table>
+stmt (ineq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
+
+## <title> Commutative Property </title>
+stmt (seqcom () () (<-> (=_ S T) (=_ T S)))
+
+## <title> Commutative Property </title>
+stmt (uncom () () (=_ (u. S T) (u. T S)))
+
+## <title> Commutative Property </title>
+stmt (incom () () (=_ (i^i S T) (i^i T S)))
