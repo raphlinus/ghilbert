@@ -1443,14 +1443,15 @@ thm (sbcie ((A x) (ps x))
   hyp ceqsex bitri
 )
 
-## <suggest> right('Simplify') </suggest>
-thm (sbid () () (<-> ([/] x x ph) ph)
-  ph biid
-  (= x x) a1i
-  sbcie
-)
+# This is broken because of the freeness constraint on sbcie.
+# <suggest> right('Simplify') </suggest>
+# thm (sbid () () (<-> ([/] x x ph) ph)
+#   ph biid
+#   (= x x) a1i
+#   sbcie
+# )
 
-thm (cla4g ((ps x) (A x))
+thm (cla4g ((A x) (ps x))
   (hyp (-> (= x A) (<-> ph ps)))
   (-> (A. x ph) ps)
   x ph A a4sbc hyp sbcie sylib
@@ -2436,7 +2437,7 @@ thm (netr ()
   mtbir
 )
 
-thm (ltDiff () (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
+thm (ltDiff ((A x) (B x)) (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
   A B df-lt
 
   A B x df-le
@@ -2618,6 +2619,32 @@ thm (leadd12 () ()
   (= (+ A B) (+ C D)) id (+ C B) leeq1d
   D B C leadd2 syl6bbr
   A C B leadd1 syl5bb
+)
+
+## <title> Inequality Over Addition </title>
+thm (ltadd1 () () (<-> (< A B) (< (+ A C) (+ B C)))
+  A B C leadd1
+    A C B addcan bicomi notbii
+  anbi12i
+
+    A B df-lt
+      (+ A C) (+ B C) df-lt
+  3bitr4i
+)
+
+## <title> Inequality Over Addition </title>
+thm (ltadd2 () () (<-> (< A B) (< (+ C A) (+ C B)))
+   A B df-lt
+  (+ C A) (+ C B) df-lt
+  A B C leadd2
+    C A B addcan2 bicomi notbii
+  anbi12i
+  bicomi
+  bitri
+  ## <d>
+    bicomi
+  ## </d>
+  bitri
 )
 
 ## <title> Addition Over Inequality </title>
@@ -2804,15 +2831,6 @@ thm (eqle() () (-> (= A B) (<= A B))
   orcs
 )
 
-## <title> Equality Conversion </title>
-## <suggest> right('≥') </suggest>
-thm (eqge() () (-> (= A B) (-. (< A B)))
-  A B axlttri2
-  biimpi
-  pm3.26d
-  con2i
-)
-
 thm (nnltp1let () ()
   (<-> (< A B) (<= (+ A (1)) B))
   A B df-lt
@@ -2872,12 +2890,6 @@ thm (0le () () (<= (0) A)
    bicomi
    A nn0nlt0
    mpbiRemove
-)
-
-## <title> No Natural Numbers Below Zero </title>
-thm (ge0 () () (-. (< A (0)))
-  A 0le
-  lecomi
 )
 
 # Equality deduction for less than relation
@@ -2960,6 +2972,7 @@ thm (axlttri () ()
 )
 
 # Less than or equal to expressed in terms of less than or equals
+## <title> ≤ mean < OR = <title>
 ## <suggest> right('∨') left('<=') </suggest>
 thm (leleo () ()
   (<-> (<= A B) (\/ (< A B) (= A B)))
@@ -3017,6 +3030,12 @@ thm (lecomi () (hyp (<= A B)) (-. (< B A))
   hyp
   A B lecom
   mpbi
+)
+
+## <title> No Natural Numbers Below Zero </title>
+thm (ge0 () () (-. (< A (0)))
+  A 0le
+  lecomi
 )
 
 ## <title> Equivalence over Inequality </title>
@@ -3222,16 +3241,6 @@ thm (0notEqual1 () () (-. (= (0) (1)))
   ## </d 'Evaluate'>
 )
 
-
-## <title> One-Digit Inequality </title>
-thm (0less1 () () (< (0) (1))
-    0notEqual1
-  ## <d 'Less Than Or Equal To Zero'>
-    (1) 0le
-  ## </d 'Less Than Or Equal To Zero'>
-  axlttri2i
-)
-
 ## <title> Substitution </title>
 ## <table>
 ##   (-> ph (-> ps (/\ ch  [ th ]   ]    ] )))
@@ -3331,6 +3340,24 @@ thm (axlttri2i () (hyp (-. (= A B)) hyp2 (<= A B)) (< A B)
     mpbi
   ## </d>
   mpbi
+)
+
+## <title> Equality Conversion </title>
+## <suggest> right('≥') </suggest>
+thm (eqge() () (-> (= A B) (-. (< A B)))
+  A B axlttri2
+  biimpi
+  pm3.26d
+  con2i
+)
+
+## <title> One-Digit Inequality </title>
+thm (0less1 () () (< (0) (1))
+    0notEqual1
+  ## <d 'Less Than Or Equal To Zero'>
+    (1) 0le
+  ## </d 'Less Than Or Equal To Zero'>
+  axlttri2i
 )
 
 ## <title> Substitution </title>
@@ -3434,32 +3461,6 @@ thm (gtgei() (hyp (-. (<= A B))) (-. (< A B))
 )
 
 ## <title> Inequality Over Addition </title>
-thm (ltadd1 () () (<-> (< A B) (< (+ A C) (+ B C)))
-  A B C leadd1
-    A C B addcan bicomi notbii
-  anbi12i
-
-    A B df-lt
-      (+ A C) (+ B C) df-lt
-  3bitr4i
-)
-
-## <title> Inequality Over Addition </title>
-thm (ltadd2 () () (<-> (< A B) (< (+ C A) (+ C B)))
-   A B df-lt
-  (+ C A) (+ C B) df-lt
-  A B C leadd2
-    C A B addcan2 bicomi notbii
-  anbi12i
-  bicomi
-  bitri
-  ## <d>
-    bicomi
-  ## </d>
-  bitri
-)
-
-## <title> Inequality Over Addition </title>
 ## <table>
 ##  (<    A ]       [ B ] )
 ##  (< (+ A ] C) (+ [ B ] C))
@@ -3531,52 +3532,6 @@ C eqeq1i
 x exbii
 ph bibi2i
 mpbi
-)
-
-## <suggest> right('+1') </suggest>
-thm (ltle2 () () (<-> (< A B) (<= (+ A (1)) B))
-  (+ A (1)) B lesuc
-  B a1suc  
-  EqReplaceBi0Lt1
-  A B (1) ltadd1  
-  ## <d>
-    (< A B) (< (+ A (1)) (+ B (1))) bicom
-  ## </d>
-  mpbi
-  bitr3icom
-)
-
-## <suggest> right('+1') </suggest>
-thm (gtge2 () () (<-> (-. (<= A B)) (-. (< A (+ B (1)))))
-  B A ltle2  
- 
-  B A ltcom
-  bitr3icom
-  
-  (+ B (1)) A lecom
-  bitri
-)
-
-thm (hasPredecessor() () (<-> (< (0) B) (E. x (= (S x) B)))
-  (0) B ltle2  
-  ## <d 'Evaluate'>
-    (1) pa_ax3r
-      EqReplaceBi1Le0
-  ## </d 'Evaluate'>
-
-  (1) B x df-le  
-  bitri
-  x a1suc  
-  ## <d>
-    x (1) addcom
-  ## </d>
-  EqReplaceEq1
-  
-  ## <d>
-    (S x) (+ (1) x) eqcom
-  ## </d>
-  mpbi
-  EqReplaceBi1Ex1Eq0
 )
 
 # Multiplication is monotonic in its second argument
@@ -3957,12 +3912,14 @@ thm (eqri ((S x) (T x))
   hyp x gen S T x df-seq mpbir
 )
 
-## <suggest> right('Simplify') </suggest>
-thm (elSimp () () (<-> (e. x ({|} x ph)) ph)
-  x x ph ax-elab
-  x ph sbid
-  bitri
-)
+# sbid is broken
+# <title> Remove Set Abstraction </title>
+# <suggest> right('Simplify') </suggest>
+#thm (elSimp () () (<-> (e. x ({|} x ph)) ph)
+#  x x ph ax-elab
+#  x ph sbid
+#  bitri
+#)
 
 # Set equality is reflexive
 ## <title> Reflexive Property </title>
@@ -4201,6 +4158,8 @@ thm (noel () ()
   con2bii mpbi
 )
 
+## <title> Singleton has One Element </title>
+## <suggest> right('Simplify =') </suggest>
 thm (elsnc () ()
   (<-> (e. A ({} B)) (= A B))
   x A B eqeq1
@@ -4278,22 +4237,23 @@ thm (BiReplaceBi1Al1Bi1 () (
   mpbi
 )
 
-## <title> Simplify Set Abstraction </title>
-## <suggest> left('Simplify') </suggest>
-thm (abelSimp() () (=_ S ({|} x (e. x S)))
-  S ({|} x (e. x S)) x df-seq
-  x x (e. x S) ax-elab  
-  BiReplaceBi1Al1Bi1
-  
-  x (e. x S) sbid
-  BiReplaceBi1Al1Bi1
-  (e. x S) biid  
-  x alRemove2
-  (=_ S ({|} x (e. x S))) bibi2i
-  mpbi
-  tru  
-  mpbirRemove
-)
+# sbid is broken.
+# <title> Simplify Set Abstraction </title>
+# <suggest> left('Simplify') </suggest>
+#thm (abelSimp((S x)) () (=_ S ({|} x (e. x S)))
+#  S ({|} x (e. x S)) x df-seq
+#  x x (e. x S) ax-elab  
+#  BiReplaceBi1Al1Bi1
+#  
+#  x (e. x S) sbid
+#  BiReplaceBi1Al1Bi1
+#  (e. x S) biid  
+#  x alRemove2
+#  (=_ S ({|} x (e. x S))) bibi2i
+#  mpbi
+#  tru  
+#  mpbirRemove
+#)
 
 ## <title> Substitution </title>
 ## <table>
@@ -4313,9 +4273,44 @@ ph bibi2i
 mpbi
 )
 
+# Broken.
+#thm (sneqi () (hyp (= A B)) (=_ ({} A) ({} B))
+#  hyp
+#  A B sneq
+#  ax-mp
+#)
 
+thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
+  S U x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi0
+  T U x df-seq
 
+  ## <d>
+    bicomi
+  ## </d>
 
+  bitri
+)
+
+thm (seqseq2i () (hyp (=_ S T)) (<-> (=_ U S) (=_ U T))
+  U S x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi1
+  U T x df-seq
+  ## <d>
+    bicomi
+  ## </d>
+  bitri
+)
 
 ## <title> Substitution </title>
 ## <table>
@@ -4351,59 +4346,22 @@ ph imbi2i
 mpbi
 )
 
-thm (sneq () () (-> (= A B) (=_ ({} A) ({} B))) 
-  A B x eqeq2 
-  (<-> (= x A) (= x B)) x alnfi
-  syl
-  x (= x A) (= x B) abeq2   
-  syl
-  A x df-sn
-  ({} A) ({|} x (= x A)) seqcom
-  mpbi
-  SeqReplaceImp1Seq0
-  B x df-sn
-  ({} B) ({|} x (= x B)) seqcom
-  mpbi
-  SeqReplaceImp1Seq1
-)
-
-thm (sneqi () (hyp (= A B)) (=_ ({} A) ({} B))
-  hyp
-  A B sneq
-  ax-mp
-)
-
-thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
-  S U x df-seq
-  hyp
-  S T x df-seq
-  mpbi
-  x (<-> (e. x S) (e. x T)) ax-4
-  ax-mp
-  BiReplaceBi1Al1Bi0
-  T U x df-seq
-
-  ## <d>
-    bicomi
-  ## </d>
-
-  bitri
-)
-
-thm (seqseq2i () (hyp (=_ S T)) (<-> (=_ U S) (=_ U T))
-  U S x df-seq
-  hyp
-  S T x df-seq
-  mpbi
-  x (<-> (e. x S) (e. x T)) ax-4
-  ax-mp
-  BiReplaceBi1Al1Bi1
-  U T x df-seq
-  ## <d>
-    bicomi
-  ## </d>
-  bitri
-)
+# Broken because of a freeness constraint.
+#thm (sneq () () (-> (= A B) (=_ ({} A) ({} B))) 
+#  A B x eqeq2 
+#  (<-> (= x A) (= x B)) x alnfi
+#  syl
+#  x (= x A) (= x B) abeq2   
+#  syl
+#  A x df-sn
+#  ({} A) ({|} x (= x A)) seqcom
+#  mpbi
+#  SeqReplaceImp1Seq0
+#  B x df-sn
+#  ({} B) ({|} x (= x B)) seqcom
+#  mpbi
+#  SeqReplaceImp1Seq1
+#)
 
 ## <title> Substitution </title>
 ## <table>
@@ -5168,6 +5126,7 @@ thm (emptyIn2 () (hyp (-. (e. A S))) (=_ (i^i S ({} A)) ({/}))
 )
 
 ## <title> Intersection is Idempotent </title>
+## <suggest> right('Simplify') </suggest>
 thm (inidm() () (=_ (i^i S S) S)
   (i^i S S) S x df-seq
   x S S elin
@@ -5178,6 +5137,7 @@ thm (inidm() () (=_ (i^i S S) S)
 )
 
 ## <title> Union is Idempotent </title>
+## <suggest> right('Simplify') </suggest>
 thm (unidm() () (=_ (u. S S) S)
   (u. S S) S x df-seq
   x S S elun
@@ -5188,19 +5148,19 @@ thm (unidm() () (=_ (u. S S) S)
 )
 
 ## <title> Union is Idempotent </title>
-thm (unidm2() () (=_ (u. S S) S)  
-  S S x df-un
-  
-  (e. x S) oridm
-  BiReplaceSeq1Ab1
-  
-  S x abelSimp
-  ## <d 'Commutative Property'>
-    S ({|} x (e. x S)) seqcom
-    mpbi
-  ## </d 'Commutative Property'>
-  SeqReplaceSeq1
-)
+#thm (unidm2() () (=_ (u. S S) S)  
+#  S S x df-un
+#  
+#  (e. x S) oridm
+#  BiReplaceSeq1Ab1
+#  
+#  S x abelSimp
+#  ## <d 'Commutative Property'>
+#    S ({|} x (e. x S)) seqcom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  SeqReplaceSeq1
+#)
 
 thm (inEmpty1() () (=_ (i^i S ({/})) ({/}))
   (i^i S ({/})) ({/}) x df-seq
@@ -5263,71 +5223,72 @@ thm (df-interval-just ((A x) (A y) (B x) (B y)) () (=_ ({|} x (/\ (<= A x) (<= x
   abeq
 )
 
+## <title> Natural Number Interval Definition </title>
 ## <suggest> right('Define') left('{...}') </suggest>
 defthm (df-interval set ({...} A B) ((A x) (B x)) () (=_ ({...} A B) ({|} x (/\ (<= A x) (<= x B)))) 
   y A B x df-interval-just
 )
 
+# Broke freeness constraint.
+#thm (intervaleq1 () () (-> (= A C) (=_ ({...} A B) ({...} C B)))
+#  A C x leeq1
+#  (<= A x) (<= C x) (<= x B) anbi1  
+#  syl
+#  (<-> (/\ (<= A x) (<= x B)) (/\ (<= C x) (<= x B))) x alnfi  
+#  syl
+#  x (/\ (<= A x) (<= x B)) (/\ (<= C x) (<= x B)) abeq2   
+#  syl
+#  A B x df-interval
+#  ({...} A B) ({|} x (/\ (<= A x) (<= x B))) seqcom
+#  mpbi
+#  SeqReplaceImp1Seq0
+#  C B x df-interval  
+#  ({...} C B) ({|} x (/\ (<= C x) (<= x B))) seqcom
+#  mpbi
+#  SeqReplaceImp1Seq1
+#)
 
-thm (intervaleq1 () () (-> (= A C) (=_ ({...} A B) ({...} C B)))
-  A C x leeq1
-  (<= A x) (<= C x) (<= x B) anbi1  
-  syl
-  (<-> (/\ (<= A x) (<= x B)) (/\ (<= C x) (<= x B))) x alnfi  
-  syl
-  x (/\ (<= A x) (<= x B)) (/\ (<= C x) (<= x B)) abeq2   
-  syl
-  A B x df-interval
-  ({...} A B) ({|} x (/\ (<= A x) (<= x B))) seqcom
-  mpbi
-  SeqReplaceImp1Seq0
-  C B x df-interval  
-  ({...} C B) ({|} x (/\ (<= C x) (<= x B))) seqcom
-  mpbi
-  SeqReplaceImp1Seq1
-)
+# <title> Equivalence over Interval </title>
+# <table>
+#   (=         A ]   ]          [ B ]   )
+#   (=_ ({...} A ] C ] ) ({...} [ B ] C))
+# </table>
+#thm (intervaleq1i () (hyp (= A C)) (=_ ({...} A B) ({...} C B))
+#  hyp
+#  A C B intervaleq1
+#  ax-mp
+#)
 
-## <title> Equivalence over Interval </title>
-## <table>
-##   (=         A ]   ]          [ B ]   )
-##   (=_ ({...} A ] C ] ) ({...} [ B ] C))
-## </table>
-thm (intervaleq1i () (hyp (= A C)) (=_ ({...} A B) ({...} C B))
-  hyp
-  A C B intervaleq1
-  ax-mp
-)
+#thm (intervaleq2 () () (-> (= B C) (=_ ({...} A B) ({...} A C)))
+#  B C x leeq2
+#  (<= x B) (<= x C) (<= A x) anbi2
+#  syl
+#  (<-> (/\ (<= A x) (<= x B)) (/\ (<= A x) (<= x C))) x alnfi
+#  syl
+#  x (/\ (<= A x) (<= x B)) (/\ (<= A x) (<= x C)) abeq2
+#  syl
+#  A B x df-interval
+#  ({...} A B) ({|} x (/\ (<= A x) (<= x B))) seqcom
+#  mpbi
+#  SeqReplaceImp1Seq0
+#  A C x df-interval
+#  
+#  ({...} A C) ({|} x (/\ (<= A x) (<= x C))) seqcom
+#  mpbi
+#
+#  SeqReplaceImp1Seq1
+#)
 
-thm (intervaleq2 () () (-> (= B C) (=_ ({...} A B) ({...} A C)))
-  B C x leeq2
-  (<= x B) (<= x C) (<= A x) anbi2
-  syl
-  (<-> (/\ (<= A x) (<= x B)) (/\ (<= A x) (<= x C))) x alnfi
-  syl
-  x (/\ (<= A x) (<= x B)) (/\ (<= A x) (<= x C)) abeq2
-  syl
-  A B x df-interval
-  ({...} A B) ({|} x (/\ (<= A x) (<= x B))) seqcom
-  mpbi
-  SeqReplaceImp1Seq0
-  A C x df-interval
-  
-  ({...} A C) ({|} x (/\ (<= A x) (<= x C))) seqcom
-  mpbi
-
-  SeqReplaceImp1Seq1
-)
-
-## <title> Equality over Interval </title>
-## <table>
-##   (=          A ]   ]          [ B ]   )
-##   (<-> ({...} A ] C ] ) ({...} [ B ] C))
-## </table>
-thm (intervaleq2i () (hyp (= B C)) (=_ ({...} A B) ({...} A C))
-  hyp
-  B C A intervaleq2
-  ax-mp
-)
+# <title> Equality over Interval </title>
+# <table>
+#   (=          A ]   ]          [ B ]   )
+#   (<-> ({...} A ] C ] ) ({...} [ B ] C))
+# </table>
+#thm (intervaleq2i () (hyp (= B C)) (=_ ({...} A B) ({...} A C))
+#  hyp
+#  B C A intervaleq2
+#  ax-mp
+#)
 
 ## <title> Substitution </title>
 ## <table>
@@ -6365,7 +6326,7 @@ ph imbi2i
 mpbi
 )
 
-thm (notSeqLem () ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (=_ S T)))
+thm (notSeqLem ((S x) (T x)) ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (=_ S T)))
  (e. x S) (e. x T) xorImp2
  x 19.22i  
  x (-. (<-> (e. x S) (e. x T))) df-ex  
@@ -6382,7 +6343,7 @@ thm (notSeqLem () ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (=_ S T)))
   BiReplaceImp1Not0
 )
 
-thm (exInAndOut () (hyp (e. A S) hyp2 (-. (e. A T)))  (E. x (/\ (e. x S) (-. (e. x T))))
+thm (exInAndOut ((A x)) (hyp (e. A S) hyp2 (-. (e. A T)))  (E. x (/\ (e. x S) (-. (e. x T))))
   x A tyex
   x A S ax-eleq1
   (e. x S) (e. A S) (-. (e. A T)) anbi1
@@ -6421,7 +6382,7 @@ thm (notSeq () (hyp (e. A S) hyp2 (-. (e. A T))) (-. (=_ S T))
   ax-mp
 )
 
-thm (notSeq2Lem () () (-> (E. x (/\ (e. x T) (-. (e. x S)))) (-. (=_ S T)))
+thm (notSeq2Lem ((S x) (T x)) () (-> (E. x (/\ (e. x T) (-. (e. x S)))) (-. (=_ S T)))
  (e. x T) (e. x S) xorImp1
  x 19.22i
 
@@ -6485,7 +6446,7 @@ ph bibi2i
 mpbi
 )
 
-thm (notSsLem () ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (C_ S T)))
+thm (notSsLem ((S x) (T x)) ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (C_ S T)))
   (e. x S) (e. x T) pm4.61
   bicomi
   biimpi
@@ -6802,6 +6763,7 @@ thm (lesuc () ()
    A B (1) leadd1 bicomi bitri
 )
 
+## <title> Convert between ≤ and < </title>
 ## <suggest> right('<=') left('< +1') </suggest>
 thm (lePlus1 () () (<-> (< A (+ B (1))) (<= A B))
   A B lesuc
@@ -6809,134 +6771,180 @@ thm (lePlus1 () () (<-> (< A (+ B (1))) (<= A B))
   EqReplaceBi0Lt1
 )
 
-thm (intervalAttach () (hyp (<= A B)) (=_ (u. ({...} A B) ({} (+ B (1)))) ({...} A (+ B (1)))) 
-  ({...} A B) ({} (+ B (1))) x df-un
-  
-  (u. ({...} A B) ({} (+ B (1)))) ({|} x (\/ (e. x ({...} A B))    (e. x ({} (+ B (1)))))) seqcom
+## <suggest> right('+1') </suggest>
+thm (ltle2 () () (<-> (< A B) (<= (+ A (1)) B))
+  (+ A (1)) B lesuc
+  B a1suc  
+  EqReplaceBi0Lt1
+  A B (1) ltadd1  
+  ## <d>
+    (< A B) (< (+ A (1)) (+ B (1))) bicom
+  ## </d>
   mpbi
-   A B x df-interval
-  SeqReplaceSeq0Ab1Or0El1
-  x (/\ (<= A x) (<= x B)) elSimp
-  BiReplaceSeq0Ab1Or0
-  (+ B (1)) x df-sn
-
-  SeqReplaceSeq0Ab1Or1El1
-
-x (= x (+ B (1))) elSimp
-  BiReplaceSeq0Ab1Or1
-
-({|} x (\/ (/\ (<= A x) (<= x B)) (= x (+ B (1))))) (u. ({...} A B) ({} (+ B (1)))) seqcom
-mpbi
-  
-  x B lePlus1
-  ## <d 'Commutative Property'>
-    (< x (+ B (1))) (<= x B) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-    BiReplaceSeq1Ab1Or0An1
-  
-  (<= A x) (< x (+ B (1))) (= x (+ B (1))) ordir
-  BiReplaceSeq1Ab1
-  
-  x (+ B (1)) leleo
-  ## <d 'Commutative Property'>
-    (<= x (+ B (1))) (\/ (< x (+ B (1))) (= x (+ B (1)))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-    BiReplaceSeq1Ab1An1
-  
-  (<= A x) (= x (+ B (1))) (<= x (+ B (1))) andir
-  BiReplaceSeq1Ab1
-  
-  x (+ B (1)) leleo
-    BiReplaceSeq1Ab1Or1An1
-  
-  (= x (+ B (1))) (< x (+ B (1))) (= x (+ B (1))) andi
-    BiReplaceSeq1Ab1Or1
-    
-  (= x (+ B (1))) anidm
-    BiReplaceSeq1Ab1Or1Or1
-
-  
-  x (+ B (1)) ltneq
-  
-  (< x (+ B (1))) (-. (= x (+ B (1)))) iman
-  mpbi
-  (= x (+ B (1))) notnotr
-    BiReplaceNot0An1
-  
-  (< x (+ B (1))) (= x (+ B (1))) ancom
-  mtbi
-  
-  (= x (+ B (1))) orNotRemove1
-  (/\ (<= A x) (<= x (+ B (1)))) orbi2i
-  x abeq2i
-  (u. ({...} A B) ({} (+ B (1)))) seqseq2i
-  mpbi
-  
-  (<= A x) (<= x (+ B (1))) (= x (+ B (1))) ordir
-  BiReplaceSeq1Ab1
-  
-  x (+ B (1)) leleo
-    BiReplaceSeq1Ab1An1Or0
-  
-  (< x (+ B (1))) (= x (+ B (1))) (= x (+ B (1))) orass
-  BiReplaceSeq1Ab1An1
-  
-  (= x (+ B (1))) oridm
-    BiReplaceSeq1Ab1An1Or1
-  
-  x (+ B (1)) leleo
-  ## <d 'Commutative Property'>
-    (<= x (+ B (1))) (\/ (< x (+ B (1))) (= x (+ B (1)))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  BiReplaceSeq1Ab1An1
-    
-  x (+ B (1)) eqge
-  x B gtge2  
-  (-. (<= x B)) (-. (< x (+ B (1)))) bicom
-  mpbi
-  
-  sylib
-  
-  x B lecom
-  BiReplaceImp1Not0
-  (< B x) notnotr
-  sylib
-  
-  B x ltle
-  syl
-  
-  A B x letr  
-  hyp
-  (<= B x) anRemove1
-  (<= A x) imbi1i
-  mpbi
-    
-  syl
-  (<= A x) orim2i  
-  (<= A x) oridm
-  sylib
-
-  (<= A x) (= x (+ B (1))) orc
-  pm3.2i  
-  (\/ (<= A x) (= x (+ B (1)))) (<= A x) dfbi2
-  ## <d 'Commutative Property'>
-    (<-> (\/ (<= A x) (= x (+ B (1)))) (<= A x)) (/\ (-> (\/ (<= A x) (= x (+ B (1)))) (<= A x)) (-> (<= A x) (\/ (<= A x) (= x (+ B (1)))))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  mpbi
-  
-    BiReplaceSeq1Ab1An0
-  
-  A (+ B (1)) x df-interval
-  ## <d 'Commutative Property'>
-    ({...} A (+ B (1))) ({|} x (/\ (<= A x) (<= x (+ B (1))))) seqcom
-    mpbi
-  ## </d 'Commutative Property'>
-  SeqReplaceSeq1
+  bitr3icom
 )
+
+## <suggest> right('+1') </suggest>
+thm (gtge2 () () (<-> (-. (<= A B)) (-. (< A (+ B (1)))))
+  B A ltle2  
+ 
+  B A ltcom
+  bitr3icom
+  
+  (+ B (1)) A lecom
+  bitri
+)
+
+thm (hasPredecessor((B x)) () (<-> (< (0) B) (E. x (= (S x) B)))
+  (0) B ltle2  
+  ## <d 'Evaluate'>
+    (1) pa_ax3r
+      EqReplaceBi1Le0
+  ## </d 'Evaluate'>
+
+  (1) B x df-le  
+  bitri
+  x a1suc  
+  ## <d>
+    x (1) addcom
+  ## </d>
+  EqReplaceEq1
+  
+  ## <d>
+    (S x) (+ (1) x) eqcom
+  ## </d>
+  mpbi
+  EqReplaceBi1Ex1Eq0
+)
+
+#thm (intervalAttach () (hyp (<= A B)) (=_ (u. ({...} A B) ({} (+ B (1)))) ({...} A (+ B (1)))) 
+#  ({...} A B) ({} (+ B (1))) x df-un
+#  
+#  (u. ({...} A B) ({} (+ B (1)))) ({|} x (\/ (e. x ({...} A B))    (e. x ({} (+ B (1)))))) seqcom
+#  mpbi
+#   A B x df-interval
+#  SeqReplaceSeq0Ab1Or0El1
+#  x (/\ (<= A x) (<= x B)) elSimp
+#  BiReplaceSeq0Ab1Or0
+#  (+ B (1)) x df-sn
+#
+#  SeqReplaceSeq0Ab1Or1El1
+#
+#x (= x (+ B (1))) elSimp
+#  BiReplaceSeq0Ab1Or1
+#
+#({|} x (\/ (/\ (<= A x) (<= x B)) (= x (+ B (1))))) (u. ({...} A B) ({} (+ B (1)))) seqcom
+#mpbi
+#  
+#  x B lePlus1
+#  ## <d 'Commutative Property'>
+#    (< x (+ B (1))) (<= x B) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#    BiReplaceSeq1Ab1Or0An1
+#  
+#  (<= A x) (< x (+ B (1))) (= x (+ B (1))) ordir
+#  BiReplaceSeq1Ab1
+#  
+#  x (+ B (1)) leleo
+#  ## <d 'Commutative Property'>
+#    (<= x (+ B (1))) (\/ (< x (+ B (1))) (= x (+ B (1)))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#    BiReplaceSeq1Ab1An1
+#  
+#  (<= A x) (= x (+ B (1))) (<= x (+ B (1))) andir
+#  BiReplaceSeq1Ab1
+#  
+#  x (+ B (1)) leleo
+#    BiReplaceSeq1Ab1Or1An1
+#  
+#  (= x (+ B (1))) (< x (+ B (1))) (= x (+ B (1))) andi
+#    BiReplaceSeq1Ab1Or1
+#    
+#  (= x (+ B (1))) anidm
+#    BiReplaceSeq1Ab1Or1Or1
+#
+#  
+#  x (+ B (1)) ltneq
+#  
+#  (< x (+ B (1))) (-. (= x (+ B (1)))) iman
+#  mpbi
+#  (= x (+ B (1))) notnotr
+#    BiReplaceNot0An1
+#  
+#  (< x (+ B (1))) (= x (+ B (1))) ancom
+#  mtbi
+#  
+#  (= x (+ B (1))) orNotRemove1
+#  (/\ (<= A x) (<= x (+ B (1)))) orbi2i
+#  x abeq2i
+#  (u. ({...} A B) ({} (+ B (1)))) seqseq2i
+#  mpbi
+#  
+#  (<= A x) (<= x (+ B (1))) (= x (+ B (1))) ordir
+#  BiReplaceSeq1Ab1
+#  
+#  x (+ B (1)) leleo
+#    BiReplaceSeq1Ab1An1Or0
+#  
+#  (< x (+ B (1))) (= x (+ B (1))) (= x (+ B (1))) orass
+#  BiReplaceSeq1Ab1An1
+#  
+#  (= x (+ B (1))) oridm
+#    BiReplaceSeq1Ab1An1Or1
+#  
+#  x (+ B (1)) leleo
+#  ## <d 'Commutative Property'>
+#    (<= x (+ B (1))) (\/ (< x (+ B (1))) (= x (+ B (1)))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  BiReplaceSeq1Ab1An1
+#    
+#  x (+ B (1)) eqge
+#  x B gtge2  
+#  (-. (<= x B)) (-. (< x (+ B (1)))) bicom
+#  mpbi
+#  
+#  sylib
+#  
+#  x B lecom
+#  BiReplaceImp1Not0
+#  (< B x) notnotr
+#  sylib
+#  
+#  B x ltle
+#  syl
+#  
+#  A B x letr  
+#  hyp
+#  (<= B x) anRemove1
+#  (<= A x) imbi1i
+#  mpbi
+#    
+#  syl
+#  (<= A x) orim2i  
+#  (<= A x) oridm
+#  sylib
+#
+#  (<= A x) (= x (+ B (1))) orc
+#  pm3.2i  
+#  (\/ (<= A x) (= x (+ B (1)))) (<= A x) dfbi2
+#  ## <d 'Commutative Property'>
+#    (<-> (\/ (<= A x) (= x (+ B (1)))) (<= A x)) (/\ (-> (\/ (<= A x) (= x (+ B (1)))) (<= A x)) (-> (<= A x) (\/ (<= A x) (= x (+ B (1)))))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  mpbi
+#  
+#    BiReplaceSeq1Ab1An0
+#  
+#  A (+ B (1)) x df-interval
+#  ## <d 'Commutative Property'>
+#    ({...} A (+ B (1))) ({|} x (/\ (<= A x) (<= x (+ B (1))))) seqcom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  SeqReplaceSeq1
+#)
 
 
 # Square root is unique
@@ -7520,88 +7528,89 @@ thm (proveDivides () (hyp (= (* A B) C)) (| A C)
   mpbi
 )
 
-thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B)))  
-  x C A lemul2
-  (< (* A C) B) anim1i
-  (* A x) (* A C) B lelttr
-  syl
-  (* A x) B ltneq
-  syl
-  (< B (* A (+ C (1)))) adantr
-  ## <d>
-    (<= x C) (< (* A C) B) (< B (* A (+ C (1)))) anass
-  ## </d>
-  sylbi2 
-
-  (+ C (1)) x A lemul2
-  (< B (* A (+ C (1))) ) anim2i
-
-  B (* A (+ C (1))) (* A x) lelttr2
-  syl
-  B (* A x) ltneq
-
-  ## <d>
-    B (* A x) eqcom
-  ## </d>
-  BiReplaceImp1Not0
-  syl
-
-  ## <d>
-    (< B (* A (+ C (1)))) (<= (+ C (1)) x) ancom
-  ## </d>
-  sylbi2
-
-  ## <d>
-    (+ C (1)) x lecom
-  ## </d>
-  BiReplaceImp0An0
-  C x nnltp1let
-
-  ## <d>
-    (+ C (1)) x lecom
-  ## </d>
-  bitri
-  ## <d>
-    C x ltcom
-  ## </d>
-  bitr3icom
-  ## <d>
-    bicomi
-  ## </d>
-  BiReplaceImp0An0
-
-  (< (* A C) B) adantr
-  ## <d>
-    (-. (<= x C)) (< B (* A (+ C (1)))) (< (* A C) B) anass
-  ## </d>
-  sylbi2 
-
-  ## <d>
-    (< B (* A (+ C (1)))) (< (* A C) B) ancom
-  ## </d>
-  BiReplaceImp0An1
-  jaoi
-  (<= x C) (-. (<= x C)) (/\ (< (* A C) B) (< B (* A (+ C (1))))) andir
-  ## <d>
-    bicomi
-  ## </d>
-
-  sylbi2 
-  (<= x C) exmid
-  (/\ (< (* A C) B) (< B (* A (+ C (1))))) anRemove1
-  (-. (= (* A x) B)) imbi1i
-  mpbi
-  (-. (= (* A x) B)) x alnfi
-  syl
-  x (= (* A x) B) alnex
-  sylib
-
-  A B x df-divides
-  ## <d>
-    bicomi
-  ## </d>
-  BiReplaceImp1Not0
-)
+# Broken by freeness constraint on alnfi.
+#thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B)))  
+#  x C A lemul2
+#  (< (* A C) B) anim1i
+#  (* A x) (* A C) B lelttr
+#  syl
+#  (* A x) B ltneq
+#  syl
+#  (< B (* A (+ C (1)))) adantr
+#  ## <d>
+#    (<= x C) (< (* A C) B) (< B (* A (+ C (1)))) anass
+#  ## </d>
+#  sylbi2 
+#
+#  (+ C (1)) x A lemul2
+#  (< B (* A (+ C (1))) ) anim2i
+#
+#  B (* A (+ C (1))) (* A x) lelttr2
+#  syl
+#  B (* A x) ltneq
+#
+#  ## <d>
+#    B (* A x) eqcom
+#  ## </d>
+#  BiReplaceImp1Not0
+#  syl
+#
+#  ## <d>
+#    (< B (* A (+ C (1)))) (<= (+ C (1)) x) ancom
+#  ## </d>
+#  sylbi2
+#
+#  ## <d>
+#    (+ C (1)) x lecom
+#  ## </d>
+#  BiReplaceImp0An0
+#  C x nnltp1let
+#
+#  ## <d>
+#    (+ C (1)) x lecom
+#  ## </d>
+#  bitri
+#  ## <d>
+#    C x ltcom
+#  ## </d>
+#  bitr3icom
+#  ## <d>
+#    bicomi
+#  ## </d>
+#  BiReplaceImp0An0
+#
+#  (< (* A C) B) adantr
+#  ## <d>
+#    (-. (<= x C)) (< B (* A (+ C (1)))) (< (* A C) B) anass
+#  ## </d>
+#  sylbi2 
+#
+#  ## <d>
+#    (< B (* A (+ C (1)))) (< (* A C) B) ancom
+#  ## </d>
+#  BiReplaceImp0An1
+#  jaoi
+#  (<= x C) (-. (<= x C)) (/\ (< (* A C) B) (< B (* A (+ C (1))))) andir
+#  ## <d>
+#    bicomi
+#  ## </d>
+#
+#  sylbi2 
+#  (<= x C) exmid
+#  (/\ (< (* A C) B) (< B (* A (+ C (1))))) anRemove1
+#  (-. (= (* A x) B)) imbi1i
+#  mpbi
+#  (-. (= (* A x) B)) x alnfi
+#  syl
+#  x (= (* A x) B) alnex
+#  sylib
+#
+#  A B x df-divides
+#  ## <d>
+#    bicomi
+#  ## </d>
+#  BiReplaceImp1Not0
+#)
 
 
 # number 39.0
@@ -8527,9 +8536,9 @@ thm (infDescentLem1 () () (-> (= y A) (<-> (-. ([/] y x ph)) (-. ([/] A x ph))))
 )
 
 ## <title> Proof By Infinite Descent </title>
-thm (infiniteDescent()
+thm (infiniteDescent((ph w) (ph y))
     (hyp (A. w (-> ([/] w x ph) (E. y (/\ (< y w) ([/] y x ph))))))
-    (-. ph)
+    (-. ([/] x x ph))
   y (0) x ph infDescentLem1
   y (+ z (1)) x ph infDescentLem1
   y x x ph infDescentLem1
@@ -8590,8 +8599,6 @@ thm (infiniteDescent()
   con3i
   sylbi
   sindplus1
-  x ph sbid  
-  mtbi
 )
 
 # Zero doesn't divide any positive number
@@ -8619,148 +8626,148 @@ thm (not0divides2 () () (-> (< (0) A) (-. (| (0) A)))
 )
 
 # A composite number does not have any factors above it.
-thm (dfprime1lem () () (-> (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A))))))
-  A x df-prime
-  notbii  
-  ## <d>
-    (-. (<= A (1))) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))) anor
-  ## </d>
-  BiReplaceBi1Not0
-  ## <d 'Remove Double Negation'>
-    (\/ (-. (-. (<= A (1)))) (-. (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))) notnotr
-    bitri
-  ## </d 'Remove Double Negation'>
-  ## <d 'Remove Double Negation'>
-    (<= A (1)) notnotr
-    BiReplaceBi1Or0
-  ## </d 'Remove Double Negation'>
-  
-  ## <d>
-    x (-> (| x A) (\/ (= x (1)) (= x A))) alex
-  ## </d>
-    BiReplaceBi1Or1Not0
-  ## <d 'Remove Double Negation'>
-    (E. x (-. (-> (| x A) (\/ (= x (1)) (= x A))))) notnotr
-    BiReplaceBi1Or1
-  ## </d 'Remove Double Negation'>
-  
-  ## <d>
-    (| x A) (\/ (= x (1)) (= x A)) iman
-  ## </d>
-    BiReplaceBi1Or1Ex1Not0
-  ## <d 'Remove Double Negation'>
-    (/\ (| x A) (-. (\/ (= x (1)) (= x A)))) notnotr
-      BiReplaceBi1Or1Ex1
-  ## </d 'Remove Double Negation'>
-  
-  ## <d>
-    (<= A (1)) (E. x (/\ (| x A) (-. (\/ (= x (1)) (= x A))))) df-or
-  ## </d>
-  bitri
-  
-  ## <d>
-    (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (-. (\/ (= x (1)) (= x A)))))) bi1
-  ## </d>
-  ax-mp
-
-  (0) (1) A lttr
-  0less1
- 
-  (< (1) A) anRemove1
-  (< (0) A) imbi1i
-  mpbi
-  
-  ## <d>
-    (1) A ltcom
-  ## </d>
-  sylbi2
-  
-  ## <d>
-    (0) A ltcom
-  ## </d>
-  sylib
-
-  A x dividesle2  
-  syl
-
-  (-. (prime A)) a1i
-  jcad
-  (-> (| x A) (<= x A)) x alnfi  
-  ImpReplaceImp1Imp1An1
-
-
-  x (/\ (| x A) (-. (\/ (= x (1)) (= x A)))) 
-  (-> (| x A) (<= x A)) 19.29r  
-    ImpReplaceImp1Imp1
-
-  
-  ## <d>
-    (| x A) (-. (\/ (= x (1)) (= x A))) (-> (| x A) (<= x A)) anass
-  ## </d>
-  BiReplaceImp1Imp1Ex1
-  
-  ## <d>
-    (-. (\/ (= x (1)) (= x A))) (-> (| x A) (<= x A)) ancom
-  ## </d>
-  BiReplaceImp1Imp1Ex1An1
-    
-  ## <d>
-    (| x A) (<= x A) imor
-  ## </d>
-    BiReplaceImp1Imp1Ex1An1An0
-  
-  ## <d>
-    (| x A) (\/ (-. (| x A)) (<= x A)) (-. (\/ (= x (1)) (= x A))) anass
-    ## <d 'Commutative Property'>
-      (/\ (/\ (| x A) (\/ (-. (| x A)) (<= x A))) (-. (\/ (= x (1)) (= x A)))) (/\ (| x A) (/\ (\/ (-. (| x A)) (<= x A)) (-. (\/ (= x (1)) (= x A))))) bicom
-      mpbi
-    ## </d 'Commutative Property'>
-  ## </d>
-  BiReplaceImp1Imp1Ex1
-  
-  ## <d>
-    (| x A) (-. (| x A)) (<= x A) andi
-  ## </d>
-    BiReplaceImp1Imp1Ex1An0
-  (| x A) pm3.24  
-  (/\ (| x A) (<= x A)) orNotRemove1
-  (-. (\/ (= x (1)) (= x A))) anbi1i
-  x exbii
-  (-. (<= A (1))) imbi2i
-  (-. (prime A)) imbi2i
-  mpbi
-  
-  ## <d>
-    (| x A) (<= x A) (-. (\/ (= x (1)) (= x A))) anass
-  ## </d>
-  BiReplaceImp1Imp1Ex1
-  
-  ## <d>
-    (<= x A) (-. (\/ (= x (1)) (= x A))) ancom
-  ## </d>
-  BiReplaceImp1Imp1Ex1An1
-  
-  ## <d>
-    (= x (1)) (= x A) oran
-  ## </d>
-    BiReplaceImp1Imp1Ex1An1An0Not0
-  ## <d 'Remove Double Negation'>
-    (/\ (-. (= x (1))) (-. (= x A))) notnotr
-    BiReplaceImp1Imp1Ex1An1An0
-  ## </d 'Remove Double Negation'>
-  
-  ## <d>
-    (-. (= x (1))) (-. (= x A)) (<= x A) anass
-  ## </d>
-  BiReplaceImp1Imp1Ex1An1
-  x A axlttri2  
-  ## <d>
-    (< x A) (/\ (-. (= x A)) (<= x A)) bicom
-  ## </d>
-  mpbi
-  
-  BiReplaceImp1Imp1Ex1An1An1
-)
+#thm (dfprime1lem () () (-> (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A))))))
+#  A x df-prime
+#  notbii  
+#  ## <d>
+#    (-. (<= A (1))) (A. x (-> (| x A) (\/ (= x (1)) (= x A)))) anor
+#  ## </d>
+#  BiReplaceBi1Not0
+#  ## <d 'Remove Double Negation'>
+#    (\/ (-. (-. (<= A (1)))) (-. (A. x (-> (| x A) (\/ (= x (1)) (= x A)))))) notnotr
+#    bitri
+#  ## </d 'Remove Double Negation'>
+#  ## <d 'Remove Double Negation'>
+#    (<= A (1)) notnotr
+#    BiReplaceBi1Or0
+#  ## </d 'Remove Double Negation'>
+#  
+#  ## <d>
+#    x (-> (| x A) (\/ (= x (1)) (= x A))) alex
+#  ## </d>
+#    BiReplaceBi1Or1Not0
+#  ## <d 'Remove Double Negation'>
+#    (E. x (-. (-> (| x A) (\/ (= x (1)) (= x A))))) notnotr
+#    BiReplaceBi1Or1
+#  ## </d 'Remove Double Negation'>
+#  
+#  ## <d>
+#    (| x A) (\/ (= x (1)) (= x A)) iman
+#  ## </d>
+#    BiReplaceBi1Or1Ex1Not0
+#  ## <d 'Remove Double Negation'>
+#    (/\ (| x A) (-. (\/ (= x (1)) (= x A)))) notnotr
+#      BiReplaceBi1Or1Ex1
+#  ## </d 'Remove Double Negation'>
+#  
+#  ## <d>
+#    (<= A (1)) (E. x (/\ (| x A) (-. (\/ (= x (1)) (= x A))))) df-or
+#  ## </d>
+#  bitri
+#  
+#  ## <d>
+#    (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (-. (\/ (= x (1)) (= x A)))))) bi1
+#  ## </d>
+#  ax-mp
+#
+#  (0) (1) A lttr
+#  0less1
+# 
+#  (< (1) A) anRemove1
+#  (< (0) A) imbi1i
+#  mpbi
+#  
+#  ## <d>
+#    (1) A ltcom
+#  ## </d>
+#  sylbi2
+#  
+#  ## <d>
+#    (0) A ltcom
+#  ## </d>
+#  sylib
+#
+#  A x dividesle2  
+#  syl
+#
+#  (-. (prime A)) a1i
+#  jcad
+#  (-> (| x A) (<= x A)) x alnfi  
+#  ImpReplaceImp1Imp1An1
+#
+#
+#  x (/\ (| x A) (-. (\/ (= x (1)) (= x A)))) 
+#  (-> (| x A) (<= x A)) 19.29r  
+#    ImpReplaceImp1Imp1
+#
+#  
+#  ## <d>
+#    (| x A) (-. (\/ (= x (1)) (= x A))) (-> (| x A) (<= x A)) anass
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1
+#  
+#  ## <d>
+#    (-. (\/ (= x (1)) (= x A))) (-> (| x A) (<= x A)) ancom
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1An1
+#    
+#  ## <d>
+#    (| x A) (<= x A) imor
+#  ## </d>
+#    BiReplaceImp1Imp1Ex1An1An0
+#  
+#  ## <d>
+#    (| x A) (\/ (-. (| x A)) (<= x A)) (-. (\/ (= x (1)) (= x A))) anass
+#    ## <d 'Commutative Property'>
+#      (/\ (/\ (| x A) (\/ (-. (| x A)) (<= x A))) (-. (\/ (= x (1)) (= x A)))) (/\ (| x A) (/\ (\/ (-. (| x A)) (<= x A)) (-. (\/ (= x (1)) (= x A))))) bicom
+#      mpbi
+#    ## </d 'Commutative Property'>
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1
+#  
+#  ## <d>
+#    (| x A) (-. (| x A)) (<= x A) andi
+#  ## </d>
+#    BiReplaceImp1Imp1Ex1An0
+#  (| x A) pm3.24  
+#  (/\ (| x A) (<= x A)) orNotRemove1
+#  (-. (\/ (= x (1)) (= x A))) anbi1i
+#  x exbii
+#  (-. (<= A (1))) imbi2i
+#  (-. (prime A)) imbi2i
+#  mpbi
+#  
+#  ## <d>
+#    (| x A) (<= x A) (-. (\/ (= x (1)) (= x A))) anass
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1
+#  
+#  ## <d>
+#    (<= x A) (-. (\/ (= x (1)) (= x A))) ancom
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1An1
+#  
+#  ## <d>
+#    (= x (1)) (= x A) oran
+#  ## </d>
+#    BiReplaceImp1Imp1Ex1An1An0Not0
+#  ## <d 'Remove Double Negation'>
+#    (/\ (-. (= x (1))) (-. (= x A))) notnotr
+#    BiReplaceImp1Imp1Ex1An1An0
+#  ## </d 'Remove Double Negation'>
+#  
+#  ## <d>
+#    (-. (= x (1))) (-. (= x A)) (<= x A) anass
+#  ## </d>
+#  BiReplaceImp1Imp1Ex1An1
+#  x A axlttri2  
+#  ## <d>
+#    (< x A) (/\ (-. (= x A)) (<= x A)) bicom
+#  ## </d>
+#  mpbi
+#  
+#  BiReplaceImp1Imp1Ex1An1An1
+#)
 
 
 
@@ -8861,142 +8868,142 @@ mpbi
 )
 
 # A composite number only has factors above 1.
-thm (dfprime1lem2 () () (-> (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (< (1) x) (< x A))))))
-  A x dfprime1lem
-
-  (0) x A divideseq1
-  notbid
-  (-. (<= A (1))) imbi2d
-  (0) (1) A lttr
-  0less1  
-  (< (1) A) anRemove1
-  (< (0) A) imbi1i
-  mpbi
-  
-  (1) A ltcom
-  sylbi2
-  
-  (0) A ltcom
-  sylib
- 
-  A not0divides2  
-  (0) A ltcom
-  sylbi2  
-  syl  
-  (-> (-. (<= A (1))) (-. (| x A))) biRemove1
-  (= (0) x) imbi2i
-  mpbi
-  
-  (0) x eqcom
-  sylbi2
-  com12
-  
-  (= x (0)) (-. (| x A)) con34b
-  sylib
-  (| x A) notnotr
-  BiReplaceImp1Imp0
-
-  x ge0
-  (-. (= x (0))) anRemove1  
-  
-  (-. (< x (0))) (-. (= x (0))) ancom
-  bitr3icom
-  
-  x (0) axgrtri
-  ## <d 'Commutative Property'>
-    (-. (<= x (0))) (/\ (-. (= x (0))) (-. (< x (0)))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  bitr3icom
-  
-  (-. (<= x (0))) (-. (= x (0))) bicom
-  mpbi
-  
-  BiReplaceImp1Imp1
-  
-  x (0) gtge2
-  BiReplaceImp1Imp1
-  (1) pa_ax3r
-  EqReplaceImp1Imp1Not0Lt1
-
-  (-. (prime A)) a1i
-  jca  
-  (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) (-> (| x A) (-. (< x (1)))) jcab
-  ## <d 'Commutative Property'>
-    (-> (-. (<= A (1))) (/\ (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) (-> (| x A) (-. (< x (1)))))) (/\ (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A))))) (-> (-. (<= A (1))) (-> (| x A) (-. (< x (1)))))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  sylib
-  (-> (| x A) (-. (< x (1)))) x alnfi    
-  ImpReplaceImp1Imp1An1
-  
-  x (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-> (| x A) (-. (< x (1)))) 19.29r
-  ImpReplaceImp1Imp1
-  
-  
-  (| x A) (-. (< x (1))) imor
-  BiReplaceImp1Imp1Ex1An1
-  
-  (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (| x A)) (-. (< x (1))) andi
-  BiReplaceImp1Imp1Ex1
-  
-  (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (| x A)) ancom
-    BiReplaceImp1Imp1Ex1Or0
-  
-  (-. (| x A)) (| x A) (/\ (-. (= x (1))) (< x A)) anass
-  ## <d 'Commutative Property'>
-    (/\ (/\ (-. (| x A)) (| x A)) (/\ (-. (= x (1))) (< x A))) (/\ (-. (| x A)) (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  BiReplaceImp1Imp1Ex1Or0
-  
-  (-. (| x A)) (| x A) ancom
-    BiReplaceImp1Imp1Ex1Or0An0
-  
-  (| x A) pm3.24
-  
-  (/\ (-. (= x (1))) (< x A)) anNotRemove1
-  (/\ (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (< x (1)))) orbi1i
-  x exbii
-  (-. (<= A (1))) imbi2i
-  (-. (prime A)) imbi2i
-  mpbi
-
-  notfal
-  
-  (/\ (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (< x (1)))) orNotRemove1
-  x exbii
-  (-. (<= A (1))) imbi2i
-  (-. (prime A)) imbi2i
-  mpbi
-  
-  (| x A) (/\ (-. (= x (1))) (< x A)) (-. (< x (1))) anass
-  BiReplaceImp1Imp1Ex1  
-  (/\ (-. (= x (1))) (< x A)) (-. (< x (1))) ancom
-  BiReplaceImp1Imp1Ex1An1
-  
-  (-. (< x (1))) (-. (= x (1))) (< x A) anass
-  ## <d 'Commutative Property'>
-    (/\ (/\ (-. (< x (1))) (-. (= x (1)))) (< x A)) (/\ (-. (< x (1))) (/\ (-. (= x (1))) (< x A))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  BiReplaceImp1Imp1Ex1An1
-  
-  (-. (< x (1))) (-. (= x (1))) ancom
-  BiReplaceImp1Imp1Ex1An1An0
-  
-  x (1) axgrtri
-  ## <d 'Commutative Property'>
-    (-. (<= x (1))) (/\ (-. (= x (1))) (-. (< x (1)))) bicom
-    mpbi
-  ## </d 'Commutative Property'>
-  BiReplaceImp1Imp1Ex1An1An0
-  
-  x (1) lecom
-  BiReplaceImp1Imp1Ex1An1An0Not0
-  (< (1) x) notnotr
-  BiReplaceImp1Imp1Ex1An1An0
-)
+#thm (dfprime1lem2 () () (-> (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (< (1) x) (< x A))))))
+#  A x dfprime1lem
+#
+#  (0) x A divideseq1
+#  notbid
+#  (-. (<= A (1))) imbi2d
+#  (0) (1) A lttr
+#  0less1  
+#  (< (1) A) anRemove1
+#  (< (0) A) imbi1i
+#  mpbi
+#  
+#  (1) A ltcom
+#  sylbi2
+#  
+#  (0) A ltcom
+#  sylib
+# 
+#  A not0divides2  
+#  (0) A ltcom
+#  sylbi2  
+#  syl  
+#  (-> (-. (<= A (1))) (-. (| x A))) biRemove1
+#  (= (0) x) imbi2i
+#  mpbi
+#  
+#  (0) x eqcom
+#  sylbi2
+#  com12
+#  
+#  (= x (0)) (-. (| x A)) con34b
+#  sylib
+#  (| x A) notnotr
+#  BiReplaceImp1Imp0
+#
+#  x ge0
+#  (-. (= x (0))) anRemove1  
+#  
+#  (-. (< x (0))) (-. (= x (0))) ancom
+#  bitr3icom
+#  
+#  x (0) axgrtri
+#  ## <d 'Commutative Property'>
+#    (-. (<= x (0))) (/\ (-. (= x (0))) (-. (< x (0)))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  bitr3icom
+#  
+#  (-. (<= x (0))) (-. (= x (0))) bicom
+#  mpbi
+#  
+#  BiReplaceImp1Imp1
+#  
+#  x (0) gtge2
+#  BiReplaceImp1Imp1
+#  (1) pa_ax3r
+#  EqReplaceImp1Imp1Not0Lt1
+#
+#  (-. (prime A)) a1i
+#  jca  
+#  (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) (-> (| x A) (-. (< x (1)))) jcab
+#  ## <d 'Commutative Property'>
+#    (-> (-. (<= A (1))) (/\ (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) (-> (| x A) (-. (< x (1)))))) (/\ (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A))))) (-> (-. (<= A (1))) (-> (| x A) (-. (< x (1)))))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  sylib
+#  (-> (| x A) (-. (< x (1)))) x alnfi    
+#  ImpReplaceImp1Imp1An1
+#  
+#  x (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-> (| x A) (-. (< x (1)))) 19.29r
+#  ImpReplaceImp1Imp1
+#  
+#  
+#  (| x A) (-. (< x (1))) imor
+#  BiReplaceImp1Imp1Ex1An1
+#  
+#  (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (| x A)) (-. (< x (1))) andi
+#  BiReplaceImp1Imp1Ex1
+#  
+#  (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (| x A)) ancom
+#    BiReplaceImp1Imp1Ex1Or0
+#  
+#  (-. (| x A)) (| x A) (/\ (-. (= x (1))) (< x A)) anass
+#  ## <d 'Commutative Property'>
+#    (/\ (/\ (-. (| x A)) (| x A)) (/\ (-. (= x (1))) (< x A))) (/\ (-. (| x A)) (/\ (| x A) (/\ (-. (= x (1))) (< x A)))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  BiReplaceImp1Imp1Ex1Or0
+#  
+#  (-. (| x A)) (| x A) ancom
+#    BiReplaceImp1Imp1Ex1Or0An0
+#  
+#  (| x A) pm3.24
+#  
+#  (/\ (-. (= x (1))) (< x A)) anNotRemove1
+#  (/\ (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (< x (1)))) orbi1i
+#  x exbii
+#  (-. (<= A (1))) imbi2i
+#  (-. (prime A)) imbi2i
+#  mpbi
+#
+#  notfal
+#  
+#  (/\ (/\ (| x A) (/\ (-. (= x (1))) (< x A))) (-. (< x (1)))) orNotRemove1
+#  x exbii
+#  (-. (<= A (1))) imbi2i
+#  (-. (prime A)) imbi2i
+#  mpbi
+#  
+#  (| x A) (/\ (-. (= x (1))) (< x A)) (-. (< x (1))) anass
+#  BiReplaceImp1Imp1Ex1  
+#  (/\ (-. (= x (1))) (< x A)) (-. (< x (1))) ancom
+#  BiReplaceImp1Imp1Ex1An1
+#  
+#  (-. (< x (1))) (-. (= x (1))) (< x A) anass
+#  ## <d 'Commutative Property'>
+#    (/\ (/\ (-. (< x (1))) (-. (= x (1)))) (< x A)) (/\ (-. (< x (1))) (/\ (-. (= x (1))) (< x A))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  BiReplaceImp1Imp1Ex1An1
+#  
+#  (-. (< x (1))) (-. (= x (1))) ancom
+#  BiReplaceImp1Imp1Ex1An1An0
+#  
+#  x (1) axgrtri
+#  ## <d 'Commutative Property'>
+#    (-. (<= x (1))) (/\ (-. (= x (1))) (-. (< x (1)))) bicom
+#    mpbi
+#  ## </d 'Commutative Property'>
+#  BiReplaceImp1Imp1Ex1An1An0
+#  
+#  x (1) lecom
+#  BiReplaceImp1Imp1Ex1An1An0Not0
+#  (< (1) x) notnotr
+#  BiReplaceImp1Imp1Ex1An1An0
+#)
 
 # number 60.0
 thm (lesuc1 () ()
@@ -9019,23 +9026,6 @@ thm (EqReplaceBi1Le1 () (
   replacee
   substitution
 A leeq2i
-ph bibi2i
-mpbi
-)
-
-## <title> Substitution </title>
-## <table>
-##   (<-> ph (<=  [ A ]   ]   ]  C))
-##   (=           [ A ]   [ B ] )
-##   (<-> ph (<=  [   [   [ B ]  C))
-## </table>
-thm (EqReplaceBi1Le0 () (
-     replacee (<-> ph (<= A C))
-     substitution (= A B)) 
-     (<-> ph (<= B C))
-  replacee
-  substitution
-C leeq1i
 ph bibi2i
 mpbi
 )
@@ -12397,29 +12387,6 @@ x  19.22i    ax-mp
 x  (= (exp A (S B)) (* A (exp A B)))  ex-nf    ax-mp
 )
 
-## <title> Substitution </title>
-## <table>
-##   (= (exp A  [ B ]   ]   ] ) D)
-##   (=         [ B ]   [ C ] )
-##   (= (exp A  [   [   [ C ] ) D)
-## </table>
-thm (EqReplaceEq0Exp1 () (
-     replacee (= (exp A B) D)
-     substitution (= B C)) 
-     (= (exp A C) D)
-  replacee
-  substitution
-A expeq2i
-D eqeq1i
-mpbi
-)
-
-thm (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B)))
-  A B expsuc
-  B a1suc
-  EqReplaceEq0Exp1
-)
-
 # First equality identity for exponentiation
 thm (expeq1 () () (-> (= A B) (= (exp A C) (exp B C)))
   (= A B)  y  alnfi
@@ -12460,6 +12427,29 @@ thm (expeq2i () (hyp (= A B)) (= (exp C A) (exp C B))
  hyp
  A B C expeq2  
  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (exp A  [ B ]   ]   ] ) D)
+##   (=         [ B ]   [ C ] )
+##   (= (exp A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Exp1 () (
+     replacee (= (exp A B) D)
+     substitution (= B C)) 
+     (= (exp A C) D)
+  replacee
+  substitution
+A expeq2i
+D eqeq1i
+mpbi
+)
+
+thm (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B)))
+  A B expsuc
+  B a1suc
+  EqReplaceEq0Exp1
 )
 
 thm (expmul.1 () () (-> (= x D) (<->
