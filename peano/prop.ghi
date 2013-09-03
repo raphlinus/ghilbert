@@ -725,15 +725,16 @@ term (wff (<-> ph ps))
 stmt (df-bi () () (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))))
 
 #  Property of the biconditional connective.
-## <suggest> right('→') </suggest>
-stmt (bi1 () () (-> (<-> ph ps) (-> ph ps)))
-
-#  Property of the biconditional connective.
-## <suggest> right('←') </suggest>
+## <title> Infer Right to Left </title>
+## <suggest> right('Infer', '←') </suggest>
 stmt (bi2 () () (-> (<-> ph ps) (-> ps ph)))
 
 #  Property of the biconditional connective.
-## <suggest> right('↔') </suggest>
+## <title> Infer Left to Right </title>
+## <suggest> right('Infer', '→') </suggest>
+stmt (bi1 () () (-> (<-> ph ps) (-> ph ps)))
+
+#  Property of the biconditional connective.
 stmt (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps))))
 
 #  Infer an implication from a logical equivalence.
@@ -801,7 +802,7 @@ stmt (bi2.04 () () (<-> (-> ph (-> ps ch)) (-> ps (-> ph ch))))
 stmt (notnot () () (<-> ph (-. (-. ph))))
 
 ## <title> Double Negative </title>
-## <suggest> auto-right('Simplify') </suggest>
+## <suggest> auto-right('Simplify', '¬¬') </suggest>
 stmt (notnotr () () (<-> (-. (-. ph)) ph))
 
 #  Theorem *4.8 of [bib/WhiteheadRussell] p. 122.
@@ -817,7 +818,8 @@ stmt (con1b () () (<-> (-> (-. ph) ps) (-> (-. ps) ph)))
 stmt (con2b () () (<-> (-> ph (-. ps)) (-> ps (-. ph))))
 
 #  Contraposition.  Theorem *4.1 of [bib/WhiteheadRussell] p. 116.
-## <suggest> right('←') </suggest>
+## <title> Negate Both Sides </title>
+## <suggest> right('Equivalence', '←') </suggest>
 stmt (con34b () () (<-> (-> ph ps) (-> (-. ps) (-. ph))))
 
 #  Antecedent absorption implication.  Theorem *5.4 of
@@ -826,6 +828,7 @@ stmt (pm5.4 () () (<-> (-> ph (-> ph ps)) (-> ph ps)))
 
 #  Distributive law for implication.  Compare Theorem *5.41 of
 #      [bib/WhiteheadRussell] p. 125.
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (imdi () () (<-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
 
 #  Theorem *5.41 of [bib/WhiteheadRussell] p. 125.
@@ -833,7 +836,8 @@ stmt (pm5.41 () () (<-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch))))
 
 #  Principle of identity for logical equivalence.  Theorem *4.2 of
 #      [bib/WhiteheadRussell] p. 117.
-## <suggest> full('true') </suggest>
+## <title> Bidirectional Identity <title>
+## <suggest> full('Simplify', 'T') </suggest>
 stmt (biid () () (<-> ph ph))
 
 #  Principle of identity with antecedent.
@@ -1114,11 +1118,13 @@ term (wff (/\ ph ps))
 #      we end up with an instance of previously proved theorem [[biid]].  This
 #      is the justification for the definition, along with the fact that it
 #      introduces a new symbol {{{\/}}}.  Definition of [bib/Margaris] p. 49.
-## <suggest> right('→') </suggest>
+## <title> Definition of OR </title>
+## <suggest> right('Equivalence', '→') </suggest>
 stmt (df-or () () (<-> (\/ ph ps) (-> (-. ph) ps)))
 
 #  Define conjunction (logical 'and').  Definition of [bib/Margaris] p. 49.
-## <suggest> right('→') </suggest>
+## <title> Definition of AND </title>
+## <suggest> right('Equivalence', '→') </suggest>
 stmt (df-an () () (<-> (/\ ph ps) (-. (-> ph (-. ps)))))
 
 #  Theorem *4.64 of [bib/WhiteheadRussell] p. 120.
@@ -1148,8 +1154,8 @@ stmt (orrd () ((-> ph (-> (-. ps) ch))) (-> ph (\/ ps ch)))
 
 #  Implication in terms of disjunction.  Theorem *4.6 of
 #      [bib/WhiteheadRussell] p. 120.
-## <title> Implies OR </title>
-## <suggest> right('∨') </suggest>
+## <title> OR and → Equivalance </title>
+## <suggest> right('Equivalence', '∨') </suggest>
 stmt (imor () () (<-> (-> ph ps) (\/ (-. ph) ps)))
 
 #  Theorem *4.62 of [bib/WhiteheadRussell] p. 120.
@@ -1160,7 +1166,8 @@ stmt (pm4.66 () () (<-> (-> (-. ph) (-. ps)) (\/ ph (-. ps))))
 
 #  Express implication in terms of conjunction.  Theorem 3.4(27) of [bib/Stoll]
 #      p. 176.
-## <suggest> right('∧') </suggest>
+## <title> AND and → Equivalance </title>
+## <suggest> right('Equivalence', '∧') </suggest>
 stmt (iman () () (<-> (-> ph ps) (-. (/\ ph (-. ps)))))
 
 #  Express conjunction in terms of implication.
@@ -1181,7 +1188,7 @@ stmt (imnan () () (<-> (-> ph (-. ps)) (-. (/\ ph ps))))
 #  Idempotent law for disjunction.  Theorem *4.25 of [bib/WhiteheadRussell]
 #      p. 117.
 ## <title> Disjunction is Idempotent </title>
-## <suggest> right('Simplify') </suggest>
+## <suggest> right('Simplify', '∨') </suggest>
 stmt (oridm () () (<-> (\/ ph ph) ph))
 
 #  Theorem *4.25 of [bib/WhiteheadRussell] p. 117.
@@ -1193,7 +1200,7 @@ stmt (pm1.2 () () (-> (\/ ph ph) ph))
 #  Commutative law for disjunction.  Theorem *4.31 of [bib/WhiteheadRussell]
 #      p. 118.
 ## <title> Commutative Property </title>
-## <suggest> right('Commute') </suggest>
+## <suggest> right('Commute', '∨') </suggest>
 stmt (orcom () () (<-> (\/ ph ps) (\/ ps ph)))
 
 #  Axiom *1.4 of [bib/WhiteheadRussell] p. 96.
@@ -1251,7 +1258,8 @@ stmt (pm1.5 () () (-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch))))
 
 #  Associative law for disjunction.  Theorem *4.33 of [bib/WhiteheadRussell]
 #      p. 118.
-## <suggest> right('Ass. R') left('Ass. L') </suggest>
+## <title> Associatative Property of OR </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 stmt (orass () () (<-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch))))
 
 #  Theorem *2.31 of [bib/WhiteheadRussell] p. 104.
@@ -1351,9 +1359,11 @@ stmt (pm3.43i () () (-> (-> ph ps) (-> (-> ph ch) (-> ph (/\ ps ch)))))
 
 #  Deduce conjunction of the consequents of two implications ("join
 #        consequents with 'and'").
+## <title> Join two implications </title>
 stmt (jca () ((-> ph ps) (-> ph ch)) (-> ph (/\ ps ch)))
 
 #  Deduction replacing implication with conjunction.
+## <title> Join two implications </title>
 stmt (jcai () ((-> ph ps) (-> ph (-> ps ch))) (-> ph (/\ ps ch)))
 
 #  Inference conjoining a theorem to the left of a consequent.
@@ -1416,7 +1426,8 @@ stmt (anc2ri () ((-> ph (-> ps ch))) (-> ph (-> ps (/\ ch ph))))
 
 #  Conjunction in terms of disjunction (DeMorgan's law).  Theorem *4.5 of
 #      [bib/WhiteheadRussell] p. 120.
-## <suggest> right('∨') </suggest>
+## <title> DeMorgan's Law </title>
+## <suggest> right('Equivalence', '∨') </suggest>
 stmt (anor () () (<-> (/\ ph ps) (-. (\/ (-. ph) (-. ps)))))
 
 #  Negated conjunction in terms of disjunction (DeMorgan's law).  Theorem
@@ -1444,7 +1455,8 @@ stmt (pm4.56 () () (<-> (/\ (-. ph) (-. ps)) (-. (\/ ph ps))))
 
 #  Disjunction in terms of conjunction (DeMorgan's law).  Compare Theorem
 #      *4.57 of [bib/WhiteheadRussell] p. 120.
-## <suggest> right('∧') </suggest>
+## <title> DeMorgan's Law </title>
+## <suggest> right('Equivalence', '∧') </suggest>
 stmt (oran () () (<-> (\/ ph ps) (-. (/\ (-. ph) (-. ps)))))
 
 #  Theorem *4.57 of [bib/WhiteheadRussell] p. 120.
@@ -1465,8 +1477,14 @@ stmt (pm3.13 () () (-> (-. (/\ ph ps)) (\/ (-. ph) (-. ps))))
 #  Theorem *3.14 of [bib/WhiteheadRussell] p. 111.
 stmt (pm3.14 () () (-> (\/ (-. ph) (-. ps)) (-. (/\ ph ps))))
 
+#  Elimination of a conjunct.  Theorem *3.27 (Simp) of [bib/WhiteheadRussell]
+#      p. 112.
+## <suggest> right('Remove', 'L') </suggest>
+stmt (pm3.27 () () (-> (/\ ph ps) ps))
+
 #  Elimination of a conjunct.  Theorem *3.26 (Simp) of [bib/WhiteheadRussell]
 #      p. 112.
+## <suggest> right('Remove', 'R') </suggest>
 stmt (pm3.26 () () (-> (/\ ph ps) ph))
 
 #  Inference eliminating a conjunct.
@@ -1477,10 +1495,6 @@ stmt (pm3.26d () ((-> ph (/\ ps ch))) (-> ph ps))
 
 #  Deduction eliminating a conjunct.
 stmt (pm3.26bi () ((<-> ph (/\ ps ch))) (-> ph ps))
-
-#  Elimination of a conjunct.  Theorem *3.27 (Simp) of [bib/WhiteheadRussell]
-#      p. 112.
-stmt (pm3.27 () () (-> (/\ ph ps) ps))
 
 #  Inference eliminating a conjunct.
 stmt (pm3.27i () ((/\ ph ps)) ps)
@@ -1550,6 +1564,8 @@ stmt (pm2.42 () () (-> (\/ (-. ph) (-> ph ps)) (-> ph ps)))
 stmt (pm2.4 () () (-> (\/ ph (\/ ph ps)) (\/ ph ps)))
 
 #  Theorem *4.44 of [bib/WhiteheadRussell] p. 119.
+## <title> Extra Conjunct </title>
+## <suggest> left('Simplify', '∨') </suggest>
 stmt (pm4.44 () () (<-> ph (\/ ph (/\ ph ps))))
 
 #  Theorem *5.63 of [bib/WhiteheadRussell] p. 125.
@@ -1557,6 +1573,8 @@ stmt (pm5.63 () () (<-> (\/ ph ps) (\/ ph (/\ (-. ph) ps))))
 
 #  Import-export theorem.  Part of Theorem *4.87 of [bib/WhiteheadRussell]
 #      p. 122.
+## <title> Import-Export Theorem </title>
+## <suggest> left('Equivalence', '∧→') right('Equivalence', '→→') </suggest>
 stmt (impexp () () (<-> (-> (/\ ph ps) ch) (-> ph (-> ps ch))))
 
 #  Theorem *3.3 (Exp) of [bib/WhiteheadRussell] p. 112.
@@ -1579,11 +1597,13 @@ stmt (pm4.14 () () (<-> (-> (/\ ph ps) ch) (-> (/\ ph (-. ch)) (-. ps))))
 stmt (pm4.15 () () (<-> (-> (/\ ph ps) (-. ch)) (-> (/\ ps ch) (-. ph))))
 
 #  Theorem *4.78 of [bib/WhiteheadRussell] p. 121.
-## <suggest> right('Combine') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', '-R') </suggest>
 stmt (pm4.78 () () (<-> (\/ (-> ph ps) (-> ph ch)) (-> ph (\/ ps ch))))
 
 #  Theorem *4.79 of [bib/WhiteheadRussell] p. 121.
-## <suggest> right('Combine') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', '-L') </suggest>
 stmt (pm4.79 () () (<-> (\/ (-> ps ph) (-> ch ph)) (-> (/\ ps ch) ph)))
 
 #  Theorem *4.87 of [bib/WhiteheadRussell] p. 122.  (The proof was shortened by
@@ -1832,11 +1852,13 @@ stmt (pm3.27bda () ((-> ph (<-> ps (/\ ch th)))) (-> (/\ ph ps) th))
 
 #  Disjunction of antecedents.  Compare Theorem *4.77 of
 #      [bib/WhiteheadRussell] p. 121.
-## <suggest> left('Combine') right('Split') </suggest>
+## <title> Distributive Property </title>
+## <suggest> left('Distribute', '→') right('Distribute', '∧') </suggest>
 stmt (jaob () () (<-> (-> (\/ ph ch) ps) (/\ (-> ph ps) (-> ch ps))))
 
 #  Theorem *4.77 of [bib/WhiteheadRussell] p. 121.
-## <suggest> right('Combine') left('Split') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', '∧') left('Distribute', '→') </suggest>
 stmt (pm4.77 () () (<-> (/\ (-> ps ph) (-> ch ph)) (-> (\/ ps ch) ph)))
 
 #  Deduction disjoining the antecedents of two implications.
@@ -1866,12 +1888,13 @@ stmt (pm2.64 () () (-> (\/ ph ps) (-> (\/ ph (-. ps)) ph)))
 stmt (pm3.44 () () (-> (/\ (-> ps ph) (-> ch ph)) (-> (\/ ps ch) ph)))
 
 #  Theorem *4.43 of [bib/WhiteheadRussell] p. 119.
-## <suggest> left('Simplify') </suggest>
+## <title> Excluded Middle </title>
+## <suggest> left('Simplify', '∧') </suggest>
 stmt (pm4.43 () () (<-> ph (/\ (\/ ph ps) (\/ ph (-. ps)))))
 
 #  Idempotent law for conjunction.
 ## <title> Conjunction is Idempotent </title>
-## <suggest> right('Simplify') </suggest>
+## <suggest> right('Simplify', '∧') </suggest>
 stmt (anidm () () (<-> (/\ ph ph) ph))
 
 #  Theorem *4.24 of [bib/WhiteheadRussell] p. 117.
@@ -1889,7 +1912,7 @@ stmt (anidmdbi () () (<-> (-> ph (/\ ps ps)) (-> ph ps)))
 #  Commutative law for conjunction.  Theorem *4.3 of [bib/WhiteheadRussell]
 #      p. 118.
 ## <title> Commutative Property </title>
-## <suggest> right('Commute') </suggest>
+## <suggest> right('Commute', '∧') </suggest>
 stmt (ancom () () (<-> (/\ ph ps) (/\ ps ph)))
 
 #  Inference commuting conjunction in antecedent.  //Notational convention//:
@@ -1909,7 +1932,8 @@ stmt (pm3.22 () () (-> (/\ ph ps) (/\ ps ph)))
 
 #  Associative law for conjunction.  Theorem *4.32 of [bib/WhiteheadRussell]
 #      p. 118.
-## <suggest> right('Ass. R') left('Ass. L') </suggest>
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 stmt (anass () () (<-> (/\ (/\ ph ps) ch) (/\ ph (/\ ps ch))))
 
 #  Associative law for conjunction applied to antecedent (eliminates
@@ -2033,6 +2057,8 @@ stmt (pm2.61dan () ((-> (/\ ph ps) ch) (-> (/\ ph (-. ps)) ch)) (-> ph ch))
 stmt (condan () ((-> (/\ ph (-. ps)) ch) (-> (/\ ph (-. ps)) (-. ch))) (-> ph ps))
 
 #  Introduce one conjunct as an antecedent to the another.
+## <title> Introduce conjunct as antecedent </title>
+## <suggest> left('Simplify', '→') </suggest>
 stmt (abai () () (<-> (/\ ph ps) (/\ ph (-> ph ps))))
 
 #  Introduce a left conjunct to both sides of a logical equivalence.
@@ -2150,7 +2176,8 @@ stmt (anandirs () ((-> (/\ (/\ ph ch) (/\ ps ch)) ta)) (-> (/\ (/\ ph ps) ch) ta
 
 #  A theorem similar to the standard definition of the biconditional.
 #      Definition of [bib/Margaris] p. 49.
-## <suggest> left('↔') </suggest>
+## <title> Definition of biconditional </title>
+## <suggest> left('Simplify', '↔') </suggest>
 stmt (dfbi2 () () (<-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph))))
 
 #  Definition [[df-bi]] rewritten in an abbreviated form to help intuitive
@@ -2181,7 +2208,7 @@ stmt (impbida () ((-> (/\ ph ps) ch) (-> (/\ ph ch) ps)) (-> ph (<-> ps ch)))
 #  Commutative law for equivalence.  Theorem *4.21 of [bib/WhiteheadRussell]
 #      p. 117.
 ## <title> Commutative Property </title>
-## <suggest> right('Commute') </suggest>
+## <suggest> right('Commute', '↔') </suggest>
 stmt (bicom () () (<-> (<-> ph ps) (<-> ps ph)))
 
 #  Commute two sides of a biconditional in a deduction.
@@ -2189,8 +2216,8 @@ stmt (bicom () () (<-> (<-> ph ps) (<-> ps ph)))
 stmt (bicomd () ((-> ph (<-> ps ch))) (-> ph (<-> ch ps)))
 
 #  Contraposition.  Theorem *4.11 of [bib/WhiteheadRussell] p. 117.
-## <title> Contraposition </title>
-## <suggest> left('Simplify') </suggest>
+## <title> Negate Both Sides </title>
+## <suggest> left('Simplify', '¬') right('Add', '¬') </suggest>
 stmt (notbi () () (<-> (<-> ph ps) (<-> (-. ph) (-. ps))))
 
 #  A contraposition inference.
@@ -2307,7 +2334,8 @@ stmt (3bitr4g () ((-> ph (<-> ps ch)) (<-> th ps) (<-> ta ch)) (-> ph (<-> th ta
 
 #  Theorem *3.47 of [bib/WhiteheadRussell] p. 113.  It was proved by Leibniz, and
 #      it evidently pleased him enough to call it 'praeclarum theorema.'
-## <suggest> right('Mix') </suggest>
+## <title> Praeclarum Theorema </title>
+## <suggest> right('Infer', '→') </suggest>
 stmt (prth () () (-> (/\ (-> ph ps) (-> ch th)) (-> (/\ ph ch) (/\ ps th))))
 
 #  Theorem *3.48 of [bib/WhiteheadRussell] p. 114.
@@ -2438,22 +2466,26 @@ stmt (pm5.501 () () (-> ph (<-> ps (<-> ph ps))))
 
 #  Distributive law for disjunction.  Theorem *4.41 of [bib/WhiteheadRussell]
 #      p. 119.
-## <suggest> right('Dist. L') left('Undist. L') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (ordi () () (<-> (\/ ph (/\ ps ch)) (/\ (\/ ph ps) (\/ ph ch))))
 
 #  Distributive law for disjunction.
-## <suggest> right('Dist. R') left('Undist. R') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (ordir () () (<-> (\/ (/\ ph ps) ch) (/\ (\/ ph ch) (\/ ps ch))))
 
 #  Distributive law for implication over conjunction.  Compare Theorem
 #      *4.76 of [bib/WhiteheadRussell] p. 121.
-## <suggest> left('Combine') right('Split') </suggest>
+## <title> Distributive Property </title>
+## <suggest> left('Distribute', '-∧') right('Distribute', '→') </suggest>
 stmt (jcab () () (<-> (-> ph (/\ ps ch)) (/\ (-> ph ps) (-> ph ch))))
 
 #  Theorem *4.76 of [bib/WhiteheadRussell] p. 121.
 stmt (pm4.76 () () (<-> (/\ (-> ph ps) (-> ph ch)) (-> ph (/\ ps ch))))
 
 #  Deduction conjoining the consequents of two implications.
+## <title> Join two implications </title>
 stmt (jcad () ((-> ph (-> ps ch)) (-> ph (-> ps th))) (-> ph (-> ps (/\ ch th))))
 
 #  Deduction conjoining a theorem to left of consequent in an
@@ -2469,11 +2501,13 @@ stmt (pm3.43 () () (-> (/\ (-> ph ps) (-> ph ch)) (-> ph (/\ ps ch))))
 
 #  Distributive law for conjunction.  Theorem *4.4 of [bib/WhiteheadRussell]
 #      p. 118.
-## <suggest> right('Dist. L') left('Undist. L') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (andi () () (<-> (/\ ph (\/ ps ch)) (\/ (/\ ph ps) (/\ ph ch))))
 
 #  Distributive law for conjunction.
-## <suggest> right('Dist. R') left('Undist. R') </suggest>
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (andir () () (<-> (/\ (\/ ph ps) ch) (\/ (/\ ph ch) (/\ ps ch))))
 
 #  Double distributive law for disjunction.
@@ -2541,7 +2575,8 @@ stmt (anbi1 () () (-> (<-> ph ps) (<-> (/\ ph ch) (/\ ps ch))))
 stmt (anbi2 () () (-> (<-> ph ps) (<-> (/\ ch ph) (/\ ch ps))))
 
 #  Theorem *4.22 of [bib/WhiteheadRussell] p. 117.
-## <suggest> right('Replace') </suggest>
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '↔') </suggest>
 stmt (bitr () () (-> (/\ (<-> ph ps) (<-> ps ch)) (<-> ph ch)))
 
 #  Theorem *4.84 of [bib/WhiteheadRussell] p. 122.
@@ -2573,6 +2608,7 @@ stmt (bibi12d () ((-> ph (<-> ps ch)) (-> ph (<-> th ta))) (-> ph (<-> (<-> ps t
 stmt (pm4.39 () () (-> (/\ (<-> ph ch) (<-> ps th)) (<-> (\/ ph ps) (\/ ch th))))
 
 #  Theorem *4.38 of [bib/WhiteheadRussell] p. 118.
+## <suggest> right('Infer', '∧↔∧') </suggest>
 stmt (pm4.38 () () (-> (/\ (<-> ph ch) (<-> ps th)) (<-> (/\ ph ps) (/\ ch th))))
 
 #  Deduction joining two equivalences to form equivalence of
@@ -2671,7 +2707,8 @@ stmt (pm2.13 () () (\/ ph (-. (-. (-. ph)))))
 
 #  Law of noncontradiction.  Theorem *3.24 of [bib/WhiteheadRussell] p. 111
 #      (who call it the "law of contradiction").
-## <suggest> full('False') </suggest>
+## <title> Law of Noncontradiction </title>
+## <suggest> full('Simplify', 'F') </suggest>
 stmt (pm3.24 () () (-. (/\ ph (-. ph))))
 
 #  Theorem *2.26 of [bib/WhiteheadRussell] p. 104.
@@ -2987,7 +3024,8 @@ stmt (orbidi () () (<-> (\/ ph (<-> ps ch)) (<-> (\/ ph ps) (\/ ph ch))))
 #      Interestingly, this law was not included in //Principia Mathematica// but
 #      was apparently first noted by Jan Lukasiewicz circa 1923.  (The proof was
 #      shortened by Juha Arpiainen, 19-Jan-2006.)
-## <suggest> right('Ass. R') left('Ass. L') </suggest>
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 stmt (biass () () (<-> (<-> (<-> ph ps) ch) (<-> ph (<-> ps ch))))
 
 #  Lukasiewicz's shortest axiom for equivalential calculus.  Storrs McCall,

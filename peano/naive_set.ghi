@@ -21,7 +21,7 @@ term (wff (e. A S))
 # interpretations from Z2, HOL, or ZFC, we'd expect this to be
 # represented by a set of numbers.
 
-## <suggest> right('[/]') left('∈') </suggest>
+## <suggest> right('Equivalence', '[/]') left('Equivalence', '∈') </suggest>
 stmt (ax-elab () ()
   (<-> (e. A ({|} x ph)) ([/] A x ph)))
 
@@ -39,23 +39,25 @@ term (set ({/}))
 stmt (df-emptyset () () (=_ ({/}) ({|} x (-. (= x x)))))
 
 term (set ({} A))
-## <suggest> right('{|}') left('{}') </suggest>
+## <suggest> right('Define', '{}') left('Simplify', '{}') </suggest>
 stmt (df-sn () () (=_ ({} A) ({|} x (= x A))))
 
 term (set (u. S T))
 
 ## <title> Definition of Union </title>
-## <suggest> right('Define') left('∪') </suggest>
+## <suggest> right('Define', '∪') left('Simplify', '∪') </suggest>
 stmt (df-un () () (=_ (u. S T) ({|} x (\/ (e. x S) (e. x T)))))
 
 term (set (i^i S T))
 
 ## <title> Definition of Intersection </title>
-## <suggest> right('Define') left('∩') </suggest>
+## <suggest> right('Define', '∩') left('Simplify', '∩') </suggest>
 stmt (df-in () () (=_ (i^i S T) ({|} x (/\ (e. x S) (e. x T)))))
 
 term (wff (C_ S T))
 #stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+## <title> Definition of Subset </title>
+## <suggest> right('Define', '⊆') left('Simplify', '⊆') </suggest>
 stmt (df-ss () () (<-> (C_ S T) (=_ (i^i S T) S)))
 
 term (wff (C. S T))

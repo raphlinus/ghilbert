@@ -1,4 +1,4 @@
-# Building up theorems of peano aristmtetic.
+﻿# Building up theorems of peano aristmtetic.
 
 param (PROP prop.ghi () "")
 param (PEANO_MIN peano_min.ghi (PROP) "")
@@ -27,6 +27,8 @@ term (nat (mod A B))
 term (nat (div A B))
 term (wff (| A B))
 term (nat (exp A B))
+term (wff (prime A))
+term (set ({...} A B))
 
 # == Pure predicate calculus ==
 stmt (a4i () ((A. x ph)) ph)
@@ -41,6 +43,8 @@ stmt (19.3 ((ph x))
   (<-> (A. x ph) ph)
 )
 
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∀') </suggest>
 stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
 
 # aka 19.7
@@ -121,6 +125,8 @@ stmt (exbiii ()
 )
 
 # aka 19.6
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∃') </suggest>
 stmt (alex () ()
   (<-> (A. x ph) (-. (E. x (-. ph))))
 )
@@ -174,6 +180,7 @@ stmt (df-subst ((A z) (ph z)) ()
      )
 
 ## <title> Additive Identity </title>
+## <suggest> auto-right('Simplify', '0') </suggest>
 stmt (pa_ax3r () () (= (+ (0) A) A))
 
 term (nat (1))
@@ -218,12 +225,15 @@ stmt (df-10 () () (= (10) (+ (9) (1))))
 stmt (eqid () () (= A A))
 
 ## <title> Multiplicative Identity </title>
+## <suggest> right('Simplify', '1') </suggest>
 ## <table>
 ##   (= (* A <r> (1)) A)
 ## </table>
+## <suggest> auto-right('Simplify') </suggest>
 stmt (mulid () () (= (* A (1)) A))
 
 ## <title> Multiplicative Identity </title>
+## <suggest> auto-right('Simplify', '1') </suggest>
 stmt (mulidr() () (= (* (1) A) A))
 
 ## <title> No Natural Numbers Below Zero </title>
@@ -232,10 +242,12 @@ stmt (0le () () (<= (0) A))
 ## <title> No Natural Numbers Below Zero </title>
 stmt (ge0 () () (-. (< A (0))))
 
-## <title> Convert between inequalities </title>
+## <title> Inequality Conversion </title>
+## <suggest> left('Simplify', '<') </suggest>
 stmt (axlttri2 () () (<-> (< A B) (/\ (-. (= A B)) (<= A B))))
 
-## <title> Convert between inequalities </title>
+## <title> Inequality Conversion </title>
+## <suggest> left('Simplify', '>') </suggest>
 stmt (axgrtri () () (<-> (-. (<= A B)) (/\ (-. (= A B)) (-. (< A B)))))
 
 ## <title> Inequality over Addition </title>
@@ -302,9 +314,12 @@ stmt (geadd1i () ((-. (< A B))) (-. (< (+ A C) (+ B C))))
 stmt (geadd2i () ((-. (< A B))) (-. (< (+ C A) (+ C B))))
 
 ## <title> Multiply by 0 </title>
+## <suggest> auto-right('Simplify','0') </suggest>
 stmt (pa_ax5r () () (= (* (0) A) (0)))
 
-## <title> Successor Adds 1 </title>
+# Successor is equivalent to adding one
+## <title> Successor Adds One </title>
+## <suggest> right('Equivalence', '+1') </suggest>
 stmt (a1suc () () (= (S A) (+ A (1))))
 
 # Reverse the hypothesis and conclusion of con4bii.
@@ -417,11 +432,13 @@ stmt (biassli () ((<-> ph (<-> ps ch))) (<-> (<-> ph ps) ch)
 )
 
 ## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 stmt (addass () ()
   (= (+ (+ A B) C) (+ A (+ B C)))
 )
 
 ## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 stmt (mulass () ()
   (= (* (* A B) C) (* A (* B C)))
 )
@@ -618,36 +635,44 @@ stmt (mtbiRemove () ((<-> ph ps) (-. ph)) (-. ps))
 stmt (mtbirRemove () ((<-> ph ps) (-. ps)) (-. ph))
 
 ## <title> Symmetric Property </title>
+## <suggest> right('Commute', '=') </suggest>
 stmt (eqcom () () (<-> (= A B) (= B A)))
 
 ## <title> Symmetric Property </title>
 stmt (eqcomi () ((= A B)) (= B A))
 
 ## <title> Commute Inequality </title>
+## <suggest> right('Commute', '≤') </suggest>
 stmt (lecom () () (<-> (<= A B) (-. (< B A))))
 
 ## <title> Commute Inequality </title>
 stmt (lecomi () ((<= A B)) (-. (< B A)))
 
 ## <title> Commute Inequality </title>
+## <suggest> right('Commute', '<') </suggest>
 stmt (ltcom () () (<-> (< A B) (-. (<= B A))))
 
 ## <title> Commute Inequality </title>
 stmt (ltcomi () ((< A B)) (-. (<= B A)))
 
 ## <title> Commutative Property </title>
+## <suggest> right('Commute', '+') </suggest>
 stmt (addcom () () (= (+ A B) (+ B A)))
 
 ## <title> Commutative Property </title>
 ## <table>
 ##   (= (* <r> A <g> B) (* <g> B <r> A))
 ## </table>
+## <suggest> right('Commute', '*') </suggest>
 stmt (mulcom () () (= (* A B) (* B A)))
 
+# Distribution of addition through multiplication
 ## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (distr () () (= (* A (+ B C)) (+ (* A B) (* A C))))
 
 ## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (distl () () (= (* (+ A B) C) (+ (* A C) (* B C))))
 
 ## <title> Distributive Property </title>
@@ -792,9 +817,9 @@ stmt (axlttri2i () ((-. (= A B)) (<= A B)) (< A B))
 ## </table>
 stmt (ltmul2i () ((< B C) (< (0) A)) (< (* B A) (* C A)))
 
-stmt (emptyIn1 () ((-. (e. A S))) (=_ (i^i ({} A) S) ({/})))
+stmt (emptySnIn1 () ((-. (e. A S))) (=_ (i^i ({} A) S) ({/})))
 
-stmt (emptyIn2 () ((-. (e. A S))) (=_ (i^i S ({} A)) ({/})))
+stmt (emptySnIn2 () ((-. (e. A S))) (=_ (i^i S ({} A)) ({/})))
 
 ## <title> Multiplication is Monotonic </title>
 ## <table>
@@ -1026,37 +1051,59 @@ stmt (expeq1i () ((= A B)) (= (exp A C) (exp B C)))
 stmt (expeq2i () ((= A B)) (= (exp C A) (exp C B)))
 
 ## <title> Operator Conversion </title>
+## <suggest> right('Infer', '≠') </suggest>
 stmt (ltneq () () (-> (< A B) (-. (= A B))))
 
 ## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '≤') </suggest>
 stmt (ltle () () (-> (< A B) (<= A B)))
 
 ## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '≠') </suggest>
 stmt (gtneq () () (-> (-. (<= A B)) (-. (= A B))))
 
 ## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '≥') </suggest>
 stmt (gtge () () (-> (-. (<= A B)) (-. (< A B))))
 
 ## <title> Equality Conversion </title>
+## <suggest> right('Infer', '≤') </suggest>
 stmt (eqle() () (-> (= A B) (<= A B)))
 
 ## <title> Equality Conversion </title>
+## <suggest> right('Infer', '≥') </suggest>
 stmt (eqge() () (-> (= A B) (-. (< A B))))
 
+## <title> Proper Subset Implies Inequality </title>
+## <suggest> right('Infer', '≠') </suggest>
 stmt (pssNeq () () (-> (C. S T) (-. (=_ S T))))
 
+## <title> Proper Subset Implies Subset </title>
+## <suggest> right('Infer', '⊆') </suggest>
 stmt (pssSs () ()  (-> (C. S T) (C_ S T)))
 
+## <title> Not Subset Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
 stmt (nssNpss () () (-> (-. (C_ S T)) (-. (C. S T))))
 
+## <title> Equality Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
 stmt (seqNpss () () (-> (=_ S T) (-. (C. S T))))
 
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (undi () () (=_ (u. S (i^i T U)) (i^i (u. S T) (u. S U))))
 
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (undir () () (=_ (u. (i^i T U) S) (i^i (u. T S) (u. U S))))
 
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U))))
 
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (indir () () (=_ (i^i (u. T U) S) (u. (i^i T S) (i^i U S))))
 
 stmt (seqseq1i () ((=_ S T)) (<-> (=_ S U) (=_ T U)))
@@ -1101,10 +1148,79 @@ stmt (ineq1i () ((=_ S T)) (=_ (i^i S U) (i^i T U)))
 stmt (ineq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
 
 ## <title> Commutative Property </title>
+## <suggest> right('Commute', '=') </suggest>
 stmt (seqcom () () (<-> (=_ S T) (=_ T S)))
 
 ## <title> Commutative Property </title>
+## <suggest> right('Commute', '∪') </suggest>
 stmt (uncom () () (=_ (u. S T) (u. T S)))
 
 ## <title> Commutative Property </title>
+## <suggest> right('Commute', '∩') </suggest>
 stmt (incom () () (=_ (i^i S T) (i^i T S)))
+
+
+stmt (notPrime () ((| B A) (/\ (< (1) B) (< B A))) (-. (prime A)))
+
+stmt (notDividesSeti ((B x) (A x)) ((-. (| A B)))  (e. A ({|} x (-. (| x B)))))
+
+stmt (unSubset () ((C_ S U) (C_ T U)) (C_ (u. S T) U))
+
+stmt (provePrime ((A y)) ((C_ ({...} (2) A) ({|} y (-. (| y (+ A (1)))))) (-. (<= A (0)))) (prime (+ A (1))))
+
+stmt (intervalSn () () (=_ ({...} A A) ({} A)))
+
+stmt (intervalAttach () ((<= A B)) (=_ (u. ({...} A B) ({} (+ B (1)))) ({...} A (+ B (1)))) )
+
+## <title> Subset and Element Of Equivalence <title>
+## <suggest> left('Simplify', '∈') right('Infer', '⊆') </suggest>
+stmt (elSubset () () (<-> (e. A S) (C_ ({} A) S)))
+
+stmt (primeeq () () (-> (= A B) (<-> (prime A) (prime B))))
+stmt (intervaleq1 () () (-> (= A C) (=_ ({...} A B) ({...} C B))))
+stmt (intervaleq2 () () (-> (= B C) (=_ ({...} A B) ({...} A C))))
+
+## <title> Equality over Interval </title>
+## <table>
+##   (=          A ]   ]          [ B ]   )
+##   (<-> ({...} A ] C ] ) ({...} [ B ] C))
+## </table>
+stmt (intervaleq2i () ((= B C)) (=_ ({...} A B) ({...} A C)))
+
+## <title> Equivalence over Interval </title>
+## <table>
+##   (=         A ]   ]          [ B ]   )
+##   (=_ ({...} A ] C ] ) ({...} [ B ] C))
+## </table>
+stmt (intervaleq1i () ((= A C)) (=_ ({...} A B) ({...} C B)))
+
+## <title> Equivalence over Prime </title>
+## <table>
+##   (=          [ A ]          [ B ]   )
+##   (<-> (prime [ A ] ) (prime [ B ] ))
+## </table>
+stmt (primeeqi ()  ((= A B))  (<-> (prime A) (prime B)))
+
+stmt (sneqi () ((= A B)) (=_ ({} A) ({} B)))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (unass () () (=_ (u. (u. S T) U) (u. S (u. T U))))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (inass () () (=_ (i^i (i^i S T) U) (i^i S (i^i T U))))
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=       A ]    ] [     B ] )
+##   (<-> (e. A ] S) ] [ (e. B ] S))
+## </table>
+stmt (eleq1i () ((= A B)) (<-> (e. A S) (e. B S)))
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=_        [ S  ] [       [ T )
+##   (<-> (e. A [ S) ] [ (e. A [ T ))
+## </table>
+stmt (eleq2i () ((=_ S T)) (<-> (e. A S) (e. A T)))
