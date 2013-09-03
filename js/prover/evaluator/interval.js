@@ -20,7 +20,13 @@ GH.ProofGenerator.evaluatorInterval.prototype.inline = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 	if (leftNum < rightNum) {
-		var decremented = this.prover.unevaluate(GH.operatorUtil.create('+', [rightNum - 1, 1]), sexp.right());
+		var decremented;
+		if (rightNum != 11) {
+			decremented = this.prover.unevaluate(GH.operatorUtil.create('+', [rightNum - 1, 1]), sexp.right());
+		} else {
+			// 11 is already in the form 10 + 1.
+			decremented = sexp.right().copy();
+		}
 		this.prover.evaluate(GH.operatorUtil.create('<=', [leftNum, rightNum - 1]));
 		this.prover.print([], 'intervalAttach');
 		var result = this.prover.getLast();
@@ -34,13 +40,17 @@ GH.ProofGenerator.evaluatorInterval.prototype.inline = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorInterval.prototype.canAddTheorem = function(sexp) {
-	return false;
+	return true;
+};
+
+GH.ProofGenerator.evaluatorInterval.prototype.theoremName = function(sexp) {	
+	return 'Interval of Natural Numbers';
 };
 
 GH.ProofGenerator.evaluatorInterval.prototype.calculate = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	var result = 0;
+	var result = [];
 	for (var i = leftNum; i <= rightNum; i++) {
 		result.push(i);
 	}

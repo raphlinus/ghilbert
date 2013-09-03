@@ -144,6 +144,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/proofstep.js" type="text/javascript"></script>
 <script src="/js/prover/prover.js" type="text/javascript"></script>
 <script src="/js/prover/archiveSearcher.js" type="text/javascript"></script>
+<script src="/js/prover/buttonController.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/evaluator.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/add.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/and.js" type="text/javascript"></script>

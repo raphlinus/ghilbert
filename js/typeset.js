@@ -285,6 +285,8 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (sexp[0] == '+') {
 		// TODO: Finish highlighting the other symbols.
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);
+    } else if (sexp[0] == '.-') {
+        return GH.typesetinfix(sexp, 'l', 2200, '.-', cursorPosition);
     } else if (sexp[0] == '*' || sexp[0] == '∙') {
         return GH.typesetinfix(sexp, 'l', 2300, '∙', cursorPosition);
     } else if (sexp[0] == 'S') {
@@ -301,6 +303,8 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetinfix(sexp, 'n', 1050, '&lt;', cursorPosition);
     } else if (sexp[0] == '|') {
         return GH.typesetinfix(sexp, 'n', 1050, '|', cursorPosition);
+    } else if (sexp[0] == 'prime') {
+        return GH.typesetpostfix(sexp, 1050, ' is prime', cursorPosition);
     } else if (sexp[0] == '->' || sexp[0] == '→') {
         return GH.typesetinfix(sexp, 'r', 250, '→', cursorPosition);
     } else if (sexp[0] == '<->' || sexp[0] == '↔') {
@@ -323,6 +327,10 @@ GH.typeset = function(sexp, cursorPosition) {
 				return GH.typesetbinder(sexp[1], 40, '&#8708', cursorPosition);
 			} else if (sexp[1][0] == 'C.' || sexp[1][0] == '⊂') {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '⊄', cursorPosition);
+            } else if (sexp[1][0] == 'C.' || sexp[1][0] == '|') {
+                return GH.typesetinfix(sexp[1], 'n', 1050, '∤', cursorPosition);
+            } else if (sexp[1][0] == 'prime') {
+		        return GH.typesetpostfix(sexp[1], 1050, ' is not prime', cursorPosition);
             }
         }
         return GH.typesetunary(sexp, 1000, '¬', cursorPosition);  // TODO: 2000?

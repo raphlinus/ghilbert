@@ -63,13 +63,13 @@ GH.repositioner.prototype.repositionTree = function(sexp, oldTree, newTree) {
 
 	leftAssociated.sexp = this.prover.openExp(leftAssociated.sexp, 'Reorder Terms');
 	var symbolOrder = GH.symbolTree.getSymbolOrder(oldTree.getSymbolList(), newTree.getSymbolList());
-	var reordered = this.reorder(leftAssociated.sexp, symbolOrder);
+	var reordered = {sexp: this.reorder(leftAssociated.sexp, symbolOrder), tree: null};
 	reordered.sexp = this.prover.closeExp(reordered.sexp);
 	
 	// leftAssociated.tree was set before the reordering, so it is not a perfect representation
 	// of the state of the left, but for the reassociation step the order is irrelevant.
 	reordered.sexp = this.prover.openExp(reordered.sexp, 'Change Associations');
-	var result = this.reassociate(reordered, leftAssociated.tree, newTree);
+	var result = this.reassociate(reordered.sexp, leftAssociated.tree, newTree);
 	result = this.prover.closeExp(result);
 	result = this.prover.closeExp(result);
 	return result;

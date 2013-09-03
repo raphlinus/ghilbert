@@ -6,7 +6,11 @@ GH.ProofGenerator.evaluatorDivides = function(prover) {
 GH.ProofGenerator.evaluatorDivides.prototype.action = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	return new GH.action(leftNum + 'divides' + rightNum, []);
+	if (this.calculate(sexp)) {
+		return new GH.action(leftNum + 'divides' + rightNum, []);
+	} else {
+		return new GH.action(leftNum + 'notdivides' + rightNum, []);
+	}
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.isApplicable = function(sexp) {
@@ -21,6 +25,10 @@ GH.ProofGenerator.evaluatorDivides.prototype.inline = function(sexp) {
 	} else {
 		return this.proveNoDivision(sexp, leftNum, rightNum);
 	}
+};
+
+GH.ProofGenerator.evaluatorDivides.prototype.theoremName = function(sexp) {	
+	return 'Divisibility';
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.proveDivision = function(sexp, leftNum, rightNum) {
@@ -52,7 +60,9 @@ GH.ProofGenerator.evaluatorDivides.prototype.proveNoDivision = function(sexp, le
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return ((leftNum >= 2) && (leftNum < rightNum) && (rightNum >= 2) && (rightNum < 20));
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.calculate = function(sexp) {

@@ -31,7 +31,13 @@ GH.ProofGenerator.evaluatorModulo.prototype.inline = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorModulo.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return (rightNum >= 2) && (rightNum <= 5) && (leftNum <= 10);
+};
+
+GH.ProofGenerator.evaluatorModulo.prototype.theoremName = function(sexp) {	
+	return 'One-digit Modulo';
 };
 
 GH.ProofGenerator.evaluatorModulo.prototype.calculate = function(sexp) {

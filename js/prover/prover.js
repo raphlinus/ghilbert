@@ -1,33 +1,14 @@
 // Javascript for generating Ghilbert proof steps automatically.
 // by Paul Merrell, 2013
 
-GH.Prover = function(suggestArea, direct) {
+GH.Prover = function(buttonController, direct) {
 	this.depth = 1;
 	this.direct = direct;
 	this.conclusions = [];
 	this.activeExp = null;
 	this.stack = [];
 	this.openExps = [];
-
-	this.primaryArea = document.createElement('div');
-	this.secondaryArea = document.createElement('div');
-	this.primaryButtons = document.createElement('span');
-	this.secondaryButtons = document.createElement('span');
-	this.activeExpDisplay = document.createElement('span');
-	this.secondaryExpDisplay = document.createElement('span');
-	this.primaryButtons.setAttribute('class', 'suggest-button');
-	this.secondaryButtons.setAttribute('class', 'suggest-button');
-	this.primaryArea.setAttribute('class', 'suggest-area');
-	this.secondaryArea.setAttribute('class', 'suggest-area secondary');
-	this.activeExpDisplay.setAttribute('class', 'suggest-exp');
-	this.secondaryExpDisplay.setAttribute('class', 'suggest-exp');
-	
-	suggestArea.appendChild(this.secondaryArea);
-	suggestArea.appendChild(this.primaryArea);
-	this.primaryArea.appendChild(this.activeExpDisplay);
-	this.primaryArea.appendChild(this.primaryButtons);
-	this.secondaryArea.appendChild(this.secondaryExpDisplay);
-	this.secondaryArea.appendChild(this.secondaryButtons);
+	this.buttonController = buttonController;
 
 	this.archiveSearcher = new GH.archiveSearcher(this);
 	this.remover = new GH.remover(this);
@@ -179,58 +160,8 @@ GH.Prover.getSelectionState = function(expression, index, selectedIndex, isAnces
 
 // Traverses the expression tree up to the where the current selection. Set classes and click handlers.
 GH.Prover.prototype.displayActiveExp = function() {
-	if (!this.activeExp) {
-		this.updateSuggestButtons();
-		return;
-	}	
-
-	var root = this.activeExp.getRoot();
-	var rootExpressionToShow = root.getExpression();
-	var position = GH.Prover.findPosition(this.activeExp);
-
-	if (!root.isProven) {
-		this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
-		this.updateSuggestButtons();
-		return;
-	}
-
-	// if (position.length != 0) && (rootExpressionToShow.length == 2) { selectionState = 'selectable-ancestor';}  // Currently disabled.
-	var selectionState = GH.Prover.getSelectionState(rootExpressionToShow, -1, -1, position.length > 0);
-	rootExpressionToShow = ['htmlSpan', selectionState, rootExpressionToShow];
-	expressionToShow = rootExpressionToShow[2];
-	for (var i = 0; i < position.length; i++) {
-		var pos = position[i] + 1;
-		for (var j = 1; j < expressionToShow.length; j++) {
-			selectionState = GH.Prover.getSelectionState(expressionToShow, j, pos, (i != position.length - 1));
-			expressionToShow[j] = ['htmlSpan', selectionState, expressionToShow[j]];
-		}
-		expressionToShow = expressionToShow[pos];
-		expressionToShow = expressionToShow[2];
-	}
-	for (var i = 1; i < expressionToShow.length; i++) {
-		expressionToShow[i] = ['htmlSpan', 'selectable-child', expressionToShow[i]];
-	}
-	this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
-	GH.Prover.addClickHandlers(this.activeExpDisplay, {operand: 0, parent: 0});
+	this.buttonController.displayActiveExp(this.activeExp);
 	this.updateSuggestButtons();
-};
-
-GH.Prover.highlightMatch = function(expression, match) {
-	var position = GH.Prover.findPosition(match);
-	if (position.length > 0) {
-		var expressionRoot = expression;
-		for (var i = 0; i < position.length; i++) {
-			var pos = position[i] + 1;
-			if (i < position.length - 1) {
-				expression = expression[pos];
-			} else {
-				expression[pos] = ['htmlSpan', 'matching-exp', expression[pos]];
-			}
-		}
-		return expressionRoot;
-	} else {
-		return ['htmlSpan', 'matching-exp', expression];
-	}
 };
 
 GH.Prover.prototype.update = function(theorems, stack) {
@@ -241,44 +172,37 @@ GH.Prover.prototype.update = function(theorems, stack) {
 };
 
 GH.Prover.prototype.updateSuggestButtons = function() {
-	// Remove the existing buttons.
-	while(this.primaryButtons.firstChild){
-    	this.primaryButtons.removeChild(this.primaryButtons.firstChild);
-	}
-	while(this.secondaryButtons.firstChild){
-    	this.secondaryButtons.removeChild(this.secondaryButtons.firstChild);
-	}
+	this.buttonController.clearButtons();
 
 	this.archiveSearcher.addSuggestions(this.activeExp);
-	GH.ProofStep.removeClass_(this.secondaryArea, 'active');
+	this.buttonController.setActive(1, false);
 	if (this.activeExp) {
-		GH.ProofStep.addClass_(this.primaryArea, 'active');
+		this.buttonController.setActive(0, true);
 		if (this.activeExp.getRoot().isProven) {
-			this.addSuggestion('Copy', 'window.direct.prover.handleCopy()', true);
+			this.buttonController.addSuggestionButton('Copy', 'window.direct.prover.handleCopy()', true);
 		}
 	} else {
-		GH.ProofStep.removeClass_(this.primaryArea, 'active');
+		this.buttonController.setActive(0, false);
 		return;
 	}
 
 	if (this.evaluator.isApplicable(this.activeExp)) {
-		this.addSuggestion('Evaluate', 'window.direct.prover.handleEvaluate()', true);
+		this.buttonController.addSuggestionButton('Evaluate', 'window.direct.prover.handleEvaluate()', true);
 	}
 	
 	if ((this.stack.length == 0) && (this.conclusions.length >= 1)) {
 		var lastConclusion = this.conclusions[this.conclusions.length - 1];
 		if (this.conditionalReplacer.isApplicable(lastConclusion)) {
-			this.addSuggestion('Cond.', 'window.direct.prover.handleConditional()', true);
+			this.buttonController.addSuggestionButton('Cond.', 'window.direct.prover.handleConditional()', true);
 		}
 		if (this.existGeneralizer.isApplicable(lastConclusion)) {
-			this.addSuggestion('Exist.', 'window.direct.prover.handleExistGeneralize()', true);
+			this.buttonController.addSuggestionButton('Exist.', 'window.direct.prover.handleExistGeneralize()', true);
 		}
 		if (this.instantiator.isApplicable(this.activeExp)) {
-			this.addSuggestion('Instant.', 'window.direct.prover.handleInstantiate()', true);
+			this.buttonController.addSuggestionButton('Instant.', 'window.direct.prover.handleInstantiate()', true);
 		}
 	}
 
-	this.secondaryExpDisplay.innerHTML = '';
 	if ((this.stack.length == 0) && (this.activeExp.parent == null)) {	
 		if (this.conclusions.length >= 2) {
 			var prevConclusion = this.conclusions[this.conclusions.length - 2];
@@ -286,12 +210,12 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 			if (prevConclusion) {
 				var match = null;
 				if (this.replacer.isApplicable(prevConclusion, lastConclusion)) {
-					this.addSuggestion('Substitute', 'window.direct.prover.handleSubstitute()', false);
+					this.buttonController.addSuggestionButton('Substitute', 'window.direct.prover.handleSubstitute()', false);
 					var leftSide = lastConclusion.operator == '-.' ? lastConclusion.child().left() : lastConclusion.left();
 					match = GH.Prover.findMatch(prevConclusion, leftSide);
 				}
 				if (this.remover.isApplicable(prevConclusion, lastConclusion)) {
-					this.addSuggestion('Remove', 'window.direct.prover.remove()', false);
+					this.buttonController.addSuggestionButton('Remove', 'window.direct.prover.remove()', false);
 					match = GH.Prover.findMatch(prevConclusion, lastConclusion)				
 					if ((!match) && (lastConclusion.operator == '-.')) {
 						isNegated = true;
@@ -299,25 +223,10 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 					}
 				}
 				if (match) {
-					var expression = prevConclusion.getExpression();
-					GH.Prover.highlightMatch(expression, match);
-					this.secondaryExpDisplay.innerHTML = GH.sexptohtmlHighlighted(expression, -1);
-					GH.ProofStep.addClass_(this.secondaryArea, 'active');
+					this.buttonController.setSecondaryDisplay(prevConclusion.getExpression(), match);
 				}
 			}
 		}
-	}
-};
-
-GH.Prover.prototype.addSuggestion = function(name, clickHandler, isPrimary) {
-	var suggestion = document.createElement('input');
-	suggestion.setAttribute('type', 'button');
-	suggestion.setAttribute('value', name);
-	suggestion.setAttribute('onclick', clickHandler);
-	if (isPrimary) {
-		this.primaryButtons.appendChild(suggestion);
-	} else {
-		this.secondaryButtons.appendChild(suggestion);
 	}
 };
 
@@ -394,7 +303,6 @@ GH.Prover.getConclusions = function(theorems) {
 	
 	var result = [];
 	for (var i = 0; i < theorems.length; i++) {
-		// TODO: Rename public variables and make conclusion an s-expression.
 		var conclusion = GH.sExpression.fromRaw(theorems[i].conclusion);
 		conclusion.isProven = true;
 		result.push(conclusion);
@@ -405,7 +313,12 @@ GH.Prover.getConclusions = function(theorems) {
 // Return the last theorem on the proof stack.
 GH.Prover.prototype.getLast = function() {
 	var theorems = this.getTheorems();
-	return theorems[theorems.length -  1];
+	if (theorems.length > 0) {
+		theorems[theorems.length -  1].isProven = true;
+		return theorems[theorems.length -  1];
+	} else {
+		return null;
+	}
 };
 	
 // Return the last expression on the proof stack.
@@ -459,7 +372,7 @@ GH.Prover.findPosition = function(sexp) {
  */
 GH.Prover.findMatchingPosition = function(sexp, matcher) {
 	var indices = GH.Prover.findPosition(matcher);
-	if (GH.operatorUtil.getRootType(matcher) != 'wff') {
+	if ((GH.operatorUtil.getRootType(matcher) != 'wff') && (sexp.operands.length == 2)){
 		// If the original expression is not a wff, the result is an equilance statement. Take the right part.	
 		sexp = sexp.right();
 	}
@@ -604,7 +517,8 @@ GH.Prover.prototype.replace = function(sexp) {
 	if (sexp.parent) {
 		return GH.Prover.findMatchingPosition(replaced, sexp);
 	} else {
-		if (GH.operatorUtil.getType(sexp) == 'wff') {
+		// Things like ph are not recognized as wff by their operators, hence the check for operands.
+		if ((GH.operatorUtil.getType(sexp) == 'wff') || (sexp.operands.length == 0)) {
 			return replaced;
 		} else {
 			return replaced.right();
@@ -617,7 +531,7 @@ GH.Prover.prototype.remove = function() {
 	this.conclusions = this.getTheorems();
 	var removee = this.conclusions[this.conclusions.length - 2];
 	var remover = this.conclusions[this.conclusions.length - 1];
-	var output = this.remover.maybeRemove(removee, remover);
+	var output = this.remover.maybeRemove(removee, remover, true);
 	for (var i = 0; i < output.length; i++) {
 		this.println(output[i]);
 	}
@@ -625,10 +539,7 @@ GH.Prover.prototype.remove = function() {
 	
 	output = [];
 	removee = this.conclusions[this.conclusions.length - 1];
-	this.remover.removeBoolean(removee, output);
-	for (var i = 0; i < output.length; i++) {
-		this.println(output[i]);
-	}
+	this.remover.removeBoolean(removee);
 	// TODO: Check if this is hurting efficiency.
 	this.direct.update(true);
 	// TODO: Replace a wff multiple times if it appears multiple times.
@@ -786,44 +697,44 @@ GH.Prover.prototype.reverseLastSteps = function() {
 
 GH.Prover.prototype.operationExchange = function(sexp, newOperation) {
 	sexp = this.openExp(sexp, 'Convert to ' + newOperation);
-	sexp = this.archiveSearcher.applyAction(sexp, newOperation);
+	sexp = this.archiveSearcher.applyAction(sexp, 'Infer', newOperation);
 	sexp = this.closeExp(sexp);
 	return sexp;
 };
 
 GH.Prover.prototype.associateLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Associative Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Ass. L');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Associate', 'L');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.associateRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Associative Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Ass. R');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Associate', 'R');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.distributeLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Dist. L');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Distribute', 'L');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.distributeRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Dist. R');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Distribute', 'R');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeLeft = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Undist. L');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Distribute', '-L');
 	return this.closeExp(sexp);
 };
 
 GH.Prover.prototype.undistributeRight = function(sexp) {
 	sexp = this.openExp(sexp, 'Distributive Property');
-	sexp = this.archiveSearcher.applyAction(sexp, 'Undist. R');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Undistribute', '-R');
 	return this.closeExp(sexp);
 };
 
@@ -868,7 +779,7 @@ GH.Prover.prototype.commute = function(sexp) {
 		return sexp;
 	} else {
 		sexp = this.openExp(sexp, 'Commutative Property');
-		sexp = this.archiveSearcher.applyAction(sexp, 'Commute');
+		sexp = this.archiveSearcher.applyAction(sexp, 'Commute', '');
 		return this.closeExp(sexp);
 	}
 };
@@ -892,11 +803,15 @@ GH.Prover.prototype.handleEvaluate = function() {
 GH.Prover.prototype.handleArchive = function(suggestionType, suggestionIndex) {
 	this.clearStack();
 	this.println('');
-	var result = this.archiveSearcher.applySuggestion(this.activeExp, suggestionType, suggestionIndex);
+
+	var title = this.archiveSearcher.getSuggestionTitle(suggestionType, suggestionIndex);
+	var sexp = this.openExp(this.activeExp, title);
+	sexp = this.archiveSearcher.applySuggestion(sexp, suggestionType, suggestionIndex);
+	sexp = this.closeExp(sexp);
 	this.direct.update(true);
 
 	// The result gets overwritten by the update.
-	this.activeExp = result;
+	this.activeExp = sexp;
 	this.displayActiveExp();
 };
 

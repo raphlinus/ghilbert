@@ -11,7 +11,8 @@ GH.Direct = function(text, stack, suggestArea) {
     this.stack = stack;
     this.text.addListener(function() { self.update(true); });
     this.marker = null;
-	this.prover = new GH.Prover(suggestArea, this);
+	var buttonController = new GH.ButtonController(suggestArea);
+	this.prover = new GH.Prover(buttonController, this);
 
 	this.thmctx = null;
 	this.auLink = document.getElementById("autounify");

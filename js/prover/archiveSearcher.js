@@ -31,33 +31,38 @@ GH.archiveSearcher.prototype.createArchive = function(syms) {
 					var suggestCommand = suggest[i][0];
 					var archiveBranch;
 					var sexp;
+					var newSuggestion;
+					var replaceOp = conclusion.operator;
 					if (suggestCommand == 'full') {
-						archiveBranch = 'full';
+						archiveBranch = ['full', 'full'];
 						sexp = conclusion;
 					} else if (suggestCommand == 'right') {
-						archiveBranch = 'replace';
+						archiveBranch = ['replace', replaceOp];
 						sexp = conclusion.left();
 					} else if (suggestCommand == 'left') {
-						archiveBranch = 'replace';
+						archiveBranch = ['replace', replaceOp];
 						sexp = conclusion.right();
 					} else if (suggestCommand == 'auto-right') {
 						sexp = conclusion.left();
-						this.addToArchive(sym, suggest[i], 'auto-replace', sexp, vars);
-						archiveBranch = 'replace';
+						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+						this.addToArchive(newSuggestion, ['auto-replace', replaceOp], sexp, vars);
+						archiveBranch = ['replace', replaceOp];
 					} else if (suggestCommand == 'auto-left') {
 						sexp = conclusion.right();
-						this.addToArchive(sym, suggest[i], 'auto-replace', sexp, vars);
-						archiveBranch = 'replace';
+						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+						this.addToArchive(newSuggestion, ['auto-replace', replaceOp], sexp, vars);
+						archiveBranch = ['replace', replaceOp];
 					}
-					this.addToArchive(sym, suggest[i], archiveBranch, sexp, vars);
+					var newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+					this.addToArchive(newSuggestion, archiveBranch, sexp, vars);
 				}
 			}
 		}
 	}
 };
 
-GH.archiveSearcher.prototype.addToArchive = function(name, suggest, archiveBranch, sexp, vars) {
-	var hyps = [];
+GH.archiveSearcher.prototype.addToArchive = function(newSuggestion, archiveBranch, sexp, vars) {
+	var hyps = newSuggestion.hyps;
 	// A breadth-first traversal of the s-expression.
 	var breadthFirst = [];
 	var queue = [sexp]; 
@@ -75,10 +80,14 @@ GH.archiveSearcher.prototype.addToArchive = function(name, suggest, archiveBranc
 		}
 	}
 
-	if (!this.archive.hasOwnProperty(archiveBranch)) {
-		this.archive[archiveBranch] = {};
+	var archiveNode = this.archive;
+	for (var i = 0; i < archiveBranch.length; i++) {
+		if (!archiveNode.hasOwnProperty(archiveBranch[i])) {
+			archiveNode[archiveBranch[i]] = {};
+		}
+		archiveNode = archiveNode[archiveBranch[i]];
 	}
-	var archiveNode = this.archive[archiveBranch];
+	
 	for (var i = 0; i < breadthFirst.length; i++) {
 		var operator = breadthFirst[i];
 		if (!archiveNode.hasOwnProperty(operator)) {
@@ -89,13 +98,30 @@ GH.archiveSearcher.prototype.addToArchive = function(name, suggest, archiveBranc
 	if (!archiveNode.hasOwnProperty('thms')) {
 		archiveNode['thms'] = [];
 	}
-	archiveNode['thms'].push(new GH.archiveSuggestion(name, suggest, sexp, hyps));
+	archiveNode['thms'].push(newSuggestion);
 };
 
-// Returns an archive suggestion with the hypotheses filled in from the hypotheses.
-// Puts the hypotheses in the right order and removes duplicate matches.
+// Returns an archive suggestion with the variables filled in from hyps.
+// Puts the variables in the right order and removes duplicate matches.
 GH.archiveSearcher.fillHypotheses = function(suggestion, hyps) {
 	var newHyps = [];
+
+	// Put in default values. Hyps may not have all of them if you're replacing an expression and
+	// new variables appear on the right.
+	var variables = suggestion.variables;
+	for (var i = 0; i < variables.length; i++) {
+		var type = variables[i][1];
+		var defaultVar = null;
+		if (type == 'wff') {
+			defaultVar = 'ph';
+		} else if (type == 'nat') {
+			defaultVar = 'x';
+		} else if (type == 'set') {
+			defaultVar = 'S';
+		}
+		newHyps.push(GH.sExpression.createVariable(defaultVar));
+	}
+
 	for (var i = 0; i < hyps.length; i++) {
 		newHyps[suggestion.hyps[i]] = hyps[i];
 	}
@@ -123,20 +149,21 @@ GH.archiveSearcher.checkVariableMatches = function(theorems, hyps) {
 	return matchingList;
 };
 
-GH.archiveSearcher.filterByAction = function(theorems, actionName) {
-	if (!actionName) {
+GH.archiveSearcher.filterByAction = function(theorems, categoryName, actionName) {
+	if (!categoryName) {
 		return theorems;
 	}
 	var filteredThms = [];
 	for (var i = 0; i < theorems.length; i++) {
-		if (theorems[i].actionName == actionName) {
+		if ((theorems[i].categoryName == categoryName) &&
+		    (!actionName || (theorems[i].actionName == actionName))) {
 			filteredThms.push(theorems[i]);
 		}
 	}
 	return filteredThms;
 };
 
-GH.archiveSearcher.search = function(queue, archive, hyps, actionName) {
+GH.archiveSearcher.search = function(queue, archive, hyps, categoryName, actionName) {
 	while (queue.length > 0) {
 		var node = queue.shift();
 		var keys = [];
@@ -172,8 +199,8 @@ GH.archiveSearcher.search = function(queue, archive, hyps, actionName) {
 			newHyps.push(newHyp);
 		}
 		if (keys.length == 2) {
-			return GH.archiveSearcher.search(newQueues[0], newArchives[0], newHyps[0], actionName).concat(
- 			       GH.archiveSearcher.search(newQueues[1], newArchives[1], newHyps[1], actionName));
+			return GH.archiveSearcher.search(newQueues[0], newArchives[0], newHyps[0], categoryName, actionName).concat(
+ 			       GH.archiveSearcher.search(newQueues[1], newArchives[1], newHyps[1], categoryName, actionName));
 		} else {
 			queue = newQueues[0];
 			archive = newArchives[0];
@@ -181,49 +208,64 @@ GH.archiveSearcher.search = function(queue, archive, hyps, actionName) {
 		}
 	}
 	var theorems = archive['thms'];
-	theorems = GH.archiveSearcher.filterByAction(theorems, actionName);
+	theorems = GH.archiveSearcher.filterByAction(theorems, categoryName, actionName);
 	return GH.archiveSearcher.checkVariableMatches(theorems, hyps);
 };
 
 GH.archiveSearcher.prototype.contradictionSearch = function(sexp) {
-	if (!this.archive.hasOwnProperty('full') || !this.archive['full'].hasOwnProperty('-.')) {
+	if (!this.archive.hasOwnProperty('full') || !this.archive['full']['full'].hasOwnProperty('-.')) {
 		return [];
 	}
-	return GH.archiveSearcher.search([sexp], this.archive['full']['-.'], [], '');
+	return GH.archiveSearcher.search([sexp], this.archive['full']['full']['-.'], [], '', '');
 };
 
 GH.archiveSearcher.prototype.truthSearch = function(sexp) {
 	if (!this.archive.hasOwnProperty('full')) {
 		return [];
 	}
-	return GH.archiveSearcher.search([sexp], this.archive['full'], [], '');
+	return GH.archiveSearcher.search([sexp], this.archive['full']['full'], [], '', '');
 };
 
 // TODO: Don't suggest things that do nothing like commutting A + A.
-GH.archiveSearcher.prototype.replacementSearch = function(sexp) {
-	if (!this.archive.hasOwnProperty('replace')) {
+GH.archiveSearcher.prototype.replacementSearch = function(sexp, branch, categoryName, actionName) {
+	if (!this.archive.hasOwnProperty(branch)) {
 		return [];
 	}
-	return GH.archiveSearcher.search([sexp], this.archive['replace'], [], '');
-};
-
-GH.archiveSearcher.prototype.autoReplacementSearch = function(sexp) {
-	if (!this.archive.hasOwnProperty('auto-replace')) {
-		return [];
+	var archiveNode = this.archive[branch];
+	var result = [];
+	for(key in archiveNode){
+		// var replacementTester = this.getReplacementTester(key);
+		if (!sexp.parent || (this.prover.replacer.isApplicableTraverse(sexp, key))) {  // This won't work for negated operators like >.
+			result = result.concat(GH.archiveSearcher.search([sexp], archiveNode[key], [], categoryName, actionName));
+		}
 	}
-	return GH.archiveSearcher.search([sexp], this.archive['auto-replace'], [], '');
+	return result;
 };
 
-GH.archiveSearcher.prototype.applyAction = function(sexp, actionName) {
+/* GH.archiveSearcher.prototype.getReplacementTester = function(operator) {
+	if (this.replacementTesters.hasOwnProperty(operator)) {
+		return this.replacementTesters.operator;
+	}
+	var varGenerator = new GH.Prover.variableGenerator();
+	var types = GH.operatorUtil.getOperatorTypes(operator);
+	var operands = [];
+	for (var i = 0; i < types.length - 1; i++) {
+		operands.push(varGenerator.generate(types[i]));
+	}
+	this.replacementTesters.operator = GH.operatorUtil.create(operator, operands);
+	return this.replacementTesters.operator;
+};*/
+
+GH.archiveSearcher.prototype.applyAction = function(sexp, categoryName, actionName) {
 	var theorems = [];
 	if (this.archive.hasOwnProperty('full') && this.archive['full'].hasOwnProperty('-.')) {
-		theorems = theorems.concat(GH.archiveSearcher.search([sexp], this.archive['full']['-.'], [], actionName));
+		theorems = theorems.concat(GH.archiveSearcher.search([sexp], this.archive['full']['-.'], [], categoryName, actionName));
 	}
 	if (this.archive.hasOwnProperty('replace')) {
-		theorems = theorems.concat(GH.archiveSearcher.search([sexp], this.archive['replace'], [], actionName));
+		theorems = theorems.concat(this.replacementSearch(sexp, 'replace', categoryName, actionName));
 	}
 	if (theorems.length > 1) {
-		alert(theorems.length + ' theorems found for action ' + actionName + '.');
+		alert(theorems.length + ' theorems found for action ' + category + ' ' + actionName + '.');
 		return null;
 	}
 	if (theorems.length == 0) {
@@ -251,6 +293,7 @@ GH.archiveSearcher.prototype.applyTruth= function(sexp, suggestionIndex) {
 };
 
 GH.archiveSearcher.prototype.applyTheorem = function(sexp, suggestion) {
+	suggestion.addMissingVariables();
 	this.prover.print(suggestion.hyps, suggestion.name);
 	if ((suggestion.type == 'left') || (suggestion.type == 'auto-left')) {
 		this.prover.commute(this.prover.getLast());
@@ -267,34 +310,38 @@ GH.archiveSearcher.prototype.applyReplacement = function(sexp, suggestionIndex) 
 	return this.applyTheorem(sexp, suggestion);
 };
 
-GH.archiveSearcher.prototype.autoApplyRecursive = function(sexp) {
-	var replacements = this.autoReplacementSearch(sexp);
+GH.archiveSearcher.prototype.autoApply = function(sexp) {
+	var replacements = this.replacementSearch(sexp, 'auto-replace', '', '');
 	while (replacements.length > 0) {
 		sexp = this.applyTheorem(sexp, replacements[0]);
-		replacements = this.autoReplacementSearch(sexp);
+		replacements = this.replacementSearch(sexp, 'auto-replace', '', '');
 	}
 	for (var i = 0; i < sexp.operands.length; i++) {
-		sexp = this.autoApplyRecursive(sexp.operands[i]).parent;
+		sexp = this.autoApply(sexp.operands[i]).parent;
 	}
 	return sexp;
 };
 
-GH.archiveSearcher.prototype.autoApply = function(sexp) {
+/*GH.archiveSearcher.prototype.autoApply = function(sexp) {
 	var siblingIndex = -1;
 	if (sexp.parent) {
 		siblingIndex = sexp.siblingIndex;
 		sexp = sexp.parent;
 	}
 
-	var replacements = this.autoReplacementSearch(sexp);
+	var replacements = this.replacementSearch(sexp, 'auto-replace', '', '');
 	if (replacements.length == 0) {
 		siblingIndex = -1;
 	}
-	sexp = this.autoApplyRecursive(sexp);
+	sexp = this.autoApply(sexp);
 	if (siblingIndex >= 0) {
 		sexp = sexp.operands[siblingIndex];
 	}
 	return sexp;
+};*/
+
+GH.archiveSearcher.prototype.getSuggestionTitle = function(suggestionType, suggestionIndex) { 
+	return this.suggestThms[GH.archiveSearcher.SUGGESTION_TYPES.REPLACEMENT][suggestionIndex].title;
 };
 
 GH.archiveSearcher.prototype.applySuggestion = function(sexp, suggestionType, suggestionIndex) {
@@ -308,7 +355,6 @@ GH.archiveSearcher.prototype.applySuggestion = function(sexp, suggestionType, su
 		result = this.applyReplacement(sexp, suggestionIndex);
 	}
 
-	// Auto apply on parent.
 	return this.autoApply(result);
 };
 
@@ -317,7 +363,9 @@ GH.archiveSearcher.prototype.addSuggestionType = function(type, suggestions) {
 	for (var i = 0; i < suggestions.length; i++) {
 		this.suggestThms[type].push(suggestions[i]);
 		var clickHandler = 'window.direct.prover.handleArchive(' + type + ', ' + i + ')';
-		this.prover.addSuggestion(suggestions[i].actionName, clickHandler, true);
+		if (suggestions[i].actionName) {
+			this.prover.buttonController.addCategorizedButton(suggestions[i].categoryName, suggestions[i].actionName, clickHandler, true);
+		}
 	}
 };
 
@@ -340,19 +388,25 @@ GH.archiveSearcher.prototype.addSuggestions = function(sexp) {
 		this.addSuggestionType(TYPES.TRUTH, [truths[0]]);
 	}
 
-	var replacements = this.replacementSearch(sexp);
+	var replacements = this.replacementSearch(sexp, 'replace', '', '');
 	type = TYPES.REPLACEMENT;
 	this.addSuggestionType(TYPES.REPLACEMENT, replacements);
 };
 
-GH.archiveSuggestion = function(name, suggest, theorem, hyps) {
+GH.archiveSuggestion = function(name, suggest, title, variables, theorem, hyps) {
 	this.name = name;					// The name of the theorem in Ghilbert code.
-	this.actionName = suggest[1];		// The name appearing on the suggest button.
 	this.type = suggest[0];				// Full theorem, replace left, or replace right.
+	this.categoryName = suggest[1];		// The category of suggestion.
+	this.actionName = suggest.length < 3 ? null : suggest[2];		// The name appearing on the suggest button.
+	this.title = title;					// The title that is displayed to the right of each step.
 	this.theorem = theorem;
-	this.hyps = hyps;
+	this.variables = variables;			// The variables the theorem needs.
+	this.hyps = hyps;					// These are the filled in variables from the current s-expression. Should probably rename this.
 };
 
 GH.archiveSuggestion.prototype.copy = function() {
-	return new GH.archiveSuggestion(this.name, [this.type, this.actionName], this.theorem, this.hyps);
+	return new GH.archiveSuggestion(this.name, [this.type, this.categoryName, this.actionName], this.title, this.theorem, this.hyps);
+};
+
+GH.archiveSuggestion.prototype.addMissingVariables = function() {
 };

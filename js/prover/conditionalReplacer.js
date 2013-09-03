@@ -31,6 +31,7 @@ GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS = [
 	['<',   ['lteq1', 'lteq2']],
 	// ['>=',  ['geeq1', 'geeq2']],    // Not yet added.
 	// ['>',   ['gteq1', 'gteq2']],    // Not yet added.
+	['e.',  ['ax-eleq1', 'ignore']],
 	['S',	['suceq']],
 	['+',	['addeq1', 'addeq2']],
 	['*',   ['muleq1', 'muleq2']],

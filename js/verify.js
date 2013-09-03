@@ -35,18 +35,20 @@ GH.styling = function(table, title, suggest) {
 	// Remove the quotation marks from the suggestion names.
 	if (suggest) {
 		for (var i = 0; i < suggest.length; i++) {
-			var suggestName = '';
+			var suggestParameter = '';
 			var lastToken = true;
 			while (suggest[i].length > 1) {
 				if (!lastToken) {
-					suggestName = ' ' + suggestName;
+					suggestParameter = ' ' + suggestParameter;
 				}
 				lastToken = false;
-				suggestName = suggest[i].pop() + suggestName;
+				suggestParameter = suggest[i].pop() + suggestParameter;
 			}
-			suggestName = suggestName.replace(/'/, '')
-			suggestName = suggestName.replace(/'/, '')
-			suggest[i].push(suggestName);
+			var splitParameters = suggestParameter.split('\'');
+			var parameters = [];
+			for (var j = 1; j < splitParameters.length; j += 2) {
+				suggest[i].push(splitParameters[j]);
+			}
 		}
 	}
 	this.suggest = suggest;

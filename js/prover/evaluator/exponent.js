@@ -37,11 +37,17 @@ GH.ProofGenerator.evaluatorExponent.prototype.inline = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorExponent.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var base  = this.prover.calculate(sexp.left());
+	var exponent = this.prover.calculate(sexp.right());
+	return ((base <= 10) && (exponent >= 2) && ((exponent <= 4) || (base == 2)))
+};
+
+GH.ProofGenerator.evaluatorExponent.prototype.theoremName = function(sexp) {	
+	return 'Exponentiation';
 };
 
 GH.ProofGenerator.evaluatorExponent.prototype.calculate = function(sexp) {
 	var base  = this.prover.calculate(sexp.left());
 	var exponent = this.prover.calculate(sexp.right());
-	return Math.pow(leftNum, rightNum);
+	return Math.pow(base, exponent);
 };

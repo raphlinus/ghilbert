@@ -329,7 +329,7 @@ GH.ProofBlock.prototype.addTable = function(table, blockElement, cursorPosition)
 	blockElement.appendChild(tableElement);
 };
 
-GH.ProofBlock.hideableOperators = ['<->', '=', '=_', '<', '<='];  // Consider putting -> in.
+GH.ProofBlock.hideableOperators = ['<->', '->', '=', '=_', '<', '<='];
 
 // Render the proof step. Hide parts on the left-side of an expression that are identical in the previous
 // step.
@@ -443,14 +443,14 @@ GH.ProofHierarchy.prototype.findPosition = function() {
 // Return true, if the step at this part of the hierarchy is important at a particular cursor position.
 GH.ProofHierarchy.prototype.isImportant = function(cursorPosition) {
 	var position = this.findPosition();
-	return (position.begin <= cursorPosition) && (cursorPosition <= position.end);
+	return position && (position.begin <= cursorPosition) && (cursorPosition <= position.end);
 };
 
 // Returns the depth of the position.
 GH.ProofHierarchy.prototype.getDepth = function() {
 	var position = this.findPosition();
 	var depth = 0;
-	while(position.parent) {
+	while(position && position.parent) {
 		position = position.parent;
 		depth++;
 	}
@@ -569,6 +569,31 @@ GH.ProofStep.createBlock = function(isGrayed, blocks) {
 	return [newBlock];
 };
 
+GH.ProofStep.prototype.findImportantAncestors = function(cursorPosition) {
+	var importantAncestors = [];
+	for (var i = 0; i < this.hypotheses.length; i++) {
+		if (this.hypotheses[i].hierarchy.isImportant(cursorPosition)) {
+			importantAncestors.push(this.hypotheses[i]);
+		}
+	}
+	if (importantAncestors.length == 0) {
+		for (var i = 0; i < this.hypotheses.length; i++) {
+			importantAncestors = importantAncestors.concat(this.hypotheses[i].findImportantAncestors(cursorPosition));
+		}
+	}
+	return importantAncestors;
+};
+
+GH.ProofStep.prototype.findImportantAncestor = function(cursorPosition) {
+	var importantAncestors = this.findImportantAncestors(cursorPosition);
+	if (importantAncestors.length == 1) {
+		return importantAncestors[0];
+	} else {
+		// Not sure if this is the best way to handle this case.
+		return null;
+	}
+};
+
 /**
  * Returns an array of strings recursively displaying each proof step.
  *   isGrayed: True if the proof-block is a gray color. The blocks alternate
@@ -591,12 +616,18 @@ GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
 			mostImportantHyp = null;   // There can only be one most important hyp or none.
 		}
 	}
+	if (!mostImportantHyp) {
+		mostImportantHyp = this.findImportantAncestor(cursorPosition);
+	}
 	var isExpanded = this.isInsideNarrow(cursorPosition);
 	var highlightedIndex = -1;
 	for (var i = 0; i < this.hypotheses.length; i++) {
-		if ((this.hypotheses[i] != mostImportantHyp) && (this.hypotheses[i].isInsideBroad(cursorPosition))) {
-			highlightedIndex = i;
-			isExpanded = true;
+		if (this.hypotheses[i] != mostImportantHyp) {
+			if ((this.hypotheses[i].isInsideNarrow(cursorPosition)) ||
+ 			    (this.hypotheses[i].isInsideBroad(cursorPosition) && (!mostImportantHyp || !mostImportantHyp.isInsideBroad(cursorPosition)))) {
+				highlightedIndex = i;
+				isExpanded = true;
+			}
 		}
 	}
 
@@ -606,7 +637,7 @@ GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
 	} else if (mostImportantHyp) {
 		visibleHypotheses = [mostImportantHyp];
 	} else {
-		visibleHypotheses = [];
+		visibleHypotheses = []
 	}
 
 	var oneHyp = !!mostImportantHyp;

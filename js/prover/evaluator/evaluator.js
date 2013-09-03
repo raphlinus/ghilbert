@@ -163,6 +163,8 @@ GH.ProofGenerator.evaluator.prototype.addTheorem = function(sexp) {
 			}
 		} else if (type == 'nat') {
 			conclusion = '(= ' + sexp.toString() + ' ' + GH.numUtil.numToSexpString(result) + ')'
+		} else if (type == 'set') {
+			conclusion = '(=_ ' + sexp.toString() + ' ' + GH.setUtil.createSet(result).toString() + ')'
 		} else {
 			alert('Adding theorem with type ' + type + ' is not yet supported.');
 		}

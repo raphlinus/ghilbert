@@ -25,6 +25,8 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'C_') 	return ['set', 'set', 'wff'];
 	if (operator == 'C.') 	return ['set', 'set', 'wff'];
 	if (operator == '{|}') 	return ['bind', 'wff', 'set'];
+	if (operator == '[/]') 	return ['nat', 'bind', 'wff', 'wff'];
+	if (operator == 'rwff') return ['bind', 'wff', 'wff'];
 	if (operator == 'min') 	return ['set', 'nat'];
 	if (operator == 'e.') 	return ['nat', 'set', 'wff'];
 	if (operator == '{}') 	return ['nat', 'set'];
@@ -80,6 +82,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'i^i') {		return 'In';
 	} else if (operator == 'ifn') {		return 'Ifn';
 	} else if (operator == 'iota') {	return 'Iota';
+	} else if (operator == 'rwff') {	return 'Rwff';
 	} else if (operator == '{...}') {	return 'Intv';
 	} else {
 		alert('Operator ' + operator + ' is not named.');

@@ -59,14 +59,14 @@ GH.ProofGenerator.evaluatorIntersection.prototype.inline = function(sexp) {
 GH.ProofGenerator.evaluatorIntersection.prototype.removeRightSingleton = function(sexp, rightNum, leftSet) {
 	var inLeftSet = GH.sExpression.createOperator('e.', [sexp.right().child(), sexp.left()]);
 	this.prover.evaluate(inLeftSet);
-	this.prover.print([], 'emptyIn2');
+	this.prover.print([], 'emptySnIn2');
 	return this.prover.getLast();
 };
 
 GH.ProofGenerator.evaluatorIntersection.prototype.removeLeftSingleton = function(sexp, leftNum, rightSet) {
 	var inRightSet = GH.sExpression.createOperator('e.', [sexp.left().child(), sexp.right()]);
 	this.prover.evaluate(inRightSet);
-	this.prover.print([], 'emptyIn1');
+	this.prover.print([], 'emptySnIn1');
 	return this.prover.getLast();
 };
 

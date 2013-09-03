@@ -31,7 +31,13 @@ GH.ProofGenerator.evaluatorDiv.prototype.inline = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorDiv.prototype.canAddTheorem = function(sexp) {
-	return false;
+	var leftNum  = this.prover.calculate(sexp.left());
+	var rightNum = this.prover.calculate(sexp.right());
+	return ((leftNum % rightNum == 0) && (leftNum < 50) && (rightNum > 1) && (leftNum / rightNum >= 2));
+};
+
+GH.ProofGenerator.evaluatorDiv.prototype.theoremName = function(sexp) {	
+	return 'Whole Number Division';
 };
 
 GH.ProofGenerator.evaluatorDiv.prototype.calculate = function(sexp) {

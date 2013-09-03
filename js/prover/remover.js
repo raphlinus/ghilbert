@@ -8,7 +8,8 @@ GH.remover.REMOVE_OPERATIONS = [
 	['\\/', [ 'orRemove1',  'orRemove2'], [ 'orNotRemove1',  'orNotRemove2']], 
 	['/\\',	[ 'anRemove1',  'anRemove2'], [ 'anNotRemove1',  'anNotRemove2']],
 	[ 'A.', [        null,  'alRemove2'], [ null,            'alNotRemove2']],
-	[ 'E.', [        null,  'exRemove2'], [ null,            'exNotRemove2']],
+	[ 'E.', [        null,  'exRemove2'], [ null,            'exNotRemove2']], 
+	['{|}',	[        null,         null], [ null,            'abNotRemove2']],
 ];
 
 // TODO: Use shorthand operations.
@@ -19,7 +20,7 @@ GH.remover.REMOVE_SHORTHAND_OPERATIONS = [
 	['<->', [ 'mpbiRemove', 'mpbirRemove'], [ 'mtbiRemove',  'mtbirRemove']]
 ];
 
-GH.remover.prototype.remove = function(removee, isNegated, output) {
+GH.remover.prototype.remove = function(removee, isNegated) {
 	var parent = removee.parent;
 	var operandIndex = removee.siblingIndex;
 	if (!parent) {
@@ -40,7 +41,7 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 					actionName = shorthandOperations[i][2][operandIndex];
 				}
 				if ((actionName) && (this.prover.symbolDefined(actionName))) {
-					this.prover.makeString([], actionName, output);
+					this.prover.print([], actionName);
 					return true;
 				}
 			}
@@ -62,42 +63,42 @@ GH.remover.prototype.remove = function(removee, isNegated, output) {
 			if ((!actionName) || (!this.prover.symbolDefined(actionName))) {
 				return false;
 			}
-			this.prover.makeString(mandHyps, actionName, output);
+			this.prover.print(mandHyps, actionName);
 		}
 	}
 
 	// Recursively replace the entire replacee follow the expression up to the root.
 	if (parent.parent) {
-		return this.prover.replacer.replace(parent, '<->', output);
+		return this.prover.replacer.replace(parent, '<->');
 	} else {
-		output.push('mpbi');
+		this.prover.print([], 'mpbi');
 		return true;
 	}
 };
 
-GH.remover.prototype.removeBoolean = function(removee, output) {
+GH.remover.prototype.removeBoolean = function(removee) {
 	var myMatch = GH.Prover.findMatch(removee, GH.sExpression.fromRaw('T'));	
 	if (myMatch && myMatch.parent) {
-		output.push('tru');
-		this.remove(myMatch, false, output);
+		this.prover.print([], 'tru');
+		this.remove(myMatch, false);
 	}
 	myMatch = GH.Prover.findMatch(removee, GH.sExpression.fromRaw('F'));	
 	if (myMatch && myMatch.parent) {
-		output.push('notfal');
-		this.remove(myMatch, true, output);
+		this.prover.print([], 'notfal');
+		this.remove(myMatch, true);
 	}
 };
 
 GH.remover.prototype.isApplicable = function(removee, remover) {
-	return this.maybeRemove(removee, remover) != null;
+	return this.maybeRemove(removee, remover, false);
 };
 
-GH.remover.prototype.maybeRemove = function(removee, remover) {
+GH.remover.prototype.maybeRemove = function(removee, remover, doRemove) {
 	var output = [];
 	var isNegated = false;
 	var myMatch = GH.Prover.findMatch(removee, remover);
 	if (myMatch && myMatch.parent && (myMatch.parent.operator == '-.')) {
-		output.push('notnoti');
+		this.prover.print([], 'notnoti');
 		isNegated = true;
 		myMatch = myMatch.parent;
 	}
@@ -107,13 +108,16 @@ GH.remover.prototype.maybeRemove = function(removee, remover) {
 	}
 
 	if (!myMatch) {
-		return null;
+		return false;
 	} else {
-		var success = this.remove(myMatch, isNegated, output);
-		if (success) {
-			return output;
+		var traversable = this.prover.replacer.isApplicableTraverse(myMatch, '<->');
+		if (!traversable) {
+			return false;
 		} else {
-			return null;
+			if (doRemove) {
+				this.remove(myMatch, isNegated);
+			}
+			return true;
 		}
 	}
 };
