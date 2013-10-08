@@ -10,6 +10,20 @@ var (nat v w x y z v' w' x' y' z')
 tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
 
 
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
 
 #----  Automatically generated with GH.ProofGenerator.evaluator.batchEvaluation('+', [1, 10], [1, 10]);
 
@@ -24225,6 +24239,573 @@ thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2))
       ## </d 'Union is Idempotent'>
     ## </d 'Remove Duplicates'>
   ## </d 'Evaluate'>
+)
+
+
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (!  [ A ]   ]   ] ) C)
+##   (=     [ A ]   [ B ] )
+##   (= (!  [   [   [ B ] ) C)
+## </table>
+thm (EqReplaceEq0Fact0 () (
+     replacee (= (! A) C)
+     substitution (= A B)) 
+     (= (! B) C)
+  replacee substitution
+  factorialeqi
+  EqReplaceEq0
+)
+
+## <title> Factorial </title>
+thm (factorial2 () () (= (! (2)) (2))
+  ## <d 'Evaluate Factorial'>
+    (1) factorialrecurse
+    ## <d 'Evaluate'>
+      1plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      1plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial1
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      (2) mulidr
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial3 () () (= (! (3)) (6))
+  ## <d 'Evaluate Factorial'>
+    (2) factorialrecurse
+    ## <d 'Evaluate'>
+      2plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      2plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial2
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      2times3
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial4 () () (= (! (4)) (+ (* (2) (10)) (4)) )
+  ## <d 'Evaluate Factorial'>
+    (3) factorialrecurse
+    ## <d 'Evaluate'>
+      3plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      3plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial3
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      6times4
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial5 () () (= (! (5)) (+ (* (10) (10)) (* (2) (10))) )
+  ## <d 'Evaluate Factorial'>
+    (4) factorialrecurse
+    ## <d 'Evaluate'>
+      4plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      4plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial4
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'One-Digit times Multiple-Digits'>
+        ## <d 'Rearrange Digits'>
+          ## <d 'Distributive Property'>
+            (* (2) (10)) (4) (5) distl
+          ## </d 'Distributive Property'>
+        ## </d 'Rearrange Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Evaluate'>
+            4times5
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add1
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (2) (10) (5) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (10) (5) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (2) (5) (10) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (2) (5)) (10)) (* (2) (* (5) (10))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            2times5
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add0
+        ## </d 'Multiply Two Digits'>
+      ## </d 'One-Digit times Multiple-Digits'>
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial6 () () (= (! (6)) (+ (* (7) (* (10) (10))) (* (2) (10))) )
+  ## <d 'Evaluate Factorial'>
+    (5) factorialrecurse
+    ## <d 'Evaluate'>
+      5plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      5plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial5
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'One-Digit times Multiple-Digits'>
+        ## <d 'Rearrange Digits'>
+          ## <d 'Distributive Property'>
+            (* (10) (10)) (* (2) (10)) (6) distl
+          ## </d 'Distributive Property'>
+        ## </d 'Rearrange Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (2) (10) (6) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (10) (6) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (2) (6) (10) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (2) (6)) (10)) (* (2) (* (6) (10))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            2times6
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          ## <d 'Evaluate'>
+            ## <d 'Distributive Property'>
+              (10) (2) (10) distl
+            ## </d 'Distributive Property'>
+            EqReplaceEq1
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add1
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Commutative Property'>
+            (* (10) (10)) (6) mulcom
+          ## </d 'Commutative Property'>
+          EqReplaceEq1Add0
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Evaluate'>
+          ## <d 'Addition'>
+            ## <d 'Group Common Digits'>
+              ## <d 'Rearrange Terms'>
+                ## <d 'Associate All Left'>
+                  ## <d 'Associative Property'>
+                    (* (6) (* (10) (10))) (* (10) (10)) (* (2) (10)) addass
+                    ## <d 'Commutative Property'>
+                      (+ (+ (* (6) (* (10) (10))) (* (10) (10))) (* (2) (10))) (+ (* (6) (* (10) (10))) (+ (* (10) (10)) (* (2) (10)))) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                  ## </d 'Associative Property'>
+                ## </d 'Associate All Left'>
+              ## </d 'Rearrange Terms'>
+              ## <d 'Multiply By One'>
+                ## <d 'Multiply By One'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Evaluate'>
+                      ## <d 'Evaluate'>
+                        (* (10) (10)) mulidr
+                      ## </d 'Evaluate'>
+                      ## <d 'Commutative Property'>
+                        (* (1) (* (10) (10))) (* (10) (10)) eqcom
+                        mpbi
+                      ## </d 'Commutative Property'>
+                    ## </d 'Evaluate'>
+                    (* (6) (* (10) (10))) addeq2i
+                  ## </d 'Multiply By One'>
+                  (* (2) (10)) addeq1i
+                ## </d 'Multiply By One'>
+                EqReplaceEq1
+              ## </d 'Multiply By One'>
+              ## <d 'Distributive Property'>
+                (6) (1) (* (10) (10)) distl
+                ## <d 'Commutative Property'>
+                  (* (+ (6) (1)) (* (10) (10))) (+ (* (6) (* (10) (10))) (* (1) (* (10) (10)))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1Add0
+              ## </d 'Distributive Property'>
+            ## </d 'Group Common Digits'>
+            ## <d 'Single-digit Addition'>
+              6plus1
+              EqReplaceEq1Add0Mul0
+            ## </d 'Single-digit Addition'>
+          ## </d 'Addition'>
+          EqReplaceEq1
+        ## </d 'Evaluate'>
+      ## </d 'One-Digit times Multiple-Digits'>
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial7 () () (= (! (7)) (+ (* (5) (* (10) (* (10) (10)))) (* (4) (10))) )
+  ## <d 'Evaluate Factorial'>
+    (6) factorialrecurse
+    ## <d 'Evaluate'>
+      6plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      6plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial6
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'One-Digit times Multiple-Digits'>
+        ## <d 'Rearrange Digits'>
+          ## <d 'Distributive Property'>
+            (* (7) (* (10) (10))) (* (2) (10)) (7) distl
+          ## </d 'Distributive Property'>
+        ## </d 'Rearrange Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (2) (10) (7) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (10) (7) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (2) (7) (10) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (2) (7)) (10)) (* (2) (* (7) (10))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            2times7
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          ## <d 'Evaluate'>
+            ## <d 'Distributive Property'>
+              (10) (4) (10) distl
+            ## </d 'Distributive Property'>
+            EqReplaceEq1
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add1
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (7) (* (10) (10)) (7) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (* (10) (10)) (7) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (7) (7) (* (10) (10)) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (7) (7)) (* (10) (10))) (* (7) (* (7) (* (10) (10)))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            7times7
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          ## <d 'Evaluate'>
+            ## <d 'Distributive Property'>
+              (* (4) (10)) (9) (* (10) (10)) distl
+            ## </d 'Distributive Property'>
+            ## <d 'Evaluate'>
+              ## <d 'Associative Property'>
+                (4) (10) (* (10) (10)) mulass
+              ## </d 'Associative Property'>
+              EqReplaceEq1Add0
+            ## </d 'Evaluate'>
+            EqReplaceEq1
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add0
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Evaluate'>
+          ## <d 'Addition'>
+            ## <d 'Group Common Digits'>
+              ## <d 'Rearrange Terms'>
+                ## <d 'Associate All Left'>
+                  ## <d 'Associative Property'>
+                    (+ (* (4) (* (10) (* (10) (10)))) (* (9) (* (10) (10)))) (* (10) (10)) (* (4) (10)) addass
+                    ## <d 'Commutative Property'>
+                      (+ (+ (+ (* (4) (* (10) (* (10) (10)))) (* (9) (* (10) (10)))) (* (10) (10))) (* (4) (10))) (+ (+ (* (4) (* (10) (* (10) (10)))) (* (9) (* (10) (10)))) (+ (* (10) (10)) (* (4) (10)))) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                  ## </d 'Associative Property'>
+                ## </d 'Associate All Left'>
+                ## <d 'Change Associations'>
+                  ## <d 'Associative Property'>
+                    (* (4) (* (10) (* (10) (10)))) (* (9) (* (10) (10))) (* (10) (10)) addass
+                    (* (4) (10)) addeq1i
+                  ## </d 'Associative Property'>
+                  EqReplaceEq1
+                ## </d 'Change Associations'>
+              ## </d 'Rearrange Terms'>
+              ## <d 'Multiply By One'>
+                ## <d 'Multiply By One'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Multiply By One'>
+                      ## <d 'Evaluate'>
+                        ## <d 'Evaluate'>
+                          (* (10) (10)) mulidr
+                        ## </d 'Evaluate'>
+                        ## <d 'Commutative Property'>
+                          (* (1) (* (10) (10))) (* (10) (10)) eqcom
+                          mpbi
+                        ## </d 'Commutative Property'>
+                      ## </d 'Evaluate'>
+                      (* (9) (* (10) (10))) addeq2i
+                    ## </d 'Multiply By One'>
+                    (* (4) (* (10) (* (10) (10)))) addeq2i
+                  ## </d 'Multiply By One'>
+                  (* (4) (10)) addeq1i
+                ## </d 'Multiply By One'>
+                EqReplaceEq1
+              ## </d 'Multiply By One'>
+              ## <d 'Distributive Property'>
+                (9) (1) (* (10) (10)) distl
+                ## <d 'Commutative Property'>
+                  (* (+ (9) (1)) (* (10) (10))) (+ (* (9) (* (10) (10))) (* (1) (* (10) (10)))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1Add0Add1
+              ## </d 'Distributive Property'>
+            ## </d 'Group Common Digits'>
+            ## <d 'Single-digit Addition'>
+              9plus1
+              EqReplaceEq1Add0Add1Mul0
+            ## </d 'Single-digit Addition'>
+            ## <d 'Carry the One'>
+              ## <d 'Multiply By One'>
+                ## <d 'Evaluate'>
+                  ## <d 'Evaluate'>
+                    (* (10) (* (10) (10))) mulidr
+                  ## </d 'Evaluate'>
+                  ## <d 'Commutative Property'>
+                    (* (1) (* (10) (* (10) (10)))) (* (10) (* (10) (10))) eqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                ## </d 'Evaluate'>
+                (* (4) (* (10) (* (10) (10)))) addeq2i
+              ## </d 'Multiply By One'>
+              ## <d 'Distributive Property'>
+                (4) (1) (* (10) (* (10) (10))) distl
+                ## <d 'Commutative Property'>
+                  (* (+ (4) (1)) (* (10) (* (10) (10)))) (+ (* (4) (* (10) (* (10) (10)))) (* (1) (* (10) (* (10) (10))))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Distributive Property'>
+              EqReplaceEq1Add0
+            ## </d 'Carry the One'>
+            ## <d 'Single-digit Addition'>
+              4plus1
+              EqReplaceEq1Add0Mul0
+            ## </d 'Single-digit Addition'>
+          ## </d 'Addition'>
+          EqReplaceEq1
+        ## </d 'Evaluate'>
+      ## </d 'One-Digit times Multiple-Digits'>
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+)
+
+
+## <title> Factorial </title>
+thm (factorial8 () () (= (! (8)) (+ (* (4) (* (10) (* (10) (* (10) (10))))) (+ (* (3) (* (10) (10))) (* (2) (10))) ) )
+  ## <d 'Evaluate Factorial'>
+    (7) factorialrecurse
+    ## <d 'Evaluate'>
+      7plus1
+      EqReplaceEq0Fact0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      7plus1
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
+  ## <d 'Evaluate Factorial'>
+    ## <d 'Evaluate'>
+      factorial7
+      EqReplaceEq1Mul0
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'One-Digit times Multiple-Digits'>
+        ## <d 'Rearrange Digits'>
+          ## <d 'Distributive Property'>
+            (* (5) (* (10) (* (10) (10)))) (* (4) (10)) (8) distl
+          ## </d 'Distributive Property'>
+        ## </d 'Rearrange Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (4) (10) (8) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (10) (8) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (4) (8) (10) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (4) (8)) (10)) (* (4) (* (8) (10))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            4times8
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          ## <d 'Evaluate'>
+            ## <d 'Distributive Property'>
+              (* (3) (10)) (2) (10) distl
+            ## </d 'Distributive Property'>
+            ## <d 'Evaluate'>
+              ## <d 'Associative Property'>
+                (3) (10) (10) mulass
+              ## </d 'Associative Property'>
+              EqReplaceEq1Add0
+            ## </d 'Evaluate'>
+            EqReplaceEq1
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add1
+        ## </d 'Multiply Two Digits'>
+        ## <d 'Multiply Two Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Reorder Terms'>
+              ## <d 'Associative Property'>
+                (5) (* (10) (* (10) (10))) (8) mulass
+              ## </d 'Associative Property'>
+              ## <d 'Commutative Property'>
+                (* (10) (* (10) (10))) (8) mulcom
+                EqReplaceEq1Mul1
+              ## </d 'Commutative Property'>
+              ## <d 'Associative Property'>
+                (5) (8) (* (10) (* (10) (10))) mulass
+                ## <d 'Commutative Property'>
+                  (* (* (5) (8)) (* (10) (* (10) (10)))) (* (5) (* (8) (* (10) (* (10) (10))))) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                EqReplaceEq1
+              ## </d 'Associative Property'>
+            ## </d 'Reorder Terms'>
+          ## </d 'Rearrange Terms'>
+          ## <d 'Evaluate'>
+            5times8
+            EqReplaceEq1Mul0
+          ## </d 'Evaluate'>
+          ## <d 'Evaluate'>
+            ## <d 'Associative Property'>
+              (4) (10) (* (10) (* (10) (10))) mulass
+            ## </d 'Associative Property'>
+            EqReplaceEq1
+          ## </d 'Evaluate'>
+          EqReplaceEq1Add0
+        ## </d 'Multiply Two Digits'>
+      ## </d 'One-Digit times Multiple-Digits'>
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+  ## </d 'Evaluate Factorial'>
 )
 
 # This is used just for convenience to get an empty theorem.

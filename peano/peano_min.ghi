@@ -10,7 +10,6 @@ term (wff (A. x ph))
 term (wff (= A B))
 
 # roughly equivalent to ax-17
-## <suggest> right('Add ∀') </suggest>
 stmt (alnfi ((ph x))
   ()
   (-> ph (A. x ph)))
@@ -25,8 +24,8 @@ stmt (gen ()
   (A. x ph))
 
 # roughly Margaris A5, but without the subst
-stmt (ax-4 () ()
-  (-> (A. x ph) ph))
+## <suggest> right('Remove', '∀') </suggest>
+stmt (ax-4 () () (-> (A. x ph) ph))
 
 # Margaris A4, a.k.a. ax-5
 stmt (ax-alim () ()
@@ -37,6 +36,8 @@ stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
 stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 
 # Similar to ax-8, but for nat's instead of var's.
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '=') </suggest>
 stmt (ax-eqtr () ()
   (-> (/\ (= A B) (= A C)) (= B C)))
 
@@ -70,7 +71,7 @@ stmt (pa_ax2 () ()
   (<-> (= A B) (= (S A) (S B))))
 
 ## <title> Additive Identity Axiom </title>
-## <suggest> auto-right('Simplify') </suggest>
+## <suggest> auto-right('Simplify', '0') </suggest>
 stmt (pa_ax3 () ()
   (= (+ A (0)) A))
 stmt (pa_ax4 () ()

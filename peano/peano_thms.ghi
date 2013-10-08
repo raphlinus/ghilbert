@@ -4,7 +4,7 @@ param (PROP prop.ghi () "")
 param (PEANO_MIN peano_min.ghi (PROP) "")
 
 tvar (wff ph ps ch th ta)
-tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
 
 term (wff (E. x ph))
@@ -27,6 +27,7 @@ term (nat (mod A B))
 term (nat (div A B))
 term (wff (| A B))
 term (nat (exp A B))
+term (nat (! A))
 term (wff (prime A))
 term (set ({...} A B))
 
@@ -1224,3 +1225,21 @@ stmt (eleq1i () ((= A B)) (<-> (e. A S) (e. B S)))
 ##   (<-> (e. A [ S) ] [ (e. A [ T ))
 ## </table>
 stmt (eleq2i () ((=_ S T)) (<-> (e. A S) (e. A T)))
+
+## <title> Factorial of 0 </title>
+stmt (factorial0 () () (= (! (0)) (1)))
+
+## <title> Factorial of 1 </title>
+stmt (factorial1 () () (= (! (1)) (1)))
+
+## <title> Recursive Definition of Factorial </title>
+stmt (factorialrecurse () () (= (! (+ A (1))) (* (! A) (+ A (1)))))
+
+## <title> Equivalence for ! </title> ##
+stmt (factorialeq () () (-> (= A B) (= (! A) (! B))))
+
+## <title> Equivalence for ! </title> ##
+stmt (factorialeqi () ((= A B)) (= (! A) (! B)))
+
+## <title> Equivalence for ! </title> ##
+stmt (factorialeqd () ((-> ph (= A B))) (-> ph (= (! A) (! B))))

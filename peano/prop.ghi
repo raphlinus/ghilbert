@@ -516,6 +516,10 @@ stmt (con2i () ((-> ph (-. ps))) (-> ps (-. ph)))
 
 #  A contraposition inference.
 ## <title> Contraposition </title>
+## <table>
+##   (-> <r>     ph  <g>     ps )
+##   (-> <g> (-. ps) <r> (-. ph))
+## </table>
 stmt (con3i () ((-> ph ps)) (-> (-. ps) (-. ph)))
 
 #  Theorem *2.5 of [bib/WhiteheadRussell] p. 107.
@@ -610,6 +614,12 @@ stmt (mth8 () () (-> ph (-> (-. ps) (-. (-> ph ps)))))
 stmt (pm2.61 () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps)))
 
 #  Inference eliminating an antecedent.
+## <title> Implication whether true or false </title>
+## <table>
+##   (->     ph  [ ps)
+##   (-> (-. ph) [ ps)
+##               [ ps
+## </table>
 stmt (pm2.61i () ((-> ph ps) (-> (-. ph) ps)) ps)
 
 #  Deduction eliminating an antecedent.
@@ -818,7 +828,7 @@ stmt (con1b () () (<-> (-> (-. ph) ps) (-> (-. ps) ph)))
 stmt (con2b () () (<-> (-> ph (-. ps)) (-> ps (-. ph))))
 
 #  Contraposition.  Theorem *4.1 of [bib/WhiteheadRussell] p. 116.
-## <title> Negate Both Sides </title>
+## <title> Contrapositive </title>
 ## <suggest> right('Equivalence', '←') </suggest>
 stmt (con34b () () (<-> (-> ph ps) (-> (-. ps) (-. ph))))
 
@@ -943,9 +953,9 @@ stmt (mpbir () (ps (<-> ph ps)) ph)
 #  An inference from a biconditional, related to modus tollens.
 ## <title> Modus Tollens </title>
 ## <table>
-##           [    [   [ (-. [ ps)
-##  (<->     [ ph ]   [     [ ps)
 ##       (-. [ ph ] ) ]     ]
+##  (<->     [ ph ]   [     [ ps)
+##           [    [   [ (-. [ ps)
 ## </table>
 stmt (mtbi () ((-. ph) (<-> ph ps)) (-. ps))
 
@@ -1360,6 +1370,11 @@ stmt (pm3.43i () () (-> (-> ph ps) (-> (-> ph ch) (-> ph (/\ ps ch)))))
 #  Deduce conjunction of the consequents of two implications ("join
 #        consequents with 'and'").
 ## <title> Join two implications </title>
+## <table>
+##   (-> ph     ps ] ] ) 
+##   (-> ph        ] [ ch)
+##   (-> ph (/\ ps ] [ ch))
+## </table>
 stmt (jca () ((-> ph ps) (-> ph ch)) (-> ph (/\ ps ch)))
 
 #  Deduction replacing implication with conjunction.
@@ -1479,11 +1494,13 @@ stmt (pm3.14 () () (-> (\/ (-. ph) (-. ps)) (-. (/\ ph ps))))
 
 #  Elimination of a conjunct.  Theorem *3.27 (Simp) of [bib/WhiteheadRussell]
 #      p. 112.
+## <title> 'Remove Left Side of AND' </title>
 ## <suggest> right('Remove', 'L') </suggest>
 stmt (pm3.27 () () (-> (/\ ph ps) ps))
 
 #  Elimination of a conjunct.  Theorem *3.26 (Simp) of [bib/WhiteheadRussell]
 #      p. 112.
+## <title> 'Remove Right Side of AND' </title>
 ## <suggest> right('Remove', 'R') </suggest>
 stmt (pm3.26 () () (-> (/\ ph ps) ph))
 
@@ -1552,6 +1569,12 @@ stmt (pm2.3 () () (-> (\/ ph (\/ ps ch)) (\/ ph (\/ ch ps))))
 stmt (jao () () (-> (-> ph ps) (-> (-> ch ps) (-> (\/ ph ch) ps))))
 
 #  Inference disjoining the antecedents of two implications.
+## <title> Join two implications </title>
+## <table>
+##   (->     ph ] ]    ]   ps)
+##   (->        [ [ ch ]   ps)
+##   (-> (\/ ph ] [ ch ] ) ps)
+## </table>
 stmt (jaoi () ((-> ph ps) (-> ch ps)) (-> (\/ ph ch) ps))
 
 #  Theorem *2.41 of [bib/WhiteheadRussell] p. 106.
@@ -2444,9 +2467,13 @@ stmt (pm5.74rd () ((-> ph (<-> (-> ps ch) (-> ps th)))) (-> ph (-> ps (<-> ch th
 stmt (mpbidi () ((-> th (-> ph ps)) (-> ph (<-> ps ch))) (-> th (-> ph ch)))
 
 #  Implication in terms of implication and biconditional.
+## <title> Implication & Biconditional </title>
+## <suggest> left('Simplify', '↔') </suggest>
 stmt (ibib () () (<-> (-> ph ps) (-> ph (<-> ph ps))))
 
 #  Implication in terms of implication and biconditional.
+## <title> Implication & Biconditional </title>
+## <suggest> left('Simplify', '↔') </suggest>
 stmt (ibibr () () (<-> (-> ph ps) (-> ph (<-> ps ph))))
 
 #  Inference that converts a biconditional implied by one of its arguments,
@@ -2598,6 +2625,11 @@ stmt (orbi12d () ((-> ph (<-> ps ch)) (-> ph (<-> th ta))) (-> ph (<-> (\/ ps th
 
 #  Deduction joining two equivalences to form equivalence of
 #        conjunctions.
+## <table>
+##   (-> ph (<->     ps ] ]     ]     ch ] ]    ] ))
+##   (-> ph (<->        [ [ th  ]        [ [ ta ] ))
+##   (-> ph (<-> (/\ ps ] [ th) ] (/\ ch ] [ ta ] )))
+## </table>
 stmt (anbi12d () ((-> ph (<-> ps ch)) (-> ph (<-> th ta))) (-> ph (<-> (/\ ps th) (/\ ch ta))))
 
 #  Deduction joining two equivalences to form equivalence of
@@ -2842,6 +2874,12 @@ stmt (mpan2 () (ps (-> (/\ ph ps) ch)) (-> ph ch))
 
 #  An inference based on modus ponens.
 ## <title> Modus Ponens </title>
+## <table>
+##           ph ] ]    ]   ]
+##              [ [ ps ]   ]
+##   (-> (/\ ph ] [ ps ] ) [ ch)
+##              [ [    [   [ ch
+## </table>
 stmt (mp2an () (ph ps (-> (/\ ph ps) ch)) ch)
 
 #  An inference based on modus ponens.
