@@ -12,7 +12,7 @@ GH.ProofGenerator.existGeneralizer.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.existGeneralizer.prototype.inline = function(sexp, example) {
-	var condition = GH.operatorUtil.create('=', [sexp, example]);
+	var condition = this.prover.create('=', [sexp, example]);
 	var result = this.prover.condition(this.prover.getLast(), condition);
 	this.prover.commute(result.left());
 	this.prover.reverseLastSteps();

@@ -21,10 +21,10 @@ GH.ProofGenerator.evaluatorDiv.prototype.inline = function(sexp) {
 	var A = leftNum;
 	var B = rightNum;
 	var C = Math.floor(leftNum / rightNum);
-	this.prover.evaluate(GH.operatorUtil.create('<=', [B, 0]));  // B > 0
-	var BC = GH.operatorUtil.create('*', [B, C]);
-	var AmodB = GH.operatorUtil.create('mod', [A, B]);
-	var expanded = GH.operatorUtil.create('+', [BC, AmodB]);  // B * C + A mod B
+	this.prover.evaluate(this.prover.create('<=', [B, 0]));  // B > 0
+	var BC = this.prover.create('*', [B, C]);
+	var AmodB = this.prover.create('mod', [A, B]);
+	var expanded = this.prover.create('+', [BC, AmodB]);  // B * C + A mod B
 	this.prover.evaluate(expanded);
 	this.prover.print([], 'divval');
 	return this.prover.getLast();

@@ -33,11 +33,11 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.inline = function(sexp) {
 	if ((rightNum == 0) && (leftNum > 0)) {
 		return this.numMoreThanZero(sexp);
 	} else if (leftNum < rightNum) {
-		this.prover.evaluate(GH.operatorUtil.create('<', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('<', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≤');
 	} else if (leftNum == rightNum) {
-		this.prover.evaluate(GH.operatorUtil.create('=', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≤');
 	} else if (leftNum > rightNum) {
@@ -51,8 +51,8 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.inline = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.numMoreThanZero = function(sexp) {
-	var equality = GH.operatorUtil.create('=',  [sexp.left(), sexp.right()]);
-	var less     = GH.operatorUtil.create('<', [sexp.left(), sexp.right()]);
+	var equality = this.prover.create('=',  [sexp.left(), sexp.right()]);
+	var less     = this.prover.create('<', [sexp.left(), sexp.right()]);
 	this.prover.evaluate(equality, 'Number Not Zero');
 	sexp = this.prover.openExp(sexp, 'Greater Than Or Equal To Zero');
 	this.prover.evaluate(less);
@@ -62,7 +62,7 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.numMoreThanZero = function(se
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.addToBothSides = function(sexp, leftNum, rightNum, addition) {
-	var inequality = GH.operatorUtil.create('<=', [leftNum, rightNum]);   // leftNum > rightNum
+	var inequality = this.prover.create('<=', [leftNum, rightNum]);   // leftNum > rightNum
 	this.prover.openExp(sexp, 'Add To Both Sides');
 	this.prover.openExp(sexp, 'Derive Smaller Inequality');
 	this.prover.evaluate(inequality);
@@ -110,8 +110,8 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.roundNumbers = function(sexp,
 	var leftMultiplier  = leftNum  / base;
 	var rightMultiplier = rightNum / base;
 
-	var multiplierInequality = GH.operatorUtil.create('<=', [leftMultiplier, rightMultiplier]);
-	var baseInequality = GH.operatorUtil.create('<=', [base, 0]);
+	var multiplierInequality = this.prover.create('<=', [leftMultiplier, rightMultiplier]);
+	var baseInequality = this.prover.create('<=', [base, 0]);
 	this.prover.openExp(sexp, 'Highest Digit Inequality');
 	this.prover.evaluate(multiplierInequality);
 	this.prover.closeExp(sexp);
@@ -136,7 +136,7 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.arbitraryNumbers = function(s
 	
 	var roundDown = GH.numUtil.mostSignificantDigit(leftNum);
 	if (rightResult > roundDown) {
-		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, roundDown]), 'Number Get Lower Rounding Down');
+		this.prover.evaluate(this.prover.create('<=', [rightResult, roundDown]), 'Number Get Lower Rounding Down');
 		rightResult = roundDown;
 		result = this.close(result);
 		result = this.prover.evaluate(result);
@@ -144,7 +144,7 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.arbitraryNumbers = function(s
 	
 	if (base >= rightNum) {
 		result = result && this.prover.openExp(result, 'First Digit is Lower');
-		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, base]));
+		this.prover.evaluate(this.prover.create('<=', [rightResult, base]));
 		result = this.prover.getLast().child().right();
 		result = this.prover.evaluate(result);
 		rightResult = base;
@@ -154,7 +154,7 @@ GH.ProofGenerator.evaluatorLessThanEqual.prototype.arbitraryNumbers = function(s
 	while (base / 10 >= rightNum) {
 		result = result && this.prover.openExp(result, 'Fewer Digits');
 		base /= 10;
-		this.prover.evaluate(GH.operatorUtil.create('<=', [rightResult, base]));
+		this.prover.evaluate(this.prover.create('<=', [rightResult, base]));
 		rightResult = base;
 		result = this.close(result);
 	}

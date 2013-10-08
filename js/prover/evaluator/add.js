@@ -171,7 +171,7 @@ GH.ProofGenerator.evaluatorAdd.prototype.multiplyByOneLeft = function(sexp) {
 	if (((sexp.operator == '+') || (sexp.operator == '*')) && (sexp.left().operator == '1')) {
 		return sexp;
 	}
-	return this.prover.unevaluate(GH.operatorUtil.create('*', [1, sexp]), sexp);
+	return this.prover.unevaluate(this.prover.create('*', [1, sexp]), sexp);
 };
 
 

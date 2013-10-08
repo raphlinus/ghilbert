@@ -1,5 +1,6 @@
 GH.ProofGenerator.replacer = function(prover) {
 	this.prover = prover;
+	this.equalizer = new GH.ProofGenerator.equalizer(prover);
 };
 
 // A set of theorems for replacing some part of an expression.
@@ -19,8 +20,8 @@ GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 	['A.',  [null,     'albii' ], '<->'],
 	['E.',  [null,     'exbii' ], '<->'],
 	['[/]', [null,     'sbcbii'], '<->'],
-	['rwff',[null,     'rwffbii'], '<->'],
-	['{|}', [null,     'abeq2i'], '=_']	    ]],
+	['rwff',[null,     'rwffbii'], '<->'],   
+	]],
 ['->',
    [[null,  ['ax-mp'], null],
     ['<->', ['biim1i', 'biim2i'], '->'],  // This doesn't work quite right see ImpReplaceBi1.
@@ -66,7 +67,6 @@ GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 	// Missing C.
 	['e.',  [null,       'eleq2i'], '<->'],
 	['min', ['mineqi' ], '='],
-	['iota',['iotaeqi', null], '='],
 	['u.',  ['uneq1i',   'uneq2i'], '=_'],
 	['i^i', ['ineq1i',   'ineq2i'], '=_']]],
 ];
@@ -267,9 +267,13 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 		var replaceeOp    = GH.ProofGenerator.replacer.getOperator(replacee);
 		var replacementQuery = GH.ProofGenerator.replacer.isNegated(replacement) ? replacement.child() : replacement;
 		var replacementOp = GH.ProofGenerator.replacer.getOperator(replacementQuery);
-		var replaceOperation = GH.ProofGenerator.replacer.getReplaceOperation(replaceeOp, replacementOp);
-		if (replaceOperation.length > 3) {
-			end.push(GH.ProofGenerator.replacer.makePositive(replaceOperation[3]));
+		var replaceOperation = this.getReplaceOperation(replaceeOp, replacementOp, operand[0]);
+		if (!replaceOperation) {
+			alert('No replace operation for ' + replaceeOp + ' and ' + replacementOp);
+			return;
+		}
+		if (replaceOperation.hasOwnProperty('innerOperator')) {
+			end.push(GH.ProofGenerator.replacer.makePositive(replaceOperation.innerOperator));
 		} else {
 			end.push(operator);
 		}
@@ -282,7 +286,7 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 		}*/
 		end.push(operator);
 	}
-	var types = GH.operatorUtil.getOperatorTypes(operator);
+	var types = this.prover.getOperatorTypes(operator);
 	for (var i = 0; i < types.length - 1; i++) {
 		if (i != operand) {
 			var variable = varGenerator.generate(types[i]);
@@ -301,7 +305,7 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 					middle = middle[1];
 					operator = replacement.child().operator;
 				}
-				var replacerTypes = GH.operatorUtil.getOperatorTypes(operator);
+				var replacerTypes = this.prover.getOperatorTypes(operator);
 				var leftVariable  = varGenerator.generate(replacerTypes[0]);
 				var rightVariable = varGenerator.generate(replacerTypes[1]);
 				
@@ -315,19 +319,47 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 	}
 };
 
-GH.ProofGenerator.replacer.getReplaceOperation = function(replaceeOperator, replacementOperator) {
+GH.ProofGenerator.replacer.getTableOperation = function(replaceeOperator, replacementOperator) {
 	var replacementOperations = GH.ProofGenerator.replacer.REPLACE_OPERATIONS;
 	for (var j = 0; j < replacementOperations.length; j++) {	
 		if (replacementOperator == replacementOperations[j][0]) {
 			var replaceOperations = replacementOperations[j][1];
 			for (var i = 0; i < replaceOperations.length; i++) {
 				if (replaceeOperator == replaceOperations[i][0]) {
+					if (replaceOperations[i].length > 3) {
+						window.console.log('Switching operators in replace is currently broken.');
+					}
 					return replaceOperations[i];
 				}
 			}
 		}
 	}
 	return null;
+};
+
+
+GH.ProofGenerator.replacer.prototype.getReplaceOperation = function(replaceeOperator, replacementOperator, index) {
+	var tableOperation = GH.ProofGenerator.replacer.getTableOperation(replaceeOperator, replacementOperator);
+	if (tableOperation) {
+		var result = {name: tableOperation[1][index], resultOperator: tableOperation[2]};
+		if (tableOperation.length > 3) {
+			result['innerOperator'] = tableOperation[3]
+		}
+		return result;
+	}
+
+	// TODO: Replace the table with this.
+	if ((replacementOperator == '<->') || (replacementOperator == '=') || (replacementOperator == '=_')) {
+		var name = this.equalizer.actionName(replaceeOperator, index) + 'i';
+		if (!this.prover.symbolDefined(name)) {
+			// alert(name + ' is not defined.');
+			return null;
+		} else {
+			var types = this.prover.getOperatorTypes(replaceeOperator);
+			var resultOperator = GH.operatorUtil.getEquivalenceOperator(types[types.length - 1]);
+			return {name: name, resultOperator: resultOperator};
+		}
+	}
 };
 
 
@@ -351,9 +383,9 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 	if ((replaceeOperator == null) && !replacee.isProven) {
 		return true;
 	}
-	var replaceOperation = GH.ProofGenerator.replacer.getReplaceOperation(replaceeOperator, replacementOperator);
 	var index = sexp ? replacee.siblingIndex : 0;
-	var actionName = replaceOperation ? replaceOperation[1][index] : null;
+	var replaceOperation = this.getReplaceOperation(replaceeOperator, replacementOperator, index);
+	var actionName = replaceOperation ? replaceOperation.name : null;
 	if (actionName && this.prover.symbolDefined(actionName)) {
 		// Add all the operands that are not getting replaced.
 		var mandHyps = [];
@@ -368,7 +400,6 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 			if (sexp.parent && GH.ProofGenerator.replacer.isNegated(sexp.parent)) {
 				sexp = sexp.parent;
 			}
-			// return this.replace(sexp, replaceOperation[2]);
 			this.prover.replace(sexp);
 		} else {
 			return true;
@@ -408,15 +439,15 @@ GH.ProofGenerator.replacer.prototype.isApplicable = function(replacee, replaceme
 GH.ProofGenerator.replacer.prototype.isApplicableTraverse = function(replacee, replacementOperator) {
 	var sexp = replacee.parent;		
 	var replaceeOperator = GH.ProofGenerator.replacer.getOperator(sexp);
-	var replaceOperation = GH.ProofGenerator.replacer.getReplaceOperation(replaceeOperator, replacementOperator);
 	var index = sexp ? replacee.siblingIndex : 0;
-	var actionName = replaceOperation ? replaceOperation[1][index] : null;
+	var replaceOperation = this.getReplaceOperation(replaceeOperator, replacementOperator, index);
+	var actionName = replaceOperation ? replaceOperation.name : null;
 	if (actionName && this.prover.symbolDefined(actionName)) {
 		if (sexp) {
 			if (sexp.parent && GH.ProofGenerator.replacer.isNegated(sexp.parent)) {
 				sexp = sexp.parent;
 			}
-			return this.isApplicableTraverse(sexp, replaceOperation[2]);
+			return this.isApplicableTraverse(sexp, replaceOperation.resultOperator);
 		} else {
 			return true;
 		}

@@ -24,6 +24,11 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorExponent(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorIfn(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorInterval(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorHalfMinus(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorApply(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorSum(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorProduct(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorFactorial(prover));
   this.generators.push(this.constant);
 };
 
@@ -60,7 +65,7 @@ GH.ProofGenerator.evaluator.prototype.action = function(sexp) {
 	// Return null if any of the operands are not reduced.
 	for (var i = 0; i < sexp.operands.length; i++) {
 		var operand = sexp.operands[i];
-		if ((!GH.operatorUtil.isReduced(operand)) && (!this.hasVariables(operand))) {
+		if ((!this.prover.operatorUtil.isReduced(operand)) && (!this.hasVariables(operand))) {
 			return new GH.action(null, []);
 		}
 	}
@@ -73,7 +78,7 @@ GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
 		return false;
 	}
 	// If the sexp is already a reduced decimal number, there's nothing more to do.
-	if (GH.operatorUtil.isReduced(sexp)) {
+	if (this.prover.operatorUtil.isReduced(sexp)) {
 		return false;
 	}
 	var generator = this.findGenerator(sexp.operator);
@@ -97,7 +102,8 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 		if (GH.operatorUtil.getType(sexp) != 'wff') {
 			var allReduced = true;
 			for (var i = 0; i < sexp.operands.length; i++) {
-				if ((!GH.operatorUtil.isReduced(sexp.operands[i])) &&
+				if ((!this.prover.operatorUtil.isReduced(sexp.operands[i])) &&
+				     (!generator.isOperandReducable || generator.isOperandReducable(i)) &&
 				     (GH.operatorUtil.getType(sexp.operands[i]) != 'wff')) {// Don't evaluate wffs. They don't have parents.
 					sexp = this.prover.evaluate(sexp.operands[i]).parent;
 					allReduced = false;
@@ -126,7 +132,7 @@ GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 				result = result.child();
 			}
 			for (var i = 0; i < sexp.operands.length; i++) {
-				if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+				if (!this.prover.operatorUtil.isReduced(sexp.operands[i])) {
 					result = this.prover.unevaluate(sexp.operands[i], result.operands[i]).parent;
 				}
 			}

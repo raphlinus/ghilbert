@@ -1112,7 +1112,7 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
             el = mandstack[i];
             if (el[0][1] != mv[1]) {
                 throw ('Kind mismatch for ' + mv[2] + ': expected ' +
-                       mv[1] + ' found ' + el[0][1]);
+                       mv[1] + ' but found ' + el[0][2] + ' which is a ' + el[0][1]);
             }
             if (mv[0] == 'var' && el[0][0] != 'var') {
                 throw ('Unifying, expected expression substituted for mandatory variable ' +

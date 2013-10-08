@@ -15,8 +15,8 @@ GH.ProofGenerator.evaluatorProperSubset.prototype.inline = function(sexp) {
 	var leftSet = this.prover.calculate(sexp.left());
 	var rightSet = this.prover.calculate(sexp.right());
 	if (this.calculate(sexp)) {
-		var subset   = GH.operatorUtil.create('C_', [sexp.left(), sexp.right()]);
-		var equality = GH.operatorUtil.create('=_', [sexp.left(), sexp.right()]);
+		var subset   = this.prover.create('C_', [sexp.left(), sexp.right()]);
+		var equality = this.prover.create('=_', [sexp.left(), sexp.right()]);
 		
 		sexp = this.prover.openExp(sexp, 'Subset');
 		this.prover.evaluate(subset);
@@ -29,12 +29,12 @@ GH.ProofGenerator.evaluatorProperSubset.prototype.inline = function(sexp) {
 		this.prover.print([], 'dfpssi');
 		return this.prover.getLast();
 	} else if (GH.setUtil.getMissingElement(leftSet, rightSet)) {
-		var subset   = GH.operatorUtil.create('C_', [sexp.left(), sexp.right()]);
+		var subset   = this.prover.create('C_', [sexp.left(), sexp.right()]);
 		this.prover.evaluate(subset);
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '⊄');
 	} else {
-		var equality = GH.operatorUtil.create('=_', [sexp.left(), sexp.right()]);
+		var equality = this.prover.create('=_', [sexp.left(), sexp.right()]);
 		this.prover.evaluate(equality);
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '⊄');

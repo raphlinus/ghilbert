@@ -23,8 +23,8 @@ GH.ProofGenerator.evaluatorModulo.prototype.inline = function(sexp) {
 	var B = rightNum;
 	var C = leftNum % rightNum;
 	var y = (A - C) / B;
-	this.prover.evaluate(GH.operatorUtil.create('<', [C, B]));
-	var expanded = GH.operatorUtil.create('+', [GH.operatorUtil.create('*', [B, y]), C]);  // B * y + C
+	this.prover.evaluate(this.prover.create('<', [C, B]));
+	var expanded = this.prover.create('+', [this.prover.create('*', [B, y]), C]);  // B * y + C
 	this.prover.evaluate(expanded);
 	this.prover.print([], 'modvali');
 	return this.prover.getLast();

@@ -3,7 +3,8 @@
 //                    into (x = 2) -> x + 3 < 7 <-> 2 + 3 < 7 
 //                      or (3 = y) -> x + 3 < 7 <-> x + y < 7
 GH.ProofGenerator.conditionalReplacer = function(prover) {
-  this.prover = prover;
+	this.prover = prover;
+	this.equalizer = new GH.ProofGenerator.equalizer(prover);
 };
 
 GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS = [
@@ -12,7 +13,6 @@ GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS = [
 	['<->', ['bibi1d', 'bibi2d', 'bibi12d']],
 	['\\/', ['orbi1d', 'orbi2d', 'orbi12d']],
 	['/\\',	['anbi1d', 'anbi2d', 'anbi12d']],
-	['A.',  [null,     '19.15d']],
 	['E.',  [null,     'exbid']],
     ['=',   ['eqeq1d', 'eqeq2d', 'eqeq12d']],
 	['<=',  ['leeq1d', 'leeq2d', 'leeq12d']],
@@ -31,12 +31,13 @@ GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS = [
 	['<',   ['lteq1', 'lteq2']],
 	// ['>=',  ['geeq1', 'geeq2']],    // Not yet added.
 	// ['>',   ['gteq1', 'gteq2']],    // Not yet added.
-	['e.',  ['ax-eleq1', 'ignore']],
+	['e.',  ['ax-eleq1', 'eleq2']],
 	['S',	['suceq']],
 	['+',	['addeq1', 'addeq2']],
 	['*',   ['muleq1', 'muleq2']],
 	['[/]', ['dfsbcq', null, null]],
 	['|', ['divideseq1', 'divideseq2']],
+	['recursep', ['recursepeq1', 'recursepeq2', 'recursepeq3', 'recursepeq4']],
 ];
 
 GH.ProofGenerator.conditionalReplacer.prototype.action = function(sexp) {
@@ -66,7 +67,7 @@ GH.ProofGenerator.conditionalReplacer.prototype.inline = function(sexp, conditio
 	}*/
 };
 
-GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operations, operator, args, index) {
+GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operations, suffix, operator, args, index) {
 	var returnTypes = GH.ProofGenerator.conditionalReplacer.returnTypes;
 	for (var i = 0; i < operations.length; i++) {
 		if (operations[i][0] == operator) {
@@ -79,7 +80,16 @@ GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operat
 			}
 		}
 	}
-	return returnTypes.FAILURE;
+
+	// TODO: Use this to completely replace the table.
+	var name = this.equalizer.actionName(operator, index) + suffix;
+	if (!this.prover.symbolDefined(name)) {
+		alert(name + ' is not defined.');
+		return returnTypes.FAILURE;
+	} else {
+		this.prover.print(args, name);
+		return returnTypes.REPLACED;
+	}
 };
 
 GH.ProofGenerator.conditionalReplacer.addMissingOperands = function(sexp, presence) {
@@ -101,7 +111,7 @@ GH.ProofGenerator.conditionalReplacer.prototype.replace = function(sexp, conditi
 			var args = [condition.left(), condition.right()];
 			args = args.concat(GH.ProofGenerator.conditionalReplacer.addMissingOperands(sexp, Math.pow(2, i)));
 			return this.printOperation(
-				GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS,
+				GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS, '',
 				sexp.operator, args, i);
 		} else if (result == returnTypes.REPLACED) {
 			replacedIndex += Math.pow(2, i);
@@ -112,7 +122,7 @@ GH.ProofGenerator.conditionalReplacer.prototype.replace = function(sexp, conditi
 	if (replacedIndex > 0) {
 		var args = GH.ProofGenerator.conditionalReplacer.addMissingOperands(sexp, replacedIndex);
 		return this.printOperation(
-  		    GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS,
+  		    GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS, 'd',
 			sexp.operator, args, replacedIndex - 1);
 	} else {
 		if (sexp.equals(condition.left())) {

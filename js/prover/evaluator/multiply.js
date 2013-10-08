@@ -82,11 +82,11 @@ GH.ProofGenerator.evaluatorMultiply.prototype.multiplySingleDigits = function(se
 	// Replace the smaller digit.
 	if (leftNum < rightNum) {
 		var smallerDigits = GH.ProofGenerator.evaluatorMultiply.findSmallerDigits(leftNum);
-		result = this.prover.unevaluate(GH.operatorUtil.create('+', smallerDigits), sexp.left(), 'Seperate into Smaller Digits');
+		result = this.prover.unevaluate(this.prover.create('+', smallerDigits), sexp.left(), 'Seperate into Smaller Digits');
 		result = this.prover.distributeLeft(result);
 	} else {
 		var smallerDigits = GH.ProofGenerator.evaluatorMultiply.findSmallerDigits(rightNum);
-		result = this.prover.unevaluate(GH.operatorUtil.create('+', smallerDigits), sexp.right(), 'Seperate into Smaller Digits');
+		result = this.prover.unevaluate(this.prover.create('+', smallerDigits), sexp.right(), 'Seperate into Smaller Digits');
 		result = this.prover.distributeRight(result);
 	}
 	

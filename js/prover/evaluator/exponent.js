@@ -29,7 +29,7 @@ GH.ProofGenerator.evaluatorExponent.prototype.inline = function(sexp) {
 	var base  = this.prover.calculate(sexp.left());
 	var exponent = this.prover.calculate(sexp.right());
 
-	var result = this.prover.unevaluate(GH.operatorUtil.create('+', [exponent - 1, 1]), sexp.right()).parent;
+	var result = this.prover.unevaluate(this.prover.create('+', [exponent - 1, 1]), sexp.right()).parent;
 	this.prover.print([sexp.left(), GH.numUtil.createNum(exponent - 1)], 'expplus1');
 	result = this.prover.replace(result.right());
 	result = this.prover.evaluate(result.right()).parent;

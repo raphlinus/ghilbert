@@ -73,9 +73,9 @@ GH.ProofGenerator.evaluatorElementOf.prototype.insideSet = function(sexp, leftNu
 
 GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, leftNum, rightSet) {
 	// TODO: Reorganize this so the inequalities are shown all at once and it's not recursive.
-	var inequality = GH.operatorUtil.create('=', [leftNum, sexp.right().left().child()]);
+	var inequality = this.prover.create('=', [leftNum, sexp.right().left().child()]);
 	this.prover.evaluate(inequality);
-	var inRightPart = GH.operatorUtil.create('e.', [leftNum, sexp.right().right()]);
+	var inRightPart = this.prover.create('e.', [leftNum, sexp.right().right()]);
 	this.prover.evaluate(inRightPart);
 	this.prover.print([], 'notInSingletonUnion');
 	return this.prover.getLast();
@@ -84,11 +84,11 @@ GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, lef
 GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, leftNum) {
 	var temp = sexp.right();
 	while (temp.operator == 'u.') {
-		var inequality = GH.operatorUtil.create('=', [leftNum, temp.left().child()]);
+		var inequality = this.prover.create('=', [leftNum, temp.left().child()]);
 		this.prover.evaluate(inequality);
 		temp = temp.right();
 	}
-	var inequality = GH.operatorUtil.create('=', [leftNum, temp.child()]);
+	var inequality = this.prover.create('=', [leftNum, temp.child()]);
 	this.prover.evaluate(inequality);
 	this.prover.apply(this.repeator, sexp);
 	return this.prover.getLast();

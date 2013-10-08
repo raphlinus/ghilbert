@@ -12,12 +12,15 @@ GH.Prover = function(buttonController, direct) {
 
 	this.archiveSearcher = new GH.archiveSearcher(this);
 	this.remover = new GH.remover(this);
-	this.replacer = new GH.ProofGenerator.replacer(this);
 	this.conditionalReplacer = new GH.ProofGenerator.conditionalReplacer(this);
 	this.existGeneralizer = new GH.ProofGenerator.existGeneralizer(this);
 	this.instantiator = new GH.ProofGenerator.instantiator(this);
 	this.repositioner = new GH.repositioner(this);
 	this.evaluator = new GH.ProofGenerator.evaluator(this);
+	this.operatorUtil = new GH.operatorUtil(this);
+	this.theoremWriter = new GH.theoremWriter(this);
+	this.replacer = new GH.ProofGenerator.replacer(this, this.theoremWriter);
+	this.equalizer = new GH.ProofGenerator.equalizer(this);
 };
 
 // When debugging is true, the theorems are redisplayed at every step which
@@ -72,13 +75,23 @@ GH.Prover.prototype.onChildClick = function(operandNum) {
 	this.displayActiveExp();
 };
 
+GH.Prover.hasSelectedClass = function(elem) {
+	return (GH.ProofStep.hasClass_(elem, 'selected-ancestor') ||
+		GH.ProofStep.hasClass_(elem, 'selectable-ancestor') ||
+		GH.ProofStep.hasClass_(elem, 'selected-exp'));
+}
+
 // Get the index into whichever child is selected.
 GH.Prover.getSelectedIndex = function(elem) {
 	for (var i = 0; i < elem.childElementCount; i++) {
+		if (GH.Prover.hasSelectedClass(elem.children[i])) {
+			return i;
+		}
+	}
+	// This is necessary for elements like <sub> or <sup>.
+	for (var i = 0; i < elem.childElementCount; i++) {
 		var child = elem.children[i];
-		if (GH.ProofStep.hasClass_(child, 'selected-ancestor') ||
-		    GH.ProofStep.hasClass_(child, 'selectable-ancestor') ||
-		    GH.ProofStep.hasClass_(child, 'selected-exp')) {
+		if (child.childElementCount && GH.Prover.hasSelectedClass(child.children[0])) {
 			return i;
 		}
 	}
@@ -342,11 +355,31 @@ GH.Prover.prototype.openNumberAdder = function() {
 
 GH.Prover.prototype.openSetAdder = function() {
 	var set = window.prompt('Enter a set of numbers:', '');
-	set = set.split(',');
+	if (set == null) {
+		return;
+	}
+	if (set == '') {
+		set = [];
+	} else {
+		set = set.split(',');
+	}
 	for (var i = 0; i < set.length; i++) {
 		set[i] = parseInt(set[i]);
 	}
 	this.println(GH.setUtil.createSet(set).toString());
+	this.direct.update(true);
+}
+
+GH.Prover.prototype.openTupleAdder = function() {
+	var tuple = window.prompt('Enter a sequence of numbers:', '');
+	if (tuple == null) {
+		return;
+	}
+	tuple = tuple.split(',');
+	for (var i = 0; i < tuple.length; i++) {
+		tuple[i] = parseInt(tuple[i]);
+	}
+	this.println(GH.tupleUtil.createTuple(tuple).toString());
 	this.direct.update(true);
 }
 
@@ -399,21 +432,8 @@ GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
 	} else {
 		// If not already defined, generate the proof either as a new theorem or inline.
 		if (generator.canAddTheorem(sexp)) {
-			var result = this.getLast();
-			var savedThm = this.direct.removeCurrentTheorem();
-			var savedDepth = this.depth;
-			var savedOpenExps = this.openExps;
-			this.depth = 0;
-			this.openExps = [];
-			this.println('');
-			this.println('');
-			generator.addTheorem(sexp, result);
-			this.direct.insertText(savedThm.join(''));
-			this.depth = savedDepth;
-			this.openExps = savedOpenExps;
-			this.depth++;
-			this.println(action.name);
-			this.depth--;
+			var action = this.addTheorem(generator, sexp, opt_args);
+			this.print(action.hyps, action.name);
 			this.direct.update(false);
 		} else {
 			var added = generator.inline(sexp, opt_args);
@@ -422,6 +442,30 @@ GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
 			}
 		}
 	}
+};
+
+
+
+/**
+ * Add a generated theorem if it's not already defined.
+ */
+GH.Prover.prototype.addTheorem = function(generator, sexp, opt_args) {
+	var action = generator.action(sexp);
+	if ((!this.symbolDefined(action.name, opt_args)) && (generator.canAddTheorem(sexp))) {
+		var result = this.getLast();
+		var savedThm = this.direct.removeCurrentTheorem();
+		var savedDepth = this.depth;
+		var savedOpenExps = this.openExps;
+		this.depth = 0;
+		this.openExps = [];
+		this.println('');
+		this.println('');
+		generator.addTheorem(sexp, result);
+		this.direct.insertText(savedThm.join(''));
+		this.depth = savedDepth;
+		this.openExps = savedOpenExps;
+	}
+	return action;
 };
 
 GH.Prover.prototype.incrementDepth = function(name) {
@@ -562,10 +606,44 @@ GH.Prover.prototype.symbolDefined = function(name) {
 	return false;
 };
 
+GH.Prover.prototype.getSymbol = function(name) {
+	if (this.direct.vg.syms.hasOwnProperty(name)) {
+		return this.direct.vg.syms[name];
+	} else {
+		return null;
+	}
+};
+
+GH.Prover.prototype.getTerm = function(name) {
+	if (this.direct.vg.terms.hasOwnProperty(name)) {
+		return this.direct.vg.terms[name];
+	} else {
+		return null;
+	}
+};
+
+GH.Prover.prototype.create = function(operator, operands) {
+	return this.operatorUtil.create(operator, operands);
+};
+
+GH.Prover.prototype.getOperatorTypes = function(operator) {
+	var term = this.getTerm(operator)
+	var types = term[1].slice(0);
+
+	// Modify types for binding variables.
+	for (var i = 0; i < types.length; i++) {
+		if (term[2][i] != null) {
+			types[i] = 'bind';
+		}
+	}
+	types.push(term[0]);  // TODO: Consider making a separate function for getting the return value.
+	return types;
+};
+
 GH.Prover.prototype.reduce = function(sexp) {
 	sexp = sexp.copy();
 	for (var i = 0; i < sexp.operands.length; i++) {
-		if (!GH.operatorUtil.isReduced(sexp.operands[i])) {
+		if (!this.operatorUtil.isReduced(sexp.operands[i])) {
 			var value = this.calculate(sexp.operands[i]);
 			sexp.operands[i] = GH.operatorUtil.reduce(sexp.operands[i], value);
 		}
@@ -738,6 +816,23 @@ GH.Prover.prototype.undistributeRight = function(sexp) {
 	return this.closeExp(sexp);
 };
 
+GH.Prover.prototype.equalizeOperator = function(operator) {
+	var types = this.getOperatorTypes(operator);
+	for (var index = 0; index < types.length - 1; index++) {
+		var args = [];
+		var generator = new GH.Prover.variableGenerator();
+		for (var i = 0; i < types.length - 1; i++) {
+			args.push(generator.generate(types[i]));
+		}
+		sexp = this.create(operator, args).operands[index];
+
+		this.theoremWriter.infer(this.equalizer, sexp);
+		this.direct.update(false);
+		this.theoremWriter.deduce(this.equalizer, sexp);
+		this.direct.update(false);
+	}
+};
+
 GH.Prover.prototype.evaluate = function(sexp, name) {
 	if (GH.operatorUtil.getType(sexp) == 'wff') {
 		// TODO: Check that this case is actually different.
@@ -818,7 +913,7 @@ GH.Prover.prototype.handleArchive = function(suggestionType, suggestionIndex) {
 GH.Prover.prototype.handleConditional = function() {
 	var sexp = window.prompt('Enter an expression to replace:', 'x');
 	var replacement = GH.sExpression.fromString(sexp);
-	var condition = GH.operatorUtil.create('=', [this.activeExp, replacement]);
+	var condition = this.create('=', [this.activeExp, replacement]);
 	this.condition(this.getLast(), condition);
 	this.direct.update(true);  // TODO: Delete once we can close the expression earlier.
 };

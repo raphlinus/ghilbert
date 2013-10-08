@@ -242,20 +242,6 @@ GH.archiveSearcher.prototype.replacementSearch = function(sexp, branch, category
 	return result;
 };
 
-/* GH.archiveSearcher.prototype.getReplacementTester = function(operator) {
-	if (this.replacementTesters.hasOwnProperty(operator)) {
-		return this.replacementTesters.operator;
-	}
-	var varGenerator = new GH.Prover.variableGenerator();
-	var types = GH.operatorUtil.getOperatorTypes(operator);
-	var operands = [];
-	for (var i = 0; i < types.length - 1; i++) {
-		operands.push(varGenerator.generate(types[i]));
-	}
-	this.replacementTesters.operator = GH.operatorUtil.create(operator, operands);
-	return this.replacementTesters.operator;
-};*/
-
 GH.archiveSearcher.prototype.applyAction = function(sexp, categoryName, actionName) {
 	var theorems = [];
 	if (this.archive.hasOwnProperty('full') && this.archive['full'].hasOwnProperty('-.')) {

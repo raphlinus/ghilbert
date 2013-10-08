@@ -12,7 +12,7 @@ GH.ProofGenerator.instantiator.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.instantiator.prototype.inline = function(sexp, instant) {
-	var condition = GH.operatorUtil.create('=', [sexp.left(), instant]);
+	var condition = this.prover.create('=', [sexp.left(), instant]);
 	var result = this.prover.condition(sexp.right(), condition);
 	this.prover.print([], 'cla4g');
 	this.prover.replace(sexp);

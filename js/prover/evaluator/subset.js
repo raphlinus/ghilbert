@@ -17,8 +17,8 @@ GH.ProofGenerator.evaluatorSubset.prototype.inline = function(sexp) {
 
 	var rightMissing = GH.setUtil.getMissingElement(leftSet, rightSet);
 	if (rightMissing) {
-		var inLeft   = GH.operatorUtil.create('e.', [rightMissing, sexp.left()]);
-		var outRight = GH.operatorUtil.create('e.', [rightMissing, sexp.right()]);
+		var inLeft   = this.prover.create('e.', [rightMissing, sexp.left()]);
+		var outRight = this.prover.create('e.', [rightMissing, sexp.right()]);
 		sexp = this.prover.openExp(sexp, 'Inside Left Set');
 		this.prover.evaluate(inLeft);
 		sexp = this.prover.closeExp(sexp);

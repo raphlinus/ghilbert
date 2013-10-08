@@ -48,11 +48,11 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 		return this.leftNumNotZero(sexp);
 		
 	} else if (leftNum < rightNum) {
-		this.prover.evaluate(GH.operatorUtil.create('<', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('<', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≠');
 	} else {
-		this.prover.evaluate(GH.operatorUtil.create('<=', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('<=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≠');
 	}
@@ -69,7 +69,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.rightNumNotZero = function(num) {
 
 GH.ProofGenerator.evaluatorEquality.prototype.leftNumNotZero = function(sexp) {
 	sexp = this.prover.openExp(sexp, 'Number is Not Zero');
-	var commuted = GH.operatorUtil.create('=', [sexp.right(), sexp.left()]);
+	var commuted = this.prover.create('=', [sexp.right(), sexp.left()]);
 	sexp = this.prover.evaluate(commuted);
 	sexp = this.prover.commute(sexp.child());
 	return this.prover.closeExp(sexp);

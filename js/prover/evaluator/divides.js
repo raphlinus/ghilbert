@@ -33,7 +33,7 @@ GH.ProofGenerator.evaluatorDivides.prototype.theoremName = function(sexp) {
 
 GH.ProofGenerator.evaluatorDivides.prototype.proveDivision = function(sexp, leftNum, rightNum) {
 	var xNum = rightNum / leftNum;
-	this.prover.evaluate(GH.operatorUtil.create('*', [leftNum, xNum]));
+	this.prover.evaluate(this.prover.create('*', [leftNum, xNum]));
 	this.prover.print([], 'proveDivides');
 	return this.prover.getLast();
 };

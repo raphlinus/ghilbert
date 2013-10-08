@@ -22,12 +22,12 @@ GH.ProofGenerator.evaluatorInterval.prototype.inline = function(sexp) {
 	if (leftNum < rightNum) {
 		var decremented;
 		if (rightNum != 11) {
-			decremented = this.prover.unevaluate(GH.operatorUtil.create('+', [rightNum - 1, 1]), sexp.right());
+			decremented = this.prover.unevaluate(this.prover.create('+', [rightNum - 1, 1]), sexp.right());
 		} else {
 			// 11 is already in the form 10 + 1.
 			decremented = sexp.right().copy();
 		}
-		this.prover.evaluate(GH.operatorUtil.create('<=', [leftNum, rightNum - 1]));
+		this.prover.evaluate(this.prover.create('<=', [leftNum, rightNum - 1]));
 		this.prover.print([], 'intervalAttach');
 		var result = this.prover.getLast();
 		this.prover.commute(result);

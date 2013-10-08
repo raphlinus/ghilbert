@@ -190,6 +190,19 @@ GH.sExpression.stripParams = function(operator) {
 	return operator;
 };
 
+// This is to ignore the .beg and .end part.
+GH.sExpression.strEquals = function(a, b) {
+	if (a.length != b.length) {
+		return false;
+	}
+	for (var i = 0; i < a.length; a++) {
+		if (a[i] != b[i]) {
+			return false;
+		}
+	}
+	return true;
+};
+
 // Returns true is the s-expressions are identical.
 GH.sExpression.prototype.equals = function(sexp) {
 	var numOperands = this.operands.length;
