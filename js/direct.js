@@ -71,12 +71,18 @@ GH.splitrange = function(str, offset) {
     return {primary: result, secondary: secondary};
 };
 
-GH.Direct.replace_thmname = function (newname) {
+GH.Direct.replace_thmname = function (newname, styling) {
     var elem = document.getElementById('thmname');
     while (elem.firstChild) {
       elem.removeChild(elem.firstChild);
     }
-    elem.appendChild(document.createTextNode(newname));
+	var title = styling ? styling.title : '';
+	if (title != '') {
+		title += ' - ' + newname;
+	} else {
+		title = newname;
+	}
+    elem.appendChild(document.createTextNode(title));
     name = newname; // replace global 'name'.
 };
 
@@ -190,7 +196,8 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 			}
 		}
 		for (var j = 0; j < shownHistory.length; j++) {
-			shownHistory[j].displayStack(this.stack, cursorPosition);
+			var summary = thmctx.styleScanner.summary;
+			shownHistory[j].displayStack(this.stack, summary, cursorPosition);
 		}
 		
 		if (pstack.length > 0) {
@@ -395,7 +402,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 					return "A symbol of name '" + tok + "' already exists.";
 				}
 				// Is this the best place to do this?
-				GH.Direct.replace_thmname(tok);
+				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling());
 				this.state = stateType.POST_NAME;
 			}
 			break;

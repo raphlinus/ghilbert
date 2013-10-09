@@ -58,6 +58,7 @@ GH.StyleScanner = function() {
 	this.styleMode = GH.StyleScanner.modeTypes.NONE;
 	this.table = null;
 	this.title = '';
+	this.summary = '';
 	this.suggest = null;
 	this.leftColumns = 0;
 	this.color = '';
@@ -69,6 +70,7 @@ GH.StyleScanner.modeTypes = {
 	TITLE: 2,
 	SUGGEST: 3,
 	SUGGEST_FUNC: 4,
+	SUMMARY: 5,
 };
 
 GH.StyleScanner.prototype.read_column_style = function(tok) {
@@ -161,6 +163,11 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.styleMode = styleModeTypes.TITLE;
 		} else if (tok == '</title>') {
 			this.styleMode = styleModeTypes.NONE;
+		} else if (tok == '<summary>') {
+			this.summary = '';
+			this.styleMode = styleModeTypes.SUMMARY;
+		} else if (tok == '</summary>') {
+			this.styleMode = styleModeTypes.NONE;
 		} else if (tok == '<suggest>') {
 			this.suggest = [];
 			this.styleMode = styleModeTypes.SUGGEST;
@@ -170,6 +177,8 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.read_column_style(tok);
 		} else if (this.styleMode == styleModeTypes.TITLE) {
 			this.title += tok + ' ';
+		} else if (this.styleMode == styleModeTypes.SUMMARY) {
+			this.summary += tok + ' ';
 		} else if ((this.styleMode == styleModeTypes.SUGGEST) ||
 		           (this.styleMode == styleModeTypes.SUGGEST_FUNC)) {
 			this.addSuggestToken(tok);

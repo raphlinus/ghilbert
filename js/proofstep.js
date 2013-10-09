@@ -569,7 +569,13 @@ GH.ProofStep.NEW_CELL  = '</td><td>';
  * Returns the proof step displayed as a set of blocks.
  * This is the main entry point for displaying the proof steps.
  */
-GH.ProofStep.prototype.displayStack = function(stack, cursorPosition) {
+GH.ProofStep.prototype.displayStack = function(stack, summary, cursorPosition) {
+	if (summary != '') {
+		var summaryElement = document.createElement("div");
+		summaryElement.innerHTML = summary;
+		summaryElement.setAttribute('class', 'summary');
+		stack.appendChild(summaryElement);
+	}
 	var blocks = this.display(false, cursorPosition);
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].display(stack, cursorPosition);

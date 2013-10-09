@@ -80,6 +80,7 @@ class ProofFormatter:
 '''<script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/showthm.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
+<script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 <script type="text/javascript">
 GH.typeset_intermediates()
