@@ -1,14 +1,24 @@
-﻿# Arithmetic tables
+# Arithmetic tables
 
 import (PROP prop.ghi () "")
 import (PEANO_MIN peano_min.ghi (PROP) "")
-import (PEANO_THMS peano_thms.ghi (PROP PEANO_MIN) "")
+import (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
+import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
+import (PEANO_THMS peano_thms.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
+
+# This is to get the file to display on a local host:
+# import (PROP /peano/prop.ghi () "")
+# import (PEANO_MIN /peano/peano_min.ghi (PROP) "")
+# import (PEANO /peano/peano_ax.ghi (PROP PEANO_MIN) "")
+# import (NAIVE_SET /peano/naive_set.ghi (PROP PEANO_MIN PEANO) "")
+# import (PEANO_THMS /peano/peano_thms.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
 
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
 var (nat v w x y z v' w' x' y' z')
 tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
 
+# == Addition Tables ==
 
 ## <title> Substitution </title>
 ## <table>
@@ -3036,9 +3046,9 @@ thm (10plus10 () () (= (+ (10) (10)) (* (2) (10)))
 )
 
 
+# == Multiplication Tables ==
 
 #----  Automatically generated with GH.ProofGenerator.evaluator.batchEvaluation('*', [2, 9], [2, 9]);
-
 
 ## <title> One-digit Multiplication </title>
 thm (2times2 () () (= (* (2) (2)) (4))
@@ -8162,7 +8172,7 @@ mpbi
 )
 
 
-
+# == Inequalities ==
 #====================  Equality  ===========================#
 #----  Automatically generated with GH.ProofGenerator.evaluator.batchEvaluation('=', [0, 0], [1, 10]);
 #----  Automatically generated with GH.ProofGenerator.evaluator.batchEvaluation('=', [1, 10], [0, 0]);
@@ -11282,7 +11292,7 @@ A eqeq2i
 mpbi
 )
 
-# This is an example of multi-digit addition. There is nothing particularly remarkable about these specific numbers.
+## <summary> This is an example of multi-digit addition. There is nothing particularly remarkable about these specific numbers. </summary>
 thm (additionExample() () (= (+ (+ (* (10) (10)) (+ (* (6) (10)) (5))) (+ (* (4) (10)) (7))) (+ (* (2) (* (10) (10))) (+ (10) (2))))
   ## <d 'Evaluate'>
     ## <d 'Addition'>
@@ -11647,7 +11657,7 @@ A eqeq2i
 mpbi
 )
 
-# This is an example of multi-digit addition. There is nothing particularly remarkable about these specific numbers.
+## <summary> This is an example of multi-digit addition. There is nothing particularly remarkable about these specific numbers. </summary>
 thm (additionExample2() () (= (+ (+ (* (10) (* (10) (10))) (+ (* (4) (* (10) (10))) (+ (* (9) (10)) (2)))) (+ (* (5) (* (10) (* (10) (10)))) (+ (* (4) (* (10) (10))) (+ (* (8) (10)) (3))))) (+ (* (6) (* (10) (* (10) (10)))) (+ (* (9) (* (10) (10))) (+ (* (7) (10)) (5)))))
   ## <d 'Evaluate'>
     ## <d 'Addition'>
@@ -11935,6 +11945,7 @@ thm (additionExample2() () (= (+ (+ (* (10) (* (10) (10))) (+ (* (4) (* (10) (10
   ## </d 'Evaluate'>
 )
 
+## <summary> This is an example of multi-digit multiplication. There is nothing particularly remarkable about these specific numbers. </summary>
 thm (multiplicationExample () () (= (* (+ (10) (7)) (+ (10) (3))) (+ (* (2) (* (10) (10))) (+ (* (2) (10)) (1))))
   ## <d 'Evaluate'>
     ## <d 'Multiplication'>
@@ -12174,7 +12185,7 @@ thm (EqReplaceEq1Add0Add0Add0Add1Mul0 () (
   EqReplaceEq1Add0Add0Add0Add1
 )
 
-
+## <summary> This is an example of multi-digit multiplication. There is nothing particularly remarkable about these specific numbers. </summary>
 thm (multiplicationExample2 () () (= (* (+ (* (3) (* (10) (10))) (+ (* (8) (10)) (7))) (+ (* (2) (* (10) (10))) (3))) (+ (* (7) (* (10) (* (10) (* (10) (10))))) (+ (* (8) (* (10) (* (10) (10)))) (+ (* (5) (* (10) (10))) (+ (* (6) (10)) (1))))))
   ## <d 'Evaluate'>
     ## <d 'Multiplication'>
@@ -12831,6 +12842,8 @@ thm (multiplicationExample2 () () (= (* (+ (* (3) (* (10) (10))) (+ (* (8) (10))
   ## </d 'Evaluate'>
 )
 
+# == Modulo Tables ==
+
 ## <title> One-digit Modulo </title>
 thm (2mod2 () () (= (mod (2) (2)) (0))
   0less2
@@ -13422,7 +13435,6 @@ thm (LtReplaceLt1 () (
   ax-mp
 )
 
-# This is used just for convenience to get an empty theorem.
 thm (modExample () () (= (mod (+ (* (3) (* (10) (10))) (+ (* (6) (10)) (7))) (+ (10) (5))) (7))
   ## <d 'Evaluate'>
     7less10
@@ -13590,6 +13602,8 @@ thm (modExample () () (= (mod (+ (* (3) (* (10) (10))) (+ (* (6) (10)) (7))) (+ 
     modvali
   ## </d 'Evaluate'>
 )
+
+# == Whole Number Division Tables ==
 
 ## <title> Whole Number Division </title>
 thm (4div2 () () (= (div (4) (2)) (2))
@@ -14723,6 +14737,8 @@ thm (divExample() () (= (div (+ (* (3) (* (10) (10))) (+ (* (9) (10)) (1))) (+ (
     divval
   ## </d 'Evaluate'>
 )
+
+# == Exponentiation Tables ==
 
 ## <title> Exponentiation </title>
 thm (2power2 () () (= (exp (2) (2)) (4))
@@ -16665,6 +16681,8 @@ thm (10power4 () () (= (exp (10) (4)) (* (10) (* (10) (* (10) (10)))))
     EqReplaceEq1Mul1
   ## </d 'Evaluate'>
 )
+
+# == Divisibility Tables ==
 
 ## <title> Divisibility </title>
 thm (2notdivides3 () () (-. (| (2) (3)))
@@ -22765,7 +22783,7 @@ thm (EqReplacePrim0 () (
 )
 
 
-
+# == Prime Numbers ==
 
 ## <title> Prime Number Calculation </title>
 thm (3prime () () (prime (3))
@@ -23936,7 +23954,6 @@ thm (SeqReplaceEl1 () (
   mpbi
 )
 
-# This is used just for convenience to get an empty theorem.
 thm (elementOfExample() () (e. (3) (u. ({} (1)) (u. ({} (2)) (u. ({} (3)) (u. ({} (4)) ({} (5)))))))
     
   ## <d 'Element is in Singleton'>
@@ -24122,7 +24139,6 @@ thm (SeqReplaceSeq1Un1Un1Un0 () (
 
 
 
-# This is used just for convenience to get an empty theorem.
 thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2)) (u. ({} (4)) ({} (8))))) (u. ({} (1)) (u. ({} (2)) (u. ({} (4)) (u. ({} (5)) ({} (8)))))))  
   ## <d 'Evaluate'>
     ## <d 'Place in numeric order'>
@@ -24808,7 +24824,8 @@ thm (factorial8 () () (= (! (8)) (+ (* (4) (* (10) (* (10) (* (10) (10))))) (+ (
   ## </d 'Evaluate Factorial'>
 )
 
-# This is used just for convenience to get an empty theorem.
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
 thm (emptyThm() () (T)
  tru
 )

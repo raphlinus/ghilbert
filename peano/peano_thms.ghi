@@ -1,28 +1,16 @@
-﻿# Building up theorems of peano aristmtetic.
+# Building up theorems of peano aristmtetic.
 
-param (PROP prop.ghi () "")
-param (PEANO_MIN peano_min.ghi (PROP) "")
+param (PROP /peano/prop.ghi () "")
+param (PEANO_MIN /peano/peano_min.ghi (PROP) "")
+param (PEANO /peano/peano_ax.ghi (PROP PEANO_MIN) "")
+param (NAIVE_SET /peano/naive_set.ghi (PROP PEANO_MIN PEANO) "")
 
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
-
-term (wff (E. x ph))
-term (wff (< A B))
-term (wff (<= A B))
-
-kind (set)
 tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
+tvar (wff zi si)
 
-term (set ({|} x ph))
-term (wff (e. A S))
-term (wff (=_ S T))
-term (set ({/}))
-term (set ({} A))
-term (set (u. S T))
-term (set (i^i S T))
-term (wff (C_ S T))
-term (wff (C. S T))
 term (nat (mod A B))
 term (nat (div A B))
 term (wff (| A B))
@@ -30,6 +18,16 @@ term (nat (exp A B))
 term (nat (! A))
 term (wff (prime A))
 term (set ({...} A B))
+
+term (nat (2))
+term (nat (3))
+term (nat (4))
+term (nat (5))
+term (nat (6))
+term (nat (7))
+term (nat (8))
+term (nat (9))
+term (nat (10))
 
 # == Pure predicate calculus ==
 stmt (a4i () ((A. x ph)) ph)
@@ -43,10 +41,6 @@ stmt (19.3 ((ph x))
   ()
   (<-> (A. x ph) ph)
 )
-
-## <title> Definition of ∃ </title>
-## <suggest> right('Equivalence', '∀') </suggest>
-stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
 
 # aka 19.7
 stmt (alnex () ()
@@ -174,26 +168,9 @@ stmt (exbid ((ph x))
   (-> ph (<-> (E. x ps) (E. x ch)))
 )
 
-# skipping forward to [/]...
-term (wff ([/] A x ph) (x A))
-stmt (df-subst ((A z) (ph z)) ()
-         (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
-     )
-
 ## <title> Additive Identity </title>
 ## <suggest> auto-right('Simplify', '0') </suggest>
 stmt (pa_ax3r () () (= (+ (0) A) A))
-
-term (nat (1))
-term (nat (2))
-term (nat (3))
-term (nat (4))
-term (nat (5))
-term (nat (6))
-term (nat (7))
-term (nat (8))
-term (nat (9))
-term (nat (10))
 
 ## <title> Definition of 2 </title>
 stmt (df-2 () () (= (2) (+ (1) (1))))
@@ -1139,14 +1116,14 @@ stmt (uneq2i () ((=_ S T)) (=_ (u. U S) (u. U T)))
 ##   (=_      S ]    ] [      T ] )
 ##   (=_ (i^i S ] U) ] [ (i^i T ] U))
 ## </table>
-stmt (ineq1i () ((=_ S T)) (=_ (i^i S U) (i^i T U)))
+stmt (inseq1i () ((=_ S T)) (=_ (i^i S U) (i^i T U)))
 
 ## <title> Equivalence over Intersection </title>
 ## <table>
 ##   (=_        [ S  ] [        [ T)
 ##   (=_ (i^i U [ S) ] [ (i^i U [ T))
 ## </table>
-stmt (ineq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
+stmt (inseq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
 
 ## <title> Commutative Property </title>
 ## <suggest> right('Commute', '=') </suggest>

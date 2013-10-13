@@ -1,7 +1,11 @@
-﻿# Building up theorems of peano arithmetic.
+# Building up theorems of peano arithmetic.
 
 import (PROP prop.ghi () "")
 import (PEANO_MIN peano_min.ghi (PROP) "")
+
+# This is to get the file to display on a local host:
+# import (PROP /peano/prop.ghi () "")
+# import (PEANO_MIN /peano/peano_min.ghi (PROP) "")
 
 tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
@@ -606,7 +610,7 @@ thm (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps))))
      syl5
      )
 
-# Commutativity of existential operators
+## <title> Commutativity of existential operators </title>
 thm (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph)))
   y  ph  df-ex  x  exbii
   x  (-. (A. y (-. ph)))  df-ex  bitri
@@ -694,8 +698,8 @@ thm (notfal () () (-. (F))
   mtbir
 )
 
-# ax-mp with the order of the first and second hypotheses reversed.
 ## <title> Modus Ponens </title>
+## <summary> ax-mp with the order of the first and second hypotheses reversed. </summary>
 ## <table>
 ##  (-> ph ] [ ps)
 ##      ph ] ]
@@ -1861,7 +1865,7 @@ thm (eu3 ((ph y)) (h (rwff x ph))
   h y eu2 h y mo (E. x ph) anbi2i bitr4i
 )
 
-# There is exactly one number equal to a given number.
+## <summary> There is exactly one number equal to a given number. </summary>
 thm (tyeu ((A x)) () (E! x (= x A))
   y  A  tyex
     y  A  x  eqeq2  bicomd  x  19.21ai  y  19.22i  ax-mp
@@ -2206,8 +2210,8 @@ thm (mulcom () ()
   finds
 )
 
-# One is an identity of multiplication
 ## <title> Multiplicative Identity </title>
+## <summary> One is an identity of multiplication </summary>
 ## <suggest> right('Simplify', '1') </suggest>
 ## <table>
 ##   (= (* A <r> (1)) A)
@@ -2243,8 +2247,8 @@ thm (add4 () ()
   (+ A C) B D addass eqtr
 )
 
-# Distribution of addition through multiplication
 ## <title> Distributive Property </title>
+## <summary> Distribution of addition through multiplication </summary>
 ## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 thm (distr () ()
   (= (* A (+ B C)) (+ (* A B) (* A C)))
@@ -2264,8 +2268,8 @@ thm (distr () ()
   finds
 )
 
-# Distribution of addition through multiplication, left argument
 ## <title> Distributive Property </title>
+## <summary> Distribution of addition through multiplication, left argument </summary>
 ## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 thm (distl () ()
   (= (* (+ A B) C) (+ (* A C) (* B C)))
@@ -2273,8 +2277,8 @@ thm (distl () ()
    (+ A B) C mulcom C A B distr eqtr
    C A mulcom C B mulcom addeq12i eqtr)
 
-# Distribution of addition through multiplication, both arguments
 ## <title> Distributive Property </title>
+## <summary> Distribution of addition through multiplication, both arguments </summary>
 thm (distrl () ()
   (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
   (+ A B) C D distr
@@ -2294,8 +2298,8 @@ thm (undistr() () (= (+ (* A B) (* A C)) (* A (+ B C)))
   eqcomi
 )
 
-# Multiplication is associative
 ## <title> Associative Property </title>
+## <summary> Multiplication is associative </summary>
 ## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 thm (mulass () ()
   (= (* (* A B) C) (* A (* B C)))
@@ -2316,7 +2320,7 @@ thm (mulass () ()
   finds
 )
 
-# Cancellation of addition
+## <title> Cancellation of addition </title>
 thm (addcan () ()
   (<-> (= (+ B A) (+ C A)) (= B C))
   x (0) B addeq2 x (0) C addeq2 eqeq12d (= B C) bibi1d
@@ -2331,7 +2335,7 @@ thm (addcan () ()
   finds
 )
 
-# Cancellation of addition, left argument
+## <title> Cancellation of addition </title>
 thm (addcan2 () ()
   (<-> (= (+ A B) (+ A C)) (= B C))
   A B addcom A C addcom eqeq12i
@@ -2358,8 +2362,8 @@ thm (addneq2i () (hyp (-. (= A B))) (-. (= (+ C A) (+ C B)))
   hyp mtbirRemove
 )
 
-# Successor is equivalent to adding one
 ## <title> Successor Adds One </title>
+## <summary> Successor is equivalent to adding one </summary>
 ## <suggest> right('Equivalence', '+1') </suggest>
 thm (a1suc () ()
   (= (S A) (+ A (1)))
@@ -2789,7 +2793,7 @@ thm (pa_ax1plus () () (-. (= (0) (+ A (1))))
   EqReplaceNot0Eq1
 )
 
-# Replace an equal statement in the second part of an AND statement using the first part of the AND.
+## <summary> Replace an equal statement in the second part of an AND statement using the first part of the AND. </summary>
 thm (anReplaceEq () () (<-> (/\ (= A B) (= B C)) (/\ (= A B) (= A C)))
   (= A B) (= B C) pm3.26
 
@@ -2868,7 +2872,6 @@ thm (df-le-just ((A x) (B x) (A y) (B y)) ()
        (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
       x y A addeq2 B eqeq1d exalpha)
 
-# Definition of less than or equal to.
 ## <title> Definition of Less Than or Equal to </title>
 ## <suggest> right('Define', '≤') left('Simplify', '≤') </suggest>
 defthm (df-le wff (<= A B) ((A x) (B x)) ()
@@ -2963,9 +2966,8 @@ thm (ltDiff ((A x) (B x)) (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-.
 )
 
 
-
-# Equality deduction for less than or equal relation
 ## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
 thm (leeq1d ()
   (hyp (-> ph (= A B)))
   (-> ph (<-> (<= A C) (<= B C)))
@@ -2976,8 +2978,8 @@ thm (leeq1d ()
   syl
 )
 
-# Equality deduction for less than or equal relation
 ## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
 ## <table>
 ##   (-> ph (=         [ A ]       [   [ B ] ))
 ##   (-> ph (<-> (<= C [ A ] ) (<= [ C [ B ] )))
@@ -3004,8 +3006,8 @@ thm (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B)))
  C leeq2d
 )
 
-# Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
 ## <table>
 ##   (=       A ]   ]       [ B ]   )
 ##   (<-> (<= A ] C ] ) (<= [ B ] C))
@@ -3016,8 +3018,8 @@ thm (leeq1i ()
   hyp (= A B) id C leeq1d ax-mp
 )
 
-# Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
 ## <table>
 ##   (=         [ A ]       [   [ B ] )
 ##   (<-> (<= C [ A ] ) (<= [ C [ B ] ))
@@ -3028,8 +3030,8 @@ thm (leeq2i ()
   hyp (= A B) id C leeq2d ax-mp
 )
 
-# Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
 ## <table>
 ##  (<=    A ] ]   ] [ C)
 ##      (= A ] [ B ] ] )
@@ -3042,8 +3044,8 @@ thm (leeq1ii ()
   hyp1 hyp2 C leeq1i mpbi
 )
 
-# Equality inference for less than or equal relation
 ## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
 ## <table>
 ##  (<= C   [ A ] ] )
 ##       (= [ A ] [ B)
@@ -3063,8 +3065,8 @@ thm (le-rwff2 ((A x)) ()  (rwff x (<= A x))
   x y A leeq2 rwffi
 )
 
-# Addition is strictly monotonic in the first addend
 ## <title> Addition is Monotonic </title>
+## <summary> Addition is strictly monotonic in the first addend </summary>
 ## <suggest> left('Cancel', '+') </suggest>
 thm (leadd1 () ()
   (<-> (<= A B) (<= (+ A C) (+ B C)))
@@ -3076,8 +3078,8 @@ thm (leadd1 () ()
   3bitr4i
 )
 
-# Addition is strictly monotonic in the second addend
 ## <title> Addition is Monotonic </title>
+## <summary> Addition is strictly monotonic in the second addend </summary>
 ## <suggest> left('Cancel', '+') </suggest>
 ## <table>
 ##   (<-> (<= A B) (<= (+ <g> C A) (+ <g> C B)))
@@ -3111,7 +3113,7 @@ thm (leadd2i () (hyp (<= A B)) (<= (+ C A) (+ C B))
   mpbiRemove
 )
 
-# Inequality relation for two equal sums
+## <title> Inequality relation for two equal sums </title>
 thm (leadd12 () ()
   (-> (= (+ A B) (+ C D)) (<-> (<= A C) (<= D B)))
   (= (+ A B) (+ C D)) id (+ C B) leeq1d
@@ -3252,8 +3254,8 @@ thm (addge02t () ()
   A B addge01t A B addcom A leeq2i mpbi
 )
 
-# Less than or equal is a reflexive relation
 ## <title> Reflexive Property </title>
+## <summary> Less than or equal is a reflexive relation </summary>
 thm (leid () ()
   (<= A A)
   A (0) addge01t
@@ -3394,7 +3396,7 @@ thm (0le () () (<= (0) A)
    mpbiRemove
 )
 
-# Equality deduction for less than relation
+## <title> Equality deduction for less than relation </title>
 thm (lteq1d () (hyp (-> ph (= A B)))
   (-> ph (<-> (< A C) (< B C)))
   hyp C leeq2d
@@ -3421,8 +3423,8 @@ thm (lteq1i () (h (= A B))
   (<-> (< A C) (< B C))
   h (= A B) id C lteq1d ax-mp)
 
-# Equality inference for less than relation
 ## <title> Equivalence over Inequality </title>
+## <summary> Equality deduction for less than relation </summary>
 ## <table>
 ##  (<    A ] ]   ] [ C)
 ##     (= A ] [ B ] ] )
@@ -3458,7 +3460,7 @@ thm (0ne1 () ()
   df-1 (0) eqeq2i mtbir
 )
 
-# Transitive law
+## <title> Transitive law </title>
 ## <suggest> right('Simplify', '<') </suggest>
 thm (lelttr () ()
   (-> (/\ (<= A B) (< B C)) (< A C))
@@ -3470,7 +3472,7 @@ thm (lelttr () ()
   sylibr
 )
 
-# Transitive law
+## <title> Transitive law </title>
 ## <suggest> right('Simplify', '<') </suggest>
 thm (lelttr2 () ()
   (-> (/\ (< A B) (<= B C)) (< A C))
@@ -3501,8 +3503,8 @@ thm (axlttri () ()
   bitri
 )
 
-# Less than or equal to expressed in terms of less than or equals
 ## <title> ≤ means < OR = </title>
+## <summary> Less than or equal to expressed in terms of less than or equals </summary>
 ## <suggest> right('Equivalence', '∨') left('Simplify', '≤') </suggest>
 thm (leleo () ()
   (<-> (<= A B) (\/ (< A B) (= A B)))
@@ -4064,8 +4066,8 @@ ph bibi2i
 mpbi
 )
 
-# Multiplication is monotonic in its second argument
 ## <title> Multiply Both Sides </title>
+## <summary> Multiplication is monotonic in its second argument </summary>
 thm (lemul2 () ()
   (-> (<= A B) (<= (* C A) (* C B)))
 
@@ -4119,7 +4121,7 @@ thm (lemul4 () ()
   con4i
 )
 
-# Multiplication is strictly monotonic when the other multiplicand is nonzero
+## <summary> Multiplication is strictly monotonic when the other multiplicand is nonzero </summary>
 thm (ltmul1 () ()
   (-> (< (0) A) (-> (< B C) (< (* A B) (* A C))))
   (0) A (* A B) ltadd1
@@ -4307,7 +4309,7 @@ thm (gtmul2i () (hyp (-. (<= B C)) hyp2 (-. (<= A (0))))  (-. (<= (* B A) (* C A
    ax-mp
 )
 
-# Multiplication is strictly monotonic with nonzero multiplicand
+## <summary> Multiplication is strictly monotonic with nonzero multiplicand </summary>
 thm (lemul5 () ()
   (<-> (<= (* A (S C)) (* B (S C))) (<= A B))
   A C B lemul4
@@ -4317,7 +4319,7 @@ thm (lemul5 () ()
   impbii
 )
 
-# Trichotomy law (may be a poor choice of name)
+## <summary> Trichotomy law (may be a poor choice of name) </summary>
 ## <suggest> left('Simplify', '=') </suggest>
 thm (lesym () ()
   (<-> (= A B) (/\ (<= A B) (<= B A)))
@@ -4350,7 +4352,7 @@ thm (eqle0 () () (<-> (<= A (0)) (= A (0)))
   bicomi
 )
 
-# For naturals, equal to zero is equivalent to less than or equal to zero
+## <summary> For naturals, equal to zero is equivalent to less than or equal to zero </summary>
 thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
      A (0) lesym
      # 0 <= A
@@ -4358,7 +4360,7 @@ thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
    mpbiran2
 )
 
-# Less than or equal is a total relationship
+## <summary> Less than or equal is a total relationship </summary>
 thm (letot () () (\/ (<= A B) (<= B A))
 (< B A)  id   (< B A)  (< B A)  imor    mpbi
    A  B  lenltt  biimpri
@@ -4368,7 +4370,7 @@ orim12i
 ax-mp
 )
 
-# If a product of a nonzero number and some other number is zero, that number is zero
+## <summary> If a product of a nonzero number and some other number is zero, that number is zero </summary>
 thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
 x  (* A B)  tyex
   x (* A B)  B  addeq1
@@ -4380,7 +4382,7 @@ B  (0)  x  df-le  sylibr
 B  eq0le0        sylibr
 )
 
-# Multiplication cancellation with nonzero multiplicand
+## <summary> Multiplication cancellation with nonzero multiplicand </summary>
 thm (mulcan () ()
   (<-> (= (* A (S C)) (* B (S C))) (= A B))
   (* A (S C)) (* B (S C)) lesym
@@ -4392,7 +4394,7 @@ thm (mulcan () ()
   bitr4i
 )
 
-# Cancellation for multiplication (over nonzero multiplicand)
+## <summary> Cancellation for multiplication (over nonzero multiplicand) </summary>
 thm (mulcan2.1 () () (-> (<= A B) (-> (= (* (S C) A) (* (S C) B)) (= A B)))
   A  B  x  df-le  biimpi
     (+ A x)  B  (S C)  muleq2
@@ -4437,11 +4439,11 @@ thm (mulcant2 () ()
   A C mulcom B C mulcom eqeq12i syl5bbr
 )
 
-export (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
+export (PEANO /peano/peano_ax.ghi (PROP PEANO_MIN) "")
 
 # == Some naive set theory ==
 
-import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
+import (NAIVE_SET /peano/naive_set.ghi (PROP PEANO_MIN PEANO) "")
 
 tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
 tvar (wff zi si)
@@ -4806,7 +4808,7 @@ ph bibi2i
 mpbi
 )
 
-# Alpha conversion for set abstraction
+## <title> Alpha conversion for set abstraction </title> 
 thm (abeq ((ph y) (ps x))
   (h1 (-> (= x y) (<-> ph ps)))
   (=_ ({|} x ph) ({|} y ps))
@@ -4825,7 +4827,6 @@ thm (abeq ((ph y) (ps x))
   eqri
 )
 
-# Equality theorem for set abstraction
 ## <title> Equality theorem for set abstraction </title>
 ## <suggest> right('Infer', '{|}') </suggest>
 thm (abbi2 () ()
@@ -4837,8 +4838,7 @@ thm (abbi2 () ()
     y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
 )
 
-# Equality inference for set abstraction
-## <title> Equivalence over Element Of </title>
+## <title> Equivalence over set abstraction </title>
 ## <table>
 ##   (<->       [ ph  ] [        [ ps )
 ##   (=_ ({|} x [ ph) ] [ ({|} x [ ps ))
@@ -4981,7 +4981,7 @@ thm (elSubset () () (<-> (e. A S) (C_ ({} A) S))
   impbii
 )
 
-# Equality deduction for set abstraction
+## <title> Equality deduction for set abstraction </title>
 thm (abbi2d ((ph x)) (h (-> ph (<-> ps ch)))
   (-> ph (=_ ({|} x ps) ({|} x ch)))
   h x 19.21ai x ps ch abbi2 syl
@@ -5786,7 +5786,7 @@ thm (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U)))
 )
 
 
-
+## <summary> If an element is in a set, it is also in the set unioned with anything. </summary>
 thm (unionAttach1 () (hyp (e. A S)) (e. A (u. S U))
   tru
   A S U elun
@@ -5798,6 +5798,7 @@ thm (unionAttach1 () (hyp (e. A S)) (e. A (u. S U))
   mpbir
 )
 
+## <summary> If an element is in a set, it is also in the set unioned with anything. </summary>
 thm (unionAttach2 () (hyp (e. A S)) (e. A (u. U S))
   tru
   A U S elun
@@ -5873,6 +5874,7 @@ thm (SeqReplaceBi1Seq0Un1 () (
   SeqReplaceBi1Seq0
 )
 
+## <summary> If a set is a subset of two sets, it is a subset of their union. </summary>
 thm (unSubset () (hyp (C_ S U) hyp2 (C_ T U)) (C_ (u. S T) U)
   (u. S T) U df-ss
   ## <d 'Distributive Property '>
@@ -5899,6 +5901,7 @@ thm (unSubset () (hyp (C_ S U) hyp2 (C_ T U)) (C_ (u. S T) U)
   mpbirRemove
 )
 
+## <summary> If an element is not in two sets, it is not in the union of the sets. </summary>
 thm (notInUnion () (hyp (-. (e. A S)) hyp2 (-. (e. A T))) (-. (e. A (u. S T)))
   A S T elun
   hyp 
@@ -5910,12 +5913,14 @@ thm (notInUnion () (hyp (-. (e. A S)) hyp2 (-. (e. A T))) (-. (e. A (u. S T)))
   # TODO: Apply the two hypotheses together.
 )
 
+## <summary> Proof that an element is not in a singleton. </summary>
 thm (notInSingleton () (hyp (-. (= A B)))  (-. (e. A ({} B)))
   A B elsnc
   hyp  
   mtbirRemove
 )
 
+## <summary> Proof that an element is not in the union of singleton and another set. </summary>
 thm (notInSingletonUnion () (hyp (-. (= A B)) hyp2 (-. (e. A S))) (-. (e. A (u. ({} B) S)))
   hyp  
   notInSingleton
@@ -6110,6 +6115,8 @@ thm (unidr() () (=_ (u. ({/}) S) S)
   mpbirRemove
 )
 
+## <title> All nonzero natural numbers are positive </title>
+## <suggest> right('Equivalence', '<') </suggest>
 thm (0inequalities () () (<-> (-. (= (0) A)) (< (0) A))
   A 0le    
       
@@ -6133,6 +6140,38 @@ thm (0inequalities () () (<-> (-. (= (0) A)) (< (0) A))
           (0) A ltneq
         ## </d 'Operator Conversion '>
   impbii
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->      [ ph ]   [ ps ] )
+##   (<-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Not0 () (
+     replacee (<-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  bitr3icom
+)
+
+## <title> All nonzero natural numbers are positive </title>
+## <suggest> right('Equivalence', '<') </suggest>
+thm (0inequalities2 () () (<-> (-. (= A (0))) (-. (<= A (0))))
+  A 0inequalities  
+  ## <d 'Symmetric Property '>
+    (0) A eqcom
+    BiReplaceBi0Not0
+  ## </d 'Symmetric Property '>
+  
+  ## <d 'Commute Inequality '>
+    (0) A ltcom  
+    bitri
+  ## </d 'Commute Inequality '>
 )
 
 thm (df-interval-just ((A x) (A y) (B x) (B y)) () (=_ ({|} x (/\ (<= A x) (<= x B))) ({|} y (/\ (<= A y) (<= y B))))
@@ -6906,7 +6945,7 @@ thm (ltmul () () (
   (+ (* A C) (1)) (* (+ A (1)) (+ C (1))) (* B D) letr syl
   (* A C) (* B D) nnltp1let sylibr)
 
-# Squaring (of nonnegative numbers) is monotonic
+## <summary> Squaring (of nonnegative numbers) is monotonic </summary>
 thm (sqle () ()
   (<-> (<= A B) (<= (* A A) (* B B)))
   A B A B lemul3 anidms
@@ -7739,12 +7778,11 @@ thm (sqrtlem1 ((A x)) ()
   anbi12d x exbid
 )
 
-# Commutation of conjuncts in consequent
+## <title> Commutation of conjuncts in consequent </title> 
 thm (ancomd () (h (-> ph (/\ ps ch)))
   (-> ph (/\ ch ps))
   h
   ps ch ancom
-
  sylib
 )
 
@@ -7842,7 +7880,7 @@ thm (sqrtlem6 () ()
   anbi12d exalpha sylib
 )
 
-# Square root
+## <title> Square root </title> 
 thm (sqrt ((A x)) ()
    (E. x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
   z (0) x sqrtlem1
@@ -7854,7 +7892,8 @@ thm (sqrt ((A x)) ()
   finds
 )
 
-# Square root is monotonic
+# 
+## <title> Square root is monotonic </title> 
 thm (sqlt () () (<-> (< A B) (< (* A A) (* B B)))
   B A sqle
   notbii
@@ -7909,6 +7948,7 @@ thm (gtge2 () () (<-> (-. (<= A B)) (-. (< A (+ B (1)))))
   bitri
 )
 
+## <title> Numbers above 0 have predecessors </title>
 thm (hasPredecessor((B x)) () (<-> (< (0) B) (E. x (= (S x) B)))
   (0) B ltle2  
   ## <d 'Evaluate'>
@@ -7932,7 +7972,7 @@ thm (hasPredecessor((B x)) () (<-> (< (0) B) (E. x (= (S x) B)))
 )
 
 
-# Square root is unique
+## <title> Square root is unique </title>
 thm (sqrtuniq () ()
    (-> (/\ (/\ (<= (* A A) B) (< B (* (S A) (S A))))
            (/\ (<= (* C C) B) (< B (* (S C) (S C)))))
@@ -8035,7 +8075,7 @@ thm (opthlem3 () ()
   sylib
 )
 
-# Ordered pair theorem
+## <title> Ordered pair theorem </title>
 thm (opth () ()
     (<-> (= (<,> A B) (<,> C D)) (/\ (= A C) (= B D)))
   A B C D opthlem2
@@ -8191,7 +8231,7 @@ thm (headop () () (= (head (<,> A B)) A)
   A  ax-iota    eqtr
 )
 
-# Equality theorem for head
+## <title> Equality theorem for head </title>
 thm (headeq () () (-> (= A B) (= (head A) (head B)))
   A  B  (<,> x y)  eqeq2  y  exbid   x  19.21ai
   x  (E. y (= (<,> x y) A))  (E. y (= (<,> x y) B))  abbi2    syl
@@ -8216,7 +8256,7 @@ thm (headeqd () (
   syl
 )
 
-# Equality theorem for tail
+## <title> Equality theorem for tail </title>
 thm (taileq () () (-> (= A B) (= (tail A) (tail B)))
   A  B  (<,> y x)  eqeq2  y  exbid  x  19.21ai
   x (E. y (= (<,> y x) A))  (E. y (= (<,> y x) B))  abbi2  syl
@@ -8289,7 +8329,7 @@ thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
   x ph 19.9 biimpi
 )
 
-# Existential uniqueness implies iota is a member
+## <summary> Existential uniqueness implies iota is a member </summary>
 thm (iotacl ((S x)) ()
    (-> (E! x (e. x S)) (e. (iota S) S))
   x (e. x S) y df-eu biimpi
@@ -8310,8 +8350,7 @@ thm (iotacl ((S x)) ()
   syl
 )
 
-# Another iota utility theorem.  Asserts that if exactly one x has the property
-# ph, then that x can be found using iota.
+## <summary> Another iota utility theorem.  Asserts that if exactly one x has the property ph, then that x can be found using iota. </summary>
 thm (iotacl2 () ()
    (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
 x  ph  y  df-eu   biimpi
@@ -8346,7 +8385,7 @@ x  ph  y  df-eu   biimpi
  y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
 )
 
-# Basic identity for iota
+## <title> Basic identity for iota </title>
 thm (iotaeq () ()
   (= (iota ({|} x (= x A))) A)
   A x df-sn
@@ -8374,7 +8413,7 @@ defthm (df-ifn nat (ifn ph A B) ((ph x) (A x) (B x)) ()
   (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
   y  ph  A  B  x  df-ifn-just)
 
-# First branch of ternary expression.
+## <title> First branch of ternary expression </title>
 thm (ifn1 () () (-> ph (= (ifn ph A B) A))
      ph  (= x A)  iba
      ph  (= x A)  ancom    syl6bbr
@@ -8396,7 +8435,7 @@ thm (ifn1 () () (-> ph (= (ifn ph A B) A))
       A  ax-iota    syl6eq
 )
 
-# Second branch of ternary expression.
+## <title> Second branch of ternary expression </title>
 thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
      (-. ph)  (= x B)  iba
      (-. ph)  (= x B)  ancom    syl6bbr
@@ -8417,7 +8456,7 @@ thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
       B  ax-iota    syl6eq
 )
 
-# Equivalence of predicate in ifn
+## <title> Equivalence of predicate in ifn </title>
 thm (ifnbi1 () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B)))
   ph ps dfbi3
     ph A B ifn1 ps adantr ps A B ifn1 ph adantl eqcomd eqtrd
@@ -8442,7 +8481,7 @@ thm (ifnbi1d () (
   syl
 )
 
-# Equality of first term for ifn
+## <title> Equality of first term for ifn </title>
 thm (ifneq2 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C)))
   ph A C ifn1 B eqeq1d biimprd imp
   ph B C ifn1 (= A B) adantr eqcomd eqtrd ex
@@ -8467,7 +8506,7 @@ thm (ifneq2d () (
   syl
 )
 
-# Equality of second term for ifn
+## <title> Equality of second term for ifn </title>
 thm (ifneq3 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B)))
   ph C A ifn1
   ph C B ifn1 eqcomd eqtrd (= A B) a1d
@@ -8675,7 +8714,7 @@ thm (halfminuseq12 () () (-> (/\ (= A B) (= C D)) (= (.- A C) (.- B D)))
   ## </d 'Transitive Property '>
 )
 
-# Minus is the inverse of addition
+## <title> Minus is the inverse of addition </title>
 thm (halfminus () ()
   (-> (<= B A) (= (+ (.- A B) B) A))
   B A lenltt
@@ -8700,7 +8739,7 @@ thm (halfminus () ()
   eqcomd eqtrd
 )
 
-# A number minus zero is itself
+## <title> A number minus zero is itself </title>
 thm (halfminuszero () () (= (.- A (0)) A)
   (.- A (0)) pa_ax3 eqcomi
     A nn0nlt0 (0) A lenltt mpbir
@@ -8708,7 +8747,6 @@ thm (halfminuszero () () (= (.- A (0)) A)
   eqtr
 )
 
-# A number minus itself is zero
 ## <title> A number minus itself is zero </title>
 ## <suggest> right('Cancel', '-') </suggest>
 ## <table>
@@ -8772,6 +8810,21 @@ thm (addhalfminusi () (hyp (= C (+ A B))) (= (.- C A) B)
     B (.- C A) eqcom
     mpbi
   ## </d 'Symmetric Property '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (+ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Add1 () (
+     replacee (= (+ A B) D)
+     substitution (= B C)) 
+     (= (+ A C) D)
+  replacee substitution
+  A addeq2i
+  EqReplaceEq0
 )
 
 ## <title> Substitution </title>
@@ -9399,6 +9452,35 @@ thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B))
   ## </d 'Divides Definition '>
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (<  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Lt0 () (
+     replacee (-> ph (< A C))
+     substitution (= A B)) 
+     (-> ph (< B C))
+  replacee substitution
+  C lteq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (< A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Lt1 () (
+     replacee (<-> ph (< A B))
+     substitution (= B C)) 
+     (<-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  bitri
+)
 
 # number 39.0
 thm (df-prime-just ((A x) (A y)) ()
@@ -9417,7 +9499,7 @@ defthm (df-prime wff (prime A) ((A x))  ()
   (<-> (prime A) (/\ (-. (<= A (1))) (A. x (-> (| x A) (\/ (= x (1)) (= x A))))))
 A y x df-prime-just)
 
-# Equality theorem for primeness.
+## <title> Equality theorem for primeness </title> 
 thm (primeeq () () (-> (= A B) (<-> (prime A) (prime B)))
     A B (1) leeq1
     (<= A (1)) (<= B (1)) notbi  
@@ -10067,6 +10149,7 @@ thm (2prime () () (prime (+ (1) (1)))
   ## </d>
   mpbir
 )
+
 # number 46.0
 thm (dividesmul () ()
     (-> (| A B) (| A (* B C)))
@@ -10126,7 +10209,8 @@ thm (exfactoriallem1 ((A x) (A y)) ()
    x exbid
 )
 
-# number 51.0
+## <title> A number divides itself </title>
+## <suggest> full('Simplify', 'T') </suggest>
 thm (dividessym () () (| A A)
     x (1) tyex
     x (1) A muleq2  eqcomd  A mulid  eqcomi syl5eq   eqcomd  x 19.22i
@@ -10134,6 +10218,17 @@ thm (dividessym () () (| A A)
   A A x df-divides
   mpbir
 )
+
+## <title> A number divides a multiple of itself </title>
+## <suggest> full('Simplify', 'T') </suggest>
+thm (dividessymmul () () (| A (* A B))
+  A A B dividesmul  
+  ## <d 'Divides Definition '>
+    A dividessym
+    ax-mpRemove
+  ## </d 'Divides Definition '>
+)
+
 # number 52.0
 # Base case for induction in exfactorial
 thm (exfactorial.2 () ()
@@ -10206,7 +10301,7 @@ thm (exfactoriallem2 () ()
   x 19.22i ax-mp
 )
 # number 53.0
-# Utility to avoid excessive mandhyp baggage in exfactoriallem3
+## <summary> Utility to avoid excessive mandhyp baggage in exfactoriallem3 </summary>
 thm (exfactoriallem4 ()
   (h1 (-> ph (\/ ps ch))
    h2 (-> th ps))
@@ -10346,8 +10441,10 @@ thm (exfactoriallem3 () ()
   syl
 )
 
-# There exists a number that is divided all numbers up to #(S A)#. While factorial is
-# certainly one such, it's not the only, so perhaps this is not an ideal name.
+## <summary>
+##    There exists a number that is divided all numbers up to #(S A)#. While factorial is
+##    certainly one such, it's not the only, so perhaps this is not an ideal name.
+## </summary> 
 thm (exfactorial ((A x) (A y)) ()
     (E. x (A. y (-> (<= (S y) (S A))
                      (| (S y) (S (S x))))))
@@ -10435,7 +10532,6 @@ thm (sindlem1 ()
   ph  pm1.2    syl8
 )
 
-# Strong Induction.
 ## <title> Strong Induction </title>
 thm (sind ((A x) (ta x) (ph y))                    # ph(x) is some term in x; ph(A) is to be proved
   (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
@@ -10588,7 +10684,7 @@ thm (infiniteDescent((ph w) (ph y))
   sindplus1
 )
 
-# Zero doesn't divide any positive number
+## <title> 0 does not divide positive numbers </title>
 thm (not0divides () () (-. (| (0) (S A)))
   A pa_ax1
     (0)  (S A)  x  df-divides    biimpi
@@ -10597,8 +10693,7 @@ thm (not0divides () () (-. (| (0) (S A)))
   mto
 )
 
-# Zero doesn't divide any positive number
-## <title> Zero does not divide positive numbers </title>
+## <title> 0 does not divide positive numbers </title>
 thm (not0divides2 () () (-> (< (0) A) (-. (| (0) A)))
   A x hasPredecessor
   (S x) A (0) divideseq2
@@ -10612,7 +10707,6 @@ thm (not0divides2 () () (-> (< (0) A) (-. (| (0) A)))
   sylib
 )
 
-# A composite number does not have any factors above it.
 
 
 ## <title> Substitution </title>
@@ -10661,7 +10755,6 @@ thm (BiReplaceBi1Or1Ex1An1Not0 () (
     BiReplaceBi1Or1Ex1An1
 )
 
-# A composite number does not have any factors above it.
 ## <title> A composite has no factors above it </title>
 thm (dfprime1lem ((A x)) () (-> (-. (prime A)) (-> (-. (<= A (1))) (E. x (/\ (| x A) (/\ (-. (= x (1))) (< x A))))))
   A x df-prime
@@ -11560,7 +11653,7 @@ thm (suc2Gt () ()  (-. (<= (S (S A)) (1)))
 )
 
 # number 61.0
-# Every multitude has either a proper multitude divisor or a prime multitude divisor
+## <summary> Every multitude has either a proper multitude divisor or a prime multitude divisor </summary>
 thm (primedivisor.1 ((A x) (A z)) ()
     (\/ (E. z (/\ (< (S (S z)) (S (S A))) (| (S (S z)) (S (S A)))))
         (E. x (/\ (prime (S (S x))) (| (S (S x)) (S (S A))))))
@@ -12695,7 +12788,7 @@ thm (infprime.1 ((A x)) () (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x)))))
     y  (E. x (/\ (< (S (S A)) (S (S x))) (prime (S (S x)))))  19.9    mpbi
 )
 
-# Primes are infinite
+## <title> Primes are infinite </title>
 thm (infprime ((A x)) () (E. x (/\ (< A x) (prime x)))
 
 y  A  infprime.1
@@ -12717,7 +12810,7 @@ y  (E. x (/\ (< (S (S A)) x) (prime x)))  19.9  mpbi
 x  19.22i    ax-mp
 )
 
-# Existential uniqueness of sqrt
+## <title> Existential uniqueness of sqrt </title>
 thm (sqrteu ((A x)) () (E! x (/\ (<= (* x x) A) (< A (* (S x) (S x)))))
     y  A  sqrt
         y  A  x  sqrtuniq    ex    y  x  eqcom    syl6ib
@@ -12817,7 +12910,7 @@ defthm  (df-min nat (min S) ((S x) (S y)) ()
           x' S y' x y df-min-just)
 
 # number 88.0
-thm (mineq () () (-> (=_ S T) (= (min S) (min T)))
+thm (minseq () () (-> (=_ S T) (= (min S) (min T)))
   S  T  x  df-seq    biimpi    x  (<-> (e. x S) (e. x T))  ax-4    syl
     S  T  y  df-seq    biimpi    y  (<-> (e. y S) (e. y T))  ax-4    syl
     (<= x y)  imbi1d
@@ -12832,9 +12925,9 @@ thm (mineq () () (-> (=_ S T) (= (min S) (min T)))
   T  x  y  df-min    syl6eqr
 )
 
-thm (mineqi () (hyp (=_ S T)) (= (min S) (min T))
+thm (minseqi () (hyp (=_ S T)) (= (min S) (min T))
   hyp
-  S T mineq
+  S T minseq
   ax-mp
 )
 
@@ -13000,7 +13093,7 @@ impexpi
 syl
 )
 
-# The minimum of a nonempty set exists
+## <title> The minimum of a nonempty set exists </title>
 thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
                                 (<= (min S) A)))
   x  (0)  S  minex.1
@@ -13015,19 +13108,19 @@ thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
   sind
 )
 
-# The minimum of a (nonempty) set is in the set
+## <title> The minimum of a (nonempty) set is in the set </title>
 thm (mincl ((S x)) ()
   (-> (E. x (e. x S)) (e. (min S) S))
   x S minex pm3.26d x 19.23ai
 )
 
 # Equality deduction for set minimum
-thm (mineqd () (h (-> ph (=_ S T)))
+thm (minseqd () (h (-> ph (=_ S T)))
   (-> ph (= (min S) (min T)))
-  h S T mineq syl
+  h S T minseq syl
 )
 
-# If any number satisfies a predicate, the minimum does
+## <summary> If any number satisfies a predicate, the minimum does </summary>
 thm (minel ((ps x)) (
   h1 (rwff x ph)
   h2 (-> (= x (min ({|} x ph))) (<-> ph ps))
@@ -13038,7 +13131,7 @@ thm (minel ((ps x)) (
   h2 elab sylib
 )
 
-# Another way of specifying the value of minimum
+## <summary> Another way of specifying the value of minimum </summary>
 thm (minval ((ps x) (A x))
   (h1 (rwff x ph)
    h2 (-> (= x A) (<-> ph ps)))
@@ -13083,7 +13176,7 @@ thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
     y  y'  B  muleq2    x'  addeq1d    A  eqeq1d    exalpha
   syl6bb
   abeq
-  ({|} x (E. y (= (+ (* B y) x) A)))  ({|} x' (E. y' (= (+ (* B y') x') A)))  mineq    ax-mp
+  ({|} x (E. y (= (+ (* B y) x) A)))  ({|} x' (E. y' (= (+ (* B y') x') A)))  minseq    ax-mp
 )
 
 
@@ -13093,7 +13186,7 @@ defthm  (df-mod nat (mod A B) ((A x y) (B x y)) ()
 
 thm (modeq1 () () (-> (= A B) (= (mod A C) (mod B C)))
   A B (+ (* C y) x) eqeq2 y exbid
-  x abbi2d mineqd
+  x abbi2d minseqd
     A C x y df-mod
       B C x y df-mod
   3eqtr4g
@@ -13204,7 +13297,7 @@ thm (df-gcd-just ((A z z') (B z z')) ()
     A  B  z'  v'  w' x'  y'  df-lincom     syl6bbr
   anbi12d
   abeq
-  ({|} z (/\ (-. (= z (0))) (lincom A B z)))  ({|} z' (/\ (-. (= z' (0))) (lincom A B z')))  mineq  ax-mp
+  ({|} z (/\ (-. (= z (0))) (lincom A B z)))  ({|} z' (/\ (-. (= z' (0))) (lincom A B z')))  minseq  ax-mp
 )
 
 
@@ -13280,6 +13373,7 @@ B  pa_ax1
 ax-mp
 (S B)  (mod A (S B))  lenltt  biimpri  con1i  ax-mp
 )
+
 # number 111.0
 thm (exey ((ph y) (ps x))
   () (-> (/\ (E. x ph) (E. y ps)) (E. x (E. y (/\ ph ps))))
@@ -13333,9 +13427,137 @@ thm (gcddiv1.2 ((A z) (B z)) () (-> (= (gcd (S A) B) z) (/\ (-. (= z (0))) (linc
 thm (modeq2 () () (-> (= A B) (= (mod C A) (mod C B)))
   A  B  y  muleq1  x  addeq1d   C  eqeq1d   y  exbid x  19.21ai
   x  (E. y (= (+ (* A y) x) C))  (E. y (= (+ (* B y) x) C))  abbi2  syl
-  ({|} x (E. y (= (+ (* A y) x) C)))  ({|} x (E. y (= (+ (* B y) x) C)))  mineq  syl
+  ({|} x (E. y (= (+ (* A y) x) C)))  ({|} x (E. y (= (+ (* B y) x) C)))  minseq  syl
   C  A  x  y  df-mod  syl5eq
   C  B  x  y  df-mod  syl6eqr
+)
+
+thm (modeq1i () (
+     hyp1 (= A B))
+     (= (mod A C) (mod B C))
+  hyp1
+  A B C modeq1
+  ax-mp
+)
+
+thm (modeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (mod A C) (mod B C)))
+  hyp1
+  A B C modeq1
+  syl
+)
+
+thm (modeq2i () (
+     hyp1 (= A B))
+     (= (mod C A) (mod C B))
+  hyp1
+  A B C modeq2
+  ax-mp
+)
+
+thm (modeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (mod C A) (mod C B)))
+  hyp1
+  A B C modeq2
+  syl
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (<  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceLt0 () (
+     replacee (< A C)
+     substitution (= A B)) 
+     (< B C)
+  replacee substitution
+  C lteq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (< (mod A  [ B ]   ]   ] ) D)
+##   (=         [ B ]   [ C ] )
+##   (< (mod A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceLt0Mod1 () (
+     replacee (< (mod A B) D)
+     substitution (= B C)) 
+     (< (mod A C) D)
+  replacee substitution
+  A modeq2i
+  EqReplaceLt0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (< A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (< A  [   [   [ C ] )
+## </table>
+thm (EqReplaceLt1 () (
+     replacee (< A B)
+     substitution (= B C)) 
+     (< A C)
+  replacee substitution
+  A lteq2i
+  mpbi
+)
+
+thm (modlt () () (-> (< (0) B) (< (mod A B) B))
+  (1) B (1) halfminusaddcom  
+  ## <d>
+    B (1) halfminuscan
+    EqReplaceImp1Eq1
+  ## </d>
+  A modeq2d
+  (1) B (1) halfminusaddcom  
+  ## <d>
+    B (1) halfminuscan
+    EqReplaceImp1Eq1
+  ## </d>
+  (mod A (+ (.- B (1)) (1))) lteq2d
+  A (.- B (1)) modlt2  
+  ## <d 'Successor Adds One '>
+    (.- B (1)) a1suc
+    EqReplaceLt1
+  ## </d 'Successor Adds One '>
+  ## <d 'Successor Adds One '>
+    (.- B (1)) a1suc
+    EqReplaceLt0Mod1
+  ## </d 'Successor Adds One '>  
+  (< (mod A (+ (.- B (1)) (1))) B) biRemove1
+  (<= (1) B) imbi2i
+  mpbi
+  jca  
+  (mod A (+ (.- B (1)) (1))) (mod A B) B lteq1  
+  ImpReplaceImp1An0
+  ## <d 'Commutative Property '>
+    (<-> (< (mod A (+ (.- B (1)) (1))) B) (< (mod A B) B)) (< (mod A (+ (.- B (1)) (1))) B) ancom
+    sylib
+  ## </d 'Commutative Property '>  
+  ## <d>
+    (< (mod A (+ (.- B (1)) (1))) B) (< (mod A B) B) mpbi-inline
+    syl
+  ## </d>
+  (0) B ltle2  
+  ## <d 'Additive Identity Axiom '>
+    (1) pa_ax3r
+    EqReplaceBi1Le0
+  ## </d 'Additive Identity Axiom '>
+  
+  ## <d 'Commutative Property '>
+    (< (0) B) (<= (1) B) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  sylbi2
 )
 
 # Divides relation is equivalent to zero remainder
@@ -13524,7 +13746,7 @@ thm (modval.3 () ()
   pm2.61i
 )
 
-# Main theorem giving mod its value
+## <summary> Main theorem giving mod its value </summary>
 thm (modval ((A y) (B y) (C y)) ()
   (-> (/\ (< C B) (E. y (= (+ (* B y) C) A))) (= C (mod A B)))
 
@@ -13586,7 +13808,7 @@ thm (df-div-just ((A x y) (B x y)) ()
   (= (min ({|} x (= (+ (* B x) (mod A B)) A)))
     (min ({|} y (= (+ (* B y) (mod A B)) A))))
   x y B muleq2 (mod A B) addeq1d A eqeq1d abeq
-  ({|} x (= (+ (* B x) (mod A B)) A)) ({|} y (= (+ (* B y) (mod A B)) A)) mineq ax-mp
+  ({|} x (= (+ (* B x) (mod A B)) A)) ({|} y (= (+ (* B y) (mod A B)) A)) minseq ax-mp
 )
 
 defthm (df-div nat (div A B) ((A x) (B x)) ()
@@ -13594,7 +13816,51 @@ defthm (df-div nat (div A B) ((A x) (B x)) ()
   y B A x df-div-just
 )
 
-# Main theorem about division
+## <title> Equivalence for div </title> ##
+thm (diveq1 () () (-> (= A C) (= (div A B) (div C B)))
+  A C B modeq1
+  (* B x) addeq2d
+  (= A C) id
+  eqeq12d
+  x abbi2d
+  minseqd
+  A B x df-div eqcomi  
+  EqReplaceImp1Eq0
+  C B x df-div eqcomi  
+  EqReplaceImp1Eq1
+)
+
+thm (diveq2 () () (-> (= B C) (= (div A B) (div A C)))
+  B C x muleq1
+  B C A modeq2
+  addeq12d
+  A eqeq1d
+  x abbi2d
+  minseqd
+  A B x df-div eqcomi  
+  EqReplaceImp1Eq0
+  A C x df-div eqcomi  
+  EqReplaceImp1Eq1
+)
+
+thm (diveq1i () (
+     hyp1 (= A C))
+     (= (div A B) (div C B))
+  hyp1
+  A C B diveq1
+  ax-mp
+)
+
+thm (diveq1d () (
+     hyp1 (-> ph (= A C)))
+     (-> ph (= (div A B) (div C B)))
+  hyp1
+  A C B diveq1
+  syl
+)
+
+
+## <summary> Main theorem about division </summary>
 thm (div () () (= (+ (* B (div A B)) (mod A B)) A)
    x B A modex
     x y B muleq2 (mod A B) addeq1d A eqeq1d rwffi
@@ -13616,6 +13882,305 @@ thm (muldiv () ()
 )
 
 
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (< A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Lt1 () (
+     replacee (-> ph (< A B))
+     substitution (= B C)) 
+     (-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  sylib
+)
+
+
+
+thm (notDivides2 ((B x) (A x)) () (-> (/\ (-. (| A B)) (-. (<= A (0)))) (E. x (/\ (< (* A x) B) (< B (* A (+ x (1)))))))
+  x (div B A) tyex
+  (div B A) x A muleq2
+  B lteq1d
+  (div B A) x (1) addeq1
+  A muleq2d
+  B lteq2d
+  anbi12d
+  (/\ (-. (| A B)) (< (0) A)) imbi2d
+
+
+  A B dividesmod  
+  ## <d 'Negate Both Sides '>
+    (| A B) (= (mod B A) (0)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  
+  ## <d 'All nonzero natural numbers are positive '>
+    (mod B A) 0inequalities2  
+    bitri
+  ## </d 'All nonzero natural numbers are positive '>    
+      
+      ## <d 'Commute Inequality '>
+        (mod B A) (0) lecom        
+        BiReplaceBi1Not0
+        ## <d 'Double Negative '>
+          (< (0) (mod B A)) notnotr
+          bitri
+        ## </d 'Double Negative '>
+      ## </d 'Commute Inequality '>
+
+ (0) (mod B A) (* A (div B A))  ltadd2    
+        
+        ## <d 'Additive Identity Axiom '>
+          (* A (div B A)) pa_ax3
+          EqReplaceBi1Lt0
+        ## </d 'Additive Identity Axiom '>
+        
+  bitri
+  A B div        
+  EqReplaceBi1Lt1        
+        ## <d 'Infer Left to Right '>
+          (-. (| A B)) (< (* A (div B A)) B) bi1
+          ax-mp
+        ## </d 'Infer Left to Right '>
+
+  A B modlt
+ (mod B A) A (* A (div B A))  ltadd2    
+  sylib
+
+  A B div
+  EqReplaceImp1Lt0
+  A mulid
+  (* A (div B A)) addeq2i eqcomi        
+        ## <d 'Distributive Property '>
+          A (div B A) (1) distr
+          ## <d 'Commutative Property'>
+            (* A (+ (div B A) (1))) (+ (* A (div B A)) (* A (1))) eqcom
+            mpbi
+          ## </d 'Commutative Property'>
+          EqReplaceEq1
+        ## </d 'Distributive Property '>
+        
+        EqReplaceImp1Lt1
+  pm3.2i        
+  ## <d 'Praeclarum Theorema '>
+    (-. (| A B)) (< (* A (div B A)) B) (< (0) A) (< B (* A (+ (div B A) (1)))) prth
+    ax-mp
+  ## </d 'Praeclarum Theorema '>
+
+  
+  (-> (/\ (-. (| A B)) (< (0) A)) (/\ (< (* A x) B) (< B (* A (+ x (1)))))) biRemove1
+  (= (div B A) x) imbi2i
+  mpbi
+  
+  ## <d 'Symmetric Property '>
+    (div B A) x eqcom
+    sylbi2
+  ## </d 'Symmetric Property '>
+  
+  ImpReplaceEx1
+
+  (/\ (-. (| A B)) (< (0) A)) x (/\ (< (* A x) B) (< B (* A (+ x (1)))))
+  imex bicomi  
+  mpbi
+  
+  ## <d 'Commute Inequality '>
+    (0) A ltcom
+    BiReplaceImp0An1
+  ## </d 'Commute Inequality '>
+)
+
+## <title> One-Digit Inequality </title>
+thm (0notEqual2 () () (-. (= (0) (2)))
+  (1) pa_ax1plus
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceNot0Eq1
+  ## </d 'Evaluate'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (0less2 () () (< (0) (2))
+  0notEqual2
+  ## <d 'Less Than Or Equal To Zero'>
+    (2) 0le
+  ## </d 'Less Than Or Equal To Zero'>
+  axlttri2i
+)
+
+## <title> One-Digit Inequality </title>
+thm (2notEqual0 () () (-. (= (2) (0)))
+  ## <d 'Number is Not Zero'>
+    0notEqual2
+    ## <d 'Commutative Property'>
+      (0) (2) eqcom
+      mtbi
+    ## </d 'Commutative Property'>
+  ## </d 'Number is Not Zero'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (2greater0 () () (-. (<= (2) (0)))
+  2notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (2) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<= (+ A  [ B ]   ]   ] ) D))
+##   (=                [ B ]   [ C ] )
+##   (<-> ph (<= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceBi1Le0Add1 () (
+     replacee (<-> ph (<= (+ A B) D))
+     substitution (= B C)) 
+     (<-> ph (<= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceBi1Le0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\ (<=  [ A ]   ]   ]  C) ps)))
+##   (=                    [ A ]   [ B ] )
+##   (-> ph (E. x (/\ (<=  [   [   [ B ]  C) ps)))
+## </table>
+thm (EqReplaceImp1Ex1An0Le0 () (
+     replacee (-> ph (E. x (/\ (<= A C) ps)))
+     substitution (= A B)) 
+     (-> ph (E. x (/\ (<= B C) ps)))
+  replacee substitution
+  C leeq1i
+  BiReplaceImp1Ex1An0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (-> ph  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (E. x (-> ph  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceEx1Imp1 () (
+     replacee (E. x (-> ph ps))
+     substitution (<-> ps ch)) 
+     (E. x (-> ph ch))
+  replacee substitution
+  ph imbi2i
+  exbiii
+)
+
+thm (sbc-oddSuccessor ((B x) (C x) (A x)) () (<-> ([/] B x (= (* C x) A)) (= (* C B) A)) 
+  x B C muleq2
+  A eqeq1d
+  sbcie
+)
+
+## <title> An odd number has an even number above it </title>
+thm (oddsuccessor () () (-> (-. (| (2) A)) (| (2) (+ A (1))))
+  (2) A x notDivides2
+  2greater0
+
+  (-. (| (2) A)) anRemove2
+  (E. x (/\ (< (* (2) x) A) (< A (* (2) (+ x (1)))))) imbi1i
+  mpbi
+  (* (2) x) A (1) ltadd1
+
+  ## <d 'Convert between ≤ and < '>
+    (+ (* (2) x) (1)) (+ A (1)) ltle2
+    bitri
+  ## </d 'Convert between ≤ and < '>
+  ## <d 'Associative Property '>
+    (* (2) x) (1) (1) addass
+    EqReplaceBi1Le0
+  ## </d 'Associative Property '>
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceBi1Le0Add1
+  ## </d 'Evaluate'>
+  BiReplaceImp1Ex1An0
+
+  A (* (2) (+ x (1))) (1) ltadd1
+  ## <d 'Convert between ≤ and < '>
+    (+ A (1)) (* (2) (+ x (1))) lePlus1
+    bitri
+  ## </d 'Convert between ≤ and < '>
+  BiReplaceImp1Ex1An1
+
+  (2) x (1) distr eqcomi
+  ## <d 'Commutative Property '>
+    (2) (1) mulcom
+    (2) mulidr
+    EqReplaceEq1
+    EqReplaceEq0Add1
+  ## </d 'Commutative Property '>
+
+  EqReplaceImp1Ex1An0Le0
+
+  ## <d>
+    (* (2) (+ x (1))) (+ A (1)) lesym
+    ## <d 'Commutative Property'>
+      (= (* (2) (+ x (1))) (+ A (1))) (/\ (<= (* (2) (+ x (1))) (+ A (1))) (<= (+ A (1)) (* (2) (+ x (1))))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    BiReplaceImp1Ex1
+  ## </d>
+
+  x (1) y (= (* (2) y) (+ A (1)))  z sbcadd
+  (+ x (1)) y (2) (+ A (1)) sbc-oddSuccessor    
+  sylbi2
+  z y (2) (+ A (1)) sbc-oddSuccessor    
+  BiReplaceImp1Ex1  
+  ImpReplaceImp1Ex1
+
+  x (E. z (= (* (2) z) (+ A (1)))) 19.9  
+  sylib
+  
+  ## <d 'Divides Definition '>
+    (2) (+ A (1)) z df-divides
+    ## <d 'Commutative Property'>
+      (| (2) (+ A (1))) (E. z (= (* (2) z) (+ A (1)))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    sylib
+  ## </d 'Divides Definition '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (| A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (| A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Divs1 () (
+     replacee (-> ph (| A B))
+     substitution (= B C)) 
+     (-> ph (| A C))
+  replacee substitution
+  A divideseq2i
+  sylib
+)
+
+
+## <title> x(x+1) is even </title>
+thm (evenxxplus1 () () (| (2) (* A (+ A (1))))
+  (2) A (+ A (1)) dividesmul
+  A oddsuccessor
+  (2) (+ A (1)) A dividesmul  
+  syl  
+  ## <d 'Commutative Property '>
+    (+ A (1)) A mulcom
+    EqReplaceImp1Divs1
+  ## </d 'Commutative Property '>
+  pm2.61i
+)
 
 ## <title> Substitution </title>
 ## <table>
@@ -13647,7 +14212,7 @@ thm (BiReplaceEq1Min0Ab1 () (
   replacee
   substitution
 x abbi2i
-mineqi
+minseqi
 A eqeq2i
 mpbi
 )
@@ -13664,7 +14229,7 @@ thm (SeqReplaceEq1Min0 () (
      (= A (min T))
   replacee
   substitution
-mineqi
+minseqi
 A eqeq2i
 mpbi
 )
@@ -13717,7 +14282,7 @@ thm (divval () (hyp (-. (<= B (0))) hyp2 (= (+ (* B C) (mod A B)) A)) (= (div A 
 
 # == Godel's Beta Function ==
 
-# A development of Godel's Beta Function, following Shoenfield(1967).
+## <summary> A development of Godel's Beta Function, following Shoenfield(1967).  </summary> 
 thm (df-beta-just ((A x x') (B x x')) ()
 (=  (min ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A))))
     (min ({|} x' (| (S (* (S (<,> B x')) (tail A))) (head A)))))
@@ -13726,7 +14291,7 @@ thm (df-beta-just ((A x x') (B x x')) ()
     x  x'  B  opeq2  suceqd  (tail A)  muleq1d  suceqd
     (S (* (S (<,> B x)) (tail A)))  (S (* (S (<,> B x')) (tail A)))  (head A)  divideseq1  syl
   abeq
-  ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A)))  ({|} x' (| (S (* (S (<,> B x')) (tail A))) (head A)))   mineq  ax-mp
+  ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A)))  ({|} x' (| (S (* (S (<,> B x')) (tail A))) (head A)))   minseq  ax-mp
 )
 defthm  (df-beta nat (beta A B) ((A x ) (B x )) ()
         (= (beta A B) (min ({|} x (| (S (* (S (<,> B x)) (tail A))) (head A)))))
@@ -13831,21 +14396,6 @@ thm (ImpReplaceEx1An1 () (
 
 ## <title> Substitution </title>
 ## <table>
-##   (E. x (-> ph  [ ps ]   ]    ] ))
-##   (<->          [ ps ]   [ ch ] )
-##   (E. x (-> ph  [    [   [ ch ] ))
-## </table>
-thm (BiReplaceEx1Imp1 () (
-     replacee (E. x (-> ph ps))
-     substitution (<-> ps ch)) 
-     (E. x (-> ph ch))
-  replacee substitution
-  ph imbi2i
-  exbiii
-)
-
-## <title> Substitution </title>
-## <table>
 ##   (E. x (-> ph (/\ ps  [ ch ]   ]    ] )))
 ##   (<->                 [ ch ]   [ th ] )
 ##   (E. x (-> ph (/\ ps  [    [   [ th ] )))
@@ -13931,7 +14481,7 @@ thm (singleQualifier ((A x) (S x) (B x) (A y) (S y) (B y)) (hyp (E. x (A. y (-> 
   mpbi
 )
 
-# Similiar to singleQualifier, but applied to fun1.
+## <summary> Similiar to singleQualifier, but applied to fun1.  </summary> 
 thm (fun1.1 () (hyp (fun S)) (-> (/\ (/\ (= (head B) A) (e. B S)) (/\ (= (head C) A) (e. C S))) (= B C))
   hyp
   S x y A fun1
@@ -14220,10 +14770,12 @@ thm (relprimex.3 ((S x y z) (T x y z) (A x y z)) ()
 pm2.61i
 )
 # number 127.0
-# A development of Godel's Beta Function, following Shoenfield(1967).
-# Suppose everything in S is relatively prime to everything in T.
-# Then there's a number x divisible by everything in (1,A) & S and by nothing in (1, B) & T.
-# We prove this by induction on A.
+## <summary>
+##   A development of Godel's Beta Function, following Shoenfield(1967).
+##   Suppose everything in S is relatively prime to everything in T.
+##   Then there's a number x divisible by everything in (1,A) & S and by nothing in (1, B) & T.
+##   We prove this by induction on A.
+## </summary> 
 thm (relprimex ((S x y z) (T x y z) (A y z)) ()
  (-> (A. x (A. y (-> (/\ (e. x S) (e. y T)) (relprim x y))))
      (E. z (/\ (A. y (-> (/\ (< (S (S y)) A) (e. (S (S y)) S))     (| (S (S y)) z)))
@@ -14281,8 +14833,7 @@ thm (dividesmul12 () () (-> (| A B) (| (* A C) (* B C)))
   (* A C)  (* B C)  x  df-divides  sylibr
 )
 # number 129.0
-# A development of Godel's Beta Function, following Shoenfield(1967).
-# k=A', z=B', j=C
+## <summary> A development of Godel's Beta Function, following Shoenfield(1967). k=A', z=B', j=C </summary>
 thm (beta.1 () () (-> (| (S A) (S B)) (relprim (S (* (+ C (S A)) (S B))) (S (* C (S B)))))
     (* (+ C (S A)) (S B))  x  pa_ax6r
     C  (S A)  (S B)  distl  x  muleq1i  x  addeq1i  eqtr
@@ -14340,7 +14891,7 @@ thm (sucsuc ((A x)) () (<-> (E. x (= A (S (S x)))) (< (1) A))
    impbii
 )
 # number 133.0
-# Like relprimex, but without the class abstraction
+## <summary> Like relprimex, but without the class abstraction </summary>
 thm (relprimex2 ((A x z) (ps x z) (ph v z)) (h1 (rwff x ph) h2 (rwff v ps))
  (-> (A. x (A. v (-> (/\ ph  ps) (relprim x v))))
      (E. z (/\ (A. x (-> (/\ (< (1) x) (/\ (< x A) ph)) (| x z)))
@@ -14564,7 +15115,7 @@ A  B   (1)  leadd1  A  a1suc  (+ B (1)) leeq1i  bitr4i  B  a1suc  (S A)  leeq2i 
 )
 
 # number 138.0
-# A development of Godel's Beta Function, following Shoenfield(1967).
+## <summary> A development of Godel's Beta Function, following Shoenfield(1967). </summary>
 thm (beta.3 ((A w x y x' y' z') (B w x y x' y') (ph y z') (ps x z') (S x y x' y')) (
 h1 (<-> ph (E. x' (/\ (/\ (<= x' A) (e. x' S))  (= x (S (* (S x') (S (S w))))))))
 h2 (<-> ps (E. y' (/\ (/\ (<= y' B) (-. (e. y' S))) (= y (S (* (S y') (S (S w)))))))))
@@ -14737,8 +15288,10 @@ x'  19.20i  z'  19.22i  w  19.22i  ax-mp
   z'  (E. z (A. x' (-> (<= x' A) (<-> (e. x' S) (| (S (* (S x') (tail z))) (head z))))))  ex-nf  ax-mp
 )
 
-# An ordering theorem on ordered pairs. Note that this breaks the abstraction somewhat,
-# but if necessary we could define a special ordering rather than reusing <=.
+## <summary>
+##   An ordering theorem on ordered pairs. Note that this breaks the abstraction somewhat,
+##   but if necessary we could define a special ordering rather than reusing <=.
+## </summary>
 thm (leop12 () () (-> (/\ (<= A C) (<= B D)) (<= (<,> A B) (<,> C D)))
   A  C  B   leadd1
   B  D  C   leadd2  anbi12i  (+ A B)  (+ C B)  (+ C D)  letr  sylbi
@@ -14778,12 +15331,14 @@ mpd
 
 
 # number 146.0
-# A development of Godel's Beta Function, following Shoenfield(1967).
-# If S is a functional set defining a sequence {S(0), S(1), ..., S(A), ...}:
-# Then there exists a z such that for all x in [0,A], we have:
-# beta(z, x) = S(x).
-# This allows us to encode finite sequences in a quantifiable way,
-# which is necessary to deal with recursive functions.
+## <summary>
+##   A development of Godel's Beta Function, following Shoenfield(1967).
+##   If S is a functional set defining a sequence {S(0), S(1), ..., S(A), ...}:
+##   Then there exists a z such that for all x in [0,A], we have:
+##   beta(z, x) = S(x).
+##   This allows us to encode finite sequences in a quantifiable way,
+##   which is necessary to deal with recursive functions.
+## </summary>
 thm (beta ((S x z) (A x z)) ()
   (-> (fun S)
       (E. z (A. x (-> (< x A) (e. (<,> x (beta z x)) S)))))
@@ -14902,7 +15457,7 @@ thm (betaeq1 () () (-> (= A B) (= (beta A C) (beta B C)))
    (S (* (S (<,> C x)) (tail A)))  (S (* (S (<,> C x)) (tail B)))  (head B)  divideseq1  syl
   bitrd    x  19.21ai
   x (| (S (* (S (<,> C x)) (tail A))) (head A))  (| (S (* (S (<,> C x)) (tail B))) (head B))  abbi2   syl
-  ({|} x (| (S (* (S (<,> C x)) (tail A))) (head A)))  ({|} x (| (S (* (S (<,> C x)) (tail B))) (head B)))  mineq    syl
+  ({|} x (| (S (* (S (<,> C x)) (tail A))) (head A)))  ({|} x (| (S (* (S (<,> C x)) (tail B))) (head B)))  minseq    syl
 
 
   B  C  x  df-beta    syl6eqr
@@ -14915,7 +15470,7 @@ thm (betaeq2 () () (-> (= A B) (= (beta C A) (beta C B)))
   (S (* (S (<,> A x)) (tail C)))  (S (* (S (<,> B x)) (tail C)))  (head C)  divideseq1  syl
   x  19.21ai
   x  (| (S (* (S (<,> A x)) (tail C))) (head C))  (| (S (* (S (<,> B x)) (tail C))) (head C))  abbi2  syl
-  ({|} x (| (S (* (S (<,> A x)) (tail C))) (head C)))  ({|} x (| (S (* (S (<,> B x)) (tail C))) (head C)))  mineq  syl
+  ({|} x (| (S (* (S (<,> A x)) (tail C))) (head C)))  ({|} x (| (S (* (S (<,> B x)) (tail C))) (head C)))  minseq  syl
   C  A  x  df-beta  syl5eq
   C  B  x  df-beta  syl6eqr
 )
@@ -14971,8 +15526,10 @@ ax-mp
 
 # == Lambda and function application ==
 
-# Definition of the lambda operator, which creates a functional set from an
-# expression in one variable.
+## <summary>
+##   Definition of the lambda operator, which creates a functional set from an
+##   expression in one variable.
+## </summary>
 thm (df-lambda-just ((A x x')) ()
   (=_ ({|} x (E. y (= x (<,> y A)))) ({|} x' (E. y (= x' (<,> y A)))))
   x  x'  (<,> y A) eqeq1  y  exbid
@@ -14999,7 +15556,7 @@ defthm  (df-lambda set (lambda y A) ((A x)) ()
 #!)
 # number 156.0
 
-# Asserts that lambda constructs are actually functions.
+## <title> Lambda constructs are functions </title>
 thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
 #(A. y (E! v (e. (<,> y v) (lambda x A))))
 v  B  tyeu  z eqid
@@ -15045,8 +15602,10 @@ elab
 )
 
 # number 157.0
-# Given two functions S, T and a discriminator ph, we can assemble a piecewise
-# function which mimics S when ph is true and T otherwise.
+## <summary>
+##   Given two functions S, T and a discriminator ph, we can assemble a piecewise
+##   function which mimics S when ph is true and T otherwise.
+## </summary>
 thm (piecewisefun ((S x') (T x')) () (-> (/\ (fun S) (fun T)) (fun ({|} x' (\/ (/\ ([/] (head x') x' ph)  (e. x' S))
                                                                          (/\ (-. ([/] (head x') x' ph)) (e. x' T))))))
 
@@ -15093,8 +15652,10 @@ mpd
 
 )
 # number 157.5
-# Definition of "apply" to apply a function (reperesented by a set S) to an
-# input.
+## <summary>
+##   Definition of "apply" to apply a function (reperesented by a set S) to an
+##   input.
+## </summary>
 thm (df-apply-just ((A y) (S y) (A z) (S z)) ()
   (= (iota ({|} z (e. (<,> A z) S)))
      (iota ({|} y (e. (<,> A y) S))))
@@ -15203,7 +15764,7 @@ thm (funseqd () (
   syl
 )
 
-# Asserts that membership in functional set of a lambda works the way you'd expect.
+## <summary> Asserts that membership in functional set of a lambda works the way you'd expect. </summary>
 thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
      (<-> (e. (<,> x A) (lambda x B)) (= A B))
   x  B  z  df-lambda  (<,> x A) eleq2i
@@ -15223,7 +15784,7 @@ thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
 )
 
 # number 159.5
-# apply actually works (assuming S is a function).
+## <summary> apply actually works (assuming S is a function). </summary>
 thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
 #      y  x  (e. (<,> A x) S)  ax-elab
   S  w  x  z  df-fun  biimpi     pm3.26d
@@ -15741,7 +16302,7 @@ impbii
   S  (0)  A  x  z  y  df-recursep    x  exbii     (fun S)  imbi2i   mpbir
 )
 
-# Existence of the result of a recursion operation.
+## <summary> Existence of the result of a recursion operation. </summary>
 thm (recursive ((A w) (S w) (B w)) () (-> (fun S) (E. w (recursep S A B w)))
 
    x  (0)    S  w  B  recursive.1
@@ -15778,7 +16339,7 @@ B  A  eqcom  bitri
 (fun S)  a1i
 )
 
-# Recursing "one more time" works as expected
+## <summary> Recursing "one more time" works as expected. </summary>
 thm (recursepsuc ((A x) (B x) (C x) (S x)) ()
  # (-> (fun S)
      (-> (recursep S (S A) B C) (E. x (/\ (recursep S A B x) (e. (<,> x C) S))))
@@ -15901,7 +16462,7 @@ thm (recursep-uniq.3 ((B z z')) () (-> (= x B) (<->
   (fun S)  imbi2d
 )
 
-# Uniqueness of the result of a recursion operation.
+## <summary> Uniqueness of the result of a recursion operation. </summary> 
 thm (recursep-uniq () () (-> (fun S) (-> (/\ (recursep S A B C)  (recursep S A B D)) (= C D)))
 
   x  (0)  S  z  z'  B  recursep-uniq.3
@@ -15948,7 +16509,6 @@ thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
     syl6bbr
 )
 
-# Recursing zero times doesn't go anywhere.
 ## <title> Recursing zero times does nothing </title>
 ## <suggest> full('Simplify', 'T') </suggest>
 thm (recursep0 () () (recursep S (0) A A)
@@ -15968,8 +16528,10 @@ mpbiri
 )
 
 # number 174.0
-# There exists a unique answer to recursing the function S exactly B times
-# starting at A.
+## <summary>
+##   There exists a unique answer to recursing the function S exactly B times
+##   starting at A.
+## </summary>
 thm (eurecursep ((S x) (A x) (B x)) () (-> (fun S) (E! x (recursep S A B x)))
   S x A B recursive
     S A B x y recursep-uniq y 19.21ai x 19.21ai
@@ -17561,21 +18123,6 @@ thm (EqReplaceImp1Eq1Add0Sum1 () (
   EqReplaceImp1Eq1Add0
 )
 
-## <title> Substitution </title>
-## <table>
-##   (< A  [ B ]   ]   ] )
-##   (=    [ B ]   [ C ] )
-##   (< A  [   [   [ C ] )
-## </table>
-thm (EqReplaceLt1 () (
-     replacee (< A B)
-     substitution (= B C)) 
-     (< A C)
-  replacee substitution
-  A lteq2i
-  mpbi
-)
-
 thm (sumdetach2 () () (= (sum (0) (+ A (1)) S) (+ (sum (0) A S) (apply S (+ A (1)))))
   0less1
   A addge01t2  
@@ -18183,10 +18730,11 @@ thm (product0 () () (-> (< B A) (= (product A B S) (1)))
 )
 
 
-
-# Unfortunately, this is much more complicated because 0 .- 1 = 0. We need to check that B > 0, because
-# the value:
-#     product 0 (.= 0 1) S = S(0), not 1 as we'd expect if we were using a real minus and not a halfminus.
+## <summary>
+##   Unfortunately, this is much more complicated because 0 .- 1 = 0. We need to check that B > 0, because
+##   the value:
+##     product 0 (.= 0 1) S = S(0), not 1 as we'd expect if we were using a real minus and not a halfminus.
+## </summary>
 thm (productdetach2 () () (-> (/\ (< (0) B) (<= A B)) (= (product A B S) (* (product A (.- B (1)) S) (apply S B))))
   (0) B (1) ltadd1
   ## <d 'Additive Identity Axiom '>
@@ -18820,21 +19368,6 @@ thm (LeReplaceBi1Lt1 () (
   replacee substitution
   A leTrlt
   ImpReplaceBi1
-)
-
-## <title> Substitution </title>
-## <table>
-##   (-> ph (< A  [ B ]   ]   ] ))
-##   (=           [ B ]   [ C ] )
-##   (-> ph (< A  [   [   [ C ] ))
-## </table>
-thm (EqReplaceImp1Lt1 () (
-     replacee (-> ph (< A B))
-     substitution (= B C)) 
-     (-> ph (< A C))
-  replacee substitution
-  A lteq2i
-  sylib
 )
 
 ## <title> Substitution </title>
@@ -19802,7 +20335,7 @@ thm (explt.3 () ()
   mpd
 )
 
-# Exponentation is strictly monotonic with base of two or greater
+## <summary> Exponentation is strictly monotonic with base of two or greater </summary>
 thm (exple () ()
   (-> (< (1) A) (<-> (<= B C) (<= (exp A B) (exp A C))))
   (0) leid (0) (0) lesuc mpbir df-1 (0) lteq2i mpbir (0) (1) A lttr mpan
@@ -19815,7 +20348,7 @@ thm (exple () ()
   impbid
 )
 
-# Exponentation is strictly monotonic with base of two or greater
+## <summary> Exponentation is strictly monotonic with base of two or greater </summary>
 thm (explt () ()
   (-> (< (1) A) (<-> (< B C) (< (exp A B) (exp A C))))
   A C B exple
@@ -20533,21 +21066,6 @@ thm (SeqReplaceImp0El1 () (
   sylbi2
 )
 
-## <title> Substitution </title>
-## <table>
-##   (-> ph (| A  [ B ]   ]   ] ))
-##   (=           [ B ]   [ C ] )
-##   (-> ph (| A  [   [   [ C ] ))
-## </table>
-thm (EqReplaceImp1Divs1 () (
-     replacee (-> ph (| A B))
-     substitution (= B C)) 
-     (-> ph (| A C))
-  replacee substitution
-  A divideseq2i
-  sylib
-)
-
 thm (elementDivides () () (-> (e. B (<{}> A)) (| B (<*> A)))
   B (lambda x (_ A x)) x A elementDivides.1
   A x df-tupleset seqcomi  
@@ -20762,25 +21280,12 @@ thm (addmod0 () () (-> (/\ (= (mod B A) (0)) (= (mod C A) (0))) (= (mod (+ B C) 
   sylib
 )
 
-## <title> Substitution </title>
-## <table>
-##   (= (+ A  [ B ]   ]   ] ) D)
-##   (=       [ B ]   [ C ] )
-##   (= (+ A  [   [   [ C ] ) D)
-## </table>
-thm (EqReplaceEq0Add1 () (
-     replacee (= (+ A B) D)
-     substitution (= B C)) 
-     (= (+ A C) D)
-  replacee substitution
-  A addeq2i
-  EqReplaceEq0
-)
-
-thm (divtr() (hyp (= (mod B A) (0)) hyp2 (= (mod C A) (0))) (-> (< (0) A) (= (+ (div B A) (div C A)) (div (+ B C) A)))
+thm (divtr() (hyp (| A B) hyp2 (| A C)) (-> (< (0) A) (= (+ (div B A) (div C A)) (div (+ B C) A)))
   A (+ (div B A) (div C A)) (div (+ B C) A) mulcant2
   A B div
-  hyp  
+  hyp
+  A B dividesmod  
+  mpbi
   EqReplaceEq0Add1
   ## <d 'Additive Identity Axiom '>
     (* A (div B A)) pa_ax3
@@ -20788,7 +21293,9 @@ thm (divtr() (hyp (= (mod B A) (0)) hyp2 (= (mod C A) (0))) (-> (< (0) A) (= (+ 
   ## </d 'Additive Identity Axiom '>
   A C div
 
-  hyp2  
+  hyp2
+  A C dividesmod  
+  mpbi
   EqReplaceEq0Add1
   ## <d 'Additive Identity Axiom '>
     (* A (div C A)) pa_ax3
@@ -20798,10 +21305,14 @@ thm (divtr() (hyp (= (mod B A) (0)) hyp2 (= (mod C A) (0))) (-> (< (0) A) (= (+ 
 
   A (+ B C) div
   hyp
+  A B dividesmod  
+  mpbi
   hyp2
+  A C dividesmod  
+  mpbi
   pm3.2i
-  B A C addmod0  
-  ax-mp  
+  B A C addmod0
+  ax-mp
   EqReplaceEq0Add1
   ## <d 'Additive Identity Axiom '>
     (* A (div (+ B C) A)) pa_ax3
@@ -20818,46 +21329,206 @@ thm (divtr() (hyp (= (mod B A) (0)) hyp2 (= (mod C A) (0))) (-> (< (0) A) (= (+ 
     ## </d 'Commutative Property'>
     EqReplaceEq0
   ## </d 'Distributive Property '>
-  
+
   (= (+ (div B A) (div C A)) (div (+ B C) A)) biRemove1
   (< (0) A) imbi2i
   mpbi
 )
 
-## <title> One-Digit Inequality </title>
-thm (0notEqual2 () () (-. (= (0) (2)))
-  (1) pa_ax1plus
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A (div  [ B ]   ]   ]  D)))
+##   (=                 [ B ]   [ C ] )
+##   (<-> ph (= A (div  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceBi1Eq1Div0 () (
+     replacee (<-> ph (= A (div B D)))
+     substitution (= B C)) 
+     (<-> ph (= A (div C D)))
+  replacee substitution
+  D diveq1i
+  EqReplaceBi1Eq1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (div  [ B ]   ]   ]  D))
+##   (=         [ B ]   [ C ] )
+##   (= A (div  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= A (div B D))
+     substitution (= B C)) 
+     (= A (div C D))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A (div (* B  [ C ]   ]   ] ) A')))
+##   (=                      [ C ]   [ D ] )
+##   (<-> ph (= A (div (* B  [   [   [ D ] ) A')))
+## </table>
+thm (EqReplaceBi1Eq1Div0Mul1 () (
+     replacee (<-> ph (= A (div (* B C) A')))
+     substitution (= C D)) 
+     (<-> ph (= A (div (* B D) A')))
+  replacee substitution
+  B muleq2i
+  EqReplaceBi1Eq1Div0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A (div (* B (+ C  [ D ]   ]    ] )) B')))
+##   (=                           [ D ]   [ A' ] )
+##   (<-> ph (= A (div (* B (+ C  [   [   [ A' ] )) B')))
+## </table>
+thm (EqReplaceBi1Eq1Div0Mul1Add1 () (
+     replacee (<-> ph (= A (div (* B (+ C D)) B')))
+     substitution (= D A')) 
+     (<-> ph (= A (div (* B (+ C A')) B')))
+  replacee substitution
+  C addeq2i
+  EqReplaceBi1Eq1Div0Mul1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (div  [ B ]   ]   ]  D)))
+##   (=                [ B ]   [ C ] )
+##   (-> ph (= A (div  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceImp1Eq1Div0 () (
+     replacee (-> ph (= A (div B D)))
+     substitution (= B C)) 
+     (-> ph (= A (div C D)))
+  replacee substitution
+  D diveq1i
+  EqReplaceImp1Eq1
+)
+
+## <title> One-digit Modulo </title>
+thm (0mod2 () () (= (mod (0) (2)) (0))
+  0less2
   ## <d 'Evaluate'>
-    1plus1
-    EqReplaceNot0Eq1
+    ## <d 'Evaluate'>
+      (2) pa_ax5
+      (0) addeq1i
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      (0) pa_ax3r
+      EqReplaceEq1
+    ## </d 'Evaluate'>
   ## </d 'Evaluate'>
+  modvali
 )
 
-## <title> One-Digit Inequality </title>
-thm (0less2 () () (< (0) (2))
-  0notEqual2
-  ## <d 'Less Than Or Equal To Zero'>
-    (2) 0le
-  ## </d 'Less Than Or Equal To Zero'>
-  axlttri2i
+thm (sbc-arithmeticsum ((A y)) () (<-> ([/] A y (= (sum (0) y (lambda x x)) (div (* y (+ y (1))) (2)))) (= (sum (0) A (lambda x x)) (div (* A (+ A (1))) (2))))
+  y A (0) (lambda x x)  sumeq2
+  (= y A) id
+  y A (1) addeq1
+  muleq12d
+  (2) diveq1d
+  eqeq12d
+  sbcie
 )
 
-## Incomplete theorem for calculating an Arithmetic Sum.
-thm (arithmeticsum () () (-> (= (sum (0) y (lambda x x)) (div (* y (+ y (1))) (2))) (= (sum (0) (+ y (1)) (lambda x x)) (+ (div (* y (+ y (1))) (2)) (div (* (2) (+ y (1))) (2)))))
+## <title> Sum of an Arithmetic Series </title>
+thm (arithmeticsum () () (= (sum (0) A (lambda x x)) (div (* A (+ A (1))) (2)))
+  (0) z x sbc-arithmeticsum    
+  ## <d 'Multiply by 0 '>
+    (+ (0) (1)) pa_ax5r
+    EqReplaceBi1Eq1Div0
+  ## </d 'Multiply by 0 '>
+  (0) (lambda x x) sum1  
+  ## <d 'Evaluate'>
+    x (0) applyfunid
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+  
+  EqReplaceBi1Eq0
+  
+  ## <d 'Evaluate'>
+    2greater0
+    ## <d 'Evaluate'>
+      ## <d 'Evaluate'>
+        (2) pa_ax5
+        (mod (0) (2)) addeq1i
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        0mod2
+        EqReplaceEq1Add1
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        (0) pa_ax3r
+        EqReplaceEq1
+      ## </d 'Evaluate'>
+    ## </d 'Evaluate'>
+    divval
+    EqReplaceBi1Eq1
+  ## </d 'Evaluate'>
+  (0) eqid  
+  mpbirRemove
+
+
   (sum (0) y (lambda x x)) (div (* y (+ y (1))) (2)) (+ y (1)) addeq1
-  y (lambda x x) sumdetach2  
+  y (lambda x x) sumdetach2
   ## <d 'Evaluate'>
     x (+ y (1)) applyfunid
     EqReplaceEq1Add1
   ## </d 'Evaluate'>
-  eqcomi  
-  EqReplaceImp1Eq0 
+  eqcomi
+  EqReplaceImp1Eq0
   0less2
-  (2) (+ y (1)) muldiv   
+  (2) (+ y (1)) muldiv
    eqcomd
   ax-mp
-  (div (* y (+ y (1))) (2)) addeq2i   
+  (div (* y (+ y (1))) (2)) addeq2i
   EqReplaceImp1Eq1
+
+  0less2
+  y evenxxplus1
+  (2) (+ y (1)) dividessymmul  
+  divtr    
+  ax-mp
+  
+  ## <d 'Distributive Property '>
+    y (2) (+ y (1)) distl
+    ## <d 'Commutative Property'>
+      (* (+ y (2)) (+ y (1))) (+ (* y (+ y (1))) (* (2) (+ y (1)))) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq1Div0
+  ## </d 'Distributive Property '>
+  EqReplaceImp1Eq1
+  y z x sbc-arithmeticsum bicomi  
+  sylbi2  
+  ## <d 'Commutative Property '>
+    (+ y (2)) (+ y (1)) mulcom
+    EqReplaceImp1Eq1Div0
+  ## </d 'Commutative Property '>
+
+  (+ y (1)) z x sbc-arithmeticsum  
+  ## <d 'Associative Property '>
+    y (1) (1) addass
+    EqReplaceBi1Eq1Div0Mul1
+  ## </d 'Associative Property '>
+  
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceBi1Eq1Div0Mul1Add1
+  ## </d 'Evaluate'>
+  bicomi  
+  sylib
+  A induction
+  A z x sbc-arithmeticsum    
+  mpbi
 )
 
 ## <title> Divide the difference </title> 
@@ -21049,6 +21720,8 @@ thm (removeImp23 () (hyp (-> ph (-> ps ch)) hyp2 ps) (-> ph ch)
   mpbi
 )
 
+## <title> Euclid's Theorem </title>
+## <summary> Euclid's Proof that there are infinitely many number of primes. </summary>
 thm (euclidthm () () (-. (=_ (<{}> x) (primeset)))
   ## <d 'Product + 1 has a prime divisor y'>
     ## <d 'Subsets cannot have additional elements' >
@@ -21195,7 +21868,7 @@ thm (gcdcom () () (= (gcd A B) (gcd B A))
     (-. (= x (0)))  anbi2i
     x  gen
     x  (/\ (-. (= x (0))) (lincom A B x))  (/\ (-. (= x (0))) (lincom B A x))  abbi2    ax-mp
-    ({|} x (/\ (-. (= x (0))) (lincom A B x)))  ({|} x (/\ (-. (= x (0))) (lincom B A x)))  mineq    ax-mp
+    ({|} x (/\ (-. (= x (0))) (lincom A B x)))  ({|} x (/\ (-. (= x (0))) (lincom B A x)))  minseq    ax-mp
   eqtr
   B  A  x  df-gcd   eqtr4
 )
@@ -21264,7 +21937,7 @@ thm (0primeideal () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0))))
   bicomi
 )
 
-# Euclid's lemma, assuming A and B are not 0.
+## <summary> Euclid's lemma, assuming A and B are not 0. </summary>
 thm (euclidlem.1 () () (-> (prime (S A)) (-> (| (S A) (* (S B) C)) (\/ (| (S A) (S B)) (| (S A) C))))
    A  B  primegcd  ord
       A  (S B)  lincomgcd
@@ -21315,8 +21988,10 @@ thm (euclidlem.1 () () (-> (prime (S A)) (-> (| (S A) (* (S B) C)) (\/ (| (S A) 
   ex
 )
 
-# Removes one of the S marks from [euclidlem.1] by considering the case A=0.
-# The other S mark will be removed in [euclidlem] by considering B=0.
+## <summary> 
+##   Removes one of the S marks from [euclidlem.1] by considering the case A=0.
+##   The other S mark will be removed in [euclidlem] by considering B=0.
+## </summary> 
 thm (euclidlem.2 () () (-> (prime A) (-> (| A (* (S B) C)) (\/ (| A (S B)) (| A C))))
 0notprime
 (0)  A  primeeq    biimprd    con3d    mpi
@@ -21336,7 +22011,7 @@ anabsi5
 ex
 )
 # number 8.0
-# Euclid's lemma.
+## <title> Euclid's lemma </title>
 thm (euclidlem () () (-> (prime A) (-> (| A (* B C)) (\/ (| A B) (| A C))))
   B  x  lefoo
     A  divides0
@@ -21444,7 +22119,7 @@ defthm (df-factorization  wff (factorization A B C D) () ()
 )
 
 
-# Any prime number has a trivial length-1 factorization.
+## <summary> Any prime number has a trivial length-1 factorization </summary>
 thm (exfactorization.0 ((A x)) ()
   (-> (prime A) (E. x (factorization (0) x x A)))
 
@@ -21575,10 +22250,8 @@ thm (exfactorization.1 ((A y) (A z) (A w)) () (-> (= x A)
 syl
 )
 
-export (RESULTS peano_thms.ghi (PROP) "")
-
 # number 16.0
-# Existence of a factorization for any number bigger than 1.
+## <summary> Existence of a factorization for any number bigger than 1. </summary>
 thm (exfactorization () () (E. x (E. y (E. y' (factorization x y y' (S (S A))))))
 
 # setup
@@ -21623,3 +22296,5 @@ cla4g
 
   ?
 )
+
+export (PEANO_THMS /peano/peano_thms.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
