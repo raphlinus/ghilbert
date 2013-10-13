@@ -51,6 +51,8 @@ class Scanner:
         self.tokix = 0
     def get_tok(self):
         while len(self.toks) == self.tokix:
+            if self.instream == None:
+                return None
             line = self.instream.readline()
             self.lineno += 1
             if line == '':

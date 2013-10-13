@@ -419,6 +419,7 @@ class ListThmsPage(webapp2.RequestHandler):
 
         stylesheet = '<link rel=stylesheet href="/static/showthm.css" type="text/css">\n'
         common.header(o, 'List of theorems', stylesheet)
+        o.write('<div class="list-section">')
         o.write('<p>List of theorems in ' + cgi.escape(arg) + ':</p>\n')
         urlctx = read.UrlCtx(url)
         runner = ListThmsRunner()
@@ -448,7 +449,7 @@ class ListThmsPage(webapp2.RequestHandler):
             descstr = ' '.join(description)
             thmurl = urllib.quote(url + '/' + thm_name)
             errstr = ''
-            o.write('<div class="listthm">')
+            o.write('<div class="listthm" onclick="window.location=\'%s\'">' % (thmurl))
             if error:
                 errstr = '<a href="/edit' + thmurl + '" class="error_indicator">●</a> '
             o.write('<div class="listthmline" ">%s<a href="%s">%s</a> %s</div>\n' % \
@@ -466,9 +467,11 @@ class ListThmsPage(webapp2.RequestHandler):
 '''<script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/showthm.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
+<script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script type="text/javascript">
 GH.typeset_intermediates()
 </script>
+</div>
 ''')
 
 class ListThmsRunner:

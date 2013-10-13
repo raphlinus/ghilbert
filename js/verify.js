@@ -449,6 +449,7 @@ GH.VerifyCtx = function(urlctx, run) {
     this.urlctx = urlctx;
     this.run = run;
     this.suppress_errors = false;
+	this.error_step = null;
 };
 
 GH.VerifyCtx.prototype.set_suppress_errors = function(flag) {
@@ -1039,6 +1040,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
 
 GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagName) {
     var kind;
+	this.error_step = null;
     if (GH.typeOf(step) != 'string') {
         kind = this.kind_of(step, proofctx.varlist, proofctx.varmap, false,
                             this.syms);
@@ -1112,6 +1114,7 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
         var mand = v[4];
         var syms = v[5];
         if (mand.length != mandstack.length) {
+			this.error_step = v;
             throw 'Expected ' + mand.length + ' mand hyps, got ' + mandstack.length;
         }
         var env = {};
@@ -1120,10 +1123,12 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
             var mv = mand[i];
             el = mandstack[i];
             if (el[0][1] != mv[1]) {
+				this.error_step = v;
                 throw ('Kind mismatch for ' + mv[2] + ': expected ' +
                        mv[1] + ' but found ' + el[0][2] + ' which is a ' + el[0][1]);
             }
             if (mv[0] == 'var' && el[0][0] != 'var') {
+				this.error_step = v;
                 throw ('Unifying, expected expression substituted for mandatory variable ' +
                        mv[2] + ' to be a binding variable, but found ' +
                        GH.sexp_to_string(el[1]));

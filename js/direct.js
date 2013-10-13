@@ -180,6 +180,8 @@ GH.Direct.prototype.parseText = function(text) {
 	this.offset += text.length + 1;
 };
 
+
+
 // Display the proofs in the right panel.
 GH.Direct.prototype.updateProofs = function(cursorPosition) {
 	var thmctx = this.thmctx;
@@ -200,11 +202,8 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 			shownHistory[j].displayStack(this.stack, summary, cursorPosition);
 		}
 		
-		if (pstack.length > 0) {
-			for (i = 0; i < pstack.length; i++) {
-				this.stack.appendChild(GH.Direct.textToHtml(GH.sexptohtml(pstack[i][1])));
-			}
-		}
+		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
+		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes, cursorPosition);
 		this.stack.appendChild(GH.Direct.textToHtml('&nbsp;'));
     }
 	if (thmctx && thmctx.proofctx) {
@@ -372,6 +371,41 @@ GH.DirectThm.prototype.applyStyling = function(styling) {
 		}
 	}
 }
+
+GH.DirectThm.getType = function(typeArray) {
+	var type = typeArray[1];
+	// It's a binding variable if it's a var instead of tvar.
+	if ((typeArray[0] == 'var') && (type == 'nat')) {
+		type = 'bind';
+	}
+	return type;
+};
+
+GH.DirectThm.prototype.getExpectedTypes = function(actualArgs) {
+	if (this.vg.error_step) {
+		var expectedTypes = [];
+		var actualTypes = [];
+		var expectations = this.vg.error_step[4];
+		for (var i = 0; i < expectations.length; i++) {
+			expectedTypes.push(GH.DirectThm.getType(expectations[i]));
+		}
+		
+		var actualTypes = [];
+		for (var i = 0; i < actualArgs.length; i++) {
+			actualTypes.push(GH.DirectThm.getType(actualArgs[i][0]));
+		}
+		var totalLength = Math.max(expectedTypes.length, actualTypes.length);
+		for (var i = expectedTypes.length; i < totalLength; i++) {
+			expectedTypes.push('empty');
+		}
+		for (var i = actualTypes.length; i < totalLength; i++) {
+			actualTypes.push('empty');
+		}
+		return [expectedTypes, actualTypes];
+	} else {
+		return [];
+	}
+};
 
 GH.DirectThm.prototype.tok = function(tok) {
 	var stateType = GH.DirectThm.StateType;

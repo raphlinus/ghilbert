@@ -59,6 +59,20 @@ GH.spaceslug = function(sp) {
     }
 };
 
+
+// This is to ignore the .beg and .end part.
+GH.strEquals = function(a, b) {
+	if (a.length != b.length) {
+		return false;
+	}
+	for (var i = 0; i < a.length; a++) {
+		if (a[i] != b[i]) {
+			return false;
+		}
+	}
+	return true;
+};
+
 GH.combineslugs = function(slugs, prec, prsp) {
     var str = '';
     for (var i = 0; i < slugs.length; i++) {
@@ -132,6 +146,36 @@ GH.typesetpostfix = function(term, prec, op, cursorPosition) {
         right_slug = GH.parenthesize(right_slug);
     }
     return GH.combineslugs([right_slug, op_slug], prec, 1);
+};
+
+// Convert expressions like (A < B) /\ (B < C) into A < B < C.
+GH.typesetAnd = function (term, cursorPosition) {
+	if ((((term[1][0] == '<') || (term[1][0] == '<=')) &&
+	     ((term[2][0] == '<') || (term[2][0] == '<='))) || 
+		 ((term[1][0] == '=') && (term[2][0] == '='))) {
+			 
+		// This doesn't work for compound expressions like A < B + C < D.	
+		if (GH.strEquals(term[1][2], term[2][1])) {
+			var operators = [];
+			var operator = '';
+			for (var i = 1; i < 3; i++) {
+				if (term[i][0] == '<=') {
+					operator = '≤';
+				} else if (term[i][0] == '<') {
+					operator = '&lt;';
+				} else if (term[i][0] == '=') {
+					operator = '=';
+				}
+				var space = GH.spaceslug(3);
+				operators.push(GH.combineslugs([space, GH.stringslug(operator), space], 400));
+			}
+			var slug1 = GH.typeset(term[1][1], cursorPosition);
+			var slug2 = GH.typeset(term[1][2], cursorPosition);
+			var slug3 = GH.typeset(term[2][2], cursorPosition);
+			return GH.combineslugs([slug1, operators[0], slug2, operators[1], slug3], 400);
+		}
+	}
+    return GH.typesetinfix(term, 'r', 400, '∧', cursorPosition);
 };
 
 GH.typesetbinder = function(term, prec, op, cursorPosition) {
@@ -286,7 +330,7 @@ GH.typesetapply = function(term, prec, cursorPosition) {
 };
 
 GH.typesetApplySet = function(term, cursorPosition) {
-	if ((term[1][0] == 'lambda') && (term[2][0] == '{|}') && (GH.sExpression.strEquals(term[1][1], term[2][1]))) {
+	if ((term[1][0] == 'lambda') && (term[2][0] == '{|}') && (GH.strEquals(term[1][1], term[2][1]))) {
 		// This case is written like {S(x) | x = ...}
 		var open_slug = GH.stringslug('{');
     	var x_slug = GH.typeset(term[1][2], cursorPosition);
@@ -515,7 +559,7 @@ GH.typeset = function(sexp, cursorPosition) {
         }
         return GH.typesetunary(sexp, 1000, '¬', cursorPosition);  // TODO: 2000?
     } else if (sexp[0] == '/\\' || sexp[0] == '∧') {
-        return GH.typesetinfix(sexp, 'r', 400, '∧', cursorPosition);
+		return GH.typesetAnd(sexp, cursorPosition);
     } else if (sexp[0] == '\\/' || sexp[0] == '∨') {
         return GH.typesetinfix(sexp, 'r', 300, '∨', cursorPosition);
     } else if (sexp[0] == 'A.' || sexp[0] == '∀') {

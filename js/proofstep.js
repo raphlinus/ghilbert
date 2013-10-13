@@ -190,19 +190,6 @@ GH.sExpression.stripParams = function(operator) {
 	return operator;
 };
 
-// This is to ignore the .beg and .end part.
-GH.sExpression.strEquals = function(a, b) {
-	if (a.length != b.length) {
-		return false;
-	}
-	for (var i = 0; i < a.length; a++) {
-		if (a[i] != b[i]) {
-			return false;
-		}
-	}
-	return true;
-};
-
 // Returns true is the s-expressions are identical.
 GH.sExpression.prototype.equals = function(sexp) {
 	var numOperands = this.operands.length;
@@ -275,6 +262,7 @@ GH.ProofBlock.prototype.display = function(stack, cursorPosition) {
 	this.addTables(blockElement, cursorPosition);
 	stack.appendChild(blockElement);
 	GH.ProofBlock.resizeTables(blockElement);
+	return blockElement;
 };
 
 // Enlarge the last column of each table so that each row spans the width of the block.
@@ -579,6 +567,68 @@ GH.ProofStep.prototype.displayStack = function(stack, summary, cursorPosition) {
 	var blocks = this.display(false, cursorPosition);
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].display(stack, cursorPosition);
+	}
+};
+
+// Display the left over input arguments on the stack
+GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, cursorPosition) {
+	var rowCount = Math.max(inputArgs.length, expectedTypes.length && expectedTypes[0].length);
+	if (rowCount == 0) {
+		return;
+	}
+		
+	var classes = 'proof-block input-args';
+	var newBlock = new GH.ProofBlock(classes);
+	var nameHtml = '<span class=proof-step-name>Input Argument' + ((inputArgs.length > 1) ? 's' : '') + '</span>';
+	for (var i = 0; i < inputArgs.length; i++) {
+		var iNameHtml = (i == 0) ? nameHtml : '';
+		newBlock.steps.push(new GH.RenderableProofStep(GH.sexptohtml(inputArgs[i][1]), '', -1, -1, false, false, iNameHtml, 0));
+	}
+	var blockElement = newBlock.display(stack, cursorPosition);
+
+	if (expectedTypes.length > 0) {
+		for (var i = 0; i < rowCount; i++) {
+			var expectedContainer = document.createElement("td");
+			expectedContainer.setAttribute('class', 'type-container');
+			var expectedElement = document.createElement("span");
+			
+			// Error results unless the types are the same, or we expected a natural number and got a binding variable.
+			var suffix = '';
+			if ((expectedTypes[0][i] != expectedTypes[1][i]) && (!((expectedTypes[0][i] == 'nat') && (expectedTypes[1][i] == 'bind')))) {
+				suffix = '-error';
+			}
+			expectedElement.setAttribute('class', 'type-tag type-' + expectedTypes[0][i] + suffix);  // Expected types
+			expectedElement.innerHTML = expectedTypes[0][i];
+			expectedContainer.appendChild(expectedElement );
+			
+			var actualContainer = document.createElement('td');
+			actualContainer.setAttribute('class', 'type-container');
+			var actualElement = document.createElement('span');
+			actualElement.setAttribute('class', 'type-tag type-' + expectedTypes[1][i] + suffix);    // Actual types
+			actualElement.innerHTML = expectedTypes[1][i];
+			actualContainer.appendChild(actualElement);
+
+			if (i >= blockElement.childNodes.length) {
+				var tableElement = document.createElement('table');
+				tableElement.setAttribute('class', 'table-no-border');
+				blockElement.appendChild(tableElement);
+
+				var rowElement = document.createElement('tr');				
+				rowElement.setAttribute('class', 'proof-step-div unstyled');
+				rowElement.appendChild(expectedContainer);
+				rowElement.appendChild(actualContainer);
+				tableElement.appendChild(rowElement);
+			} else {
+				var rowElement = blockElement.children[i].children[0];
+				rowElement.insertBefore(expectedContainer, rowElement.children[0]);
+				rowElement.insertBefore(  actualContainer, rowElement.children[1]);
+			}
+		}
+		for (var i = 0; i < rowCount; i++) {
+			var rowElement = blockElement.children[i].children[0];
+			rowElement.lastChild.setAttribute('style', '')
+		}
+		GH.ProofBlock.resizeTables(blockElement);
 	}
 };
 

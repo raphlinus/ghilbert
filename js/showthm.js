@@ -13,4 +13,4 @@ GH.typeset_intermediates = function() {
         var scanner = new GH.Scanner([sexp_str]);
         e.innerHTML = GH.sexptohtml(GH.read_sexp(scanner));
     }
-}
+};
