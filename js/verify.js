@@ -3,6 +3,9 @@
 // Apache 2 license
 
 // Put everything into a namespace defined by one variable.
+if (typeof(global) !== 'undefined') {
+    var GH = global.GH;
+}
 if (typeof GH == 'undefined') {
   var GH = {};
 }

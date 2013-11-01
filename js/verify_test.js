@@ -1,4 +1,21 @@
-// Run with "rhino js/verify_test.js testsuite"
+// Run with "(rhino|node) js/verify_test.js testsuite"
+
+// rhino->node shim
+if (typeof(load) === "undefined" && typeof(require)==="function") {
+  GH = global.GH = {};
+  load = function(arr) {
+    arr.forEach(
+      function(path) {
+        require(path.replace('js','.'));
+      }
+    );
+  };
+  print = console.log;
+  arguments = process.argv.slice(2);
+  readFile = function(path) {
+    return require('fs').readFileSync(path).toString();
+  }
+}
 
 load(["js/verify.js"]);
 load(["js/proofstep.js"]);
