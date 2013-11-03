@@ -236,17 +236,33 @@ thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
 # A bit of propositional logic turns this into what we need.
         distributeNegationPCP
         convertToImplicationFromDisjunction
- )
+
+        a b GreaterThan
+        addNegation
+        eliminateBiconditionalForward
+        applySyllogism
+)
 
 thm (EqualityLessThan () () (→ (= a b) (¬ (< a b)))
         a b LessThanEquality
         transposeWithNegatedConsequent
  )
 thm (LessEqualAntisymmetryLemma () () (→ (∧ (< a b) (≤ b a)) (= a b))
+# We start by turning <code>a < b ∧ b ≤ a</code> into <code>(a < b ∧ b < a) ∨ (a < b ∧ b = a)</code>.
+        b a LessEqualLessThan
+        eliminateBiconditionalReverse
+        (< a b) conjoinLL
+
         (< a b) (< b a) (= b a) ConjunctionLeftDistribution
         eliminateBiconditionalReverse
+        applySyllogism
 # The first half is <code>a < b ∧ b < a → a = b</code>. This holds trivially because <code>a < b ∧ b < a</code> is a contradiction.
         a b LessThanGreaterThan
+
+        a b GreaterThan
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
 
         (< a b) (¬ (< b a)) ImplicationDisjunction
         eliminateBiconditionalReverse
