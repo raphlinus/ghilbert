@@ -39,9 +39,9 @@ GH.ButtonController.prototype.clearButtons = function() {
 GH.ButtonController.prototype.setActive = function(areaNum, isActive) {
 	var area = (areaNum == 0) ? this.primaryArea : this.secondaryArea;
 	if (isActive) {
-		GH.ProofStep.addClass_(area, 'active');
+		GH.ProofSegment.addClass(area, 'active');
 	} else {
-		GH.ProofStep.removeClass_(area, 'active');
+		GH.ProofSegment.removeClass(area, 'active');
 	}
 };
 

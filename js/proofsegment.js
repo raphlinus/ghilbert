@@ -13,7 +13,7 @@ GH.ProofSegment = function(state, type, step, hasPrevious, cursorPosition) {
 	this.attachChildrenData = null;  // Saved data to attach children when needed.
 
 	this.smallElement = null;
-	this.largeElement = this.createLargeElement();
+	this.largeElement = GH.ProofSegment.createLargeElement();
 };
 
 GH.ProofSegment.State = {
@@ -30,6 +30,11 @@ GH.ProofSegment.Type = {
 };
 
 GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, cursorPosition) {
+	var errors = [];
+	while (conclusion.isError && conclusion.hypotheses.length) {
+		errors.push(conclusion);
+		conclusion = conclusion.hypotheses[0];
+	}
 	var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false, cursorPosition);
 	rootSegment.siblingIndex = segmentCount;
 	stack.appendChild(rootSegment.largeElement);
@@ -38,6 +43,15 @@ GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, curso
 	rootSegment.attachChildren(stepsData, true, cursorPosition);
 	rootSegment.addNames();
 	rootSegment.resize();
+
+	for (var i = 0; i < errors.length; i++) {
+		var errorBlock = GH.ProofSegment.createLargeElement();
+		errorBlock.className += ' error';
+		stack.appendChild(errorBlock);
+		var tableElement = GH.ProofSegment.addTable(errorBlock);
+		var errorMsg = GH.ProofStep.stepToHtml(errors[i].conclusion, '');
+		tableElement.appendChild(errorMsg);
+	}
 	return rootSegment;
 };
 
@@ -47,7 +61,7 @@ GH.ProofSegment.prototype.addHandlers = function() {
 	this.smallElement.setAttribute('onmouseout', 'GH.ProofSegment.handleMouseOut('  + position + ')');
 	this.smallElement.setAttribute('onclick', 'GH.ProofSegment.handleClick('  + position + ')');
 	if (this.type % 2) {
-		GH.ProofStep.addClass_(this.largeElement, 'inner-block');
+		GH.ProofSegment.addClass(this.largeElement, 'inner-block');
 	}
 };
 
@@ -132,18 +146,18 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 		var isConclusion = (i == steps.length - 1);
 		if (stylized) {
 			var styleIndex = isConclusion ? i : this.step.hypotheses.indexOf(steps[i]);
-			var stylizedExpression = GH.RenderableProofStep.styleExpression(this.step.styling[styleIndex], steps[i].conclusion);
+			var stylizedExpression = GH.ProofSegment.styleExpression(this.step.styling[styleIndex], steps[i].conclusion);
 			var partialHtml = GH.sexptohtmlHighlighted(stylizedExpression, cursorPosition);
-			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, isConclusion, steps[i].link, isConclusion);
-			var fullHtml = GH.ProofStep.stepToHtml(partialHtml, '', nameHtml);
+			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, steps[i].link, isConclusion);
+			var fullHtml = GH.ProofStep.stepToHtml(partialHtml, nameHtml);
 			child.smallElement = fullHtml;
 			tableElement.appendChild(child.smallElement);
 		} else {
 			tableElement = GH.ProofSegment.addTable(this.largeElement);
 			var text = GH.sexptohtmlHighlighted(steps[i].conclusion, cursorPosition);
 			var link = isSingleStep ? steps[i].link : '';
-			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, isSingleStep && isConclusion, link, isSingleStep && isConclusion);
-			child.smallElement = GH.ProofStep.stepToHtml(text, '', nameHtml);
+			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, link, isSingleStep && isConclusion);
+			child.smallElement = GH.ProofStep.stepToHtml(text, nameHtml);
 			tableElement.appendChild(child.smallElement);
 		}
 
@@ -169,6 +183,30 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 	}
 };
 
+/**
+ * Add styling to an expression. The styling and the expression are both trees that we traverse
+ * together. Whenever we encounter a node in the styling tree that has a "table" in it, we wrap
+ * the expression there in a "table" node.
+ */
+GH.ProofSegment.styleExpression = function(styling, expression) {
+	if (styling[0] == "table") {
+		var styledExpression = GH.ProofSegment.styleExpression(styling[2], expression);
+		return [styling[0], styling[1], styledExpression, styling[3]];
+	} else if (styling[0] == 'htmlSpan') {
+		var styledExpression = GH.ProofSegment.styleExpression(styling[2], expression);
+		return [styling[0], styling[1], styledExpression];
+	} else {
+		if (typeof styling == 'string') {
+			return expression;
+		} else {
+			var newExpression = [expression[0]];
+			for (var i = 1; i < styling.length; i++) {
+				newExpression.push(GH.ProofSegment.styleExpression(styling[i], expression[i]));
+			}
+		}
+		return newExpression;
+	}
+};
 
 GH.ProofSegment.prototype.delayedAttachChildren = function() {
 	var data = this.attachChildrenData;
@@ -203,10 +241,7 @@ GH.ProofSegment.addTable = function(parent) {
 	return tableElement;
 };
 
-GH.ProofSegment.prototype.createStepElement = function(cursorPosition) {
-};
-
-GH.ProofSegment.prototype.createLargeElement = function() {
+GH.ProofSegment.createLargeElement = function() {
 	var largeElement = document.createElement("div");
 	largeElement.setAttribute('class', 'proof-block');
 	return largeElement;
@@ -219,12 +254,12 @@ GH.ProofSegment.prototype.getPrevElement = function() {
 GH.ProofSegment.prototype.updateVisibility = function() {
 	if (this.state == GH.ProofSegment.State.SMALL) {
 		this.smallElement.setAttribute('style', '');
-		GH.ProofStep.removeClass_(this.smallElement, 'highlighted-step');
-		GH.ProofStep.removeClass_(this.smallElement, 'highlighted-bottom');
-		GH.ProofStep.removeClass_(this.smallElement, 'open-top');
-		GH.ProofStep.removeClass_(this.smallElement, 'open-bottom');
-		GH.ProofStep.removeClass_(this.smallElement, 'highlighted-open-top');
-		GH.ProofStep.removeClass_(this.smallElement, 'highlighted-open-bottom');
+		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-step');
+		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-bottom');
+		GH.ProofSegment.removeClass(this.smallElement, 'open-top');
+		GH.ProofSegment.removeClass(this.smallElement, 'open-bottom');
+		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-open-top');
+		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-open-bottom');
 		this.largeElement.setAttribute('style', 'display: none');
 	} else if (this.state == GH.ProofSegment.State.LARGE) {
 		if (this.type % 2) {
@@ -233,21 +268,22 @@ GH.ProofSegment.prototype.updateVisibility = function() {
 				this.parent.children[this.siblingIndex - 1].smallElement.setAttribute('style', 'display: none');
 			}
 		} else {
-			GH.ProofStep.addClass_(this.smallElement, 'highlighted-step');
+			GH.ProofSegment.addClass(this.smallElement, 'highlighted-step');
 			if (this.hasPrevious) {
-				GH.ProofStep.addClass_(this.smallElement, 'highlighted-open-top');
-				GH.ProofStep.addClass_(this.getPrevElement(), 'highlighted-bottom');
+				GH.ProofSegment.addClass(this.smallElement, 'highlighted-open-top');
+				GH.ProofSegment.addClass(this.getPrevElement(), 'highlighted-bottom');
 			}
 		}
 		this.largeElement.setAttribute('style', '');
 	}
 	if (((this.type + !this.isOpen) % 4) >= 2) {
-		GH.ProofStep.addClass_(this.largeElement, 'gray-block');
+		GH.ProofSegment.addClass(this.largeElement, 'gray-block');
 	} else {
-		GH.ProofStep.removeClass_(this.largeElement, 'gray-block');
+		GH.ProofSegment.removeClass(this.largeElement, 'gray-block');
 	}
 };
 
+// Enlarge the last column of each table so that each row spans the width of the block.
 GH.ProofSegment.prototype.resize = function() {
 	for (var i = 0; i < this.children.length; i++) {
 		this.children[i].resize();
@@ -307,22 +343,22 @@ GH.ProofSegment.prototype.expand = function() {
 };
 
 GH.ProofSegment.prototype.highlight = function() {
-	GH.ProofStep.addClass_(this.smallElement, GH.ProofStep.ORANGE_STEP_);
-	GH.ProofStep.addClass_(this.largeElement, GH.ProofStep.ORANGE_BLOCK_);
+	GH.ProofSegment.addClass(this.smallElement, GH.ProofStep.ORANGE_STEP_);
+	GH.ProofSegment.addClass(this.largeElement, GH.ProofStep.ORANGE_BLOCK_);
 	if (this.hasPrevious) {
-		GH.ProofStep.addClass_(this.getPrevElement(), GH.ProofStep.ORANGE_STEP_);
-		GH.ProofStep.addClass_(this.getPrevElement(), 'open-bottom');
-		GH.ProofStep.addClass_(this.smallElement, 'open-top');
+		GH.ProofSegment.addClass(this.getPrevElement(), GH.ProofStep.ORANGE_STEP_);
+		GH.ProofSegment.addClass(this.getPrevElement(), 'open-bottom');
+		GH.ProofSegment.addClass(this.smallElement, 'open-top');
 	}
 };
 
 GH.ProofSegment.prototype.lowlight = function() {
-	GH.ProofStep.removeClass_(this.smallElement, GH.ProofStep.ORANGE_STEP_);
-	GH.ProofStep.removeClass_(this.largeElement, GH.ProofStep.ORANGE_BLOCK_);
+	GH.ProofSegment.removeClass(this.smallElement, GH.ProofStep.ORANGE_STEP_);
+	GH.ProofSegment.removeClass(this.largeElement, GH.ProofStep.ORANGE_BLOCK_);
 	if (this.hasPrevious) {
-		GH.ProofStep.removeClass_(this.getPrevElement(), GH.ProofStep.ORANGE_STEP_);
-		GH.ProofStep.removeClass_(this.getPrevElement(), 'open-bottom');
-		GH.ProofStep.removeClass_(this.smallElement, 'open-top');
+		GH.ProofSegment.removeClass(this.getPrevElement(), GH.ProofStep.ORANGE_STEP_);
+		GH.ProofSegment.removeClass(this.getPrevElement(), 'open-bottom');
+		GH.ProofSegment.removeClass(this.smallElement, 'open-top');
 	}
 };
 
@@ -369,8 +405,8 @@ GH.ProofSegment.findSegments = function(position) {
 	var hasChildren = (segment.largeElement.children.length > 0) || segment.attachChildrenData;
     var lastSibling = segment.parent && (segment.siblingIndex == segment.parent.children.length - 1);
 	var isPrevious = segment.parent && segment.parent.hasPrevious && (segment.siblingIndex == 0);
-	var isHighlighted = GH.ProofStep.hasClass_(segment.smallElement, 'highlighted-step');
-	if (GH.ProofStep.hasClass_(segment.smallElement, 'highlighted-bottom') && segment.parent) {
+	var isHighlighted = GH.ProofSegment.hasClass(segment.smallElement, 'highlighted-step');
+	if (GH.ProofSegment.hasClass(segment.smallElement, 'highlighted-bottom') && segment.parent) {
 		return [segment.parent.children[segment.siblingIndex + 1]];
 	}
 	if ((!parentOpen && (!lastSibling || hasChildren) && !isPrevious) || isHighlighted) {
@@ -505,5 +541,24 @@ GH.ProofSegment.findImportantStepsRecursive = function(step, startStep, endStep)
 			endSteps.push(step);
 		}
 		return {depth: minDepth, steps: endSteps, hasEnd: true};
+	}
+};
+
+// Returns true if an element has a particular class.
+GH.ProofSegment.hasClass = function(element, className) {
+	return element && element.className.match(new RegExp(className));
+};
+
+// Add a class to an element.
+GH.ProofSegment.addClass = function(element, className) {
+	if (element && !GH.ProofSegment.hasClass(element, className)) {
+		element.className += ' ' + className;
+	}
+};
+
+// Remove a class from an element.
+GH.ProofSegment.removeClass = function(element, className) {
+	if (element) {
+		element.className = element.className.replace(new RegExp(' ' + className), '');
 	}
 };

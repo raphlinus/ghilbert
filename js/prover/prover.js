@@ -76,9 +76,9 @@ GH.Prover.prototype.onChildClick = function(operandNum) {
 };
 
 GH.Prover.hasSelectedClass = function(elem) {
-	return (GH.ProofStep.hasClass_(elem, 'selected-ancestor') ||
-		GH.ProofStep.hasClass_(elem, 'selectable-ancestor') ||
-		GH.ProofStep.hasClass_(elem, 'selected-exp'));
+	return (GH.ProofSegment.hasClass(elem, 'selected-ancestor') ||
+		GH.ProofSegment.hasClass(elem, 'selectable-ancestor') ||
+		GH.ProofSegment.hasClass(elem, 'selected-exp'));
 }
 
 // Get the index into whichever child is selected.
@@ -105,7 +105,7 @@ GH.Prover.getSelectedIndex = function(elem) {
  */
 GH.Prover.prototype.onAncestorClick = function(clickedAncestor) {
 	var currentElement = clickedAncestor;
-	while (!GH.ProofStep.hasClass_(currentElement, 'selected-exp')) {
+	while (!GH.ProofSegment.hasClass(currentElement, 'selected-exp')) {
 		selectedIndex = GH.Prover.getSelectedIndex(currentElement);
 		currentElement = currentElement.children[selectedIndex];
 		this.activeExp = this.activeExp.parent;
@@ -126,7 +126,7 @@ GH.Prover.prototype.onUncleMouseOver = function(uncle) {
 
 // Remove CSS styling when hovering over an uncle.
 GH.Prover.prototype.onUncleMouseOut = function(uncle) {
-	GH.ProofStep.removeClass_(uncle.parentElement, 'hovered-ancestor');
+	GH.ProofSegment.removeClass(uncle.parentElement, 'hovered-ancestor');
 };
 
 // Add click handles to the children and uncles of the activeExp.

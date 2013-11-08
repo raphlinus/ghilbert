@@ -376,9 +376,7 @@ GH.DirectThm.prototype.applyStyling = function(styling) {
 	} else if (styling[0] && styling[0].indexOf(GH.DirectThm.DECREMENT_DEPTH_TAG_) == 0) {
 		this.proofctx.hierarchy.end = styling[styling.length - 1].end
 		this.proofctx.hierarchy = this.proofctx.hierarchy.parent;
-
-		var lastStep = this.proofctx.hierarchy.getLastStep();
-		var newTagName = this.tagNames.pop();
+		this.tagNames.pop();
 	}
 }
 
@@ -507,7 +505,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				if (this.thmType != thmType.DEFINITION) {
 					pc = this.proofctx;
 					if (pc.mandstack.length != 0) {
-						//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, null));
+						//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, null));
 						return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 					}
 					if (pc.stack.length != 1) {
@@ -537,7 +535,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 					this.concl = null;
 					this.hypmap = {};
 				} else {
-					var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, false, null)
+					var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, null)
 					conclusion.hierarchy = new GH.ProofHierarchy(null, 0, 'Definition');
 					this.proofctx.stackHistory.push(conclusion);
 				}
@@ -568,7 +566,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			break;
 		case stateType.PROOF_END:
-			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, false, null));
+			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, null));
 			return 'extra junk after proof';
 			break;
 	}
@@ -631,7 +629,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 			var stackHistory = this.proofctx.stackHistory;
 			var removed = stackHistory.splice(0);
-			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, false, null));
+			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, null));
 			return "! " + e3;
 		}
   }

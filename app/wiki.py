@@ -42,7 +42,7 @@ class Handler(users.AuthenticatedHandler):
             contents = babygit.babygit.obj_contents(obj)
             common.header(o, "")
             o.write('<div id="text-body">')
-            o.write("Ghilbert wiki: " + arg)
+            # o.write("Ghilbert wiki: " + arg)
             o.write(ghmarkup.process_ghmarkup(contents, '/'))
             if self.has_write_perm:
                 o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
