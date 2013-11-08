@@ -128,6 +128,11 @@ stmt (ax-mp () (ph (-> ph ps)) ps)
 stmt (a1i () (ph) (-> ps ph))
 
 #  Inference derived from axiom [[ax-2]].
+## <title> Second Axiom Inference </title>
+## <table>
+##   (->     ph ] (-> [ ps ]         [ ch))
+##   (-> (-> ph ]     [ ps ] ) (-> ph [ ch))
+## </table>
 stmt (a2i () ((-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)))
 
 #  An inference version of the transitive laws for implication [[imim2]] and
@@ -149,6 +154,11 @@ stmt (a2i () ((-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)))
 stmt (syl () ((-> ph ps) (-> ps ch)) (-> ph ch))
 
 #  Inference that swaps (commutes) antecedents in an implication.
+## <title> Commute First and Second Antecedents </title>
+## <table>
+##   (-> <r> ph (-> <g> ps ch))
+##   (-> <g> ps (-> <r> ph ch))
+## </table>
 stmt (com12 () ((-> ph (-> ps ch))) (-> ps (-> ph ch)))
 
 #  Deduction introducing an embedded antecedent.  (The proof was revised by
@@ -168,10 +178,19 @@ stmt (com12 () ((-> ph (-> ps ch))) (-> ps (-> ph ch)))
 #        [[pm2.43i]] vs. [[pm2.43d]]).  When an inference is converted to a theorem
 #        by eliminating an "is a set" hypothesis, we sometimes suffix the theorem
 #        form with "g" (for "more general") as in [[uniex]] vs. [[uniexg]].
-## <title> Axiom 1 Deduction </title>
+## <title> First Axiom Deduction </title>
+## <table>
+##          [ ph
+##   (-> ps [ ph)
+## </table>
 stmt (a1d () ((-> ph ps)) (-> ph (-> ch ps)))
 
 #  Deduction distributing an embedded antecedent.
+## <title> Second Axiom Deduction </title>
+## <table>
+##   (-> ph (->     ps ] (-> [ ch ]          [ th)))
+##   (-> ph (-> (-> ps ]     [ ch ] ) (-> ps [ th)))
+## </table>
 stmt (a2d () ((-> ph (-> ps (-> ch th)))) (-> ph (-> (-> ps ch) (-> ps th))))
 
 #  A closed form of syllogism (see [[syl]]).  Theorem *2.05 of
@@ -218,6 +237,12 @@ stmt (syl8 () ((-> ph (-> ps (-> ch th))) (-> th ta)) (-> ph (-> ps (-> ch ta)))
 stmt (imim2d () ((-> ph (-> ps ch))) (-> ph (-> (-> th ps) (-> th ch))))
 
 #  A modus ponens deduction.
+## <title> Modus Ponens </title>
+## <table>
+##   (-> ph     [ ps ] ] )
+##   (-> ph (-> [ ps ] [ ch))
+##   (-> ph     [    [ [ ch)
+## </table>
 stmt (mpd () ((-> ph ps) (-> ph (-> ps ch))) (-> ph ch))
 
 #  Syllogism deduction.  (The proof was shortened by O'Cat, 19-Feb-2008.)
@@ -334,6 +359,9 @@ stmt (syl9r () ((-> ph (-> ps ch)) (-> th (-> ch ta))) (-> th (-> ph (-> ps ta))
 #      For another version of the proof directly from axioms, see [[id1]].
 #      (The proof was shortened by Stefan Allan, 20-Mar-2006.)
 ## <title> Identity </title>
+## <table>
+##   (-> <g> ph <g> ph)
+## </table>
 stmt (id () () (-> ph ph))
 
 #  Principle of identity.  Theorem *2.08 of [bib/WhiteheadRussell] p. 101.  This
@@ -348,6 +376,9 @@ stmt (id () () (-> ph ph))
 #      For a shorter version of the proof that takes advantage of previously
 #      proved theorems, see [[id]].
 ## <title> Identity </title>
+## <table>
+##   (-> <g> ph <g> ph)
+## </table>
 stmt (id1 () () (-> ph ph))
 
 #  Principle of identity with antecedent.
@@ -433,6 +464,7 @@ stmt (pm2.24ii () (ph (-. ph)) ps)
 
 #  Proof by contradiction.  Theorem *2.18 of [bib/WhiteheadRussell] p. 103.
 #      Also called the Law of Clavius.
+## <title> Proof by contradiction </title>
 stmt (pm2.18 () () (-> (-> (-. ph) ph) ph))
 
 #  Peirce's axiom.  This odd-looking theorem is the "difference" between
@@ -540,7 +572,6 @@ stmt (pm2.24i () (ph) (-> (-. ph) ps))
 #  Deduction version of [[pm2.21]].
 stmt (pm2.24d () ((-> ph ps)) (-> ph (-> (-. ps) ch)))
 
-#  The rule of modus tollens.
 ## <title> Modus Tollens </title>
 ## <table>
 ##          [    [   [ (-. [ ps)
@@ -549,7 +580,6 @@ stmt (pm2.24d () ((-> ph ps)) (-> ph (-> (-. ps) ch)))
 ## </table>
 stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 
-#  Modus tollens inference.
 ## <title> Modus Tollens </title>
 ## <table>
 ##                  [    [  [ (-. [ ch)
@@ -558,7 +588,6 @@ stmt (mto () ((-. ps) (-> ph ps)) (-. ph))
 ## </table>
 stmt (mtoi () ((-. ch) (-> ph (-> ps ch))) (-> ph (-. ps)))
 
-#  Modus tollens deduction.
 ## <title> Modus Tollens </title>
 stmt (mtod () ((-> ph (-. ch)) (-> ph (-> ps ch))) (-> ph (-. ps)))
 
@@ -614,7 +643,7 @@ stmt (mth8 () () (-> ph (-> (-. ps) (-. (-> ph ps)))))
 stmt (pm2.61 () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps)))
 
 #  Inference eliminating an antecedent.
-## <title> Implication whether true or false </title>
+## <title> Proof by cases </title>
 ## <table>
 ##   (->     ph  [ ps)
 ##   (-> (-. ph) [ ps)
@@ -2870,6 +2899,11 @@ stmt (mpan () (ph (-> (/\ ph ps) ch)) (-> ps ch))
 
 #  An inference based on modus ponens.
 ## <title> Modus Ponens </title>
+## <table>
+##              [ <r> ps ]
+##   (-> (/\ ph [ <r> ps ] ) ch)
+##   (->     ph ]        ]   ch)
+## </table>
 stmt (mpan2 () (ps (-> (/\ ph ps) ch)) (-> ph ch))
 
 #  An inference based on modus ponens.

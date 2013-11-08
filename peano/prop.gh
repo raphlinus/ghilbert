@@ -9,38 +9,87 @@ tvar (wff ph ps ch th ta)
 
 thm (dummylink () (1 ph 2 ps) ph
      1)
-
+		 
+## <title> First Axiom Inference </title>
+## <table>
+##          [ ph
+##   (-> ps [ ph)
+## </table>
 thm (a1i () (1 ph) (-> ps ph)
      1 ph ps ax-1 ax-mp)
 
+## <title> Second Axiom Inference </title>
+## <table>
+##   (->     ph ] (-> [ ps ]         [ ch))
+##   (-> (-> ph ]     [ ps ] ) (-> ph [ ch))
+## </table>
 thm (a2i () (1 (-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch))
      1 ph ps ch ax-2 ax-mp)
 
+## <title> Syllogism </title>
+## <table>
+##   (-> ph [     ps ] ]    ] )
+##          [ (-> ps ] [ ch ] )
+##   (-> ph [        [ [ ch ] )
+## </table>
 thm (syl () (1 (-> ph ps) 2 (-> ps ch)) (-> ph ch)
      1 2 ph a1i a2i ax-mp)
 
+## <title> Commute First and Second Antecedents </title>
+## <table>
+##   (-> <r> ph (-> <g> ps ch))
+##   (-> <g> ps (-> <r> ph ch))
+## </table>
 thm (com12 () (1 (-> ph (-> ps ch))) (-> ps (-> ph ch))
      ps ph ax-1 1 a2i syl)
 
+## <title> First Axiom Deduction </title>
+## <table>
+##          [ ph
+##   (-> ps [ ph)
+## </table>
 thm (a1d () (1 (-> ph ps)) (-> ph (-> ch ps))
      1 ch a1i com12)
 
+## <title> Second Axiom Deduction </title>
+## <table>
+##   (-> ph (->     ps ] (-> [ ch ]          [ th)))
+##   (-> ph (-> (-> ps ]     [ ch ] ) (-> ps [ th)))
+## </table>
 thm (a2d () (1 (-> ph (-> ps (-> ch th)))) (-> ph (-> (-> ps ch) (-> ps th)))
      1 ps ch th ax-2 syl)
 
+## <table>
+##   (-> (-> ph [ ps ] ) [ ch)
+##          (-> [ ps ]   [ ch)
+## </table>
 thm (himp1i () (1 (-> (-> ph ps) ch)) (-> ps ch)
      ps ph ax-1 1 syl)
 
+## <title> Syllogism (Closed Form) </title>
 thm (imim2 () () (-> (-> ph ps) (-> (-> ch ph) (-> ch ps)))
      ch ph ps ax-2 himp1i)
 
 # a.k.a. sylt
+## <title> Syllogism (Closed Form) </title>
 thm (imim1 () () (-> (-> ph ps) (-> (-> ps ch) (-> ph ch)))
      ps ch ph imim2 com12)
 
+## <title> Syllogism </title>
+## <summary>
+##   The theorem <a href="imim1">imim1</a> written as an inference.
+## </summary>
 thm (imim1i () (1 (-> ph ps)) (-> (-> ps ch) (-> ph ch))
      1 ph ps ch imim1 ax-mp)
 
+## <title> Syllogism </title>
+## <summary>
+##   The theorem <a href="imim2">imim2</a> written as an inference.
+## </summary>
+## <table>
+##   (->        [ ph ]          [ ps)
+##   (-> (-> ch [ ph ] ) (-> ch [ ps))
+## </table>
 thm (imim2i () (1 (-> ph ps)) (-> (-> ch ph) (-> ch ps))
      1 ch a1i a2i)
 
@@ -71,12 +120,28 @@ thm (syl8 () (1 (-> ph (-> ps (-> ch th))) 2 (-> th ta))
 thm (imim2d () (1 (-> ph (-> ps ch))) (-> ph (-> (-> th ps) (-> th ch)))
      1 th a1i com12 a2d)
 
+## <title> Modus Ponens </title>
+## <table>
+##   (-> ph     [ ps ] ] )
+##   (-> ph (-> [ ps ] [ ch))
+##   (-> ph     [    [ [ ch)
+## </table>
 thm (mpd () (1 (-> ph ps) 2 (-> ph (-> ps ch))) (-> ph ch)
      1 2 a2i ax-mp)
 
+## <title> Syllogism Deduction </title>
+## <summary>
+##   Notice that this has the same form as <a href="syl">syl</a> with ph added in front of each 
+##   hypothesis and conclusion. When all theorems referenced in a proof are converted in this
+## 	 way, we can replace ph with a hypothesis of the proof, allowing the hypothesis to be
+## 	 eliminated with <a href="id">id</a> and become an antecedent.
+## </summary>
 thm (syld () (1 (-> ph (-> ps ch)) 2 (-> ph (-> ch th))) (-> ph (-> ps th))
      1 2 ps imim2d mpd)
 
+## <summary>
+##   The theorem <a href="imim1">imim1</a> written as an deduction.
+## </summary>
 thm (imim1d () (1 (-> ph (-> ps ch))) (-> ph (-> (-> ch th) (-> ps th)))
      1 ps ch th imim1 syl)
 
@@ -85,13 +150,27 @@ thm (imim12d () (1 (-> ph (-> ps ch)) 2 (-> ph (-> th ta)))
      2 ch imim2d 1 ta imim1d syld)
 
 # aka com12t
+
+
+## <title> Commute First and Second Antecedents </title>
+## <summary>
+##   Inline version of <a href="com12">com12</a>.
+## </summary>
+## <table>
+##   (-> (-> <r> ph (-> <g> ps ch)) (-> <g> ps (-> <r> ph ch)))
+## </table>
 thm (pm2.04 () () (-> (-> ph (-> ps ch)) (-> ps (-> ph ch)))
      ph ps ch ax-2 ps ph ax-1 syl5)
 
 thm (pm2.83 () () (-> (-> ph (-> ps ch)) (-> (-> ph (-> ch th)) 
                                              (-> ph (-> ps th))))
      ps ch th imim1 ph imim3i)
-
+		 
+## <title> Commute Second and Third Antecedents </title>
+## <table>
+##   (-> ph (-> <r> ps (-> <g> ch th)))
+##   (-> ph (-> <g>ch (-> <r> ps th)))
+## </table>
 thm (com23 () (1 (-> ph (-> ps (-> ch th)))) (-> ph (-> ch (-> ps th)))
      1 ps ch th pm2.04 syl)
 
@@ -188,28 +267,70 @@ thm (syl9r () (1 (-> ph (-> ps ch)) 2 (-> th (-> ch ta)))
           (-> th (-> ph (-> ps ta)))
      1 2 syl9 com12)
 
+## <title> Identity </title>
+## <table>
+##   (-> <g> ph <g> ph)
+## </table>
+## <summary>
+##   See <a href="id1">id1</a> for an alternative proof directly from the axioms.
+## </summary>
 thm (id () () (-> ph ph)
      ph ps ax-1 ph (-> ps ph) ax-1 mpd)
 
-# Directly from the axioms
+## <title> Identity </title>
+## <summary>
+##   This version is proved directly from the axioms for demonstration purposes.
+##   This proof is a popular example in the literature. For an alternative proof
+##   see <a href="id">id</a>.
+## </summary>
+## <table>
+##   (-> <g> ph <g> ph)
+## </table>
 thm (id1 () () (-> ph ph)
      ph ps ax-1 ph (-> ps ph) ax-1 ph (-> ps ph) ph ax-2 ax-mp ax-mp)
 
+## <title> Identity Deduction </title>
+## <summary>
+##   <a href="id">Identity</a> written as an deduction.
+## </summary>
 thm (idd () () (-> ph (-> ps ps)) ps id ph a1i)
 
+## <title> Modus Ponens </title>
+## <summary>
+##   This theorem can be thought of as a closed form of modus ponens.
+## </summary>
 thm (pm2.27 () () (-> ph (-> (-> ph ps) ps))
      (-> ph ps) id com12)
 
+## <table>
+##   (-> (-> ph ph) [ ps)
+##                  [ ps
+## </table>
 thm (hid () (1 (-> (-> ph ph) ps)) ps
      ph id 1 ax-mp)
 
+## <title> Absorb redundant antecedent </title>
+## <summary>
+##   Absorption of redundant antecedent.  Also called the "Contraction" or
+##   "Hilbert" axiom.
+## </summary>
 thm (pm2.43 () () (-> (-> ph (-> ph ps)) (-> ph ps))
      ph ph ps ax-2 com12 hid)
 
 # a.k.a. impsimpi
+## <title> Absorb redundant antecedent </title>
+## <table>
+##   (-> <r> ph [ (-> <r> ph ps))
+##              [ (-> <r> ph ps)
+## </table>
 thm (pm2.43i () (1 (-> ph (-> ph ps))) (-> ph ps)
      1 a2i hid)
 
+## <title> Absorb redundant antecedent </title>
+## <table>
+##   (-> ph [ (-> <r> ps [ (-> <r> ps ch)))
+##   (-> ph [            [ (-> <r> ps ch))
+## </table>
 thm (pm2.43d () (1 (-> ph (-> ps (-> ps ch)))) (-> ph (-> ps ch))
      1 ps ch pm2.43 syl)
 
@@ -222,6 +343,9 @@ thm (pm2.43b () (1 (-> ps (-> ph (-> ps ch)))) (-> ph (-> ps ch))
 thm (sylc () (1 (-> ph (-> ps ch)) 2 (-> th ph) 3 (-> th ps)) (-> th ch)
      3 2 1 syl mpd)
 
+## <table>
+##   (-> (-> (-> <r> ph <g> ps) <b> ch) (-> <g> ps <b> ch))
+## </table>
 thm (himp1 () () (-> (-> (-> ph ps) ch) (-> ps ch))
      ps ph ax-1 ch imim1i)
 
@@ -229,24 +353,44 @@ thm (himp1 () () (-> (-> (-> ph ps) ch) (-> ps ch))
 thm (pm2.86 () () (-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch)))
      ph ps (-> ph ch) himp1 com23)
 
+## <summary>
+##   <a href="pm2.86">pm2.86</a> written as an inference.
+## </summary>
 thm (pm2.86i () (1 (-> (-> ph ps) (-> ph ch))) (-> ph (-> ps ch))
      1 himp1i com12)
 
+## <summary>
+##   <a href="pm2.86">pm2.86</a> written as an deduction.
+## </summary>
 thm (pm2.86d () (1 (-> ph (-> (-> ps ch) (-> ps th))))
      (-> ph (-> ps (-> ch th)))
      1 ps ch th pm2.86 syl)
 
+## <title> Lukasiewicz's Linearity Axiom </title>
+## <summary>
+##     The Linearity Axiom of the infinite-valued sentential logic (L-infinity)
+##     of <a href="http://en.wikipedia.org/wiki/Jan_%C5%81ukasiewicz">Lukasiewicz</a>.
+## </summary>
 thm (loolin () () (-> (-> (-> ph ps) (-> ps ph)) (-> ps ph))
      ph ps (-> ps ph) himp1 pm2.43d)
 
+## <title> Linearity Axiom </title>
+## <summary>
+##   An alternate for the Linearity Axiom of the infinite-valued sentential
+##   logic (L-infinity) of Lukasiewicz, due to Barbara Wozniakowska.
+## </summary>
 thm (loowoz () () (-> (-> (-> ph ps) (-> ph ch)) (-> (-> ps ph) (-> ps ch)))
      ph ps ch pm2.86 com23 a2d)
 
 # Yeah, negation!
 
+## <title> Third Axiom Inference </title>
 thm (a3i () (1 (-> (-. ph) (-. ps))) (-> ps ph)
      1 ph ps ax-3 ax-mp)
 
+## <summary>
+##   Same as <a href="a3i">a3i</a> just a different name.
+## </summary>
 thm (con4i () (1 (-> (-. ph) (-. ps))) (-> ps ph)
      1 a3i)
 
@@ -258,24 +402,51 @@ thm (a3d () (1 (-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps))
      1 con4d)
 
 # a.k.a. a1n
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   From a wff and its negation, anything is true. Also called the
+##   <a href="http://en.wikipedia.org/wiki/Duns_Scotus">Duns Scotus</a> law.
+## </summary>
 thm (pm2.21 () () (-> (-. ph) (-> ph ps))
      ps ph ax-3 himp1i)
 
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   The theorem <a href="pm2.21">pm2.21</a> written as an inference.
+## </summary>
 thm (pm2.21i () (1 (-. ph)) (-> ph ps)
      1 (-. ps) a1i a3i)
 
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   The theorem <a href="pm2.21">pm2.21</a> written as a deduction.
+## </summary>
 thm (pm2.21d () (1 (-> ph (-. ps))) (-> ph (-> ps ch))
      1 ps ch pm2.21 syl)
 
+## <title> Contradiction Implies Anything </title>
 thm (pm2.24 () () (-> ph (-> (-. ph) ps))
      ph ps pm2.21 com12)
 
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   The theorem <a href="pm2.24">pm2.24</a> written as an inference.
+## </summary>
 thm (pm2.24i () (1 ph) (-> (-. ph) ps)
      1 ph ps pm2.24 ax-mp)
 
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   The theorem <a href="pm2.24">pm2.24</a> written as a deduction.
+## </summary>
+## <title> Contradiction Implies Anything </title>
 thm (pm2.24d () (1 (-> ph ps)) (-> ph (-> (-. ps) ch))
      1 ps ch pm2.24 syl)
 
+## <title> Contradiction Implies Anything </title>
+## <summary>
+##   The theorem <a href="pm2.24">pm2.24</a> written as an inference.
+## </summary>
 thm (pm2.24ii () (1 ph 2 (-. ph)) ps
      1 2 ps pm2.21i ax-mp)
 
@@ -306,15 +477,19 @@ thm (dnd () (1 (-> ph (-. (-. ps)))) (-> ph ps)
 thm (dnrd () (1 (-> ph ps)) (-> ph (-. (-. ps)))
      1 ps dnr syl)
 
+## <title> Contraposition </title>
 thm (con1 () () (-> (-> (-. ph) ps) (-> (-. ps) ph))
      ps dnr (-. ph) imim2i ph (-. ps) ax-3 syl)
 
+## <title> Contraposition </title>
 thm (con2 () () (-> (-> ph (-. ps)) (-> ps (-. ph)))
      ph dn (-. ps) imim1i (-. ph) ps ax-3 syl)
 
+## <title> Contraposition </title>
 thm (con3 () () (-> (-> ph ps) (-> (-. ps) (-. ph)))
      ph dn ps imim1i (-. ph) ps con1 syl)
 
+## <title> Contraposition </title>
 thm (con1i () (1 (-> (-. ph) ps)) (-> (-. ps) ph)
      1 ph ps con1 ax-mp)
 
@@ -345,9 +520,13 @@ thm (nimp () () (-> ph (-> (-. ps) (-. (-> ph ps))))
      ph ps pm2.27 con3d)
 
 # a.k.a. npipip
-# metamath seems to have a fairly short but tricky proof of pm2.18 that
-# doesn't detour through dn, nimp, con1, et. al.; but we need those
-# anyway and pm2.18 is proven more straightforwardly once we have nimp.
+## <title> Proof by contradiction </title>
+## <summary>
+##   Also called the Law of <a href="http://en.wikipedia.org/wiki/Christopher_Clavius">Clavius</a>.
+##   Metamath seems to have a fairly short but tricky proof of pm2.18 that
+##   doesn't detour through dn, nimp, con1, et. al.; but we need those
+##   anyway and pm2.18 is proven more straightforwardly once we have nimp.
+## </summary>
 thm (pm2.18 () () (-> (-> (-. ph) ph) ph)
      (-. ph) ph nimp pm2.43i a3i)
 
@@ -389,6 +568,14 @@ thm (preandi () (1 ph 2 ps) (-. (-> ph (-. ps)))
 thm (jc () (1 (-> ph ps) 2 (-> ph ch)) (-> ph (-. (-> ps (-. ch))))
      2 1 ps ch preand syl mpd)
 
+
+## <title> Definition of AND </title>
+## <summary>
+##   Define conjunction, logical AND.
+##   This theorem writes the definition of AND without using the biconditional. The
+##   theorem <a href="df-an">df-an</a> rewrites this definition in a more familiar
+##   form.
+## </summary>
 defthm (df-and wff (/\ ph ps) () ()
           (-. (-> (-> (/\ ph ps) (-. (-> ph (-. ps))))
                   (-. (-> (-. (-> ph (-. ps))) (/\ ph ps)))))
@@ -441,6 +628,36 @@ thm (and2d () (1 (-> ph (/\ ps ch))) (-> ph ch)
 thm (andd () (1 (-> ph ps) 2 (-> ph ch)) (-> ph (/\ ps ch))
      2 1 ps ch and syl mpd)
 
+## <title> Definition of Biconditional </title>
+## <summary>
+##      This is our first definition, which introduces and defines the
+##      biconditional connective {{{<->}}}.  We define a wff of the form
+##      #(<-> ph ps)# as an abbreviation for
+##      #(-. (-> (-> ph ps) (-. (-> ps ph))))#.
+##
+##      Unlike most traditional developments, we have chosen not to have a
+##      separate symbol such as "Df." to mean "is defined as."  Instead, we will
+##      later use the biconditional connective for this purpose (<a href="df-or">df-or</a> is its
+##      first use), as it allows us to use logic to manipulate definitions
+##      directly.  This greatly simplifies many proofs since it eliminates the
+##      need for a separate mechanism for introducing and eliminating
+##      definitions.  Of course, we cannot use this mechanism to define the
+##      biconditional itself, since it hasn't been introduced yet.  Instead, we
+##      use a more general form of definition, described as follows.
+##
+##      In its most general form, a definition is simply an assertion that
+##      introduces a new symbol that is eliminable and does not strengthen the existing
+##      language.  The latter requirement means that the set of provable
+##      statements not containing the new symbol (or new combination) should
+##      remain exactly the same after the definition is introduced.  Our
+##      definition of the biconditional may look unusual compared to most
+##      definitions, but it strictly satisfies these requirements.
+##
+##      See <a href="dfbi1">dfbi1</a>, <a href="dfbi1">dfbi2</a>, and <a href="dfbi3">dfbi3</a> for theorems suggesting typical
+##      textbook definitions of {{{<->}}}, showing that our definition has the
+##      properties we expect.  Theorem <a href="dfbi">dfbi</a> shows this definition rewritten
+##      in an abbreviated form after conjunction is introduced.
+## </summary>
 defthm (def-bi wff (<-> ph ps) () ()
      (/\ (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
          (-> (/\ (-> ph ps) (-> ps ph)) (<-> ph ps)))
@@ -455,29 +672,56 @@ thm (def-bi-1 () () (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
 thm (def-bi-2 () () (-> (/\ (-> ph ps) (-> ps ph)) (<-> ph ps))
      ph ps def-bi and2i)
 
+## <title> Peirce's axiom </title>
+## <summary>
+##   <a href="http://en.wikipedia.org/wiki/Charles_Sanders_Peirce">Peirce</a>'s
+##   axiom.  This odd-looking theorem is the "difference" between
+##   an intuitionistic system of propositional calculus and a classical system
+##   and is not accepted by intuitionists.  When Peirce's axiom is added to an
+##   intuitionistic system, the system becomes equivalent to our classical
+##   system [[ax-1]] through [[ax-3]].  A curious fact about this
+##   theorem is that it requires [[ax-3]] for its proof even though the
+##   result has no negation connectives in it.
+## </summary>
 thm (peirce () () (-> (-> (-> ph ps) ph) ph)
      ph ps ph himp2 ph pm2.18 syl)
 
+## <title> Lukasiewicz's Inversion Axiom </title>
+## <summary>
+##   The Inversion Axiom of the infinite-valued sentential logic (L-infinity)
+##   of <a href="http://en.wikipedia.org/wiki/Jan_%C5%81ukasiewicz">Lukasiewicz</a>.
+##   Using [[dfor2]], we can see that this essentially expresses
+##   "disjunction commutes."
+## </summary>
 thm (looinv () () (-> (-> (-> ph ps) ps) (-> (-> ps ph) ph))
      (-> ph ps) ps ph imim1 ph ps peirce syl6)
 
+## <title> Double Negative </title>
 thm (notnot2 () () (-> (-. (-. ph)) ph)
      ph dn)
 
+## <title> Double Negative </title>
 thm (notnotri () (1 (-. (-. ph))) ph
      1 dni)
 
+## <title> Double Negative </title>
 thm (notnot1 () () (-> ph (-. (-. ph)))
      ph dnr)
 
+## <title> Double Negative </title>
 thm (notnoti () (1 ph) (-. (-. ph))
      1 dnri)
 
+## <title> Reductio ad absurdum </title>
 thm (pm2.01 () () (-> (-> ph (-. ph)) (-. ph))
      ph id
      ph id
      jc con2i)
 
+## <title> Reductio ad absurdum </title>
+## <summary>
+##   The theorem <a href="pm2.01">pm2.01</a> written as an deduction.
+## </summary>
 thm (pm2.01d () (1 (-> ph (-> ps (-. ps)))) (-> ph (-. ps))
      1 ps pm2.01 syl)
 
@@ -493,12 +737,25 @@ thm (pm2.52 () () (-> (-. (-> ph ps)) (-> (-. ph) (-. ps)))
 thm (pm2.521 () () (-> (-. (-> ph ps)) (-> ps ph))
      ph ps nimp1 ps a1d)
 
+## <title> Modus Tollens </title>
+## <table>
+##          [    [   [ (-. [ ps)
+##  (->     [ ph ]   [     [ ps)
+##      (-. [ ph ] ) ]     ]
+## </table>
 thm (mto () (1 (-. ps) 2 (-> ph ps)) (-. ph)
      1 2 con3i ax-mp)
 
+## <title> Modus Tollens </title>
+## <table>
+##                  [    [  [ (-. [ ch)
+##   (-> ph (->     [ ps ]  [     [ ch))
+##   (-> ph     (-. [ ps ]  ]     ]   ))
+## </table>
 thm (mtoi () (1 (-. ch) 2 (-> ph (-> ps ch))) (-> ph (-. ps))
      1 2 con3d mpi)
 
+## <title> Modus Tollens </title>
 thm (mtod () (1 (-> ph (-. ch)) 2 (-> ph (-> ps ch))) (-> ph (-. ps))
      1 2 con3d mpd)
 
@@ -634,15 +891,16 @@ thm (bijust () () (-. (-> (-> ph ph) (-. (-> ph ph))))
      ph id
      preandi)
 
+## <title> Alternative Definition of Biconditional </title>
+## <summary>
+##   See <a href="def-bi">def-bi</a> for more information.
+## </summary>
 thm (df-bi () () 
-      (-. (-> (-> (<-> ph ps) 
-                  (-. (-> (-> ph ps) (-. (-> ps ph))))) 
-	      (-. (-> (-. (-> (-> ph ps) 
-                          (-. (-> ps ph))))
-                      (<-> ph ps)))))
+      (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))
     ph ps def-bi-1 df-and-1d
     (-> ph ps) (-> ps ph) df-and-2 ph ps def-bi-2 syl
-    preandi)
+    preandi
+)
 
 thm (bi1 () () (-> (<-> ph ps) (-> ph ps))
      ph ps def-bi-1 and1d)
@@ -978,10 +1236,28 @@ thm (con2bii () (1 (<-> ph (-. ps))) (<-> ps (-. ph))
      impbii
 )
 
+## <title> Definition of OR </title>
+## <summary>
+##      Define disjunction (logical 'or').  This is our first use of the
+##      biconditional connective in a definition; we use it in place of the
+##      traditional "<=def=>", which means the same thing, except that we can
+##      manipulate the biconditional connective directly in proofs rather than
+##      having to rely on an informal definition substitution rule.  Note that
+##      if we mechanically substitute #(-> (-. ph) ps)# for #(\/ ph ps)#,
+##      we end up with an instance of previously proved <a href="biid">identity theorem</a>.  This
+##      is the justification for the definition, along with the fact that it
+##      introduces a new symbol \/.
+## </summary>
 defthm (df-or wff (\/ ph ps) () () (<-> (\/ ph ps) (-> (-. ph) ps))
      (-> (-. ph) ps) biid
 )
 
+## <title> Definition of AND </title>
+## <summary> Define conjunction, logical AND.
+##   This theorem is based on an earlier <a href="df-and">definition of AND</a> which
+##   did not use the biconditional. This theorem writes the definition of AND in a more
+##   familiar form using the biconditional.
+## </summary>
 thm (df-an () () (<-> (/\ ph ps) (-. (-> ph (-. ps))))
      ph ps df-and-1
      ph ps df-and-2
