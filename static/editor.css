@@ -71,13 +71,13 @@ table#panel {
 }
 
 .editor-mode #right-panel {
-	width: 55%
+	width: 56%
 }
 
 .editor-mode #editor-section {
-	width: 40%;
-	margin-left: 2.5%;
-	margin-right: 2.5%;
+	width: 41%;
+	margin-left: 1.5%;
+	margin-right: 1.5%;
 }
 
 .stack-mode #dictionary,
@@ -126,16 +126,19 @@ body.fullscreen {
   overflow: hidden;
 }
 
-#title {
-	margin: 35%;
+#header-boxes {
+	position: absolute;
+	margin: 9px 0 0 192px;
 }
 
 #thmname {
-	font-size: 30px;
+	font-size: 29px;
+	text-align: center;
+	margin: 9px 35px 12px 0;
 }
 
 .header-box {
-	background: rgb(255, 255, 255);
+	background: white;
 	padding: 5 14px;
 	border-radius: 14px;
 	border: 3px solid #ffe0c0;
@@ -165,9 +168,8 @@ body.fullscreen {
 #authetication {
 	position: absolute;
 	right: 38px;
-	width: 90px;
-	font-size: 12px;
-	top: 28px;
+	font-size: 11px;
+	top: 24px;
 	color: #666;
 }
 
@@ -318,9 +320,10 @@ body.fullscreen {
 	padding-right: 10px;
 }
 
-.highlighted-step td {
-	background: #f8f8f8;
-	border-color: e6e6e6;
+.highlighted-step td,
+.highlighted-bottom td {
+	background: #f4f4f4;
+	border-color: c0c0c0;
 }
 
 .proof-block.input-args {
@@ -328,14 +331,24 @@ body.fullscreen {
 }
 
 .proof-block .orange-step td,
-.error-in-step td,
-.highlighted-step.orange-step td,
-.gray-block .highlighted-step.orange-step td {
+.error-in-step td {
 	background: #fff8f0;
-	border-color: #ffe0c0;
+	border-color: #ffd5a9;
+}
+
+.highlighted-bottom.orange-step td,
+.highlighted-step.orange-step td {
+	background: #fff8f0;
+	border-color: #ffba73;
+}
+
+.gray-block .highlighted-step.orange-step td,
+.gray-block .highlighted-bottom.orange-step td {
+	background-color: #fff6ec;
 }
 
 .highlighted-step td,
+.highlighted-bottom td,
 .proof-block .orange-step td,
 .error-in-step td {
 	border-width: 1px;
@@ -348,15 +361,8 @@ body.fullscreen {
 	cursor: default;
 }
 
-.highlighted-step td.first-column {
-	border-left-color: e6e6e6;
-}
-
-.proof-block .orange-step td.first-column {
-	border-left-color: #ffe0c0;
-}
-
 .highlighted-step td.first-column,
+.highlighted-bottom td.first-column,
 .proof-block .orange-step td.first-column {
 	border-left-width: 1px;
 	border-left-style: solid;
@@ -365,15 +371,27 @@ body.fullscreen {
 	padding-left: 9px;
 }
 
-.highlighted-step td.last-column {
-	border-right-color: e6e6e6;
+.highlighted-step td.first-column,
+.highlighted-step td.last-column,
+.highlighted-bottom td.first-column,
+.highlighted-bottom td.last-column {
+	border-color: c0c0c0;
 }
 
-.proof-block .orange-step td.last-column {
-	border-right-color: #ffe0c0;
+.orange-step td.first-column,
+.orange-step td.last-column {
+	border-color: #ffd5a9;
+}
+
+.highlighted-step.orange-step td.first-column,
+.highlighted-step.orange-step td.last-column,
+.highlighted-bottom.orange-step td.first-column,
+.highlighted-bottom.orange-step td.last-column {
+	border-color: #ffba73;
 }
 
 .highlighted-step td.last-column,
+.highlighted-bottom td.last-column,
 .proof-block .orange-step td.last-column {
 	border-right-width: 1px;
 	border-right-style: solid;
@@ -382,8 +400,11 @@ body.fullscreen {
 	padding-right: 9px;
 }
 
+.open-top td.first-column,
+.open-top td.last-column,
 .proof-block .orange-step.open-top td,
-.highlighted-step.open-top.orange-step td,
+.highlighted-step.highlighted-open-top td.first-column,
+.highlighted-step.highlighted-open-top td.last-column,
 .gray-block .highlighted-step.open-top.orange-step td {
 	border-top: 0;
 	margin-top: 0;
@@ -392,8 +413,11 @@ body.fullscreen {
 	padding-top: 5px;
 }
 
+.open-bottom td.first-column,
+.open-bottom td.last-column,
 .proof-block .orange-step.open-bottom td,
-.highlighted-step.open-bottom.orange-step td,
+.highlighted-bottom td.first-column,
+.highlighted-bottom td.last-column,
 .gray-block .highlighted-step.open-bottom.orange-step td {
 	border-bottom: 0;
 	margin-bottom: 0;
@@ -404,37 +428,6 @@ body.fullscreen {
 
 .gray-block .highlighted-step td {
 	background: #fff;
-}
-
-/* Undo the highlighted on the step if the whole block or table is highlighted. */
-.orange-block .highlighted-step td,
-.orange-table .highlighted-step td {
-	background: none;
-	border: 0;
-	/*padding: 5px 10px 5px 40px;*/
-	padding: 5px 1px;
-}
-
-.orange-block .highlighted-step td.first-column,
-.orange-table .highlighted-step td.first-column {
-	padding-left: 10px;
-}
-
-.orange-block .highlighted-step td.last-column,
-.orange-table .highlighted-step td.last-column {
-	padding-right: 10px;
-}
-
-.orange-block .highlighted-step.orange-step td,
-.gray-block.orange-block .highlighted-step.orange-step td {
-	background: #fff8f0;
-	border: 0;
-}
-
-.proof-block.orange-block .orange-step td {
-	border: 0;
-	box-shadow: 0 0 0 0 #eee;
-	padding: 5px 1px; /* 10px;*/
 }
 
 .indented-step.unstyled.orange-step td,
@@ -450,7 +443,7 @@ body.fullscreen {
 .table-border {
 	border: 1px #d5d5d5 solid;
 	border-radius: 5px;
-	padding: 0 3px;
+	padding: 0;
 }
 
 .table-border.orange-table {
@@ -459,18 +452,8 @@ body.fullscreen {
 	cursor: default;
 }
 
-/**
- * Currently disabled. Only slightly visible. Not working when the whole block is orange.
-.table-background {
-	background: #fdfdfd;
-}
-
-.gray-block .table-background {
-	background: #fafafa;
-}*/
-
 .table-no-border {
-	padding: 0 4px;
+	padding: 0 1px;
 }
 
 .proof-step-div.error-in-step td {
@@ -491,9 +474,9 @@ body.fullscreen {
 	cursor: default;
 	float: right;
 	color: #aaa;
-	font-size: 9px;
+	font-size: 10px;
 	padding-top: 0px;
-	width: 80px;
+	width: 100px;
 	text-align: center;
 }
 
@@ -579,19 +562,23 @@ a.proof-step-name:hover {
 }
 
 .proof-block {
-	border: 1px solid #d0d0d0;
+	background: white;
+	border: 1px solid #c0c0c0;
 	border-radius: 5px;
-	box-shadow: 0px 2px 5px 0px #f0f0f0;
+	box-shadow: 0px 2px 7px 0px #ddd;
 	margin: 0 20px 20px 0;
 	padding: 6px 6px 6px 8px;
 }
 
-.proof-block.gray-block.orange-block,
 .proof-block.orange-block,
 .proof-block.primary-block.orange-block {
 	background-color: #fff8f0;
-	border-color: rgb(255, 186, 115);
+	border-color: #ffba73;
 	cursor: default;
+}
+
+.proof-block.gray-block.orange-block {
+	background-color: #fff6ec;
 }
 
 .proof-block.primary-block {
@@ -601,7 +588,15 @@ a.proof-step-name:hover {
 }
 
 .proof-block.gray-block {
-	background: #f8f8f8;
+	background: #f4f4f4;
+}
+
+.proof-block.inner-block {
+  margin: 0 0 3px 0;
+}
+
+.orange-block .proof-block.inner-block {
+  box-shadow: none;
 }
 
 .indented-step.unstyled td {
@@ -610,7 +605,12 @@ a.proof-step-name:hover {
 
 .summary {
   font-style: italic;
-  margin: 5px 10px 10px 23px;
+  margin: 0 56px 13px 25px;
+  text-align: justify;
+}
+
+.no-summary {
+	height: 9px;
 }
 
 .hidden {
@@ -627,7 +627,7 @@ textarea:-webkit-selection {
 #number-adder,
 #set-adder {
 	float: right;
-	width: 60px;
+	width: 50px;
 }
 
 .highlight-symbol {
@@ -678,6 +678,7 @@ textarea:-webkit-selection {
 }
 
 a {
+	color: #b64900;
 	text-decoration: none;
 }
 

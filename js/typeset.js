@@ -613,7 +613,7 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (sexp[0] == 'mod') {
         return GH.typesetinfix(sexp, 'n', 2500, ' mod ', cursorPosition);
     } else if (sexp[0] == 'div') {
-        return GH.typesetinfix(sexp, 'n', 2500, '&divide', cursorPosition);
+        return GH.typesetinfix(sexp, 'n', 2500, '÷', cursorPosition);
     } else if (sexp[0] == 'apply') {
         return GH.typesetapply(sexp, 2500, cursorPosition);
     } else if (sexp[0] == 'sum') {

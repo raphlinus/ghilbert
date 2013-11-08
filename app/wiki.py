@@ -40,7 +40,9 @@ class Handler(users.AuthenticatedHandler):
         obj = self.repo.traverse(gitcontent.wiki_to_git_path(arg))
         if obj is not None:
             contents = babygit.babygit.obj_contents(obj)
-            common.header(o, "Ghilbert wiki: " + arg)
+            common.header(o, "")
+            o.write('<div id="text-body">')
+            o.write("Ghilbert wiki: " + arg)
             o.write(ghmarkup.process_ghmarkup(contents, '/'))
             if self.has_write_perm:
                 o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
@@ -66,6 +68,7 @@ class Handler(users.AuthenticatedHandler):
         o = self.response.out
         title = action + ' wiki page: ' + cgi.escape(editurl)
         o.write('<html><title>' + title + '</title>\n')
+        o.write('<link rel=stylesheet href="/static/wiki.css" type="text/css">')
         o.write('<body><h1>' + title + '</h1>\n')
         if preview is not None:
             o.write(ghmarkup.process_ghmarkup(contents, '/'))

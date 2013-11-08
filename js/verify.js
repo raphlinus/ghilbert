@@ -29,9 +29,10 @@ GH.Scanner = function (lines) {
 	this.styleScanner = new GH.StyleScanner();
 };
 
-GH.styling = function(table, title, suggest) {
+GH.styling = function(table, title, suggest, filename) {
 	this.table = table;
 	this.title = title;
+	this.filename = filename;
 	// Remove the quotation marks from the suggestion names.
 	if (suggest) {
 		for (var i = 0; i < suggest.length; i++) {
@@ -107,13 +108,13 @@ GH.StyleScanner.prototype.read_column_style = function(tok) {
 	}
 };
 
-GH.StyleScanner.prototype.get_styling = function() {
+GH.StyleScanner.prototype.get_styling = function(filename) {
 	var tableStyle = null;
 	if (this.table) {
 		tableStyle = this.table.output();
 		tableStyle.splice(0, 1);
 	}
-	return new GH.styling(tableStyle, this.title, this.suggest);
+	return new GH.styling(tableStyle, this.title, this.suggest, filename);
 };
 
 GH.StyleScanner.prototype.clear = function() {
@@ -436,7 +437,7 @@ GH.term_common = function(tkind, tsig, freespecs,  kinds, terms, syms) {
 GH.ProofCtx = function() {
     this.stack = [];
 	this.stackHistory = [];
-	this.hierarchy = new GH.ProofHierarchy(null, 0);
+	this.hierarchy = new GH.ProofHierarchy(null, 0, '');
     this.mandstack = [];
     this.defterm = null;
 };
@@ -1053,11 +1054,11 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
         }
 		var hyp = hypmap[step];
 		proofctx.stack.push(hyp);
-		var styling = tagName ? new GH.styling(null, tagName, '') : null;
+		var styling = tagName ? new GH.styling(null, tagName, '', '') : null;
 		var proofStep = new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;
-		hierarchy.appendChild(new GH.ProofHierarchy(proofStep, proofStep.begin));
+		hierarchy.appendChild(new GH.ProofHierarchy(proofStep, proofStep.begin, ''));
 		return;
     }
     if (!this.syms.hasOwnProperty(step)) {
@@ -1081,14 +1082,14 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
 
 		var removed = proofctx.stackHistory.splice(sp);
 		var isThm = (v[0] == 'thm');
-		var styling = v[6] ? v[6] : new GH.styling(null, null, '');
-		if (tagName) {
-			styling = new GH.styling(styling.table, tagName, '');
-		}
+		var styling = v[6] ? v[6] : new GH.styling(null, null, '', '');
+		/* if (tagName) {
+			styling = new GH.styling(styling.table, tagName, '', styling.filename);
+		} */
 		var proofStep = new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, isThm, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;		
-		hierarchy.appendChild(new GH.ProofHierarchy(proofStep, proofStep.begin));
+		hierarchy.appendChild(new GH.ProofHierarchy(proofStep, proofStep.begin, ''));
 		var reparented = false;
 		for (var i = 0; i < removed.length; i++) {
 			if (removed[i].hierarchy.parent == proofStep.hierarchy.parent) {
@@ -1098,7 +1099,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
 		}
 		if (reparented) {
 			// Remove the step we just added and add it as a child instead.
-			var newHierarchy = new GH.ProofHierarchy(proofStep, proofStep.begin);
+			var newHierarchy = new GH.ProofHierarchy(proofStep, proofStep.begin, '');
 			var lastChild = hierarchy.children[hierarchy.children.length - 1];
 			lastChild.appendChild(newHierarchy);
 			lastChild.step = null;

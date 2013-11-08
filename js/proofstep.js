@@ -47,6 +47,10 @@ GH.sExpression.fromRaw = function(expression) {
 	return result;
 };
 
+GH.sExpression.printRaw = function(expression) {
+	return GH.sExpression.fromRaw(expression).toString();
+};
+
 // Create an s-expression for a number between 0 and 10.
 GH.sExpression.createDigit = function(num) {
 	return new GH.sExpression(num.toString(), -1, -1, false);
@@ -223,8 +227,7 @@ GH.sExpression.prototype.display = function(stack, indentation, cursorPosition) 
 	var isHighlighted = this.begin <= cursorPosition && cursorPosition <= this.end;
 	// For now comment out the highlighting. Add it back in when we get a better editor like ACE or CodeMirror.
 	//var mouseOverFunc = 'GH.setSelectionRange(' + this.begin + ',' + this.end +')';
-	var mouseOverFunc = '';
-	stack.appendChild(GH.ProofStep.stepToHtml(text, indentation, isHighlighted, false, mouseOverFunc, '', '', ''));
+	stack.appendChild(GH.ProofStep.stepToHtml(text, indentation, ''));
 };
 
 GH.sExpression.prototype.toString = function() {
@@ -277,7 +280,7 @@ GH.ProofBlock.resizeTables = function(block){
 };
 
 /**
- *  Add table elements to the block element. Every step is added to a table. The table list
+ * Add table elements to the block element. Every step is added to a table. The table list
  * contains groups of steps that are put into tables together. If there is no table list
  * for a step it is added into a one-line table.
  */ 
@@ -394,10 +397,12 @@ GH.proofTable = function(styling, begin, end) {
  * </d> tags.
  *   - step: A single proof step or null.
  *   - begin: The cursor position where the hierarchy begins.
+ *   - name: The name in the <d> tag.
  */
-GH.ProofHierarchy = function(step, begin) {
+GH.ProofHierarchy = function(step, begin, name) {
 	this.parent = null;
 	this.step = step;
+	this.name = name;
 	this.children = []; // An array of proofHierarchies.
 	if (step) {
 		step.hierarchy = this;
@@ -496,7 +501,8 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.begin = begin;
 	this.end = end;
 	this.isError = isError;
-	this.isThm = isThm;
+	this.isThm = isThm;    // TODO: Delete isThm, now that we have links.
+	this.link = styling ? GH.ProofStep.computeLink(styling.filename, name) : null;
 	this.substitution = null;
 	this.styling = styling ? styling.table : null;
 	this.title = styling && styling.title ? styling.title : '';
@@ -506,6 +512,23 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	for (var i = 0; i < sExpressions.length; i++) {
 		this.sExpressions_.push(GH.sExpression.fromRaw(sExpressions[i][1]));
 	}
+};
+
+GH.ProofStep.prototype.print = function() {
+	return GH.sExpression.printRaw(this.conclusion);
+};
+
+GH.ProofStep.computeLink = function(filename, stepName) {
+	filename = filename.replace(new RegExp('/git'), '');
+	if (filename.match(new RegExp('/proofs_upto'))) {
+		var splitUp = filename.split('/');
+		splitUp.splice(0, 4);
+		splitUp.pop();
+		filename = '/' + splitUp.join('/');
+	} else {
+		filename = filename.replace(new RegExp('.ghi'), '.gh');
+	}
+	return filename + '/' + stepName;
 };
 
 /**
@@ -535,16 +558,15 @@ GH.ProofStep.prototype.isInsideNarrow = function(position) {
 };
 
 // Render the proof step name in HTML.
-GH.ProofStep.nameToHtml = function(name, title, isLink, isPrimary, isHypothesis) {
+GH.ProofStep.nameToHtml = function(name, title, isLink, link, isPrimary) {
 	if ((title == '') || (title === undefined)) {
 		title = name;
 	}
 
 	var classes = 'proof-step-name';
-	//classes += (isHypothesis ? ' display-on-hover'  : '');
 	classes += (isPrimary    ? ' primary-step-name' : '');
-	if (isLink) {
-		return '<a href="/edit' + url + '/' + name + '"  class=\'' + classes + '\'>' + title + '</a>';
+	if (isLink && link) {
+		return '<a href="/edit' + link + '"  class=\'' + classes + '\'>' + title + '</a>';
 	} else {
 		return '<span class=\'' + classes + '\'>' + title + '</span>';
 	}
@@ -557,7 +579,7 @@ GH.ProofStep.NEW_CELL  = '</td><td>';
  * Returns the proof step displayed as a set of blocks.
  * This is the main entry point for displaying the proof steps.
  */
-GH.ProofStep.prototype.displayStack = function(stack, summary, cursorPosition) {
+GH.ProofStep.prototype.displayStackOld = function(stack, summary, cursorPosition) {
 	if (summary != '') {
 		var summaryElement = document.createElement("div");
 		summaryElement.innerHTML = summary;
@@ -568,6 +590,22 @@ GH.ProofStep.prototype.displayStack = function(stack, summary, cursorPosition) {
 	for (var i = 0; i < blocks.length; i++) {
 		blocks[i].display(stack, cursorPosition);
 	}
+};
+
+/**
+ * Returns the proof step displayed as a set of blocks.
+ * This is the main entry point for displaying the proof steps.
+ */
+GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount, cursorPosition) {
+	var summaryElement = document.createElement("div");
+	stack.appendChild(summaryElement);
+	summaryElement.innerHTML = summary;
+	if (summary != '') {
+		summaryElement.setAttribute('class', 'summary');
+	} else {
+		summaryElement.setAttribute('class', 'no-summary');
+	}
+	return GH.ProofSegment.createSegments(this, stack, segmentCount, cursorPosition);
 };
 
 // Display the left over input arguments on the stack
@@ -778,7 +816,7 @@ GH.ProofStep.prototype.display = function(isGrayed, cursorPosition) {
 /**
  * Display just this step without recursion.
  */
-GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypothesis, isHighlighted, blockOffset, prevOutsideTable) {
+GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypothesis /* Remove this */, isHighlighted, blockOffset, prevOutsideTable) {
 	var inStep = this.begin <= cursorPosition && cursorPosition <= this.end;
 	var classes = '';
 	if (isIndented) {
@@ -790,7 +828,7 @@ GH.ProofStep.prototype.displayStep = function(isIndented, cursorPosition, isHypo
 	if (isHighlighted) {
 		classes += ' ' + GH.ProofStep.HIGHLIGHTED_STEP_;
 	}
-	var nameHtml = GH.ProofStep.nameToHtml(this.name_, this.title, this.isThm, inStep, isHypothesis);
+	var nameHtml = GH.ProofStep.nameToHtml(this.name_, this.title, this.isThm, this.link, inStep);
 	return new GH.RenderableProofStep(this.conclusion, classes, this.begin, this.end, inStep, prevOutsideTable, nameHtml, blockOffset);
 };
 
@@ -858,22 +896,27 @@ GH.RenderableProofStep.prototype.render = function(cursorPosition) {
 	var mouseOutFunc  = 'GH.ProofStep.handleMouseOut()';
 	var clickFunc  = 'GH.ProofStep.handleClick(' + this.begin + ',' + this.end +', ' + this.cursorInside + ')';
 	var text = GH.sexptohtmlHighlighted(this.expression_, cursorPosition);
-	return GH.ProofStep.stepToHtml(text, this.classes_, mouseOverFunc, mouseOutFunc, clickFunc, this.nameHtml_);
+	var row = GH.ProofStep.stepToHtml(text, this.classes_, this.nameHtml_);
+	row.setAttribute('onmouseover', mouseOverFunc);
+	row.setAttribute('onmouseout', mouseOutFunc);
+	row.setAttribute('onclick', clickFunc);
+	return row;
+};
+
+
+// Render the proof step into HTML.
+GH.RenderableProofStep.prototype.renderNew = function(cursorPosition) {
+	var text = GH.sexptohtmlHighlighted(this.expression_, cursorPosition);
+	return GH.ProofStep.stepToHtml(text, this.classes_, this.nameHtml_);
 };
 
 // Display a proof step.
 //   text: The text inside the step.
 //   classes: The CSS classes applied to this step.
-//   mouseOverFunc: The function to call on mouseover.
-//   mouseOutFunc: The function to call on mouseout.
-//   clickFunc: The function to call on a mouse click.
 //   name: The name of the proofstep.
-GH.ProofStep.stepToHtml = function(text, classes, mouseOverFunc, mouseOutFunc, clickFunc, name) {
+GH.ProofStep.stepToHtml = function(text, classes, name) {
 	var row = document.createElement("tr");
 	row.setAttribute('class', 'proof-step-div ' + classes);
-	row.setAttribute('onmouseover', mouseOverFunc);
-	row.setAttribute('onmouseout', mouseOutFunc);
-	row.setAttribute('onclick', clickFunc);
 
 	// Split the text using the html tags into the cells of a table.
 	var cellTexts = [];
@@ -1030,19 +1073,21 @@ GH.ProofStep.handleConclusionMouseOver = function(start, end, blockOffset, hypIn
 
 // Returns true if an element has a particular class.
 GH.ProofStep.hasClass_ = function(element, className) {
-	return element.className.match(new RegExp(className));
+	return element && element.className.match(new RegExp(className));
 };
 
 // Add a class to an element.
 GH.ProofStep.addClass_ = function(element, className) {
-	if (!GH.ProofStep.hasClass_(element, className)) {
+	if (element && !GH.ProofStep.hasClass_(element, className)) {
 		element.className += ' ' + className;
 	}
 };
 
 // Remove a class from an element.
 GH.ProofStep.removeClass_ = function(element, className) {
-	element.className = element.className.replace(new RegExp(' ' + className), '');
+	if (element) {
+		element.className = element.className.replace(new RegExp(' ' + className), '');
+	}
 };
 
 // Handle a mouse out event. Remove all the highlighting that was added in the mouseover handling.

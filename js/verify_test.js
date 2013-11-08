@@ -71,7 +71,7 @@ GhilbertTest.run_verifier = function (url_context, url, context) {
     }
     // We don't care about styling, but apparently we need to participate in passing
     // it around.
-    var styling = scanner.styleScanner.get_styling();
+    var styling = scanner.styleScanner.get_styling('');
     var arg = GH.read_sexp(scanner);
     context.do_cmd(command, arg, styling);
     scanner.styleScanner.clear();

@@ -227,6 +227,7 @@ class FrontPageHandler(AuthenticatedHandler):
     def get(self):
         o = self.response.out
         common.header(o, 'Ghilbert home')
+        o.write('<div id="text-body">')
         userobj = self.userobj
         if userobj is not None:
             template = 'FrontPageLogged'

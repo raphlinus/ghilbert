@@ -19,6 +19,7 @@ GH.Direct = function(text, stack, suggestArea) {
 	this.status = null;
 	this.session = null;
 	this.offset = 0;
+	this.rootSegments = [];
 };
 
 /**
@@ -197,9 +198,10 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 				}
 			}
 		}
+		this.rootSegments = [];
 		for (var j = 0; j < shownHistory.length; j++) {
-			var summary = thmctx.styleScanner.summary;
-			shownHistory[j].displayStack(this.stack, summary, cursorPosition);
+			var summary = (j == 0) ? thmctx.styleScanner.summary : '';
+			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j, cursorPosition));
 		}
 		
 		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
@@ -301,6 +303,7 @@ GH.DirectThm = function(vg) {
 	this.fv = null;
 	this.hyps = null;
 	this.concl = null;
+	this.thmType = GH.DirectThm.ThmType.NORMAL;
 
 	// A list of symbols added in this directThm.
 	this.newSyms = [];
@@ -316,6 +319,11 @@ GH.DirectThm = function(vg) {
 	this.tagNames = [];
 };
 
+GH.DirectThm.ThmType = {
+	NORMAL : 0,
+	DEFINITION : 1,
+};
+
 GH.DirectThm.StateType = {
 	THM : 0,
 	POST_THM : 1,
@@ -327,7 +335,11 @@ GH.DirectThm.StateType = {
 	POST_HYPOTHESES : 7,
 	S_EXPRESSION : 8,
 	POST_S_EXPRESSION : 9,
-	PROOF_END : 10
+	PROOF_END : 10,
+	KIND : 11,
+	POST_KIND : 12,
+	DEFINED_TERM: 13,
+	POST_DEFINED_TERM: 14,
 };
 
 GH.DirectThm.prototype.clearNewSyms = function() {
@@ -353,22 +365,20 @@ GH.DirectThm.DECREMENT_DEPTH_TAG_ = '</d';
 // Update the depth based on the styling.
 GH.DirectThm.prototype.applyStyling = function(styling) {
 	if (styling[0] && styling[0].indexOf(GH.DirectThm.INCREMENT_DEPTH_TAG_) == 0) {
-		var newHierarchy = new GH.ProofHierarchy(null, styling[0].beg);
-		this.proofctx.hierarchy.appendChild(newHierarchy);
-		this.proofctx.hierarchy = newHierarchy;
-
+		var begin = styling[0].beg;
 		var splitStyling = styling.join(' ').split('\'');
 		var tagName = (splitStyling.length == 3) ? splitStyling[1] : null;
 		this.tagNames.push(tagName);
+
+		var newHierarchy = new GH.ProofHierarchy(null, begin, tagName);
+		this.proofctx.hierarchy.appendChild(newHierarchy);
+		this.proofctx.hierarchy = newHierarchy;
 	} else if (styling[0] && styling[0].indexOf(GH.DirectThm.DECREMENT_DEPTH_TAG_) == 0) {
 		this.proofctx.hierarchy.end = styling[styling.length - 1].end
 		this.proofctx.hierarchy = this.proofctx.hierarchy.parent;
 
 		var lastStep = this.proofctx.hierarchy.getLastStep();
 		var newTagName = this.tagNames.pop();
-		if (newTagName) {
-			lastStep.title = newTagName;
-		}
 	}
 }
 
@@ -409,6 +419,7 @@ GH.DirectThm.prototype.getExpectedTypes = function(actualArgs) {
 
 GH.DirectThm.prototype.tok = function(tok) {
 	var stateType = GH.DirectThm.StateType;
+	var thmType = GH.DirectThm.ThmType;
 	var state = this.state;
 	var thestep = null;
 	var i, pc;
@@ -416,6 +427,9 @@ GH.DirectThm.prototype.tok = function(tok) {
 		case stateType.THM:
 			if (tok == 'thm') {
 				this.state = stateType.POST_THM;
+			} else if (tok == 'defthm') {
+				this.state = stateType.POST_THM;
+				this.thmType = thmType.DEFINITION;
 			} else {
 				return 'expected thm';
 			}
@@ -436,13 +450,31 @@ GH.DirectThm.prototype.tok = function(tok) {
 					return "A symbol of name '" + tok + "' already exists.";
 				}
 				// Is this the best place to do this?
-				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling());
-				this.state = stateType.POST_NAME;
+				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling(''));
+				if (this.thmType == thmType.NORMAL) {
+					this.state = stateType.POST_NAME;
+				} else {
+					// Definitions have the kind after the name.
+					this.state = stateType.KIND;
+				}
+			}
+			break;
+		case stateType.KIND:
+			// We currently don't do anything with the kind in defthms, but we still need to parse it.
+			this.state = stateType.POST_KIND;
+			break;
+		case stateType.POST_KIND:
+			if (tok == '(') {
+				this.pushEmptySExp_(tok);
+				this.state = stateType.DEFINED_TERM;
+			} else {
+				return "expected ( to open defined term";
 			}
 			break;
 		case stateType.POST_NAME:
+		case stateType.POST_DEFINED_TERM:
 			if (tok == '(') {
-			  this.pushEmptySExp_(tok);
+				this.pushEmptySExp_(tok);
 				this.state = stateType.FREE_VARIABLE;
 			} else {
 				return "expected ( to open dv's";
@@ -472,37 +504,43 @@ GH.DirectThm.prototype.tok = function(tok) {
 			  this.pushEmptySExp_(tok);
 				this.state = stateType.S_EXPRESSION;
 			} else if (tok == ')') {
-				pc = this.proofctx;
-				if (pc.mandstack.length != 0) {
-					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, null));
-					return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
-				}
-				if (pc.stack.length != 1) {
-					return '\n\nStack must have one term at the end of the proof.';
-				}
-				if (!GH.sexp_equals(pc.stack[0], this.concl)) {
-					return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
-							'\nWanted:\n ' + GH.sexp_to_string(this.concl));
-				}
-				
-				var new_hyps = [];
-				if (this.hyps) {
-					for (j = 1; j < this.hyps.length; j += 2) {
-						new_hyps.push(this.hyps[j]);
+				if (this.thmType != thmType.DEFINITION) {
+					pc = this.proofctx;
+					if (pc.mandstack.length != 0) {
+						//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, false, null));
+						return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 					}
+					if (pc.stack.length != 1) {
+						return '\n\nStack must have one term at the end of the proof.';
+					}
+					if (!GH.sexp_equals(pc.stack[0], this.concl)) {
+						return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
+								'\nWanted:\n ' + GH.sexp_to_string(this.concl));
+					}
+					
+					var new_hyps = [];
+					if (this.hyps) {
+						for (j = 1; j < this.hyps.length; j += 2) {
+							new_hyps.push(this.hyps[j]);
+						}
+					}
+					// Hmm, could possibly save proofctx.varmap instead of this.syms...
+					// If we go to index variable expression storage we don't need either
+					this.vg.add_assertion('thm', this.thmname, this.fv, new_hyps, this.concl,
+									   this.proofctx.varlist, this.proofctx.num_hypvars,
+									   this.proofctx.num_nondummies, this.vg.syms, this.styleScanner.get_styling(''));
+					this.newSyms.push(this.thmname);
+	
+					this.state = stateType.THM;
+					// Make the end of the hierarchy equal to the final end to the theorem.
+					this.proofctx.hierarchy.end = tok.end;
+					this.concl = null;
+					this.hypmap = {};
+				} else {
+					var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, false, null)
+					conclusion.hierarchy = new GH.ProofHierarchy(null, 0, 'Definition');
+					this.proofctx.stackHistory.push(conclusion);
 				}
-				// Hmm, could possibly save proofctx.varmap instead of this.syms...
-				// If we go to index variable expression storage we don't need either
-				this.vg.add_assertion('thm', this.thmname, this.fv, new_hyps, this.concl,
-								   this.proofctx.varlist, this.proofctx.num_hypvars,
-								   this.proofctx.num_nondummies, this.vg.syms, this.styleScanner.get_styling());
-				this.newSyms.push(this.thmname);
-
-				this.state = stateType.THM;
-				// Make the end of the hierarchy equal to the final end to the theorem.
-				this.proofctx.hierarchy.end = tok.end;
-				this.concl = null;
-				this.hypmap = {};
 			} else {
 				thestep = tok;
 			}
@@ -510,6 +548,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 		case stateType.FREE_VARIABLE:
 		case stateType.HYPOTHESES:
 		case stateType.S_EXPRESSION:
+		case stateType.DEFINED_TERM:
 			if (tok == '(') {
 			  this.pushEmptySExp_(tok);
 			} else if (tok == ')') {
@@ -571,17 +610,18 @@ GH.DirectThm.prototype.tok = function(tok) {
 		}
 		this.proofctx.num_hypvars = this.proofctx.varlist.length;
   } else if (state == stateType.POST_S_EXPRESSION && this.concl == null) {
-		pc = this.proofctx;
-		try {
-			this.vg.kind_of(thestep, pc.varlist,
-											pc.varmap, false, this.vg.syms);
-			pc.num_nondummies = pc.varlist.length;
-			pc.fvvarmap = this.vg.fvmap_build(this.fv, pc.varlist, pc.varmap);
-		} catch (e2) {
-			return "! " + e2;
+		if (this.thmType != thmType.DEFINITION) {
+			pc = this.proofctx;
+			try {
+				this.vg.kind_of(thestep, pc.varlist, pc.varmap, false, this.vg.syms);
+				pc.num_nondummies = pc.varlist.length;
+				pc.fvvarmap = this.vg.fvmap_build(this.fv, pc.varlist, pc.varmap);
+			} catch (e2) {
+				return "! " + e2;
+			}
 		}
 		this.concl = thestep || 'null';
-  } else if (thestep != null && state == stateType.POST_S_EXPRESSION) {
+  } else if (thestep != null && state == stateType.POST_S_EXPRESSION && (this.thmType != thmType.DEFINITION)) {
 		try {
 			var tagName = (this.tagNames.length > 0) ? this.tagNames[this.tagNames.length - 1] : null;
 			this.vg.check_proof_step(this.hypmap, thestep, this.proofctx, tagName);

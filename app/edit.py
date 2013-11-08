@@ -84,7 +84,11 @@ class EditHandler(users.AuthenticatedHandler):
         urlctx = read.UrlCtx(url)
         text = urlctx.resolve(url)
         if text is None:
-            o.write('Well, didn\'t find url: ' + url)
+            o.write('Well, didn\'t find url: ' + url + '. ')
+            ghiFile = '/' + asplit[0] + 'i'
+            o.write('Unfortunately, the axioms (statements without proofs) are not set up ')
+            o.write('properly and end up here. ')
+            o.write('Maybe try the ghi file: <a href="' + ghiFile + '">' + ghiFile + '</a>')
             return
         lines = text.readlines()
         digest = textutils.split_gh_file(lines)
@@ -127,9 +131,8 @@ class EditHandler(users.AuthenticatedHandler):
 <body class="editor-mode">
 """)
         o.write('<div class="header">')
-        o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute; top: 24px;"/></a>')
-        o.write('  <span id="title">');
-        o.write('    <span id="thmname" class="header-box"></span>');
+        o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute;"/></a>')
+        o.write('  <span id="header-boxes">');
         o.write("""    <span class="header-box edit-entry" onclick="document.body.className='editor-mode'">edit</span> """);
         o.write("""    <span class="header-box dictionary-entry" onclick="document.body.className=''">dictionary</span> """);
         o.write('  </span>');
@@ -142,6 +145,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/edit.js" type="text/javascript"></script>
 <script src="/js/direct.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
+<script src="/js/proofsegment.js" type="text/javascript"></script>
 <script src="/js/prover/prover.js" type="text/javascript"></script>
 <script src="/js/prover/archiveSearcher.js" type="text/javascript"></script>
 <script src="/js/prover/buttonController.js" type="text/javascript"></script>
@@ -225,7 +229,7 @@ class EditHandler(users.AuthenticatedHandler):
   <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
   <input type="button" id="set-adder" onclick="window.direct.prover.openTupleAdder()" name="tupleAdder" value="tuple"/>
   <input type="button" id="set-adder" onclick="window.direct.prover.openSetAdder()" name="setAdder" value="set"/>
-  <input type="button" id="number-adder" onclick="window.direct.prover.openNumberAdder()" name="numberAdder" value="number"/>
+  <input type="button" id="number-adder" onclick="window.direct.prover.openNumberAdder()" name="numberAdder" value="num"/>
 <br/>
 """)
         if useAce: o.write("""<div id="canvas"></div>
@@ -240,6 +244,7 @@ class EditHandler(users.AuthenticatedHandler):
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
 </div>
 <div id="right-panel">
+  <div id="thmname"></div>
   <div id="stack">...</div>
   <div id="suggest"></div>
 </div>
