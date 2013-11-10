@@ -246,7 +246,8 @@ thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
 thm (EqualityLessThan () () (→ (= a b) (¬ (< a b)))
         a b LessThanEquality
         transposeWithNegatedConsequent
- )
+)
+
 thm (LessEqualAntisymmetryLemma () () (→ (∧ (< a b) (≤ b a)) (= a b))
 # We start by turning <code>a < b ∧ b ≤ a</code> into <code>(a < b ∧ b < a) ∨ (a < b ∧ b = a)</code>.
         b a LessEqualLessThan
@@ -281,11 +282,16 @@ thm (LessEqualAntisymmetryLemma () () (→ (∧ (< a b) (≤ b a)) (= a b))
 # Combining the two halves we are done.
         composeDisjunction
         applySyllogism
- )
+)
 
 thm (LessEqualAntisymmetry () () (→ (∧ (≤ a b) (≤ b a)) (= a b))
+        a b LessEqualLessThan
+        eliminateBiconditionalReverse
+        (≤ b a) conjoinRR
+
         (< a b) (= a b) (≤ b a) ConjunctionRightDistribution
         eliminateBiconditionalReverse
+        applySyllogism
 # The first half is <code>a < b ∧ b ≤ a → a = b</code>, which is the lemma we already proved.
         a b LessEqualAntisymmetryLemma
 # The second half is <code>a = b ∧ b ≤ a → a = b<code>.
@@ -293,6 +299,7 @@ thm (LessEqualAntisymmetry () () (→ (∧ (≤ a b) (≤ b a)) (= a b))
 # Combining the halves we are done.
         composeDisjunction
         applySyllogism
- )
+)
+
 export (COMPLETE First-order_linear_order.ghi (PROPOSITIONAL FIRSTORDER) "")
-export (ADDITIONAL First-order_linear_order_from_nonstrict_inequality.ghi (PROPOSITIONAL FIRSTORDER DEFINED) "")
+export (ADDITIONAL First-order_linear_order_from_strict_inequality.ghi (PROPOSITIONAL FIRSTORDER DEFINED) "")
