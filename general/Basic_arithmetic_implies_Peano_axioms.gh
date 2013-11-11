@@ -5,13 +5,20 @@ import (BASIC Basic_arithmetic.ghi (CLASSICAL FIRSTORDER) "")
 
 tvar (formula φ)
 var (object k n)
-tvar (nat a b c d a0 a1 b0 b1)
-defthm (Succ nat (succ a) () () (= (succ a) (+ a (1)))
-        (+ a (1)) BiconditionalReflexivity
+tvar (object a b c d a0 a1 b0 b1)
+defthm (Succ object (succ a) () () (= (succ a) (+ a (1)))
+        (+ a (1)) EqualityReflexivity
 )
+
 thm (Successor () () (↔ (= (succ a) (succ b)) (= a b))
+        a Succ
+        b Succ
+        buildEquality
+
         a (1) b AdditionCancellationRight
- )
+        applyBiconditionalTransitivity
+)
+
 thm (AdditiveIdentity () () (= (+ a (0)) a)
         a AdditiveIdentityRight
  )
@@ -19,11 +26,18 @@ thm (AdditiveIdentity () () (= (+ a (0)) a)
 thm (Addition () () (= (+ a (succ b)) (succ (+ a b)))
         a b (1) AdditionAssociativity
         swapEquality
- )
+
+        b Succ
+        a buildAdditionLL
+        (+ a b) Succ
+        buildEquality
+        eliminateBiconditionalForward
+        applyModusPonens
+)
 
 thm (MultiplicativeZero () () (= (· a (0)) (0))
         a MultiplicativeZeroRight
- )
+)
 
 thm (Multiplication () () (= (· a (succ b)) (+ a (· a b)))
         b (1) AdditionCommutativity
@@ -35,13 +49,31 @@ thm (Multiplication () () (= (· a (succ b)) (+ a (· a b)))
         a MultiplicativeIdentityRight
         (· a b) buildAdditionRR
         applyEqualityTransitivity
- )
+
+        b Succ
+        a buildMultiplicationLL
+        (+ a (· a b)) buildEqualityRR
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 thm (Induction () () 
   (→ 
    (∧ (subst (0) n φ) 
     (∀ k (→ (subst k n φ) (subst (succ k) n φ)))) (∀ n φ))
         n φ k InductionSubst
- )
+
+        k Succ
+        n φ buildSubstReplacement
+        (subst k n φ) buildImplicationAntecedent
+        k buildForAll
+        (subst (0) n φ) buildConjunctionLL
+        (∀ n φ) buildImplicationConsequent
+
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 thm (ZeroNotSuccessor () () (¬ (= (0) (succ a)))
 # We start with <code>0 ≤ a</code> and <code>0 < 1</code>.
         a ZeroSmallest
@@ -65,5 +97,12 @@ thm (ZeroNotSuccessor () () (¬ (= (0) (succ a)))
 # And strict inequality and equality cannot both hold.
         (0) (+ a (1)) LessThanEquality
         applyModusPonens
- )
+
+        a Succ
+        (0) buildEqualityLL
+        addNegation
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
 export (PEANO Peano_axioms.ghi (CLASSICAL FIRSTORDER) "")
