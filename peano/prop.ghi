@@ -777,11 +777,14 @@ stmt (bi1 () () (-> (<-> ph ps) (-> ph ps)))
 stmt (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps))))
 
 #  Infer an implication from a logical equivalence.
-## <title> Equivalence to Implication </title>
+## <title> Biconditional Implies Conditional </title>
 stmt (biimpi () ((<-> ph ps)) (-> ph ps))
 
 #  Infer a converse implication from a logical equivalence.
-## <title> Equivalence to Implication </title>
+## <title> Biconditional Implies Conditional </title>
+## <table>
+##   ((<-> <r> ph <g> ps)) (-> <g> ps <r> ph))
+## </table>
 stmt (biimpri () ((<-> ph ps)) (-> ps ph))
 
 #  Deduce an implication from a logical equivalence.
@@ -1238,7 +1241,10 @@ stmt (pm1.2 () () (-> (\/ ph ph) ph))
 
 #  Commutative law for disjunction.  Theorem *4.31 of [bib/WhiteheadRussell]
 #      p. 118.
-## <title> Commutative Property </title>
+## <title> Commutative Property of OR </title>
+## <table>
+##   (<-> (\/ <r> ph <g> ps) (\/ <g> ps <r> ph))
+## </table>
 ## <suggest> right('Commute', '∨') </suggest>
 stmt (orcom () () (<-> (\/ ph ps) (\/ ps ph)))
 
@@ -1954,6 +1960,10 @@ stmt (pm4.24 () () (<-> ph (/\ ph ph)))
 
 #  Inference from idempotent law for conjunction.
 ## <title> Conjunction is Idempotent </title>
+## <table>
+##   (-> (/\ <r> ph [ <r> ph ) ps)
+##              (-> [ <r> ph   ps)
+## </table>
 stmt (anidms () ((-> (/\ ph ph) ps)) (-> ph ps))
 
 #  Conjunction idempotence with antecedent. (Contributed by Roy F.
