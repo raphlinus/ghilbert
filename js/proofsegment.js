@@ -71,6 +71,12 @@ GH.ProofSegment.prototype.addNames = function() {
 		var step = this.children[i].step;
 		var nextStep = (i == this.children.length - 1) ? null : this.children[i + 1].step;
 
+		// Double check that the previous step actually comes earlier in the proof. The steps can 
+		// be reordered for consistent presentation. If it's not before, ignore it.
+		if (prevStep && prevStep.begin > step.begin) {
+			prevStep = null;
+		}
+
 		var singleStep = false;
 		if (i == this.children.length - 1) {
 			var steps = [];
@@ -466,7 +472,8 @@ GH.ProofSegment.findImportantStepsEnd = function(startStep, endStep) {
 
 GH.ProofSegment.findImportantStepsRecursive = function(step, startStep, endStep) {
 	if (step == endStep) {
-		return {depth: 1e10, steps: [], hasEnd: true};
+		// We found the end step. We traverse the tree backwards now. This is our first step in the reverse direction.
+		return {depth: 1e10, steps: [], hasEnd: true, hasBranch: false};
 	}
 
 	var results = [];
@@ -490,28 +497,35 @@ GH.ProofSegment.findImportantStepsRecursive = function(step, startStep, endStep)
 
 	if (endIndex == -1) {
 		if ((conclusionDepth < minDepth) && ((step != startStep) || (results.length == 0))) {
-			return {depth: conclusionDepth, steps: [step], hasEnd: false};
+			return {depth: conclusionDepth, steps: [step], hasEnd: false, hasBranch: false};
 		}
-		// If there are two branches with the lowest depth, we are doing a branch which includes everything
-		// even high depth hypotheses.
 		if (minIndices.length > 1) {
+			// If there are two branches with the lowest depth, we are doing a branch which includes everything
+			// even high depth hypotheses.
 			var steps = [];
 			for (var i = 0; i < step.hypotheses.length; i++) {
 				steps.push(step.hypotheses[i]);
 			}
 			steps.push(step);
-			return {depth: minDepth, steps: steps, hasEnd: false};
+			return {depth: minDepth, steps: steps, hasEnd: false, hasBranch: true};
 		}
 		var result = results[minIndices[0]];
 		if (conclusionDepth <= minDepth) {
+			if (result.hasBranch) {
+				// This is not ideal, but we haven't set it up to do linear steps and then a branch.
+				// In this case, do not include anything in the branch. Just keep the linear part.
+				result.steps = [result.steps[0]];
+			}
 			result.steps.push(step);
 		}
-		return {depth: minDepth, steps: result.steps, hasEnd: false};
+		return {depth: minDepth, steps: result.steps, hasEnd: false, hasBranch: false};
 	} else {
 		var endStep = step.hypotheses[endIndex];
 		var endDepth = endStep.hierarchy.getDepth();
 		var endSteps = results[endIndex].steps;
-		
+
+		// The end and the start step are right next to each other. Copy all the hypotheses,
+		// we're doing a branch.		
 		if ((step == startStep) && (endSteps.length == 0)) {
 			var steps = [endStep];
 			for (var i = 0; i < step.hypotheses.length; i++) {
@@ -520,7 +534,7 @@ GH.ProofSegment.findImportantStepsRecursive = function(step, startStep, endStep)
 				}
 			}
 			steps.push(step);
-			return {depth: 1e10, steps: steps, hasEnd: true};
+			return {depth: 1e10, steps: steps, hasEnd: true, hasBranch: true};
 		}
 		
 		var addConclusion = false;
@@ -540,7 +554,7 @@ GH.ProofSegment.findImportantStepsRecursive = function(step, startStep, endStep)
 		if (addConclusion) {
 			endSteps.push(step);
 		}
-		return {depth: minDepth, steps: endSteps, hasEnd: true};
+		return {depth: minDepth, steps: endSteps, hasEnd: true, hasBranch: false};
 	}
 };
 

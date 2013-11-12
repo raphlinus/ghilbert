@@ -228,3 +228,172 @@ GH.operatorUtil.reduce = function(sexp, value) {
 	var types = GH.operatorUtil.getOperatorTypes(sexp.operator);
 	return GH.operatorUtil.createType(types[types.length - 1], value);
 };
+
+// A guide for getting help with the notation. Appears below the proof and 
+// provided links for more information on all of the symbols used in the
+// proof.
+GH.notationGuide = function(stack) {
+	this.titleElement = null;
+	this.bodyElement = null;
+	this.isOpen = false;
+	this.steps = [];
+	this.variables = [];
+	this.operators = [];
+	this.precomputed = false;
+};
+
+GH.notationGuide.prototype.render = function() {
+	var guideContainer = document.createElement("div");
+	this.titleElement = document.createElement("div");
+	this.titleElement.setAttribute('class', 'notation-closed');
+	this.titleElement.setAttribute('onclick', 'window.direct.notationGuide.toggle()');
+	this.titleElement.innerHTML = 'Notation Help';
+
+	this.bodyElement = document.createElement("div");
+	this.bodyElement.setAttribute('class', 'notation-body');
+
+	stack.appendChild(guideContainer);
+	guideContainer.appendChild(this.titleElement);
+	guideContainer.appendChild(this.bodyElement);
+};
+
+GH.notationGuide.prototype.clear = function() {
+	this.steps = [];
+	this.variables = [];
+	this.operators = [];
+};
+
+GH.notationGuide.prototype.addStep = function(step) {
+	this.steps.push(step);
+};
+
+GH.notationGuide.prototype.toggle = function() {
+	this.isOpen = !this.isOpen;
+	if (this.isOpen) {
+		this.titleElement.setAttribute('class', 'notation-open');
+		this.bodyElement.setAttribute('style', '');
+		if (!this.precomputed) {
+			this.precomputed = true;
+			for (var i = 0; i < this.steps.length; i++) {
+				this.addSymbolsFromStep(this.steps[i]);
+			}
+			for (var i = 0; i < GH.notationGuide.guideData.length; i++) {
+				var guide = GH.notationGuide.guideData[i];
+				var match = false;
+				for (var j = 0; j < guide.symbols.length; j++) {
+					if (this.operators.hasOwnProperty(guide.symbols[j])) {
+						match = true;
+					}
+				}
+				if (match) {
+					var guideElement = document.createElement('span');
+					guideElement.setAttribute('class', 'notation-guide');
+					var symbol = guide.hasOwnProperty('unicode') ? guide.unicode : guide.symbols[0];
+					if (guide.hasOwnProperty('link')) {
+						guideElement.innerHTML = symbol + ' <a href="/wiki/peano/' + guide.link + '">' + guide.name + '</a>';
+					} else {
+						guideElement.innerHTML = symbol + ' ' + '<span class="guide-no-link">' + guide.name + '</span>';
+					}
+					this.bodyElement.appendChild(guideElement);
+				}
+			}
+		}
+	} else {
+		this.titleElement.setAttribute('class', 'notation-closed');
+		this.bodyElement.setAttribute('style', 'display: none');
+	}
+};
+
+GH.notationGuide.prototype.addSymbolsFromStep = function(step) {
+	this.addSymbolsFromSexp(step.conclusion);
+	for (var i = 0; i < step.hypotheses.length; i++) {
+		this.addSymbolsFromStep(step.hypotheses[i]);
+	}
+};
+
+GH.notationGuide.prototype.addSymbolsFromSexp = function(sexp) {
+	var isString = (GH.typeOf(sexp) == 'string');
+	if (isString) {
+		var str = new String(sexp[0]);
+		this.variables[str] = true;
+	} else {
+		var str = new String(sexp[0]);
+		this.operators[str] = true;
+	}
+	for (var i = 1; i < sexp.length; i++) {
+		this.addSymbolsFromSexp(sexp[i]);
+	}
+};
+
+GH.notationGuide.guideData = [
+	{ symbols: ['-.'], unicode: '¬', name: 'not', link: 'logic/not'},
+	{ symbols: ['->'], unicode: '→', name: 'if', link: 'logic/if'},
+	{ symbols: ['<->'], unicode: '↔', name: 'if and only if', link: 'logic/iff'},
+	{ symbols: ['/\\'], unicode: '∧', name: 'and', link: 'logic/and'},
+	{ symbols: ['\\/'], unicode: '∨', name: 'and', link: 'logic/or'},
+	{ symbols: ['T'], unicode: 'T', name: 'true', link: 'logic/wff'},
+	{ symbols: ['F'], unicode: 'F', name: 'false', link: 'logic/wff'},
+	
+	{ symbols: ['A.'], unicode: '∀', name: 'for all', link: 'predicate/all'},
+	{ symbols: ['E.'], unicode: '∃', name: 'there exists', link: 'predicate/exists'},
+	{ symbols: ['E!'], unicode: '∃!', name: 'there exists one', link: 'predicate/unique'},
+	{ symbols: ['E*'], unicode: '∃*', name: 'at most one', link: 'predicate/most-one'},
+	{ symbols: ['[/]'], unicode: '[/]', name: 'substitution', link: 'predicate/substitution'},
+	{ symbols: ['rwff'], name: 'recursive well-formed formula'},
+	
+	{ symbols: ['='],  unicode: '=', name: 'equals', link: 'arithmetic/equality'},
+	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
+	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
+	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
+	{ symbols: ['*'],  unicode: '∙', name: 'times', link: 'arithmetic/multiply'},
+	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
+	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
+	{ symbols: ['ifn'], name: 'ternary conditional', link: 'arithmetic/ifn'},
+	
+	{ symbols: ['e.'],  unicode: '∈', name: 'element of', link: 'set/element-of'},
+	{ symbols: ['{|}'],  unicode: '{|}', name: 'set abstraction', link: 'set/abstraction'},
+	{ symbols: ['{/}'],  unicode: '∅', name: 'empty set', link: 'set/empty-set'},
+	{ symbols: ['iota'],  name: 'iota', link: 'set/iota'},
+	{ symbols: ['=_'],  unicode: '=', name: 'set equality', link: 'set/equality'},
+	{ symbols: ['C_'],  unicode: '⊆', name: 'subset', link: 'set/subset'},
+	{ symbols: ['C.'],  unicode: '⊂', name: 'proper subset', link: 'set/proper-subset'},
+	{ symbols: ['u.'],  unicode: '∪', name: 'union', link: 'set/union', link: 'set/union'},
+	{ symbols: ['i^i'], unicode: '∩', name: 'intersection', link: 'set/intersection', link: 'set/intersection'},
+	{ symbols: ['min'], name: 'set minimum', link: 'set/minimum'},
+	{ symbols: ['{...}'], unicode: '{A...B}', name: 'set interval', link: 'tuple/interval'},
+	
+	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
+	{ symbols: ['head'],  name: 'head', link: 'tuple/head'},
+	{ symbols: ['tail'],  name: 'tail', link: 'tuple/tail'},
+	{ symbols: ['<+>'], unicode: 'A<sub>1</sub>+A<sub>2</sub>+...+A<sub>N</sub>', name: 'sum a sequence from a tuple', link: 'tuple/add'},
+	{ symbols: ['<*>'], unicode: 'A<sub>1</sub>∙A<sub>2</sub>∙∙∙A<sub>N</sub>', name: 'multiply a sequence from a tuple', link: 'tuple/multiply'},
+	{ symbols: ['<{}>'], unicode: '{A<sub>1</sub>, A<sub>2</sub>,...,A<sub>N</sub>}', name: 'set from a tuple', link: 'tuple/set'},
+	// { symbols: ['length'], name: 'tuple length'}, // The length of the javascript array interferes with this.
+	{ symbols: ['_'], unicode: 'A <sub> B </sub>', name: 'tuple index', link: 'tuple/index'},
+	{ symbols: ['push'], name: 'push onto tuple stack'},
+	{ symbols: ['pop'], name: 'pop off of tuple stack'},
+	{ symbols: ['<>'], unicode: '(A, B, C)', name: 'tuple', link: 'tuple/tuple'},
+
+	{ symbols: ['|'],  name: 'divides', link: 'number-theory/divides'},
+	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/primes'},
+	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/primes'},
+	{ symbols: ['sqrt'], name: 'square root'},
+	{ symbols: ['fun'], name: 'is a function'},
+	{ symbols: ['lincom'], name: 'linear combination'},
+	{ symbols: ['gcd'], name: 'greatest common denominator'},
+	{ symbols: ['div'], unicode: '÷', name: 'integer division'},
+	{ symbols: ['beta'], name: 'Godel\'s beta function'},
+	{ symbols: ['relprim'], name: 'relatively prime'},
+	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function'},
+	{ symbols: ['apply'], name: 'function application'},
+	{ symbols: ['recursep'], name: 'recursive predicate'},
+	{ symbols: ['recurse'], name: 'recursive function'},
+	{ symbols: ['sum-step'], name: 'summation construction step'},
+	{ symbols: ['sum'], unicode: 'Σ', name: 'summation'},
+	{ symbols: ['{.|}'], unicode: '{S(x)|φ}', name: 'apply function to a set'},
+	{ symbols: ['product-step'], name: 'product construction step'},
+	{ symbols: ['product'], unicode: 'Π', name: 'product'},
+	{ symbols: ['!'], name: 'factorial'},
+	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent'},
+];

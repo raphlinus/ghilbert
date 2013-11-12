@@ -20,6 +20,7 @@ GH.Direct = function(text, stack, suggestArea) {
 	this.session = null;
 	this.offset = 0;
 	this.rootSegments = [];
+	this.notationGuide = null;
 };
 
 /**
@@ -199,10 +200,13 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 			}
 		}
 		this.rootSegments = [];
+		this.notationGuide = new GH.notationGuide();
 		for (var j = 0; j < shownHistory.length; j++) {
 			var summary = (j == 0) ? thmctx.styleScanner.summary : '';
 			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j, cursorPosition));
+			this.notationGuide.addStep(shownHistory[j]);
 		}
+		this.notationGuide.render(this.stack);
 		
 		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
 		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes, cursorPosition);
