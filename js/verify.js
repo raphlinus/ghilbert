@@ -648,6 +648,13 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
     return this.kinds[v[0]];
 };
 
+GH.VerifyCtx.prototype.get_import_ctx = function(prefix, pifs) {
+    return new GH.ImportCtx(this, prefix, pifs);
+};
+GH.VerifyCtx.prototype.get_export_ctx = function(prefix, pifs) {
+    return new GH.ExportCtx(this, prefix, pifs);
+};
+
 GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
   var i, j, label, fv, hyps, concl, proof, new_hyps, proofctx;
     if (cmd == 'thm') {
@@ -748,10 +755,10 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
         var ctx;
         if (cmd == 'import') {
             log ('Importing ' + iname);
-            ctx = new GH.ImportCtx(this, prefix, pifs);
+            ctx = this.get_import_ctx(prefix, pifs);
         } else {
             log ('Exporting ' + iname);
-            ctx = new GH.ExportCtx(this, prefix, pifs);
+            ctx = this.get_export_ctx(prefix, pifs);
         }
         this.run(this.urlctx, url, ctx);
         if (ctx.n_used_params != pifs.length) {
