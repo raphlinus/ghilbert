@@ -1688,19 +1688,19 @@ thm (pm2.07 () () (-> ph (\/ ph ph))
 #        completed Proof Worksheets from Mel O'Cat's mmj2 Proof Assistant GUI,
 #        but it can also be useful on its own.  Interestingly, this "theorem" -
 #        or more precisely, inference - requires no axioms for its proof. 
-thm (dummylink () (dummylink.1 ph dummylink.2 ps) ph dummylink.1)
+# thm (dummylink () (dummylink.1 ph dummylink.2 ps) ph dummylink.1)
 
 #  Inference derived from axiom [[ax-1]].  See [[a1d]] for an explanation of
 #        our informal use of the terms "inference" and "deduction."  See also
 #        the comment in [[syld]]. 
-thm (a1i () (a1i.1 ph) (-> ps ph) a1i.1 ph ps ax-1 ax-mp)
+# thm (a1i () (a1i.1 ph) (-> ps ph) a1i.1 ph ps ax-1 ax-mp)
 
 #  Add two antecedents to a wff.  (Contributed by Jeff Hankins,
 #        4-Aug-2009.) 
 thm (a1i12 () (a1i12.1 ch) (-> ph (-> ps ch)) a1i12.1 ps a1i ph a1i)
 
 #  Inference derived from axiom [[ax-2]]. 
-thm (a2i () (a2i.1 (-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)) a2i.1 ph ps ch ax-2 ax-mp)
+# thm (a2i () (a2i.1 (-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)) a2i.1 ph ps ch ax-2 ax-mp)
 
 #  An inference version of the transitive laws for implication [[imim2]] and
 #        [[imim1]], which Russell and Whitehead call "the principle of the
@@ -1712,10 +1712,10 @@ thm (a2i () (a2i.1 (-> ph (-> ps ch))) (-> (-> ph ps) (-> ph ch)) a2i.1 ph ps ch
 #        database.  In second place is [[ax-mp]], followed by [[visset]], [[bitri]],
 #        [[imp]], and [[ex]].  The Metamath program command 'show usage' shows the
 #        number of references.) 
-thm (syl () (syl.1 (-> ph ps) syl.2 (-> ps ch)) (-> ph ch) syl.1 syl.2 ph a1i a2i ax-mp)
+# thm (syl () (syl.1 (-> ph ps) syl.2 (-> ps ch)) (-> ph ch) syl.1 syl.2 ph a1i a2i ax-mp)
 
 #  Inference that swaps (commutes) antecedents in an implication. 
-thm (com12 () (com12.1 (-> ph (-> ps ch))) (-> ps (-> ph ch)) ps ph ax-1 com12.1 a2i syl)
+# thm (com12 () (com12.1 (-> ph (-> ps ch))) (-> ps (-> ph ch)) ps ph ax-1 com12.1 a2i syl)
 
 #  Deduction introducing an embedded antecedent.  (The proof was revised by
 #        Stefan Allan, 20-Mar-2006.)
@@ -1734,56 +1734,56 @@ thm (com12 () (com12.1 (-> ph (-> ps ch))) (-> ps (-> ph ch)) ps ph ax-1 com12.1
 #        [[pm2.43i]] vs. [[pm2.43d]]).  When an inference is converted to a theorem
 #        by eliminating an "is a set" hypothesis, we sometimes suffix the theorem
 #        form with "g" (for "more general") as in [[uniex]] vs. [[uniexg]]. 
-thm (a1d () (a1d.1 (-> ph ps)) (-> ph (-> ch ps)) a1d.1 ps ch ax-1 syl)
+# thm (a1d () (a1d.1 (-> ph ps)) (-> ph (-> ch ps)) a1d.1 ps ch ax-1 syl)
 
 #  Deduction distributing an embedded antecedent. 
-thm (a2d () (a2d.1 (-> ph (-> ps (-> ch th)))) (-> ph (-> (-> ps ch) (-> ps th))) a2d.1 ps ch th ax-2 syl)
+# thm (a2d () (a2d.1 (-> ph (-> ps (-> ch th)))) (-> ph (-> (-> ps ch) (-> ps th))) a2d.1 ps ch th ax-2 syl)
 
 #  A closed form of syllogism (see [[syl]]).  Theorem *2.05 of
 #      [bib/WhiteheadRussell] p. 100. 
-thm (imim2 () () (-> (-> ph ps) (-> (-> ch ph) (-> ch ps))) (-> ph ps) ch ax-1 a2d)
+# thm (imim2 () () (-> (-> ph ps) (-> (-> ch ph) (-> ch ps))) (-> ph ps) ch ax-1 a2d)
 
 #  A closed form of syllogism (see [[syl]]).  Theorem *2.06 of
 #      [bib/WhiteheadRussell] p. 100. 
-thm (imim1 () () (-> (-> ph ps) (-> (-> ps ch) (-> ph ch))) ps ch ph imim2 com12)
+# thm (imim1 () () (-> (-> ph ps) (-> (-> ps ch) (-> ph ch))) ps ch ph imim2 com12)
 
 #  Inference adding common consequents in an implication, thereby
 #        interchanging the original antecedent and consequent. 
-thm (imim1i () (imim1i.1 (-> ph ps)) (-> (-> ps ch) (-> ph ch)) imim1i.1 ph ps ch imim1 ax-mp)
+# thm (imim1i () (imim1i.1 (-> ph ps)) (-> (-> ps ch) (-> ph ch)) imim1i.1 ph ps ch imim1 ax-mp)
 
 #  Inference adding common antecedents in an implication. 
-thm (imim2i () (imim1i.1 (-> ph ps)) (-> (-> ch ph) (-> ch ps)) imim1i.1 ch a1i a2i)
+# thm (imim2i () (imim1i.1 (-> ph ps)) (-> (-> ch ph) (-> ch ps)) imim1i.1 ch a1i a2i)
 
 #  Inference joining two implications. 
-thm (imim12i () (imim12i.1 (-> ph ps) imim12i.2 (-> ch th)) (-> (-> ps ch) (-> ph th)) imim12i.2 ps imim2i imim12i.1 th imim1i syl)
+# thm (imim12i () (imim12i.1 (-> ph ps) imim12i.2 (-> ch th)) (-> (-> ps ch) (-> ph th)) imim12i.2 ps imim2i imim12i.1 th imim1i syl)
 
 #  Inference adding three nested antecedents. 
-thm (imim3i () (imim3i.1 (-> ph (-> ps ch))) (-> (-> th ph) (-> (-> th ps) (-> th ch))) imim3i.1 th imim2i a2d)
+# thm (imim3i () (imim3i.1 (-> ph (-> ps ch))) (-> (-> th ph) (-> (-> th ps) (-> th ch))) imim3i.1 th imim2i a2d)
 
 #  Inference chaining two syllogisms. 
-thm (3syl () (3syl.1 (-> ph ps) 3syl.2 (-> ps ch) 3syl.3 (-> ch th)) (-> ph th) 3syl.1 3syl.2 syl 3syl.3 syl)
+# thm (3syl () (3syl.1 (-> ph ps) 3syl.2 (-> ps ch) 3syl.3 (-> ch th)) (-> ph th) 3syl.1 3syl.2 syl 3syl.3 syl)
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the second antecedent of the first premise. 
-thm (syl5 () (syl5.1 (-> ph (-> ps ch)) syl5.2 (-> th ps)) (-> ph (-> th ch)) syl5.1 syl5.2 ch imim1i syl)
+# thm (syl5 () (syl5.1 (-> ph (-> ps ch)) syl5.2 (-> th ps)) (-> ph (-> th ch)) syl5.1 syl5.2 ch imim1i syl)
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the consequent of the first premise. 
-thm (syl6 () (syl6.1 (-> ph (-> ps ch)) syl6.2 (-> ch th)) (-> ph (-> ps th)) syl6.1 syl6.2 ps imim2i syl)
+# thm (syl6 () (syl6.1 (-> ph (-> ps ch)) syl6.2 (-> ch th)) (-> ph (-> ps th)) syl6.1 syl6.2 ps imim2i syl)
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the third antecedent of the first premise. 
-thm (syl7 () (syl7.1 (-> ph (-> ps (-> ch th))) syl7.2 (-> ta ch)) (-> ph (-> ps (-> ta th))) syl7.1 syl7.2 th imim1i syl6)
+# thm (syl7 () (syl7.1 (-> ph (-> ps (-> ch th))) syl7.2 (-> ta ch)) (-> ph (-> ps (-> ta th))) syl7.1 syl7.2 th imim1i syl6)
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the consequent of the first premise. 
-thm (syl8 () (syl8.1 (-> ph (-> ps (-> ch th))) syl8.2 (-> th ta)) (-> ph (-> ps (-> ch ta))) syl8.1 syl8.2 ch imim2i syl6)
+# thm (syl8 () (syl8.1 (-> ph (-> ps (-> ch th))) syl8.2 (-> th ta)) (-> ph (-> ps (-> ch ta))) syl8.1 syl8.2 ch imim2i syl6)
 
 #  Deduction adding nested antecedents. 
-thm (imim2d () (imim2d.1 (-> ph (-> ps ch))) (-> ph (-> (-> th ps) (-> th ch))) imim2d.1 th a1d a2d)
+# thm (imim2d () (imim2d.1 (-> ph (-> ps ch))) (-> ph (-> (-> th ps) (-> th ch))) imim2d.1 th a1d a2d)
 
 #  A modus ponens deduction. 
-thm (mpd () (mpd.1 (-> ph ps) mpd.2 (-> ph (-> ps ch))) (-> ph ch) mpd.1 mpd.2 a2i ax-mp)
+# thm (mpd () (mpd.1 (-> ph ps) mpd.2 (-> ph (-> ps ch))) (-> ph ch) mpd.1 mpd.2 a2i ax-mp)
 
 #  Syllogism deduction.  (The proof was shortened by O'Cat, 19-Feb-2008.)
 # 
@@ -1791,50 +1791,50 @@ thm (mpd () (mpd.1 (-> ph ps) mpd.2 (-> ph (-> ps ch))) (-> ph ch) mpd.1 mpd.2 a
 #        hypothesis and conclusion #ta# by #(-> ph ta)#.  In general, this
 #        process will always yield a new propositional calculus theorem because
 #        of something called the Deduction Theorem for propositional calculus. 
-thm (syld () (syld.1 (-> ph (-> ps ch)) syld.2 (-> ph (-> ch th))) (-> ph (-> ps th)) syld.1 syld.2 ps imim2d mpd)
+# thm (syld () (syld.1 (-> ph (-> ps ch)) syld.2 (-> ph (-> ch th))) (-> ph (-> ps th)) syld.1 syld.2 ps imim2d mpd)
 
 #  Deduction adding nested consequents. 
-thm (imim1d () (imim1d.1 (-> ph (-> ps ch))) (-> ph (-> (-> ch th) (-> ps th))) imim1d.1 ps ch th imim1 syl)
+# thm (imim1d () (imim1d.1 (-> ph (-> ps ch))) (-> ph (-> (-> ch th) (-> ps th))) imim1d.1 ps ch th imim1 syl)
 
 #  Deduction combining antecedents and consequents. 
-thm (imim12d () (imim12d.1 (-> ph (-> ps ch)) imim12d.2 (-> ph (-> th ta))) (-> ph (-> (-> ch th) (-> ps ta))) imim12d.1 th imim1d imim12d.2 ps imim2d syld)
+# thm (imim12d () (imim12d.1 (-> ph (-> ps ch)) imim12d.2 (-> ph (-> th ta))) (-> ph (-> (-> ch th) (-> ps ta))) imim12d.1 th imim1d imim12d.2 ps imim2d syld)
 
 #  Swap antecedents.  Theorem *2.04 of [bib/WhiteheadRussell] p. 100. 
-thm (pm2.04 () () (-> (-> ph (-> ps ch)) (-> ps (-> ph ch))) ph ps ch ax-2 ps ph ax-1 syl5)
+# thm (pm2.04 () () (-> (-> ph (-> ps ch)) (-> ps (-> ph ch))) ph ps ch ax-2 ps ph ax-1 syl5)
 
 #  Theorem *2.83 of [bib/WhiteheadRussell] p. 108. 
-thm (pm2.83 () () (-> (-> ph (-> ps ch)) (-> (-> ph (-> ch th)) (-> ph (-> ps th)))) ps ch th imim1 ph imim3i)
+# thm (pm2.83 () () (-> (-> ph (-> ps ch)) (-> (-> ph (-> ch th)) (-> ph (-> ps th)))) ps ch th imim1 ph imim3i)
 
 #  Commutation of antecedents.  Swap 2nd and 3rd. 
-thm (com23 () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ph (-> ch (-> ps th))) com3.1 ps ch th pm2.04 syl)
+# thm (com23 () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ph (-> ch (-> ps th))) com3.1 ps ch th pm2.04 syl)
 
 #  Commutation of antecedents.  Swap 1st and 3rd. 
-thm (com13 () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ps (-> ph th))) com3.1 com12 com23 com12)
+# thm (com13 () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ps (-> ph th))) com3.1 com12 com23 com12)
 
 #  Commutation of antecedents.  Rotate left. 
-thm (com3l () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ps (-> ch (-> ph th))) com3.1 com23 com13)
+# thm (com3l () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ps (-> ch (-> ph th))) com3.1 com23 com13)
 
 #  Commutation of antecedents.  Rotate right. 
-thm (com3r () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ph (-> ps th))) com3.1 com3l com3l)
+# thm (com3r () (com3.1 (-> ph (-> ps (-> ch th)))) (-> ch (-> ph (-> ps th))) com3.1 com3l com3l)
 
 #  Commutation of antecedents.  Swap 3rd and 4th. 
-thm (com34 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ph (-> ps (-> th (-> ch ta)))) com4.1 ch th ta pm2.04 syl6)
+# thm (com34 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ph (-> ps (-> th (-> ch ta)))) com4.1 ch th ta pm2.04 syl6)
 
 #  Commutation of antecedents.  Swap 2nd and 4th. 
-thm (com24 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ph (-> th (-> ch (-> ps ta)))) com4.1 com34 com23 com34)
+# thm (com24 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ph (-> th (-> ch (-> ps ta)))) com4.1 com34 com23 com34)
 
 #  Commutation of antecedents.  Swap 1st and 4th. 
-thm (com14 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> th (-> ps (-> ch (-> ph ta)))) com4.1 com34 com13 com34)
+# thm (com14 () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> th (-> ps (-> ch (-> ph ta)))) com4.1 com34 com13 com34)
 
 #  Commutation of antecedents.  Rotate left.  (The proof was shortened by
 #        O'Cat, 15-Aug-2004.) 
-thm (com4l () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ps (-> ch (-> th (-> ph ta)))) com4.1 com14 com3l)
+# thm (com4l () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ps (-> ch (-> th (-> ph ta)))) com4.1 com14 com3l)
 
 #  Commutation of antecedents.  Rotate twice. 
-thm (com4t () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ch (-> th (-> ph (-> ps ta)))) com4.1 com4l com4l)
+# thm (com4t () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> ch (-> th (-> ph (-> ps ta)))) com4.1 com4l com4l)
 
 #  Commutation of antecedents.  Rotate right. 
-thm (com4r () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> th (-> ph (-> ps (-> ch ta)))) com4.1 com4t com4l)
+# thm (com4r () (com4.1 (-> ph (-> ps (-> ch (-> th ta))))) (-> th (-> ph (-> ps (-> ch ta)))) com4.1 com4t com4l)
 
 #  Commutation of antecedents.  Swap 4th and 5th.  (Contributed by Jeff
 #        Hankins, 28-Jun-2009.) 
@@ -1866,67 +1866,67 @@ thm (com52r () (com5.1 (-> ph (-> ps (-> ch (-> th (-> ta et)))))) (-> th (-> ta
 
 #  Deduction introducing a nested embedded antecedent.  (The proof was
 #        shortened by O'Cat, 15-Jan-2008.) 
-thm (a1dd () (a1dd.1 (-> ph (-> ps ch))) (-> ph (-> ps (-> th ch))) a1dd.1 ch th ax-1 syl6)
+# thm (a1dd () (a1dd.1 (-> ph (-> ps ch))) (-> ph (-> ps (-> th ch))) a1dd.1 ch th ax-1 syl6)
 
 #  A double modus ponens inference. 
-thm (mp2 () (mp2.1 ph mp2.2 ps mp2.3 (-> ph (-> ps ch))) ch mp2.2 mp2.1 mp2.3 ax-mp ax-mp)
+# thm (mp2 () (mp2.1 ph mp2.2 ps mp2.3 (-> ph (-> ps ch))) ch mp2.2 mp2.1 mp2.3 ax-mp ax-mp)
 
 #  A nested modus ponens inference.  (The proof was shortened by Stefan
 #        Allan, 20-Mar-2006.) 
-thm (mpi () (mpi.1 ps mpi.2 (-> ph (-> ps ch))) (-> ph ch) mpi.1 ph a1i mpi.2 mpd)
+# thm (mpi () (mpi.1 ps mpi.2 (-> ph (-> ps ch))) (-> ph ch) mpi.1 ph a1i mpi.2 mpd)
 
 #  A doubly nested modus ponens inference. 
-thm (mpii () (mpii.1 ch mpii.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpii.1 mpii.2 com23 mpi)
+# thm (mpii () (mpii.1 ch mpii.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpii.1 mpii.2 com23 mpi)
 
 #  A nested modus ponens deduction. 
-thm (mpdd () (mpdd.1 (-> ph (-> ps ch)) mpdd.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpdd.1 mpdd.2 a2d mpd)
+# thm (mpdd () (mpdd.1 (-> ph (-> ps ch)) mpdd.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpdd.1 mpdd.2 a2d mpd)
 
 #  A nested modus ponens deduction. 
-thm (mpid () (mpid.1 (-> ph ch) mpid.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpid.1 ps a1d mpid.2 mpdd)
+# thm (mpid () (mpid.1 (-> ph ch) mpid.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpid.1 ps a1d mpid.2 mpdd)
 
 #  A nested modus ponens deduction.  (The proof was shortened by O'Cat,
 #        15-Jan-2008.) 
-thm (mpdi () (mpdi.1 (-> ps ch) mpdi.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpdi.1 ph a1i mpdi.2 mpdd)
+# thm (mpdi () (mpdi.1 (-> ps ch) mpdi.2 (-> ph (-> ps (-> ch th)))) (-> ph (-> ps th)) mpdi.1 ph a1i mpdi.2 mpdd)
 
 #  Modus ponens inference with commutation of antecedents. 
-thm (mpcom () (mpcom.1 (-> ps ph) mpcom.2 (-> ph (-> ps ch))) (-> ps ch) mpcom.1 mpcom.2 com12 mpd)
+# thm (mpcom () (mpcom.1 (-> ps ph) mpcom.2 (-> ph (-> ps ch))) (-> ps ch) mpcom.1 mpcom.2 com12 mpd)
 
 #  Nested syllogism deduction. 
-thm (syldd () (syldd.1 (-> ph (-> ps (-> ch th))) syldd.2 (-> ph (-> ps (-> th ta)))) (-> ph (-> ps (-> ch ta))) syldd.1 syldd.2 th ta ch imim2 syl6 mpdd)
+# thm (syldd () (syldd.1 (-> ph (-> ps (-> ch th))) syldd.2 (-> ph (-> ps (-> th ta)))) (-> ph (-> ps (-> ch ta))) syldd.1 syldd.2 th ta ch imim2 syl6 mpdd)
 
 #  Syllogism inference with commutation of antecedents.  (The proof was
 #        shortened by O'Cat, 2-Feb-2006 and shortened further by Stefan Allan,
 #        23-Feb-2006.) 
-thm (sylcom () (sylcom.1 (-> ph (-> ps ch)) sylcom.2 (-> ps (-> ch th))) (-> ph (-> ps th)) sylcom.1 sylcom.2 a2i syl)
+# thm (sylcom () (sylcom.1 (-> ph (-> ps ch)) sylcom.2 (-> ps (-> ch th))) (-> ph (-> ps th)) sylcom.1 sylcom.2 a2i syl)
 
 #  Syllogism inference with commuted antecedents. 
-thm (syl5com () (syl5com.2 (-> ph (-> ps ch)) syl5com.1 (-> th ps)) (-> th (-> ph ch)) syl5com.1 ph a1d syl5com.2 sylcom)
+# thm (syl5com () (syl5com.2 (-> ph (-> ps ch)) syl5com.1 (-> th ps)) (-> th (-> ph ch)) syl5com.1 ph a1d syl5com.2 sylcom)
 
 #  Syllogism inference with commuted antecedents. 
-thm (syl6com () (syl6com.1 (-> ph (-> ps ch)) syl6com.2 (-> ch th)) (-> ps (-> ph th)) syl6com.1 syl6com.2 syl6 com12)
+# thm (syl6com () (syl6com.1 (-> ph (-> ps ch)) syl6com.2 (-> ch th)) (-> ps (-> ph th)) syl6com.1 syl6com.2 syl6 com12)
 
 #  Syllogism inference with common nested antecedent. 
-thm (syli () (syli.1 (-> ps (-> ph ch)) syli.2 (-> ch (-> ph th))) (-> ps (-> ph th)) syli.1 syli.2 com12 sylcom)
+# thm (syli () (syli.1 (-> ps (-> ph ch)) syli.2 (-> ch (-> ph th))) (-> ps (-> ph th)) syli.1 syli.2 com12 sylcom)
 
 #  A nested syllogism deduction.  (The proof was shortened by Josh
 #        Purinton, 29-Dec-2000 and shortened further by O'Cat, 2-Feb-2006.) 
-thm (syl5d () (syl5d.1 (-> ph (-> ps (-> ch th))) syl5d.2 (-> ph (-> ta ch))) (-> ph (-> ps (-> ta th))) syl5d.2 ps a1d syl5d.1 syldd)
+# thm (syl5d () (syl5d.1 (-> ph (-> ps (-> ch th))) syl5d.2 (-> ph (-> ta ch))) (-> ph (-> ps (-> ta th))) syl5d.2 ps a1d syl5d.1 syldd)
 
 #  A nested syllogism deduction.  (The proof was shortened by Josh
 #        Purinton, 29-Dec-2000 and shortened further by O'Cat, 2-Feb-2006.) 
-thm (syl6d () (syl6d.1 (-> ph (-> ps (-> ch th))) syl6d.2 (-> ph (-> th ta))) (-> ph (-> ps (-> ch ta))) syl6d.1 syl6d.2 ps a1d syldd)
+# thm (syl6d () (syl6d.1 (-> ph (-> ps (-> ch th))) syl6d.2 (-> ph (-> th ta))) (-> ph (-> ps (-> ch ta))) syl6d.1 syl6d.2 ps a1d syldd)
 
 #  A nested syllogism inference with different antecedents.  (The proof
 #        was shortened by Josh Purinton, 29-Dec-2000.) 
-thm (syl9 () (syl9.1 (-> ph (-> ps ch)) syl9.2 (-> th (-> ch ta))) (-> ph (-> th (-> ps ta))) syl9.2 ph a1i syl9.1 syl5d)
+# thm (syl9 () (syl9.1 (-> ph (-> ps ch)) syl9.2 (-> th (-> ch ta))) (-> ph (-> th (-> ps ta))) syl9.2 ph a1i syl9.1 syl5d)
 
 #  A nested syllogism inference with different antecedents. 
-thm (syl9r () (syl9r.1 (-> ph (-> ps ch)) syl9r.2 (-> th (-> ch ta))) (-> th (-> ph (-> ps ta))) syl9r.1 syl9r.2 syl9 com12)
+# thm (syl9r () (syl9r.1 (-> ph (-> ps ch)) syl9r.2 (-> th (-> ch ta))) (-> th (-> ph (-> ps ta))) syl9r.1 syl9r.2 syl9 com12)
 
 #  Principle of identity.  Theorem *2.08 of [bib/WhiteheadRussell] p. 101.
 #      For another version of the proof directly from axioms, see [[id1]].
 #      (The proof was shortened by Stefan Allan, 20-Mar-2006.) 
-thm (id () () (-> ph ph) ph ph ax-1 ph (-> ph ph) ax-1 mpd)
+# thm (id () () (-> ph ph) ph ph ax-1 ph (-> ph ph) ax-1 mpd)
 
 #  Principle of identity.  Theorem *2.08 of [bib/WhiteheadRussell] p. 101.  This
 #      version is proved directly from the axioms for demonstration purposes.
@@ -1939,82 +1939,82 @@ thm (id () () (-> ph ph) ph ph ax-1 ph (-> ph ph) ax-1 mpd)
 #      [[http://www.mathsci.appstate.edu/~jlh/primer/hirst.pdf]].
 #      For a shorter version of the proof that takes advantage of previously
 #      proved theorems, see [[id]]. 
-thm (id1 () () (-> ph ph) ph ph ax-1 ph (-> ph ph) ax-1 ph (-> ph ph) ph ax-2 ax-mp ax-mp)
+# thm (id1 () () (-> ph ph) ph ph ax-1 ph (-> ph ph) ax-1 ph (-> ph ph) ph ax-2 ax-mp ax-mp)
 
 #  Principle of identity with antecedent. 
-thm (idd () () (-> ph (-> ps ps)) ps id ph a1i)
+# thm (idd () () (-> ph (-> ps ps)) ps id ph a1i)
 
 #  This theorem, called "Assertion," can be thought of as closed form of
 #      modus ponens [[ax-mp]].  Theorem *2.27 of [bib/WhiteheadRussell] p. 104. 
-thm (pm2.27 () () (-> ph (-> (-> ph ps) ps)) (-> ph ps) id com12)
+# thm (pm2.27 () () (-> ph (-> (-> ph ps) ps)) (-> ph ps) id com12)
 
 #  Absorption of redundant antecedent.  Also called the "Contraction" or
 #      "Hilbert" axiom.  Theorem *2.43 of [bib/WhiteheadRussell] p. 106.  (The proof
 #      was shortened by O'Cat, 15-Aug-2004.) 
-thm (pm2.43 () () (-> (-> ph (-> ph ps)) (-> ph ps)) ph ps pm2.27 a2i)
+# thm (pm2.43 () () (-> (-> ph (-> ph ps)) (-> ph ps)) ph ps pm2.27 a2i)
 
 #  Inference absorbing redundant antecedent.  (The proof was shortened by
 #        O'Cat, 28-Nov-2008.) 
-thm (pm2.43i () (pm2.43i.1 (-> ph (-> ph ps))) (-> ph ps) ph id pm2.43i.1 mpd)
+# thm (pm2.43i () (pm2.43i.1 (-> ph (-> ph ps))) (-> ph ps) ph id pm2.43i.1 mpd)
 
 #  Deduction absorbing redundant antecedent.  (The proof was shortened by
 #        O'Cat, 28-Nov-2008.) 
-thm (pm2.43d () (pm2.43d.1 (-> ph (-> ps (-> ps ch)))) (-> ph (-> ps ch)) ps id pm2.43d.1 mpdi)
+# thm (pm2.43d () (pm2.43d.1 (-> ph (-> ps (-> ps ch)))) (-> ph (-> ps ch)) ps id pm2.43d.1 mpdi)
 
 #  Inference absorbing redundant antecedent.  (The proof was shortened by
 #        O'Cat, 28-Nov-2008.) 
-thm (pm2.43a () (pm2.43a.1 (-> ps (-> ph (-> ps ch)))) (-> ps (-> ph ch)) ps id pm2.43a.1 mpid)
+# thm (pm2.43a () (pm2.43a.1 (-> ps (-> ph (-> ps ch)))) (-> ps (-> ph ch)) ps id pm2.43a.1 mpid)
 
 #  Inference absorbing redundant antecedent. 
-thm (pm2.43b () (pm2.43a.1 (-> ps (-> ph (-> ps ch)))) (-> ph (-> ps ch)) pm2.43a.1 pm2.43a com12)
+# thm (pm2.43b () (pm2.43a.1 (-> ps (-> ph (-> ps ch)))) (-> ph (-> ps ch)) pm2.43a.1 pm2.43a com12)
 
 #  A syllogism inference combined with contraction. 
-thm (sylc () (sylc.1 (-> ph (-> ps ch)) sylc.2 (-> th ph) sylc.3 (-> th ps)) (-> th ch) sylc.3 sylc.2 sylc.1 syl mpd)
+# thm (sylc () (sylc.1 (-> ph (-> ps ch)) sylc.2 (-> th ph) sylc.3 (-> th ps)) (-> th ch) sylc.3 sylc.2 sylc.1 syl mpd)
 
 #  Converse of axiom [[ax-2]].  Theorem *2.86 of [bib/WhiteheadRussell] p. 108. 
-thm (pm2.86 () () (-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch))) ps ph ax-1 (-> ph ch) imim1i com23)
+# thm (pm2.86 () () (-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch))) ps ph ax-1 (-> ph ch) imim1i com23)
 
 #  Inference based on [[pm2.86]]. 
-thm (pm2.86i () (pm2.86i.1 (-> (-> ph ps) (-> ph ch))) (-> ph (-> ps ch)) pm2.86i.1 ph ps ch pm2.86 ax-mp)
+# thm (pm2.86i () (pm2.86i.1 (-> (-> ph ps) (-> ph ch))) (-> ph (-> ps ch)) pm2.86i.1 ph ps ch pm2.86 ax-mp)
 
 #  Deduction based on [[pm2.86]]. 
-thm (pm2.86d () (pm2.86d.1 (-> ph (-> (-> ps ch) (-> ps th)))) (-> ph (-> ps (-> ch th))) pm2.86d.1 ps ch th pm2.86 syl)
+# thm (pm2.86d () (pm2.86d.1 (-> ph (-> (-> ps ch) (-> ps th)))) (-> ph (-> ps (-> ch th))) pm2.86d.1 ps ch th pm2.86 syl)
 
 #  The Linearity Axiom of the infinite-valued sentential logic (L-infinity)
 #      of Lukasiewicz.  (Contributed by O'Cat, 12-Aug-2004.) 
-thm (loolin () () (-> (-> (-> ph ps) (-> ps ph)) (-> ps ph)) ps ph ax-1 (-> ps ph) imim1i pm2.43d)
+# thm (loolin () () (-> (-> (-> ph ps) (-> ps ph)) (-> ps ph)) ps ph ax-1 (-> ps ph) imim1i pm2.43d)
 
 #  An alternate for the Linearity Axiom of the infinite-valued sentential
 #      logic (L-infinity) of Lukasiewicz, due to Barbara Wozniakowska, //Reports
 #      on Mathematical Logic// 10, 129-137 (1978).  (Contributed by O'Cat,
 #      8-Aug-2004.) 
-thm (loowoz () () (-> (-> (-> ph ps) (-> ph ch)) (-> (-> ps ph) (-> ps ch))) ps ph ax-1 (-> ph ch) imim1i a2d)
+# thm (loowoz () () (-> (-> (-> ph ps) (-> ph ch)) (-> (-> ps ph) (-> ps ch))) ps ph ax-1 (-> ph ch) imim1i a2d)
 
 #  Inference rule derived from axiom [[ax-3]]. 
-thm (con4i () (con4i.1 (-> (-. ph) (-. ps))) (-> ps ph) con4i.1 ph ps ax-3 ax-mp)
+# thm (con4i () (con4i.1 (-> (-. ph) (-. ps))) (-> ps ph) con4i.1 ph ps ax-3 ax-mp)
 
 #  Deduction derived from axiom [[ax-3]]. 
-thm (con4d () (con4d.1 (-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps)) con4d.1 ps ch ax-3 syl)
+# thm (con4d () (con4d.1 (-> ph (-> (-. ps) (-. ch)))) (-> ph (-> ch ps)) con4d.1 ps ch ax-3 syl)
 
 #  From a wff and its negation, anything is true.  Theorem *2.21 of
 #      [bib/WhiteheadRussell] p. 104.  Also called the Duns Scotus law. 
-thm (pm2.21 () () (-> (-. ph) (-> ph ps)) (-. ph) (-. ps) ax-1 con4d)
+# thm (pm2.21 () () (-> (-. ph) (-> ph ps)) (-. ph) (-. ps) ax-1 con4d)
 
 #  A contradiction implies anything.  Inference from [[pm2.21]]. 
-thm (pm2.21i () (pm2.21i.1 (-. ph)) (-> ph ps) pm2.21i.1 (-. ps) a1i con4i)
+# thm (pm2.21i () (pm2.21i.1 (-. ph)) (-> ph ps) pm2.21i.1 (-. ps) a1i con4i)
 
 #  A contradiction implies anything.  Deduction from [[pm2.21]]. 
-thm (pm2.21d () (pm2.21d.1 (-> ph (-. ps))) (-> ph (-> ps ch)) pm2.21d.1 (-. ch) a1d con4d)
+# thm (pm2.21d () (pm2.21d.1 (-> ph (-. ps))) (-> ph (-> ps ch)) pm2.21d.1 (-. ch) a1d con4d)
 
 #  Theorem *2.24 of [bib/WhiteheadRussell] p. 104. 
-thm (pm2.24 () () (-> ph (-> (-. ph) ps)) ph ps pm2.21 com12)
+# thm (pm2.24 () () (-> ph (-> (-. ph) ps)) ph ps pm2.21 com12)
 
 #  A contradiction implies anything.  Inference from [[pm2.24]]. 
-thm (pm2.24ii () (pm2.24ii.1 ph pm2.24ii.2 (-. ph)) ps pm2.24ii.1 pm2.24ii.2 ps pm2.21i ax-mp)
+# thm (pm2.24ii () (pm2.24ii.1 ph pm2.24ii.2 (-. ph)) ps pm2.24ii.1 pm2.24ii.2 ps pm2.21i ax-mp)
 
 #  Proof by contradiction.  Theorem *2.18 of [bib/WhiteheadRussell] p. 103.
 #      Also called the Law of Clavius. 
-thm (pm2.18 () () (-> (-> (-. ph) ph) ph) ph (-. (-> (-. ph) ph)) pm2.21 a2i con4d pm2.43i)
+# thm (pm2.18 () () (-> (-> (-. ph) ph) ph) ph (-. (-> (-. ph) ph)) pm2.21 a2i con4d pm2.43i)
 
 #  Peirce's axiom.  This odd-looking theorem is the "difference" between
 #      an intuitionistic system of propositional calculus and a classical system
@@ -2023,208 +2023,208 @@ thm (pm2.18 () () (-> (-> (-. ph) ph) ph) ph (-. (-> (-. ph) ph)) pm2.21 a2i con
 #      system [[ax-1]] through [[ax-3]].  A curious fact about this
 #      theorem is that it requires [[ax-3]] for its proof even though the
 #      result has no negation connectives in it. 
-thm (peirce () () (-> (-> (-> ph ps) ph) ph) ph ps pm2.21 ph imim1i ph pm2.18 syl)
+# thm (peirce () () (-> (-> (-> ph ps) ph) ph) ph ps pm2.21 ph imim1i ph pm2.18 syl)
 
 #  The Inversion Axiom of the infinite-valued sentential logic (L-infinity)
 #      of Lukasiewicz.  Using [[dfor2]], we can see that this essentially
 #      expresses "disjunction commutes."  Theorem *2.69 of [bib/WhiteheadRussell]
 #      p. 108. 
-thm (looinv () () (-> (-> (-> ph ps) ps) (-> (-> ps ph) ph)) (-> ph ps) ps ph imim1 ph ps peirce syl6)
+# thm (looinv () () (-> (-> (-> ph ps) ps) (-> (-> ps ph) ph)) (-> ph ps) ps ph imim1 ph ps peirce syl6)
 
 #  Converse of double negation.  Theorem *2.14 of [bib/WhiteheadRussell] p. 102.
 #      (The proof was shortened by David Harvey, 5-Sep-1999.  An even shorter
 #      proof found by Josh Purinton, 29-Dec-2000.) 
-thm (notnot2 () () (-> (-. (-. ph)) ph) (-. ph) ph pm2.21 ph pm2.18 syl)
+# thm (notnot2 () () (-> (-. (-. ph)) ph) (-. ph) ph pm2.21 ph pm2.18 syl)
 
 #  Inference from double negation. 
-thm (notnotri () (negai.1 (-. (-. ph))) ph negai.1 ph notnot2 ax-mp)
+# thm (notnotri () (negai.1 (-. (-. ph))) ph negai.1 ph notnot2 ax-mp)
 
 #  Converse of double negation.  Theorem *2.12 of [bib/WhiteheadRussell]
 #      p. 101. 
-thm (notnot1 () () (-> ph (-. (-. ph))) (-. ph) notnot2 con4i)
+# thm (notnot1 () () (-> ph (-. (-. ph))) (-. ph) notnot2 con4i)
 
 #  Infer double negation. 
-thm (notnoti () (negbi.1 ph) (-. (-. ph)) negbi.1 ph notnot1 ax-mp)
+# thm (notnoti () (negbi.1 ph) (-. (-. ph)) negbi.1 ph notnot1 ax-mp)
 
 #  Reductio ad absurdum.  Theorem *2.01 of [bib/WhiteheadRussell] p. 100.  (The
 #      proof was shortened by O'Cat, 21-Nov-2008. 
-thm (pm2.01 () () (-> (-> ph (-. ph)) (-. ph)) ph pm2.18 (-. ph) ph looinv ax-mp)
+# thm (pm2.01 () () (-> (-> ph (-. ph)) (-. ph)) ph pm2.18 (-. ph) ph looinv ax-mp)
 
 #  Deduction based on reductio ad absurdum. 
-thm (pm2.01d () (pm2.01d.1 (-> ph (-> ps (-. ps)))) (-> ph (-. ps)) pm2.01d.1 ps pm2.01 syl)
+# thm (pm2.01d () (pm2.01d.1 (-> ph (-> ps (-. ps)))) (-> ph (-. ps)) pm2.01d.1 ps pm2.01 syl)
 
 #  Contraposition.  Theorem *2.03 of [bib/WhiteheadRussell] p. 100. 
-thm (con2 () () (-> (-> ph (-. ps)) (-> ps (-. ph))) ph notnot2 (-. ps) imim1i con4d)
+# thm (con2 () () (-> (-> ph (-. ps)) (-> ps (-. ph))) ph notnot2 (-. ps) imim1i con4d)
 
 #  A contraposition deduction. 
-thm (con2d () (con2d.1 (-> ph (-> ps (-. ch)))) (-> ph (-> ch (-. ps))) con2d.1 ps ch con2 syl)
+# thm (con2d () (con2d.1 (-> ph (-> ps (-. ch)))) (-> ph (-> ch (-. ps))) con2d.1 ps ch con2 syl)
 
 #  Contraposition.  Theorem *2.15 of [bib/WhiteheadRussell] p. 102. 
-thm (con1 () () (-> (-> (-. ph) ps) (-> (-. ps) ph)) ps notnot1 (-. ph) imim2i con4d)
+# thm (con1 () () (-> (-> (-. ph) ps) (-> (-. ps) ph)) ps notnot1 (-. ph) imim2i con4d)
 
 #  A contraposition deduction. 
-thm (con1d () (con1d.1 (-> ph (-> (-. ps) ch))) (-> ph (-> (-. ch) ps)) con1d.1 ps ch con1 syl)
+# thm (con1d () (con1d.1 (-> ph (-> (-. ps) ch))) (-> ph (-> (-. ch) ps)) con1d.1 ps ch con1 syl)
 
 #  Contraposition.  Theorem *2.16 of [bib/WhiteheadRussell] p. 103. 
-thm (con3 () () (-> (-> ph ps) (-> (-. ps) (-. ph))) ps notnot1 ph imim2i con2d)
+# thm (con3 () () (-> (-> ph ps) (-> (-. ps) (-. ph))) ps notnot1 ph imim2i con2d)
 
 #  A contraposition deduction. 
-thm (con3d () (con3d.1 (-> ph (-> ps ch))) (-> ph (-> (-. ch) (-. ps))) con3d.1 ps ch con3 syl)
+# thm (con3d () (con3d.1 (-> ph (-> ps ch))) (-> ph (-> (-. ch) (-. ps))) con3d.1 ps ch con3 syl)
 
 #  A contraposition inference.  (The proof was shortened by O'Cat,
 #        28-Nov-2008.) 
-thm (con1i () (con1.a (-> (-. ph) ps)) (-> (-. ps) ph) con1.a ph ps con1 ax-mp)
+# thm (con1i () (con1.a (-> (-. ph) ps)) (-> (-. ps) ph) con1.a ph ps con1 ax-mp)
 
 #  A contraposition inference.  (The proof was shortened by O'Cat,
 #        28-Nov-2008.) 
-thm (con2i () (con2.a (-> ph (-. ps))) (-> ps (-. ph)) con2.a ph ps con2 ax-mp)
+# thm (con2i () (con2.a (-> ph (-. ps))) (-> ps (-. ph)) con2.a ph ps con2 ax-mp)
 
 #  A contraposition inference. 
-thm (con3i () (con3.a (-> ph ps)) (-> (-. ps) (-. ph)) ph notnot2 con3.a syl con1i)
+# thm (con3i () (con3.a (-> ph ps)) (-> (-. ps) (-. ph)) ph notnot2 con3.a syl con1i)
 
 #  Theorem *2.5 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.5 () () (-> (-. (-> ph ps)) (-> (-. ph) ps)) ph ps pm2.21 con3i ps pm2.21d)
+# thm (pm2.5 () () (-> (-. (-> ph ps)) (-> (-. ph) ps)) ph ps pm2.21 con3i ps pm2.21d)
 
 #  Theorem *2.51 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.51 () () (-> (-. (-> ph ps)) (-> ph (-. ps))) ps ph ax-1 con3i ph a1d)
+# thm (pm2.51 () () (-> (-. (-> ph ps)) (-> ph (-. ps))) ps ph ax-1 con3i ph a1d)
 
 #  Theorem *2.52 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.52 () () (-> (-. (-> ph ps)) (-> (-. ph) (-. ps))) ps ph ax-1 con3i (-. ph) a1d)
+# thm (pm2.52 () () (-> (-. (-> ph ps)) (-> (-. ph) (-. ps))) ps ph ax-1 con3i (-. ph) a1d)
 
 #  Theorem *2.521 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.521 () () (-> (-. (-> ph ps)) (-> ps ph)) ph ps pm2.52 con4d)
+# thm (pm2.521 () () (-> (-. (-> ph ps)) (-> ps ph)) ph ps pm2.52 con4d)
 
 #  Inference version of [[pm2.24]]. 
-thm (pm2.24i () (pm2.24i.1 ph) (-> (-. ph) ps) pm2.24i.1 (-. ps) a1i con1i)
+# thm (pm2.24i () (pm2.24i.1 ph) (-> (-. ph) ps) pm2.24i.1 (-. ps) a1i con1i)
 
 #  Deduction version of [[pm2.21]]. 
-thm (pm2.24d () (pm2.24d.1 (-> ph ps)) (-> ph (-> (-. ps) ch)) pm2.24d.1 (-. ch) a1d con1d)
+# thm (pm2.24d () (pm2.24d.1 (-> ph ps)) (-> ph (-> (-. ps) ch)) pm2.24d.1 (-. ch) a1d con1d)
 
 #  The rule of modus tollens. 
-thm (mto () (mto.1 (-. ps) mto.2 (-> ph ps)) (-. ph) mto.1 mto.2 con3i ax-mp)
+# thm (mto () (mto.1 (-. ps) mto.2 (-> ph ps)) (-. ph) mto.1 mto.2 con3i ax-mp)
 
 #  Modus tollens inference. 
-thm (mtoi () (mtoi.1 (-. ch) mtoi.2 (-> ph (-> ps ch))) (-> ph (-. ps)) mtoi.1 mtoi.2 con3d mpi)
+# thm (mtoi () (mtoi.1 (-. ch) mtoi.2 (-> ph (-> ps ch))) (-> ph (-. ps)) mtoi.1 mtoi.2 con3d mpi)
 
 #  Modus tollens deduction. 
-thm (mtod () (mtod.1 (-> ph (-. ch)) mtod.2 (-> ph (-> ps ch))) (-> ph (-. ps)) mtod.1 mtod.2 con3d mpd)
+# thm (mtod () (mtod.1 (-> ph (-. ch)) mtod.2 (-> ph (-> ps ch))) (-> ph (-. ps)) mtod.1 mtod.2 con3d mpd)
 
 #  A rule similar to modus tollens. 
-thm (mt2 () (mt2.1 ps mt2.2 (-> ph (-. ps))) (-. ph) mt2.1 mt2.2 con2i ax-mp)
+# thm (mt2 () (mt2.1 ps mt2.2 (-> ph (-. ps))) (-. ph) mt2.1 mt2.2 con2i ax-mp)
 
 #  Modus tollens inference. 
-thm (mt2i () (mt2i.1 ch mt2i.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) mt2i.1 mt2i.2 con2d mpi)
+# thm (mt2i () (mt2i.1 ch mt2i.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) mt2i.1 mt2i.2 con2d mpi)
 
 #  Modus tollens deduction. 
-thm (mt2d () (mt2d.1 (-> ph ch) mt2d.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) mt2d.1 mt2d.2 con2d mpd)
+# thm (mt2d () (mt2d.1 (-> ph ch) mt2d.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) mt2d.1 mt2d.2 con2d mpd)
 
 #  A rule similar to modus tollens. 
-thm (mt3 () (mt3.1 (-. ps) mt3.2 (-> (-. ph) ps)) ph mt3.1 mt3.2 con1i ax-mp)
+# thm (mt3 () (mt3.1 (-. ps) mt3.2 (-> (-. ph) ps)) ph mt3.1 mt3.2 con1i ax-mp)
 
 #  Modus tollens inference. 
-thm (mt3i () (mt3i.1 (-. ch) mt3i.2 (-> ph (-> (-. ps) ch))) (-> ph ps) mt3i.1 mt3i.2 con1d mpi)
+# thm (mt3i () (mt3i.1 (-. ch) mt3i.2 (-> ph (-> (-. ps) ch))) (-> ph ps) mt3i.1 mt3i.2 con1d mpi)
 
 #  Modus tollens deduction. 
-thm (mt3d () (mt3d.1 (-> ph (-. ch)) mt3d.2 (-> ph (-> (-. ps) ch))) (-> ph ps) mt3d.1 mt3d.2 con1d mpd)
+# thm (mt3d () (mt3d.1 (-> ph (-. ch)) mt3d.2 (-> ph (-> (-. ps) ch))) (-> ph ps) mt3d.1 mt3d.2 con1d mpd)
 
 #  Modus tollens deduction. 
-thm (mt4d () (mt4d.1 (-> ph ps) mt4d.2 (-> ph (-> (-. ch) (-. ps)))) (-> ph ch) mt4d.1 mt4d.2 con4d mpd)
+# thm (mt4d () (mt4d.1 (-> ph ps) mt4d.2 (-> ph (-> (-. ch) (-. ps)))) (-> ph ch) mt4d.1 mt4d.2 con4d mpd)
 
 #  A negated syllogism inference. 
-thm (nsyl () (nsyl.1 (-> ph (-. ps)) nsyl.2 (-> ch ps)) (-> ph (-. ch)) nsyl.1 nsyl.2 con3i syl)
+# thm (nsyl () (nsyl.1 (-> ph (-. ps)) nsyl.2 (-> ch ps)) (-> ph (-. ch)) nsyl.1 nsyl.2 con3i syl)
 
 #  A negated syllogism deduction. 
-thm (nsyld () (nsyld.1 (-> ph (-> ps (-. ch))) nsyld.2 (-> ph (-> ta ch))) (-> ph (-> ps (-. ta))) nsyld.1 nsyld.2 con3d syld)
+# thm (nsyld () (nsyld.1 (-> ph (-> ps (-. ch))) nsyld.2 (-> ph (-> ta ch))) (-> ph (-> ps (-. ta))) nsyld.1 nsyld.2 con3d syld)
 
 #  A negated syllogism inference. 
-thm (nsyl2 () (nsyl2.1 (-> ph (-. ps)) nsyl2.2 (-> (-. ch) ps)) (-> ph ch) nsyl2.1 nsyl2.2 con1i syl)
+# thm (nsyl2 () (nsyl2.1 (-> ph (-. ps)) nsyl2.2 (-> (-. ch) ps)) (-> ph ch) nsyl2.1 nsyl2.2 con1i syl)
 
 #  A negated syllogism inference. 
-thm (nsyl3 () (nsyl3.1 (-> ph (-. ps)) nsyl3.2 (-> ch ps)) (-> ch (-. ph)) nsyl3.2 nsyl3.1 con2i syl)
+# thm (nsyl3 () (nsyl3.1 (-> ph (-. ps)) nsyl3.2 (-> ch ps)) (-> ch (-. ph)) nsyl3.2 nsyl3.1 con2i syl)
 
 #  A negated syllogism inference. 
-thm (nsyl4 () (nsyl4.1 (-> ph ps) nsyl4.2 (-> (-. ph) ch)) (-> (-. ch) ps) nsyl4.2 con1i nsyl4.1 syl)
+# thm (nsyl4 () (nsyl4.1 (-> ph ps) nsyl4.2 (-> (-. ph) ch)) (-> (-. ch) ps) nsyl4.2 con1i nsyl4.1 syl)
 
 #  A negated syllogism inference. 
-thm (nsyli () (nsyli.1 (-> ph (-> ps ch)) nsyli.2 (-> th (-. ch))) (-> ph (-> th (-. ps))) nsyli.1 con3d nsyli.2 syl5)
+# thm (nsyli () (nsyli.1 (-> ph (-> ps ch)) nsyli.2 (-> th (-. ch))) (-> ph (-> th (-. ps))) nsyli.1 con3d nsyli.2 syl5)
 
 #  Theorem *3.2 of [bib/WhiteheadRussell] p. 111, expressed with primitive
 #      connectives.  (The proof was shortened by Josh Purinton, 29-Dec-2000.) 
-thm (pm3.2im () () (-> ph (-> ps (-. (-> ph (-. ps))))) ph (-. ps) pm2.27 con2d)
+# thm (pm3.2im () () (-> ph (-> ps (-. (-> ph (-. ps))))) ph (-. ps) pm2.27 con2d)
 
 #  Theorem 8 of [bib/Margaris] p. 60.  (The proof was shortened by Josh Purinton,
 #      29-Dec-2000.) 
-thm (mth8 () () (-> ph (-> (-. ps) (-. (-> ph ps)))) ph ps pm2.27 con3d)
+# thm (mth8 () () (-> ph (-> (-. ps) (-. (-> ph ps)))) ph ps pm2.27 con3d)
 
 #  Theorem *2.61 of [bib/WhiteheadRussell] p. 107.  Useful for eliminating an
 #      antecedent. 
-thm (pm2.61 () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps)) ph ps con1 ps imim1d ps pm2.18 syl6com)
+# thm (pm2.61 () () (-> (-> ph ps) (-> (-> (-. ph) ps) ps)) ph ps con1 ps imim1d ps pm2.18 syl6com)
 
 #  Inference eliminating an antecedent. 
-thm (pm2.61i () (pm2.61i.1 (-> ph ps) pm2.61i.2 (-> (-. ph) ps)) ps pm2.61i.1 pm2.61i.2 ph ps pm2.61 mp2)
+# thm (pm2.61i () (pm2.61i.1 (-> ph ps) pm2.61i.2 (-> (-. ph) ps)) ps pm2.61i.1 pm2.61i.2 ph ps pm2.61 mp2)
 
 #  Deduction eliminating an antecedent. 
-thm (pm2.61d () (pm2.61d.1 (-> ph (-> ps ch)) pm2.61d.2 (-> ph (-> (-. ps) ch))) (-> ph ch) pm2.61d.1 com12 pm2.61d.2 com12 pm2.61i)
+# thm (pm2.61d () (pm2.61d.1 (-> ph (-> ps ch)) pm2.61d.2 (-> ph (-> (-. ps) ch))) (-> ph ch) pm2.61d.1 com12 pm2.61d.2 com12 pm2.61i)
 
 #  Inference eliminating an antecedent. 
-thm (pm2.61d1 () (pm2.61d1.1 (-> ph (-> ps ch)) pm2.61d1.2 (-> (-. ps) ch)) (-> ph ch) pm2.61d1.1 pm2.61d1.2 ph a1i pm2.61d)
+# thm (pm2.61d1 () (pm2.61d1.1 (-> ph (-> ps ch)) pm2.61d1.2 (-> (-. ps) ch)) (-> ph ch) pm2.61d1.1 pm2.61d1.2 ph a1i pm2.61d)
 
 #  Inference eliminating an antecedent. 
-thm (pm2.61d2 () (pm2.61d2.1 (-> ph (-> (-. ps) ch)) pm2.61d2.2 (-> ps ch)) (-> ph ch) pm2.61d2.2 ph a1i pm2.61d2.1 pm2.61d)
+# thm (pm2.61d2 () (pm2.61d2.1 (-> ph (-> (-. ps) ch)) pm2.61d2.2 (-> ps ch)) (-> ph ch) pm2.61d2.2 ph a1i pm2.61d2.1 pm2.61d)
 
 #  Inference eliminating two antecedents.  (The proof was shortened by Josh
 #        Purinton,  29-Dec-2000.) 
-thm (pm2.61ii () (pm2.61ii.1 (-> (-. ph) (-> (-. ps) ch)) pm2.61ii.2 (-> ph ch) pm2.61ii.3 (-> ps ch)) ch pm2.61ii.2 pm2.61ii.1 pm2.61ii.3 pm2.61d2 pm2.61i)
+# thm (pm2.61ii () (pm2.61ii.1 (-> (-. ph) (-> (-. ps) ch)) pm2.61ii.2 (-> ph ch) pm2.61ii.3 (-> ps ch)) ch pm2.61ii.2 pm2.61ii.1 pm2.61ii.3 pm2.61d2 pm2.61i)
 
 #  Inference eliminating two antecedents. 
-thm (pm2.61nii () (pm2.61nii.1 (-> ph (-> ps ch)) pm2.61nii.2 (-> (-. ph) ch) pm2.61nii.3 (-> (-. ps) ch)) ch pm2.61nii.1 com12 pm2.61nii.2 pm2.61d1 pm2.61nii.3 pm2.61i)
+# thm (pm2.61nii () (pm2.61nii.1 (-> ph (-> ps ch)) pm2.61nii.2 (-> (-. ph) ch) pm2.61nii.3 (-> (-. ps) ch)) ch pm2.61nii.1 com12 pm2.61nii.2 pm2.61d1 pm2.61nii.3 pm2.61i)
 
 #  Inference eliminating three antecedents. 
-thm (pm2.61iii () (pm2.61iii.1 (-> (-. ph) (-> (-. ps) (-> (-. ch) th))) pm2.61iii.2 (-> ph th) pm2.61iii.3 (-> ps th) pm2.61iii.4 (-> ch th)) th pm2.61iii.2 (-. ch) a1d (-. ps) a1d pm2.61iii.1 pm2.61i pm2.61iii.3 pm2.61iii.4 pm2.61ii)
+# thm (pm2.61iii () (pm2.61iii.1 (-> (-. ph) (-> (-. ps) (-> (-. ch) th))) pm2.61iii.2 (-> ph th) pm2.61iii.3 (-> ps th) pm2.61iii.4 (-> ch th)) th pm2.61iii.2 (-. ch) a1d (-. ps) a1d pm2.61iii.1 pm2.61i pm2.61iii.3 pm2.61iii.4 pm2.61ii)
 
 #  Theorem *2.6 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.6 () () (-> (-> (-. ph) ps) (-> (-> ph ps) ps)) ph ps pm2.61 com12)
+# thm (pm2.6 () () (-> (-> (-. ph) ps) (-> (-> ph ps) ps)) ph ps pm2.61 com12)
 
 #  Theorem *2.65 of [bib/WhiteheadRussell] p. 107.  Proof by contradiction. 
-thm (pm2.65 () () (-> (-> ph ps) (-> (-> ph (-. ps)) (-. ph))) ph ps pm3.2im a2i con2d)
+# thm (pm2.65 () () (-> (-> ph ps) (-> (-> ph (-. ps)) (-. ph))) ph ps pm3.2im a2i con2d)
 
 #  Inference rule for proof by contradiction. 
-thm (pm2.65i () (pm2.65i.1 (-> ph ps) pm2.65i.2 (-> ph (-. ps))) (-. ph) pm2.65i.1 pm2.65i.2 ph ps pm2.65 mp2)
+# thm (pm2.65i () (pm2.65i.1 (-> ph ps) pm2.65i.2 (-> ph (-. ps))) (-. ph) pm2.65i.1 pm2.65i.2 ph ps pm2.65 mp2)
 
 #  Deduction rule for proof by contradiction. 
-thm (pm2.65d () (pm2.65d.1 (-> ph (-> ps ch)) pm2.65d.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) ps ch pm2.65 pm2.65d.1 pm2.65d.2 sylc)
+# thm (pm2.65d () (pm2.65d.1 (-> ph (-> ps ch)) pm2.65d.2 (-> ph (-> ps (-. ch)))) (-> ph (-. ps)) ps ch pm2.65 pm2.65d.1 pm2.65d.2 sylc)
 
 #  Inference joining the antecedents of two premises.  (The proof was
 #        shortened by O'Cat, 19-Feb-2008.) 
-thm (ja () (ja.1 (-> (-. ph) ch) ja.2 (-> ps ch)) (-> (-> ph ps) ch) ja.2 ph imim2i ja.1 pm2.61d1)
+# thm (ja () (ja.1 (-> (-. ph) ch) ja.2 (-> ps ch)) (-> (-> ph ps) ch) ja.2 ph imim2i ja.1 pm2.61d1)
 
 #  Inference joining the consequents of two premises. 
-thm (jc () (jc.1 (-> ph ps) jc.2 (-> ph ch)) (-> ph (-. (-> ps (-. ch)))) ps ch pm3.2im jc.1 jc.2 sylc)
+# thm (jc () (jc.1 (-> ph ps) jc.2 (-> ph ch)) (-> ph (-. (-> ps (-. ch)))) ps ch pm3.2im jc.1 jc.2 sylc)
 
 #  Simplification.  Similar to Theorem *3.26 (Simp) of [bib/WhiteheadRussell]
 #      p. 112. 
-thm (pm3.26im () () (-> (-. (-> ph (-. ps))) ph) ph (-. ps) pm2.21 con1i)
+# thm (pm3.26im () () (-> (-. (-> ph (-. ps))) ph) ph (-. ps) pm2.21 con1i)
 
 #  Simplification.  Similar to Theorem *3.27 (Simp) of [bib/WhiteheadRussell]
 #      p. 112. 
-thm (pm3.27im () () (-> (-. (-> ph (-. ps))) ps) (-. ps) ph ax-1 con1i)
+# thm (pm3.27im () () (-> (-. (-> ph (-. ps))) ps) (-. ps) ph ax-1 con1i)
 
 #  Importation theorem expressed with primitive connectives. 
-thm (impt () () (-> (-> ph (-> ps ch)) (-> (-. (-> ph (-. ps))) ch)) ps ch con3 ph imim2i com23 con1d)
+# thm (impt () () (-> (-> ph (-> ps ch)) (-> (-. (-> ph (-. ps))) ch)) ps ch con3 ph imim2i com23 con1d)
 
 #  Exportation theorem expressed with primitive connectives. 
-thm (expt () () (-> (-> (-. (-> ph (-. ps))) ch) (-> ph (-> ps ch))) ph ps pm3.2im ch imim1d com12)
+# thm (expt () () (-> (-> (-. (-> ph (-. ps))) ch) (-> ph (-> ps ch))) ph ps pm3.2im ch imim1d com12)
 
 #  An importation inference. 
-thm (impi () (impi.1 (-> ph (-> ps ch))) (-> (-. (-> ph (-. ps))) ch) impi.1 ph ps ch impt ax-mp)
+# thm (impi () (impi.1 (-> ph (-> ps ch))) (-> (-. (-> ph (-. ps))) ch) impi.1 ph ps ch impt ax-mp)
 
 #  An exportation inference.  (The proof was shortened by O'Cat,
 #        28-Nov-2008.) 
-thm (expi () (expi.1 (-> (-. (-> ph (-. ps))) ch)) (-> ph (-> ps ch)) ph ps pm3.2im expi.1 syl6)
+# thm (expi () (expi.1 (-> (-. (-> ph (-. ps))) ch)) (-> ph (-> ps ch)) ph ps pm3.2im expi.1 syl6)
 
 #  Theorem used to justify definition of biconditional [[df-bi]].  (The proof
 #      was shortened by Josh Purinton, 29-Dec-2000.) 
-thm (bijust () () (-. (-> (-> ph ph) (-. (-> ph ph)))) ph id (-> ph ph) pm2.01 mt2)
+# thm (bijust () () (-. (-> (-> ph ph) (-. (-> ph ph)))) ph id (-> ph ph) pm2.01 mt2)
 
 # defthm (df-bi wff (<-> ph ps) () ()
 #         (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) 
@@ -2232,38 +2232,38 @@ thm (bijust () () (-. (-> (-> ph ph) (-. (-> ph ph)))) ph id (-> ph ph) pm2.01 m
 #   (-. (-> (-> ph ps) (-. (-> ps ph)))) bijust)
 
 #  Property of the biconditional connective. 
-thm (bi1 () () (-> (<-> ph ps) (-> ph ps)) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.26im ax-mp (-> ph ps) (-> ps ph) pm3.26im syl)
+# thm (bi1 () () (-> (<-> ph ps) (-> ph ps)) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.26im ax-mp (-> ph ps) (-> ps ph) pm3.26im syl)
 
 #  Property of the biconditional connective. 
-thm (bi2 () () (-> (<-> ph ps) (-> ps ph)) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.26im ax-mp (-> ph ps) (-> ps ph) pm3.27im syl)
+# thm (bi2 () () (-> (<-> ph ps) (-> ps ph)) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.26im ax-mp (-> ph ps) (-> ps ph) pm3.27im syl)
 
 #  Property of the biconditional connective. 
-thm (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps))) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.27im ax-mp expi)
+# thm (bi3 () () (-> (-> ph ps) (-> (-> ps ph) (<-> ph ps))) ph ps df-bi (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)) pm3.27im ax-mp expi)
 
 #  Infer an implication from a logical equivalence. 
-thm (biimpi () (biimp.1 (<-> ph ps)) (-> ph ps) biimp.1 ph ps bi1 ax-mp)
+# thm (biimpi () (biimp.1 (<-> ph ps)) (-> ph ps) biimp.1 ph ps bi1 ax-mp)
 
 #  Infer a converse implication from a logical equivalence. 
-thm (biimpri () (biimpr.1 (<-> ph ps)) (-> ps ph) biimpr.1 ph ps bi2 ax-mp)
+# thm (biimpri () (biimpr.1 (<-> ph ps)) (-> ps ph) biimpr.1 ph ps bi2 ax-mp)
 
 #  Deduce an implication from a logical equivalence. 
-thm (biimpd () (biimpd.1 (-> ph (<-> ps ch))) (-> ph (-> ps ch)) biimpd.1 ps ch bi1 syl)
+# thm (biimpd () (biimpd.1 (-> ph (<-> ps ch))) (-> ph (-> ps ch)) biimpd.1 ps ch bi1 syl)
 
 #  Deduce a converse implication from a logical equivalence. 
-thm (biimprd () (biimpd.1 (-> ph (<-> ps ch))) (-> ph (-> ch ps)) biimpd.1 ps ch bi2 syl)
+# thm (biimprd () (biimpd.1 (-> ph (<-> ps ch))) (-> ph (-> ch ps)) biimpd.1 ps ch bi2 syl)
 
 #  Deduce a commuted implication from a logical equivalence. 
-thm (biimpcd () (biimpd.1 (-> ph (<-> ps ch))) (-> ps (-> ph ch)) biimpd.1 biimpd com12)
+# thm (biimpcd () (biimpd.1 (-> ph (<-> ps ch))) (-> ps (-> ph ch)) biimpd.1 biimpd com12)
 
 #  Deduce a converse commuted implication from a logical equivalence. 
-thm (biimprcd () (biimpd.1 (-> ph (<-> ps ch))) (-> ch (-> ph ps)) biimpd.1 biimprd com12)
+# thm (biimprcd () (biimpd.1 (-> ph (<-> ps ch))) (-> ch (-> ph ps)) biimpd.1 biimprd com12)
 
 #  Infer an equivalence from an implication and its converse. 
-thm (impbii () (impbi.1 (-> ph ps) impbi.2 (-> ps ph)) (<-> ph ps) impbi.1 impbi.2 ph ps bi3 mp2)
+# thm (impbii () (impbi.1 (-> ph ps) impbi.2 (-> ps ph)) (<-> ph ps) impbi.1 impbi.2 ph ps bi3 mp2)
 
 #  Relate the biconditional connective to primitive connectives.  See
 #      [[dfbi1gb]] for an unusual version proved directly from axioms. 
-thm (dfbi1 () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) ph ps bi1 ph ps bi2 jc ph ps bi3 impi impbii)
+# thm (dfbi1 () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) ph ps bi1 ph ps bi2 jc ph ps bi3 impi impbii)
 
 #  This proof of [[dfbi1]], discovered by Gregory Bush on 8-Mar-2004, has
 #      several curious properties.  First, it has only 17 steps directly
@@ -2278,211 +2278,211 @@ thm (dfbi1 () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) ph ps bi
 #      steps that are essentially incomprehensible to humans (other than Gregory
 #      Bush).  If there were an obfuscated code contest for proofs, this would be
 #      a contender. 
-thm (dfbi1gb () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) ph ps df-bi ch th ax-1 (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) ax-1 (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))) df-bi (-. (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))))) (-. (-. (-> ch (-> th ch)))) ax-1 ax-mp (-. (-> ch (-> th ch))) (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) ax-3 ax-mp (-> (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) (-. (-> ch (-> th ch)))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) ax-1 ax-mp (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) (-. (-> ch (-> th ch))) ax-2 ax-mp ax-mp (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))) (-> ch (-> th ch)) ax-3 ax-mp ax-mp ax-mp)
+# thm (dfbi1gb () () (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) ph ps df-bi ch th ax-1 (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) ax-1 (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))) df-bi (-. (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))))) (-. (-. (-> ch (-> th ch)))) ax-1 ax-mp (-. (-> ch (-> th ch))) (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) ax-3 ax-mp (-> (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) (-. (-> ch (-> th ch)))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) ax-1 ax-mp (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))))) (-> (-> (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps)))))) (-. (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))))) (-. (-> ch (-> th ch))) ax-2 ax-mp ax-mp (-> (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph))))) (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))) (<-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))) (-> ch (-> th ch)) ax-3 ax-mp ax-mp ax-mp)
 
 #  Logical equivalence of commuted antecedents.  Part of Theorem *4.87 of
 #      [bib/WhiteheadRussell] p. 122. 
-thm (bi2.04 () () (<-> (-> ph (-> ps ch)) (-> ps (-> ph ch))) ph ps ch pm2.04 ps ph ch pm2.04 impbii)
+# thm (bi2.04 () () (<-> (-> ph (-> ps ch)) (-> ps (-> ph ch))) ph ps ch pm2.04 ps ph ch pm2.04 impbii)
 
 #  Double negation.  Theorem *4.13 of [bib/WhiteheadRussell] p. 117. 
-thm (notnot () () (<-> ph (-. (-. ph))) ph notnot1 ph notnot2 impbii)
+# thm (notnot () () (<-> ph (-. (-. ph))) ph notnot1 ph notnot2 impbii)
 
 #  Theorem *4.8 of [bib/WhiteheadRussell] p. 122. 
-thm (pm4.8 () () (<-> (-> ph (-. ph)) (-. ph)) ph pm2.01 (-. ph) ph ax-1 impbii)
+# thm (pm4.8 () () (<-> (-> ph (-. ph)) (-. ph)) ph pm2.01 (-. ph) ph ax-1 impbii)
 
 #  Theorem *4.81 of [bib/WhiteheadRussell] p. 122. 
-thm (pm4.81 () () (<-> (-> (-. ph) ph) ph) ph pm2.18 ph ph pm2.24 impbii)
+# thm (pm4.81 () () (<-> (-> (-. ph) ph) ph) ph pm2.18 ph ph pm2.24 impbii)
 
 #  Contraposition.  Bidirectional version of [[con1]]. 
-thm (con1b () () (<-> (-> (-. ph) ps) (-> (-. ps) ph)) ph ps con1 ps ph con1 impbii)
+# thm (con1b () () (<-> (-> (-. ph) ps) (-> (-. ps) ph)) ph ps con1 ps ph con1 impbii)
 
 #  Contraposition.  Bidirectional version of [[con2]]. 
-thm (con2b () () (<-> (-> ph (-. ps)) (-> ps (-. ph))) ph ps con2 ps ph con2 impbii)
+# thm (con2b () () (<-> (-> ph (-. ps)) (-> ps (-. ph))) ph ps con2 ps ph con2 impbii)
 
 #  Contraposition.  Theorem *4.1 of [bib/WhiteheadRussell] p. 116. 
-thm (con34b () () (<-> (-> ph ps) (-> (-. ps) (-. ph))) ph ps con3 ps ph ax-3 impbii)
+# thm (con34b () () (<-> (-> ph ps) (-> (-. ps) (-. ph))) ph ps con3 ps ph ax-3 impbii)
 
 #  Antecedent absorption implication.  Theorem *5.4 of
 #      [bib/WhiteheadRussell] p. 125. 
-thm (pm5.4 () () (<-> (-> ph (-> ph ps)) (-> ph ps)) ph ps pm2.43 (-> ph ps) ph ax-1 impbii)
+# thm (pm5.4 () () (<-> (-> ph (-> ph ps)) (-> ph ps)) ph ps pm2.43 (-> ph ps) ph ax-1 impbii)
 
 #  Distributive law for implication.  Compare Theorem *5.41 of
 #      [bib/WhiteheadRussell] p. 125. 
-thm (imdi () () (<-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))) ph ps ch ax-2 ph ps ch pm2.86 impbii)
+# thm (imdi () () (<-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))) ph ps ch ax-2 ph ps ch pm2.86 impbii)
 
 #  Theorem *5.41 of [bib/WhiteheadRussell] p. 125. 
-thm (pm5.41 () () (<-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch))) ph ps ch pm2.86 ph ps ch ax-2 impbii)
+# thm (pm5.41 () () (<-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch))) ph ps ch pm2.86 ph ps ch ax-2 impbii)
 
 #  Principle of identity for logical equivalence.  Theorem *4.2 of
 #      [bib/WhiteheadRussell] p. 117. 
-thm (biid () () (<-> ph ph) ph id ph id impbii)
+# thm (biid () () (<-> ph ph) ph id ph id impbii)
 
 #  Principle of identity with antecedent. 
-thm (biidd () () (-> ph (<-> ps ps)) ps biid ph a1i)
+# thm (biidd () () (-> ph (<-> ps ps)) ps biid ph a1i)
 
 #  Inference from commutative law for logical equivalence. 
-thm (bicomi () (bicomi.1 (<-> ph ps)) (<-> ps ph) bicomi.1 biimpri bicomi.1 biimpi impbii)
+# thm (bicomi () (bicomi.1 (<-> ph ps)) (<-> ps ph) bicomi.1 biimpri bicomi.1 biimpi impbii)
 
 #  An inference from transitive law for logical equivalence. 
-thm (bitri () (bitri.1 (<-> ph ps) bitri.2 (<-> ps ch)) (<-> ph ch) bitri.1 biimpi bitri.2 biimpi syl bitri.2 biimpri bitri.1 biimpri syl impbii)
+# thm (bitri () (bitri.1 (<-> ph ps) bitri.2 (<-> ps ch)) (<-> ph ch) bitri.1 biimpi bitri.2 biimpi syl bitri.2 biimpri bitri.1 biimpri syl impbii)
 
 #  An inference from transitive law for logical equivalence. 
-thm (bitr2i () (bitr2i.1 (<-> ph ps) bitr2i.2 (<-> ps ch)) (<-> ch ph) bitr2i.1 bitr2i.2 bitri bicomi)
+# thm (bitr2i () (bitr2i.1 (<-> ph ps) bitr2i.2 (<-> ps ch)) (<-> ch ph) bitr2i.1 bitr2i.2 bitri bicomi)
 
 #  An inference from transitive law for logical equivalence. 
-thm (bitr3i () (bitr3i.1 (<-> ps ph) bitr3i.2 (<-> ps ch)) (<-> ph ch) bitr3i.1 bicomi bitr3i.2 bitri)
+# thm (bitr3i () (bitr3i.1 (<-> ps ph) bitr3i.2 (<-> ps ch)) (<-> ph ch) bitr3i.1 bicomi bitr3i.2 bitri)
 
 #  An inference from transitive law for logical equivalence. 
-thm (bitr4i () (bitr4i.1 (<-> ph ps) bitr4i.2 (<-> ch ps)) (<-> ph ch) bitr4i.1 bitr4i.2 bicomi bitri)
+# thm (bitr4i () (bitr4i.1 (<-> ph ps) bitr4i.2 (<-> ch ps)) (<-> ph ch) bitr4i.1 bitr4i.2 bicomi bitri)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitri () (3bitri.1 (<-> ph ps) 3bitri.2 (<-> ps ch) 3bitri.3 (<-> ch th)) (<-> ph th) 3bitri.1 3bitri.2 3bitri.3 bitri bitri)
+# thm (3bitri () (3bitri.1 (<-> ph ps) 3bitri.2 (<-> ps ch) 3bitri.3 (<-> ch th)) (<-> ph th) 3bitri.1 3bitri.2 3bitri.3 bitri bitri)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitrri () (3bitri.1 (<-> ph ps) 3bitri.2 (<-> ps ch) 3bitri.3 (<-> ch th)) (<-> th ph) 3bitri.3 3bitri.1 3bitri.2 bitr2i bitr3i)
+# thm (3bitrri () (3bitri.1 (<-> ph ps) 3bitri.2 (<-> ps ch) 3bitri.3 (<-> ch th)) (<-> th ph) 3bitri.3 3bitri.1 3bitri.2 bitr2i bitr3i)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitr2i () (3bitr2i.1 (<-> ph ps) 3bitr2i.2 (<-> ch ps) 3bitr2i.3 (<-> ch th)) (<-> ph th) 3bitr2i.1 3bitr2i.2 bitr4i 3bitr2i.3 bitri)
+# thm (3bitr2i () (3bitr2i.1 (<-> ph ps) 3bitr2i.2 (<-> ch ps) 3bitr2i.3 (<-> ch th)) (<-> ph th) 3bitr2i.1 3bitr2i.2 bitr4i 3bitr2i.3 bitri)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitr2ri () (3bitr2i.1 (<-> ph ps) 3bitr2i.2 (<-> ch ps) 3bitr2i.3 (<-> ch th)) (<-> th ph) 3bitr2i.1 3bitr2i.2 bitr4i 3bitr2i.3 bitr2i)
+# thm (3bitr2ri () (3bitr2i.1 (<-> ph ps) 3bitr2i.2 (<-> ch ps) 3bitr2i.3 (<-> ch th)) (<-> th ph) 3bitr2i.1 3bitr2i.2 bitr4i 3bitr2i.3 bitr2i)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitr3i () (3bitr3i.1 (<-> ph ps) 3bitr3i.2 (<-> ph ch) 3bitr3i.3 (<-> ps th)) (<-> ch th) 3bitr3i.2 3bitr3i.1 bitr3i 3bitr3i.3 bitri)
+# thm (3bitr3i () (3bitr3i.1 (<-> ph ps) 3bitr3i.2 (<-> ph ch) 3bitr3i.3 (<-> ps th)) (<-> ch th) 3bitr3i.2 3bitr3i.1 bitr3i 3bitr3i.3 bitri)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitr3ri () (3bitr3i.1 (<-> ph ps) 3bitr3i.2 (<-> ph ch) 3bitr3i.3 (<-> ps th)) (<-> th ch) 3bitr3i.3 3bitr3i.1 3bitr3i.2 bitr3i bitr3i)
+# thm (3bitr3ri () (3bitr3i.1 (<-> ph ps) 3bitr3i.2 (<-> ph ch) 3bitr3i.3 (<-> ps th)) (<-> th ch) 3bitr3i.3 3bitr3i.1 3bitr3i.2 bitr3i bitr3i)
 
 #  A chained inference from transitive law for logical equivalence.  This
 #        inference is frequently used to apply a definition to both sides of a
 #        logical equivalence. 
-thm (3bitr4i () (3bitr4i.1 (<-> ph ps) 3bitr4i.2 (<-> ch ph) 3bitr4i.3 (<-> th ps)) (<-> ch th) 3bitr4i.2 3bitr4i.1 3bitr4i.3 bitr4i bitri)
+# thm (3bitr4i () (3bitr4i.1 (<-> ph ps) 3bitr4i.2 (<-> ch ph) 3bitr4i.3 (<-> th ps)) (<-> ch th) 3bitr4i.2 3bitr4i.1 3bitr4i.3 bitr4i bitri)
 
 #  A chained inference from transitive law for logical equivalence. 
-thm (3bitr4ri () (3bitr4i.1 (<-> ph ps) 3bitr4i.2 (<-> ch ph) 3bitr4i.3 (<-> th ps)) (<-> th ch) 3bitr4i.2 3bitr4i.1 3bitr4i.3 bitr4i bitr2i)
+# thm (3bitr4ri () (3bitr4i.1 (<-> ph ps) 3bitr4i.2 (<-> ch ph) 3bitr4i.3 (<-> th ps)) (<-> th ch) 3bitr4i.2 3bitr4i.1 3bitr4i.3 bitr4i bitr2i)
 
 #  Introduce an antecedent to both sides of a logical equivalence. 
-thm (imbi2i () (bi.a (<-> ph ps)) (<-> (-> ch ph) (-> ch ps)) bi.a biimpi ch imim2i bi.a biimpri ch imim2i impbii)
+# thm (imbi2i () (bi.a (<-> ph ps)) (<-> (-> ch ph) (-> ch ps)) bi.a biimpi ch imim2i bi.a biimpri ch imim2i impbii)
 
 #  Introduce a consequent to both sides of a logical equivalence. 
-thm (imbi1i () (bi.a (<-> ph ps)) (<-> (-> ph ch) (-> ps ch)) bi.a biimpri ch imim1i bi.a biimpi ch imim1i impbii)
+# thm (imbi1i () (bi.a (<-> ph ps)) (<-> (-> ph ch) (-> ps ch)) bi.a biimpri ch imim1i bi.a biimpi ch imim1i impbii)
 
 #  Negate both sides of a logical equivalence. 
-thm (notbii () (bi.a (<-> ph ps)) (<-> (-. ph) (-. ps)) bi.a biimpri con3i bi.a biimpi con3i impbii)
+# thm (notbii () (bi.a (<-> ph ps)) (<-> (-. ph) (-. ps)) bi.a biimpri con3i bi.a biimpi con3i impbii)
 
 #  Join two logical equivalences to form equivalence of implications. 
-thm (imbi12i () (imbi12i.1 (<-> ph ps) imbi12i.2 (<-> ch th)) (<-> (-> ph ch) (-> ps th)) imbi12i.2 ph imbi2i imbi12i.1 th imbi1i bitri)
+# thm (imbi12i () (imbi12i.1 (<-> ph ps) imbi12i.2 (<-> ch th)) (<-> (-> ph ch) (-> ps th)) imbi12i.2 ph imbi2i imbi12i.1 th imbi1i bitri)
 
 #  An inference from a biconditional, related to modus ponens. 
-thm (mpbi () (mpbi.min ph mpbi.maj (<-> ph ps)) ps mpbi.min mpbi.maj biimpi ax-mp)
+# thm (mpbi () (mpbi.min ph mpbi.maj (<-> ph ps)) ps mpbi.min mpbi.maj biimpi ax-mp)
 
 #  An inference from a biconditional, related to modus ponens. 
-thm (mpbir () (mpbir.min ps mpbir.maj (<-> ph ps)) ph mpbir.min mpbir.maj biimpri ax-mp)
+# thm (mpbir () (mpbir.min ps mpbir.maj (<-> ph ps)) ph mpbir.min mpbir.maj biimpri ax-mp)
 
 #  An inference from a biconditional, related to modus tollens. 
-thm (mtbi () (mtbi.1 (-. ph) mtbi.2 (<-> ph ps)) (-. ps) mtbi.1 mtbi.2 notbii mpbi)
+# thm (mtbi () (mtbi.1 (-. ph) mtbi.2 (<-> ph ps)) (-. ps) mtbi.1 mtbi.2 notbii mpbi)
 
 #  An inference from a biconditional, related to modus tollens. 
-thm (mtbir () (mtbir.1 (-. ps) mtbir.2 (<-> ph ps)) (-. ph) mtbir.1 mtbir.2 notbii mpbir)
+# thm (mtbir () (mtbir.1 (-. ps) mtbir.2 (<-> ph ps)) (-. ph) mtbir.1 mtbir.2 notbii mpbir)
 
 #  An inference from a nested biconditional, related to modus ponens. 
-thm (mpbii () (mpbii.min ps mpbii.maj (-> ph (<-> ps ch))) (-> ph ch) mpbii.min mpbii.maj biimpd mpi)
+# thm (mpbii () (mpbii.min ps mpbii.maj (-> ph (<-> ps ch))) (-> ph ch) mpbii.min mpbii.maj biimpd mpi)
 
 #  An inference from a nested biconditional, related to modus ponens. 
-thm (mpbiri () (mpbiri.min ch mpbiri.maj (-> ph (<-> ps ch))) (-> ph ps) mpbiri.min mpbiri.maj biimprd mpi)
+# thm (mpbiri () (mpbiri.min ch mpbiri.maj (-> ph (<-> ps ch))) (-> ph ps) mpbiri.min mpbiri.maj biimprd mpi)
 
 #  A deduction from a biconditional, related to modus ponens. 
-thm (mpbid () (mpbid.min (-> ph ps) mpbid.maj (-> ph (<-> ps ch))) (-> ph ch) mpbid.min mpbid.maj biimpd mpd)
+# thm (mpbid () (mpbid.min (-> ph ps) mpbid.maj (-> ph (<-> ps ch))) (-> ph ch) mpbid.min mpbid.maj biimpd mpd)
 
 #  A deduction from a biconditional, related to modus ponens. 
-thm (mpbird () (mpbird.min (-> ph ch) mpbird.maj (-> ph (<-> ps ch))) (-> ph ps) mpbird.min mpbird.maj biimprd mpd)
+# thm (mpbird () (mpbird.min (-> ph ch) mpbird.maj (-> ph (<-> ps ch))) (-> ph ps) mpbird.min mpbird.maj biimprd mpd)
 
 #  Inference rule introducing a theorem as an antecedent. 
-thm (a1bi () (a1bi.1 ph) (<-> ps (-> ph ps)) ps ph ax-1 a1bi.1 ph ps pm2.27 ax-mp impbii)
+# thm (a1bi () (a1bi.1 ph) (<-> ps (-> ph ps)) ps ph ax-1 a1bi.1 ph ps pm2.27 ax-mp impbii)
 
 #  A mixed syllogism inference from an implication and a biconditional. 
-thm (sylib () (sylib.1 (-> ph ps) sylib.2 (<-> ps ch)) (-> ph ch) sylib.1 sylib.2 biimpi syl)
+# thm (sylib () (sylib.1 (-> ph ps) sylib.2 (<-> ps ch)) (-> ph ch) sylib.1 sylib.2 biimpi syl)
 
 #  A mixed syllogism inference from a biconditional and an implication.
 #        Useful for substituting an antecedent with a definition. 
-thm (sylbi () (sylbi.1 (<-> ph ps) sylbi.2 (-> ps ch)) (-> ph ch) sylbi.1 biimpi sylbi.2 syl)
+# thm (sylbi () (sylbi.1 (<-> ph ps) sylbi.2 (-> ps ch)) (-> ph ch) sylbi.1 biimpi sylbi.2 syl)
 
 #  A mixed syllogism inference from an implication and a biconditional.
 #        Useful for substituting a consequent with a definition. 
-thm (sylibr () (sylibr.1 (-> ph ps) sylibr.2 (<-> ch ps)) (-> ph ch) sylibr.1 sylibr.2 biimpri syl)
+# thm (sylibr () (sylibr.1 (-> ph ps) sylibr.2 (<-> ch ps)) (-> ph ch) sylibr.1 sylibr.2 biimpri syl)
 
 #  A mixed syllogism inference from a biconditional and an implication. 
-thm (sylbir () (sylbir.1 (<-> ps ph) sylbir.2 (-> ps ch)) (-> ph ch) sylbir.1 biimpri sylbir.2 syl)
+# thm (sylbir () (sylbir.1 (<-> ps ph) sylbir.2 (-> ps ch)) (-> ph ch) sylbir.1 biimpri sylbir.2 syl)
 
 #  A syllogism deduction. 
-thm (sylibd () (sylibd.1 (-> ph (-> ps ch)) sylibd.2 (-> ph (<-> ch th))) (-> ph (-> ps th)) sylibd.1 sylibd.2 biimpd syld)
+# thm (sylibd () (sylibd.1 (-> ph (-> ps ch)) sylibd.2 (-> ph (<-> ch th))) (-> ph (-> ps th)) sylibd.1 sylibd.2 biimpd syld)
 
 #  A syllogism deduction. 
-thm (sylbid () (sylbid.1 (-> ph (<-> ps ch)) sylbid.2 (-> ph (-> ch th))) (-> ph (-> ps th)) sylbid.1 biimpd sylbid.2 syld)
+# thm (sylbid () (sylbid.1 (-> ph (<-> ps ch)) sylbid.2 (-> ph (-> ch th))) (-> ph (-> ps th)) sylbid.1 biimpd sylbid.2 syld)
 
 #  A syllogism deduction. 
-thm (sylibrd () (sylibrd.1 (-> ph (-> ps ch)) sylibrd.2 (-> ph (<-> th ch))) (-> ph (-> ps th)) sylibrd.1 sylibrd.2 biimprd syld)
+# thm (sylibrd () (sylibrd.1 (-> ph (-> ps ch)) sylibrd.2 (-> ph (<-> th ch))) (-> ph (-> ps th)) sylibrd.1 sylibrd.2 biimprd syld)
 
 #  A syllogism deduction. 
-thm (sylbird () (sylbird.1 (-> ph (<-> ch ps)) sylbird.2 (-> ph (-> ch th))) (-> ph (-> ps th)) sylbird.1 biimprd sylbird.2 syld)
+# thm (sylbird () (sylbird.1 (-> ph (<-> ch ps)) sylbird.2 (-> ph (-> ch th))) (-> ph (-> ps th)) sylbird.1 biimprd sylbird.2 syld)
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.  Useful for substituting an embedded antecedent with a
 #        definition. 
-thm (syl5ib () (syl5ib.1 (-> ph (-> ps ch)) syl5ib.2 (<-> th ps)) (-> ph (-> th ch)) syl5ib.1 syl5ib.2 biimpi syl5)
+# thm (syl5ib () (syl5ib.1 (-> ph (-> ps ch)) syl5ib.2 (<-> th ps)) (-> ph (-> th ch)) syl5ib.1 syl5ib.2 biimpi syl5)
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional. 
-thm (syl5ibr () (syl5ibr.1 (-> ph (-> ps ch)) syl5ibr.2 (<-> ps th)) (-> ph (-> th ch)) syl5ibr.1 syl5ibr.2 biimpri syl5)
+# thm (syl5ibr () (syl5ibr.1 (-> ph (-> ps ch)) syl5ibr.2 (<-> ps th)) (-> ph (-> th ch)) syl5ibr.1 syl5ibr.2 biimpri syl5)
 
 #  A mixed syllogism inference. 
-thm (syl5bi () (syl5bi.1 (-> ph (<-> ps ch)) syl5bi.2 (-> th ps)) (-> ph (-> th ch)) syl5bi.1 biimpd syl5bi.2 syl5)
+# thm (syl5bi () (syl5bi.1 (-> ph (<-> ps ch)) syl5bi.2 (-> th ps)) (-> ph (-> th ch)) syl5bi.1 biimpd syl5bi.2 syl5)
 
 #  A mixed syllogism inference. 
-thm (syl5cbi () (syl5bi.1 (-> ph (<-> ps ch)) syl5bi.2 (-> th ps)) (-> th (-> ph ch)) syl5bi.1 syl5bi.2 syl5bi com12)
+# thm (syl5cbi () (syl5bi.1 (-> ph (<-> ps ch)) syl5bi.2 (-> th ps)) (-> th (-> ph ch)) syl5bi.1 syl5bi.2 syl5bi com12)
 
 #  A mixed syllogism inference. 
-thm (syl5bir () (syl5bir.1 (-> ph (<-> ps ch)) syl5bir.2 (-> th ch)) (-> ph (-> th ps)) syl5bir.1 biimprd syl5bir.2 syl5)
+# thm (syl5bir () (syl5bir.1 (-> ph (<-> ps ch)) syl5bir.2 (-> th ch)) (-> ph (-> th ps)) syl5bir.1 biimprd syl5bir.2 syl5)
 
 #  A mixed syllogism inference. 
-thm (syl5cbir () (syl5bir.1 (-> ph (<-> ps ch)) syl5bir.2 (-> th ch)) (-> th (-> ph ps)) syl5bir.1 syl5bir.2 syl5bir com12)
+# thm (syl5cbir () (syl5bir.1 (-> ph (<-> ps ch)) syl5bir.2 (-> th ch)) (-> th (-> ph ps)) syl5bir.1 syl5bir.2 syl5bir com12)
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional. 
-thm (syl6ib () (syl6ib.1 (-> ph (-> ps ch)) syl6ib.2 (<-> ch th)) (-> ph (-> ps th)) syl6ib.1 syl6ib.2 biimpi syl6)
+# thm (syl6ib () (syl6ib.1 (-> ph (-> ps ch)) syl6ib.2 (<-> ch th)) (-> ph (-> ps th)) syl6ib.1 syl6ib.2 biimpi syl6)
 
 #  A mixed syllogism inference from a nested implication and a
 #        biconditional.  Useful for substituting an embedded consequent with a
 #        definition. 
-thm (syl6ibr () (syl6ibr.1 (-> ph (-> ps ch)) syl6ibr.2 (<-> th ch)) (-> ph (-> ps th)) syl6ibr.1 syl6ibr.2 biimpri syl6)
+# thm (syl6ibr () (syl6ibr.1 (-> ph (-> ps ch)) syl6ibr.2 (<-> th ch)) (-> ph (-> ps th)) syl6ibr.1 syl6ibr.2 biimpri syl6)
 
 #  A mixed syllogism inference. 
-thm (syl6bi () (syl6bi.1 (-> ph (<-> ps ch)) syl6bi.2 (-> ch th)) (-> ph (-> ps th)) syl6bi.1 biimpd syl6bi.2 syl6)
+# thm (syl6bi () (syl6bi.1 (-> ph (<-> ps ch)) syl6bi.2 (-> ch th)) (-> ph (-> ps th)) syl6bi.1 biimpd syl6bi.2 syl6)
 
 #  A mixed syllogism inference. 
-thm (syl6bir () (syl6bir.1 (-> ph (<-> ch ps)) syl6bir.2 (-> ch th)) (-> ph (-> ps th)) syl6bir.1 biimprd syl6bir.2 syl6)
+# thm (syl6bir () (syl6bir.1 (-> ph (<-> ch ps)) syl6bir.2 (-> ch th)) (-> ph (-> ps th)) syl6bir.1 biimprd syl6bir.2 syl6)
 
 #  A mixed syllogism inference from a doubly nested implication and a
 #        biconditional. 
-thm (syl7ib () (syl7ib.1 (-> ph (-> ps (-> ch th))) syl7ib.2 (<-> ta ch)) (-> ph (-> ps (-> ta th))) syl7ib.1 syl7ib.2 biimpi syl7)
+# thm (syl7ib () (syl7ib.1 (-> ph (-> ps (-> ch th))) syl7ib.2 (<-> ta ch)) (-> ph (-> ps (-> ta th))) syl7ib.1 syl7ib.2 biimpi syl7)
 
 #  A syllogism rule of inference.  The second premise is used to replace
 #        the consequent of the first premise. 
-thm (syl8ib () (syl8ib.1 (-> ph (-> ps (-> ch th))) syl8ib.2 (<-> th ta)) (-> ph (-> ps (-> ch ta))) syl8ib.1 syl8ib.2 biimpi syl8)
+# thm (syl8ib () (syl8ib.1 (-> ph (-> ps (-> ch th))) syl8ib.2 (<-> th ta)) (-> ph (-> ps (-> ch ta))) syl8ib.1 syl8ib.2 biimpi syl8)
 
 #  A mixed syllogism inference, useful for removing a definition from both
 #        sides of an implication. 
-thm (3imtr3i () (3imtr3.1 (-> ph ps) 3imtr3.2 (<-> ph ch) 3imtr3.3 (<-> ps th)) (-> ch th) 3imtr3.2 3imtr3.1 sylbir 3imtr3.3 sylib)
+# thm (3imtr3i () (3imtr3.1 (-> ph ps) 3imtr3.2 (<-> ph ch) 3imtr3.3 (<-> ps th)) (-> ch th) 3imtr3.2 3imtr3.1 sylbir 3imtr3.3 sylib)
 
 #  A mixed syllogism inference, useful for applying a definition to both
 #        sides of an implication. 
-thm (3imtr4i () (3imtr4.1 (-> ph ps) 3imtr4.2 (<-> ch ph) 3imtr4.3 (<-> th ps)) (-> ch th) 3imtr4.2 3imtr4.1 sylbi 3imtr4.3 sylibr)
+# thm (3imtr4i () (3imtr4.1 (-> ph ps) 3imtr4.2 (<-> ch ph) 3imtr4.3 (<-> th ps)) (-> ch th) 3imtr4.2 3imtr4.1 sylbi 3imtr4.3 sylibr)
 
 #  A contraposition inference. 
-thm (con1bii () (con1bii.1 (<-> (-. ph) ps)) (<-> (-. ps) ph) con1bii.1 biimpi con1i con1bii.1 biimpri con2i impbii)
+# thm (con1bii () (con1bii.1 (<-> (-. ph) ps)) (<-> (-. ps) ph) con1bii.1 biimpi con1i con1bii.1 biimpri con2i impbii)
 
 #  A contraposition inference. 
-thm (con2bii () (con2bii.1 (<-> ph (-. ps))) (<-> ps (-. ph)) con2bii.1 bicomi con1bii bicomi)
+# thm (con2bii () (con2bii.1 (<-> ph (-. ps))) (<-> ps (-. ph)) con2bii.1 bicomi con1bii bicomi)
 
 # defthm (df-or wff (\/ ph ps) () () (<-> (\/ ph ps) (-> (-. ph) ps))
 #   (-> (-. ph) ps) biid)
@@ -2491,131 +2491,131 @@ thm (con2bii () (con2bii.1 (<-> ph (-. ps))) (<-> ps (-. ph)) con2bii.1 bicomi c
 #   (-. (-> ph (-. ps))) biid)
 
 #  Theorem *4.64 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.64 () () (<-> (-> (-. ph) ps) (\/ ph ps)) ph ps df-or bicomi)
+# thm (pm4.64 () () (<-> (-> (-. ph) ps) (\/ ph ps)) ph ps df-or bicomi)
 
 #  Theorem *2.54 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.54 () () (-> (-> (-. ph) ps) (\/ ph ps)) ph ps df-or biimpri)
+# thm (pm2.54 () () (-> (-> (-. ph) ps) (\/ ph ps)) ph ps df-or biimpri)
 
 #  Theorem *4.63 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.63 () () (<-> (-. (-> ph (-. ps))) (/\ ph ps)) ph ps df-an bicomi)
+# thm (pm4.63 () () (<-> (-. (-> ph (-. ps))) (/\ ph ps)) ph ps df-an bicomi)
 
 #  Logical 'or' expressed in terms of implication only.  Theorem *5.25 of
 #      [bib/WhiteheadRussell] p. 124. 
-thm (dfor2 () () (<-> (\/ ph ps) (-> (-> ph ps) ps)) ph ps df-or ph ps pm2.6 ph ps pm2.21 ps imim1i impbii bitri)
+# thm (dfor2 () () (<-> (\/ ph ps) (-> (-> ph ps) ps)) ph ps df-or ph ps pm2.6 ph ps pm2.21 ps imim1i impbii bitri)
 
 #  Infer implication from disjunction. 
-thm (ori () (ori.1 (\/ ph ps)) (-> (-. ph) ps) ori.1 ph ps df-or mpbi)
+# thm (ori () (ori.1 (\/ ph ps)) (-> (-. ph) ps) ori.1 ph ps df-or mpbi)
 
 #  Infer implication from disjunction. 
-thm (orri () (orri.1 (-> (-. ph) ps)) (\/ ph ps) orri.1 ph ps df-or mpbir)
+# thm (orri () (orri.1 (-> (-. ph) ps)) (\/ ph ps) orri.1 ph ps df-or mpbir)
 
 #  Deduce implication from disjunction. 
-thm (ord () (ord.1 (-> ph (\/ ps ch))) (-> ph (-> (-. ps) ch)) ord.1 ps ch df-or sylib)
+# thm (ord () (ord.1 (-> ph (\/ ps ch))) (-> ph (-> (-. ps) ch)) ord.1 ps ch df-or sylib)
 
 #  Deduce implication from disjunction. 
-thm (orrd () (orrd.1 (-> ph (-> (-. ps) ch))) (-> ph (\/ ps ch)) orrd.1 ps ch df-or sylibr)
+# thm (orrd () (orrd.1 (-> ph (-> (-. ps) ch))) (-> ph (\/ ps ch)) orrd.1 ps ch df-or sylibr)
 
 #  Implication in terms of disjunction.  Theorem *4.6 of
 #      [bib/WhiteheadRussell] p. 120. 
-thm (imor () () (<-> (-> ph ps) (\/ (-. ph) ps)) ph notnot ps imbi1i (-. ph) ps df-or bitr4i)
+# thm (imor () () (<-> (-> ph ps) (\/ (-. ph) ps)) ph notnot ps imbi1i (-. ph) ps df-or bitr4i)
 
 #  Theorem *4.62 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.62 () () (<-> (-> ph (-. ps)) (\/ (-. ph) (-. ps))) ph (-. ps) imor)
+# thm (pm4.62 () () (<-> (-> ph (-. ps)) (\/ (-. ph) (-. ps))) ph (-. ps) imor)
 
 #  Theorem *4.66 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.66 () () (<-> (-> (-. ph) (-. ps)) (\/ ph (-. ps))) ph (-. ps) pm4.64)
+# thm (pm4.66 () () (<-> (-> (-. ph) (-. ps)) (\/ ph (-. ps))) ph (-. ps) pm4.64)
 
 #  Express implication in terms of conjunction.  Theorem 3.4(27) of [bib/Stoll]
 #      p. 176. 
-thm (iman () () (<-> (-> ph ps) (-. (/\ ph (-. ps)))) ps notnot ph imbi2i ph (-. ps) df-an con2bii bitri)
+# thm (iman () () (<-> (-> ph ps) (-. (/\ ph (-. ps)))) ps notnot ph imbi2i ph (-. ps) df-an con2bii bitri)
 
 #  Express conjunction in terms of implication. 
-thm (annim () () (<-> (/\ ph (-. ps)) (-. (-> ph ps))) ph ps iman con2bii)
+# thm (annim () () (<-> (/\ ph (-. ps)) (-. (-> ph ps))) ph ps iman con2bii)
 
 #  Theorem *4.61 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.61 () () (<-> (-. (-> ph ps)) (/\ ph (-. ps))) ph ps annim bicomi)
+# thm (pm4.61 () () (<-> (-. (-> ph ps)) (/\ ph (-. ps))) ph ps annim bicomi)
 
 #  Theorem *4.65 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.65 () () (<-> (-. (-> (-. ph) ps)) (/\ (-. ph) (-. ps))) (-. ph) ps pm4.61)
+# thm (pm4.65 () () (<-> (-. (-> (-. ph) ps)) (/\ (-. ph) (-. ps))) (-. ph) ps pm4.61)
 
 #  Theorem *4.67 of [bib/WhiteheadRussell] p. 120. 
-thm (pm4.67 () () (<-> (-. (-> (-. ph) (-. ps))) (/\ (-. ph) ps)) (-. ph) ps pm4.63)
+# thm (pm4.67 () () (<-> (-. (-> (-. ph) (-. ps))) (/\ (-. ph) ps)) (-. ph) ps pm4.63)
 
 #  Express implication in terms of conjunction. 
-thm (imnan () () (<-> (-> ph (-. ps)) (-. (/\ ph ps))) ph ps df-an con2bii)
+# thm (imnan () () (<-> (-> ph (-. ps)) (-. (/\ ph ps))) ph ps df-an con2bii)
 
 #  Idempotent law for disjunction.  Theorem *4.25 of [bib/WhiteheadRussell]
 #      p. 117. 
-thm (oridm () () (<-> (\/ ph ph) ph) ph ph df-or ph ph pm2.24 ph pm2.18 impbii bitr4i)
+# thm (oridm () () (<-> (\/ ph ph) ph) ph ph df-or ph ph pm2.24 ph pm2.18 impbii bitr4i)
 
 #  Theorem *4.25 of [bib/WhiteheadRussell] p. 117. 
-thm (pm4.25 () () (<-> ph (\/ ph ph)) ph oridm bicomi)
+# thm (pm4.25 () () (<-> ph (\/ ph ph)) ph oridm bicomi)
 
 #  Axiom *1.2 (Taut) of [bib/WhiteheadRussell] p. 96. 
-thm (pm1.2 () () (-> (\/ ph ph) ph) ph oridm biimpi)
+# thm (pm1.2 () () (-> (\/ ph ph) ph) ph oridm biimpi)
 
 #  Commutative law for disjunction.  Theorem *4.31 of [bib/WhiteheadRussell]
 #      p. 118. 
-thm (orcom () () (<-> (\/ ph ps) (\/ ps ph)) ph ps con1b ph ps df-or ps ph df-or 3bitr4i)
+# thm (orcom () () (<-> (\/ ph ps) (\/ ps ph)) ph ps con1b ph ps df-or ps ph df-or 3bitr4i)
 
 #  Axiom *1.4 of [bib/WhiteheadRussell] p. 96. 
-thm (pm1.4 () () (-> (\/ ph ps) (\/ ps ph)) ph ps orcom biimpi)
+# thm (pm1.4 () () (-> (\/ ph ps) (\/ ps ph)) ph ps orcom biimpi)
 
 #  Theorem *2.62 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.62 () () (-> (\/ ph ps) (-> (-> ph ps) ps)) ph ps dfor2 biimpi)
+# thm (pm2.62 () () (-> (\/ ph ps) (-> (-> ph ps) ps)) ph ps dfor2 biimpi)
 
 #  Theorem *2.621 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.621 () () (-> (-> ph ps) (-> (\/ ph ps) ps)) ph ps pm2.62 com12)
+# thm (pm2.621 () () (-> (-> ph ps) (-> (\/ ph ps) ps)) ph ps pm2.62 com12)
 
 #  Theorem *2.68 of [bib/WhiteheadRussell] p. 108. 
-thm (pm2.68 () () (-> (-> (-> ph ps) ps) (\/ ph ps)) ph ps dfor2 biimpri)
+# thm (pm2.68 () () (-> (-> (-> ph ps) ps) (\/ ph ps)) ph ps dfor2 biimpri)
 
 #  Elimination of disjunction by denial of a disjunct.  Theorem *2.55 of
 #      [bib/WhiteheadRussell] p. 107. 
-thm (orel1 () () (-> (-. ph) (-> (\/ ph ps) ps)) ph ps df-or biimpi com12)
+# thm (orel1 () () (-> (-. ph) (-> (\/ ph ps) ps)) ph ps df-or biimpi com12)
 
 #  Elimination of disjunction by denial of a disjunct.  Theorem *2.56 of
 #      [bib/WhiteheadRussell] p. 107. 
-thm (orel2 () () (-> (-. ph) (-> (\/ ps ph) ps)) ph ps orel1 ps ph orcom syl5ib)
+# thm (orel2 () () (-> (-. ph) (-> (\/ ps ph) ps)) ph ps orel1 ps ph orcom syl5ib)
 
 #  Theorem *2.25 of [bib/WhiteheadRussell] p. 104. 
-thm (pm2.25 () () (\/ ph (-> (\/ ph ps) ps)) ph ps orel1 orri)
+# thm (pm2.25 () () (\/ ph (-> (\/ ph ps) ps)) ph ps orel1 orri)
 
 #  Theorem *2.53 of [bib/WhiteheadRussell] p. 107. 
-thm (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps)) ph ps orel1 com12)
+# thm (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps)) ph ps orel1 com12)
 
 #  Inference adding a left disjunct to both sides of a logical
 #        equivalence. 
-thm (orbi2i () (orbi2i.1 (<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps)) orbi2i.1 (-. ch) imbi2i ch ph df-or ch ps df-or 3bitr4i)
+# thm (orbi2i () (orbi2i.1 (<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps)) orbi2i.1 (-. ch) imbi2i ch ph df-or ch ps df-or 3bitr4i)
 
 #  Inference adding a right disjunct to both sides of a logical
 #        equivalence. 
-thm (orbi1i () (orbi2i.1 (<-> ph ps)) (<-> (\/ ph ch) (\/ ps ch)) ph ch orcom orbi2i.1 ch orbi2i ch ps orcom 3bitri)
+# thm (orbi1i () (orbi2i.1 (<-> ph ps)) (<-> (\/ ph ch) (\/ ps ch)) ph ch orcom orbi2i.1 ch orbi2i ch ps orcom 3bitri)
 
 #  Infer the disjunction of two equivalences. 
-thm (orbi12i () (orbi12i.1 (<-> ph ps) orbi12i.2 (<-> ch th)) (<-> (\/ ph ch) (\/ ps th)) orbi12i.2 ph orbi2i orbi12i.1 th orbi1i bitri)
+# thm (orbi12i () (orbi12i.1 (<-> ph ps) orbi12i.2 (<-> ch th)) (<-> (\/ ph ch) (\/ ps th)) orbi12i.2 ph orbi2i orbi12i.1 th orbi1i bitri)
 
 #  A rearrangement of disjuncts. 
-thm (or12 () () (<-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch))) (-. ps) (-. ph) ch bi2.04 ph ch df-or (-. ps) imbi2i ps ch df-or (-. ph) imbi2i 3bitr4ri ph (\/ ps ch) df-or ps (\/ ph ch) df-or 3bitr4i)
+# thm (or12 () () (<-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch))) (-. ps) (-. ph) ch bi2.04 ph ch df-or (-. ps) imbi2i ps ch df-or (-. ph) imbi2i 3bitr4ri ph (\/ ps ch) df-or ps (\/ ph ch) df-or 3bitr4i)
 
 #  Axiom *1.5 (Assoc) of [bib/WhiteheadRussell] p. 96. 
-thm (pm1.5 () () (-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch))) ph ps ch or12 biimpi)
+# thm (pm1.5 () () (-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch))) ph ps ch or12 biimpi)
 
 #  Associative law for disjunction.  Theorem *4.33 of [bib/WhiteheadRussell]
 #      p. 118. 
-thm (orass () () (<-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch))) ch ph ps or12 (\/ ph ps) ch orcom ps ch orcom ph orbi2i 3bitr4i)
+# thm (orass () () (<-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch))) ch ph ps or12 (\/ ph ps) ch orcom ps ch orcom ph orbi2i 3bitr4i)
 
 #  Theorem *2.31 of [bib/WhiteheadRussell] p. 104. 
-thm (pm2.31 () () (-> (\/ ph (\/ ps ch)) (\/ (\/ ph ps) ch)) ph ps ch orass biimpri)
+# thm (pm2.31 () () (-> (\/ ph (\/ ps ch)) (\/ (\/ ph ps) ch)) ph ps ch orass biimpri)
 
 #  Theorem *2.32 of [bib/WhiteheadRussell] p. 105. 
-thm (pm2.32 () () (-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch))) ph ps ch orass biimpi)
+# thm (pm2.32 () () (-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch))) ph ps ch orass biimpi)
 
 #  A rearrangement of disjuncts. 
-thm (or23 () () (<-> (\/ (\/ ph ps) ch) (\/ (\/ ph ch) ps)) ps ch orcom ph orbi2i ph ps ch orass ph ch ps orass 3bitr4i)
+# thm (or23 () () (<-> (\/ (\/ ph ps) ch) (\/ (\/ ph ch) ps)) ps ch orcom ph orbi2i ph ps ch orass ph ch ps orass 3bitr4i)
 
 #  Rearrangement of 4 disjuncts. 
-thm (or4 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ ps th))) ps ch th or12 ph orbi2i ph ps (\/ ch th) orass ph ch (\/ ps th) orass 3bitr4i)
+# thm (or4 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ ps th))) ps ch th or12 ph orbi2i ph ps (\/ ch th) orass ph ch (\/ ps th) orass 3bitr4i)
 
 #  Rearrangement of 4 disjuncts. 
 thm (or42 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ th ps))) ph ps ch th or4 ps th orcom (\/ ph ch) orbi2i bitri)
