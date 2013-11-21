@@ -121,7 +121,7 @@ class VerifyCtx:
         self.error_handler = error_handler
     def add_sym(self, label, val):
         if self.syms.has_key(label):
-            raise VerifyError('Symbol ' + label + ' already defined')
+            print >> sys.stderr, 'WARNING: Symbol' + label + ' already defined'
         self.syms[label] = val
     def add_kind(self, kind, val):
         if self.kinds.has_key(kind):
