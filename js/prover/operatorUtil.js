@@ -395,5 +395,5 @@ GH.notationGuide.guideData = [
 	{ symbols: ['product-step'], name: 'product construction step'},
 	{ symbols: ['product'], unicode: 'Π', name: 'product'},
 	{ symbols: ['!'], name: 'factorial'},
-	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent'},
+	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent', link: 'arithmetic/exponent'},
 ];

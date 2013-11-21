@@ -198,7 +198,7 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 					shownHistory = thmctx.history[i];
 				}
 			}
-		}
+		}		
 		this.rootSegments = [];
 		this.notationGuide = new GH.notationGuide();
 		for (var j = 0; j < shownHistory.length; j++) {
@@ -206,10 +206,14 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j, cursorPosition));
 			this.notationGuide.addStep(shownHistory[j]);
 		}
-		this.notationGuide.render(this.stack);
 		
 		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
 		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes, cursorPosition);
+		
+		if (shownHistory.length > 0) {
+			this.notationGuide.render(this.stack);
+		}
+		
 		this.stack.appendChild(GH.Direct.textToHtml('&nbsp;'));
     }
 	if (thmctx && thmctx.proofctx) {

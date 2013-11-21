@@ -35,14 +35,16 @@ GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, curso
 		errors.push(conclusion);
 		conclusion = conclusion.hypotheses[0];
 	}
-	var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false, cursorPosition);
-	rootSegment.siblingIndex = segmentCount;
-	stack.appendChild(rootSegment.largeElement);
-
-	var stepsData = GH.ProofSegment.findImportantSteps(conclusion, null);
-	rootSegment.attachChildren(stepsData, true, cursorPosition);
-	rootSegment.addNames();
-	rootSegment.resize();
+	if (!conclusion.isError) {
+		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false, cursorPosition);
+		rootSegment.siblingIndex = segmentCount;
+		stack.appendChild(rootSegment.largeElement);
+	
+		var stepsData = GH.ProofSegment.findImportantSteps(conclusion, null);
+		rootSegment.attachChildren(stepsData, true, cursorPosition);
+		rootSegment.addNames();
+		rootSegment.resize();
+	}
 
 	for (var i = 0; i < errors.length; i++) {
 		var errorBlock = GH.ProofSegment.createLargeElement();

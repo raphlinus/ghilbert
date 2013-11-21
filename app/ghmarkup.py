@@ -104,7 +104,15 @@ def wikilink(str, path='', exists = None, ispreblock = False, ctx = None):
         if str == '' and body == None:
             body = 'wiki home page'
         url = wikiurl(link)
-    langtext = ''
+    if re.match(r'Image:', link):
+        splitUrl = re.split('Image:', urlquote(url))
+        src = ''.join(splitUrl)
+        
+        imageHtml = '<img class="center" src="' + src + '">'
+        if body != None:
+            imageHtml += '<div class="image-caption">' + htmlquote(body) + '</div>'
+        return imageHtml
+    langtext = ''        
     if body == None:
         if re.match('wiki/', linktext):
             body = linktext[5:]
