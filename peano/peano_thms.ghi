@@ -16,8 +16,13 @@ term (nat (div A B))
 term (wff (| A B))
 term (nat (exp A B))
 term (nat (! A))
+term (nat (.- A B))
 term (wff (prime A))
 term (set ({...} A B))
+term (set (lambda y A))
+term (nat (apply S A))
+term (nat (sum A B S))
+term (nat (product A B S))
 
 term (nat (2))
 term (nat (3))
@@ -656,13 +661,6 @@ stmt (distr () () (= (* A (+ B C)) (+ (* A B) (* A C))))
 ## <title> Distributive Property </title>
 ## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (distl () () (= (* (+ A B) C) (+ (* A C) (* B C))))
-
-## <title> Distributive Property </title>
-stmt (undistl() () (= (+ (* A B) (* C B)) (* (+ A C) B)))
-
-## <title> Distributive Property </title>
-stmt (undistr() () (= (+ (* A B) (* A C)) (* A (+ B C))))
-
 ## <title> Equivalence over Equality </title>
 ## <table>
 ##   (=      A ]    ] [    B ] )
@@ -1224,3 +1222,216 @@ stmt (factorialeqi () ((= A B)) (= (! A) (! B)))
 
 ## <title> Equivalence for ! </title> ##
 stmt (factorialeqd () ((-> ph (= A B))) (-> ph (= (! A) (! B))))
+
+## <title> Addition & Subtraction Equivalence </title>
+stmt (addhalfminusi () ((= C (+ A B))) (= (.- C A) B))
+
+## <title> Half-minus Never Goes Negative </suggest>
+stmt (halfminus-negi () ((<= A B)) (= (.- A B) (0)))
+
+## <title> Apply the identity function </title>
+stmt (applyfunid ((A x)) () (= (apply (lambda x x) A) A))
+
+## <title> Apply a constant function </title>
+stmt (applylambdaconst ((A x) (B x)) () (= (apply (lambda x A) B) A))
+
+## <title> Apply the function </title>
+stmt (applylambda ((D x) (A x) (C x) (B y)) ((-> (= x y) (= B D)) (-> (= x A) (= B C))) (= (apply (lambda x B) A) C))
+
+## <title> Multiply a sequence of One Number </title>
+stmt (product1 () () (= (product A A S) (apply S A)))
+
+## <title> Detach the last number in a product </title>
+stmt (productdetachi () ((< A B)) (= (product A B S) (* (product A (.- B (1)) S) (apply S B))))
+
+## <title> Sum a sequence of One Number </title>
+stmt (sum1 () () (= (sum A A S) (apply S A)))
+
+## <title> Detach the Last Number in a sum </title>
+stmt (sumdetachi () ((< A B)) (= (sum A B S) (+ (sum A (.- B (1)) S) (apply S B))))
+
+## <title> Add a number to both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (+ <g> A <r> C) (+ <b> B <r> C)))
+## </table>
+stmt (addeq1 () () (-> (= A B) (= (+ A C) (+ B C))))
+
+## <title> Add a number to both sides of an equation </title>
+stmt (addeq2 () ()
+  (-> (= A B) (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ A C) (+ B C))))
+
+## <title> Equality over Addition </title>
+stmt (addeq2d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (+ A C) (+ B D))))
+
+## <title> Equivalence for div </title> ##
+stmt (diveq1 () () (-> (= A C) (= (div A B) (div C B))))
+
+stmt (diveq2 () () (-> (= B C) (= (div A B) (div A C))))
+
+stmt (diveq1d () (
+     (-> ph (= A C)))
+     (-> ph (= (div A B) (div C B))))
+
+stmt (expeq1 () () (-> (= A B) (= (exp A C) (exp B C))))
+
+stmt (expeq2 () () (-> (= A B) (= (exp C A) (exp C B))))
+
+stmt (halfminuseq1 () () (-> (= A C) (= (.- A B) (.- C B))))
+
+## <title> Equivalence for - </title>
+stmt (halfminuseq2 () () (-> (= B C) (= (.- A B) (.- A C))))
+
+stmt (halfminuseq1d () (
+     (-> ph (= A B)))
+     (-> ph (= (.- A C) (.- B C))))
+
+stmt (halfminuseq2d () (
+     (-> ph (= B C)))
+     (-> ph (= (.- A B) (.- A C))))
+
+stmt (halfminuseq12 () () (-> (/\ (= A B) (= C D)) (= (.- A C) (.- B D))))
+
+stmt (modeq1 () () (-> (= A B) (= (mod A C) (mod B C))))
+
+stmt (modeq2 () () (-> (= A B) (= (mod C A) (mod C B))))
+
+stmt (modeq1d () (
+     (-> ph (= A B)))
+     (-> ph (= (mod A C) (mod B C))))
+
+stmt (modeq2d () (
+     (-> ph (= A B)))
+     (-> ph (= (mod C A) (mod C B))))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* A <r> C) (* B <r> C)))
+## </table>
+stmt (muleq1 () () (-> (= A B) (= (* A C) (* B C))))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* <r> C A) (* <r> C B)))
+## </table>
+stmt (muleq2 () () (-> (= A B) (= (* C A) (* C B))))
+
+## <title> Equality over Multiplication </title>
+stmt (muleq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (* A C) (* B C))))
+	
+stmt (muleq2d () ((-> ph (= A B))) (-> ph (= (* C A) (* C B))))
+
+stmt (muleq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (* A C) (* B D))))
+
+## <title> Equality over Multiplication </title>
+stmt (muleq12i ()
+  ((= A B)
+   (= C D))
+  (= (* A C) (* B D)))
+
+## <title> Divide both sides of an equation </title>
+## <table>
+##   (=      [ A    ]       [ C  )
+##   (= (div [ A B) ]  (div [ C B))
+## </table>
+stmt (diveq1i () (
+     (= A C))
+     (= (div A B) (div C B)))
+
+stmt (halfminuseq1i () (
+     (= A B))
+     (= (.- A C) (.- B C)))
+
+stmt (halfminuseq2i () (
+     (= B C))
+     (= (.- A B) (.- A C)))
+
+stmt (modeq1i () (
+     (= A B))
+     (= (mod A C) (mod B C)))
+
+stmt (modeq2i () (
+     (= A B))
+     (= (mod C A) (mod C B)))
+
+## <title> Equivalence for sum </title> ##
+stmt (sumeq1 () () (-> (= A C) (= (sum A B S) (sum C B S))))
+
+stmt (sumeq1i () (
+     (= A C))
+     (= (sum A B S) (sum C B S)))
+
+stmt (sumeq1d () (
+     (-> ph (= A C)))
+     (-> ph (= (sum A B S) (sum C B S))))
+
+## <title> Equivalence for sum </title> ##
+stmt (sumeq2 () () (-> (= B C) (= (sum A B S) (sum A C S))))
+
+stmt (sumeq2i () (
+     (= B C))
+     (= (sum A B S) (sum A C S)))
+
+stmt (sumeq2d () (
+     (-> ph (= B C)))
+     (-> ph (= (sum A B S) (sum A C S))))
+
+## <title> Equivalence for sum </title> ##
+stmt (sumseq3 () () (-> (=_ S T) (= (sum A B S) (sum A B T))))
+
+stmt (sumseq3i () (
+     (=_ S T))
+     (= (sum A B S) (sum A B T)))
+		 
+stmt (sumseq3d () (
+     (-> ph (=_ S T)))
+     (-> ph (= (sum A B S) (sum A B T))))
+
+## <title> Equivalence for product </title> ##
+stmt (producteq1 () () (-> (= A C) (= (product A B S) (product C B S))))
+
+stmt (producteq1i () ((= A C))
+     (= (product A B S) (product C B S)))
+
+stmt (producteq1d () (
+     (-> ph (= A C)))
+     (-> ph (= (product A B S) (product C B S))))
+
+## <title> Equivalence for product </title> ##
+stmt (producteq2 () () (-> (= B C) (= (product A B S) (product A C S))))
+
+stmt (producteq2i () (
+     (= B C))
+     (= (product A B S) (product A C S)))
+
+stmt (producteq2d () (
+     (-> ph (= B C)))
+     (-> ph (= (product A B S) (product A C S))))
+
+## <title> Equivalence for product </title> ##
+stmt (productseq3 () () (-> (=_ S T) (= (product A B S) (product A B T))))
+
+stmt (productseq3i () (
+     (=_ S T))
+     (= (product A B S) (product A B T)))
+
+stmt (productseq3d () (
+     (-> ph (=_ S T)))
+     (-> ph (= (product A B S) (product A B T))))
