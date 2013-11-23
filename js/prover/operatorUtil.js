@@ -86,6 +86,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '<>') {	    return 'Tuple';
 	} else if (operator == '_') {	    return 'Index';
 	} else if (operator == '!') {	    return 'Fact';
+	} else if (operator == 'nCr') {	    return 'Bin';
 	} else if (operator == '.-') {	    return 'HM';
 	} else if (operator == '<*>') {	    return 'TProd';
 	} else if (operator == '<+>') {	    return 'TSum';
@@ -126,6 +127,7 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '<>') {	    return 'tuple';
 	} else if (operator == '_') {	    return 'index';
 	} else if (operator == '!') {	    return 'factorial';
+	} else if (operator == 'nCr') {	    return 'binomial';
 	} else if (operator == '<*>') {	    return 'tupleproduct';
 	} else if (operator == '<+>') {	    return 'tuplesum';
 	} else if (operator == '<{}>') {	return 'tupleset';
@@ -339,7 +341,7 @@ GH.notationGuide.guideData = [
 	{ symbols: ['E!'], unicode: '∃!', name: 'there exists one', link: 'predicate/unique'},
 	{ symbols: ['E*'], unicode: '∃*', name: 'at most one', link: 'predicate/most-one'},
 	{ symbols: ['[/]'], unicode: '[/]', name: 'substitution', link: 'predicate/substitution'},
-	{ symbols: ['rwff'], name: 'recursive well-formed formula'},
+	{ symbols: ['rwff'], name: 'relatively well-formed formula'},
 	
 	{ symbols: ['='],  unicode: '=', name: 'equals', link: 'arithmetic/equality'},
 	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
@@ -366,9 +368,9 @@ GH.notationGuide.guideData = [
 	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
 	{ symbols: ['head'],  name: 'head', link: 'tuple/head'},
 	{ symbols: ['tail'],  name: 'tail', link: 'tuple/tail'},
-	{ symbols: ['<+>'], unicode: 'A<sub>1</sub>+A<sub>2</sub>+...+A<sub>N</sub>', name: 'sum a sequence from a tuple', link: 'tuple/add'},
-	{ symbols: ['<*>'], unicode: 'A<sub>1</sub>∙A<sub>2</sub>∙∙∙A<sub>N</sub>', name: 'multiply a sequence from a tuple', link: 'tuple/multiply'},
-	{ symbols: ['<{}>'], unicode: '{A<sub>1</sub>, A<sub>2</sub>,...,A<sub>N</sub>}', name: 'set from a tuple', link: 'tuple/set'},
+	{ symbols: ['<+>'], unicode: 'A<sub>1</sub>+A<sub>2</sub>+...+A<sub>N</sub>', name: 'sum a finite sequence', link: 'tuple/add'},
+	{ symbols: ['<*>'], unicode: 'A<sub>1</sub>∙A<sub>2</sub>∙∙∙A<sub>N</sub>', name: 'multiply a finite sequence', link: 'tuple/multiply'},
+	{ symbols: ['<{}>'], unicode: '{A<sub>1</sub>, A<sub>2</sub>,...,A<sub>N</sub>}', name: 'a finite set', link: 'tuple/set'},
 	// { symbols: ['length'], name: 'tuple length'}, // The length of the javascript array interferes with this.
 	{ symbols: ['_'], unicode: 'A <sub> B </sub>', name: 'tuple index', link: 'tuple/index'},
 	{ symbols: ['push'], name: 'push onto tuple stack'},
@@ -379,21 +381,23 @@ GH.notationGuide.guideData = [
 	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/primes'},
 	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/primes'},
 	{ symbols: ['sqrt'], name: 'square root'},
-	{ symbols: ['fun'], name: 'is a function'},
+	{ symbols: ['fun'], name: 'is a function', link: 'function/fun'},
 	{ symbols: ['lincom'], name: 'linear combination'},
 	{ symbols: ['gcd'], name: 'greatest common denominator'},
-	{ symbols: ['div'], unicode: '÷', name: 'integer division'},
+	{ symbols: ['mod'], name: 'modulo', link: 'arithmetic/mod'},
+	{ symbols: ['div'], unicode: '÷', name: 'integer division', link: 'arithmetic/div'},
 	{ symbols: ['beta'], name: 'Godel\'s beta function'},
 	{ symbols: ['relprim'], name: 'relatively prime'},
-	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function'},
-	{ symbols: ['apply'], name: 'function application'},
+	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function', link: 'function/lambda'},
+	{ symbols: ['apply'], name: 'function application', link: 'function/lambda'},
 	{ symbols: ['recursep'], name: 'recursive predicate'},
-	{ symbols: ['recurse'], name: 'recursive function'},
-	{ symbols: ['sum-step'], name: 'summation construction step'},
+	{ symbols: ['recurse'], name: 'recursive function', link: 'function/recurse'},
+	{ symbols: ['sum-step'], name: 'summation construction step', link: 'arithmetic/sum'},
 	{ symbols: ['sum'], unicode: 'Σ', name: 'summation'},
 	{ symbols: ['{.|}'], unicode: '{S(x)|φ}', name: 'apply function to a set'},
 	{ symbols: ['product-step'], name: 'product construction step'},
-	{ symbols: ['product'], unicode: 'Π', name: 'product'},
-	{ symbols: ['!'], name: 'factorial'},
+	{ symbols: ['product'], unicode: 'Π', name: 'product', link: 'arithmetic/product'},
+	{ symbols: ['!'], name: 'factorial', link: 'arithmetic/factorial'},
+	{ symbols: ['nCr'], unicode: '<sup> A </sup> <sub> B </sub>', name: 'binomial coefficient'},
 	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent', link: 'arithmetic/exponent'},
 ];

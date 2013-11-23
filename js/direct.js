@@ -117,6 +117,12 @@ GH.Direct.prototype.update = function(refreshProofs) {
 	}
 };
 
+GH.Direct.prototype.resize = function() {
+	for (var i =0; i < this.rootSegments.length; i++) {
+		this.rootSegments[i].resize();
+	}
+};
+
 GH.Direct.prototype.addAutoUnifyLink = function(ex) {
 	var auLink = this.auLink;
 	if (ex.found && (ex.found.beg)) {

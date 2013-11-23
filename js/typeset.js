@@ -270,6 +270,17 @@ GH.typesetexp = function(term, prec, cursorPosition) {
     return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
 };
 
+GH.typesetBinomial = function(term, prec, cursorPosition) {
+    var top1_slug = GH.stringslug('<sup>');
+    var top2_slug = GH.typeset(term[1], cursorPosition);
+    var top3_slug = GH.stringslug('</sup>');
+    var bot1_slug = GH.stringslug('<sub>');
+    var bot2_slug = GH.typeset(term[2], cursorPosition);
+    var bot3_slug = GH.stringslug('</sub>');
+    var slugs = [top1_slug, top2_slug, top3_slug, bot1_slug, bot2_slug, bot3_slug];
+    return GH.parenthesize(GH.combineslugs(slugs, prec));
+};
+
 GH.subscriptSlug = function(slug) {
 	var start_slug = GH.stringslug('<sub>');
     var end_slug = GH.stringslug('</sub>');
@@ -622,6 +633,8 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetproduct(sexp, cursorPosition);
     } else if (sexp[0] == '!') {
         return GH.typesetpostfix(sexp, 2500, '!', cursorPosition);
+    } else if (sexp[0] == 'nCr') {
+        return GH.typesetBinomial(sexp, 2500, cursorPosition);
     } else if (sexp[0] == 'recursep') {
         return GH.typesetrecursep(sexp, 2500, cursorPosition);
     } else if (sexp[0] == 'recurse') {

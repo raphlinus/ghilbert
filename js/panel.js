@@ -175,23 +175,57 @@ GH.Panel.ButtonId = {
 
 // Recalculates the height of the dictionary, editor, and stack panels based on the size of the
 // browser window.
-GH.Panel.resizePanel = function() {
+GH.Panel.resizePanel = function(num) {
 	var container = document.getElementById('panel-container');
 	var panel = document.getElementById('panel');
+	var rightPanel = document.getElementById('right-panel');
 	var maxHeight = window.innerHeight - 200;
-	container.style.height = GH.min(maxHeight, panel.scrollHeight + 10);
+	container.style.height = GH.min(maxHeight + 40, panel.scrollHeight + 10);
 
 	var canvas = document.getElementById('canvas');
 	var stack = document.getElementById('stack');
-	// TODO: Possibly limit the height based on how much the canvas is filled.
 	canvas.style.height = maxHeight + 60;
-	stack.style.height = maxHeight - 88;
-}
+
+	num = num || GH.Panel.getPanelNum();
+	stack.style.height = (num >= 2) ? maxHeight - 68 : maxHeight + 30;
+	if (num == 1) {
+		var stackWidth = GH.min(window.innerWidth - 20, 1000);
+		var margin = (window.innerWidth - stackWidth) / 2;
+		rightPanel.style.width = stackWidth;
+		rightPanel.style.margin = '0 ' + margin;
+	} else {
+		rightPanel.style.width = '';
+		rightPanel.style.margin = '';
+	}
+	window.direct.resize();
+};
+
+GH.Panel.setPanelNum = function(num) {
+	if (num == 1) {
+		document.body.className='stack-mode';
+	} else if (num == 2) {
+		document.body.className='editor-mode';
+	} else {
+		document.body.className='';
+	}
+	GH.Panel.resizePanel(num);
+};
+
+GH.Panel.getPanelNum = function(num) {
+	var bodyClass = document.body.className;
+	if (bodyClass == 'stack-mode') {
+		return 1;
+	} else if (bodyClass == 'editor-mode') {
+		return 2;
+	} else {
+		return 3;
+	}
+};
 
 window.onresize = function() {
 	GH.Panel.resizePanel();
-}
+};
 
 window.onload = function() {
 	GH.Panel.resizePanel();
-}
+};

@@ -162,7 +162,12 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 			tableElement.appendChild(child.smallElement);
 		} else {
 			tableElement = GH.ProofSegment.addTable(this.largeElement);
-			var text = GH.sexptohtmlHighlighted(steps[i].conclusion, cursorPosition);
+			var text;
+			if ((0 < i) && (i < steps.length - 1)) {
+				text = GH.ProofSegment.hideRepeatedParts(steps[i-1], steps[i], cursorPosition);
+			} else {
+				text = GH.sexptohtmlHighlighted(steps[i].conclusion, cursorPosition);
+			}			
 			var link = isSingleStep ? steps[i].link : '';
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, link, isSingleStep && isConclusion);
 			child.smallElement = GH.ProofStep.stepToHtml(text, nameHtml);
@@ -188,6 +193,35 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 				child.attachChildrenData = {stepsData: newStepsData, recursion: !newIsSubset, cursorPosition: cursorPosition};
 			}
 		}
+	}
+};
+
+GH.ProofSegment.hideableOperators = ['<->', '->', '=', '=_', '<', '<='];
+
+GH.ProofSegment.hideRepeatedParts = function(prevStep, step, cursorPosition) {
+	var isHidden = false;
+	var hideableOperators = GH.ProofSegment.hideableOperators;
+	var sexp = step.conclusion;
+	var prevSexp = prevStep.conclusion;
+	var operator = String(sexp[0]);
+	if (operator == String(prevSexp[0])) {
+		var hideable = false;
+		for (var i = 0; i < hideableOperators.length && !hideable; i++) {
+			hideable = hideable || (operator == hideableOperators[i]);
+		}
+		if (hideable) {
+			var prevLeft = GH.sExpression.fromRaw(prevSexp[1]);
+			var left = GH.sExpression.fromRaw(sexp[1]);
+			isHidden = left.equals(prevLeft)
+		}
+	}
+
+	if (isHidden) {
+		var sexp = step.conclusion.slice(0);
+		sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
+		return GH.sexptohtmlHighlighted(sexp, cursorPosition);
+	} else {
+	    return GH.sexptohtmlHighlighted(step.conclusion, cursorPosition);
 	}
 };
 
@@ -445,6 +479,7 @@ GH.ProofSegment.handleMouseOut = function(position) {
 GH.ProofSegment.handleClick = function(position) {
 	var segments = GH.ProofSegment.findSegments(position);
 	segments[0].handleClick();
+	window.direct.text.setCursorPosition(segments[0].step.end);
 };
 
 GH.ProofSegment.findImportantSteps = function(startStep, endStep) {

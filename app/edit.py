@@ -128,13 +128,12 @@ class EditHandler(users.AuthenticatedHandler):
 </head>
         
 
-<body class="editor-mode">
+<body class="stack-mode">
 """)
         o.write('<div class="header">')
         o.write('  <a href="/"><img src="/static/logo.png" style="position:absolute;"/></a>')
         o.write('  <span id="header-boxes">');
-        o.write("""    <span class="header-box edit-entry" onclick="document.body.className='editor-mode'">edit</span> """);
-        o.write("""    <span class="header-box dictionary-entry" onclick="document.body.className=''">dictionary</span> """);
+        o.write("""    <span class="header-box dictionary-entry" onclick="GH.Panel.setPanelNum(3)">dictionary</span> """);
         o.write('  </span>');
         o.write('</div>')
         o.write('<span id="authetication">%s</span>' % auth);
@@ -206,7 +205,7 @@ class EditHandler(users.AuthenticatedHandler):
         <button id="inferences">Inference</button>
         <button id="deductions">Deduction</button>
         <button id="unified">Unified</button>
-        <span class="section-close" onclick="document.body.className='editor-mode'">X</span>
+        <span class="section-close" onclick="GH.Panel.setPanelNum(2)">X</span>
         <span style="float: right">
             <label for="filter">filter: </label><input type="text" id="filter" class="minor-input"/>
         </span>
@@ -221,9 +220,7 @@ class EditHandler(users.AuthenticatedHandler):
   <span class="section-title">Editor</span>
   <label for="number">before: </label><input type="text" id="number" value="%s" class="minor-input"/>
 """ % thmname)
-        # TODO: Uncomment this line once we the stack working fine by itself and we can add an element
-        # for closing the editor.
-        # o.write("""<span class="section-close" onclick="document.body.className='stack-mode'">X</span>""")
+        o.write("""<span class="section-close" onclick="GH.Panel.setPanelNum(1)">X</span>""")
         o.write("""
   <span id="saving"></span>
   <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
@@ -244,7 +241,10 @@ class EditHandler(users.AuthenticatedHandler):
   <a href="#" id="autounify" style="display:none">autounify</a><br/>
 </div>
 <div id="right-panel">
-  <div id="thmname"></div>
+  <div class="thmtitle">
+    <span id="thmname"></span>
+    <span class="edit-entry" onclick="GH.Panel.setPanelNum(2)">edit</span>
+  </div>
   <div id="stack">...</div>
   <div id="suggest"></div>
 </div>

@@ -112,9 +112,12 @@ GH.TextareaEdit = function(textarea) {
     this.getLine = function(i) {
         return textarea.value.split('\n')[i];
     };
-
     this.getCursorPosition = function() {
         return textarea.selectionEnd;
+    };
+    this.setCursorPosition = function(position) {
+        textarea.selectionStart = position;
+        textarea.selectionEnd = position;
     };
     this.getValue = function() {
         return textarea.value;

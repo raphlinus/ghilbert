@@ -449,7 +449,7 @@ class ListThmsPage(webapp2.RequestHandler):
             descstr = ' '.join(description)
             thmurl = urllib.quote(url + '/' + thm_name)
             errstr = ''
-            o.write('<div class="listthm" onclick="window.location=\'%s\'">' % (thmurl))
+            o.write('<div class="listthm" onclick="window.location=\'/edit%s\'">' % (thmurl))
             if error:
                 errstr = '<a href="/edit' + thmurl + '" class="error_indicator">●</a> '
             o.write('<div class="listthmline" ">%s<a href="%s">%s</a> %s</div>\n' % \
