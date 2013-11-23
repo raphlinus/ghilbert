@@ -38,10 +38,14 @@ stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 # Similar to ax-8, but for nat's instead of var's.
 ## <title> Equality Transitive Axiom </title>
 ## <suggest> right('Simplify', '=') </suggest>
+## <table>
+##   (-> (/\ (= <r> A <g> B) (= <r> A <b> C)) (= <g> B <b> C))
+## </table>
 stmt (ax-eqtr () ()
   (-> (/\ (= A B) (= A C)) (= B C)))
 
 # Similar to ax-9, but expanded to nat's instead of var's.
+## <title> There is a number equal to any expression </title>
 stmt (ax-tyex ((A x)) ()
   (-. (A. x (-. (= x A)))))
 
@@ -68,6 +72,9 @@ stmt (pa_ax1 () () (-. (= (0) (S A))))
 # Note that the biconditional captures equality properties of S as
 # well as the traditional Peano axiom 2.
 ## <title> Axiom: Numbers are equal under succession </title>
+## <table>
+##   (<-> (= <g> A <r> B) (= (S <g> A) (S <r> B)))
+## </table>
 stmt (pa_ax2 () ()
   (<-> (= A B) (= (S A) (S B))))
 
@@ -77,14 +84,17 @@ stmt (pa_ax3 () ()
   (= (+ A (0)) A))
 
 ## <title> Peano Axiom 4: Addition </title>
+## <suggest> left('Equivalence', 'R') </suggest>
 stmt (pa_ax4 () ()
   (= (+ A (S B)) (S (+ A B))))
 
 ## <title> Multiply by 0 Axiom </title>
+## <suggest> right('Simplify','0') </suggest>
 stmt (pa_ax5 () ()
   (= (* A (0)) (0)))
 
 ## <title> Peano Axiom 6: Multiplication </title>
+## <suggest> right('Distribute','+') </suggest>
 stmt (pa_ax6 () ()
   (= (* A (S B)) (+ (* A B) A)))
 

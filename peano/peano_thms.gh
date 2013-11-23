@@ -3996,18 +3996,44 @@ thm (lenlttlem () ()
 
 ## <title> Transitive Property </title>
 ## <suggest> right('Simplify', '< <') </suggest>
-thm (letr () ()
-  (-> (/\ (<= A B) (<= B C)) (<= A C))
-
-  z (+ x y) A addeq2
-  A x y addass syl6eqr (= (+ A x) B) adantr
-  (+ A x) B y addeq1 (= z (+ x y)) adantl eqtrd
-  C eqeq1d biimprd
-  imp ancoms x substex ex y 19.23ai com12 imp
-    A B x df-le
-    B C y df-le anbi12i
-    A C z df-le imbi12i
-  mpbir
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '< <') </suggest>
+thm (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C))
+  ## <d 'Add A to both sides'>
+    z (+ x y) A addeq2
+    A x y addass syl6eqr 
+  ## </d>
+  ## <d 'Let A+x = B'>
+    (= (+ A x) B) adantr
+    (+ A x) B y addeq1 (= z (+ x y)) adantl eqtrd
+  ## </d>
+  ## <d 'Let B+y = C'>
+    C eqeq1d biimprd imp 
+  ## </d>
+  ## <d 'Add Existential Quantifiers'>
+    ancoms x substex ex
+    y 19.23ai com12 imp
+  ## </d>
+  ## <d 'Apply Definition of ≤'>
+    ## <d 'Define A ≤ B'>
+      ## <d 'Define A ≤ B'>
+        A B x df-le bicomi
+      ## </d>
+      BiReplaceImp0An0
+    ## </d>
+    ## <d 'Define B ≤ C'>
+      ## <d 'Define B ≤ C'>
+        B C y df-le bicomi
+      ## </d>  
+      BiReplaceImp0An1
+    ## </d>  
+    ## <d 'Define A ≤ C'>
+      ## <d 'Define A ≤ C'>
+        A C z df-le bicomi
+      ## </d>
+      sylib
+    ## </d>
+  ## <d 'Apply Definition of ≤'>
 )
 
 thm (lefoo ((A z)) ()
@@ -5439,6 +5465,24 @@ thm (elab2 ((A x) (ps x))
   hyp2 A eleq2i hyp1 elab bitri
 )
 
+## <title> Remove Set Abstraction </title>
+## <suggest> left('Simplify', '{|}') </suggest>
+thm (elabid ((S x)) () (<-> (e. x ({|} x (e. x S))) (e. x S))
+  x y S ax-eleq1
+  rwffi
+  abid
+)
+
+## <suggest> left('Simplify', '{|}') </suggest>
+thm (removeab ((S x)) () (=_ ({|} x (e. x S)) S)
+  x S elabid
+  x gen  
+  ## <d 'Definition of Set Equality '>
+    ({|} x (e. x S)) S x df-seq bicomi
+    mpbi
+  ## </d 'Definition of Set Equality '>
+)
+
 ## <title> Element in intersection is in both sets </title>
 ## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 thm (elin () ()
@@ -5457,6 +5501,16 @@ thm (elun () ()
   x A S ax-eleq1 x A T ax-eleq1 orbi12d
     S T x df-un
   elab2
+)
+
+thm (unc () () (-> (e. A S) (e. A (u. S T)))
+  (e. A S) (e. A T) orc
+  A S T elun  
+  ## <d 'Infer Right to Left '>
+    (e. A (u. S T)) (\/ (e. A S) (e. A T)) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  syl
 )
 
 # Problem: this theorem verified, but is not true, without
@@ -5694,9 +5748,10 @@ thm (elsnc () ()
   elab2
 )
 
+## <title> Singleton has One Element </title>
 thm (snid () () (e. A ({} A))
   A eqid
-    A A elsnc
+  A A elsnc
   mpbir
 )
 
@@ -13852,6 +13907,14 @@ thm (minval ((ps x) (A x))
   A (min ({|} x ph)) lesym sylibr
 )
 
+## <suggest> right('Simplify', 'min') </suggest>
+thm (minsetval ((S x) (A x)) () (-> (/\ (e. A S) (A. x (-> (e. x S) (<= A x)))) (= A (min ({|} x (e. x S)))))
+  x y S ax-eleq1
+  rwffi
+  x A S ax-eleq1
+  minval
+)
+
 thm (minsn () () (= (min ({} A)) A)
   x ({} A) mincl
  (min ({} A)) A elsnc
@@ -13866,6 +13929,136 @@ thm (minsn () () (= (min ({} A)) A)
   x exbii
   mpbi  
   ax-mpRemove
+)
+
+## <summary>
+##   Combines <a href="minsn">minsn</a> and <a href="snid">snid</a> into the form
+##   <a href="minun">minun</a> expects.
+## </summary>
+thm (minsn2 () () (/\ (= A (min ({} A))) (e. A ({} A)))
+  A minsn
+  eqcomi
+  A snid
+  pm3.2i
+)
+
+thm (minex2() () (-> (e. A S) (<= (min S) A))
+  A S minex  
+  ## <d ''Remove Left Side of AND' '>
+    (e. (min S) S) (<= (min S) A) pm3.27
+    syl
+  ## </d ''Remove Left Side of AND' '>
+)
+
+## <title> Minimum of a Union </title>
+thm (minun() () (-> (/\ (e. (min S) S) (<= (min S) (min T))) (= (min S) (min (u. S T))))
+  (min S) S minex
+  ## <d ''Remove Right Side of AND' '>
+    (e. (min S) S) (<= (min S) (min S)) pm3.26
+    syl
+  ## </d ''Remove Right Side of AND' '>
+  (min S) S T unc
+  syl
+
+  y S minex2
+  (<= (min S) (min T)) a1i
+  y T minex2
+  (<= (min S) (min T)) a1i
+  (min S) (min T) y letr    
+  ## <d 'Import-Export Theorem '>
+    (<= (min S) (min T)) (<= (min T) y) (<= (min S) y) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  syld
+  jaod
+  y S T elun bicomi  
+  BiReplaceImp1Imp0
+  y 19.21ai
+  anim12i  
+  ## <d>
+    (min S) (u. S T) y minsetval
+    syl
+  ## </d>
+  y (u. S T) removeab
+  minseqi  
+  EqReplaceImp1Eq1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ (e.  [ A ]   ]   ]  S) ph) ps)
+##   (=           [ A ]   [ B ] )
+##   (-> (/\ (e.  [   [   [ B ]  S) ph) ps)
+## </table>
+thm (EqReplaceImp0An0El0 () (
+     replacee (-> (/\ (e. A S) ph) ps)
+     substitution (= A B)) 
+     (-> (/\ (e. B S) ph) ps)
+  replacee substitution
+  S eleq1i
+  BiReplaceImp0An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (<=  [ A ]   ]   ]  C)) ps)
+##   (=              [ A ]   [ B ] )
+##   (-> (/\ ph (<=  [   [   [ B ]  C)) ps)
+## </table>
+thm (EqReplaceImp0An1Le0 () (
+     replacee (-> (/\ ph (<= A C)) ps)
+     substitution (= A B)) 
+     (-> (/\ ph (<= B C)) ps)
+  replacee substitution
+  C leeq1i
+  BiReplaceImp0An1
+)
+
+thm (minuni () (hyp1 (/\ (= A (min S)) (e. A S)) hyp2 (<= A (min T))) (/\ (= A (min (u. S T))) (e. A (u. S T)))
+  hyp1  
+  ## <d ''Remove Left Side of AND' '>
+    (= A (min S)) (e. A S) pm3.27
+    ax-mp
+  ## </d ''Remove Left Side of AND' '>
+  hyp2
+  pm3.2i
+
+  S T minun
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi
+  
+  EqReplaceImp0An0El0
+
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi  
+  EqReplaceImp0An1Le0
+
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi  
+  EqReplaceImp1Eq0
+  ax-mp
+
+  hyp1  
+  ## <d ''Remove Left Side of AND' '>
+    (= A (min S)) (e. A S) pm3.27
+    ax-mp
+  ## </d ''Remove Left Side of AND' '>
+  A S T unc ax-mp
+  pm3.2i
 )
 
 # number 89.0
@@ -14260,7 +14453,7 @@ thm (modlt () () (-> (< (0) B) (< (mod A B) B))
   sylbi2
 )
 
-## <title> Divides and modulo equivalence <title>
+## <title> Divides and modulo equivalence </title>
 ## <summary> Divides relation is equivalent to zero remainder </summary>
 thm (dividesmod () () (<-> (| A B) (= (mod B A) (0)))
   A  B  x  df-divides
@@ -14544,6 +14737,16 @@ thm (diveq2 () () (-> (= B C) (= (div A B) (div A C)))
   EqReplaceImp1Eq1
 )
 
+thm (diveq12 () () (-> (/\ (= A B) (= C D)) (= (div A C) (div B D)))
+  A B C diveq1
+  C D B diveq2
+  anim12i  
+  ## <d 'Transitive Property '>
+    (div A C) (div B C) (div B D) eqtr1
+    syl
+  ## </d 'Transitive Property '>
+)
+
 ## <title> Divide both sides of an equation </title>
 ## <table>
 ##   (=      [ A    ]       [ C  )
@@ -14564,6 +14767,23 @@ thm (diveq1d () (
   A C B diveq1
   syl
 )
+
+thm (diveq2i () (
+     hyp1 (= A B))
+     (= (div C A) (div C B))
+  hyp1
+  A B C diveq2
+  ax-mp
+)
+
+thm (diveq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (div C A) (div C B)))
+  hyp1
+  A B C diveq2
+  syl
+)
+
 
 
 ## <summary> Main theorem about division </summary>
@@ -17857,6 +18077,149 @@ thm (recurseadd () (hyp (fun S)) (= (recurse S A (recurse S B C)) (recurse S (+ 
   mpbi
 )
 
+## <title> Definition of One Fibonacci Step </title> ##
+## <summary>
+##   The Fibonacci step is used to define the Fibonacci sequence. Its behavior
+##   is best described using by the theorem <a href="fibonacci-step-op">fibonacci-step-op</a>.
+##   From two Fibonacci numbers, it compute the next pair of Fibonacci numbers.
+## </summary>
+defthm (df-fibonacci-step nat (fibonacci-step A) () () (= (fibonacci-step A) (<,> (tail A) (+ (head A) (tail A))))
+  (<,> (tail A) (+ (head A) (tail A))) eqid
+)
+
+## <title> Equivalence for fibonacci-step </title> ##
+thm (fibonacci-stepeq () () (-> (= A B) (= (fibonacci-step A) (fibonacci-step B)))
+  A B taileq
+  A B headeq
+  A B taileq
+  addeq12d
+  opeq12d
+  A df-fibonacci-step eqcomi
+  EqReplaceImp1Eq0
+  B df-fibonacci-step eqcomi  
+  EqReplaceImp1Eq1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,>  [ B ]   ]   ]  D))
+##   (=         [ B ]   [ C ] )
+##   (= A (<,>  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Op0 () (
+     replacee (= A (<,> B D))
+     substitution (= B C)) 
+     (= A (<,> C D))
+  replacee substitution
+  D opeq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,> B  [ C ]   ]   ] ))
+##   (=           [ C ]   [ D ] )
+##   (= A (<,> B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Op1 () (
+     replacee (= A (<,> B C))
+     substitution (= C D)) 
+     (= A (<,> B D))
+  replacee substitution
+  B opeq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,> B (+  [ C ]   ]   ]  A')))
+##   (=              [ C ]   [ D ] )
+##   (= A (<,> B (+  [   [   [ D ]  A')))
+## </table>
+thm (EqReplaceEq1Op1Add0 () (
+     replacee (= A (<,> B (+ C A')))
+     substitution (= C D)) 
+     (= A (<,> B (+ D A')))
+  replacee substitution
+  A' addeq1i
+  EqReplaceEq1Op1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,> B (+ C  [ D ]   ]    ] )))
+##   (=                [ D ]   [ A' ] )
+##   (= A (<,> B (+ C  [   [   [ A' ] )))
+## </table>
+thm (EqReplaceEq1Op1Add1 () (
+     replacee (= A (<,> B (+ C D)))
+     substitution (= D A')) 
+     (= A (<,> B (+ C A')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Op1
+)
+
+## <title> Fibonacci Step Acting an Ordered Pair </title>
+## <summary>
+##   Demonstrates that if A and B are two Fibonacci numbers, Fibonacci step
+##   computes the next pair of Fibonacci numbers which includes B.
+##</summary>
+thm (fibonacci-step-op () () (= (fibonacci-step (<,> A B)) (<,> B (+ A B)))
+  (<,> A B) df-fibonacci-step  
+  ## <d 'Apply Tail Operator '>
+    A B tailop
+    EqReplaceEq1Op0
+  ## </d 'Apply Tail Operator '>
+  ## <d 'Apply Head Operator '>
+    A B headop
+    EqReplaceEq1Op1Add0
+  ## </d 'Apply Head Operator '>
+  ## <d 'Apply Tail Operator '>
+    A B tailop
+    EqReplaceEq1Op1Add1
+  ## </d 'Apply Tail Operator '>
+)
+
+## <title> Definition of the Fibonacci Sequence </title>
+## <summary> Defines the A-th number in the Fibonacci Sequence </summary>
+defthm (df-fibonacci nat (fibonacci A) () () (= (fibonacci A) (head (recurse (lambda y (fibonacci-step y)) A (<,> (0) (1)))))
+  x y fibonacci-stepeq
+  lambdaeq1
+  A (<,> (0) (1)) recurseseq1i
+  headeqi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (head  [ B ]   ]   ] ))
+##   (=          [ B ]   [ C ] )
+##   (= A (head  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Head0 () (
+     replacee (= A (head B))
+     substitution (= B C)) 
+     (= A (head C))
+  replacee substitution
+  headeqi
+  EqReplaceEq1
+)
+
+thm (fibonacci0 () () (= (fibonacci (0)) (0))
+  (0) x df-fibonacci
+  x y fibonacci-stepeq
+  funlambda
+  (<,> (0) (1)) recurse0    
+    EqReplaceEq1Head0
+    
+    ## <d 'Apply Head Operator '>
+      (0) (1) headop
+      EqReplaceEq1
+    ## </d 'Apply Head Operator '>
+)
+
 # Summation. Big Sigma.
 thm (df-sum-step-just () () (-> (= A B) (= (<,> (+ (head A) (1)) (+ (tail A) (apply S (head A)))) (<,> (+ (head B) (1)) (+ (tail B) (apply S (head B))))))
   A B headeq
@@ -20613,6 +20976,89 @@ thm (factorialrecurse () () (= (! (+ A (1))) (* (! A) (+ A (1))))
   ## </d ' '>
   A 0le
   ax-mpRemove
+)
+
+## <suggest> right('Define', 'nCr') left('Simplify', 'nCr') </suggest>
+defthm (df-binomial nat (nCr A B) () () (= (nCr A B) (div (! A) (* (! B) (! (.- A B)))))
+  (div (! A) (* (! B) (! (.- A B)))) eqid
+)
+
+thm (binomialeq1() () (-> (= A B) (= (nCr A C) (nCr B C)))
+  A B factorialeq
+  A B C halfminuseq1
+  factorialeqd
+  (! C) muleq2d
+  anim12i  
+  (! A) (! B) (* (! C) (! (.- A C))) (* (! C) (! (.- B C))) diveq12
+  syl  
+  ## <d 'Conjunction is Idempotent '>
+    (= A B) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>  
+  ## <d>
+    A C df-binomial eqcomi
+    EqReplaceImp1Eq0
+  ## </d>  
+  ## <d>
+    B C df-binomial eqcomi
+    EqReplaceImp1Eq1
+  ## </d>
+)
+
+
+
+thm (binomialeq1i () (
+     hyp1 (= A B))
+     (= (nCr A C) (nCr B C))
+  hyp1
+  A B C binomialeq1
+  ax-mp
+)
+
+## <title> Equivalence for nCr </title> ##
+thm (binomialeq2 () () (-> (= B C) (= (nCr A B) (nCr A C)))
+  B C factorialeq
+  B C A halfminuseq2
+  factorialeqd
+  muleq12d
+  (! A) diveq2d
+  A B df-binomial
+  ## <d 'Commutative Property'>
+    (nCr A B) (div (! A) (* (! B) (! (.- A B)))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  A C df-binomial
+  ## <d 'Commutative Property'>
+    (nCr A C) (div (! A) (* (! C) (! (.- A C)))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq1
+)
+
+
+thm (binomialeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (nCr A C) (nCr B C)))
+  hyp1
+  A B C binomialeq1
+  syl
+)
+
+thm (binomialeq2i () (
+     hyp1 (= B C))
+     (= (nCr A B) (nCr A C))
+  hyp1
+  B C A binomialeq2
+  ax-mp
+)
+
+thm (binomialeq2d () (
+     hyp1 (-> ph (= B C)))
+     (-> ph (= (nCr A B) (nCr A C)))
+  hyp1
+  B C A binomialeq2
+  syl
 )
 
 # == Exponentiation ==

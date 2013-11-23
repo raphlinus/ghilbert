@@ -956,6 +956,12 @@ thm (def-and' () () (<-> (/\ ph ps) (-. (-> ph (-. ps))))
      ph ps df-and-2
      impbii)
 
+## <title> Transitive Property </title>
+## <table>
+##   (<-> ph ]      [ ps ] ] )
+##           [ (<-> [ ps ] [ ch)
+##   (<-> ph ]      [    [ [ ch)
+## </table>
 thm (bitri () (1 (<-> ph ps) 2 (<-> ps ch)) (<-> ph ch)
      1 biimpi 2 biimpi syl
      2 biimpri 1 biimpri syl
@@ -1043,6 +1049,12 @@ thm (biidd () () (-> ph (<-> ps ps))
 thm (bitr2i () (1 (<-> ph ps) 2 (<-> ps ch)) (<-> ch ph)
      1 2 bitri bicomi)
 
+## <title> Transitive Property </title>
+## <table>
+##   (<-> ps ] [ ph ]   )
+##   (<-> ps ] [    [ ch)
+##   (<->    [ [ ph [ ch)
+## </table>
 thm (bitr3i () (1 (<-> ps ph) 2 (<-> ps ch)) (<-> ph ch)
      1 bicomi 2 bitri)
 
@@ -1456,7 +1468,11 @@ thm (pm2.53 () () (-> (\/ ph ps) (-> (-. ph) ps))
   biimpi
 )
 
-# The builders for disjunction follow from the ones for implication
+## <title> Equivalence over Disjunction </title>
+## <table>
+##   (<->        [ ph ]   [        [ ps)
+##   (<-> (\/ ch [ ph ] ) [ (\/ ch [ ps))
+## </table>
 thm (orbi2i () (HEQ (<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps))
   ch ph df-or
 
@@ -1469,6 +1485,11 @@ thm (orbi2i () (HEQ (<-> ph ps)) (<-> (\/ ch ph) (\/ ch ps))
   bitri
 )
 
+## <title> Equivalence over Disjunction </title>
+## <table>
+##   (<->     ph ]     ]     [ ps ] )
+##   (<-> (\/ ph ] ch) ] (\/ [ ps ] ch))
+## </table>
 thm (orbi1i () (HEQ (<-> ph ps)) (<-> (\/ ph ch) (\/ ps ch))
   ph ch orcom
 
@@ -1512,6 +1533,8 @@ thm (pm1.5 () () (-> (\/ ph (\/ ps ch)) (\/ ps (\/ ph ch)))
   biimpi
 )
 
+## <title> Associatative Property of OR </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 thm (orass () () (<-> (\/ (\/ ph ps) ch) (\/ ph (\/ ps ch)))
   (\/ ph ps) ch orcom
 
@@ -1544,6 +1567,7 @@ thm (or23 () () (<-> (\/ (\/ ph ps) ch) (\/ (\/ ph ch) ps))
   bitri
 )
 
+## <title> Reorder Disjuction </title>
 thm (or4 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ ps th)))
   ph ps (\/ ch th) orass
 
@@ -1556,7 +1580,74 @@ thm (or4 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ ps th)))
   bitri
 )
 
-#thm (or42 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ th ps)))
-#)
+## <title> Reorder 4 Disjuction </title>
+thm (or42 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ th ps)))
+  ph ps ch th or4
+  ps th orcom
+  (\/ ph ch) orbi2i
+  bitri
+)
+
+## <title> Distribution of disjunction over disjunction </title>
+thm (orordi () () (<-> (\/ ph (\/ ps ch)) (\/ (\/ ph ps) (\/ ph ch)))
+  ph oridm
+  (\/ ps ch) orbi1i
+  ph ph ps ch or4
+  bitr3i
+)
+
+## <title> Introduction of a disjunct </title>
+thm (olc () () (-> ph (\/ ps ph))
+  ph (-. ps) ax-1
+  orrd
+)
+
+## <title> Introduction of a disjunct </title>
+thm (orc () () (-> ph (\/ ph ps))
+  ph ps pm2.24
+  orrd
+)
+
+## <title> Introduction of a disjunct </title>
+thm (olci () (hyp ph) (\/ ps ph)
+  hyp
+  ph ps olc
+  ax-mp
+)
+
+## <title> Introduction of a disjunct </title>
+thm (orci () (hyp ph) (\/ ph ps)
+  hyp
+  ph ps orc
+  ax-mp
+)
+
+thm (orcd () (hyp (-> ph ps)) (-> ph (\/ ps ch))
+  hyp
+  ps ch orc
+  syl
+)
+
+thm (olcd () (hyp (-> ph ps)) (-> ph (\/ ch ps))
+  hyp
+  ps ch olc
+  syl
+)
+
+thm (orcs () (hyp (-> (\/ ph ps) ch)) (-> ph ch)
+  ph ps orc
+  hyp
+  syl
+)
+
+thm (olcs () (hyp (-> (\/ ph ps) ch)) (-> ps ch)
+  ps ph olc
+  hyp
+  syl
+)
+
+thm (pm2.07 () () (-> ph (\/ ph ph))
+  ph ph olc
+)
 
 export (PROP /peano/prop.ghi (PROP_MIN) "")

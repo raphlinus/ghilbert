@@ -13848,6 +13848,27 @@ thm (18div3 () () (= (div (+ (10) (8)) (3)) (6))
   divval
 )
 
+thm (7div4 () () (= (div (7) (4)) (1))
+  ## <d 'Evaluate'>
+    4greater0
+    ## <d 'Evaluate'>
+      ## <d 'Evaluate'>
+        (4) mulid
+        (mod (7) (4)) addeq1i
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        7mod4
+        EqReplaceEq1Add1
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        4plus3
+        EqReplaceEq1
+      ## </d 'Evaluate'>
+    ## </d 'Evaluate'>
+    divval
+  ## </d 'Evaluate'>
+)
+
 ## <title> Whole Number Division </title>
 thm (8div4 () () (= (div (8) (4)) (2))
   4greater0
@@ -25805,6 +25826,463 @@ thm (halfMinusExample() () (= (.- (+ (* (2) (* (10) (10))) (+ (* (4) (10)) (3)))
   ## </d 'Evaluate'>
 )
 
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (*  [ C ]   ]   ]  A')))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ B (*  [   [   [ D ]  A')))
+## </table>
+thm (EqReplaceEq1Add1Mul0 () (
+     replacee (= A (+ B (* C A')))
+     substitution (= C D)) 
+     (= A (+ B (* D A')))
+  replacee substitution
+  A' muleq1i
+  EqReplaceEq1Add1
+)
+
+thm (halfMinusExample2() () (= (.- (+ (* (10) (10)) (+ (* (8) (10)) (6))) (+ (* (2) (* (10) (10))) (+ (* (4) (10)) (3)))) (0)) 
+  ## <d 'Evaluate'>
+    ## <d 'Numbers Get Higher Rounding Up'>
+      ## <d 'Derive Smaller Inequality'>
+        (+ (10) (3)) pa_ax1plus
+        ## <d 'Evaluate'>
+          ## <d 'Addition'>
+            ## <d 'Group Common Digits'>
+              ## <d 'Rearrange Terms'>
+                ## <d 'Change Associations'>
+                  ## <d 'Associative Property'>
+                    (10) (3) (1) addass
+                  ## </d 'Associative Property'>
+                ## </d 'Change Associations'>
+              ## </d 'Rearrange Terms'>
+              ## <d 'Multiply By One'>
+                ## <d 'Multiply By One'>
+                  ## <d 'Evaluate'>
+                    ## <d 'Evaluate'>
+                      (10) mulidr
+                    ## </d 'Evaluate'>
+                    ## <d 'Commutative Property'>
+                      (* (1) (10)) (10) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                  ## </d 'Evaluate'>
+                  (+ (3) (1)) addeq1i
+                ## </d 'Multiply By One'>
+                EqReplaceEq1
+              ## </d 'Multiply By One'>
+            ## </d 'Group Common Digits'>
+            ## <d 'Single-digit Addition'>
+              3plus1
+              EqReplaceEq1Add1
+            ## </d 'Single-digit Addition'>
+            ## <d 'Simplify'>
+              ## <d 'Simplify'>
+                ## <d 'Multiplicative Identity'>
+                  (10) mulidr
+                ## </d 'Multiplicative Identity'>
+                (4) addeq1i
+              ## </d 'Simplify'>
+              EqReplaceEq1
+            ## </d 'Simplify'>
+          ## </d 'Addition'>
+          EqReplaceNot0Eq1
+        ## </d 'Evaluate'>
+        ## <d 'Less Than Or Equal To Zero'>
+          (+ (10) (4)) 0le
+        ## </d 'Less Than Or Equal To Zero'>
+        axlttri2i
+      ## </d 'Derive Smaller Inequality'>
+      ## <d 'Add To Both Sides'>
+        (+ (* (10) (10)) (+ (* (8) (10)) (6))) ltadd2i
+      ## </d 'Add To Both Sides'>
+      ## <d 'Simplify Left Side'>
+        (+ (* (10) (10)) (+ (* (8) (10)) (6))) pa_ax3
+        EqReplaceLt0
+      ## </d 'Simplify Left Side'>
+      ## <d 'Simplify Right Side'>
+        ## <d 'Addition'>
+          ## <d 'Group Common Digits'>
+            ## <d 'Rearrange Terms'>
+              ## <d 'Associate All Left'>
+                ## <d 'Associative Property'>
+                  (+ (* (10) (10)) (+ (* (8) (10)) (6))) (10) (4) addass
+                  ## <d 'Commutative Property'>
+                    (+ (+ (+ (* (10) (10)) (+ (* (8) (10)) (6))) (10)) (4)) (+ (+ (* (10) (10)) (+ (* (8) (10)) (6))) (+ (10) (4))) eqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                ## </d 'Associative Property'>
+                ## <d 'Associative Property'>
+                  (* (10) (10)) (* (8) (10)) (6) addass
+                  ## <d 'Commutative Property'>
+                    (+ (+ (* (10) (10)) (* (8) (10))) (6)) (+ (* (10) (10)) (+ (* (8) (10)) (6))) eqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                  EqReplaceEq1Add0Add0
+                ## </d 'Associative Property'>
+              ## </d 'Associate All Left'>
+              ## <d 'Reorder Terms'>
+                ## <d 'Associative Property'>
+                  (+ (* (10) (10)) (* (8) (10))) (6) (10) addass
+                  (4) addeq1i
+                ## </d 'Associative Property'>
+                ## <d 'Commutative Property'>
+                  (6) (10) addcom
+                  EqReplaceEq1Add0Add1
+                ## </d 'Commutative Property'>
+                ## <d 'Associative Property'>
+                  (+ (* (10) (10)) (* (8) (10))) (10) (6) addass
+                  ## <d 'Commutative Property'>
+                    (+ (+ (+ (* (10) (10)) (* (8) (10))) (10)) (6)) (+ (+ (* (10) (10)) (* (8) (10))) (+ (10) (6))) eqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                  EqReplaceEq1Add0
+                ## </d 'Associative Property'>
+                EqReplaceEq1
+              ## </d 'Reorder Terms'>
+              ## <d 'Change Associations'>
+                ## <d 'Associative Property'>
+                  (+ (+ (* (10) (10)) (* (8) (10))) (10)) (6) (4) addass
+                ## </d 'Associative Property'>
+                ## <d 'Associative Property'>
+                  (* (10) (10)) (* (8) (10)) (10) addass
+                  EqReplaceEq1Add0
+                ## </d 'Associative Property'>
+                EqReplaceEq1
+              ## </d 'Change Associations'>
+            ## </d 'Rearrange Terms'>
+            ## <d 'Multiply By One'>
+              ## <d 'Multiply By One'>
+                ## <d 'Multiply By One'>
+                  ## <d 'Evaluate'>
+                    ## <d 'Evaluate'>
+                      (* (10) (10)) mulidr
+                    ## </d 'Evaluate'>
+                    ## <d 'Commutative Property'>
+                      (* (1) (* (10) (10))) (* (10) (10)) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                  ## </d 'Evaluate'>
+                  (+ (* (8) (10)) (10)) addeq1i
+                ## </d 'Multiply By One'>
+                ## <d 'Multiply By One'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Evaluate'>
+                      ## <d 'Evaluate'>
+                        (10) mulidr
+                      ## </d 'Evaluate'>
+                      ## <d 'Commutative Property'>
+                        (* (1) (10)) (10) eqcom
+                        mpbi
+                      ## </d 'Commutative Property'>
+                    ## </d 'Evaluate'>
+                    (* (8) (10)) addeq2i
+                  ## </d 'Multiply By One'>
+                  EqReplaceEq1Add1
+                ## </d 'Multiply By One'>
+                (+ (6) (4)) addeq1i
+              ## </d 'Multiply By One'>
+              EqReplaceEq1
+            ## </d 'Multiply By One'>
+            ## <d 'Distributive Property'>
+              (8) (1) (10) distl
+              ## <d 'Commutative Property'>
+                (* (+ (8) (1)) (10)) (+ (* (8) (10)) (* (1) (10))) eqcom
+                mpbi
+              ## </d 'Commutative Property'>
+              EqReplaceEq1Add0Add1
+            ## </d 'Distributive Property'>
+          ## </d 'Group Common Digits'>
+          ## <d 'Single-digit Addition'>
+            6plus4
+            EqReplaceEq1Add1
+          ## </d 'Single-digit Addition'>
+          ## <d 'Carry the One'>
+            ## <d 'Multiply By One'>
+              ## <d 'Evaluate'>
+                ## <d 'Evaluate'>
+                  (10) mulidr
+                ## </d 'Evaluate'>
+                ## <d 'Commutative Property'>
+                  (* (1) (10)) (10) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+              ## </d 'Evaluate'>
+              (+ (* (1) (* (10) (10))) (* (+ (8) (1)) (10))) addeq2i
+            ## </d 'Multiply By One'>
+            ## <d 'Associative Property'>
+              (* (1) (* (10) (10))) (* (+ (8) (1)) (10)) (* (1) (10)) addass
+              EqReplaceEq1
+            ## </d 'Associative Property'>
+            ## <d 'Distributive Property'>
+              (+ (8) (1)) (1) (10) distl
+              ## <d 'Commutative Property'>
+                (* (+ (+ (8) (1)) (1)) (10)) (+ (* (+ (8) (1)) (10)) (* (1) (10))) eqcom
+                mpbi
+              ## </d 'Commutative Property'>
+              EqReplaceEq1Add1
+            ## </d 'Distributive Property'>
+            EqReplaceEq1
+          ## </d 'Carry the One'>
+          ## <d 'Single-digit Addition'>
+            ## <d 'Evaluate'>
+              8plus1
+              (1) addeq1i
+            ## </d 'Evaluate'>
+            ## <d 'Evaluate'>
+              9plus1
+              EqReplaceEq1
+            ## </d 'Evaluate'>
+            EqReplaceEq1Add1Mul0
+          ## </d 'Single-digit Addition'>
+          ## <d 'Carry the One'>
+            ## <d 'Multiply By One'>
+              ## <d 'Evaluate'>
+                ## <d 'Evaluate'>
+                  (* (10) (10)) mulidr
+                ## </d 'Evaluate'>
+                ## <d 'Commutative Property'>
+                  (* (1) (* (10) (10))) (* (10) (10)) eqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+              ## </d 'Evaluate'>
+              (* (1) (* (10) (10))) addeq2i
+            ## </d 'Multiply By One'>
+            ## <d 'Distributive Property'>
+              (1) (1) (* (10) (10)) distl
+              ## <d 'Commutative Property'>
+                (* (+ (1) (1)) (* (10) (10))) (+ (* (1) (* (10) (10))) (* (1) (* (10) (10)))) eqcom
+                mpbi
+              ## </d 'Commutative Property'>
+              EqReplaceEq1
+            ## </d 'Distributive Property'>
+            EqReplaceEq1
+          ## </d 'Carry the One'>
+          ## <d 'Single-digit Addition'>
+            1plus1
+            EqReplaceEq1Mul0
+          ## </d 'Single-digit Addition'>
+        ## </d 'Addition'>
+        EqReplaceLt1
+      ## </d 'Simplify Right Side'>
+    ## </d 'Numbers Get Higher Rounding Up'>
+    ## <d 'Higher Remaining Digits'>
+      ## <d 'Compare Smaller Digits'>
+        ## <d 'Derive Smaller Inequality'>
+          (+ (* (4) (10)) (2)) pa_ax1plus
+          ## <d 'Evaluate'>
+            ## <d 'Addition'>
+              ## <d 'Group Common Digits'>
+                ## <d 'Rearrange Terms'>
+                  ## <d 'Change Associations'>
+                    ## <d 'Associative Property'>
+                      (* (4) (10)) (2) (1) addass
+                    ## </d 'Associative Property'>
+                  ## </d 'Change Associations'>
+                ## </d 'Rearrange Terms'>
+              ## </d 'Group Common Digits'>
+              ## <d 'Single-digit Addition'>
+                2plus1
+                EqReplaceEq1Add1
+              ## </d 'Single-digit Addition'>
+            ## </d 'Addition'>
+            EqReplaceNot0Eq1
+          ## </d 'Evaluate'>
+          ## <d 'Less Than Or Equal To Zero'>
+            (+ (* (4) (10)) (3)) 0le
+          ## </d 'Less Than Or Equal To Zero'>
+          axlttri2i
+        ## </d 'Derive Smaller Inequality'>
+        ## <d 'Add To Both Sides'>
+          (* (2) (* (10) (10))) ltadd2i
+        ## </d 'Add To Both Sides'>
+        ## <d 'Simplify Left Side'>
+          (* (2) (* (10) (10))) pa_ax3
+          EqReplaceLt0
+        ## </d 'Simplify Left Side'>
+      ## </d 'Compare Smaller Digits'>
+      LtReplaceLt1
+    ## </d 'Higher Remaining Digits'>
+    ## <d 'Convert to ≤'>
+      (+ (* (10) (10)) (+ (* (8) (10)) (6))) (+ (* (2) (* (10) (10))) (+ (* (4) (10)) (3))) ltle
+      ax-mp
+    ## </d 'Convert to ≤'>
+    halfminus-negi
+  ## </d 'Evaluate'>
+)
+
+thm (lessThanEqualExample() () (<= (+ (* (4) (10)) (2)) (+ (* (6) (* (10) (10))) (+ (* (3) (10)) (9))))
+  ## <d 'Numbers Get Higher Rounding Up'>
+    ## <d 'Derive Smaller Inequality'>
+      0less8
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (+ (* (4) (10)) (2)) ltadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      (+ (* (4) (10)) (2)) pa_ax3
+      EqReplaceLt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      ## <d 'Addition'>
+        ## <d 'Group Common Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Change Associations'>
+              ## <d 'Associative Property'>
+                (* (4) (10)) (2) (8) addass
+              ## </d 'Associative Property'>
+            ## </d 'Change Associations'>
+          ## </d 'Rearrange Terms'>
+        ## </d 'Group Common Digits'>
+        ## <d 'Single-digit Addition'>
+          2plus8
+          EqReplaceEq1Add1
+        ## </d 'Single-digit Addition'>
+        ## <d 'Carry the One'>
+          ## <d 'Multiply By One'>
+            ## <d 'Evaluate'>
+              ## <d 'Evaluate'>
+                (10) mulidr
+              ## </d 'Evaluate'>
+              ## <d 'Commutative Property'>
+                (* (1) (10)) (10) eqcom
+                mpbi
+              ## </d 'Commutative Property'>
+            ## </d 'Evaluate'>
+            (* (4) (10)) addeq2i
+          ## </d 'Multiply By One'>
+          ## <d 'Distributive Property'>
+            (4) (1) (10) distl
+            ## <d 'Commutative Property'>
+              (* (+ (4) (1)) (10)) (+ (* (4) (10)) (* (1) (10))) eqcom
+              mpbi
+            ## </d 'Commutative Property'>
+            EqReplaceEq1
+          ## </d 'Distributive Property'>
+          EqReplaceEq1
+        ## </d 'Carry the One'>
+        ## <d 'Single-digit Addition'>
+          4plus1
+          EqReplaceEq1Mul0
+        ## </d 'Single-digit Addition'>
+      ## </d 'Addition'>
+      EqReplaceLt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Numbers Get Higher Rounding Up'>
+  ## <d 'More Digits'>
+    ## <d 'Compare First Digits'>
+      5less10
+    ## </d 'Compare First Digits'>
+    0less10
+    ltmul2i
+    LtReplaceLt1
+  ## </d 'More Digits'>
+  ## <d 'Higher First Digit'>
+    ## <d 'Compare First Digits'>
+      1less6
+    ## </d 'Compare First Digits'>
+    (+ (* (9) (10)) (9)) pa_ax1plus
+    ## <d 'Evaluate'>
+      ## <d 'Addition'>
+        ## <d 'Group Common Digits'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Change Associations'>
+              ## <d 'Associative Property'>
+                (* (9) (10)) (9) (1) addass
+              ## </d 'Associative Property'>
+            ## </d 'Change Associations'>
+          ## </d 'Rearrange Terms'>
+        ## </d 'Group Common Digits'>
+        ## <d 'Single-digit Addition'>
+          9plus1
+          EqReplaceEq1Add1
+        ## </d 'Single-digit Addition'>
+        ## <d 'Carry the One'>
+          ## <d 'Multiply By One'>
+            ## <d 'Evaluate'>
+              ## <d 'Evaluate'>
+                (10) mulidr
+              ## </d 'Evaluate'>
+              ## <d 'Commutative Property'>
+                (* (1) (10)) (10) eqcom
+                mpbi
+              ## </d 'Commutative Property'>
+            ## </d 'Evaluate'>
+            (* (9) (10)) addeq2i
+          ## </d 'Multiply By One'>
+          ## <d 'Distributive Property'>
+            (9) (1) (10) distl
+            ## <d 'Commutative Property'>
+              (* (+ (9) (1)) (10)) (+ (* (9) (10)) (* (1) (10))) eqcom
+              mpbi
+            ## </d 'Commutative Property'>
+            EqReplaceEq1
+          ## </d 'Distributive Property'>
+          EqReplaceEq1
+        ## </d 'Carry the One'>
+        ## <d 'Single-digit Addition'>
+          9plus1
+          EqReplaceEq1Mul0
+        ## </d 'Single-digit Addition'>
+      ## </d 'Addition'>
+      EqReplaceNot0Eq1
+    ## </d 'Evaluate'>
+    ## <d 'Less Than Or Equal To Zero'>
+      (* (10) (10)) 0le
+    ## </d 'Less Than Or Equal To Zero'>
+    axlttri2i
+    ltmul2i
+    ## <d 'Evaluate'>
+      (* (10) (10)) mulidr
+      EqReplaceLt0
+    ## </d 'Evaluate'>
+    LtReplaceLt1
+  ## </d 'Higher First Digit'>
+  ## <d 'Higher Remaining Digits'>
+    ## <d 'Compare Smaller Digits'>
+      ## <d 'Derive Smaller Inequality'>
+        (+ (* (3) (10)) (8)) pa_ax1plus
+        ## <d 'Evaluate'>
+          ## <d 'Addition'>
+            ## <d 'Group Common Digits'>
+              ## <d 'Rearrange Terms'>
+                ## <d 'Change Associations'>
+                  ## <d 'Associative Property'>
+                    (* (3) (10)) (8) (1) addass
+                  ## </d 'Associative Property'>
+                ## </d 'Change Associations'>
+              ## </d 'Rearrange Terms'>
+            ## </d 'Group Common Digits'>
+            ## <d 'Single-digit Addition'>
+              8plus1
+              EqReplaceEq1Add1
+            ## </d 'Single-digit Addition'>
+          ## </d 'Addition'>
+          EqReplaceNot0Eq1
+        ## </d 'Evaluate'>
+        ## <d 'Less Than Or Equal To Zero'>
+          (+ (* (3) (10)) (9)) 0le
+        ## </d 'Less Than Or Equal To Zero'>
+        axlttri2i
+      ## </d 'Derive Smaller Inequality'>
+      ## <d 'Add To Both Sides'>
+        (* (6) (* (10) (10))) ltadd2i
+      ## </d 'Add To Both Sides'>
+      ## <d 'Simplify Left Side'>
+        (* (6) (* (10) (10))) pa_ax3
+        EqReplaceLt0
+      ## </d 'Simplify Left Side'>
+    ## </d 'Compare Smaller Digits'>
+    LtReplaceLt1
+  ## </d 'Higher Remaining Digits'>
+  ## <d 'Convert to ≤'>
+    (+ (* (4) (10)) (2)) (+ (* (6) (* (10) (10))) (+ (* (3) (10)) (9))) ltle
+    ax-mp
+  ## </d 'Convert to ≤'>
+)
+
 thm (lessThanExample() () (< (+ (* (2) (10)) (6)) (+ (* (7) (* (10) (10))) (+ (* (3) (10)) (9))))
   ## <d 'Numbers Get Higher Rounding Up'>
     ## <d 'Derive Smaller Inequality'>
@@ -26558,7 +27036,7 @@ thm (EqReplaceEq1Add0Sum1 () (
   B S sumeq2i
   EqReplaceEq1Add0
 )
-## <summary> This is used just for convenience to get an empty theorem. </summary>
+
 thm (sumExample() () (= (sum (5) (7) (lambda x (+ (exp x (2)) (* (3) x)))) (+ (* (10) (10)) (+ (* (6) (10)) (4))))
   ## <d 'Evaluate'>
     ## <d 'Expand the sum'>
@@ -27150,7 +27628,6 @@ thm (notIn2set () (hyp0 (-. (= A B)) hyp1 (-. (= A C)) ) (-. (e. A (u. ({} B) ({
   notInSingletonUnion
 )
 
-## <summary> This is used just for convenience to get an empty theorem. </summary>
 thm (properSubsetExample() () (C. (u. ({} (2)) ({} (4))) (u. ({} (1)) (u. ({} (2)) (u. ({} (4)) ({} (5))))))
   ## <d 'Subset'>
     (u. ({} (2)) ({} (4))) (u. ({} (1)) ({} (5))) ssUnion
