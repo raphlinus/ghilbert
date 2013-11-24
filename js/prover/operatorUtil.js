@@ -234,14 +234,15 @@ GH.operatorUtil.reduce = function(sexp, value) {
 // A guide for getting help with the notation. Appears below the proof and 
 // provided links for more information on all of the symbols used in the
 // proof.
-GH.notationGuide = function(stack) {
+GH.notationGuide = function(syms) {
 	this.titleElement = null;
 	this.bodyElement = null;
 	this.isOpen = false;
 	this.steps = [];
-	this.variables = [];
+	this.variables = {};
 	this.operators = [];
 	this.precomputed = false;
+	this.syms = syms;
 };
 
 GH.notationGuide.prototype.render = function() {
@@ -261,12 +262,23 @@ GH.notationGuide.prototype.render = function() {
 
 GH.notationGuide.prototype.clear = function() {
 	this.steps = [];
-	this.variables = [];
+	this.variables = {};
 	this.operators = [];
 };
 
 GH.notationGuide.prototype.addStep = function(step) {
 	this.steps.push(step);
+};
+
+GH.notationGuide.prototype.addGuideElement = function(guide, symbol) {
+	var guideElement = document.createElement('span');
+	guideElement.setAttribute('class', 'notation-guide');
+	if (guide.hasOwnProperty('link')) {
+		guideElement.innerHTML = symbol + ' <a href="/wiki/peano/' + guide.link + '">' + guide.name + '</a>';
+	} else {
+		guideElement.innerHTML = symbol + ' ' + '<span class="guide-no-link">' + guide.name + '</span>';
+	}
+	this.bodyElement.appendChild(guideElement);
 };
 
 GH.notationGuide.prototype.toggle = function() {
@@ -279,6 +291,17 @@ GH.notationGuide.prototype.toggle = function() {
 			for (var i = 0; i < this.steps.length; i++) {
 				this.addSymbolsFromStep(this.steps[i]);
 			}
+			for (var i = 0; i < GH.notationGuide.variableData.length; i++) {
+				var variableData = GH.notationGuide.variableData[i];
+				if (this.variables.hasOwnProperty(variableData.kind)) {
+					var kindVars = this.variables[variableData.kind];
+					for (var j = 0; j < kindVars.length; j++) {
+						kindVars[j] = GH.typesetVariables(kindVars[j]);
+					}
+					var symbol = kindVars.join(',');
+					this.addGuideElement(variableData, symbol);
+				}
+			}
 			for (var i = 0; i < GH.notationGuide.guideData.length; i++) {
 				var guide = GH.notationGuide.guideData[i];
 				var match = false;
@@ -288,15 +311,8 @@ GH.notationGuide.prototype.toggle = function() {
 					}
 				}
 				if (match) {
-					var guideElement = document.createElement('span');
-					guideElement.setAttribute('class', 'notation-guide');
 					var symbol = guide.hasOwnProperty('unicode') ? guide.unicode : guide.symbols[0];
-					if (guide.hasOwnProperty('link')) {
-						guideElement.innerHTML = symbol + ' <a href="/wiki/peano/' + guide.link + '">' + guide.name + '</a>';
-					} else {
-						guideElement.innerHTML = symbol + ' ' + '<span class="guide-no-link">' + guide.name + '</span>';
-					}
-					this.bodyElement.appendChild(guideElement);
+					this.addGuideElement(guide, symbol);
 				}
 			}
 		}
@@ -316,16 +332,35 @@ GH.notationGuide.prototype.addSymbolsFromStep = function(step) {
 GH.notationGuide.prototype.addSymbolsFromSexp = function(sexp) {
 	var isString = (GH.typeOf(sexp) == 'string');
 	if (isString) {
-		var str = new String(sexp[0]);
-		this.variables[str] = true;
+		var str = sexp.valueOf();
+		var kind = this.syms[str][1];
+		if (!this.variables.hasOwnProperty(kind)) {
+			this.variables[kind] = [str];
+		} else {
+			var i = 0;
+			while (i < this.variables[kind].length && (this.variables[kind][i] < str)) {
+				i++;
+			}
+			if (this.variables[kind][i] == str) {
+				// String is already added to the variables
+				return;
+			}
+			this.variables[kind].splice(i, 0, str);
+		}
 	} else {
-		var str = new String(sexp[0]);
+		var str = sexp[0].valueOf();
 		this.operators[str] = true;
-	}
-	for (var i = 1; i < sexp.length; i++) {
-		this.addSymbolsFromSexp(sexp[i]);
+		for (var i = 1; i < sexp.length; i++) {
+			this.addSymbolsFromSexp(sexp[i]);
+		}
 	}
 };
+
+GH.notationGuide.variableData = [
+  { kind: ['wff'], name: 'wffs', link: 'logic/wff' },
+  { kind: ['nat'], name: 'numbers', link: 'arithmetic/numbers' },
+  { kind: ['set'], name: 'sets', link: 'set' },
+];
 
 GH.notationGuide.guideData = [
 	{ symbols: ['-.'], unicode: '¬', name: 'not', link: 'logic/not'},

@@ -129,6 +129,7 @@ GH.TextareaEdit = function(textarea) {
         textarea.value = text.map(
             function(line) { return line.replace(/^#!/,''); })
             .join('\n');
+		this.removeLastCharacter();
         if (self.listener) self.listener();
     };
 	// Insert text at the current cursor position.
@@ -148,8 +149,12 @@ GH.TextareaEdit = function(textarea) {
 		textarea.selectionEnd = start + text.length;
 		textarea.selectionStart = textarea.selectionEnd;
     };
+	this.removeLastCharacter = function() {
+		var end = textarea.value.length;
+		textarea.value = textarea.value.slice(0, end - 1);
+    };
 	// Move the cursor to the end.
-	this.moveCursorToEnd = function(text) {
+	this.moveCursorToEnd = function() {
 		var end = textarea.value.length;
 		textarea.selectionStart = end;
 		textarea.selectionEnd = end;

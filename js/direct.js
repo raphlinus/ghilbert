@@ -157,6 +157,7 @@ GH.Direct.prototype.addAutoUnifyLink = function(ex) {
 };
 
 // Parses Ghilbert text and updates thmctx based on the text.
+//	this.text.removeLastCharacter(); // This is the remove the ')' at the end. It makes the theorem easier to edit.
 GH.Direct.prototype.parseText = function(text) {
 	var thmctx = this.thmctx;
 	thmctx.styleScanner.read_styling(text.replace(/\(|\)/g, ' $& '));
@@ -188,8 +189,6 @@ GH.Direct.prototype.parseText = function(text) {
 	this.offset += text.length + 1;
 };
 
-
-
 // Display the proofs in the right panel.
 GH.Direct.prototype.updateProofs = function(cursorPosition) {
 	var thmctx = this.thmctx;
@@ -206,7 +205,7 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 			}
 		}		
 		this.rootSegments = [];
-		this.notationGuide = new GH.notationGuide();
+		this.notationGuide = new GH.notationGuide(this.vg.syms);
 		for (var j = 0; j < shownHistory.length; j++) {
 			var summary = (j == 0) ? thmctx.styleScanner.summary : '';
 			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j, cursorPosition));
@@ -259,6 +258,11 @@ GH.Direct.prototype.removeExpression = function(expression) {
 	var end = expression.end;
 	this.text.splice(begin, end - begin, '');
 	this.update(false);
+};
+
+GH.Direct.prototype.removeText = function(begin, end) {
+	this.text.splice(begin, end - begin, '');
+	this.update(true);
 };
 
 // Reverse the order of the last two steps.
@@ -515,44 +519,38 @@ GH.DirectThm.prototype.tok = function(tok) {
 			if (tok == '(') {
 			  this.pushEmptySExp_(tok);
 				this.state = stateType.S_EXPRESSION;
-			} else if (tok == ')') {
-				if (this.thmType != thmType.DEFINITION) {
-					pc = this.proofctx;
-					if (pc.mandstack.length != 0) {
-						//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, null));
-						return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
-					}
-					if (pc.stack.length != 1) {
-						return '\n\nStack must have one term at the end of the proof.';
-					}
-					if (!GH.sexp_equals(pc.stack[0], this.concl)) {
-						return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
-								'\nWanted:\n ' + GH.sexp_to_string(this.concl));
-					}
-					
-					var new_hyps = [];
-					if (this.hyps) {
-						for (j = 1; j < this.hyps.length; j += 2) {
-							new_hyps.push(this.hyps[j]);
-						}
-					}
-					// Hmm, could possibly save proofctx.varmap instead of this.syms...
-					// If we go to index variable expression storage we don't need either
-					this.vg.add_assertion('thm', this.thmname, this.fv, new_hyps, this.concl,
-									   this.proofctx.varlist, this.proofctx.num_hypvars,
-									   this.proofctx.num_nondummies, this.vg.syms, this.styleScanner.get_styling(''));
-					this.newSyms.push(this.thmname);
-	
-					this.state = stateType.THM;
-					// Make the end of the hierarchy equal to the final end to the theorem.
-					this.proofctx.hierarchy.end = tok.end;
-					this.concl = null;
-					this.hypmap = {};
-				} else {
-					var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, null)
-					conclusion.hierarchy = new GH.ProofHierarchy(null, 0, 'Definition');
-					this.proofctx.stackHistory.push(conclusion);
+			} else if ((tok == ')') && (this.thmType != thmType.DEFINITION)) {
+				pc = this.proofctx;
+				if (pc.mandstack.length != 0) {
+					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, null));
+					return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
 				}
+				if (pc.stack.length != 1) {
+					return '\n\nStack must have one term at the end of the proof.';
+				}
+				if (!GH.sexp_equals(pc.stack[0], this.concl)) {
+					return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
+							'\nWanted:\n ' + GH.sexp_to_string(this.concl));
+				}
+				
+				var new_hyps = [];
+				if (this.hyps) {
+					for (j = 1; j < this.hyps.length; j += 2) {
+						new_hyps.push(this.hyps[j]);
+					}
+				}
+				// Hmm, could possibly save proofctx.varmap instead of this.syms...
+				// If we go to index variable expression storage we don't need either
+				this.vg.add_assertion('thm', this.thmname, this.fv, new_hyps, this.concl,
+								   this.proofctx.varlist, this.proofctx.num_hypvars,
+								   this.proofctx.num_nondummies, this.vg.syms, this.styleScanner.get_styling(''));
+				this.newSyms.push(this.thmname);
+
+				this.state = stateType.THM;
+				// Make the end of the hierarchy equal to the final end to the theorem.
+				this.proofctx.hierarchy.end = tok.end;
+				this.concl = null;
+				this.hypmap = {};
 			} else {
 				thestep = tok;
 			}
@@ -633,6 +631,12 @@ GH.DirectThm.prototype.tok = function(tok) {
 			}
 		}
 		this.concl = thestep || 'null';
+		// Immediately print the conclusion if this is a definition.
+		if (this.thmType == thmType.DEFINITION) {
+			var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, null)
+			conclusion.hierarchy = new GH.ProofHierarchy(null, 0, 'Definition');
+			this.proofctx.stackHistory.push(conclusion);
+		}
   } else if (thestep != null && state == stateType.POST_S_EXPRESSION && (this.thmType != thmType.DEFINITION)) {
 		try {
 			var tagName = (this.tagNames.length > 0) ? this.tagNames[this.tagNames.length - 1] : null;

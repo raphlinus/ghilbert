@@ -488,21 +488,28 @@ GH.typesetTupleOperation = function(term, start, operator, dots, end, cursorPosi
     return GH.combineslugs(slugs, 9999);
 };
 
+GH.typesetVariables = function(sexp) {
+	var trans = {
+		et: 'η',
+		th: 'θ',
+		ta: 'τ',
+		ph: 'φ',
+		ch: 'χ',
+		ps: 'ψ'
+	};
+	if (sexp in trans) {
+		return trans[sexp];
+	} else {
+		return sexp;
+	}
+};
+
 GH.typeset = function(sexp, cursorPosition) {
 	var str;
 	var decimal = GH.numUtil.decimalNumber(sexp);
     if (GH.typeOf(sexp) == 'string') {
-        var trans = { et: 'η',
-            th: 'θ',
-            ta: 'τ',
-            ph: 'φ',
-            ch: 'χ',
-            ps: 'ψ'};
-        if (sexp in trans) {
-			str = GH.highlightSymbol(trans[sexp], sexp, cursorPosition);
-        } else {
-			str = GH.highlightSymbol(GH.escapeHtml(sexp), sexp, cursorPosition);
-        }
+		var symbol = GH.typesetVariables(sexp);
+		str = GH.highlightSymbol(symbol, sexp, cursorPosition);
         return GH.stringslug(str);
     } else if (!isNaN(decimal)) {
 		str = GH.highlightSymbol(decimal.toString(), sexp, cursorPosition);

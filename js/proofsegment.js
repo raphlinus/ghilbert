@@ -11,6 +11,7 @@ GH.ProofSegment = function(state, type, step, hasPrevious, cursorPosition) {
 	this.isOpen = false;
 	this.hasPrevious = hasPrevious;
 	this.attachChildrenData = null;  // Saved data to attach children when needed.
+	this.hasCloseColumn = false;
 
 	this.smallElement = null;
 	this.largeElement = GH.ProofSegment.createLargeElement();
@@ -96,9 +97,14 @@ GH.ProofSegment.prototype.addNames = function() {
 			name = GH.ProofSegment.getName(prevStep, step, nextStep);
 		}
 		var smallElement = this.children[i].smallElement;
-		smallElement.children[smallElement.children.length - 1].children[0].innerHTML = name;
+		this.getNameColumn(smallElement).children[0].innerHTML = name;
 		this.children[i].addNames();
 	}
+};
+
+GH.ProofSegment.prototype.getNameColumn = function(rowElement) {
+	var nameIndex = this.hasCloseColumn ? rowElement.children.length - 2 : rowElement.children.length - 1;
+	return rowElement.children[nameIndex];
 };
 
 GH.ProofSegment.getName = function(prevStep, step, nextStep) {
@@ -128,9 +134,36 @@ GH.ProofSegment.isSingleStep = function(step, steps) {
 	return true;
 };
 
+GH.ProofSegment.handleCloseBlock = function(position) {
+	var segment = GH.ProofSegment.findSegments([position])[0];
+	window.direct.removeText(segment.step.getBeginning(), segment.step.end);
+};
+
+GH.ProofSegment.handleCloseStep = function(position) {
+	var segment = GH.ProofSegment.findSegments([position])[0];
+	window.direct.removeText(segment.step.begin, segment.step.end);
+};
+
+GH.ProofSegment.prototype.createCloseColumn = function(i, steps) {
+	var xElement = document.createElement("td");
+	xElement.innerHTML='X';
+	if ((i != 0) && (i != steps.length - 1)) {
+		xElement.setAttribute('class', 'inactive-x step-x');
+	} else {
+		xElement.setAttribute('class', 'step-x');
+		if (i == 0) {
+			xElement.setAttribute('onclick', 'GH.ProofSegment.handleCloseBlock(' + this.getPosition() + ')');
+		} else {
+			xElement.setAttribute('onclick', 'GH.ProofSegment.handleCloseStep(' + this.getPosition() + ')');
+		}
+	}
+	return xElement;
+};
+
 GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursorPosition) {
 	var steps = stepsData.steps;
 	var tableElement = GH.ProofSegment.addTable(this.largeElement);
+	this.hasCloseColumn = (this.getPosition().length == 1);
 	
 	for (var i = 0; i < steps.length; i++) {
 		var endStep = (i > 0) ? steps[i - 1] : null;
@@ -172,6 +205,9 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, link, isSingleStep && isConclusion);
 			child.smallElement = GH.ProofStep.stepToHtml(text, nameHtml);
 			tableElement.appendChild(child.smallElement);
+		}
+		if (this.hasCloseColumn) {
+			child.smallElement.appendChild(this.createCloseColumn(i, steps));
 		}
 
 		if (type % 2 == 0) {
@@ -339,12 +375,12 @@ GH.ProofSegment.prototype.resize = function() {
 GH.ProofSegment.prototype.resizeTables = function(){
 	for (var i = 0; i < this.children.length; i++) {
 		var row = this.children[i].smallElement;
-		var lastCell = row.lastChild;
+		var lastCell = this.getNameColumn(row);
 		lastCell.setAttribute('style', 'width: auto');
 	}
 	for (var i = 0; i < this.children.length; i++) {
 		var row = this.children[i].smallElement;
-		var lastCell = row.lastChild;
+		var lastCell = this.getNameColumn(row);
 		// The width is equal to the current width plus the difference between the block and the table width.
 		var newWidth = this.largeElement.offsetWidth - row.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 20;
 		lastCell.setAttribute('style', 'width: ' + newWidth);

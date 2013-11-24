@@ -236,43 +236,6 @@ GH.sExpression.prototype.getBeginning = function() {
 	return this.begin;
 };
 
-GH.ProofBlock = {};
-
-GH.ProofBlock.hideableOperators = ['<->', '->', '=', '=_', '<', '<='];
-
-// TODO: Remove this old code and use it in proof segment.
-// Render the proof step. Hide parts on the left-side of an expression that are identical in the previous
-// step.
-GH.ProofBlock.renderVisibleParts = function(prevStep, step, tableElement, cursorPosition) {
-	var isHidden = false;
-	if (prevStep != null) {
-		var hideableOperators = GH.ProofBlock.hideableOperators;
-		var sexp = step.expression_;
-		var prevSexp = prevStep.expression_;
-		var operator = String(sexp[0]);
-		if (operator == String(prevSexp[0])) {
-			var hideable = false;
-			for (var i = 0; i < hideableOperators.length && !hideable; i++) {
-				hideable = hideable || (operator == hideableOperators[i]);
-			}
-			if (hideable) {
-				var prevLeft = GH.sExpression.fromRaw(prevSexp[1]);
-				var left = GH.sExpression.fromRaw(sexp[1]);
-				isHidden = left.equals(prevLeft)
-			}
-		}
-	}
-
-	if (isHidden) {
-		var sexp = step.expression_;
-		sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
-		tableElement.appendChild(step.render(cursorPosition));
-		sexp[1] = sexp[1][2]; // Revert the s-expression.
-	} else {
-		tableElement.appendChild(step.render(cursorPosition));
-	}
-};
-
 
 /**
  * This represents a hierarchy of proof steps. A proofHierarchy either contains a single
@@ -463,6 +426,14 @@ GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount, cur
 	return GH.ProofSegment.createSegments(this, stack, segmentCount, cursorPosition);
 };
 
+GH.ProofStep.createCloseColumn = function(inputArg) {
+	var xElement = document.createElement("td");
+	xElement.innerHTML='X';
+	xElement.setAttribute('class', 'step-x');
+	xElement.setAttribute('onclick', 'window.direct.removeText(' + inputArg[1].beg + ',' + inputArg[1].end + ')');
+	return xElement;
+};
+
 // Display the left over input arguments on the stack
 GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, cursorPosition) {
 	var rowCount = Math.max(inputArgs.length, expectedTypes.length && expectedTypes[0].length);
@@ -472,6 +443,7 @@ GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, c
 		
 	var classes = 'proof-block input-args';
 	var newBlock = new GH.ProofSegment(GH.ProofSegment.State.LARGE, 0, null, false, cursorPosition);
+	newBlock.hasCloseColumn = true;
 	newBlock.largeElement.className += ' input-args';
 	var tableElement = GH.ProofSegment.addTable(newBlock.largeElement);
 	var nameHtml = '<span class=proof-step-name>Input Argument' + ((inputArgs.length > 1) ? 's' : '') + '</span>';
@@ -482,6 +454,7 @@ GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, c
 		var partialHtml = GH.sexptohtml(inputArgs[i][1]);
 		var fullHtml = GH.ProofStep.stepToHtml(partialHtml, iNameHtml);
 		child.smallElement = fullHtml;
+		child.smallElement.appendChild(GH.ProofStep.createCloseColumn(inputArgs[i]));
 		tableElement.appendChild(child.smallElement);
 	}
 	stack.appendChild(newBlock.largeElement);
