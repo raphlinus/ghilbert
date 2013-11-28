@@ -197,7 +197,9 @@ GH.Panel.resizePanel = function(num) {
 		rightPanel.style.width = '';
 		rightPanel.style.margin = '';
 	}
-	window.direct.resize();
+	if (window.direct) {
+		window.direct.resize();
+	}
 };
 
 GH.Panel.setPanelNum = function(num) {

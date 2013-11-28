@@ -627,7 +627,11 @@ GH.Prover.prototype.create = function(operator, operands) {
 };
 
 GH.Prover.prototype.getOperatorTypes = function(operator) {
-	var term = this.getTerm(operator)
+	var specialType = GH.operatorUtil.getSpecialOperatorTypes(operator);
+	if (specialType) {
+		return specialType;
+	}
+	var term = this.getTerm(operator);
 	var types = term[1].slice(0);
 
 	// Modify types for binding variables.

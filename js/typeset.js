@@ -522,16 +522,16 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesettable(sexp, cursorPosition);
     } else if (sexp[0] == 'htmlSpan') {
         return GH.typesetHtmlSpan(sexp, cursorPosition);
-    } else if (sexp[0] == '+') {
-		// TODO: Finish highlighting the other symbols.
+    } else if ((sexp[0] == '+') || (sexp[0] == '+z')) {
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);
     } else if (sexp[0] == '.-') {
         return GH.typesetinfix(sexp, 'l', 2200, '-', cursorPosition);
-    } else if (sexp[0] == '*' || sexp[0] == '∙') {
+    } else if (sexp[0] == '*' || sexp[0] == '*z' || sexp[0] == '∙') {
         return GH.typesetinfix(sexp, 'l', 2300, '∙', cursorPosition);
     } else if (sexp[0] == 'S') {
         return GH.typesetpostfix(sexp, 9999, '′', cursorPosition);
-    } else if (sexp[0] == '=') {
+    } else if ((sexp[0] == '=') || (sexp[0] == '=z')) {
+		// Typeset the natural number equality differently when in the integer file.
         return GH.typesetinfix(sexp, 'n', 1050, '=', cursorPosition);
     } else if (sexp[0] == '=_') {
         // Note: at present, this isn't distinguished visually in any way

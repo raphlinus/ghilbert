@@ -69,6 +69,8 @@ GH.ProofGenerator.replacer.REPLACE_OPERATIONS = [
 	['min', ['mineqi' ], '='],
 	['u.',  ['uneq1i',   'uneq2i'], '=_'],
 	['i^i', ['ineq1i',   'ineq2i'], '=_']]],
+['=z',
+   [['=_',  ['zeqzeq1i', 'zeqzeq2i'], '<->']]],
 ];
 
 GH.ProofGenerator.replacer.SHORTHAND_OPERATIONS = {
@@ -349,7 +351,7 @@ GH.ProofGenerator.replacer.prototype.getReplaceOperation = function(replaceeOper
 	}
 
 	// TODO: Replace the table with this.
-	if ((replacementOperator == '<->') || (replacementOperator == '=') || (replacementOperator == '=_')) {
+	if (GH.operatorUtil.EQUIVALENCE_OPERATORS.indexOf(replacementOperator)) {
 		var name = this.equalizer.actionName(replaceeOperator, index) + 'i';
 		if (!this.prover.symbolDefined(name)) {
 			// alert(name + ' is not defined.');

@@ -44,6 +44,16 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	return null;
 };
 
+// Integers have a kind that is an ordinary natural number, but we need to
+// use integer equality for them.
+GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
+	if (operator == 'int') 	return ['nat', 'int'];
+	if (operator == '=z') 	return ['int', 'int', 'wff'];
+	if (operator == '+z') 	return ['int', 'int', 'int'];
+	if (operator == '*z') 	return ['int', 'int', 'int'];
+	return null;
+};
+
 GH.operatorUtil.getType = function(sexp) {
 	var operator = sexp.operator;
 	var operatorTypes = GH.operatorUtil.getOperatorTypes(operator);
@@ -67,11 +77,13 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'A.') {		return 'Al';
 	} else if (operator == 'E.') {		return 'Ex';
 	} else if (operator == '=') {		return 'Eq';
+	} else if (operator == '=z') {		return 'Zeq';
 	} else if (operator == '<=') {		return 'Le';
 	} else if (operator == '<') {		return 'Lt';
 	} else if (operator == '|') {		return 'Divs';
 	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
+	} else if (operator == '+z') {		return 'Zadd';
 	} else if (operator == '*') {		return 'Mul';
 	} else if (operator == 'e.') {		return 'El';
 	} else if (operator == '=_') {		return 'Seq';
@@ -106,6 +118,9 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == 'A.') {		return 'al';
 	} else if (operator == 'E.') {		return 'ex';
 	} else if (operator == '=') {		return 'eq';
+	} else if (operator == '=z') {		return 'zeq';
+	} else if (operator == '+z') {		return 'zadd';
+	} else if (operator == '*z') {		return 'zmul';
 	} else if (operator == '<=') {		return 'le';
 	} else if (operator == '<') {		return 'lt';
 	} else if (operator == '|') {		return 'divides';
@@ -114,6 +129,7 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '*') {		return 'mul';
 	} else if (operator == '.-') {		return 'halfminus';
 	} else if (operator == 'e.') {		return 'el';
+	} else if (operator == '=z') {		return 'zeq';
 	} else if (operator == '=_') {		return 'seq';
 	} else if (operator == 'C_') {		return 'Ss';
 	} else if (operator == 'C.') {		return 'pss';
@@ -163,16 +179,25 @@ GH.operatorUtil.getUnicode = function(operator) {
 	}
 };
 
+GH.operatorUtil.EQUIVALENCE_OPERATORS = ['<->', '=', '=z', '=z'];
+
+GH.operatorUtil.EQUIVALENCE_MAP = [
+	[['wff'],         '<->'],
+	[['nat', 'bind'], '='],
+	[['int'],         '=z'],
+	[['set'],         '=_']
+];
+
 GH.operatorUtil.getEquivalenceOperator = function(type) {
-	if ((type == 'nat') || (type == 'bind')) {
-		return '=';
-	} else if (type == 'wff') {
-		return '<->';
-	} else if (type == 'set') {
-		return '=_';
-	} else {
-		alert('Equivalence operator for unknown type ' + type);
+	var EquivalenceOp = GH.operatorUtil.EQUIVALENCE_MAP;
+	for (var i = 0; i < EquivalenceOp.length; i++) {
+		for (var j = 0; j < EquivalenceOp[i][0].length; j++) {
+			if (EquivalenceOp[i][0][j] == type) {
+				return EquivalenceOp[i][1];
+			}
+		}
 	}
+	alert('Equivalence operator for unknown type ' + type);
 };
 
 GH.operatorUtil.prototype.isReduced = function(sexp) {
@@ -379,10 +404,12 @@ GH.notationGuide.guideData = [
 	{ symbols: ['rwff'], name: 'relatively well-formed formula'},
 	
 	{ symbols: ['='],  unicode: '=', name: 'equals', link: 'arithmetic/equality'},
+	{ symbols: ['=z'],  unicode: '=', name: 'integer equals', link: 'arithmetic/equality'},
 	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
 	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
 	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
 	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
+	{ symbols: ['+z'],  unicode: '+', name: 'integer plus', link: 'arithmetic/add'},
 	{ symbols: ['*'],  unicode: '∙', name: 'times', link: 'arithmetic/multiply'},
 	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
 	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
@@ -424,9 +451,9 @@ GH.notationGuide.guideData = [
 	{ symbols: ['beta'], name: 'Godel\'s beta function'},
 	{ symbols: ['relprim'], name: 'relatively prime'},
 	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function', link: 'function/lambda'},
-	{ symbols: ['apply'], name: 'function application', link: 'function/lambda'},
+	{ symbols: ['apply'], unicode: 'S(A)', name: 'function application', link: 'function/apply'},
 	{ symbols: ['recursep'], name: 'recursive predicate'},
-	{ symbols: ['recurse'], name: 'recursive function', link: 'function/recurse'},
+	{ symbols: ['recurse'], unicode: 'S<sup> A </sup>(B)', name: 'recursive function', link: 'function/recurse'},
 	{ symbols: ['sum-step'], name: 'summation construction step', link: 'arithmetic/sum'},
 	{ symbols: ['sum'], unicode: 'Σ', name: 'summation'},
 	{ symbols: ['{.|}'], unicode: '{S(x)|φ}', name: 'apply function to a set'},

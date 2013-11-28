@@ -70,14 +70,7 @@ GH.ProofGenerator.equalizer.prototype.inline = function(sexp) {
 	var replaceVar = definition.left().operands[operandIndex].copy();
 	var replacee = definition.right().copy();
 
-	var replacementOperator;
-	if (replacementType == 'wff') {
-		replacementOperator = '<->';
-	} else if (replacementType == 'nat') {
-		replacementOperator = '=';
-	} else if (replacementType == 'set') {
-		replacementOperator = '=_';
-	}
+	var replacementOperator = GH.operatorUtil.getEquivalenceOperator(replacementType);
 	var condition = this.prover.create(replacementOperator, [replaceVar, replacement]);
 	this.prover.condition(replacee, condition);
 	var conditional = this.prover.getLast()

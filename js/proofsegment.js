@@ -232,11 +232,9 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 	}
 };
 
-GH.ProofSegment.hideableOperators = ['<->', '->', '=', '=_', '<', '<='];
-
 GH.ProofSegment.hideRepeatedParts = function(prevStep, step, cursorPosition) {
 	var isHidden = false;
-	var hideableOperators = GH.ProofSegment.hideableOperators;
+	var hideableOperators = ['->', '<', '<='].concat(GH.operatorUtil.EQUIVALENCE_OPERATORS);
 	var sexp = step.conclusion;
 	var prevSexp = prevStep.conclusion;
 	var operator = String(sexp[0]);

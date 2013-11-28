@@ -11,6 +11,9 @@ GH.Prover.variableGenerator.VARIABLE_NAMES = {
 };
 
 GH.Prover.variableGenerator.prototype.generate = function(type) {
+	if (type == 'int') {
+		type = 'nat';
+	}
 	if (GH.Prover.variableGenerator.VARIABLE_NAMES[type].length <= this.usedVariables[type]) {
 		alert('No more unused variable names.');
 	}
@@ -28,6 +31,9 @@ GH.Prover.variableGenerator.isVariable = function(name) {
 };
 
 GH.Prover.variableGenerator.generateUnused = function(sexp, type) {
+	if (type == 'int') {
+		type = 'nat';
+	}
 	var names = GH.Prover.variableGenerator.VARIABLE_NAMES[type];
 	var isUsed = [];
 	for (var i = 0; i < names.length; i++) {
@@ -61,7 +67,11 @@ GH.Prover.variableGenerator.fillInMissing = function(names, types) {
 	for (var i = 0; i < names.length; i++) {
 		if (!names[i]) {
 			var done = false;
-			var possibleNames = NAMES[types[i]];
+			var type = types[i];
+			if (type == 'int') {
+				type = 'nat';
+			}
+			var possibleNames = NAMES[type];
 			for (var j = 0; j < possibleNames.length && !done; j++) {
 				var matchFound = false;
 				for (var k = 0; k < names.length && !matchFound; k++) {
