@@ -616,7 +616,7 @@ thm (and1i () (1 (/\ ph ps)) ph
 thm (and2i () (1 (/\ ph ps)) ps
      1 ph ps and2 ax-mp)
 
-thm (andi () (1 ph 2 ps) (/\ ph ps)
+thm (andi-nonmetamath () (1 ph 2 ps) (/\ ph ps)
      2 1 ph ps and ax-mp ax-mp)
 
 thm (and1d () (1 (-> ph (/\ ps ch))) (-> ph ps)
@@ -664,7 +664,7 @@ defthm (def-bi wff (<-> ph ps) () ()
 
     (/\ (-> ph ps) (-> ps ph)) id
     (/\ (-> ph ps) (-> ps ph)) id
-    andi)
+    andi-nonmetamath)
 
 thm (def-bi-1 () () (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
      ph ps def-bi and1i)
@@ -946,7 +946,7 @@ thm (def-bi-2i () (1 (/\ (-> ph ps) (-> ps ph))) (<-> ph ps)
 
 # a.k.a. biconsi
 thm (impbii () (1 (-> ph ps) 2 (-> ps ph)) (<-> ph ps)
-     1 2 andi def-bi-2i)
+     1 2 andi-nonmetamath def-bi-2i)
 
 thm (def-bi' () () (<-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
      ph ps def-bi def-bi-2i)
@@ -2617,41 +2617,8 @@ thm (com52r () (com5.1 (-> ph (-> ps (-> ch (-> th (-> ta et)))))) (-> th (-> ta
 #  Rearrangement of 4 disjuncts. 
 # thm (or4 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ ps th))) ps ch th or12 ph orbi2i ph ps (\/ ch th) orass ph ch (\/ ps th) orass 3bitr4i)
 
-#  Rearrangement of 4 disjuncts. 
-thm (or42 () () (<-> (\/ (\/ ph ps) (\/ ch th)) (\/ (\/ ph ch) (\/ th ps))) ph ps ch th or4 ps th orcom (\/ ph ch) orbi2i bitri)
-
-#  Distribution of disjunction over disjunction. 
-thm (orordi () () (<-> (\/ ph (\/ ps ch)) (\/ (\/ ph ps) (\/ ph ch))) ph oridm (\/ ps ch) orbi1i ph ph ps ch or4 bitr3i)
-
 #  Distribution of disjunction over disjunction. 
 thm (orordir () () (<-> (\/ (\/ ph ps) ch) (\/ (\/ ph ch) (\/ ps ch))) ch oridm (\/ ph ps) orbi2i ph ps ch ch or4 bitr3i)
-
-#  Introduction of a disjunct.  Axiom *1.3 of [bib/WhiteheadRussell] p. 96. 
-thm (olc () () (-> ph (\/ ps ph)) ph (-. ps) ax-1 orrd)
-
-#  Introduction of a disjunct.  Theorem *2.2 of [bib/WhiteheadRussell] p. 104. 
-thm (orc () () (-> ph (\/ ph ps)) ph ps pm2.24 orrd)
-
-#  Deduction introducing a disjunct. 
-thm (orci () (orci.1 ph) (\/ ph ps) orci.1 ph ps orc ax-mp)
-
-#  Deduction introducing a disjunct. 
-thm (olci () (orci.1 ph) (\/ ps ph) orci.1 ph ps olc ax-mp)
-
-#  Deduction introducing a disjunct. 
-thm (orcd () (orcd.1 (-> ph ps)) (-> ph (\/ ps ch)) orcd.1 ps ch orc syl)
-
-#  Deduction introducing a disjunct. 
-thm (olcd () (orcd.1 (-> ph ps)) (-> ph (\/ ch ps)) orcd.1 ps ch olc syl)
-
-#  Deduction eliminating disjunct. 
-thm (orcs () (orcs.1 (-> (\/ ph ps) ch)) (-> ph ch) ph ps orc orcs.1 syl)
-
-#  Deduction eliminating disjunct. 
-thm (olcs () (olcs.1 (-> (\/ ph ps) ch)) (-> ps ch) ps ph olc olcs.1 syl)
-
-#  Theorem *2.07 of [bib/WhiteheadRussell] p. 101. 
-thm (pm2.07 () () (-> ph (\/ ph ph)) ph ph olc)
 
 #  Theorem *2.45 of [bib/WhiteheadRussell] p. 106. 
 thm (pm2.45 () () (-> (-. (\/ ph ps)) (-. ph)) ph ps orc con3i)
