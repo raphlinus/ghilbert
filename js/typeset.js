@@ -522,24 +522,28 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesettable(sexp, cursorPosition);
     } else if (sexp[0] == 'htmlSpan') {
         return GH.typesetHtmlSpan(sexp, cursorPosition);
-    } else if ((sexp[0] == '+') || (sexp[0] == '+z')) {
+    } else if ((sexp[0] == '+') || (sexp[0] == '+z') || (sexp[0] == '+q')) {
         return GH.typesetinfix(sexp, 'l', 2200, '+', cursorPosition);
     } else if (sexp[0] == '.-') {
         return GH.typesetinfix(sexp, 'l', 2200, '-', cursorPosition);
-    } else if (sexp[0] == '*' || sexp[0] == '*z' || sexp[0] == '∙') {
+    } else if (sexp[0] == '-n') {
+		return GH.typesetunary(sexp, 2000, '-', cursorPosition);
+    } else if (sexp[0] == '-') {
+        return GH.typesetinfix(sexp, 'l', 2200, '−', cursorPosition);
+    } else if (sexp[0] == '*' || sexp[0] == '*z' || sexp[0] == '*q' || sexp[0] == '∙') {
         return GH.typesetinfix(sexp, 'l', 2300, '∙', cursorPosition);
     } else if (sexp[0] == 'S') {
         return GH.typesetpostfix(sexp, 9999, '′', cursorPosition);
-    } else if ((sexp[0] == '=') || (sexp[0] == '=z')) {
+    } else if ((sexp[0] == '=') || (sexp[0] == '=z') || (sexp[0] == '=q')) {
 		// Typeset the natural number equality differently when in the integer file.
         return GH.typesetinfix(sexp, 'n', 1050, '=', cursorPosition);
     } else if (sexp[0] == '=_') {
         // Note: at present, this isn't distinguished visually in any way
         // from '='. We should probably do something, like subtle color.
         return GH.typesetinfix(sexp, 'n', 1050, '=', cursorPosition);
-    } else if (sexp[0] == '<=' || sexp[0] == '≤') {
+    } else if (sexp[0] == '<=' || sexp[0] == '<=z' || sexp[0] == '<=q' || sexp[0] == '≤') {
         return GH.typesetinfix(sexp, 'n', 1050, '≤', cursorPosition);
-    } else if (sexp[0] == '<') {
+    } else if (sexp[0] == '<' || sexp[0] == '<z' || sexp[0] == '<q') {
         return GH.typesetinfix(sexp, 'n', 1050, '&lt;', cursorPosition);
     } else if (sexp[0] == '|') {
         return GH.typesetinfix(sexp, 'n', 1050, '|', cursorPosition);
@@ -553,7 +557,7 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetinfix(sexp, 'n', 100, '↔', cursorPosition);
     } else if (sexp[0] == '-.' || sexp[0] == '¬') {
         if (GH.typeOf(sexp[1]) != 'string') {
-            if (sexp[1][0] == '=') {
+            if ((sexp[1][0] == '=') || (sexp[1][0] == '=z') || (sexp[1][0] == '=q')) {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '≠', cursorPosition);
             } else if (sexp[1][0] == '=_') {
                 return GH.typesetinfix(sexp[1], 'n', 1050, '≠', cursorPosition);
@@ -612,10 +616,16 @@ GH.typeset = function(sexp, cursorPosition) {
         return GH.typesetinfix(sexp, 'r', 3500, '∪', cursorPosition);
     } else if (sexp[0] == '{/}') {
         return GH.stringslug('∅', cursorPosition);
+    } else if (sexp[0] == '</>') {
+        return GH.typesetinfix(sexp, 'n', 1050, '/', cursorPosition);
     } else if (sexp[0] == '<,>') {
         return GH.typesetTuple(sexp, cursorPosition);
     } else if (sexp[0] == '<>') {
         return GH.typesetTuple(sexp, cursorPosition);
+    } else if (sexp[0] == 'head') {
+		return GH.typesetunary(sexp, 3000, 'head ', cursorPosition);
+    } else if (sexp[0] == 'tail') {
+		return GH.typesetunary(sexp, 3000, 'tail ', cursorPosition);
     } else if (sexp[0] == '<{}>') {
         return GH.typesetTupleOperation(sexp, '{', ',', '…', '}', cursorPosition);
     } else if (sexp[0] == '<+>') {

@@ -21,6 +21,7 @@ GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS = [
 	// ['>',   ['gteq1d', 'gteq2d', 'gteq12d']],    // Not yet added.
 	['S',	['suceqd']],
 	['+',	['addeq1d', 'addeq2d', 'addeq12d']],
+	['<,>',	['opeq1d', 'opeq2d', 'opeq12d']],
 	['*',   ['muleq1d', 'muleq2d', 'muleq12d']],     // muleq2d is missing.
 	['[/]', [null, null, 'sbcbid']],                 // terms missing.
 ];

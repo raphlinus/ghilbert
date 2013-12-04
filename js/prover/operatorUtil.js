@@ -49,8 +49,15 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == 'int') 	return ['nat', 'int'];
 	if (operator == '=z') 	return ['int', 'int', 'wff'];
+	if (operator == '<=z') 	return ['int', 'int', 'wff'];
+	if (operator == '<z') 	return ['int', 'int', 'wff'];
 	if (operator == '+z') 	return ['int', 'int', 'int'];
+	if (operator == '-') 	return ['int', 'int', 'int'];
 	if (operator == '*z') 	return ['int', 'int', 'int'];
+	if (operator == '-n') 	return ['int', 'int'];
+	if (operator == '=q') 	return ['rat', 'rat', 'wff'];
+	if (operator == '*q') 	return ['rat', 'rat', 'rat'];
+	if (operator == '+q') 	return ['rat', 'rat', 'rat'];
 	return null;
 };
 
@@ -78,12 +85,20 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'E.') {		return 'Ex';
 	} else if (operator == '=') {		return 'Eq';
 	} else if (operator == '=z') {		return 'Zeq';
+	} else if (operator == '=q') {		return 'Qeq';
+	} else if (operator == '<=z') {		return 'Zle';
+	} else if (operator == '<z') {		return 'Zlt';
 	} else if (operator == '<=') {		return 'Le';
 	} else if (operator == '<') {		return 'Lt';
 	} else if (operator == '|') {		return 'Divs';
 	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
 	} else if (operator == '+z') {		return 'Zadd';
+	} else if (operator == '*z') {		return 'Zmul';
+	} else if (operator == '+q') {		return 'Qadd';
+	} else if (operator == '*q') {		return 'Qmul';
+	} else if (operator == '-n') {		return 'Neg';
+	} else if (operator == '-') {		return 'Minus';
 	} else if (operator == '*') {		return 'Mul';
 	} else if (operator == 'e.') {		return 'El';
 	} else if (operator == '=_') {		return 'Seq';
@@ -119,17 +134,23 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == 'E.') {		return 'ex';
 	} else if (operator == '=') {		return 'eq';
 	} else if (operator == '=z') {		return 'zeq';
+	} else if (operator == '=q') {		return 'eqq';
+	} else if (operator == '<=z') {		return 'zle';
+	} else if (operator == '<z') {		return 'zlt';
 	} else if (operator == '+z') {		return 'zadd';
 	} else if (operator == '*z') {		return 'zmul';
+	} else if (operator == '+q') {		return 'qadd';
+	} else if (operator == '*q') {		return 'qmul';
 	} else if (operator == '<=') {		return 'le';
 	} else if (operator == '<') {		return 'lt';
 	} else if (operator == '|') {		return 'divides';
 	} else if (operator == 'S') {		return 'suc';
 	} else if (operator == '+') {		return 'add';
+	} else if (operator == '-n') {		return 'neg';
+	} else if (operator == '-') {		return 'minus';
 	} else if (operator == '*') {		return 'mul';
 	} else if (operator == '.-') {		return 'halfminus';
 	} else if (operator == 'e.') {		return 'el';
-	} else if (operator == '=z') {		return 'zeq';
 	} else if (operator == '=_') {		return 'seq';
 	} else if (operator == 'C_') {		return 'Ss';
 	} else if (operator == 'C.') {		return 'pss';
@@ -179,12 +200,13 @@ GH.operatorUtil.getUnicode = function(operator) {
 	}
 };
 
-GH.operatorUtil.EQUIVALENCE_OPERATORS = ['<->', '=', '=z', '=z'];
+GH.operatorUtil.EQUIVALENCE_OPERATORS = ['<->', '=', '=z', '=q', '=_'];
 
 GH.operatorUtil.EQUIVALENCE_MAP = [
 	[['wff'],         '<->'],
 	[['nat', 'bind'], '='],
 	[['int'],         '=z'],
+	[['rat'],         '=q'],
 	[['set'],         '=_']
 ];
 
@@ -405,6 +427,7 @@ GH.notationGuide.guideData = [
 	
 	{ symbols: ['='],  unicode: '=', name: 'equals', link: 'arithmetic/equality'},
 	{ symbols: ['=z'],  unicode: '=', name: 'integer equals', link: 'arithmetic/equality'},
+	{ symbols: ['=q'],  unicode: '=', name: 'rational equals', link: 'arithmetic/equality'},
 	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
 	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
 	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},

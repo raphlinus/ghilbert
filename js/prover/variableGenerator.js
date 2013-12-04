@@ -11,7 +11,7 @@ GH.Prover.variableGenerator.VARIABLE_NAMES = {
 };
 
 GH.Prover.variableGenerator.prototype.generate = function(type) {
-	if (type == 'int') {
+	if ((type == 'int') || (type == 'rat')) {
 		type = 'nat';
 	}
 	if (GH.Prover.variableGenerator.VARIABLE_NAMES[type].length <= this.usedVariables[type]) {
