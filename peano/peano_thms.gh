@@ -636,6 +636,39 @@ thm (imex ((ph x)) () (<-> (-> ph (E. x ps)) (E. x (-> ph ps)))
   ph  ps   imor  (-. ph)  ps  orcom  bitri x  exbii  bitr4i
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+## <title> Combine Existence Quantifiers </title>
+## <suggest> right('Infer', '∃∃') </suggest>
+thm (doubleex ((ph y) (ps x)) () (-> (/\ (E. x ph) (E. y ps)) (E. x (E. y (/\ ph ps))))
+  (E. y ps) x alnfi
+  (E. x ph) anim2i  
+  ## <d 'Combine Universial and Existence Quantifiers '>
+    x ph (E. y ps) 19.29r
+    syl
+  ## </d 'Combine Universial and Existence Quantifiers '>
+  ph y alnfi
+  (E. y ps) anim1i  
+  ImpReplaceImp1Ex1  
+  ## <d 'Combine Universial and Existence Quantifiers '>
+    y ph ps 19.29
+    ImpReplaceImp1Ex1
+  ## </d 'Combine Universial and Existence Quantifiers '>
+)
+
 # == Predicate calculus with equality ==
 
 ## <title> There is a number equal to any expression </title>
@@ -1456,6 +1489,12 @@ thm (eqeq12d ()
   hyp2 B eqeq2d bitrd
 )
 
+thm (eqeq12 () () (-> (/\ (= A B) (= C D)) (<-> (= A C) (= B D)))
+  (= A B) (= C D) pm3.26
+  (= A B) (= C D) pm3.27
+  eqeq12d
+)
+
 ## <title> Substitution </title>
 ## <table>
 ##   (= A  [ B ]   ]   ] )
@@ -1470,6 +1509,33 @@ thm (EqReplaceEq1 () (
   substitution
 A eqeq2i
 mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee
+  substitution
+  ch anbi1i
+  th imbi1i
+  mpbi
+)
+
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '=') </suggest>
+thm (eqtr1 () () (-> (/\ (= B A) (= A C)) (= B C))
+  A B C ax-eqtr  
+  ## <d 'Symmetric Property '>
+    A B eqcom
+    BiReplaceImp0An0
+  ## </d 'Symmetric Property '>
 )
 
 ## <title> Transtitive Property </title>
@@ -2157,6 +2223,11 @@ thm (addeq2 () ()
   C eqid C C A B addeq12 mpan)
 
 ## <title> Equality over Addition </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (+ A ] [ C ] ) (+ [ B ] [ D))
+## </table>
 thm (addeq12i ()
   (hyp1 (= A B)
    hyp2 (= C D))
@@ -2783,20 +2854,6 @@ thm (add4 () ()
   (+ A C) B D addass eqtr
 )
 
-## <title> Perform a substitution </title>
-## <summary>
-##   Substitute A in for y in an expression describing the
-##   <a href="distr">distributive property</a>.
-## </summary>
-thm (sbc-distr ((A y) (B y) (C y)) () (<-> ([/] A y (= (* y (+ B C)) (+ (* y B) (* y C)))) (= (* A (+ B C)) (+ (* A B) (* A C))))
-  y A (+ B C) muleq1
-  y A B muleq1
-  y A C muleq1
-  addeq12d
-  eqeq12d
-  sbcie
-)
-
 ## <title> Substitution </title>
 ## <table>
 ##   (= A (+ B  [ C ]   ]   ] ))
@@ -2810,6 +2867,86 @@ thm (EqReplaceEq1Add1 () (
   replacee substitution
   B addeq2i
   EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+ C  [ D ]   ]    ] )))
+##   (=              [ D ]   [ A' ] )
+##   (= A (+ B (+ C  [   [   [ A' ] )))
+## </table>
+thm (EqReplaceEq1Add1Add1 () (
+     replacee (= A (+ B (+ C D)))
+     substitution (= D A')) 
+     (= A (+ B (+ C A')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Add1
+)
+
+## <title> Rearrange the second and fourth terms </title>
+thm (add24 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ C B)))
+  A B (+ C D) addass  
+  ## <d 'Associative Property '>
+    B C D addass eqcomi
+    EqReplaceEq1Add1
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commutative Property of Addition '>
+    (+ B C) D addcom
+    EqReplaceEq1Add1
+  ## </d 'Commutative Property of Addition '>
+  
+  ## <d 'Commutative Property of Addition '>
+    B C addcom
+    EqReplaceEq1Add1Add1
+  ## </d 'Commutative Property of Addition '>
+  
+  ## <d 'Associative Property '>
+    A D (+ C B) addass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+)
+
+## <title> Rearrange Addition Terms </title>
+thm (add432 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ B C)))
+  ## <d 'Associative Property '>
+    A B (+ C D) addass
+  ## </d 'Associative Property '>  
+  ## <d 'Associative Property '>
+    B C D addass
+    ## <d 'Commutative Property'>
+      (+ (+ B C) D) (+ B (+ C D)) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq1Add1
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property of Addition '>
+    (+ B C) D addcom
+    EqReplaceEq1Add1
+  ## </d 'Commutative Property of Addition '>
+  ## <d 'Associative Property '>
+    A D (+ B C) addass
+    ## <d 'Commutative Property'>
+      (+ (+ A D) (+ B C)) (+ A (+ D (+ B C))) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="distr">distributive property</a>.
+## </summary>
+thm (sbc-distr ((A y) (B y) (C y)) () (<-> ([/] A y (= (* y (+ B C)) (+ (* y B) (* y C)))) (= (* A (+ B C)) (+ (* A B) (* A C))))
+  y A (+ B C) muleq1
+  y A B muleq1
+  y A C muleq1
+  addeq12d
+  eqeq12d
+  sbcie
 )
 
 ## <title> Distributive Property </title>
@@ -2927,6 +3064,7 @@ thm (distl () () (= (* (+ A B) C) (+ (* A C) (* B C)))
 ##   (= (* (+ <m> A <b> B) (+ <c> C <g> D)) (+ (+ (* <m> A <c> C) (* <b> B <c> C)) (+ (* <m> A <g> D) (* <b> B <g> D))))
 ## </table>
 ## <summary> Distribution of addition through multiplication, both arguments </summary>
+## <suggest> right('Distribute', 'RL') left('Distribute', 'RL') </suggest>
 thm (distrl () () (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D))))
   ## <d 'Distribute A+B'>
     (+ A B) C D distr
@@ -3199,23 +3337,6 @@ thm (induction ((ph y)) (basis ([/] (0) z ph) inductiveHyp (-> ([/] y z ph) ([/]
   basis
   inductiveHyp
   findplus1
-)
-
-## <title> Substitution </title>
-## <table>
-##   (-> (/\  [ ph ]   ]    ]  ch) th)
-##   (<->     [ ph ]   [ ps ] )
-##   (-> (/\  [    [   [ ps ]  ch) th)
-## </table>
-thm (BiReplaceImp0An0 () (
-     replacee (-> (/\ ph ch) th)
-     substitution (<-> ph ps)) 
-     (-> (/\ ps ch) th)
-  replacee
-  substitution
-  ch anbi1i
-  th imbi1i
-  mpbi
 )
 
 ## <title> Substitution </title>
@@ -3653,7 +3774,7 @@ thm (netr ()
   mtbir
 )
 
-thm (ltDiff ((A x) (B x)) (hyp (< A B)) (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
+thm (ltDiff ((A x) (B x)) () (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0)))))) 
   A B df-lt
 
   A B x df-le
@@ -3968,14 +4089,12 @@ thm (lteq2ii ()
   hyp1 hyp2 C lteq2i mpbi
 )
 
-thm (addge01t () ()
-  (<= A (+ A B))
+thm (addge01t () () (<= A (+ A B))
   x B tyex x B A addeq2 x 19.22i ax-mp
   A (+ A B) x df-le mpbir
 )
 
-thm (addge02t () ()
-  (<= A (+ B A))
+thm (addge02t () () (<= A (+ B A))
   A B addge01t A B addcom A leeq2i mpbi
 )
 
@@ -3994,46 +4113,123 @@ thm (lenlttlem () ()
   A pa_ax3r (+ A (1)) leeq2i mtbi
 )
 
+## <title> Addition implies ≤ </title>
+thm (provele () () (-> (= (+ A B) C) (<= A C))
+  (= (+ A B) C) z alnfi
+  z B tyex  
+  ## <d 'Symmetric Property '>
+    z B eqcom
+    exbiii
+  ## </d 'Symmetric Property '>
+  B z A addeq2
+  C eqeq1d  
+  ImpReplaceEx1
+  ## <d 'Infer Left to Right '>
+    (= (+ A B) C) (= (+ A z) C) bi1
+    ImpReplaceEx1
+  ## </d 'Infer Left to Right '>
+  z (= (+ A B) C) (= (+ A z) C) eximp1    
+  ax-mp  
+  syl
+  ## <d 'Definition of Less Than or Equal to '>
+    A C z df-le bicomi
+    sylib
+  ## </d 'Definition of Less Than or Equal to '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y  [ ps ]   ]    ] )))
+##   (->                 [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y  [    [   [ ch ] )))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y ps)))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y ch)))
+  replacee substitution
+  y 19.22i
+  ImpReplaceImp1Ex1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (/\  [ ps ]   ]    ]  th))))
+##   (->                     [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (/\  [    [   [ ch ]  th))))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1An0 () (
+     replacee (-> ph (E. x (E. y (/\ ps th))))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y (/\ ch th))))
+  replacee substitution
+  th anim1i
+  ImpReplaceImp1Ex1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (=  [ A ]   ]   ]  C) ph)
+##   (=      [ A ]   [ B ] )
+##   (-> (=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceImp0Eq0 () (
+     replacee (-> (= A C) ph)
+     substitution (= A B)) 
+     (-> (= B C) ph)
+  replacee substitution
+  C eqeq1i
+  sylbi2
+)
+
+## <title> Remove Existence Quantifier </title>
+thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
+  x ph 19.9 biimpi
+)
+
 ## <title> Transitive Property </title>
-## <suggest> right('Simplify', '< <') </suggest>
-## <title> Transitive Property </title>
-## <suggest> right('Simplify', '< <') </suggest>
+## <suggest> right('Simplify', '≤ ≤') </suggest>
 thm (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C))
-  ## <d 'Add A to both sides'>
-    z (+ x y) A addeq2
-    A x y addass syl6eqr 
-  ## </d>
-  ## <d 'Let A+x = B'>
-    (= (+ A x) B) adantr
-    (+ A x) B y addeq1 (= z (+ x y)) adantl eqtrd
-  ## </d>
-  ## <d 'Let B+y = C'>
-    C eqeq1d biimprd imp 
-  ## </d>
-  ## <d 'Add Existential Quantifiers'>
-    ancoms x substex ex
-    y 19.23ai com12 imp
-  ## </d>
-  ## <d 'Apply Definition of ≤'>
-    ## <d 'Define A ≤ B'>
-      ## <d 'Define A ≤ B'>
-        A B x df-le bicomi
-      ## </d>
-      BiReplaceImp0An0
-    ## </d>
-    ## <d 'Define B ≤ C'>
-      ## <d 'Define B ≤ C'>
-        B C y df-le bicomi
-      ## </d>  
-      BiReplaceImp0An1
-    ## </d>  
-    ## <d 'Define A ≤ C'>
-      ## <d 'Define A ≤ C'>
-        A C z df-le bicomi
-      ## </d>
-      sylib
-    ## </d>
-  ## <d 'Apply Definition of ≤'>
+  ## <d 'Definition of ≤'>
+    A B x df-le
+    B C y df-le
+    anbi12i  
+  ## </d 'A'>
+  ## <d 'Combine Existence Quantifiers '>
+    x (= (+ A x) B) y (= (+ B y) C) doubleex
+    ImpReplaceBi1
+  ## </d 'Combine Existence Quantifiers '>
+  ## <d 'Add y to both sides'>
+    (+ A x) B y addeq1
+    ImpReplaceImp1Ex1Ex1An0
+  ## </d 'Add y to both sides'>
+  ## <d 'Transitive Property '>
+    (+ (+ A x) y) (+ B y) C eqtr1
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Transitive Property '>
+  ## <d 'Addition implies ≤'>
+    A (+ x y) C provele
+    ## <d 'Associative Property '>
+      ## <d 'Associative Property '>
+        A x y addass eqcomi
+      ## </d 'Associative Property '>
+      EqReplaceImp0Eq0
+    ## </d 'Associative Property '>  
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Addition implies ≤'>
+  ## <d 'Remove Quantifiers'>
+    ## <d 'Remove Quantifier'>
+      y (<= A C) ex-nf  
+      ImpReplaceImp1Ex1
+    ## </d 'Remove Quantifier'>
+    ## <d 'Remove Quantifier'>
+      x (<= A C) ex-nf  
+      syl
+    ## </d 'Remove Quantifier'>
+  ## </d 'Remove Quantifiers'>
 )
 
 thm (lefoo ((A z)) ()
@@ -4186,6 +4382,14 @@ thm (lteq1ii ()
    hyp2 (= A B))
   (< B C)
   hyp1 hyp2 C lteq1i mpbi
+)
+
+## <title> Inequality relation for two equal sums </title>
+thm (ltadd12 () ()
+  (-> (= (+ A B) (+ C D)) (<-> (< A C) (< D B)))
+  (= (+ A B) (+ C D)) id (+ C B) lteq1d
+  D B C ltadd2 syl6bbr
+  A C B ltadd1 syl5bb
 )
 
 thm (eq-rwff1 ((A x)) ()  (rwff x (= x A))
@@ -4845,8 +5049,7 @@ mpbi
 
 ## <title> Multiply Both Sides </title>
 ## <summary> Multiplication is monotonic in its second argument </summary>
-thm (lemul2 () ()
-  (-> (<= A B) (<= (* C A) (* C B)))
+thm (lemul2 () () (-> (<= A B) (<= (* C A) (* C B)))
 
   A B x df-le
     (0) eqid
@@ -4859,6 +5062,58 @@ thm (lemul2 () ()
   sylbi
     (* C A) (* C B) y df-le
   sylibr
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Le0 () (
+     replacee (-> ph (<= A C))
+     substitution (= A B)) 
+     (-> ph (<= B C))
+  replacee substitution
+  C leeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Le1 () (
+     replacee (-> ph (<= A B))
+     substitution (= B C)) 
+     (-> ph (<= A C))
+  replacee substitution
+  A leeq2i
+  sylib
+)
+
+thm (lemul1 () () (-> (<= A B) (<= (* A C) (* B C)))
+  A B C lemul2  
+  ## <d 'Commutative Property '>
+    C A mulcom
+    EqReplaceImp1Le0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    C B mulcom
+    EqReplaceImp1Le1
+  ## </d 'Commutative Property '>
+)
+
+thm (lemul12 () () (-> (/\ (<= A B) (<= C D)) (<= (* A C) (* B D)))
+  A B C lemul1
+  C D B lemul2
+  anim12i  
+  ## <d 'Transitive Property '>
+    (* A C) (* B C) (* B D) letr
+    syl
+  ## </d 'Transitive Property '>
 )
 
 thm (lemul4 () ()
@@ -5147,6 +5402,40 @@ orim12i
 ax-mp
 )
 
+thm (neqlt () () (-> (-. (= B A)) (\/ (< A B) (< B A)))
+  (< A B) exmid        
+  A B ltcom
+  (< A B) (-. (<= B A)) notbi
+  mpbi
+  orbi2ii
+  ## <d 'Double Negative '>
+    (<= B A) notnotr
+    orbi2ii
+  ## </d 'Double Negative '>
+  ## <d '≤ means < OR = '>
+    B A leleo
+    orbi2ii
+  ## </d '≤ means < OR = '>
+  ## <d 'Associatative Property of OR '>
+    (< A B) (< B A) (= B A) orass
+    ## <d 'Commutative Property'>
+      (\/ (\/ (< A B) (< B A)) (= B A)) (\/ (< A B) (\/ (< B A) (= B A))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    mpbi
+  ## </d 'Associatative Property of OR '>
+  ## <d 'Definition of OR '>
+    (\/ (< A B) (< B A)) (= B A) df-or
+    mpbi
+  ## </d 'Definition of OR '>              
+  ## <d 'Contrapositive '>
+    (-. (\/ (< A B) (< B A))) (= B A) con34b
+    mpbi
+    (\/ (< A B) (< B A)) notnotr
+    sylib
+  ## </d 'Contrapositive '>
+)
+
 ## <summary> If a product of a nonzero number and some other number is zero, that number is zero </summary>
 thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
 x  (* A B)  tyex
@@ -5198,6 +5487,7 @@ thm (mulcan2 () () (-> (= (* (S A) B) (* (S A) C)) (= B C))
   ax-mp
 )
 
+## <title> Cancel Multiplication </title>
 thm (mulcant () ()
   (-> (< (0) C) (<-> (= (* A C) (* B C)) (= A B)))
 
@@ -5210,6 +5500,7 @@ thm (mulcant () ()
   syl
 )
 
+## <title> Cancel Multiplication </title>
 thm (mulcant2 () ()
   (-> (< (0) C) (<-> (= (* C A) (* C B)) (= A B)))
   C A B mulcant
@@ -5473,7 +5764,7 @@ thm (elabid ((S x)) () (<-> (e. x ({|} x (e. x S))) (e. x S))
   abid
 )
 
-## <suggest> left('Simplify', '{|}') </suggest>
+## <suggest> right('Simplify', '{|}') </suggest>
 thm (removeab ((S x)) () (=_ ({|} x (e. x S)) S)
   x S elabid
   x gen  
@@ -7632,6 +7923,7 @@ thm (emptyInterval () (hyp (-. (<= A B))) (=_ ({...} A B) ({/}))
 # == Ordered pair ==
 
 # number 1.0
+# same as opeq12
 thm (opth1 () ()
    (-> (/\ (= A C) (= B D)) (= (<,> A B) (<,> C D)))
   A C B D addeq12 (+ A B) muleq1d
@@ -7705,6 +7997,40 @@ thm (lttr () ()
   (+ A (1)) B (+ B (1)) letr mpan2 (<= (+ B (1)) C) anim1i syl
   (+ A (1)) (+ B (1)) C letr syl
   A C nnltp1let sylibr)
+
+## <title> Combine Inequalities </title>
+thm (letradd () () (-> (/\ (<= A B) (<= C D)) (<= (+ A C) (+ B D)))
+  A B C leadd1
+  C D B leadd2
+  anbi12i  
+  ## <d 'Transitive Property '>
+    (+ A C) (+ B C) (+ B D) letr
+    ImpReplaceBi1
+  ## </d 'Transitive Property '>
+)
+
+## <title> Combine Inequalities </title>
+thm (lttradd () () (-> (/\ (< A B) (< C D)) (< (+ A C) (+ B D)))
+  A B C ltadd1
+  C D B ltadd2
+  anbi12i  
+  ## <d 'Transitive Property '>
+    (+ A C) (+ B C) (+ B D) lttr
+    ImpReplaceBi1
+  ## </d 'Transitive Property '>
+)
+
+## <title> Combine Inequalities </title>
+thm (lelttradd () () (-> (/\ (<= A B) (< C D)) (< (+ A C) (+ B D)))
+  A B C leadd1
+  C D B ltadd2
+  anbi12i  
+  ## <d 'Transitive Property '>
+    (+ A C) (+ B C) (+ B D) lelttr
+    ImpReplaceBi1
+
+  ## </d 'Transitive Property '>
+)
 
 # number 12.0
 thm (addassrli () (h (= A (+ B (+ C D))))
@@ -7872,16 +8198,6 @@ thm (leTrle () (hyp (<= B C)) (-> (<= A B) (<= A C))
   (<= A B) anRemove2
   (<= A C) imbi1i
   mpbi
-)
-
-## <title> Transitive Property </title>
-## <suggest> right('Simplify', '=') </suggest>
-thm (eqtr1 () () (-> (/\ (= B A) (= A C)) (= B C))
-  A B C ax-eqtr  
-  ## <d 'Symmetric Property '>
-    A B eqcom
-    BiReplaceImp0An0
-  ## </d 'Symmetric Property '>
 )
 
 ## <title> Transitive Inequality </title>
@@ -8929,6 +9245,8 @@ thm (opeq1d () (
   syl
 )
 
+
+# same as opth1
 ## <title> Ordered Pair Equality </title>
 thm (opeq12 () () (-> (/\ (= A B) (= C D)) (= (<,> A C) (<,> B D)))
   A B C D addeq12
@@ -9101,10 +9419,6 @@ thm (BiReplaceEq1Iota0Ab1 () (
   replacee substitution
   x abbi2i
   SeqReplaceEq1Iota0
-)
-
-thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
-  x ph 19.9 biimpi
 )
 
 ## <summary> Existential uniqueness implies iota is a member </summary>
@@ -9327,21 +9641,6 @@ thm (ifneq13 () () (-> (/\ (<-> ph ps) (= A B)) (= (ifn ph C A) (ifn ps C B)))
     (ifn ps C A) (ifn ph C A) (ifn ps C B) ax-eqtr
     syl
   ## </d 'Transitive Property '>
-)
-
-## <title> Substitution </title>
-## <table>
-##   (-> ph (<=  [ A ]   ]   ]  C))
-##   (=          [ A ]   [ B ] )
-##   (-> ph (<=  [   [   [ B ]  C))
-## </table>
-thm (EqReplaceImp1Le0 () (
-     replacee (-> ph (<= A C))
-     substitution (= A B)) 
-     (-> ph (<= B C))
-  replacee substitution
-  C leeq1i
-  sylib
 )
 
 ## <title> Substitution </title>
@@ -9903,37 +10202,93 @@ thm (lehalfminus1i () (hyp (<= A B)) (<= (.- A C) (.- B C))
   ax-mp
 )
 
-
-thm (halfminus-com.1 () () (-> (<= A B) (= (.- (.- A B) C) (.- (.- A C) B)))
-  A B halfminus-neg
-  C halfminuseq1d
-  C 0le
-  (0) C halfminus-neg  
-  ax-mp  
-  EqReplaceImp1Eq1
+thm (halfminuscom.1 () () (= (.- A (+ B C)) (.- (.- A B) C))
+  A (+ B C) ltle
+  A (+ B C) halfminus-neg
+  A (+ B C) B lehalfminus1  
+  ## <d 'Cancel same numbers with subtraction '>
+    B C halfminuscan2
+    EqReplaceImp1Le1
+  ## </d 'Cancel same numbers with subtraction '>
+  (.- A B) C halfminus-neg  
+  syl
+  
   ## <d 'Symmetric Property '>
     (.- (.- A B) C) (0) eqcom
     sylib
   ## </d 'Symmetric Property '>
-
-  (.- A C) A B letr
-  A C halfminus-monotonic
-  
-  (<= A B) anRemove1
-  (<= (.- A C) B) imbi1i
-  mpbi
-  (.- A C) B halfminus-neg  
+  eqtrd    
   syl
+  (+ B C) A halfminus
+  (+ B C) A B lehalfminus1
+  ## <d 'Cancel same numbers with subtraction '>
+    B C halfminuscan2
+    EqReplaceImp1Le0
+  ## </d 'Cancel same numbers with subtraction '>
+
+  C (.- A B) halfminus
+  B addeq1d  
+  syl
+
+  ## <d>
+    B (+ B C) A letr
+    B C addge01t  
+    (<= (+ B C) A) anRemove1
+    (<= B A) imbi1i
+    mpbi
+  ## </d>
+  B A halfminus  
+  syl
+  eqtrd
   
+  ## <d 'Associative Property '>
+    (.- (.- A B) C) C B addass
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>
+  ## <d 'Commutative Property of Addition '>
+    C B addcom
+    EqReplaceImp1Eq0Add1
+  ## </d 'Commutative Property of Addition '>
   ## <d 'Symmetric Property '>
-    (.- (.- A C) B) (0) eqcom
+    (+ (.- (.- A B) C) (+ B C)) A eqcom
     sylib
   ## </d 'Symmetric Property '>
-  jca  
-  ## <d 'Transitive Property '>
-    (0) (.- (.- A B) C) (.- (.- A C) B) ax-eqtr
-    syl
-  ## </d 'Transitive Property '>
+  eqtrd
+ (.- A (+ B C)) (+ B C) (.- (.- A B) C) addcan  
+  sylib
+  ## <d 'Commute Inequality '>
+    (+ B C) A lecom
+    sylbi2
+  ## </d 'Commute Inequality '>
+  pm2.61i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (.- A  [ B ]   ]   ] ) D)
+##   (=        [ B ]   [ C ] )
+##   (= (.- A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0HM1 () (
+     replacee (= (.- A B) D)
+     substitution (= B C)) 
+     (= (.- A C) D)
+  replacee substitution
+  A halfminuseq2i
+  EqReplaceEq0
+)
+
+## <table>
+##   (= (.- (.- A <r> B) <g> C) (.- (.- A <g> C) <r> B))
+## </table>
+thm (halfminuscom () () (= (.- (.- A B) C) (.- (.- A C) B))
+  A C B halfminuscom.1  
+  ## <d 'Commutative Property of Addition '>
+    C B addcom
+    EqReplaceEq0HM1
+  ## </d 'Commutative Property of Addition '>
+  A B C halfminuscom.1  
+  EqReplaceEq0
 )
 
 # == Division, primality ==
@@ -12791,21 +13146,6 @@ thm (BiReplaceImp1Ex1An1An0An1 () (
   replacee substitution
   ch anbi2i
     BiReplaceImp1Ex1An1An0
-)
-
-## <title> Substitution </title>
-## <table>
-##   (-> ph (E. x  [ ps ]   ]    ] ))
-##   (->           [ ps ]   [ ch ] )
-##   (-> ph (E. x  [    [   [ ch ] ))
-## </table>
-thm (ImpReplaceImp1Ex1 () (
-     replacee (-> ph (E. x ps))
-     substitution (-> ps ch)) 
-     (-> ph (E. x ch))
-  replacee substitution
-  x 19.22i
-  syl
 )
 
 
@@ -21478,13 +21818,16 @@ thm (explt () ()
   3bitr3g con4bid
 )
 
-# A tuple defining a finite sequence of numbers.
-# The tuple is just an ordered pair. The second argument (the tail) is the length of the
-# tuple. The first argument is a group of nested ordered pair containing the values in the
-# tuple. This definition is useful because it signals to the typesetter how to format the
-# values. For example, the 3-tuple (1, 2, 3) is displayed as (1, 2, 3) not as the ordered pairs
-# (((1, 2), 3), 3). This is also useful as a reminder that the values are being treated as
-# a tuple.
+## <title> Tuple Definition </title>
+## <summary>
+##   A tuple defining a finite sequence of numbers.
+##   The tuple is just an ordered pair. The second argument (the tail) is the length of the
+##   tuple. The first argument is a group of nested ordered pair containing the values in the
+##   tuple. This definition is useful because it signals to the typesetter how to format the
+##   values. For example, the 3-tuple (1, 2, 3) is displayed as (1, 2, 3) not as the ordered pairs
+##   (((1, 2), 3), 3). This is also useful as a reminder that the values are being treated as
+##   a tuple.
+## </summary>
 defthm (df-tuple nat (<> A B) () () (= (<> A B) (<,> A B))
   (<,> A B) eqid
 )
@@ -21577,8 +21920,10 @@ thm (tupleeq12d ()
   hyp1 hyp2 jca A B C D tupleeq12 syl
 )
 
-# The length of a tuple. This is just the tail. This definition is just a
-# way of explaining that the tail of the tuple is its length.
+## <summary>
+##   The length of a tuple. This is just the tail. This definition is just a
+##   way of explaining that the tail of the tuple is its length.
+## </summary>
 defthm (df-length nat (length A) () () (= (length A) (tail A))
   (tail A) eqid
 )

@@ -1,0 +1,697 @@
+import (PROP prop.ghi () "")
+import (PEANO_MIN peano_min.ghi (PROP) "")
+import (PEANO peano_ax.ghi (PROP PEANO_MIN) "")
+import (NAIVE_SET naive_set.ghi (PROP PEANO_MIN PEANO) "")
+import (PEANO_THMS peano_thms.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
+import (ORDERED_PAIR ordered-pair.ghi (PROP PEANO_MIN PEANO NAIVE_SET PEANO_THMS) "")
+import (INTEGERS integers.ghi (PROP PEANO_MIN PEANO NAIVE_SET PEANO_THMS ORDERED_PAIR) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V S0 S1 S2 S3 S4 S5 S6 S7 S8 S9)
+
+# This file is an attempt to get rational numbers to work. I didn't get very far. I proved
+# the basic properties of equality for rational numbers, but didn't get much further than
+# that. I've gotten quite frustrated with it. One of the issues is that we need a non-zero
+# denominator. I thought I came up with a clever solution so that we wouldn't have to carry
+# around a million denominator != 0 statements, but I'm having difficulty with it.
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (ZeqReplaceImp1Zeq0 () (
+     replacee (-> ph (=z A C))
+     substitution (=z A B)) 
+     (-> ph (=z B C))
+  replacee substitution
+  C zeqzeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (ZeqReplaceImp1Zeq1 () (
+     replacee (-> ph (=z A B))
+     substitution (=z B C)) 
+     (-> ph (=z A C))
+  replacee substitution
+  A zeqzeq2i
+  sylib
+)
+
+## <title> Definition of numerator </title>
+## <summary>
+##   The numerator or top of a rational number. This is the same as the head of an
+##   ordered pair. This definition is just a way of explaining that the head
+##   of the ordered pair is the numerator. The head of the ordered pair is expected
+##   to be in the format of an integer.
+## </summary>
+defthm (df-top nat (top A) () () (=z (top A) (head A))
+  (head A) zeqid
+)
+
+
+## <title> Apply top to ordered pair </title>
+## <summary>
+##    The top operation grabs the first number in an ordered pair, just like
+##    head.
+## </summary>
+thm (topop() () (=z (top (<,> A B)) A)
+  (<,> A B) df-top
+  A B headop eqzeqi
+  (top (<,> A B)) zeqzeq2i
+  mpbi
+)
+
+## <title> Equivalence for numerator </title>
+thm (topeq () () (-> (= A B) (=z (top A) (top B)))
+  A B headeq eqzeqd
+  A df-top  zeqcomi  ZeqReplaceImp1Zeq0
+  B df-top  zeqcomi  ZeqReplaceImp1Zeq1
+)
+
+thm (topeqi () (
+     hyp1 (= A B))
+     (=z (top A) (top B))
+  hyp1  A B topeq  ax-mp
+)
+
+thm (topeqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (=z (top A) (top B)))
+  hyp1  A B topeq  syl
+)
+
+## <title> Definition of denominator </title>
+## <summary>
+##   The denominator or bottom of a rational number. Since the denominator
+##   can never be 0, we expect the tail of the ordered pair to be a natural
+##   number which is then mapped to the integers and add 1. Adding 1
+##   ensures that we can never divide by 0. Mapping the natural number to the
+##   integers allows us to keep everything in terms of integer arithmetic
+##   when dealing with the numerator which is an integer.
+## </summary>
+defthm (df-bottom nat (bottom A) () () (=z (bottom A) (+z (int (tail A)) (1z)))
+  (+z (int (tail A)) (1z)) zeqid
+)
+
+thm (bottomeq () () (-> (= A B) (=z (bottom A) (bottom B))) 
+  A B taileq
+  inteqd
+  (1z) zaddzeq1d
+  A df-bottom zeqcomi  
+  ZeqReplaceImp1Zeq0
+  B df-bottom zeqcomi    
+  ZeqReplaceImp1Zeq1
+)
+
+thm (bottomeqi () (
+     hyp1 (= A B))
+     (=z (bottom A) (bottom B))
+  hyp1  A B bottomeq  ax-mp
+)
+
+thm (bottomeqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (=z (bottom A) (bottom B)))
+  hyp1  A B bottomeq  syl
+)
+
+thm (bottomAbove0() () (<=z (1z) (bottom A))
+  (0z) (1z) (int (tail A)) zlezadd  
+  (tail A) 0zle  
+  mpbirRemove  
+  ## <d 'Integer Addition Identity '>
+    (1z) zaddidr
+    (+z (int (tail A)) (1z)) zlezeq1i
+    mpbi
+  ## </d 'Integer Addition Identity '>
+  A df-bottom zeqcomi  
+  (1z) zlezeq2i
+  mpbi
+)
+
+thm (bottomNot0() () (-. (=z (bottom A) (0z))) 
+  0zless1
+  A bottomAbove0
+  pm3.2i
+  (0z) (1z) (bottom A) zltzletr
+  ax-mp  
+  ## <d 'Operator Conversion '>
+    (0z) (bottom A) zltneq
+    ax-mp
+  ## </d 'Operator Conversion '>    
+  ## <d 'Symmetric Property '>
+    (0z) (bottom A) zeqcom
+    mtbi
+  ## </d 'Symmetric Property '>
+)
+
+## <title> Definition of Rational Equality </title>
+## <suggest> left('Simplify', '=') </suggest>
+defthm (df-eqq wff (=q A B) () ()
+       (<-> (=q A B) (=z (*z (top A) (bottom B)) (*z (top B) (bottom A))))
+  (=z (*z (top A) (bottom B)) (*z (top B) (bottom A))) biid
+)
+
+## <title> Reflexive Property </title>
+thm (eqqid() () (=q A A)
+  A A df-eqq
+  (*z (top A) (bottom A)) zeqid  
+  mpbirRemove
+)
+
+## <summary> Rational equality is symmetric. </summary>
+## <suggest> right('Commute', '=') </suggest>
+thm (eqqcom() () (<-> (=q A B) (=q B A))
+  A B df-eqq  
+  ## <d 'Symmetric Property '>
+    (*z (top A) (bottom B)) (*z (top B) (bottom A)) zeqcom
+    bitri
+  ## </d 'Symmetric Property '>
+  B A df-eqq bicomi 
+  bitri
+)
+
+## <title> Symmetric Property </title>
+thm (eqqcomi() (hyp (=q A B)) (=q B A)
+  hyp
+  A B eqqcom  
+  mpbi
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imbi2i
+  sylib
+)
+
+thm (eqqtr.1() () (-> (=z (top B) (0z)) (-> (=q A B) (=z (top A) (0z))))
+  ## <d 'A = B case'>
+  A B df-eqq  
+  ## <d 'Infer Left to Right '>
+    (=q A B) (=z (*z (top A) (bottom B)) (*z (top B) (bottom A))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  (top B) (0z) (bottom A) zmulzeq1  
+  ## <d 'Multiply by 0 '>
+    (bottom A) zmul0r
+    ZeqReplaceImp1Zeq1
+  ## </d 'Multiply by 0 '>
+  anim12i  
+  ## <d 'Transitive Property '>
+    (*z (top A) (bottom B)) (*z (top B) (bottom A)) (0z) zeqtr
+    syl
+  ## </d 'Transitive Property '>  
+  ## <d 'Import-Export Theorem '>
+    (=q A B) (=z (top B) (0z)) (=z (*z (top A) (bottom B)) (0z)) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  B bottomNot0
+  (bottom B) (top A) zmulcan0  
+  ax-mp  
+  BiReplaceImp1Imp1
+  com12
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imim2i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (->  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Imp0 () (
+     replacee (-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  sylib
+)
+
+
+thm (eqqtr.2 () () (-> (=z (top B) (0z)) (-> (/\ (=q A B) (=q B C)) (=q A C)))
+  B A eqqtr.1
+  (top A) (0z) (bottom C) zmulzeq1   
+  ## <d 'Multiply by 0 '>
+    (bottom C) zmul0r
+    ZeqReplaceImp1Zeq1
+  ## </d 'Multiply by 0 '>  
+  ImpReplaceImp1Imp1  
+
+  B C eqqtr.1
+  (top C) (0z) (bottom A) zmulzeq1     
+  ## <d 'Multiply by 0 '>
+    (bottom A) zmul0r
+    ZeqReplaceImp1Zeq1
+  ## </d 'Multiply by 0 '>  
+  ImpReplaceImp1Imp1  
+  ## <d>
+    C B eqqcom
+    BiReplaceImp1Imp0
+  ## </d>
+
+  
+  ## <d 'Symmetric Property '>
+    (*z (top C) (bottom A)) (0z) zeqcom
+    BiReplaceImp1Imp1
+  ## </d 'Symmetric Property '>
+  anim12d  
+  ## <d 'Transitive Property '>
+    (*z (top A) (bottom C)) (0z) (*z (top C) (bottom A)) zeqtr
+    ImpReplaceImp1Imp1
+  ## </d 'Transitive Property '>
+  A C df-eqq bicomi  
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+thm (eqqtr.3 () () (-> (/\ (-. (=z (top B) (0z))) (/\ (=q A B) (=q B C))) (=q A C))
+  A B df-eqq
+  B C df-eqq
+  anbi12i
+  
+  ## <d 'Infer Left to Right '>
+    (/\ (=q A B) (=q B C)) (/\ (=z (*z (top A) (bottom B)) (*z (top B) (bottom A))) (=z (*z (top B) (bottom C)) (*z (top C) (bottom B)))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+
+  (*z (top A) (bottom B))
+  (*z (top B) (bottom A))
+  (*z (top B) (bottom C)) 
+  (*z (top C) (bottom B)) zmulzeq12
+  syl
+  (top A) (bottom B) (top B) (bottom C) zmul42
+  ZeqReplaceImp1Zeq0
+  (top B) (bottom A) (top C) (bottom B) zmul42  
+  ZeqReplaceImp1Zeq1
+  
+  ## <d 'Commutative Property of Multiplication '>
+    (*z (top B) (bottom B)) (*z (top C) (bottom A)) zmulcom
+    ZeqReplaceImp1Zeq1
+  ## </d 'Commutative Property of Multiplication '>
+  (bottom B) (top B) zeroProductz
+  B bottomNot0  
+  (-. (=z (top B) (0z))) anRemove1
+  (-. (=z (*z (top B) (bottom B)) (0z))) imbi1i
+  mpbi
+  (*z (top B) (bottom B)) (*z (top A) (bottom C)) (*z (top C) (bottom A)) zmulcan  
+  syl
+#  anim12i
+  ## <d 'Def. Equality'>
+  A C df-eqq  
+  ## <d 'Commutative Property '>
+    (=q A C) (=z (*z (top A) (bottom C)) (*z (top C) (bottom A))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  BiReplaceImp1Bi1
+  ## </d 'Def. Equality'>  
+  ## <d 'Infer Left to Right '>
+    (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (=q A C) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  anim12i  
+  ## <d 'Introduce conjunct as antecedent '>
+    (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (=q A C) abai
+    ## <d 'Commutative Property'>
+      (/\ (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (=q A C)) (/\ (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (-> (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (=q A C))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    sylib
+  ## </d 'Introduce conjunct as antecedent '>
+  
+  ## <d ''Remove Left Side of AND' '>
+    (=z (*z (*z (top A) (bottom C)) (*z (top B) (bottom B))) (*z (*z (top C) (bottom A)) (*z (top B) (bottom B)))) (=q A C) pm3.27
+    syl
+  ## </d ''Remove Left Side of AND' '>
+  
+  ## <d 'Commutative Property '>
+    (/\ (=q A B) (=q B C)) (-. (=z (top B) (0z))) ancom
+    sylbi2
+  ## </d 'Commutative Property '>
+)
+
+thm (eqqtr () () (-> (/\ (=q A B) (=q B C)) (=q A C))
+  B A C eqqtr.2
+  B A C eqqtr.3  
+  ## <d 'Import-Export Theorem '>
+    (-. (=z (top B) (0z))) (/\ (=q A B) (=q B C)) (=q A C) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  pm2.61i
+)
+
+thm (eqqeqq1() () (-> (=q A B) (<-> (=q A C) (=q B C)))
+  B A C eqqtr ex
+  B A eqqcom
+  sylbi2
+  A B C eqqtr ex
+  impbid
+)
+
+## <title> Equivalence over Equality </title>
+thm (eqqeqq2 () () (-> (=q A B) (<-> (=q C A) (=q C B)))
+  A B C eqqeqq1
+    A C eqqcom B C eqqcom bibi12i
+  sylib
+)
+
+thm (eqqeqq1i () (
+     hyp1 (=q A B))
+     (<-> (=q A C) (=q B C))
+  hyp1
+  A B C eqqeqq1
+  ax-mp
+)
+
+thm (eqqeqq1d () (
+     hyp1 (-> ph (=q A B)))
+     (-> ph (<-> (=q A C) (=q B C)))
+  hyp1
+  A B C eqqeqq1
+  syl
+)
+
+thm (eqqeqq2i () (
+     hyp1 (=q A B))
+     (<-> (=q C A) (=q C B))
+  hyp1
+  A B C eqqeqq2
+  ax-mp
+)
+
+thm (eqqeqq2d () (
+     hyp1 (-> ph (=q A B)))
+     (-> ph (<-> (=q C A) (=q C B)))
+  hyp1
+  A B C eqqeqq2
+  syl
+)
+
+thm (zeqeqq () () (-> (= A B) (=q A B))
+  A B topeq
+  A B bottomeq  
+  ## <d 'Symmetric Property '>
+    (bottom A) (bottom B) zeqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  zmulzeq12d
+  A B df-eqq bicomi  
+  sylib
+)
+
+## <title> Convert Natural to Rational Equality </title>
+thm (zeqeqqi () (hyp (= A B)) (=q A B)
+  hyp
+  A B zeqeqq
+  ax-mp
+)
+
+## <title> Definition of Rational </title>
+defthm (df-rational nat (</> A B) () () (= (</> A B) (<,> A (zn (- B (1z)))))
+  (<,> A (zn (- B (1z)))) eqid
+)
+
+thm (toprat () () (=z (top (</> A B)) A) 
+  (</> A B) df-top
+  A B df-rational  
+  headeqi
+  eqzeqi
+  (top (</> A B)) zeqzeq2i  
+  mpbi
+  ## <d 'Apply Head Operator '>
+    A (zn (- B (1z))) headop eqzeqi
+    (top (</> A B)) zeqzeq2i
+    mpbi
+  ## </d 'Apply Head Operator '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=z A  [ B ]   ]   ] ))
+##   (=z             [ B ]   [ C ] )
+##   (<-> ph (<=z A  [   [   [ C ] ))
+## </table>
+thm (ZeqReplaceBi1Zle1 () (
+     replacee (<-> ph (<=z A B))
+     substitution (=z B C)) 
+     (<-> ph (<=z A C))
+  replacee substitution
+  A zlezeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=z  [ A ]   ]   ]  C))
+##   (=z           [ A ]   [ B ] )
+##   (<-> ph (<=z  [   [   [ B ]  C))
+## </table>
+thm (ZeqReplaceBi1Zle0 () (
+     replacee (<-> ph (<=z A C))
+     substitution (=z A B)) 
+     (<-> ph (<=z B C))
+  replacee substitution
+  C zlezeq1i
+  bitri
+)
+
+thm (bottomrat () () (-> (<=z (1z) B) (=z (bottom (</> A B)) B)) 
+  (- B (1z)) intzn
+  (0z) (1z) (- B (1z)) zlezadd bicomi  
+  ## <d 'Addition is the inverse of Subtraction '>
+    B (1z) zaddcan
+    ZeqReplaceBi1Zle1
+  ## </d 'Addition is the inverse of Subtraction '>  
+  ## <d 'Integer Addition Identity '>
+    (1z) zaddidr
+    ZeqReplaceBi1Zle0
+  ## </d 'Integer Addition Identity '>
+  sylbi2
+  (int (zn (- B (1z)))) (- B (1z)) (1z) zaddzeq1  
+  ## <d 'Addition is the inverse of Subtraction '>
+    B (1z) zaddcan
+    ZeqReplaceImp1Zeq1
+  ## </d 'Addition is the inverse of Subtraction '>
+  syl
+
+
+  (</> A B) df-bottom
+  A B df-rational  
+  taileqi
+  inteqi  
+  (1z) zaddzeq1i
+  (bottom (</> A B)) zeqzeq2i
+  mpbi
+  
+  ## <d 'Apply Tail Operator '>
+    A (zn (- B (1z))) tailop
+    inteqi
+    (1z) zaddzeq1i
+    (bottom (</> A B)) zeqzeq2i
+    mpbi
+  ## </d 'Apply Tail Operator '>
+  zeqcomi  
+  ZeqReplaceImp1Zeq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=z A  [ B ]   ]   ] ))
+##   (=z            [ B ]   [ C ] )
+##   (<-> ph (=z A  [   [   [ C ] ))
+## </table>
+thm (ZeqReplaceBi1Zeq1 () (
+     replacee (<-> ph (=z A B))
+     substitution (=z B C)) 
+     (<-> ph (=z A C))
+  replacee substitution
+  A zeqzeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=z A (*z  [ B ]   ]   ]  D)))
+##   (=z                [ B ]   [ C ] )
+##   (<-> ph (=z A (*z  [   [   [ C ]  D)))
+## </table>
+thm (ZeqReplaceBi1Zeq1Zmul0 () (
+     replacee (<-> ph (=z A (*z B D)))
+     substitution (=z B C)) 
+     (<-> ph (=z A (*z C D)))
+  replacee substitution
+  D zmulzeq1i
+  ZeqReplaceBi1Zeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=z  [ A ]   ]   ]  C))
+##   (=z          [ A ]   [ B ] )
+##   (<-> ph (=z  [   [   [ B ]  C))
+## </table>
+thm (ZeqReplaceBi1Zeq0 () (
+     replacee (<-> ph (=z A C))
+     substitution (=z A B)) 
+     (<-> ph (=z B C))
+  replacee substitution
+  C zeqzeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=z (*z A  [ B ]   ]   ] ) D))
+##   (=z                [ B ]   [ C ] )
+##   (<-> ph (=z (*z A  [   [   [ C ] ) D))
+## </table>
+thm (ZeqReplaceBi1Zeq0Zmul1 () (
+     replacee (<-> ph (=z (*z A B) D))
+     substitution (=z B C)) 
+     (<-> ph (=z (*z A C) D))
+  replacee substitution
+  A zmulzeq2i
+  ZeqReplaceBi1Zeq0
+)
+
+thm (ratexpand () () (=q A (</> (top A) (bottom A))) 
+  A (</> (top A) (bottom A)) df-eqq
+  (top A) (bottom A) toprat     
+  ZeqReplaceBi1Zeq1Zmul0
+ 
+  A bottomAbove0
+  (bottom A) (top A) bottomrat  
+  ax-mp  
+  ZeqReplaceBi1Zeq0Zmul1
+  (*z (top A) (bottom A)) zeqid
+  mpbirRemove
+)
+
+## <title> Convert Natural to Rational Equality </title>
+## <suggest> right('Infer', '=q') </suggest>
+thm (eqeqq () () (-> (= A B) (=q A B))
+  A B topeq
+  A B bottomeq 
+  ## <d 'Symmetric Property '>
+    (bottom A) (bottom B) zeqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  zmulzeq12d
+  A B df-eqq bicomi  
+  sylib
+)
+
+## <title> Convert Natural to Rational Equality </title>
+thm (eqeqqi () (hyp (= A B)) (=q A B)
+  hyp
+  A B eqeqq
+  ax-mp
+)
+	
+## <title> Convert Natural to Rational Equality </title>
+thm (eqeqqd () (hyp (-> ph (= A B))) (-> ph (=q A B))
+  hyp
+  A B eqeqq
+  syl
+)
+
+## <title> Definition of Rational Multiplication </title>
+## <suggest> left('Simplify', '∙') </suggest>
+## <summary>
+##   See <a href="qmulop">qmulop</a> for a restatement of
+##   integer multiplication using ordered pairs and integer equality.
+##  </summary>
+defthm (df-qmul nat (*q A B) () () (= (*q A B) (</> (*z (top A) (top B)) (*z (bottom A) (bottom B))))    
+  (</> (*z (top A) (top B)) (*z (bottom A) (bottom B))) eqid
+)
+
+# Commented out since posProduct hasn't been proven.
+#thm (topqmul () () (=z (top (*q A B)) (*z (top A) (top B)))
+#  (*z (top A) (top B)) (*z (bottom A) (bottom B))toprat
+#  A B df-qmul eqcomi    
+#  topeqi
+#  (*z (top A) (top B)) zeqzeq1i
+#  mpbi
+#)
+
+#thm (bottomqmul () () (=z (bottom (</> (*z (top A) (top B)) (*z (bottom A) (bottom B)))) (*z (bottom A) (bottom B))) 
+#  A bottomAbove0
+#  B bottomAbove0
+#  pm3.2i
+#  (bottom A) (bottom B) posProduct  
+#  ax-mp
+#  (*z (bottom A) (bottom B)) (*z (top A) (top B)) bottomrat  
+#  ax-mp
+#)
+
+thm (emptyThm () () (T)
+ tru
+)

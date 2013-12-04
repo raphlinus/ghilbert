@@ -616,7 +616,7 @@ thm (and1i () (1 (/\ ph ps)) ph
 thm (and2i () (1 (/\ ph ps)) ps
      1 ph ps and2 ax-mp)
 
-thm (andi-nonmetamath () (1 ph 2 ps) (/\ ph ps)
+thm (pm3.2i () (1 ph 2 ps) (/\ ph ps)
      2 1 ph ps and ax-mp ax-mp)
 
 thm (and1d () (1 (-> ph (/\ ps ch))) (-> ph ps)
@@ -664,7 +664,7 @@ defthm (def-bi wff (<-> ph ps) () ()
 
     (/\ (-> ph ps) (-> ps ph)) id
     (/\ (-> ph ps) (-> ps ph)) id
-    andi-nonmetamath)
+    pm3.2i)
 
 thm (def-bi-1 () () (-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
      ph ps def-bi and1i)
@@ -946,7 +946,7 @@ thm (def-bi-2i () (1 (/\ (-> ph ps) (-> ps ph))) (<-> ph ps)
 
 # a.k.a. biconsi
 thm (impbii () (1 (-> ph ps) 2 (-> ps ph)) (<-> ph ps)
-     1 2 andi-nonmetamath def-bi-2i)
+     1 2 pm3.2i def-bi-2i)
 
 thm (def-bi' () () (<-> (<-> ph ps) (/\ (-> ph ps) (-> ps ph)))
      ph ps def-bi def-bi-2i)
@@ -1029,6 +1029,7 @@ thm (imdi () () (<-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch)))
      ph ps ch pm2.86
      impbii)
 
+## <title> Commutative Property </title>
 thm (bicomi () (1 (<-> ph ps)) (<-> ps ph)
      1 biimpri
      1 biimpi
@@ -1037,6 +1038,7 @@ thm (bicomi () (1 (<-> ph ps)) (<-> ps ph)
 thm (pm5.41 () () (<-> (-> (-> ph ps) (-> ph ch)) (-> ph (-> ps ch)))
      ph ps ch imdi bicomi)
 
+## <title> Identity </title>
 thm (biid () () (<-> ph ph)
      ph id
      ph id
@@ -2646,9 +2648,6 @@ thm (pm3.2 () () (-> ph (-> ps (/\ ph ps))) ph ps df-an biimpri expi)
 #      [bib/WhiteheadRussell] p. 111. 
 thm (pm3.21 () () (-> ph (-> ps (/\ ps ph))) ps ph pm3.2 com12)
 
-#  Infer conjunction of premises. 
-thm (pm3.2i () (pm3.2i.1 ph pm3.2i.2 ps) (/\ ph ps) pm3.2i.1 pm3.2i.2 ph ps pm3.2 mp2)
-
 #  Theorem *3.37 (Transp) of [bib/WhiteheadRussell] p. 112. 
 thm (pm3.37 () () (-> (-> (/\ ph ps) ch) (-> (/\ ph (-. ch)) (-. ps))) ps ph pm3.21 ch imim1d com12 ph ch iman syl6ib con2d)
 
@@ -2717,15 +2716,33 @@ thm (anc2li () (anc2li.1 (-> ph (-> ps ch))) (-> ph (-> ps (/\ ph ch))) anc2li.1
 thm (anc2ri () (anc2ri.1 (-> ph (-> ps ch))) (-> ph (-> ps (/\ ch ph))) anc2ri.1 ph ps ch anc2r ax-mp)
 
 #  Conjunction in terms of disjunction (DeMorgan's law).  Theorem *4.5 of
-#      [bib/WhiteheadRussell] p. 120. 
+#      [bib/WhiteheadRussell] p. 120.
+## <title> DeMorgan's law </title>
+## <summary>
+##   <a href="http://en.wikipedia.org/wiki/Augustus_De_Morgan">De Morgan</a>'s law
+##   describing conjunction in terms of disjunction. For an alternative form see 
+##   <a href="oran">oran</a>.
+## </summary>
 thm (anor () () (<-> (/\ ph ps) (-. (\/ (-. ph) (-. ps)))) ph ps df-an ph ps pm4.62 notbii bitri)
 
 #  Negated conjunction in terms of disjunction (DeMorgan's law).  Theorem
-#      *4.51 of [bib/WhiteheadRussell] p. 120. 
+#      *4.51 of [bib/WhiteheadRussell] p. 120.
+## <title> DeMorgan's law </title>
+## <summary>
+##   <a href="http://en.wikipedia.org/wiki/Augustus_De_Morgan">De Morgan</a>'s law
+##   describing conjunction in terms of disjunction. For the non-negated form see 
+##   <a href="anor">anor</a>.
+## </summary>
 thm (ianor () () (<-> (-. (/\ ph ps)) (\/ (-. ph) (-. ps))) ph ps anor notbii (\/ (-. ph) (-. ps)) notnot bitr4i)
 
 #  Negated disjunction in terms of conjunction (DeMorgan's law).  Compare
 #      Theorem *4.56 of [bib/WhiteheadRussell] p. 120. 
+## <title> DeMorgan's law </title>
+## <summary>
+##   <a href="http://en.wikipedia.org/wiki/Augustus_De_Morgan">De Morgan</a>'s law
+##   describing disjunction in terms of conjunction. For the non-negated form see 
+##   <a href="oran">oran</a>.
+## </summary>
 thm (ioran () () (<-> (-. (\/ ph ps)) (/\ (-. ph) (-. ps))) ph notnot ps notnot orbi12i notbii (-. ph) (-. ps) anor bitr4i)
 
 #  Theorem *4.52 of [bib/WhiteheadRussell] p. 120. 
@@ -2745,6 +2762,12 @@ thm (pm4.56 () () (<-> (/\ (-. ph) (-. ps)) (-. (\/ ph ps))) ph ps ioran bicomi)
 
 #  Disjunction in terms of conjunction (DeMorgan's law).  Compare Theorem
 #      *4.57 of [bib/WhiteheadRussell] p. 120. 
+## <title> DeMorgan's law </title>
+## <summary>
+##   <a href="http://en.wikipedia.org/wiki/Augustus_De_Morgan">De Morgan</a>'s law
+##   describing disjunction in terms of conjunction. For an alternative form see 
+##   <a href="anor">anor</a>.
+## </summary>
 thm (oran () () (<-> (\/ ph ps) (-. (/\ (-. ph) (-. ps)))) (\/ ph ps) notnot ph ps ioran notbii bitri)
 
 #  Theorem *4.57 of [bib/WhiteheadRussell] p. 120. 
@@ -3453,6 +3476,7 @@ thm (impbida () (impbida.1 (-> (/\ ph ps) ch) impbida.2 (-> (/\ ph ch) ps)) (-> 
 
 #  Commutative law for equivalence.  Theorem *4.21 of [bib/WhiteheadRussell]
 #      p. 117. 
+## <title> Commutative Property </title>
 thm (bicom () () (<-> (<-> ph ps) (<-> ps ph)) (-> ph ps) (-> ps ph) ancom ph ps dfbi2 ps ph dfbi2 3bitr4i)
 
 #  Commute two sides of a biconditional in a deduction. 
@@ -3729,6 +3753,7 @@ thm (pm3.43 () () (-> (/\ (-> ph ps) (-> ph ch)) (-> ph (/\ ps ch))) ph ps ch jc
 
 #  Distributive law for conjunction.  Theorem *4.4 of [bib/WhiteheadRussell]
 #      p. 118. 
+## <title> Distributive Property </title>
 thm (andi () () (<-> (/\ ph (\/ ps ch)) (\/ (/\ ph ps) (/\ ph ch))) (-. ph) (-. ps) (-. ch) ordi ps ch ioran (-. ph) orbi2i ph ps ianor ph ch ianor anbi12i 3bitr4i notbii ph (\/ ps ch) anor (/\ ph ps) (/\ ph ch) oran 3bitr4i)
 
 #  Distributive law for conjunction. 
@@ -3788,6 +3813,7 @@ thm (orbi1 () () (-> (<-> ph ps) (<-> (\/ ph ch) (\/ ps ch))) (<-> ph ps) id ch 
 thm (anbi1 () () (-> (<-> ph ps) (<-> (/\ ph ch) (/\ ps ch))) (<-> ph ps) id ch anbi1d)
 
 #  Theorem *4.22 of [bib/WhiteheadRussell] p. 117. 
+## <title> Transitive Property </title>
 thm (bitr () () (-> (/\ (<-> ph ps) (<-> ps ch)) (<-> ph ch)) (<-> ph ps) id ch bibi1d biimpar)
 
 #  Theorem *4.84 of [bib/WhiteheadRussell] p. 122. 
@@ -4204,6 +4230,7 @@ thm (orbidi () () (<-> (\/ ph (<-> ps ch)) (<-> (\/ ph ps) (\/ ph ch))) ph ch or
 #      Interestingly, this law was not included in //Principia Mathematica// but
 #      was apparently first noted by Jan Lukasiewicz circa 1923.  (The proof was
 #      shortened by Juha Arpiainen, 19-Jan-2006.) 
+## <title> Associative Property </title>
 thm (biass () () (<-> (<-> (<-> ph ps) ch) (<-> ph (<-> ps ch))) ph ps pm5.501 ch bibi1d ph (<-> ps ch) pm5.501 bitr3d ps ch nbbn (-. ph) a1i ph ps nbn2 ch bibi1d ph (<-> ps ch) nbn2 3bitr3d pm2.61i)
 
 #  Lukasiewicz's shortest axiom for equivalential calculus.  Storrs McCall,
