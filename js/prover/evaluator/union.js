@@ -63,11 +63,11 @@ GH.ProofGenerator.evaluatorUnion.prototype.createSymbolTree = function(sexp, sym
 
 GH.ProofGenerator.evaluatorUnion.prototype.createSortedTree = function(sortedList) {
 	if (sortedList.length > 1) {
-		var firstItem = sortedList.shift();
+		var lastItem = sortedList.pop();
 		return new GH.symbolTree(
 		    null,
-			new GH.symbolTree(firstItem[1], null, null),
-			this.createSortedTree(sortedList));
+			this.createSortedTree(sortedList),
+			new GH.symbolTree(lastItem[1], null, null));
 	} else {
 		return new GH.symbolTree(sortedList[0][1], null, null);
 	}
@@ -75,17 +75,17 @@ GH.ProofGenerator.evaluatorUnion.prototype.createSortedTree = function(sortedLis
 
 GH.ProofGenerator.evaluatorUnion.prototype.removeDuplicates = function(sexp) {
 	while (sexp.operator == 'u.') {
-		if (sexp.right().operator == 'u.') {
-			if (this.prover.calculate(sexp.left().child()) == this.prover.calculate(sexp.right().left().child())) {
-				sexp = this.prover.associateLeft(sexp);
-				sexp = this.prover.evaluate(sexp.left(), 'Union is Idempotent').parent;
+		if (sexp.left().operator == 'u.') {
+			if (this.prover.calculate(sexp.right().child()) == this.prover.calculate(sexp.left().right().child())) {
+				sexp = this.prover.associateRight(sexp);
+				sexp = this.prover.evaluate(sexp.right(), 'Union is Idempotent').parent;
 			}
 		} else {
 			if (this.prover.calculate(sexp.left().child()) == this.prover.calculate(sexp.right().child())) {
 				sexp = this.prover.evaluate(sexp, 'Union is Idempotent').parent;
 			}
 		}
-		sexp = sexp.right();
+		sexp = sexp.left();
 	}
 	return sexp;
 };

@@ -21,7 +21,7 @@ GH.ProofGenerator.evaluatorInterval.prototype.inline = function(sexp) {
 	var rightNum = this.prover.calculate(sexp.right());
 	if (leftNum < rightNum) {
 		var decremented;
-		if (rightNum != 11) {
+		if ((rightNum - 1) % 10 != 0) {
 			decremented = this.prover.unevaluate(this.prover.create('+', [rightNum - 1, 1]), sexp.right());
 		} else {
 			// 11 is already in the form 10 + 1.

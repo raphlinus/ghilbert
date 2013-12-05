@@ -31,11 +31,6 @@ GH.ProofSegment.Type = {
 };
 
 GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, cursorPosition) {
-	var errors = [];
-	while (conclusion.isError && conclusion.hypotheses.length) {
-		errors.push(conclusion);
-		conclusion = conclusion.hypotheses[0];
-	}
 	if (!conclusion.isError) {
 		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false, cursorPosition);
 		rootSegment.siblingIndex = segmentCount;
@@ -45,14 +40,12 @@ GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, curso
 		rootSegment.attachChildren(stepsData, true, cursorPosition);
 		rootSegment.addNames();
 		rootSegment.resize();
-	}
-
-	for (var i = 0; i < errors.length; i++) {
+	} else {
 		var errorBlock = GH.ProofSegment.createLargeElement();
 		errorBlock.className += ' error';
 		stack.appendChild(errorBlock);
 		var tableElement = GH.ProofSegment.addTable(errorBlock);
-		var errorMsg = GH.ProofStep.stepToHtml(errors[i].conclusion, '');
+		var errorMsg = GH.ProofStep.stepToHtml(conclusion.conclusion, '');
 		tableElement.appendChild(errorMsg);
 	}
 	return rootSegment;
@@ -108,7 +101,7 @@ GH.ProofSegment.prototype.getNameColumn = function(rowElement) {
 };
 
 GH.ProofSegment.getName = function(prevStep, step, nextStep) {
-	var name = step.title || step.name_.toString();
+	var name = step.findBestTitle(prevStep).title;
 	var hierarchy = step.hierarchy;
 	while (hierarchy && (!prevStep || prevStep.end <= hierarchy.begin) && (!nextStep || nextStep.begin >= hierarchy.end)) {
 		if (hierarchy.name) {

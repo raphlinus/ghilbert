@@ -33,7 +33,11 @@ GH.ProofGenerator.evaluatorDivides.prototype.theoremName = function(sexp) {
 
 GH.ProofGenerator.evaluatorDivides.prototype.proveDivision = function(sexp, leftNum, rightNum) {
 	var xNum = rightNum / leftNum;
-	this.prover.evaluate(this.prover.create('*', [leftNum, xNum]));
+	if ((xNum == 10) || (xNum == 100)) {
+		this.prover.print([sexp.right()], 'eqid');
+	} else {
+		this.prover.evaluate(this.prover.create('*', [leftNum, xNum]));
+	}
 	this.prover.print([], 'proveDivides');
 	return this.prover.getLast();
 };
@@ -62,7 +66,7 @@ GH.ProofGenerator.evaluatorDivides.prototype.proveNoDivision = function(sexp, le
 GH.ProofGenerator.evaluatorDivides.prototype.canAddTheorem = function(sexp) {
 	var leftNum = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	return ((leftNum >= 2) && (leftNum < rightNum) && (rightNum >= 2) && (rightNum < 20));
+	return ((leftNum >= 2) && (leftNum < rightNum) && (rightNum >= 2) && (rightNum < 30));
 };
 
 GH.ProofGenerator.evaluatorDivides.prototype.calculate = function(sexp) {

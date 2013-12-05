@@ -157,7 +157,6 @@ GH.Direct.prototype.addAutoUnifyLink = function(ex) {
 };
 
 // Parses Ghilbert text and updates thmctx based on the text.
-//	this.text.removeLastCharacter(); // This is the remove the ')' at the end. It makes the theorem easier to edit.
 GH.Direct.prototype.parseText = function(text) {
 	var thmctx = this.thmctx;
 	thmctx.styleScanner.read_styling(text.replace(/\(|\)/g, ' $& '));
@@ -181,11 +180,10 @@ GH.Direct.prototype.parseText = function(text) {
 				this.marker = this.session.addMarker(range, "gh_error", "text", false);
 				this.session.setAnnotations([{row:i, column:spl[j].beg - this.offset, text:text, type:"error"}]);
 			}
-			this.status = spl[j] + ' ' + spl[j].beg + ':' + spl[j].end + ' ' + this.status;
-			this.stack.appendChild(GH.Direct.textToHtml(this.status));
 			break;
 		}
 	}
+	thmctx.fillMissingArguments();
 	this.offset += text.length + 1;
 };
 
@@ -252,6 +250,11 @@ GH.Direct.prototype.insertText = function(text) {
 	text = text.replace(/(\r\n|\n|\r)/gm,"");
 	this.parseText(text);
 }
+
+GH.Direct.prototype.replaceConclusion = function(replacement, begin, end) {
+	this.text.splice(begin, end - begin, replacement);
+	this.update(true);
+};
 
 GH.Direct.prototype.removeExpression = function(expression) {
 	var begin = expression.begin;
@@ -353,11 +356,10 @@ GH.DirectThm.StateType = {
 	POST_HYPOTHESES : 7,
 	S_EXPRESSION : 8,
 	POST_S_EXPRESSION : 9,
-	PROOF_END : 10,
-	KIND : 11,
-	POST_KIND : 12,
-	DEFINED_TERM: 13,
-	POST_DEFINED_TERM: 14,
+	KIND : 10,
+	POST_KIND : 11,
+	DEFINED_TERM: 12,
+	POST_DEFINED_TERM: 13,
 };
 
 GH.DirectThm.prototype.clearNewSyms = function() {
@@ -447,23 +449,23 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.state = stateType.POST_THM;
 				this.thmType = thmType.DEFINITION;
 			} else {
-				return 'expected thm';
+				return this.createError('Expected thm', tok);
 			}
 			break;
 		case stateType.POST_THM:
 			if (tok == '(') {
 				this.state = stateType.NAME;
 			} else {
-				return 'expected (';
+				return this.createError('Expected (', tok);
 			}
 			break;
 		case stateType.NAME:
 			if (tok == '(' || tok == ')') {
-				return 'expected thm name';
+				return this.createError('Expected thm name.', tok);
 			} else {
 				this.thmname = tok;
 				if (this.vg.syms.hasOwnProperty(tok)) {
-					return "A symbol of name '" + tok + "' already exists.";
+					return this.createError(tok + " already exists.", tok);
 				}
 				// Is this the best place to do this?
 				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling(''));
@@ -484,7 +486,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.pushEmptySExp_(tok);
 				this.state = stateType.DEFINED_TERM;
 			} else {
-				return "expected ( to open defined term";
+				return this.createError('Expected ( to open defined term.', tok);
 			}
 			break;
 		case stateType.POST_NAME:
@@ -493,7 +495,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.pushEmptySExp_(tok);
 				this.state = stateType.FREE_VARIABLE;
 			} else {
-				return "expected ( to open dv's";
+				return this.createError("Expected ( to open dv's.", tok);
 			}
 			break;
 		case stateType.POST_FREE_VARIABLE:
@@ -501,7 +503,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			  this.pushEmptySExp_(tok);
 				this.state = stateType.HYPOTHESES;
 			} else {
-				return "expected ( to open hyps";
+				return this.createError("Expected ( to open hyps.", tok);
 			}
 			break;
 		case stateType.POST_HYPOTHESES:
@@ -509,7 +511,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			  this.pushEmptySExp_(tok);
 				this.state = stateType.S_EXPRESSION;
 			} else if (tok == ')') {
-				return 'expected proof stmt';
+				return this.createError('Expected proof statement');
 			} else {
 				thestep = tok;
 				this.state = stateType.POST_S_EXPRESSION;
@@ -523,14 +525,15 @@ GH.DirectThm.prototype.tok = function(tok) {
 				pc = this.proofctx;
 				if (pc.mandstack.length != 0) {
 					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, null));
-					return '\n\nExtra mandatory hypotheses on stack at the end of the proof.';
+					return this.createError('Extra mandatory hypotheses on stack at the end of the proof.', tok);
 				}
 				if (pc.stack.length != 1) {
-					return '\n\nStack must have one term at the end of the proof.';
+					return this.createError('Stack must have one term at the end of the proof. Stack has ' + pc.stack.length + ' terms.', tok);
 				}
 				if (!GH.sexp_equals(pc.stack[0], this.concl)) {
-					return ('\n\nStack has:\n ' + GH.sexp_to_string(pc.stack[0]) +
-							'\nWanted:\n ' + GH.sexp_to_string(this.concl));
+					var replacement = GH.sexp_to_string(pc.stack[0]).replace(/\\/g, "\\\\")
+					return this.createError('\nWanted:\n ' + GH.sexptohtmlHighlighted(this.concl, 0) +
+						' <a onclick="window.direct.replaceConclusion(\'' + replacement + '\',' + this.concl.beg + ',' + this.concl.end + ')"><b>Fix</b></a>', tok);
 				}
 				
 				var new_hyps = [];
@@ -551,6 +554,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.proofctx.hierarchy.end = tok.end;
 				this.concl = null;
 				this.hypmap = {};
+				this.styleScanner.clear();
 			} else {
 				thestep = tok;
 			}
@@ -577,10 +581,6 @@ GH.DirectThm.prototype.tok = function(tok) {
 				this.sexpstack[this.sexpstack.length - 1].push(tok);
 			}
 			break;
-		case stateType.PROOF_END:
-			this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], tok + ' Extra Junk After Proof', tok.beg, tok.end, [], true, null));
-			return 'extra junk after proof';
-			break;
 	}
 
   state = this.state;
@@ -596,23 +596,23 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.proofctx.varmap = {};
 	} else if (state == stateType.POST_HYPOTHESES) {
 		if (thestep.length & 1) {
-			return 'Odd length hypothesis list';
+			return this.createError('Odd length hypothesis list', tok);
 		}
 		this.hyps = [];
 		for (i = 0; i < thestep.length; i += 2) {
 			var hypname = thestep[i];
 			if (GH.typeOf(hypname) != 'string') {
-				return 'Hyp label must be string';
+				return this.createError('Hyp label must be string', tok);
 			}
 			if (this.hypmap.hasOwnProperty(hypname)) {
-				return 'Repeated hypothesis label ' + hypname;
+				return this.createError('Repeated hypothesis label ' + hypname, tok);
 			}
 			var hyp = thestep[i + 1];
 			try {
-					this.vg.kind_of(hyp, this.proofctx.varlist,
+				this.vg.kind_of(hyp, this.proofctx.varlist,
 				this.proofctx.varmap, false, this.vg.syms);
 			} catch (e1) {
-					return "!" + e1;
+				return this.createError(e1, tok);
 			}
 			this.hypmap[hypname] = hyp;
 			this.hyps = thestep;
@@ -627,7 +627,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				pc.num_nondummies = pc.varlist.length;
 				pc.fvvarmap = this.vg.fvmap_build(this.fv, pc.varlist, pc.varmap);
 			} catch (e2) {
-				return "! " + e2;
+				return this.createError(e2, tok);
 			}
 		}
 		this.concl = thestep || 'null';
@@ -645,11 +645,82 @@ GH.DirectThm.prototype.tok = function(tok) {
 			if (e3.found) {
 				throw e3;
 			}
-			var stackHistory = this.proofctx.stackHistory;
-			var removed = stackHistory.splice(0);
-			stackHistory.push(new GH.ProofStep('Error', removed, e3, tok.beg, tok.end, [], true, null));
-			return "! " + e3;
+			return this.createError(e3, tok);
 		}
   }
   return null;
+};
+
+GH.DirectThm.prototype.sexpKind = function(sexp) {
+    if (GH.typeOf(sexp) == 'string') {
+		var sym = this.vg.syms[sexp];
+		if (!sym) {
+			return 'undefined';
+		} else if (sym.length == 3) {
+			var kind = sym[1];
+			if ((kind == 'nat') && (sym[0] == 'var')) {
+				return 'bind';
+			} else {
+				return kind;
+			}
+		}
+	} else {
+		return this.vg.terms[sexp[0]][0];
+	}
+}
+
+GH.DirectThm.getKind = function(terms, i) {
+	var kind = terms[1][i];
+	if ((kind == 'nat') && (!!terms[2][i])) {
+		return 'bind';
+	} else {
+		return kind;
+	}
+}
+
+GH.DirectThm.getKindColor = function(kind) {
+	if (kind == 'wff') 	return ['red-box','W'];
+	if (kind == 'bind') return ['yellow-box', 'B'];
+	if (kind == 'nat') 	return ['green-box', 'N'];
+	if (kind == 'set') 	return ['blue-box', 'S'];
+	return ['green', '?'];
+}
+
+// This fills in missing arguments. If you type "(+ A" it will fill in the missing second argument with
+// an N in a green box.
+GH.DirectThm.prototype.fillMissingArguments = function() {
+	while(this.sexpstack.length > 0) {
+		var sexp = [];
+		var terms = null;
+		while (!terms) {
+			sexp = this.sexpstack.pop();
+			if (sexp.length != 0) {
+				terms = this.vg.terms[sexp[0]];
+			}
+		}
+		for (var i = 1; i < sexp.length; i++) {
+			var expectedKind = GH.DirectThm.getKind(terms, i - 1);
+			var actualKind = this.sexpKind(sexp[i]);
+			if ((expectedKind != actualKind) && ((expectedKind != 'nat') || (actualKind != 'bind'))) {
+				// Highlight mistakes with the correct color.
+				var color = GH.DirectThm.getKindColor(expectedKind);
+				sexp[i] = ['htmlSpan', color[0], sexp[i]];
+			}
+		}
+		while (sexp.length - 1 < terms[1].length) {
+			var kind = GH.DirectThm.getKind(terms, sexp.length - 1);
+			var color = GH.DirectThm.getKindColor(kind);
+			sexp.push(['htmlSpan', color[0], color[1]]);
+		}
+		if (this.sexpstack.length > 0) {
+			this.sexpstack[this.sexpstack.length - 1].push(sexp);
+		} else {
+			this.proofctx.mandstack.push([['tvar', terms[0]], sexp]);
+		}
+	}
+};
+
+GH.DirectThm.prototype.createError = function(message, tok) {
+	this.proofctx.stackHistory.push(new GH.ProofStep('Error', [], message, tok.beg, tok.end, [], true, null));
+	return message;
 };

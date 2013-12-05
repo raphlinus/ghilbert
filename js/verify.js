@@ -32,10 +32,11 @@ GH.Scanner = function (lines) {
 	this.styleScanner = new GH.StyleScanner();
 };
 
-GH.styling = function(table, title, suggest, filename) {
+GH.styling = function(table, title, suggest, filename, thmNumber) {
 	this.table = table;
 	this.title = title;
 	this.filename = filename;
+	this.thmNumber = thmNumber;
 	// Remove the quotation marks from the suggestion names.
 	if (suggest) {
 		for (var i = 0; i < suggest.length; i++) {
@@ -67,6 +68,9 @@ GH.StyleScanner = function() {
 	this.leftColumns = 0;
 	this.color = '';
 };
+
+// Global variables are bad.
+GH.StyleScanner.thmCounter = 0;
 
 GH.StyleScanner.modeTypes = {
 	NONE: 0,
@@ -117,13 +121,14 @@ GH.StyleScanner.prototype.get_styling = function(filename) {
 		tableStyle = this.table.output();
 		tableStyle.splice(0, 1);
 	}
-	return new GH.styling(tableStyle, this.title, this.suggest, filename);
+	return new GH.styling(tableStyle, this.title, this.suggest, filename, GH.StyleScanner.thmCounter);
 };
 
 GH.StyleScanner.prototype.clear = function() {
 	this.table = null;
 	this.title = '';
 	this.suggest = null;
+	GH.StyleScanner.thmCounter++;
 }
 
 GH.StyleScanner.prototype.addSuggestToken = function(tok) {
@@ -608,7 +613,7 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
         v = syms[exp];
         if (!syms.hasOwnProperty(exp) ||
             (v[0] != 'var' && v[0] != 'tvar')) {
-            throw 'Expression not a var: ' + exp;
+            throw exp + ' is not a defined variable.';
         }
         if (binding_var && v[0] != 'var') {
             throw 'Expected a binding variable but found ' + exp;
@@ -620,13 +625,17 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
         return this.kinds[v[1]];
     }
     if (exp.length == 0) {
-      throw "Term can't be empty list";
+      throw "Term can't be empty.";
     }
     if (GH.typeOf(exp[0]) != 'string') {
       throw 'Term symbol must be id';
     }
     if (!this.terms.hasOwnProperty(exp[0])) {
-        throw 'Term ' + exp[0] + ' not known';
+        if (syms.hasOwnProperty(exp[0])) {
+	        throw exp[0] + ' is a variable not a operator. Operators always come before variables.';
+		} else {
+	        throw 'Term ' + exp[0] + ' not known';
+		}
     }
     if (binding_var) {
         throw ('Expected a binding variable but found ' +
@@ -634,18 +643,35 @@ GH.VerifyCtx.prototype.kind_of = function(exp, varlist, varmap,
     }
     v = this.terms[exp[0]];
     if (exp.length - 1 != v[1].length) {
-        throw ('Arity mismatch: ' + exp[0] + ' has arity ' + v[1].length + 
-               ' but was given ' + (exp.length - 1));
+        throw (GH.VerifyCtx.arityMessage(exp[0], v[1].length, (exp.length - 1)));
     }
     for (var i = 0; i < exp.length - 1; i++) {
         binding_var = v[2][i] != null;
         var child_kind = this.kind_of(exp[i + 1], varlist, varmap, 
                                       binding_var, syms);
         if (child_kind != this.kinds[v[1][i]]) {
-            throw 'Kind mismatch';
+            throw 'Kind mismatch. Expected ' + this.kinds[v[1][i]] + ', but got a ' + child_kind + ': ' + exp[i + 1] + '.';
         }
     }
     return this.kinds[v[0]];
+};
+
+GH.VerifyCtx.arityMessage = function(name, expected, actual) {
+	var result = name + ' is a ';
+	switch (expected) {
+		case 0: result += 'constant';					break;
+		case 1: result += 'unary operation';			break;
+		case 2: result += 'binary operation';			break;
+		case 3: result += 'ternary operation';			break;
+		default: result += expected + '-ary operation';	break;
+	}
+	if ((name == '-n') && (actual == 2)) {
+		return 'Negative ' + result + ". For binary subtraction use '-'.";
+	} else if ((name == '-') && (actual == 1)) {
+		return 'Subtraction ' + result + ". For the unary negative sign use '-n.'";
+	}
+	result += '. Expected ' + expected + ' arguments, got ' + actual + '.';
+	return result;
 };
 
 GH.VerifyCtx.prototype.get_import_ctx = function(prefix, pifs) {
@@ -1064,7 +1090,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
         }
 		var hyp = hypmap[step];
 		proofctx.stack.push(hyp);
-		var styling = tagName ? new GH.styling(null, tagName, '', '') : null;
+		var styling = tagName ? new GH.styling(null, tagName, '', '', 0) : null;
 		var proofStep = new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;
@@ -1091,7 +1117,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
 		proofctx.stack.push(result);
 
 		var removed = proofctx.stackHistory.splice(sp);
-		var styling = v[6] ? v[6] : new GH.styling(null, null, '', '');
+		var styling = v[6] ? v[6] : new GH.styling(null, null, '', '', 0);
 		var proofStep = new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;		

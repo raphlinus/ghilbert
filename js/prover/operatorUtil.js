@@ -463,8 +463,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['<>'], unicode: '(A, B, C)', name: 'tuple', link: 'tuple/tuple'},
 
 	{ symbols: ['|'],  name: 'divides', link: 'number-theory/divides'},
-	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/primes'},
-	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/primes'},
+	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/prime'},
+	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/prime'},
 	{ symbols: ['sqrt'], name: 'square root'},
 	{ symbols: ['fun'], name: 'is a function', link: 'function/fun'},
 	{ symbols: ['lincom'], name: 'linear combination'},

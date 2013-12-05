@@ -8,11 +8,11 @@ GH.setUtil.sexpToArray = function(sexp) {
 	if ((sexp.operator == '{}') && (GH.numUtil.isReduced(sexp.child()))) {
 		return [GH.numUtil.decimalNumberSexp(sexp.child())];
 	}
-	if ((sexp.operator == 'u.') && (sexp.left().operator == '{}')) {
+	if ((sexp.operator == 'u.') && (sexp.right().operator == '{}')) {
 		var leftSet = GH.setUtil.sexpToArray(sexp.left());
 		var rightSet = GH.setUtil.sexpToArray(sexp.right());
-		if (leftSet && rightSet && (leftSet.length == 1) &&
-		   (rightSet.indexOf(leftSet[0]) == -1)) {  // Do not allow duplicates.
+		if (leftSet && rightSet && (rightSet.length == 1) &&
+		   (leftSet.indexOf(rightSet[0]) == -1)) {  // Do not allow duplicates.
 			return leftSet.concat(rightSet);
 		}
 	}
@@ -26,9 +26,9 @@ GH.setUtil.createSet = function(setArray) {
 	} else if (setArray.length == 1) {
 		return new GH.sExpression.createOperator('{}', [GH.numUtil.createNum(setArray[0])]);
 	} else {
-		var firstNum = setArray.shift();
+		var lastNum = setArray.pop();
 		return new GH.sExpression.createOperator(
-		    'u.', [GH.setUtil.createSet([firstNum]), GH.setUtil.createSet(setArray)]);
+		    'u.', [GH.setUtil.createSet(setArray), GH.setUtil.createSet([lastNum])]);
 	}
 };
 

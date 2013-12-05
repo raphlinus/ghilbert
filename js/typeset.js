@@ -419,7 +419,7 @@ GH.typesetproduct = function(term, cursorPosition) {
 
 GH.isSetInExpectedForm = function(sexp) {
 	return (sexp[0] == '{}') ||
-           ((sexp[0] == 'u.') && (sexp[1][0] == '{}') && GH.isSetInExpectedForm(sexp[2]));
+           ((sexp[0] == 'u.') && GH.isSetInExpectedForm(sexp[1]) && (sexp[2][0] == '{}'));
 };
 
 GH.getSetElements = function(set, result) {
@@ -427,8 +427,9 @@ GH.getSetElements = function(set, result) {
 		result.push(set[1]);
 		return result;
 	} else {
-		result.push(set[1][1]);
-		return GH.getSetElements(set[2], result);
+		result = GH.getSetElements(set[1], result);
+		result.push(set[2][1]);
+		return result;
 	}
 };
 
@@ -611,9 +612,9 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (GH.isSetInExpectedForm(sexp)) {
         return GH.typesetSet(sexp, cursorPosition);
 	} else if (sexp[0] == 'i^i') {
-        return GH.typesetinfix(sexp, 'r', 3500, '∩', cursorPosition);
+        return GH.typesetinfix(sexp, 'l', 3500, '∩', cursorPosition);
     } else if (sexp[0] == 'u.') {
-        return GH.typesetinfix(sexp, 'r', 3500, '∪', cursorPosition);
+        return GH.typesetinfix(sexp, 'l', 3500, '∪', cursorPosition);
     } else if (sexp[0] == '{/}') {
         return GH.stringslug('∅', cursorPosition);
     } else if (sexp[0] == '</>') {
@@ -637,6 +638,7 @@ GH.typeset = function(sexp, cursorPosition) {
     } else if (sexp[0] == '_') {
         return GH.typesetindex(sexp, 2500, cursorPosition);
     } else if (sexp[0] == 'exp') {
+		//MathJax.Hub.Queue(['Typeset',MathJax.Hub,'body']);
         return GH.typesetexp(sexp, 2500, cursorPosition);
     } else if (sexp[0] == 'mod') {
         return GH.typesetinfix(sexp, 'n', 2500, ' mod ', cursorPosition);

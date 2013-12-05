@@ -349,6 +349,7 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.isError = isError;
 	this.link = styling ? GH.ProofStep.computeLink(styling.filename, name) : null;
 	this.substitution = null;
+	this.thmNumber = styling ? styling.thmNumber : 0;
 	this.styling = styling ? styling.table : null;
 	this.title = styling && styling.title ? styling.title : '';
 	this.hierarchy = null;
@@ -393,6 +394,26 @@ GH.ProofStep.prototype.getBeginning = function() {
 			return this.begin;
 		}
 	}
+};
+
+GH.ProofStep.prototype.findBestTitle = function(prevStep) {
+	if (prevStep == this) {
+		return {title: this.title, score: 0};
+	}
+	var bestTitle = this.title || this.name_.toString();;
+	var bestScore = this.thmNumber;
+	if ((this.title.search('Substitution') != -1) && (this.name_.search('Replace') != -1)) {
+		// The substitution theorems are not important even if they have a high number.
+		bestScore = 0;
+	}
+	for (var i = 0; i < this.hypotheses.length; i++) {
+		var hypResult = this.hypotheses[i].findBestTitle(prevStep);
+		if (hypResult.score > bestScore) {
+			bestScore = hypResult.score;
+			bestTitle = hypResult.title;
+		}
+	}
+	return {title: bestTitle, score: bestScore};
 };
 
 // Render the proof step name in HTML.
