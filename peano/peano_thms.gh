@@ -1480,7 +1480,7 @@ thm (eqeq12i ()
   hyp1 A B C eqeq1 ax-mp hyp2 C D B eqeq2 ax-mp bitri
 )
 
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 thm (eqeq12d ()
   (hyp1 (-> ph (= A B))
    hyp2 (-> ph (= C D)))
@@ -1538,7 +1538,7 @@ thm (eqtr1 () () (-> (/\ (= B A) (= A C)) (= B C))
   ## </d 'Symmetric Property '>
 )
 
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 ## <table>
 ##   (= A [ B    ] ]  )
 ##   (= A [      [ [ C)
@@ -1551,7 +1551,7 @@ thm (eqtr3 ()
   hyp1 hyp2 A B C ax-eqtr mp2an
 )
 
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 ## <table>
 ##   (= A  [    B ] ] )
 ##         [ (= B ] [ C)
@@ -1564,7 +1564,7 @@ thm (eqtr ()
   hyp1 eqcomi hyp2 eqtr3
 )
 
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 ## <table>
 ##   (= A    [   [ B)
 ##        (= [ C [ B )
@@ -1577,7 +1577,7 @@ thm (eqtr4 ()
   hyp1 hyp2 eqcomi eqtr
 )
 
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 ## <table>
 ##   (= A [      [ [ B)
 ##   (= A [    C ] ]  )
@@ -1589,7 +1589,7 @@ thm (eqtr5 ()
   (= C B)
   hyp1 hyp2 A B C ax-eqtr mp2an eqcomi
 )
-## <title> Transtitive Property </title>
+## <title> Transitive Property </title>
 ## <table>
 ##   (-> ph (= A  [    B ] ] ))
 ##   (-> ph       [ (= B ] [ C))
@@ -6083,6 +6083,13 @@ thm (elSubset () () (<-> (e. A S) (C_ ({} A) S))
   (C_ ({} A) S) imbi2i
   mpbi
   impbii
+)
+
+## <title> Subset and Element Of Equivalence <title>
+thm (elSubseti () (hyp (e. A S)) (C_ ({} A) S)
+  hyp
+  A S elSubset   
+  mpbi
 )
 
 ## <title> Equality deduction for set abstraction </title>
@@ -12690,6 +12697,109 @@ thm (provePrime ((A y)) (hyp (C_ ({...} (2) A) ({|} y (-. (| y (+ A (1)))))) hyp
   pm3.2i
   A y dfprime1lem4  
   ax-mp
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (| A  [ B ]   ]   ] ) ps))
+##   (=                [ B ]   [ C ] )
+##   (-> ph (<-> (| A  [   [   [ C ] ) ps))
+## </table>
+thm (EqReplaceImp1Bi0Divs1 () (
+     replacee (-> ph (<-> (| A B) ps))
+     substitution (= B C)) 
+     (-> ph (<-> (| A C) ps))
+  replacee substitution
+  A divideseq2i
+  BiReplaceImp1Bi0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ (C_ S  [ T ]   ]   ] ) ph) ps)
+##   (=_            [ T ]   [ U ] )
+##   (-> (/\ (C_ S  [   [   [ U ] ) ph) ps)
+## </table>
+thm (SeqReplaceImp0An0Ss1 () (
+     replacee (-> (/\ (C_ S T) ph) ps)
+     substitution (=_ T U)) 
+     (-> (/\ (C_ S U) ph) ps)
+  replacee substitution
+  S sseq2i
+  BiReplaceImp0An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (prime  [ A ]   ]   ] ))
+##   (=             [ A ]   [ B ] )
+##   (-> ph (prime  [   [   [ B ] ))
+## </table>
+thm (EqReplaceImp1Prime0 () (
+     replacee (-> ph (prime A))
+     substitution (= A B)) 
+     (-> ph (prime B))
+  replacee substitution
+  primeeqi
+  sylib
+)
+
+
+thm (provePrime2 ((A y)) (hyp (C_ ({...} (2) (.- A (1))) ({|} y (-. (| y A)))) hyp2 (< (1) A)) (prime A)
+  hyp
+  (0) (.- A (1)) (1) ltadd1
+  hyp2   
+  ## <d 'Inequality Conversion '>
+    (1) A ltle
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  (1) A halfminus      
+  ax-mp    
+    EqReplaceBi1Lt1
+    
+    ## <d 'Additive Identity '>
+      (1) pa_ax3r
+      EqReplaceBi1Lt0
+    ## </d 'Additive Identity '>
+  hyp2    
+    mpbirRemove
+    
+    ## <d 'Commute Inequality '>
+      (0) (.- A (1)) ltcom
+      mpbi
+    ## </d 'Commute Inequality '>
+  pm3.2i
+
+
+  (.- A (1)) x dfprime1lem4
+  y x (+ (.- A (1)) (1)) divideseq1
+  hyp2    
+  ## <d 'Inequality Conversion '>
+    (1) A ltle
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  (1) A halfminus    
+  ax-mp
+  EqReplaceImp1Bi0Divs1
+    
+    ## <d 'Negate Both Sides '>
+      (| y A) (| x (+ (.- A (1)) (1))) notbi
+      sylib
+    ## </d 'Negate Both Sides '>
+  abeq seqcomi    
+  SeqReplaceImp0An0Ss1
+
+  hyp2    
+  ## <d 'Inequality Conversion '>
+    (1) A ltle
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  (1) A halfminus    
+  ax-mp    
+  EqReplaceImp1Prime0      
+      ax-mp
 )
 
 # number 60.0
