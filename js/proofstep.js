@@ -231,9 +231,20 @@ GH.sExpression.prototype.toString = function() {
 	return result;
 };
 
-
 GH.sExpression.prototype.getBeginning = function() {
 	return this.begin;
+};
+
+GH.sExpression.prototype.isVariablePresent = function(variable) {
+	if (this.operator.valueOf() == variable) {
+		return true;
+	}
+	for (var i = 0; i < this.operands.length; i++) {
+		if (this.operands[i].isVariablePresent(variable)) {
+			return true;
+		}
+	}
+	return false;
 };
 
 

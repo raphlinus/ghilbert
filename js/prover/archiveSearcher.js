@@ -44,16 +44,16 @@ GH.archiveSearcher.prototype.createArchive = function(syms) {
 						sexp = conclusion.right();
 					} else if (suggestCommand == 'auto-right') {
 						sexp = conclusion.left();
-						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, syms[sym][1], symVars, sexp, []);
 						this.addToArchive(newSuggestion, ['auto-replace', replaceOp], sexp, vars);
 						archiveBranch = ['replace', replaceOp];
 					} else if (suggestCommand == 'auto-left') {
 						sexp = conclusion.right();
-						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+						newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, syms[sym][1], symVars, sexp, []);
 						this.addToArchive(newSuggestion, ['auto-replace', replaceOp], sexp, vars);
 						archiveBranch = ['replace', replaceOp];
 					}
-					var newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, symVars, sexp, []);
+					var newSuggestion = new GH.archiveSuggestion(sym, suggest[i], syms[sym][6].title, syms[sym][1], symVars, sexp, []);
 					this.addToArchive(newSuggestion, archiveBranch, sexp, vars);
 				}
 			}
@@ -105,6 +105,10 @@ GH.archiveSearcher.prototype.addToArchive = function(newSuggestion, archiveBranc
 // Puts the variables in the right order and removes duplicate matches.
 GH.archiveSearcher.fillHypotheses = function(suggestion, hyps) {
 	var newHyps = [];
+	var newFreeness = [];
+	for (var i = 0; i < suggestion.freeness.length; i++) {
+		newFreeness.push(['', '']);
+	}
 
 	// Put in default values. Hyps may not have all of them if you're replacing an expression and
 	// new variables appear on the right.
@@ -121,15 +125,26 @@ GH.archiveSearcher.fillHypotheses = function(suggestion, hyps) {
 		}
 		newHyps.push(GH.sExpression.createVariable(defaultVar));
 	}
-
 	for (var i = 0; i < hyps.length; i++) {
 		newHyps[suggestion.hyps[i]] = hyps[i];
 	}
+	
+	for (var i = 0; i < hyps.length; i++) {
+		for (var j = 0; j < suggestion.freeness.length; j++) {
+			for (var k = 0; k < 2; k++) {
+				if (suggestion.freeness[j][k].valueOf() == variables[i][2]) {
+					newFreeness[j][k] = newHyps[i];
+				}
+			}
+		}
+	}
 	var result = suggestion.copy();
 	result.hyps = newHyps;
+	result.freeness = newFreeness;
 	return result;
 };
 
+// Check that variables that should be identical are identical.
 GH.archiveSearcher.checkVariableMatches = function(theorems, hyps) {
 	var matchingList = [];
 	for (var k = 0; k < theorems.length; k++) {
@@ -147,6 +162,25 @@ GH.archiveSearcher.checkVariableMatches = function(theorems, hyps) {
 		}
 	}
 	return matchingList;
+};
+
+
+GH.archiveSearcher.checkFreenessConstraints = function(theorems, hyps) {
+	var freeList = [];
+	for (var k = 0; k < theorems.length; k++) {
+		var thm = theorems[k];
+		var violations = false;
+		for (var i = 0; i < thm.freeness.length && !violations; i++) {
+			var bindVar = thm.freeness[i][1].operator.valueOf();
+			// This finds serious freeness violations that can not be corrected by adding a freeness
+			// constraint. Other freeness violations can be corrected automatically.
+			violations = violations || (thm.freeness[i][0].isVariablePresent(bindVar));
+		}
+		if (!violations) {
+			freeList.push(thm);
+		}
+	}
+	return freeList;
 };
 
 GH.archiveSearcher.filterByAction = function(theorems, categoryName, actionName) {
@@ -209,7 +243,9 @@ GH.archiveSearcher.search = function(queue, archive, hyps, categoryName, actionN
 	}
 	var theorems = archive['thms'];
 	theorems = GH.archiveSearcher.filterByAction(theorems, categoryName, actionName);
-	return GH.archiveSearcher.checkVariableMatches(theorems, hyps);
+	theorems = GH.archiveSearcher.checkVariableMatches(theorems, hyps);
+	theorems = GH.archiveSearcher.checkFreenessConstraints(theorems, hyps);
+	return theorems;
 };
 
 GH.archiveSearcher.prototype.contradictionSearch = function(sexp) {
@@ -379,19 +415,20 @@ GH.archiveSearcher.prototype.addSuggestions = function(sexp) {
 	this.addSuggestionType(TYPES.REPLACEMENT, replacements);
 };
 
-GH.archiveSuggestion = function(name, suggest, title, variables, theorem, hyps) {
+GH.archiveSuggestion = function(name, suggest, title, freeness, variables, theorem, hyps) {
 	this.name = name;					// The name of the theorem in Ghilbert code.
 	this.type = suggest[0];				// Full theorem, replace left, or replace right.
 	this.categoryName = suggest[1];		// The category of suggestion.
 	this.actionName = suggest.length < 3 ? null : suggest[2];		// The name appearing on the suggest button.
 	this.title = title;					// The title that is displayed to the right of each step.
+	this.freeness = freeness;			// The free variable constraints.
 	this.theorem = theorem;
 	this.variables = variables;			// The variables the theorem needs.
 	this.hyps = hyps;					// These are the filled in variables from the current s-expression. Should probably rename this.
 };
 
 GH.archiveSuggestion.prototype.copy = function() {
-	return new GH.archiveSuggestion(this.name, [this.type, this.categoryName, this.actionName], this.title, this.theorem, this.hyps);
+	return new GH.archiveSuggestion(this.name, [this.type, this.categoryName, this.actionName], this.title, this.freeness, this.theorem, this.hyps);
 };
 
 GH.archiveSuggestion.prototype.addMissingVariables = function() {

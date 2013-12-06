@@ -579,7 +579,7 @@ GH.VerifyCtx.prototype.freeset = function(v, exp, varset) {
 GH.VerifyCtx.prototype.check_free_in = function(v, exp, varset) {
     var syms = this.syms;
     function test(vv) {
-        if (vv == v) {
+        if (vv.valueOf() == v.valueOf()) {
             return true; // only return true if vv explicitly free
         }
         if (varset == null || syms[vv][0] == 'var') {
@@ -1043,6 +1043,7 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
     if (proofctx.stack.length != 1) {
         throw 'Stack must have one term at end of proof';
     }
+	var expectedfv = '';
     var missing = '';
     var extra = '';
     var v, nfis, A, val;
@@ -1052,20 +1053,28 @@ GH.VerifyCtx.prototype.check_proof = function(proofctx,
         for (A in nfis) {
           if (nfis.hasOwnProperty(A)) {
               val = nfis[A];
+			  var pair = "(" + A + " " + v + ")";
               if (val == null) {
-                  missing = missing + " (" + A + " " + v + ")";
+                  missing = missing + pair;
+		          expectedfv = expectedfv + pair;
               } else if (val == 0) {
                   extra = extra + " (" + A + " " + v + ")";
+              } else if (val > 0) {
+				  expectedfv = expectedfv + pair;
               }
           }
         }
       }
     }
     if (missing != '') {
-        throw 'Missing free variable constraint context pairs: ' + missing;
+		expectedfv = '(' + expectedfv + ')';
+        throw 'Missing free variable constraint context pairs: ' + missing +
+            ' <a onclick="window.direct.replaceText(\'' + expectedfv + '\',' + fv.beg + ',' + fv.end + ')"><b>Fix</b></a>';
     }
     if (extra != '') {
-        throw 'Extra free variable constraint context pairs: ' + extra;
+		expectedfv = '(' + expectedfv + ')';
+        throw 'Extra free variable constraint context pairs: ' + extra +
+            ' <a onclick="window.direct.replaceText(\'' + expectedfv + '\',' + fv.beg + ',' + fv.end + ')"><b>Fix</b></a>';
     }
     } catch (e) {
         if (!this.suppress_errors) {
