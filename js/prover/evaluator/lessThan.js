@@ -4,11 +4,6 @@
 };
 
 GH.ProofGenerator.evaluatorLessThan.prototype.variableAction = function(sexp) {
-	var leftNum  = this.prover.calculate(sexp.left());
-	var rightNum = this.prover.calculate(sexp.right());
-	if (rightNum == 0) {
-		return new GH.action('ge0', [sexp.left()]);
-	}
 	return null;
 };
 
@@ -41,11 +36,11 @@ GH.ProofGenerator.evaluatorLessThan.prototype.inline = function(sexp) {
 	} else if (leftNum == rightNum) {
 		this.prover.evaluate(this.prover.create('=', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '≥');
+		return this.prover.operationExchange(result, '¬<');
 	} else if (leftNum > rightNum) {
-		this.prover.evaluate(this.prover.create('<=', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('>', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
-		return this.prover.operationExchange(result, '≥');
+		return this.prover.operationExchange(result, '¬<');
 	} 
 	return null;
 };

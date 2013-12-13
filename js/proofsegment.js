@@ -1,7 +1,7 @@
 // When proofs are displayed they are organized hierarchically into proof segments.
 // by Paul Merrell, 2013
 
-GH.ProofSegment = function(state, type, step, hasPrevious, cursorPosition) {	
+GH.ProofSegment = function(state, type, step, hasPrevious) {
 	this.parent = null;
 	this.children = [];
 	this.siblingIndex = -1;
@@ -30,14 +30,14 @@ GH.ProofSegment.Type = {
 	 GRAY_INNER: 3,  // A block inside a gray block. It is gray when open, white when closed.
 };
 
-GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, cursorPosition) {
+GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount) {
 	if (!conclusion.isError) {
-		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false, cursorPosition);
+		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false);
 		rootSegment.siblingIndex = segmentCount;
 		stack.appendChild(rootSegment.largeElement);
 	
 		var stepsData = GH.ProofSegment.findImportantSteps(conclusion, null);
-		rootSegment.attachChildren(stepsData, true, cursorPosition);
+		rootSegment.attachChildren(stepsData, true);
 		rootSegment.addNames();
 		rootSegment.resize();
 	} else {
@@ -153,7 +153,7 @@ GH.ProofSegment.prototype.createCloseColumn = function(i, steps) {
 	return xElement;
 };
 
-GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursorPosition) {
+GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion) {
 	var steps = stepsData.steps;
 	var tableElement = GH.ProofSegment.addTable(this.largeElement);
 	this.hasCloseColumn = (this.getPosition().length == 1);
@@ -172,7 +172,7 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 		var skipType = stylized && (type % 2 == 1);
 		type += skipType ? 1 : 0;
 		type = type % 4;
-		var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, type, steps[i], newStepsData.hasEnd, cursorPosition);
+		var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, type, steps[i], newStepsData.hasEnd);
 		child.parent = this;
 		this.children.push(child);
 		child.siblingIndex = i;
@@ -181,7 +181,7 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 		if (stylized) {
 			var styleIndex = isConclusion ? i : this.step.hypotheses.indexOf(steps[i]);
 			var stylizedExpression = GH.ProofSegment.styleExpression(this.step.styling[styleIndex], steps[i].conclusion);
-			var partialHtml = GH.sexptohtmlHighlighted(stylizedExpression, cursorPosition);
+			var partialHtml = GH.sexptohtml(stylizedExpression);
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, steps[i].link, isConclusion);
 			var fullHtml = GH.ProofStep.stepToHtml(partialHtml, nameHtml);
 			child.smallElement = fullHtml;
@@ -190,9 +190,9 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 			tableElement = GH.ProofSegment.addTable(this.largeElement);
 			var text;
 			if ((0 < i) && (i < steps.length - 1)) {
-				text = GH.ProofSegment.hideRepeatedParts(steps[i-1], steps[i], cursorPosition);
+				text = GH.ProofSegment.hideRepeatedParts(steps[i-1], steps[i]);
 			} else {
-				text = GH.sexptohtmlHighlighted(steps[i].conclusion, cursorPosition);
+				text = GH.sexptohtml(steps[i].conclusion);
 			}			
 			var link = isSingleStep ? steps[i].link : '';
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, link, isSingleStep && isConclusion);
@@ -216,18 +216,18 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, cursor
 			var newIsSubset = (GH.ProofSegment.isSubset(newStepsData.steps, stepsData.steps));
 			var oldIsSubset = (GH.ProofSegment.isSubset(stepsData.steps, newStepsData.steps));
 			if (!oldIsSubset || !newIsSubset) {
-				// Calling child.attachChildren(newStepsData, !newIsSubset, cursorPosition) here is slow if
+				// Calling child.attachChildren(newStepsData, !newIsSubset) here is slow if
 				// we're not displaying any of the children. We save all the information so that we can display
 				// the children when they are needed.
-				child.attachChildrenData = {stepsData: newStepsData, recursion: !newIsSubset, cursorPosition: cursorPosition};
+				child.attachChildrenData = {stepsData: newStepsData, recursion: !newIsSubset};
 			}
 		}
 	}
 };
 
-GH.ProofSegment.hideRepeatedParts = function(prevStep, step, cursorPosition) {
+GH.ProofSegment.hideRepeatedParts = function(prevStep, step) {
 	var isHidden = false;
-	var hideableOperators = ['->', '<', '<='].concat(GH.operatorUtil.EQUIVALENCE_OPERATORS);
+	var hideableOperators = ['->', '<', '<=', '>', '>='].concat(GH.operatorUtil.EQUIVALENCE_OPERATORS);
 	var sexp = step.conclusion;
 	var prevSexp = prevStep.conclusion;
 	var operator = String(sexp[0]);
@@ -246,9 +246,9 @@ GH.ProofSegment.hideRepeatedParts = function(prevStep, step, cursorPosition) {
 	if (isHidden) {
 		var sexp = step.conclusion.slice(0);
 		sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
-		return GH.sexptohtmlHighlighted(sexp, cursorPosition);
+		return GH.sexptohtml(sexp);
 	} else {
-	    return GH.sexptohtmlHighlighted(step.conclusion, cursorPosition);
+	    return GH.sexptohtml(step.conclusion);
 	}
 };
 
@@ -280,7 +280,7 @@ GH.ProofSegment.styleExpression = function(styling, expression) {
 GH.ProofSegment.prototype.delayedAttachChildren = function() {
 	var data = this.attachChildrenData;
 	if (data) {
-		this.attachChildren(data.stepsData, data.recursion, data.cursorPosition);
+		this.attachChildren(data.stepsData, data.recursion);
 		this.addNames();
 	}
 	this.attachChildrenData = null;

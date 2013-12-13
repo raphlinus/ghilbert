@@ -83,13 +83,15 @@ GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, lef
 
 GH.ProofGenerator.evaluatorElementOf.prototype.notInsideSet = function(sexp, leftNum) {
 	var temp = sexp.right();
+	var inequalities = [];
 	while (temp.operator == 'u.') {
-		var inequality = this.prover.create('=', [leftNum, temp.left().child()]);
-		this.prover.evaluate(inequality);
-		temp = temp.right();
+		inequalities.push(this.prover.create('=', [leftNum, temp.right().child()]));
+		temp = temp.left();
 	}
-	var inequality = this.prover.create('=', [leftNum, temp.child()]);
-	this.prover.evaluate(inequality);
+	inequalities.push(this.prover.create('=', [leftNum, temp.child()]));
+	while (inequalities.length > 0) {
+		this.prover.evaluate(inequalities.pop());
+	}
 	this.prover.apply(this.repeator, sexp);
 	return this.prover.getLast();
 };
@@ -162,27 +164,25 @@ GH.ProofGenerator.repeatedElementOf.prototype.addTheorem = function(sexp) {
 	
 	// Find conclusion.
 	var temp = sexp;
-	var count = 0;
+	var count = hypVariables.length - 1;
 	temp.replaceOperand(new GH.sExpression(primaryVar, 0, 0, true), 0);
 	temp = temp.right();
 	while (temp.operator == 'u.') {
-		temp.left().replaceOperand(new GH.sExpression(hypVariables[count], 0, 0, true), 0);
-		count++;
-		temp = temp.right();
+		temp.right().replaceOperand(new GH.sExpression(hypVariables[count], 0, 0, true), 0);
+		count--;
+		temp = temp.left();
 	}
-	temp.parent.right().replaceOperand(new GH.sExpression(hypVariables[count], 0, 0, true), 0);
+	temp.parent.left().replaceOperand(new GH.sExpression(hypVariables[0], 0, 0, true), 0);
 	var conclusion = '(-. ' + sexp.toString() + ')';
 
 	this.prover.println('thm (' + name + ' () (' + hyps + ') ' + conclusion);
 	this.prover.depth++;
 	for (var i = 0; i < set.length; i++) {
 		this.prover.println('hyp' + i);
-	}
-	for (var i = 0; i < set.length; i++) {
 		if (i == 0) {
 			this.prover.println('notInSingleton');
 		} else {
-			this.prover.println('notInSingletonUnion');
+			this.prover.println('notInSingletonUnion2');
 		}
 	}
 	this.prover.depth--;

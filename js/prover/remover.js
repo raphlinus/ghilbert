@@ -53,7 +53,6 @@ GH.remover.prototype.remove = function(removee, isNegated) {
 		if (operator == removeOperations[i][0]) {
 			var mandHyps = [];
 			var actionName = null;
-			//if (parent.parent) {
 			mandHyps.push(parent.operands[1 - operandIndex]);
 			if (!isNegated) {
 				actionName = removeOperations[i][1][operandIndex];

@@ -129,7 +129,7 @@ GH.archiveSearcher.fillHypotheses = function(suggestion, hyps) {
 		newHyps[suggestion.hyps[i]] = hyps[i];
 	}
 	
-	for (var i = 0; i < hyps.length; i++) {
+	for (var i = 0; i < newHyps.length; i++) {
 		for (var j = 0; j < suggestion.freeness.length; j++) {
 			for (var k = 0; k < 2; k++) {
 				if (suggestion.freeness[j][k].valueOf() == variables[i][2]) {
@@ -171,7 +171,7 @@ GH.archiveSearcher.checkFreenessConstraints = function(theorems, hyps) {
 		var thm = theorems[k];
 		var violations = false;
 		for (var i = 0; i < thm.freeness.length && !violations; i++) {
-			var bindVar = thm.freeness[i][1].operator.valueOf();
+			var bindVar = thm.freeness[i][1] && thm.freeness[i][1].operator.valueOf();
 			// This finds serious freeness violations that can not be corrected by adding a freeness
 			// constraint. Other freeness violations can be corrected automatically.
 			violations = violations || (thm.freeness[i][0].isVariablePresent(bindVar));
@@ -287,7 +287,7 @@ GH.archiveSearcher.prototype.applyAction = function(sexp, categoryName, actionNa
 		theorems = theorems.concat(this.replacementSearch(sexp, 'replace', categoryName, actionName));
 	}
 	if (theorems.length > 1) {
-		alert(theorems.length + ' theorems found for action ' + category + ' ' + actionName + '.');
+		alert(theorems.length + ' theorems found for action ' + categoryName + ' ' + actionName + '.');
 		return null;
 	}
 	if (theorems.length == 0) {
@@ -416,6 +416,9 @@ GH.archiveSearcher.prototype.addSuggestions = function(sexp) {
 };
 
 GH.archiveSuggestion = function(name, suggest, title, freeness, variables, theorem, hyps) {
+	if (name == 'df-le') {
+		window.console.log('a');
+	}
 	this.name = name;					// The name of the theorem in Ghilbert code.
 	this.type = suggest[0];				// Full theorem, replace left, or replace right.
 	this.categoryName = suggest[1];		// The category of suggestion.

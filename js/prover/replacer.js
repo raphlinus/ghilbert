@@ -88,47 +88,12 @@ GH.ProofGenerator.replacer.SHORTHAND_OPERATIONS = {
     ImpReplaceImp1: 'syl'
 };
 
-GH.ProofGenerator.replacer.NEGATED_OPERATIONS = [
-	['>',  '<='],
-	['>=', '<' ]
-];
-
 GH.ProofGenerator.replacer.getOperator = function(sexp) {
 	if (!sexp) {
 		return null;
+	} else {
+		return sexp.operator;
 	}
-	if (sexp.parent && sexp.parent.operator == '-.') {
-		var operations = GH.ProofGenerator.replacer.NEGATED_OPERATIONS;
-		for (var i = 0; i < operations.length; i++) {
-			if (sexp.operator == operations[i][1]) {
-				return operations[i][0];
-			}
-		}
-	}
-	return sexp.operator;
-};
-
-GH.ProofGenerator.replacer.isNegated = function(sexp) {
-	if (sexp.operator == '-.') {
-		var operations = GH.ProofGenerator.replacer.NEGATED_OPERATIONS;
-		for (var i = 0; i < operations.length; i++) {
-			if (sexp.child().operator == operations[i][1]) {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-// Turn negated operator into positive operators.
-GH.ProofGenerator.replacer.makePositive = function(operator) {
-	var operations = GH.ProofGenerator.replacer.NEGATED_OPERATIONS;
-	for (var i = 0; i < operations.length; i++) {
-		if (operator == operations[i][0]) {
-			return operations[i][1];
-		}
-	}
-	return operator;
 };
 
 GH.ProofGenerator.replacer.prototype.action = function(sexp, replacement) {
@@ -212,8 +177,8 @@ GH.ProofGenerator.replacer.prototype.createGeneric = function(position, replacee
 	for (var i = 0; i < position.length; i++) {
 		startExp = startExp.operands[position[i]];
 	}
-	var midExp = GH.ProofGenerator.replacer.isNegated(middleExp) ? middleExp.child() : middleExp;
-	var replacementOp = GH.ProofGenerator.replacer.getOperator(midExp);
+	var midExp = middleExp;
+	var replacementOp = midExp ? midExp.operator : null;
 	this.replace(startExp, replacementOp);
 	this.prover.depth--;
 	this.prover.println(')');
@@ -267,7 +232,7 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 	start.push(operator);
 	if (positions.length == 0) {
 		var replaceeOp    = GH.ProofGenerator.replacer.getOperator(replacee);
-		var replacementQuery = GH.ProofGenerator.replacer.isNegated(replacement) ? replacement.child() : replacement;
+		var replacementQuery = replacement;
 		var replacementOp = GH.ProofGenerator.replacer.getOperator(replacementQuery);
 		var replaceOperation = this.getReplaceOperation(replaceeOp, replacementOp, operand[0]);
 		if (!replaceOperation) {
@@ -275,7 +240,7 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 			return;
 		}
 		if (replaceOperation.hasOwnProperty('innerOperator')) {
-			end.push(GH.ProofGenerator.replacer.makePositive(replaceOperation.innerOperator));
+			end.push(replaceOperation.innerOperator);
 		} else {
 			end.push(operator);
 		}
@@ -301,12 +266,6 @@ GH.ProofGenerator.replacer.prototype.genericCopies = function(start, end, middle
 				this.genericCopies(start[i + 1], end[i + 1], middle, positions, replacee.operands[i], replacement, varGenerator);
 			} else {
 				var operator = replacement.operator;
-				if (GH.ProofGenerator.replacer.isNegated(replacement)) {
-					middle.push(operator);
-					middle.push([]);
-					middle = middle[1];
-					operator = replacement.child().operator;
-				}
 				var replacerTypes = this.prover.getOperatorTypes(operator);
 				var leftVariable  = varGenerator.generate(replacerTypes[0]);
 				var rightVariable = varGenerator.generate(replacerTypes[1]);
@@ -352,7 +311,7 @@ GH.ProofGenerator.replacer.prototype.getReplaceOperation = function(replaceeOper
 
 	// TODO: Replace the table with this.
 	if (GH.operatorUtil.EQUIVALENCE_OPERATORS.indexOf(replacementOperator) > -1) {
-		var name = this.equalizer.actionName(replaceeOperator, index) + 'i';
+		var name = this.equalizer.actionName(replaceeOperator, [index]) + 'i';
 		if (!this.prover.symbolDefined(name)) {
 			// alert(name + ' is not defined.');
 			return null;
@@ -399,9 +358,6 @@ GH.ProofGenerator.replacer.prototype.replace = function(replacee, replacementOpe
 		this.prover.print(mandHyps, actionName);
 
 		if (sexp) {
-			if (sexp.parent && GH.ProofGenerator.replacer.isNegated(sexp.parent)) {
-				sexp = sexp.parent;
-			}
 			this.prover.replace(sexp);
 		} else {
 			return true;
@@ -423,9 +379,6 @@ GH.ProofGenerator.replacer.prototype.inline = function(replacee) {
 
 GH.ProofGenerator.replacer.prototype.isApplicable = function(replacee, replacement) {
 	// Replacing does nothing if the left and right sides are equal.
-	if (GH.ProofGenerator.replacer.isNegated(replacement) == '-.') {
-		replacement = replacement.child();
-	}
 	if ((replacement.operands.length != 2) || (replacement.left().equals(replacement.right()))) {
 		return false;
 	}
@@ -446,9 +399,6 @@ GH.ProofGenerator.replacer.prototype.isApplicableTraverse = function(replacee, r
 	var actionName = replaceOperation ? replaceOperation.name : null;
 	if (actionName && this.prover.symbolDefined(actionName)) {
 		if (sexp) {
-			if (sexp.parent && GH.ProofGenerator.replacer.isNegated(sexp.parent)) {
-				sexp = sexp.parent;
-			}
 			return this.isApplicableTraverse(sexp, replaceOperation.resultOperator);
 		} else {
 			return true;

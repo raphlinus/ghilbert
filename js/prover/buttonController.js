@@ -46,8 +46,8 @@ GH.ButtonController.prototype.setActive = function(areaNum, isActive) {
 };
 
 GH.ButtonController.BUTTON_ORDER = [
-    'Evaluate', 'Simplify', 'Cancel', 'Commute', 'Associate', 'Distribute', 'Equivalence', 'Define', 'Infer', 'Add', 'Remove', 
-    'Copy', 'Substitute', 'Remove', 'Cond.', 'Exist.', 'Instant.'
+    'Evaluate', 'Simplify', 'Transitive', 'Cancel', 'Commute', 'Associate', 'Distribute', 'Equivalence', 'Define', 'Infer', 'Add', 'Remove', 
+    'Copy', 'Substitute', 'Remove', 'Replace'
 ];
 
 GH.ButtonController.insertButton = function(buttons, insertion, indices, name) {
@@ -113,7 +113,7 @@ GH.ButtonController.prototype.displayActiveExp = function(activeExp) {
 	var position = GH.Prover.findPosition(activeExp);
 
 	if (!root.isProven) {
-		this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
+		this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow);
 		return;
 	}
 
@@ -133,7 +133,7 @@ GH.ButtonController.prototype.displayActiveExp = function(activeExp) {
 	for (var i = 1; i < expressionToShow.length; i++) {
 		expressionToShow[i] = ['htmlSpan', 'selectable-child', expressionToShow[i]];
 	}
-	this.activeExpDisplay.innerHTML = GH.sexptohtmlHighlighted(rootExpressionToShow, -1);
+	this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow);
 	GH.Prover.addClickHandlers(this.activeExpDisplay, {operand: 0, parent: 0});
 };
 
@@ -157,6 +157,6 @@ GH.ButtonController.highlightMatch = function(expression, match) {
 
 GH.ButtonController.prototype.setSecondaryDisplay = function(expression, match) {
 	GH.ButtonController.highlightMatch(expression, match);
-	this.secondaryExpDisplay.innerHTML = GH.sexptohtmlHighlighted(expression, -1);
+	this.secondaryExpDisplay.innerHTML = GH.sexptohtml(expression);
 	this.setActive(1, true);
 };

@@ -2,25 +2,24 @@ GH.ProofGenerator.equalizer = function(prover) {
   this.prover = prover;
 };
 
-GH.ProofGenerator.equalizer.UNIQUE_NAMES = {
-	eleq1: 'ax-eleq1',
-	iotaeq: 'ax-iotaeq'
-};
-
-GH.ProofGenerator.equalizer.prototype.action = function(sexp) {
-	var name = this.actionName(sexp.parent.operator, sexp.siblingIndex);
+GH.ProofGenerator.equalizer.prototype.action = function(sexp, indices) {
+	var name = this.actionName(sexp.parent.operator, indices);
 	return new GH.action(name, []);
 };
 
-GH.ProofGenerator.equalizer.prototype.actionName = function(operator, index) {
+GH.ProofGenerator.equalizer.prototype.actionName = function(operator, indices) {
 	var suffix = '';
 	var types = this.prover.getOperatorTypes(operator);
 	if (types.length > 2) {
-		suffix = index + 1;
+		for (var i = 0; i < indices.length; i++) {
+			suffix = suffix + (indices[i] + 1);
+		}
 	}
 
 	var base = GH.operatorUtil.getThmName(operator);
-	var replacementType = this.prover.getOperatorTypes(operator)[index];
+	// It probably would make more sense to use the output type rather than the type of the first indices, but
+	// the name isn't super important.
+	var replacementType = this.prover.getOperatorTypes(operator)[indices[0]];
 	var equivalence = GH.operatorUtil.getThmName(GH.operatorUtil.getEquivalenceOperator(replacementType));
 	return base + equivalence + suffix;
 };
@@ -29,7 +28,16 @@ GH.ProofGenerator.equalizer.prototype.isApplicable = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.equalizer.prototype.findConclusion = function(sexp) {
+GH.ProofGenerator.equalizer.prototype.findConclusion = function(sexp, indices, variables) {
+	if (indices.length == 1) {
+		return this.findConclusionSingle(sexp, indices);
+	} else {
+		return this.findConclusionMultiple(sexp.parent, indices, variables);
+	}
+};
+
+GH.ProofGenerator.equalizer.prototype.findConclusionSingle = function(sexp, indices) {
+	// This is basically the same as findConclusionMultiple, just the variable names are switched around.
 	// TODO: Combine duplicate code with inline.
 	var operator = sexp.parent.operator;
 	var dfName = 'df-' + GH.operatorUtil.getThmName(operator);
@@ -55,7 +63,10 @@ GH.ProofGenerator.equalizer.prototype.findConclusion = function(sexp) {
 	return this.prover.create('->', [condition, replaceExp]);
 };
 
-GH.ProofGenerator.equalizer.prototype.inline = function(sexp) {
+// Inline should never be called.
+GH.ProofGenerator.equalizer.prototype.inline = function(sexp) {};
+
+GH.ProofGenerator.equalizer.prototype.equalizeSingle = function(sexp) {
 	var operator = sexp.parent.operator;
 	var dfName = 'df-' + GH.operatorUtil.getThmName(operator);
 	var dfSymbol = this.prover.getSymbol(dfName);
@@ -100,15 +111,84 @@ GH.ProofGenerator.equalizer.prototype.inline = function(sexp) {
 	return true;
 };
 
+GH.ProofGenerator.equalizer.prototype.getVariables = function(sexp, indices) {
+	var varGenerator = new GH.Prover.variableGenerator();
+	var operatorTypes = this.prover.getOperatorTypes(sexp.operator);
+	var oldVariables = [];
+	var newVariables = [];
+	for (var i = 0; i < sexp.operands.length; i++) {
+		var oldVar = varGenerator.generate(operatorTypes[i]);
+		oldVariables.push(oldVar);
+		if (indices.indexOf(i) != -1) {		
+			newVariables.push(varGenerator.generate(operatorTypes[i]));
+		} else {
+			newVariables.push(oldVar);
+		}
+	}
+	return {oldV: oldVariables, newV: newVariables};
+};
+
+GH.ProofGenerator.equalizer.prototype.equalizeMultiple = function(sexp, indices, variables) {
+	for (var i = 0; i < indices.length; i++) {
+		var index = indices[i];
+		var args = [];
+		args.push(variables.oldV[index]);
+		args.push(variables.newV[index]);
+		for (var j = 0; j < sexp.operands.length; j++) {
+			if (j < index) {
+				args.push(variables.newV[j]);
+			} else if (j > index) {
+				args.push(variables.oldV[j]);
+			}
+		}
+		this.prover.print(args, this.actionName(sexp.operator, [index]));
+	}
+	for (var i = 0; i < indices.length - 1; i++) {
+		this.prover.print([], 'anim12i');
+		this.prover.transitive(this.prover.getLast().right());
+	}
+};
+
+GH.ProofGenerator.equalizer.prototype.findConclusionMultiple = function(sexp, indices, variables) {
+	var leftSide = null;
+	var operatorTypes = this.prover.getOperatorTypes(sexp.operator);
+	for (var i = indices.length - 1; i >= 0; i--) {
+		var index = indices[i];
+		var equivalenceOperator = GH.operatorUtil.getEquivalenceOperator(operatorTypes[index]);
+		var equivalence = this.prover.create(equivalenceOperator, [variables.oldV[index], variables.newV[index]]);
+		if (leftSide == null) {
+			leftSide = equivalence;
+		} else {
+			leftSide = this.prover.create('/\\', [equivalence, leftSide]);
+		}
+	}
+	var equivalenceOperator = GH.operatorUtil.getEquivalenceOperator(operatorTypes[operatorTypes.length - 1]);
+	var oldArgs = [];
+	var newArgs = [];
+	for (var i = 0; i < sexp.operands.length; i++) {
+		oldArgs.push(variables.oldV[i]);
+		newArgs.push(variables.newV[i]);
+	}
+	var rightOld = this.prover.create(sexp.operator, oldArgs);
+	var rightNew = this.prover.create(sexp.operator, newArgs);
+	var rightSide = this.prover.create(equivalenceOperator, [rightOld, rightNew]);
+	return this.prover.create('->', [leftSide, rightSide]).toString();
+};
+
 GH.ProofGenerator.equalizer.prototype.canAddTheorem = function(sexp) {
 	return true;
 };
 
-GH.ProofGenerator.equalizer.prototype.addTheorem = function(sexp) {
+GH.ProofGenerator.equalizer.prototype.addTheorem = function(sexp, unused, indices) {
+	var variables = this.getVariables(sexp.parent, indices);
 	this.prover.println('## <title> Equivalence for ' + GH.operatorUtil.getUnicode(sexp.parent.operator) + ' </title> ##');
-	this.prover.println('thm (' + this.action(sexp).name + ' () () ' + this.findConclusion(sexp));
+	this.prover.println('thm (' + this.action(sexp, indices).name + ' () () ' + this.findConclusion(sexp, indices, variables));
 	this.prover.depth++;
-	this.inline(sexp);
+	if (indices.length == 1) {
+		this.equalizeSingle(sexp);
+	} else {
+		this.equalizeMultiple(sexp.parent, indices, variables);
+	}
 	this.prover.depth--;
 	this.prover.println(')');
 };

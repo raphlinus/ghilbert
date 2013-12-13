@@ -20,6 +20,7 @@ GH.Prover = function(buttonController, direct) {
 	this.operatorUtil = new GH.operatorUtil(this);
 	this.theoremWriter = new GH.theoremWriter(this);
 	this.replacer = new GH.ProofGenerator.replacer(this, this.theoremWriter);
+	this.multiReplacer = new GH.ProofGenerator.multiReplacer(this);
 	this.equalizer = new GH.ProofGenerator.equalizer(this);
 };
 
@@ -203,8 +204,13 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 		this.buttonController.addSuggestionButton('Evaluate', 'window.direct.prover.handleEvaluate()', true);
 	}
 	
+	/*
 	if ((this.stack.length == 0) && (this.conclusions.length >= 1)) {
 		var lastConclusion = this.conclusions[this.conclusions.length - 1];
+		// TODO: Remove the conditional, existGeneralize and instantiate code once the multireplace is working better.
+		if (this.multiReplacer.isApplicable(lastConclusion)) {	
+			this.buttonController.addSuggestionButton('Replace', 'window.direct.prover.handleMultiReplace()', true);
+		}
 		if (this.conditionalReplacer.isApplicable(lastConclusion)) {
 			this.buttonController.addSuggestionButton('Cond.', 'window.direct.prover.handleConditional()', true);
 		}
@@ -214,7 +220,7 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 		if (this.instantiator.isApplicable(this.activeExp)) {
 			this.buttonController.addSuggestionButton('Instant.', 'window.direct.prover.handleInstantiate()', true);
 		}
-	}
+	}*/
 
 	if ((this.stack.length == 0) && (this.activeExp.parent == null)) {	
 		if (this.conclusions.length >= 2) {
@@ -450,8 +456,8 @@ GH.Prover.prototype.apply = function(generator, sexp, opt_args) {
  * Add a generated theorem if it's not already defined.
  */
 GH.Prover.prototype.addTheorem = function(generator, sexp, opt_args) {
-	var action = generator.action(sexp);
-	if ((!this.symbolDefined(action.name, opt_args)) && (generator.canAddTheorem(sexp))) {
+	var action = generator.action(sexp, opt_args);
+	if ((!this.symbolDefined(action.name)) && (generator.canAddTheorem(sexp))) {
 		var result = this.getLast();
 		var savedThm = this.direct.removeCurrentTheorem();
 		var savedDepth = this.depth;
@@ -460,7 +466,7 @@ GH.Prover.prototype.addTheorem = function(generator, sexp, opt_args) {
 		this.openExps = [];
 		this.println('');
 		this.println('');
-		generator.addTheorem(sexp, result);
+		generator.addTheorem(sexp, result, opt_args);
 		this.direct.insertText(savedThm.join(''));
 		this.depth = savedDepth;
 		this.openExps = savedOpenExps;
@@ -822,6 +828,7 @@ GH.Prover.prototype.undistributeRight = function(sexp) {
 
 GH.Prover.prototype.equalizeOperator = function(operator) {
 	var types = this.getOperatorTypes(operator);
+	var sexp;
 	for (var index = 0; index < types.length - 1; index++) {
 		var args = [];
 		var generator = new GH.Prover.variableGenerator();
@@ -830,10 +837,16 @@ GH.Prover.prototype.equalizeOperator = function(operator) {
 		}
 		sexp = this.create(operator, args).operands[index];
 
-		this.theoremWriter.infer(this.equalizer, sexp);
+		this.theoremWriter.infer(this.equalizer, sexp, [index]);
 		this.direct.update(false);
-		this.theoremWriter.deduce(this.equalizer, sexp);
+		this.theoremWriter.deduce(this.equalizer, sexp, [index]);
 		this.direct.update(false);
+	}
+	for (var i = 0; i < types.length - 1; i++) {
+		for (var j = i + 1; j < types.length - 1; j++) {
+			this.theoremWriter.deduce(this.equalizer, sexp, [i, j]);
+			// this.addTheorem(this.equalizer, sexp, [i, j]);
+		}
 	}
 };
 
@@ -883,6 +896,12 @@ GH.Prover.prototype.commute = function(sexp) {
 	}
 };
 
+GH.Prover.prototype.transitive = function(sexp) {
+	sexp = this.openExp(sexp, 'Transitive Property');
+	sexp = this.archiveSearcher.applyAction(sexp, 'Transitive', '');
+	return this.closeExp(sexp);
+};
+
 GH.Prover.prototype.handleCopy = function() {
 	this.print([this.activeExp], '');
 	this.direct.update(true);
@@ -914,6 +933,14 @@ GH.Prover.prototype.handleArchive = function(suggestionType, suggestionIndex) {
 	this.displayActiveExp();
 };
 
+GH.Prover.prototype.handleMultiReplace = function() {
+	var replacee = this.conclusions[this.conclusions.length - 2];
+	this.multiReplacer.replace(replacee, this.activeExp);
+	this.direct.update(true);  // TODO: Delete once we can close the expression earlier.	
+};
+
+// TODO: Remove the conditional, existGeneralize and instantiate code once the multireplace is working better.
+/*
 GH.Prover.prototype.handleConditional = function() {
 	var sexp = window.prompt('Enter an expression to replace:', 'x');
 	var replacement = GH.sExpression.fromString(sexp);
@@ -933,7 +960,7 @@ GH.Prover.prototype.handleInstantiate = function() {
 	var instant = GH.numUtil.createNum(num);
 	this.instantiate(this.activeExp, instant);
 	this.direct.update(true);  // TODO: Delete once we can close the expression earlier.
-};
+};*/
 
 // Adds a condition and expresses how an expression would change if the condition was met.
 // For example, it can transform      x + 3 < 7

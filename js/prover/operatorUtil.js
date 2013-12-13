@@ -90,6 +90,8 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '<z') {		return 'Zlt';
 	} else if (operator == '<=') {		return 'Le';
 	} else if (operator == '<') {		return 'Lt';
+	} else if (operator == '>=') {		return 'Ge';
+	} else if (operator == '>') {		return 'Gt';
 	} else if (operator == '|') {		return 'Divs';
 	} else if (operator == 'S') {		return 'Suc';
 	} else if (operator == '+') {		return 'Add';
@@ -143,6 +145,8 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '*q') {		return 'qmul';
 	} else if (operator == '<=') {		return 'le';
 	} else if (operator == '<') {		return 'lt';
+	} else if (operator == '>=') {		return 'ge';
+	} else if (operator == '>') {		return 'gt';
 	} else if (operator == '|') {		return 'divides';
 	} else if (operator == 'S') {		return 'suc';
 	} else if (operator == '+') {		return 'add';
@@ -430,6 +434,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['=q'],  unicode: '=', name: 'rational equals', link: 'arithmetic/equality'},
 	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
 	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>='], unicode: '≥', name: 'greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>'],  unicode: '>', name: 'greater than', link: 'arithmetic/less-than'},
 	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
 	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
 	{ symbols: ['+z'],  unicode: '+', name: 'integer plus', link: 'arithmetic/add'},

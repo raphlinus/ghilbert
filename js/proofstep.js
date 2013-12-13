@@ -304,12 +304,6 @@ GH.ProofHierarchy.prototype.findPosition = function() {
 	}
 };
 
-// Return true, if the step at this part of the hierarchy is important at a particular cursor position.
-GH.ProofHierarchy.prototype.isImportant = function(cursorPosition) {
-	var position = this.findPosition();
-	return position && (position.begin <= cursorPosition) && (cursorPosition <= position.end);
-};
-
 // Returns the depth of the position.
 GH.ProofHierarchy.prototype.getDepth = function() {
 	var position = this.findPosition();
@@ -446,7 +440,7 @@ GH.ProofStep.nameToHtml = function(name, title, link, isPrimary) {
  * Returns the proof step displayed as a set of blocks.
  * This is the main entry point for displaying the proof steps.
  */
-GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount, cursorPosition) {
+GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount) {
 	var summaryElement = document.createElement("div");
 	stack.appendChild(summaryElement);
 	summaryElement.innerHTML = summary;
@@ -455,7 +449,7 @@ GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount, cur
 	} else {
 		summaryElement.setAttribute('class', 'no-summary');
 	}
-	return GH.ProofSegment.createSegments(this, stack, segmentCount, cursorPosition);
+	return GH.ProofSegment.createSegments(this, stack, segmentCount);
 };
 
 GH.ProofStep.createCloseColumn = function(inputArg) {
@@ -467,20 +461,20 @@ GH.ProofStep.createCloseColumn = function(inputArg) {
 };
 
 // Display the left over input arguments on the stack
-GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, cursorPosition) {
+GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes) {
 	var rowCount = Math.max(inputArgs.length, expectedTypes.length && expectedTypes[0].length);
 	if (rowCount == 0) {
 		return;
 	}
 		
 	var classes = 'proof-block input-args';
-	var newBlock = new GH.ProofSegment(GH.ProofSegment.State.LARGE, 0, null, false, cursorPosition);
+	var newBlock = new GH.ProofSegment(GH.ProofSegment.State.LARGE, 0, null, false);
 	newBlock.hasCloseColumn = true;
 	newBlock.largeElement.className += ' input-args';
 	var tableElement = GH.ProofSegment.addTable(newBlock.largeElement);
 	var nameHtml = '<span class=proof-step-name>Input Argument' + ((inputArgs.length > 1) ? 's' : '') + '</span>';
 	for (var i = 0; i < inputArgs.length; i++) {
-		var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, 0, null, false, cursorPosition);
+		var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, 0, null, false);
 		newBlock.children.push(child);
 		var iNameHtml = (i == 0) ? nameHtml : '';
 		var partialHtml = GH.sexptohtml(inputArgs[i][1]);
@@ -518,7 +512,7 @@ GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, c
 				rowElement.setAttribute('class', 'proof-step-div unstyled');
 				rowElement.appendChild(expectedContainer);
 				rowElement.appendChild(actualContainer);
-				var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, 0, null, false, cursorPosition);
+				var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, 0, null, false);
 				child.smallElement = rowElement;
 				newBlock.children.push(child);
 				tableElement.appendChild(child.smallElement);

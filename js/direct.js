@@ -206,12 +206,12 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 		this.notationGuide = new GH.notationGuide(this.vg.syms);
 		for (var j = 0; j < shownHistory.length; j++) {
 			var summary = (j == 0) ? thmctx.styleScanner.summary : '';
-			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j, cursorPosition));
+			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j));
 			this.notationGuide.addStep(shownHistory[j]);
 		}
 		
 		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
-		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes, cursorPosition);
+		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes);
 		
 		if (shownHistory.length > 0) {
 			this.notationGuide.render(this.stack);
@@ -539,7 +539,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				}
 				if (!GH.sexp_equals(pc.stack[0], this.concl)) {
 					var replacement = GH.sexp_to_string(pc.stack[0]).replace(/\\/g, "\\\\");
-					return this.createError('\nWanted:\n ' + GH.sexptohtmlHighlighted(this.concl, 0) +
+					return this.createError('\nWanted:\n ' + GH.sexptohtml(this.concl, 0) +
 						' <a onclick="window.direct.replaceText(\'' + replacement + '\',' + this.concl.beg + ',' + this.concl.end + ')"><b>Fix</b></a>', tok);
 				}
 				this.proof.pop(); // Pop the end ')'.

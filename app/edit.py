@@ -160,6 +160,8 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/equality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/exponent.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/factorial.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/greaterThan.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/greaterThanEqual.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/halfminus.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/ifn.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/intersection.js" type="text/javascript"></script>
@@ -185,6 +187,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/theorem/theoremWriter.js" type="text/javascript"></script>
 <script src="/js/prover/remover.js" type="text/javascript"></script>
 <script src="/js/prover/replacer.js" type="text/javascript"></script>
+<script src="/js/prover/multiReplacer.js" type="text/javascript"></script>
 <script src="/js/prover/conditionalReplacer.js" type="text/javascript"></script>
 <script src="/js/prover/existGeneralizer.js" type="text/javascript"></script>
 <script src="/js/prover/instantiator.js" type="text/javascript"></script>

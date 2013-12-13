@@ -7,38 +7,10 @@ GH.ProofGenerator.conditionalReplacer = function(prover) {
 	this.equalizer = new GH.ProofGenerator.equalizer(prover);
 };
 
+// These tables are used for theorems with non-standard names.
 GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS = [
-    [ '-.', ['notbid']],
-	[ '->', ['imbi1d', 'imbi2d', 'imbi12d']],
-	['<->', ['bibi1d', 'bibi2d', 'bibi12d']],
-	['\\/', ['orbi1d', 'orbi2d', 'orbi12d']],
-	['/\\',	['anbi1d', 'anbi2d', 'anbi12d']],
 	['E.',  [null,     'exbid']],
-    ['=',   ['eqeq1d', 'eqeq2d', 'eqeq12d']],
-	['<=',  ['leeq1d', 'leeq2d', 'leeq12d']],
-	['<',   ['lteq1d', 'lteq2d', 'lteq12d']],
-	// ['>=',  ['geeq1d', 'geeq2d', 'geeq12d']],    // Not yet added.
-	// ['>',   ['gteq1d', 'gteq2d', 'gteq12d']],    // Not yet added.
-	['S',	['suceqd']],
-	['+',	['addeq1d', 'addeq2d', 'addeq12d']],
-	['<,>',	['opeq1d', 'opeq2d', 'opeq12d']],
-	['*',   ['muleq1d', 'muleq2d', 'muleq12d']],     // muleq2d is missing.
-	['[/]', [null, null, 'sbcbid']],                 // terms missing.
-];
-
-GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS = [
-    ['=',   ['eqeq1', 'eqeq2']],
-	['<=',  ['leeq1', 'leeq2']],
-	['<',   ['lteq1', 'lteq2']],
-	// ['>=',  ['geeq1', 'geeq2']],    // Not yet added.
-	// ['>',   ['gteq1', 'gteq2']],    // Not yet added.
-	['e.',  ['ax-eleq1', 'eleq2']],
-	['S',	['suceq']],
-	['+',	['addeq1', 'addeq2']],
-	['*',   ['muleq1', 'muleq2']],
-	['[/]', ['dfsbcq', null, null]],
-	['|', ['divideseq1', 'divideseq2']],
-	['recursep', ['recursepeq1', 'recursepeq2', 'recursepeq3', 'recursepeq4']],
+	['[/]', [null, null, 'sbcbid']],
 ];
 
 GH.ProofGenerator.conditionalReplacer.prototype.action = function(sexp) {
@@ -52,38 +24,32 @@ GH.ProofGenerator.conditionalReplacer.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.conditionalReplacer.returnTypes = {
 	FAILURE: 0,
 	NO_CHANGE: 1,
-	MATCH: 2,
-	REPLACED: 3,
+	REPLACED: 2,
 };
 
 GH.ProofGenerator.conditionalReplacer.prototype.inline = function(sexp, condition) {
 	var result = this.replace(sexp, condition);
 	return (result == GH.ProofGenerator.conditionalReplacer.returnTypes.REPLACED);
-	/*{
-		this.prover.reverseLastSteps();
-		this.prover.remove();
-		return true;
-	} else {
-		return false;
-	}*/
 };
 
-GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operations, suffix, operator, args, index) {
+GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operator, args, indices) {
+	var operations = GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS;
 	var returnTypes = GH.ProofGenerator.conditionalReplacer.returnTypes;
-	for (var i = 0; i < operations.length; i++) {
-		if (operations[i][0] == operator) {
-			var operation = operations[i][1][index];
-			if (!operation) {
-				return returnTypes.FAILURE;
-			} else {
-				this.prover.print(args, operation);
-				return returnTypes.REPLACED;
+	if (indices.length == 1) {
+		for (var i = 0; i < operations.length; i++) {
+			if (operations[i][0] == operator) {
+				var operation = operations[i][1][indices[0]];
+				if (!operation) {
+					return returnTypes.FAILURE;
+				} else {
+					this.prover.print(args, operation);
+					return returnTypes.REPLACED;
+				}
 			}
 		}
 	}
 
-	// TODO: Use this to completely replace the table.
-	var name = this.equalizer.actionName(operator, index) + suffix;
+	var name = this.equalizer.actionName(operator, indices) + 'd';
 	if (!this.prover.symbolDefined(name)) {
 		alert(name + ' is not defined.');
 		return returnTypes.FAILURE;
@@ -93,10 +59,10 @@ GH.ProofGenerator.conditionalReplacer.prototype.printOperation = function(operat
 	}
 };
 
-GH.ProofGenerator.conditionalReplacer.addMissingOperands = function(sexp, presence) {
+GH.ProofGenerator.conditionalReplacer.addMissingOperands = function(sexp, replacedIndices) {
 	var args = [];
 	for (var i = 0; i < sexp.operands.length; i++) {
-		if (Math.floor(presence / Math.pow(2, i)) % 2 == 0) {
+		if (replacedIndices.indexOf(i) == -1) {
 			args.push(sexp.operands[i]);
 		}
 	}
@@ -105,29 +71,22 @@ GH.ProofGenerator.conditionalReplacer.addMissingOperands = function(sexp, presen
 
 GH.ProofGenerator.conditionalReplacer.prototype.replace = function(sexp, condition) {
 	var returnTypes = GH.ProofGenerator.conditionalReplacer.returnTypes;
-	var replacedIndex = 0;
+	var replacedIndices = [];
 	for (var i = 0; i < sexp.operands.length; i++) {
 		var result = this.replace(sexp.operands[i], condition);
-		if (result == returnTypes.MATCH) {
-			var args = [condition.left(), condition.right()];
-			args = args.concat(GH.ProofGenerator.conditionalReplacer.addMissingOperands(sexp, Math.pow(2, i)));
-			return this.printOperation(
-				GH.ProofGenerator.conditionalReplacer.INITIAL_OPERATIONS, '',
-				sexp.operator, args, i);
-		} else if (result == returnTypes.REPLACED) {
-			replacedIndex += Math.pow(2, i);
+		if (result == returnTypes.REPLACED) {
+			replacedIndices.push(i);
 		} else if (result == returnTypes.FAILURE) {
 			return result;
 		}
 	}
-	if (replacedIndex > 0) {
-		var args = GH.ProofGenerator.conditionalReplacer.addMissingOperands(sexp, replacedIndex);
-		return this.printOperation(
-  		    GH.ProofGenerator.conditionalReplacer.DEDUCTION_OPERATIONS, 'd',
-			sexp.operator, args, replacedIndex - 1);
+	if (replacedIndices.length > 0) {
+		var args = GH.ProofGenerator.conditionalReplacer.addMissingOperands(sexp, replacedIndices);
+		return this.printOperation(sexp.operator, args, replacedIndices);
 	} else {
 		if (sexp.equals(condition.left())) {
-			return returnTypes.MATCH;
+			this.prover.print([condition], 'id');
+			return returnTypes.REPLACED;
 		} else {
 			return returnTypes.NO_CHANGE;
 		}

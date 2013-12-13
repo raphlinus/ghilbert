@@ -52,7 +52,7 @@ GH.ProofGenerator.evaluatorEquality.prototype.inline = function(sexp) {
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≠');
 	} else {
-		this.prover.evaluate(this.prover.create('<=', [sexp.left(), sexp.right()]));
+		this.prover.evaluate(this.prover.create('>', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
 		return this.prover.operationExchange(result, '≠');
 	}

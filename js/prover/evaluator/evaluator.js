@@ -9,6 +9,8 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorEquality(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorLessThan(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorLessThanEqual(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorGreaterThan(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorGreaterThanEqual(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSuccessor(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDivides(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorPrime(prover));

@@ -59,9 +59,9 @@ GH.theoremWriter.prototype.reposition = function(sexp, oldPosition, newPosition)
 };
 
 // Generates inference proofs ending in i like lteq1i.
-GH.theoremWriter.prototype.infer = function(generator, sexp) {
-	this.prover.addTheorem(generator, sexp);
-	var action = generator.action(sexp);
+GH.theoremWriter.prototype.infer = function(generator, sexp, opt_args) {
+	this.prover.addTheorem(generator, sexp, opt_args);
+	var action = generator.action(sexp, opt_args);
 	var name = action.name;
 
 	// Uses the proof if it already exists in the repository.
@@ -74,9 +74,9 @@ GH.theoremWriter.prototype.infer = function(generator, sexp) {
 };
 
 // Generates inference proofs ending in d like lteq1d.
-GH.theoremWriter.prototype.deduce = function(generator, sexp) {
-	this.prover.addTheorem(generator, sexp);
-	var action = generator.action(sexp);
+GH.theoremWriter.prototype.deduce = function(generator, sexp, opt_args) {
+	this.prover.addTheorem(generator, sexp, opt_args);
+	var action = generator.action(sexp, opt_args);
 	var name = action.name;
 
 	// Uses the proof if it already exists in the repository.
