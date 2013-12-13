@@ -8510,10 +8510,9 @@ thm (EqReplaceLt0 () (
      replacee (< A C)
      substitution (= A B)) 
      (< B C)
-  replacee
-  substitution
-C lteq1i
-mpbi
+  replacee substitution
+  C lteq1i
+  mpbi
 )
 
 ## <title> Substitution </title>
@@ -8526,10 +8525,9 @@ thm (EqReplaceLt1 () (
      replacee (< A B)
      substitution (= B C)) 
      (< A C)
-  replacee
-  substitution
-A lteq2i
-mpbi
+  replacee substitution
+  A lteq2i
+  mpbi
 )
 
 
@@ -8545,11 +8543,11 @@ thm (1less2 () () (< (1) (2))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       (1) pa_ax3
-        EqReplaceLt0
+      EqReplaceLt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       1plus1
-        EqReplaceLt1
+      EqReplaceLt1
     ## </d 'Simplify Right Side'>
   ## </d 'Single-Digit Inequality'>
 )
@@ -8714,36 +8712,66 @@ thm (1less10 () () (< (1) (10))
   ## </d 'Single-Digit Inequality'>
 )
 
-## <title> Substitution </title>
-## <table>
-##   (-. (<=  [ A ]   ]   ]  C))
-##   (=       [ A ]   [ B ] )
-##   (-. (<=  [   [   [ B ]  C))
-## </table>
-thm (EqReplaceNot0Le0 () (
-     replacee (-. (<= A C))
-     substitution (= A B)) 
-     (-. (<= B C))
-  replacee
-  substitution
-C gteq1i
-mpbi
+## <title> One-Digit Inequality </title>
+thm (1greater0 () () (> (1) (0))
+  1notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (1) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
 )
 
 ## <title> Substitution </title>
 ## <table>
-##   (-. (<= A  [ B ]   ]   ] ))
-##   (=         [ B ]   [ C ] )
-##   (-. (<= A  [   [   [ C ] ))
+##   (>  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (>  [   [   [ B ]  C)
 ## </table>
-thm (EqReplaceNot0Le1 () (
-     replacee (-. (<= A B))
+thm (EqReplaceGt0 () (
+     replacee (> A C)
+     substitution (= A B)) 
+     (> B C)
+  replacee substitution
+  C gteq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (> A  [   [   [ C ] )
+## </table>
+thm (EqReplaceGt1 () (
+     replacee (> A B)
      substitution (= B C)) 
-     (-. (<= A C))
-  replacee
-  substitution
-A gteq2i
-mpbi
+     (> A C)
+  replacee substitution
+  A gteq2i
+  mpbi
+)
+
+
+
+
+## <title> One-Digit Inequality </title>
+thm (2greater1 () () (> (2) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
@@ -8907,6 +8935,56 @@ thm (2less10 () () (< (2) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (2greater0 () () (> (2) (0))
+  2notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (2) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (3greater1 () () (> (3) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (3greater2 () () (> (3) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (3less4 () () (< (3) (4))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9047,6 +9125,76 @@ thm (3less10 () () (< (3) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (3greater0 () () (> (3) (0))
+  3notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (3) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (4greater1 () () (> (4) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (4greater2 () () (> (4) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (4greater3 () () (> (4) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (4less5 () () (< (4) (5))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9167,6 +9315,96 @@ thm (4less10 () () (< (4) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (4greater0 () () (> (4) (0))
+  4notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (4) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (5greater1 () () (> (5) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      4greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus4
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (5greater2 () () (> (5) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (5greater3 () () (> (5) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (5greater4 () () (> (5) (4))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (4) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      4plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (4) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (5less6 () () (< (5) (6))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9267,6 +9505,116 @@ thm (5less10 () () (< (5) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (5greater0 () () (> (5) (0))
+  5notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (5) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (6greater1 () () (> (6) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      5greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus5
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (6greater2 () () (> (6) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      4greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus4
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (6greater3 () () (> (6) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (6greater4 () () (> (6) (4))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (4) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      4plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (4) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (6greater5 () () (> (6) (5))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (5) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      5plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (5) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (6less7 () () (< (6) (7))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9347,6 +9695,136 @@ thm (6less10 () () (< (6) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (6greater0 () () (> (6) (0))
+  6notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (6) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (7greater1 () () (> (7) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      6greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus6
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (7greater2 () () (> (7) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      5greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus5
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (7greater3 () () (> (7) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      4greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus4
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (7greater4 () () (> (7) (4))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (4) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      4plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (4) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (7greater5 () () (> (7) (5))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (5) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      5plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (5) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (7greater6 () () (> (7) (6))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (6) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      6plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (6) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (7less8 () () (< (7) (8))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9407,6 +9885,156 @@ thm (7less10 () () (< (7) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (7greater0 () () (> (7) (0))
+  7notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (7) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (8greater1 () () (> (8) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      7greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus7
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater2 () () (> (8) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      6greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus6
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater3 () () (> (8) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      5greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus5
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater4 () () (> (8) (4))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      4greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (4) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      4plus4
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (4) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater5 () () (> (8) (5))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (5) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      5plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (5) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater6 () () (> (8) (6))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (6) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      6plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (6) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (8greater7 () () (> (8) (7))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (7) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      7plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (7) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (8less9 () () (< (8) (9))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9447,6 +10075,176 @@ thm (8less10 () () (< (8) (10))
 )
 
 ## <title> One-Digit Inequality </title>
+thm (8greater0 () () (> (8) (0))
+  8notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (8) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (9greater1 () () (> (9) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      8greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus8
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater2 () () (> (9) (2))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      7greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (2) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      2plus7
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (2) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater3 () () (> (9) (3))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      6greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (3) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      3plus6
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (3) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater4 () () (> (9) (4))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      5greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (4) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      4plus5
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (4) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater5 () () (> (9) (5))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      4greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (5) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      5plus4
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (5) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater6 () () (> (9) (6))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      3greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (6) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      6plus3
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (6) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater7 () () (> (9) (7))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      2greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (7) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      7plus2
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (7) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
+thm (9greater8 () () (> (9) (8))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (8) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      8plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (8) pa_ax3
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> One-Digit Inequality </title>
 thm (9less10 () () (< (9) (10))
   ## <d 'Single-Digit Inequality'>
     ## <d 'Derive Smaller Inequality'>
@@ -9467,639 +10265,7 @@ thm (9less10 () () (< (9) (10))
 )
 
 ## <title> One-Digit Inequality </title>
-thm (1greater0 () () (-. (<= (1) (0)))
-  1notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (1) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (2greater0 () () (-. (<= (2) (0)))
-  2notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (2) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (2greater1 () () (-. (<= (2) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (3greater0 () () (-. (<= (3) (0)))
-  3notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (3) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (3greater1 () () (-. (<= (3) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (3greater2 () () (-. (<= (3) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (4greater0 () () (-. (<= (4) (0)))
-  4notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (4) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (4greater1 () () (-. (<= (4) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (4greater2 () () (-. (<= (4) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (4greater3 () () (-. (<= (4) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (5greater0 () () (-. (<= (5) (0)))
-  5notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (5) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (5greater1 () () (-. (<= (5) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      4greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus4
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (5greater2 () () (-. (<= (5) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (5greater3 () () (-. (<= (5) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (5greater4 () () (-. (<= (5) (4)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (4) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      4plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (4) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater0 () () (-. (<= (6) (0)))
-  6notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (6) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater1 () () (-. (<= (6) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      5greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus5
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater2 () () (-. (<= (6) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      4greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus4
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater3 () () (-. (<= (6) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater4 () () (-. (<= (6) (4)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (4) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      4plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (4) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (6greater5 () () (-. (<= (6) (5)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (5) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      5plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (5) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater0 () () (-. (<= (7) (0)))
-  7notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (7) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater1 () () (-. (<= (7) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      6greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus6
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater2 () () (-. (<= (7) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      5greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus5
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater3 () () (-. (<= (7) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      4greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus4
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater4 () () (-. (<= (7) (4)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (4) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      4plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (4) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater5 () () (-. (<= (7) (5)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (5) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      5plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (5) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (7greater6 () () (-. (<= (7) (6)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (6) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      6plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (6) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater0 () () (-. (<= (8) (0)))
-  8notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (8) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater1 () () (-. (<= (8) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      7greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus7
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater2 () () (-. (<= (8) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      6greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus6
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater3 () () (-. (<= (8) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      5greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus5
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater4 () () (-. (<= (8) (4)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      4greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (4) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      4plus4
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (4) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater5 () () (-. (<= (8) (5)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (5) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      5plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (5) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater6 () () (-. (<= (8) (6)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (6) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      6plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (6) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (8greater7 () () (-. (<= (8) (7)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (7) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      7plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (7) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater0 () () (-. (<= (9) (0)))
+thm (9greater0 () () (> (9) (0))
   9notEqual0
   ## <d 'Greater Than Or Equal To Zero'>
     (9) ge0
@@ -10107,177 +10273,9 @@ thm (9greater0 () () (-. (<= (9) (0)))
   axgrtrii
 )
 
-## <title> One-Digit Inequality </title>
-thm (9greater1 () () (-. (<= (9) (1)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      8greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (1) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      1plus8
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (1) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
 
 ## <title> One-Digit Inequality </title>
-thm (9greater2 () () (-. (<= (9) (2)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      7greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (2) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      2plus7
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (2) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater3 () () (-. (<= (9) (3)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      6greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (3) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      3plus6
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (3) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater4 () () (-. (<= (9) (4)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      5greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (4) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      4plus5
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (4) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater5 () () (-. (<= (9) (5)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      4greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (5) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      5plus4
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (5) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater6 () () (-. (<= (9) (6)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      3greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (6) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      6plus3
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (6) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater7 () () (-. (<= (9) (7)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      2greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (7) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      7plus2
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (7) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (9greater8 () () (-. (<= (9) (8)))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      1greater0
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (8) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Left Side'>
-      8plus1
-      EqReplaceNot0Le0
-    ## </d 'Simplify Left Side'>
-    ## <d 'Simplify Right Side'>
-      (8) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-)
-
-## <title> One-Digit Inequality </title>
-thm (10greater0 () () (-. (<= (10) (0)))
-  10notEqual0
-  ## <d 'Greater Than Or Equal To Zero'>
-    (10) ge0
-  ## </d 'Greater Than Or Equal To Zero'>
-  axgrtrii
-)
-
-## <title> One-Digit Inequality </title>
-thm (10greater1 () () (-. (<= (10) (1)))
+thm (10greater1 () () (> (10) (1))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       9greater0
@@ -10287,17 +10285,17 @@ thm (10greater1 () () (-. (<= (10) (1)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       1plus9
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (1) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater2 () () (-. (<= (10) (2)))
+thm (10greater2 () () (> (10) (2))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       8greater0
@@ -10307,17 +10305,17 @@ thm (10greater2 () () (-. (<= (10) (2)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       2plus8
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (2) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater3 () () (-. (<= (10) (3)))
+thm (10greater3 () () (> (10) (3))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       7greater0
@@ -10327,17 +10325,17 @@ thm (10greater3 () () (-. (<= (10) (3)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       3plus7
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (3) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater4 () () (-. (<= (10) (4)))
+thm (10greater4 () () (> (10) (4))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       6greater0
@@ -10347,17 +10345,17 @@ thm (10greater4 () () (-. (<= (10) (4)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       4plus6
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (4) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater5 () () (-. (<= (10) (5)))
+thm (10greater5 () () (> (10) (5))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       5greater0
@@ -10367,17 +10365,17 @@ thm (10greater5 () () (-. (<= (10) (5)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       5plus5
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (5) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater6 () () (-. (<= (10) (6)))
+thm (10greater6 () () (> (10) (6))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       4greater0
@@ -10387,17 +10385,17 @@ thm (10greater6 () () (-. (<= (10) (6)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       6plus4
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (6) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater7 () () (-. (<= (10) (7)))
+thm (10greater7 () () (> (10) (7))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       3greater0
@@ -10407,17 +10405,17 @@ thm (10greater7 () () (-. (<= (10) (7)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       7plus3
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (7) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater8 () () (-. (<= (10) (8)))
+thm (10greater8 () () (> (10) (8))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       2greater0
@@ -10427,17 +10425,17 @@ thm (10greater8 () () (-. (<= (10) (8)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       8plus2
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (8) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
 
 ## <title> One-Digit Inequality </title>
-thm (10greater9 () () (-. (<= (10) (9)))
+thm (10greater9 () () (> (10) (9))
   ## <d 'Add To Both Sides'>
     ## <d 'Derive Smaller Inequality'>
       1greater0
@@ -10447,11 +10445,11 @@ thm (10greater9 () () (-. (<= (10) (9)))
     ## </d 'Add To Both Sides'>
     ## <d 'Simplify Left Side'>
       9plus1
-      EqReplaceNot0Le0
+      EqReplaceGt0
     ## </d 'Simplify Left Side'>
     ## <d 'Simplify Right Side'>
       (9) pa_ax3
-      EqReplaceNot0Le1
+      EqReplaceGt1
     ## </d 'Simplify Right Side'>
   ## </d 'Add To Both Sides'>
 )
@@ -10459,812 +10457,813 @@ thm (10greater9 () () (-. (<= (10) (9)))
 ## <title> One-Digit Inequality </title>
 thm (1notEqual2 () () (-. (= (1) (2)))
   1less2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (2) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual3 () () (-. (= (1) (3)))
   1less3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (3) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual4 () () (-. (= (1) (4)))
   1less4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (4) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual5 () () (-. (= (1) (5)))
   1less5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (5) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual6 () () (-. (= (1) (6)))
   1less6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (6) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual7 () () (-. (= (1) (7)))
   1less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual8 () () (-. (= (1) (8)))
   1less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual9 () () (-. (= (1) (9)))
   1less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (1notEqual10 () () (-. (= (1) (10)))
   1less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (1) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual1 () () (-. (= (2) (1)))
   2greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual3 () () (-. (= (2) (3)))
   2less3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (3) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual4 () () (-. (= (2) (4)))
   2less4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (4) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual5 () () (-. (= (2) (5)))
   2less5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (5) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual6 () () (-. (= (2) (6)))
   2less6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (6) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual7 () () (-. (= (2) (7)))
   2less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual8 () () (-. (= (2) (8)))
   2less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual9 () () (-. (= (2) (9)))
   2less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (2notEqual10 () () (-. (= (2) (10)))
   2less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (2) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual1 () () (-. (= (3) (1)))
   3greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual2 () () (-. (= (3) (2)))
   3greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual4 () () (-. (= (3) (4)))
   3less4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (4) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual5 () () (-. (= (3) (5)))
   3less5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (5) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual6 () () (-. (= (3) (6)))
   3less6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (6) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual7 () () (-. (= (3) (7)))
   3less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual8 () () (-. (= (3) (8)))
   3less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual9 () () (-. (= (3) (9)))
   3less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (3notEqual10 () () (-. (= (3) (10)))
   3less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (3) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual1 () () (-. (= (4) (1)))
   4greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual2 () () (-. (= (4) (2)))
   4greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual3 () () (-. (= (4) (3)))
   4greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual5 () () (-. (= (4) (5)))
   4less5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (5) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual6 () () (-. (= (4) (6)))
   4less6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (6) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual7 () () (-. (= (4) (7)))
   4less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual8 () () (-. (= (4) (8)))
   4less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual9 () () (-. (= (4) (9)))
   4less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (4notEqual10 () () (-. (= (4) (10)))
   4less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (4) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual1 () () (-. (= (5) (1)))
   5greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual2 () () (-. (= (5) (2)))
   5greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual3 () () (-. (= (5) (3)))
   5greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual4 () () (-. (= (5) (4)))
   5greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual6 () () (-. (= (5) (6)))
   5less6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (6) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual7 () () (-. (= (5) (7)))
   5less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual8 () () (-. (= (5) (8)))
   5less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual9 () () (-. (= (5) (9)))
   5less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (5notEqual10 () () (-. (= (5) (10)))
   5less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (5) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual1 () () (-. (= (6) (1)))
   6greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual2 () () (-. (= (6) (2)))
   6greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual3 () () (-. (= (6) (3)))
   6greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual4 () () (-. (= (6) (4)))
   6greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual5 () () (-. (= (6) (5)))
   6greater5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (5) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual7 () () (-. (= (6) (7)))
   6less7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (7) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual8 () () (-. (= (6) (8)))
   6less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual9 () () (-. (= (6) (9)))
   6less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (6notEqual10 () () (-. (= (6) (10)))
   6less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (6) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual1 () () (-. (= (7) (1)))
   7greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual2 () () (-. (= (7) (2)))
   7greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual3 () () (-. (= (7) (3)))
   7greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual4 () () (-. (= (7) (4)))
   7greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual5 () () (-. (= (7) (5)))
   7greater5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (5) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual6 () () (-. (= (7) (6)))
   7greater6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (6) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual8 () () (-. (= (7) (8)))
   7less8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (8) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual9 () () (-. (= (7) (9)))
   7less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (7notEqual10 () () (-. (= (7) (10)))
   7less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (7) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual1 () () (-. (= (8) (1)))
   8greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual2 () () (-. (= (8) (2)))
   8greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual3 () () (-. (= (8) (3)))
   8greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual4 () () (-. (= (8) (4)))
   8greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual5 () () (-. (= (8) (5)))
   8greater5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (5) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual6 () () (-. (= (8) (6)))
   8greater6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (6) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual7 () () (-. (= (8) (7)))
   8greater7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (7) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual9 () () (-. (= (8) (9)))
   8less9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (9) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (8notEqual10 () () (-. (= (8) (10)))
   8less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (8) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual1 () () (-. (= (9) (1)))
   9greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual2 () () (-. (= (9) (2)))
   9greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual3 () () (-. (= (9) (3)))
   9greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual4 () () (-. (= (9) (4)))
   9greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual5 () () (-. (= (9) (5)))
   9greater5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (5) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual6 () () (-. (= (9) (6)))
   9greater6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (6) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual7 () () (-. (= (9) (7)))
   9greater7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (7) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual8 () () (-. (= (9) (8)))
   9greater8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (8) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (9notEqual10 () () (-. (= (9) (10)))
   9less10
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (9) (10) ltneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual1 () () (-. (= (10) (1)))
   10greater1
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (1) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual2 () () (-. (= (10) (2)))
   10greater2
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (2) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual3 () () (-. (= (10) (3)))
   10greater3
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (3) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual4 () () (-. (= (10) (4)))
   10greater4
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (4) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual5 () () (-. (= (10) (5)))
   10greater5
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (5) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual6 () () (-. (= (10) (6)))
   10greater6
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (6) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual7 () () (-. (= (10) (7)))
   10greater7
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (7) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual8 () () (-. (= (10) (8)))
   10greater8
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (8) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
 
 ## <title> One-Digit Inequality </title>
 thm (10notEqual9 () () (-. (= (10) (9)))
   10greater9
-  ## <d 'Convert to ='>
+  ## <d 'Convert to ≠'>
     (10) (9) gtneq
     ax-mp
-  ## </d 'Convert to ='>
+  ## </d 'Convert to ≠'>
 )
+
 
 ## <title> Substitution </title>
 ## <table>
@@ -22687,8 +22686,7 @@ thm (SeqReplaceEl1 () (
   mpbi
 )
 
-thm (elementOfExample() () (e. (3) (u. ({} (1)) (u. ({} (2)) (u. ({} (3)) (u. ({} (4)) ({} (5)))))))
-    
+thm (elementOfExample() () (e. (3) (u. (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (4))) ({} (5))))
   ## <d 'Element is in Singleton'>
     (3) snid
   ## </d 'Element is in Singleton'>
@@ -22700,59 +22698,64 @@ thm (elementOfExample() () (e. (3) (u. ({} (1)) (u. ({} (2)) (u. ({} (3)) (u. ({
   ## </d 'Element is part of a Larger Set'>
   ## <d 'Reorder elements'>
     ## <d 'Evaluate'>
-      ## <d 'Place in numeric order'>
-        ## <d 'Rearrange Terms'>
-          ## <d 'Associate All Left'>
-            ## <d 'Associative Property'>
-              (u. ({} (1)) ({} (2))) ({} (3)) (u. ({} (4)) ({} (5))) unass
-              ## <d 'Commutative Property'>
-                (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) (u. ({} (4)) ({} (5)))) (u. (u. ({} (1)) ({} (2))) (u. ({} (3)) (u. ({} (4)) ({} (5))))) seqcom
-                mpbi
-              ## </d 'Commutative Property'>
-            ## </d 'Associative Property'>
-            ## <d 'Associative Property'>
-              (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (4)) ({} (5)) unass
-              ## <d 'Commutative Property'>
-                (u. (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (4))) ({} (5))) (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) (u. ({} (4)) ({} (5)))) seqcom
-                mpbi
-              ## </d 'Commutative Property'>
-              SeqReplaceSeq1
-            ## </d 'Associative Property'>
-          ## </d 'Associate All Left'>
-          ## <d 'Change Associations'>
-            ## <d 'Associative Property'>
-              (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (4)) ({} (5)) unass
-            ## </d 'Associative Property'>
-            ## <d 'Associative Property'>
-              (u. ({} (1)) ({} (2))) ({} (3)) (u. ({} (4)) ({} (5))) unass
-              SeqReplaceSeq1
-            ## </d 'Associative Property'>
-            ## <d 'Associative Property'>
-              ({} (1)) ({} (2)) (u. ({} (3)) (u. ({} (4)) ({} (5)))) unass
-              SeqReplaceSeq1
-            ## </d 'Associative Property'>
-            SeqReplaceSeq1
-          ## </d 'Change Associations'>
-        ## </d 'Rearrange Terms'>
-      ## </d 'Place in numeric order'>
-        SeqReplaceEl1
+      ## <d 'Evaluate'>
+        ## <d 'Place in numeric order'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Associate All Left'>
+              ## <d 'Associative Property'>
+                ({} (3)) ({} (4)) ({} (5)) unass
+                ## <d 'Commutative Property'>
+                  (u. (u. ({} (3)) ({} (4))) ({} (5))) (u. ({} (3)) (u. ({} (4)) ({} (5)))) seqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+              ## </d 'Associative Property'>
+            ## </d 'Associate All Left'>
+          ## </d 'Rearrange Terms'>
+        ## </d 'Place in numeric order'>
+        (u. ({} (1)) ({} (2))) uneq2i
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        ## <d 'Place in numeric order'>
+          ## <d 'Rearrange Terms'>
+            ## <d 'Associate All Left'>
+              ## <d 'Associative Property'>
+                (u. ({} (1)) ({} (2))) (u. ({} (3)) ({} (4))) ({} (5)) unass
+                ## <d 'Commutative Property'>
+                  (u. (u. (u. ({} (1)) ({} (2))) (u. ({} (3)) ({} (4)))) ({} (5))) (u. (u. ({} (1)) ({} (2))) (u. (u. ({} (3)) ({} (4))) ({} (5)))) seqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+              ## </d 'Associative Property'>
+              ## <d 'Associative Property'>
+                (u. ({} (1)) ({} (2))) ({} (3)) ({} (4)) unass
+                ## <d 'Commutative Property'>
+                  (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (4))) (u. (u. ({} (1)) ({} (2))) (u. ({} (3)) ({} (4)))) seqcom
+                  mpbi
+                ## </d 'Commutative Property'>
+                SeqReplaceSeq1Un0
+              ## </d 'Associative Property'>
+            ## </d 'Associate All Left'>
+          ## </d 'Rearrange Terms'>
+        ## </d 'Place in numeric order'>
+        SeqReplaceSeq1
+      ## </d 'Evaluate'>
+      SeqReplaceEl1
     ## </d 'Evaluate'>
   ## </d 'Reorder elements'>
 )
 
 ## <title> Element Not Inside 4-Set </title>
-thm (notIn4set () (hyp0 (-. (= A B)) hyp1 (-. (= A C)) hyp2 (-. (= A D)) hyp3 (-. (= A A')) ) (-. (e. A (u. ({} B) (u. ({} C) (u. ({} D) ({} A'))))))
+thm (notIn4set () (hyp0 (-. (= A B)) hyp1 (-. (= A C)) hyp2 (-. (= A D)) hyp3 (-. (= A A')) ) (-. (e. A (u. (u. (u. ({} B) ({} C)) ({} D)) ({} A'))))
   hyp0
-  hyp1
-  hyp2
-  hyp3
   notInSingleton
-  notInSingletonUnion
-  notInSingletonUnion
-  notInSingletonUnion
+  hyp1
+  notInSingletonUnion2
+  hyp2
+  notInSingletonUnion2
+  hyp3
+  notInSingletonUnion2
 )
 
-thm (notElementOfExample() () (-. (e. (3) (u. ({} (1)) (u. ({} (2)) (u. ({} (4)) ({} (5))))))) 
+thm (notElementOfExample() () (-. (e. (3) (u. (u. (u. ({} (1)) ({} (2))) ({} (4))) ({} (5))))) 
   3notEqual1
   3notEqual2
   3notEqual4
@@ -22869,33 +22872,25 @@ thm (SeqReplaceSeq1Un1Un1Un0 () (
 )
 
 
-thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2)) (u. ({} (4)) ({} (8))))) (u. ({} (1)) (u. ({} (2)) (u. ({} (4)) (u. ({} (5)) ({} (8)))))))  
+thm (unionExample () () (=_ (u. (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. (u. ({} (2)) ({} (4))) ({} (8)))) (u. (u. (u. (u. ({} (1)) ({} (2))) ({} (4))) ({} (5))) ({} (8))))    
   ## <d 'Evaluate'>
     ## <d 'Place in numeric order'>
       ## <d 'Rearrange Terms'>
         ## <d 'Associate All Left'>
           ## <d 'Associative Property'>
-            (u. ({} (1)) (u. ({} (4)) ({} (5)))) ({} (2)) (u. ({} (4)) ({} (8))) unass
+            (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. ({} (2)) ({} (4))) ({} (8)) unass
             ## <d 'Commutative Property'>
-              (u. (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) ({} (2))) (u. ({} (4)) ({} (8)))) (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2)) (u. ({} (4)) ({} (8))))) seqcom
+              (u. (u. (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. ({} (2)) ({} (4)))) ({} (8))) (u. (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. (u. ({} (2)) ({} (4))) ({} (8)))) seqcom
               mpbi
             ## </d 'Commutative Property'>
           ## </d 'Associative Property'>
           ## <d 'Associative Property'>
-            (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) ({} (2))) ({} (4)) ({} (8)) unass
+            (u. (u. ({} (1)) ({} (4))) ({} (5))) ({} (2)) ({} (4)) unass
             ## <d 'Commutative Property'>
-              (u. (u. (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) ({} (2))) ({} (4))) ({} (8))) (u. (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) ({} (2))) (u. ({} (4)) ({} (8)))) seqcom
+              (u. (u. (u. (u. ({} (1)) ({} (4))) ({} (5))) ({} (2))) ({} (4))) (u. (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. ({} (2)) ({} (4)))) seqcom
               mpbi
             ## </d 'Commutative Property'>
-            SeqReplaceSeq1
-          ## </d 'Associative Property'>
-          ## <d 'Associative Property'>
-            ({} (1)) ({} (4)) ({} (5)) unass
-            ## <d 'Commutative Property'>
-              (u. (u. ({} (1)) ({} (4))) ({} (5))) (u. ({} (1)) (u. ({} (4)) ({} (5)))) seqcom
-              mpbi
-            ## </d 'Commutative Property'>
-              SeqReplaceSeq1Un0Un0Un0
+            SeqReplaceSeq1Un0
           ## </d 'Associative Property'>
         ## </d 'Associate All Left'>
         ## <d 'Reorder Terms'>
@@ -22906,7 +22901,7 @@ thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2))
           ## </d 'Associative Property'>
           ## <d 'Commutative Property'>
             ({} (5)) ({} (2)) uncom
-              SeqReplaceSeq1Un0Un0Un1
+            SeqReplaceSeq1Un0Un0Un1
           ## </d 'Commutative Property'>
           ## <d 'Associative Property'>
             (u. ({} (1)) ({} (4))) ({} (2)) ({} (5)) unass
@@ -22922,7 +22917,7 @@ thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2))
           ## </d 'Associative Property'>
           ## <d 'Commutative Property'>
             ({} (5)) ({} (4)) uncom
-              SeqReplaceSeq1Un0Un1
+            SeqReplaceSeq1Un0Un1
           ## </d 'Commutative Property'>
           ## <d 'Associative Property'>
             (u. (u. ({} (1)) ({} (4))) ({} (2))) ({} (4)) ({} (5)) unass
@@ -22938,7 +22933,7 @@ thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2))
           ## </d 'Associative Property'>
           ## <d 'Commutative Property'>
             ({} (4)) ({} (2)) uncom
-              SeqReplaceSeq1Un0Un0Un0Un1
+            SeqReplaceSeq1Un0Un0Un0Un1
           ## </d 'Commutative Property'>
           ## <d 'Associative Property'>
             ({} (1)) ({} (2)) ({} (4)) unass
@@ -22950,38 +22945,16 @@ thm (unionExample() () (=_ (u. (u. ({} (1)) (u. ({} (4)) ({} (5)))) (u. ({} (2))
           ## </d 'Associative Property'>
           SeqReplaceSeq1
         ## </d 'Reorder Terms'>
-        ## <d 'Change Associations'>
-          ## <d 'Associative Property'>
-            (u. (u. (u. ({} (1)) ({} (2))) ({} (4))) ({} (4))) ({} (5)) ({} (8)) unass
-          ## </d 'Associative Property'>
-          ## <d 'Associative Property'>
-            (u. (u. ({} (1)) ({} (2))) ({} (4))) ({} (4)) (u. ({} (5)) ({} (8))) unass
-            SeqReplaceSeq1
-          ## </d 'Associative Property'>
-          ## <d 'Associative Property'>
-            (u. ({} (1)) ({} (2))) ({} (4)) (u. ({} (4)) (u. ({} (5)) ({} (8)))) unass
-            SeqReplaceSeq1
-          ## </d 'Associative Property'>
-          ## <d 'Associative Property'>
-            ({} (1)) ({} (2)) (u. ({} (4)) (u. ({} (4)) (u. ({} (5)) ({} (8))))) unass
-            SeqReplaceSeq1
-          ## </d 'Associative Property'>
-          SeqReplaceSeq1
-        ## </d 'Change Associations'>
       ## </d 'Rearrange Terms'>
     ## </d 'Place in numeric order'>
     ## <d 'Remove Duplicates'>
       ## <d 'Associative Property'>
-        ({} (4)) ({} (4)) (u. ({} (5)) ({} (8))) unass
-        ## <d 'Commutative Property'>
-          (u. (u. ({} (4)) ({} (4))) (u. ({} (5)) ({} (8)))) (u. ({} (4)) (u. ({} (4)) (u. ({} (5)) ({} (8))))) seqcom
-          mpbi
-        ## </d 'Commutative Property'>
-          SeqReplaceSeq1Un1Un1
+        (u. ({} (1)) ({} (2))) ({} (4)) ({} (4)) unass
+        SeqReplaceSeq1Un0Un0
       ## </d 'Associative Property'>
       ## <d 'Union is Idempotent'>
         ({} (4)) unidm
-          SeqReplaceSeq1Un1Un1Un0
+        SeqReplaceSeq1Un0Un0Un1
       ## </d 'Union is Idempotent'>
     ## </d 'Remove Duplicates'>
   ## </d 'Evaluate'>
@@ -25133,268 +25106,274 @@ thm (lessThanExample() () (< (+ (* (2) (10)) (6)) (+ (* (7) (* (10) (10))) (+ (*
 
 
 
+
 ## <title> Substitution </title>
 ## <table>
-##   (-. (<= A  [ B ]   ]   ] ))
-##   (-. (<=    [ B ]   [ C ] ))
-##   (-. (<= A  [   [   [ C ] ))
+##   (> A  [ B ]   ]   ] )
+##   (>    [ B ]   [ C ] )
+##   (> A  [   [   [ C ] )
 ## </table>
-thm (NotReplaceNot0Le1 () (
-     replacee (-. (<= A B))
-     substitution (-. (<= B C))) 
-     (-. (<= A C))
+thm (GtReplaceGt1 () (
+     replacee (> A B)
+     substitution (> B C)) 
+     (> A C)
   replacee substitution
   A gtTrgt
   ax-mp
 )
 
-thm (greaterThanEqualExample() () (-. (< (+ (* (3) (* (10) (10))) (* (4) (10))) (+ (* (8) (10)) (1))))
-  ## <d 'Add To Both Sides'>
-    ## <d 'Derive Smaller Inequality'>
-      ## <d 'Number is Not Zero'>
-        (+ (* (3) (10)) (9)) pa_ax1plus
-        ## <d 'Evaluate'>
-          ## <d 'Addition'>
-            ## <d 'Group Common Digits'>
-              ## <d 'Rearrange Terms'>
-                ## <d 'Change Associations'>
-                  ## <d 'Associative Property'>
-                    (* (3) (10)) (9) (1) addass
-                  ## </d 'Associative Property'>
-                ## </d 'Change Associations'>
-              ## </d 'Rearrange Terms'>
-            ## </d 'Group Common Digits'>
-            ## <d 'Single-digit Addition'>
-              9plus1
-              EqReplaceEq1Add1
-            ## </d 'Single-digit Addition'>
-            ## <d 'Carry the One'>
-              ## <d 'Multiply By One'>
-                ## <d 'Evaluate'>
-                  ## <d 'Evaluate'>
-                    (10) mulidr
-                  ## </d 'Evaluate'>
-                  ## <d 'Commutative Property'>
-                    (* (1) (10)) (10) eqcom
-                    mpbi
-                  ## </d 'Commutative Property'>
-                ## </d 'Evaluate'>
-                (* (3) (10)) addeq2i
-              ## </d 'Multiply By One'>
-              ## <d 'Distributive Property'>
-                (3) (1) (10) distl
-                ## <d 'Commutative Property'>
-                  (* (+ (3) (1)) (10)) (+ (* (3) (10)) (* (1) (10))) eqcom
-                  mpbi
-                ## </d 'Commutative Property'>
-                EqReplaceEq1
-              ## </d 'Distributive Property'>
-              EqReplaceEq1
-            ## </d 'Carry the One'>
-            ## <d 'Single-digit Addition'>
-              3plus1
-              EqReplaceEq1Mul0
-            ## </d 'Single-digit Addition'>
-          ## </d 'Addition'>
-          EqReplaceNot0Eq1
-        ## </d 'Evaluate'>
-        ## <d 'Commutative Property'>
-          (0) (* (4) (10)) eqcom
-          mtbi
-        ## </d 'Commutative Property'>
-      ## </d 'Number is Not Zero'>
-      ## <d 'Greater Than Or Equal To Zero'>
-        (* (4) (10)) ge0
-      ## </d 'Greater Than Or Equal To Zero'>
-      axgrtrii
-    ## </d 'Derive Smaller Inequality'>
-    ## <d 'Add To Both Sides'>
-      (* (3) (* (10) (10))) gtadd2i
-    ## </d 'Add To Both Sides'>
-    ## <d 'Simplify Right Side'>
-      (* (3) (* (10) (10))) pa_ax3
-      EqReplaceNot0Le1
-    ## </d 'Simplify Right Side'>
-  ## </d 'Add To Both Sides'>
-  ## <d 'First Digit is Lower'>
-    ## <d 'Highest Digit Inequality'>
-      3greater1
-    ## </d 'Highest Digit Inequality'>
-    ## <d 'Number is Not Zero'>
-      (+ (* (9) (10)) (9)) pa_ax1plus
-      ## <d 'Evaluate'>
-        ## <d 'Addition'>
-          ## <d 'Group Common Digits'>
-            ## <d 'Rearrange Terms'>
-              ## <d 'Change Associations'>
-                ## <d 'Associative Property'>
-                  (* (9) (10)) (9) (1) addass
-                ## </d 'Associative Property'>
-              ## </d 'Change Associations'>
-            ## </d 'Rearrange Terms'>
-          ## </d 'Group Common Digits'>
-          ## <d 'Single-digit Addition'>
-            9plus1
-            EqReplaceEq1Add1
-          ## </d 'Single-digit Addition'>
-          ## <d 'Carry the One'>
-            ## <d 'Multiply By One'>
+## <title> One-Digit Inequality </title>
+thm (10greater0 () () (> (10) (0))
+  10notEqual0
+  ## <d 'Greater Than Or Equal To Zero'>
+    (10) ge0
+  ## </d 'Greater Than Or Equal To Zero'>
+  axgrtrii
+)
+
+thm (greaterThanExample() () (> (+ (* (3) (* (10) (10))) (* (4) (10))) (+ (* (8) (10)) (1)))
+        ## <d 'Add To Both Sides'>
+          ## <d 'Derive Smaller Inequality'>
+            ## <d 'Number is Not Zero'>
+              (+ (* (3) (10)) (9)) pa_ax1plus
               ## <d 'Evaluate'>
-                ## <d 'Evaluate'>
-                  (10) mulidr
-                ## </d 'Evaluate'>
-                ## <d 'Commutative Property'>
-                  (* (1) (10)) (10) eqcom
-                  mpbi
-                ## </d 'Commutative Property'>
+                ## <d 'Addition'>
+                  ## <d 'Group Common Digits'>
+                    ## <d 'Rearrange Terms'>
+                      ## <d 'Change Associations'>
+                        ## <d 'Associative Property'>
+                          (* (3) (10)) (9) (1) addass
+                        ## </d 'Associative Property'>
+                      ## </d 'Change Associations'>
+                    ## </d 'Rearrange Terms'>
+                  ## </d 'Group Common Digits'>
+                  ## <d 'Single-digit Addition'>
+                    9plus1
+                    EqReplaceEq1Add1
+                  ## </d 'Single-digit Addition'>
+                  ## <d 'Carry the One'>
+                    ## <d 'Multiply By One'>
+                      ## <d 'Evaluate'>
+                        ## <d 'Evaluate'>
+                          (10) mulidr
+                        ## </d 'Evaluate'>
+                        ## <d 'Commutative Property'>
+                          (* (1) (10)) (10) eqcom
+                          mpbi
+                        ## </d 'Commutative Property'>
+                      ## </d 'Evaluate'>
+                      (* (3) (10)) addeq2i
+                    ## </d 'Multiply By One'>
+                    ## <d 'Distributive Property'>
+                      (3) (1) (10) distl
+                      ## <d 'Commutative Property'>
+                        (* (+ (3) (1)) (10)) (+ (* (3) (10)) (* (1) (10))) eqcom
+                        mpbi
+                      ## </d 'Commutative Property'>
+                      EqReplaceEq1
+                    ## </d 'Distributive Property'>
+                    EqReplaceEq1
+                  ## </d 'Carry the One'>
+                  ## <d 'Single-digit Addition'>
+                    3plus1
+                    EqReplaceEq1Mul0
+                  ## </d 'Single-digit Addition'>
+                ## </d 'Addition'>
+                EqReplaceNot0Eq1
               ## </d 'Evaluate'>
-              (* (9) (10)) addeq2i
-            ## </d 'Multiply By One'>
-            ## <d 'Distributive Property'>
-              (9) (1) (10) distl
               ## <d 'Commutative Property'>
-                (* (+ (9) (1)) (10)) (+ (* (9) (10)) (* (1) (10))) eqcom
-                mpbi
+                (0) (* (4) (10)) eqcom
+                mtbi
               ## </d 'Commutative Property'>
-              EqReplaceEq1
-            ## </d 'Distributive Property'>
-            EqReplaceEq1
-          ## </d 'Carry the One'>
-          ## <d 'Single-digit Addition'>
-            9plus1
-            EqReplaceEq1Mul0
-          ## </d 'Single-digit Addition'>
-        ## </d 'Addition'>
-        EqReplaceNot0Eq1
-      ## </d 'Evaluate'>
-      ## <d 'Commutative Property'>
-        (0) (* (10) (10)) eqcom
-        mtbi
-      ## </d 'Commutative Property'>
-    ## </d 'Number is Not Zero'>
-    ## <d 'Greater Than Or Equal To Zero'>
-      (* (10) (10)) ge0
-    ## </d 'Greater Than Or Equal To Zero'>
-    axgrtrii
-    gtmul2i
-    ## <d 'Evaluate'>
-      (* (10) (10)) mulidr
-      EqReplaceNot0Le1
-    ## </d 'Evaluate'>
-    NotReplaceNot0Le1
-  ## </d 'First Digit is Lower'>
-  ## <d 'First Digit is Lower'>
-    ## <d 'Add To Both Sides'>
-      ## <d 'Derive Smaller Inequality'>
-        10greater0
-      ## </d 'Derive Smaller Inequality'>
-      ## <d 'Add To Both Sides'>
-        (* (9) (10)) gtadd2i
-      ## </d 'Add To Both Sides'>
-      ## <d 'Simplify Left Side'>
-        ## <d 'Addition'>
-          ## <d 'Group Common Digits'>
-            ## <d 'Multiply By One'>
-              ## <d 'Multiply By One'>
-                ## <d 'Evaluate'>
-                  ## <d 'Evaluate'>
-                    (10) mulidr
-                  ## </d 'Evaluate'>
-                  ## <d 'Commutative Property'>
-                    (* (1) (10)) (10) eqcom
-                    mpbi
-                  ## </d 'Commutative Property'>
-                ## </d 'Evaluate'>
-                (* (9) (10)) addeq2i
-              ## </d 'Multiply By One'>
-            ## </d 'Multiply By One'>
-            ## <d 'Distributive Property'>
-              (9) (1) (10) distl
-              ## <d 'Commutative Property'>
-                (* (+ (9) (1)) (10)) (+ (* (9) (10)) (* (1) (10))) eqcom
-                mpbi
-              ## </d 'Commutative Property'>
-              EqReplaceEq1
-            ## </d 'Distributive Property'>
-          ## </d 'Group Common Digits'>
-          ## <d 'Single-digit Addition'>
-            9plus1
-            EqReplaceEq1Mul0
-          ## </d 'Single-digit Addition'>
-        ## </d 'Addition'>
-        EqReplaceNot0Le0
-      ## </d 'Simplify Left Side'>
-      ## <d 'Simplify Right Side'>
-        (* (9) (10)) pa_ax3
-        EqReplaceNot0Le1
-      ## </d 'Simplify Right Side'>
-    ## </d 'Add To Both Sides'>
-    NotReplaceNot0Le1
-  ## </d 'First Digit is Lower'>
-  ## <d 'Lower Remaining Digits'>
-    ## <d 'Add To Both Sides'>
-      ## <d 'Derive Smaller Inequality'>
-        9greater0
-      ## </d 'Derive Smaller Inequality'>
-      ## <d 'Add To Both Sides'>
-        (+ (* (8) (10)) (1)) gtadd2i
-      ## </d 'Add To Both Sides'>
-      ## <d 'Simplify Left Side'>
-        ## <d 'Addition'>
-          ## <d 'Group Common Digits'>
-            ## <d 'Rearrange Terms'>
-              ## <d 'Change Associations'>
-                ## <d 'Associative Property'>
-                  (* (8) (10)) (1) (9) addass
-                ## </d 'Associative Property'>
-              ## </d 'Change Associations'>
-            ## </d 'Rearrange Terms'>
-          ## </d 'Group Common Digits'>
-          ## <d 'Single-digit Addition'>
-            1plus9
-            EqReplaceEq1Add1
-          ## </d 'Single-digit Addition'>
-          ## <d 'Carry the One'>
-            ## <d 'Multiply By One'>
-              ## <d 'Evaluate'>
-                ## <d 'Evaluate'>
-                  (10) mulidr
-                ## </d 'Evaluate'>
-                ## <d 'Commutative Property'>
-                  (* (1) (10)) (10) eqcom
-                  mpbi
-                ## </d 'Commutative Property'>
-              ## </d 'Evaluate'>
-              (* (8) (10)) addeq2i
-            ## </d 'Multiply By One'>
-            ## <d 'Distributive Property'>
-              (8) (1) (10) distl
-              ## <d 'Commutative Property'>
-                (* (+ (8) (1)) (10)) (+ (* (8) (10)) (* (1) (10))) eqcom
-                mpbi
-              ## </d 'Commutative Property'>
-              EqReplaceEq1
-            ## </d 'Distributive Property'>
-            EqReplaceEq1
-          ## </d 'Carry the One'>
-          ## <d 'Single-digit Addition'>
-            8plus1
-            EqReplaceEq1Mul0
-          ## </d 'Single-digit Addition'>
-        ## </d 'Addition'>
-        EqReplaceNot0Le0
-      ## </d 'Simplify Left Side'>
-      ## <d 'Simplify Right Side'>
-        (+ (* (8) (10)) (1)) pa_ax3
-        EqReplaceNot0Le1
-      ## </d 'Simplify Right Side'>
-    ## </d 'Add To Both Sides'>
-    NotReplaceNot0Le1
-  ## </d 'Lower Remaining Digits'>
-  ## <d 'Convert to ≥'>
-    (+ (* (3) (* (10) (10))) (* (4) (10))) (+ (* (8) (10)) (1)) gtge
-    ax-mp
-  ## </d 'Convert to ≥'>
+            ## </d 'Number is Not Zero'>
+            ## <d 'Greater Than Or Equal To Zero'>
+              (* (4) (10)) ge0
+            ## </d 'Greater Than Or Equal To Zero'>
+            axgrtrii
+          ## </d 'Derive Smaller Inequality'>
+          ## <d 'Add To Both Sides'>
+            (* (3) (* (10) (10))) gtadd2i
+          ## </d 'Add To Both Sides'>
+          ## <d 'Simplify Right Side'>
+            (* (3) (* (10) (10))) pa_ax3
+            EqReplaceGt1
+          ## </d 'Simplify Right Side'>
+        ## </d 'Add To Both Sides'>
+        ## <d 'First Digit is Lower'>
+          ## <d 'Highest Digit Inequality'>
+            3greater1
+          ## </d 'Highest Digit Inequality'>
+          ## <d 'Number is Not Zero'>
+            (+ (* (9) (10)) (9)) pa_ax1plus
+            ## <d 'Evaluate'>
+              ## <d 'Addition'>
+                ## <d 'Group Common Digits'>
+                  ## <d 'Rearrange Terms'>
+                    ## <d 'Change Associations'>
+                      ## <d 'Associative Property'>
+                        (* (9) (10)) (9) (1) addass
+                      ## </d 'Associative Property'>
+                    ## </d 'Change Associations'>
+                  ## </d 'Rearrange Terms'>
+                ## </d 'Group Common Digits'>
+                ## <d 'Single-digit Addition'>
+                  9plus1
+                  EqReplaceEq1Add1
+                ## </d 'Single-digit Addition'>
+                ## <d 'Carry the One'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Evaluate'>
+                      ## <d 'Evaluate'>
+                        (10) mulidr
+                      ## </d 'Evaluate'>
+                      ## <d 'Commutative Property'>
+                        (* (1) (10)) (10) eqcom
+                        mpbi
+                      ## </d 'Commutative Property'>
+                    ## </d 'Evaluate'>
+                    (* (9) (10)) addeq2i
+                  ## </d 'Multiply By One'>
+                  ## <d 'Distributive Property'>
+                    (9) (1) (10) distl
+                    ## <d 'Commutative Property'>
+                      (* (+ (9) (1)) (10)) (+ (* (9) (10)) (* (1) (10))) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                    EqReplaceEq1
+                  ## </d 'Distributive Property'>
+                  EqReplaceEq1
+                ## </d 'Carry the One'>
+                ## <d 'Single-digit Addition'>
+                  9plus1
+                  EqReplaceEq1Mul0
+                ## </d 'Single-digit Addition'>
+              ## </d 'Addition'>
+              EqReplaceNot0Eq1
+            ## </d 'Evaluate'>
+            ## <d 'Commutative Property'>
+              (0) (* (10) (10)) eqcom
+              mtbi
+            ## </d 'Commutative Property'>
+          ## </d 'Number is Not Zero'>
+          ## <d 'Greater Than Or Equal To Zero'>
+            (* (10) (10)) ge0
+          ## </d 'Greater Than Or Equal To Zero'>
+          axgrtrii
+          gtmul2i
+          ## <d 'Evaluate'>
+            (* (10) (10)) mulidr
+            EqReplaceGt1
+          ## </d 'Evaluate'>
+          GtReplaceGt1
+        ## </d 'First Digit is Lower'>
+        ## <d 'First Digit is Lower'>
+          ## <d 'Add To Both Sides'>
+            ## <d 'Derive Smaller Inequality'>
+              10greater0
+            ## </d 'Derive Smaller Inequality'>
+            ## <d 'Add To Both Sides'>
+              (* (9) (10)) gtadd2i
+            ## </d 'Add To Both Sides'>
+            ## <d 'Simplify Left Side'>
+              ## <d 'Addition'>
+                ## <d 'Group Common Digits'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Multiply By One'>
+                      ## <d 'Evaluate'>
+                        ## <d 'Evaluate'>
+                          (10) mulidr
+                        ## </d 'Evaluate'>
+                        ## <d 'Commutative Property'>
+                          (* (1) (10)) (10) eqcom
+                          mpbi
+                        ## </d 'Commutative Property'>
+                      ## </d 'Evaluate'>
+                      (* (9) (10)) addeq2i
+                    ## </d 'Multiply By One'>
+                  ## </d 'Multiply By One'>
+                  ## <d 'Distributive Property'>
+                    (9) (1) (10) distl
+                    ## <d 'Commutative Property'>
+                      (* (+ (9) (1)) (10)) (+ (* (9) (10)) (* (1) (10))) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                    EqReplaceEq1
+                  ## </d 'Distributive Property'>
+                ## </d 'Group Common Digits'>
+                ## <d 'Single-digit Addition'>
+                  9plus1
+                  EqReplaceEq1Mul0
+                ## </d 'Single-digit Addition'>
+              ## </d 'Addition'>
+              EqReplaceGt0
+            ## </d 'Simplify Left Side'>
+            ## <d 'Simplify Right Side'>
+              (* (9) (10)) pa_ax3
+              EqReplaceGt1
+            ## </d 'Simplify Right Side'>
+          ## </d 'Add To Both Sides'>
+          GtReplaceGt1
+        ## </d 'First Digit is Lower'>
+        ## <d 'Lower Remaining Digits'>
+          ## <d 'Add To Both Sides'>
+            ## <d 'Derive Smaller Inequality'>
+              9greater0
+            ## </d 'Derive Smaller Inequality'>
+            ## <d 'Add To Both Sides'>
+              (+ (* (8) (10)) (1)) gtadd2i
+            ## </d 'Add To Both Sides'>
+            ## <d 'Simplify Left Side'>
+              ## <d 'Addition'>
+                ## <d 'Group Common Digits'>
+                  ## <d 'Rearrange Terms'>
+                    ## <d 'Change Associations'>
+                      ## <d 'Associative Property'>
+                        (* (8) (10)) (1) (9) addass
+                      ## </d 'Associative Property'>
+                    ## </d 'Change Associations'>
+                  ## </d 'Rearrange Terms'>
+                ## </d 'Group Common Digits'>
+                ## <d 'Single-digit Addition'>
+                  1plus9
+                  EqReplaceEq1Add1
+                ## </d 'Single-digit Addition'>
+                ## <d 'Carry the One'>
+                  ## <d 'Multiply By One'>
+                    ## <d 'Evaluate'>
+                      ## <d 'Evaluate'>
+                        (10) mulidr
+                      ## </d 'Evaluate'>
+                      ## <d 'Commutative Property'>
+                        (* (1) (10)) (10) eqcom
+                        mpbi
+                      ## </d 'Commutative Property'>
+                    ## </d 'Evaluate'>
+                    (* (8) (10)) addeq2i
+                  ## </d 'Multiply By One'>
+                  ## <d 'Distributive Property'>
+                    (8) (1) (10) distl
+                    ## <d 'Commutative Property'>
+                      (* (+ (8) (1)) (10)) (+ (* (8) (10)) (* (1) (10))) eqcom
+                      mpbi
+                    ## </d 'Commutative Property'>
+                    EqReplaceEq1
+                  ## </d 'Distributive Property'>
+                  EqReplaceEq1
+                ## </d 'Carry the One'>
+                ## <d 'Single-digit Addition'>
+                  8plus1
+                  EqReplaceEq1Mul0
+                ## </d 'Single-digit Addition'>
+              ## </d 'Addition'>
+              EqReplaceGt0
+            ## </d 'Simplify Left Side'>
+            ## <d 'Simplify Right Side'>
+              (+ (* (8) (10)) (1)) pa_ax3
+              EqReplaceGt1
+            ## </d 'Simplify Right Side'>
+          ## </d 'Add To Both Sides'>
+          GtReplaceGt1
+        ## </d 'Lower Remaining Digits'>
 )
 
 
@@ -26247,18 +26226,51 @@ thm (sumExample() () (= (sum (5) (7) (lambda x (+ (exp x (2)) (* (3) x)))) (+ (*
 )
 
 ## <title> Prime Number Calculation </title>
-thm (notPrimeExample() () (-. (prime (+ (* (2) (10)) (5))))
+thm (notPrimeExample () () (-. (prime (+ (* (4) (10)) (2))))
   ## <d 'Has a Divisor'>
     ## <d 'Evaluate'>
-      5times5
+      ## <d 'Multiplication'>
+        ## <d 'Distribute Digits'>
+          ## <d 'Distributive Property'>
+            (2) (* (2) (10)) (1) distr
+          ## </d 'Distributive Property'>
+        ## </d 'Distribute Digits'>
+        ## <d 'Pull Out Base 10'>
+          ## <d 'Associative Property'>
+            (2) (2) (10) mulass
+            ## <d 'Commutative Property'>
+              (* (* (2) (2)) (10)) (* (2) (* (2) (10))) eqcom
+              mpbi
+            ## </d 'Commutative Property'>
+            (* (2) (1)) addeq1i
+          ## </d 'Associative Property'>
+          EqReplaceEq1
+        ## </d 'Pull Out Base 10'>
+        ## <d 'Multiply Each Digit'>
+          ## <d 'Multiply Two Individual Digits'>
+            ## <d 'Multiply Base'>
+              (2) mulid
+            ## </d 'Multiply Base'>
+            (* (* (2) (2)) (10)) addeq2i
+          ## </d 'Multiply Two Individual Digits'>
+          ## <d 'Multiply Two Individual Digits'>
+            ## <d 'Multiply Significant Digits'>
+              2times2
+              (10) muleq1i
+            ## </d 'Multiply Significant Digits'>
+            EqReplaceEq1Add0
+          ## </d 'Multiply Two Individual Digits'>
+          EqReplaceEq1
+        ## </d 'Multiply Each Digit'>
+      ## </d 'Multiplication'>
     ## </d 'Evaluate'>
     proveDivides
   ## </d 'Has a Divisor'>
-  1less5
-  5less10
+  1less2
+  2less10
   ## <d 'Higher First Digit'>
     ## <d 'Compare First Digits'>
-      1less2
+      1less4
     ## </d 'Compare First Digits'>
     0less10
     ltmul2i
@@ -26271,13 +26283,13 @@ thm (notPrimeExample() () (-. (prime (+ (* (2) (10)) (5))))
   ## <d 'Higher Remaining Digits'>
     ## <d 'Compare Smaller Digits'>
       ## <d 'Derive Smaller Inequality'>
-        0less5
+        0less2
       ## </d 'Derive Smaller Inequality'>
       ## <d 'Add To Both Sides'>
-        (* (2) (10)) ltadd2i
+        (* (4) (10)) ltadd2i
       ## </d 'Add To Both Sides'>
       ## <d 'Simplify Left Side'>
-        (* (2) (10)) pa_ax3
+        (* (4) (10)) pa_ax3
         EqReplaceLt0
       ## </d 'Simplify Left Side'>
     ## </d 'Compare Smaller Digits'>
@@ -26286,6 +26298,7 @@ thm (notPrimeExample() () (-. (prime (+ (* (2) (10)) (5))))
   pm3.2i
   notPrime
 )
+
 
 ## <title> Substitution </title>
 ## <table>
@@ -26310,7 +26323,7 @@ thm (notIn2set () (hyp0 (-. (= A B)) hyp1 (-. (= A C)) ) (-. (e. A (u. ({} B) ({
   notInSingletonUnion
 )
 
-thm (properSubsetExample() () (C. (u. ({} (2)) ({} (4))) (u. ({} (1)) (u. ({} (2)) (u. ({} (4)) ({} (5))))))
+thm (properSubsetExample() () (C. (u. ({} (2)) ({} (4))) (u. (u. (u. ({} (1)) ({} (2))) ({} (4))) ({} (5))))   
   ## <d 'Subset'>
     (u. ({} (2)) ({} (4))) (u. ({} (1)) ({} (5))) ssUnion
     ## <d 'Reorder Elements'>
@@ -26348,16 +26361,6 @@ thm (properSubsetExample() () (C. (u. ({} (2)) ({} (4))) (u. ({} (1)) (u. ({} (2
             ## </d 'Commutative Property'>
             SeqReplaceSeq1
           ## </d 'Reorder Terms'>
-          ## <d 'Change Associations'>
-            ## <d 'Associative Property'>
-              (u. ({} (1)) ({} (2))) ({} (4)) ({} (5)) unass
-            ## </d 'Associative Property'>
-            ## <d 'Associative Property'>
-              ({} (1)) ({} (2)) (u. ({} (4)) ({} (5))) unass
-              SeqReplaceSeq1
-            ## </d 'Associative Property'>
-            SeqReplaceSeq1
-          ## </d 'Change Associations'>
         ## </d 'Rearrange Terms'>
       ## </d 'Place in numeric order'>
       SeqReplaceSs1
@@ -26374,15 +26377,41 @@ thm (properSubsetExample() () (C. (u. ({} (2)) ({} (4))) (u. ({} (1)) (u. ({} (2
         (1) snid
       ## </d 'Element is in Singleton'>
       ## <d 'Element is part of a Larger Set'>
-        (u. ({} (2)) (u. ({} (4)) ({} (5)))) unionAttach1
+        (u. (u. ({} (2)) ({} (4))) ({} (5))) unionAttach1
       ## </d 'Element is part of a Larger Set'>
+      ## <d 'Reorder elements'>
+        ## <d 'Evaluate'>
+          ## <d 'Place in numeric order'>
+            ## <d 'Rearrange Terms'>
+              ## <d 'Associate All Left'>
+                ## <d 'Associative Property'>
+                  ({} (1)) (u. ({} (2)) ({} (4))) ({} (5)) unass
+                  ## <d 'Commutative Property'>
+                    (u. (u. ({} (1)) (u. ({} (2)) ({} (4)))) ({} (5))) (u. ({} (1)) (u. (u. ({} (2)) ({} (4))) ({} (5)))) seqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                ## </d 'Associative Property'>
+                ## <d 'Associative Property'>
+                  ({} (1)) ({} (2)) ({} (4)) unass
+                  ## <d 'Commutative Property'>
+                    (u. (u. ({} (1)) ({} (2))) ({} (4))) (u. ({} (1)) (u. ({} (2)) ({} (4)))) seqcom
+                    mpbi
+                  ## </d 'Commutative Property'>
+                  SeqReplaceSeq1Un0
+                ## </d 'Associative Property'>
+              ## </d 'Associate All Left'>
+            ## </d 'Rearrange Terms'>
+          ## </d 'Place in numeric order'>
+          SeqReplaceEl1
+        ## </d 'Evaluate'>
+      ## </d 'Reorder elements'>
     ## </d 'Inside Left Set'>
     notSeq2
   ## </d 'Not equal'>
   dfpssi
 )
 
-thm (notSubsetExample() () (-. (C_ (u. ({} (1)) (u. ({} (3)) ({} (4)))) (u. ({} (1)) (u. ({} (2)) (u. ({} (3)) ({} (5)))))))
+thm (notSubsetExample () () (-. (C_ (u. (u. ({} (1)) ({} (3))) ({} (4))) (u. (u. (u. ({} (1)) ({} (2))) ({} (3))) ({} (5)))))  
   ## <d 'Inside Left Set'>
     ## <d 'Element is in Singleton'>
       (4) snid
@@ -26390,20 +26419,6 @@ thm (notSubsetExample() () (-. (C_ (u. ({} (1)) (u. ({} (3)) ({} (4)))) (u. ({} 
     ## <d 'Element is part of a Larger Set'>
       (u. ({} (1)) ({} (3))) unionAttach2
     ## </d 'Element is part of a Larger Set'>
-    ## <d 'Reorder elements'>
-      ## <d 'Evaluate'>
-        ## <d 'Place in numeric order'>
-          ## <d 'Rearrange Terms'>
-            ## <d 'Change Associations'>
-              ## <d 'Associative Property'>
-                ({} (1)) ({} (3)) ({} (4)) unass
-              ## </d 'Associative Property'>
-            ## </d 'Change Associations'>
-          ## </d 'Rearrange Terms'>
-        ## </d 'Place in numeric order'>
-        SeqReplaceEl1
-      ## </d 'Evaluate'>
-    ## </d 'Reorder elements'>
   ## </d 'Inside Left Set'>
   ## <d 'Outside Right Set'>
     4notEqual1
@@ -26414,7 +26429,6 @@ thm (notSubsetExample() () (-. (C_ (u. ({} (1)) (u. ({} (3)) ({} (4)))) (u. ({} 
   ## </d 'Outside Right Set'>
   notSs
 )
-
 
 ## <title> Divisibility </title>
 thm (6notdivides17 () () (-. (| (6) (+ (10) (7))))

@@ -14,6 +14,8 @@ tvar (wff zi si)
 term (nat (mod A B))
 term (nat (div A B))
 term (wff (| A B))
+term (wff (>= A B))
+term (wff (> A B))
 term (nat (exp A B))
 term (nat (! A))
 term (nat (.- A B))
@@ -225,7 +227,7 @@ stmt (mulidr() () (= (* (1) A) A))
 stmt (0le () () (<= (0) A))
 
 ## <title> No Natural Numbers Below Zero </title>
-stmt (ge0 () () (-. (< A (0))))
+stmt (ge0 () () (>= A (0)))
 
 ## <title> Inequality Conversion </title>
 ## <suggest> left('Simplify', '<') </suggest>
@@ -233,7 +235,7 @@ stmt (axlttri2 () () (<-> (< A B) (/\ (-. (= A B)) (<= A B))))
 
 ## <title> Inequality Conversion </title>
 ## <suggest> left('Simplify', '>') </suggest>
-stmt (axgrtri () () (<-> (-. (<= A B)) (/\ (-. (= A B)) (-. (< A B)))))
+stmt (axgrtri () () (<-> (> A B) (/\ (-. (= A B)) (>= A B))))
 
 ## <title> Inequality over Addition </title>
 ## <table>
@@ -300,10 +302,6 @@ stmt (ltadd12 () () (-> (= (+ A B) (+ C D)) (<-> (< A C) (< D B))))
 ## <suggest> right('Simplify', '≤ ≤') </suggest>
 stmt (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C)))
 
-## <title> Transitive Property </title>
-## <suggest> right('Simplify', '< <') </suggest>
-stmt (lttr () () (-> (/\ (< A B) (< B C)) (< A C)))
-
 ## <title> Combine Inequalities </title>
 stmt (letradd () () (-> (/\ (<= A B) (<= C D)) (<= (+ A C) (+ B D))))
 
@@ -315,31 +313,31 @@ stmt (lelttradd () () (-> (/\ (<= A B) (< C D)) (< (+ A C) (+ B D))))
 
 ## <title> Addition Over Inequality </title>
 ## <table>
-##  (-. (<=    A ]       [ B ] ))
-##  (-. (<= (+ A ] C) (+ [ B ] C)))
+##  (>    A ]       [ B ] )
+##  (> (+ A ] C) (+ [ B ] C))
 ## </table>
-stmt (gtadd1i () ((-. (<= A B))) (-. (<= (+ A C) (+ B C))))
+stmt (gtadd1i () ((> A B)) (> (+ A C) (+ B C)))
 
 ## <title> Addition Over Inequality </title>
 ## <table>
-##  (-. (<=      [ A ]        [ B ))
-##  (-. (<= (+ C [ A ] ) (+ C [ B )))
+##  (>    A ]       [ B ] )
+##  (> (+ A ] C) (+ [ B ] C))
 ## </table>
-stmt (gtadd2i () ((-. (<= A B))) (-. (<= (+ C A) (+ C B))))
+stmt (gtadd2i () ((> A B)) (> (+ C A) (+ C B)))
 
 ## <title> Addition Over Inequality </title>
 ## <table>
-##  (-. (<    A ]       [ B ] ))
-##  (-. (< (+ A ] C) (+ [ B ] C)))
+##  (>=    A ]       [ B ] )
+##  (>= (+ A ] C) (+ [ B ] C))
 ## </table>
-stmt (geadd1i () ((-. (< A B))) (-. (< (+ A C) (+ B C))))
+stmt (geadd1i () ((>= A B)) (>= (+ A C) (+ B C)))
 
 ## <title> Addition Over Inequality </title>
 ## <table>
-##  (-. (<      [ A ]        [ B ))
-##  (-. (< (+ C [ A ] ) (+ C [ B )))
+##  (>=      [ A ]        [ B )
+##  (>= (+ C [ A ] ) (+ C [ B ))
 ## </table>
-stmt (geadd2i () ((-. (< A B))) (-. (< (+ C A) (+ C B))))
+stmt (geadd2i () ((>= A B)) (>= (+ C A) (+ C B)))
 
 ## <title> Multiply by 0 </title>
 ## <suggest> auto-right('Simplify','0') </suggest>
@@ -673,19 +671,23 @@ stmt (eqcom () () (<-> (= A B) (= B A)))
 ## </table>
 stmt (eqcomi () ((= A B)) (= B A))
 
-## <title> Commute Inequality </title>
-## <suggest> right('Commute', '≤') </suggest>
-stmt (lecom () () (<-> (<= A B) (-. (< B A))))
+## <title> Converse of ≤ </title>
+## <suggest> right('Commute', '≤') left('Commute', '≥') </suggest>
+stmt (lecon () () (<-> (<= A B) (>= B A)))
 
-## <title> Commute Inequality </title>
-stmt (lecomi () ((<= A B)) (-. (< B A)))
+## <title> Converse of ≤ </title>
+stmt (leconi () ((<= A B)) (>= B A))
 
-## <title> Commute Inequality </title>
-## <suggest> right('Commute', '<') </suggest>
-stmt (ltcom () () (<-> (< A B) (-. (<= B A))))
+## <title> Converse of ≤ </title>
+## <suggest> right('Commute', '≤') left('Commute', '≥') </suggest>
+stmt (leconold () () (<-> (<= A B) (-. (< B A))))
 
-## <title> Commute Inequality </title>
-stmt (ltcomi () ((< A B)) (-. (<= B A)))
+## <title> Converse of < </title>
+## <suggest> right('Commute', '<') left('Commute', '>') </suggest>
+stmt (ltcon () () (<-> (< A B) (> B A)))
+
+## <title> Converse of < </title>
+stmt (ltconi () ((< A B)) (> B A))
 
 ## <title> Commutative Property </title>
 ## <suggest> right('Commute', '+') </suggest>
@@ -873,11 +875,11 @@ stmt (emptySnIn2 () ((-. (e. A S))) (=_ (i^i S ({} A)) ({/})))
 
 ## <title> Multiplication is Monotonic </title>
 ## <table>
-##  (-. (<=    B ] ]   ]      [ C ] ]     ))
-##  (-. (<=      [ [ A ]      [   [ [ (0) ))
-##  (-. (<= (+ B ] [ A ] ) (+ [ C ] [  A  )))
+##  (>    B ] ]   ]      [ C ] ]     )
+##  (>      [ [ A ]      [   [ [ (0) )
+##  (> (+ B ] [ A ] ) (+ [ C ] [  A  ))
 ## </table>
-stmt (gtmul2i () ((-. (<= B C)) (-. (<= A (0))))  (-. (<= (* B A) (* C A))))
+stmt (gtmul2i () ((> B C) (> A (0)))  (> (* B A) (* C A)))
 
 ## <title> Modulo Value </title>
 stmt (modvali () ((< C B)  (= (+ (* B D) C) A)) (= (mod A B) C))
@@ -898,21 +900,31 @@ stmt (notSs () ((e. A S) (-. (e. A T))) (-. (C_ S T)))
 stmt (ssUnion () () (C_ S (u. S T)))
 
 ## <title> Inequality Conversion </title>
-stmt (axgrtrii () ((-. (= A B)) (-. (< A B))) (-. (<= A B)))
+stmt (axgrtrii () ((-. (= A B)) (>= A B)) (> A B))
 
-stmt (divval () ((-. (<= B (0))) (= (+ (* B C) (mod A B)) A)) (= (div A B) C))
+stmt (divval () ((> B (0)) (= (+ (* B C) (mod A B)) A)) (= (div A B) C))
 
 stmt (proveDivides () ((= (* A B) C)) (| A C))
 
 stmt (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B))))
 
+## <table>
+##   (e. A     [ S ]      )
+##   (e. A (u. [ S ] <g> U))
+## </table>
 stmt (unionAttach1 () ((e. A S)) (e. A (u. S U)))
 
+## <table>
+##   (e. A ]           [ S)
+##   (e. A ] (u. <g> U [ S))
+## </table>
 stmt (unionAttach2 () ((e. A S)) (e. A (u. U S)))
 
 stmt (notInSingleton () ((-. (= A B)))  (-. (e. A ({} B))))
 
 stmt (notInSingletonUnion () ((-. (= A B)) (-. (e. A S))) (-. (e. A (u. ({} B) S))))
+
+stmt (notInSingletonUnion2 () ((-. (e. A S)) (-. (= A B)) ) (-. (e. A (u. S ({} B)))))
 
 stmt (pa_ax1plus () () (-. (= (0) (+ A (1)))))
 
@@ -991,48 +1003,45 @@ stmt (leTrle () ((<= B C)) (-> (<= A B) (<= A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
-##   (-. (<=       [ B ]            [   [ C ] ))
-##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+##   (-. (>   [ B ]      [   [ C ] ))
+##   (-> (> A [ B ] ) (> [ A [ C ] ))
 ## </table>
-stmt (gtTrgt () ((-. (<= B C))) (-> (-. (<= A B)) (-. (<= A C))))
+stmt (gtTrgt () ((> B C)) (-> (> A B) (> A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
-##   (-. (<        [ B ]            [   [ C ] ))
-##   (-> (-. (<= A [ B ] )) (-. (<= [ A [ C ] )))
+##   (>=      [ B ]      [   [ C ] )
+##   (-> (> A [ B ] ) (> [ A [ C ] ))
 ## </table>
-stmt (geTrgt () ((-. (< B C))) (-> (-. (<= A B)) (-. (<= A C))))
-
+stmt (geTrgt () ((>= B C)) (-> (> A B) (> A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
-##   (-. (<   [ B ]          [   [ C ] ))
-##   (-> (= A [ B ] ) (-. (< [ A [ C ] )))
+##   (>=   [ B ]          [   [ C ] )
+##   (-> (= A [ B ] ) (>= [ A [ C ] ))
 ## </table>
-stmt (geTreq () ((-. (< B C))) (-> (= A B) (-. (< A C))))
-
+stmt (geTreq () ((>= B C)) (-> (= A B) (>= A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
-##   (-. (<=  [ B ]           [   [ C ] ))
-##   (-> (= A [ B ] ) (-. (<= [ A [ C ] )))
+##   (>       [ B ]          [   [ C ] )
+##   (-> (= A [ B ] ) (> [ A [ C ] ))
 ## </table>
-stmt (gtTreq () ((-. (<= B C))) (-> (= A B) (-. (<= A C))))
-
-
-## <title> Transitive Inequality </title>
-## <table>
-##   (-. (<=      [ B ]            [   [ C ] ))
-##   (-> (-. (< A [ B ] )) (-. (<= [ A [ C ] )))
-## </table>
-stmt (gtTrge () ((-. (<= B C))) (-> (-. (< A B)) (-. (<= A C))))
+stmt (gtTreq () ((> B C)) (-> (= A B) (> A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
-##   (-. (<       [ B ]           [   [ C ] ))
-##   (-> (-. (< A [ B ] )) (-. (< [ A [ C ] )))
+##   (>        [ B ]       [   [ C ] )
+##   (-> (>= A [ B ] )) (> [ A [ C ] ))
 ## </table>
-stmt (geTrge () ((-. (< B C))) (-> (-. (< A B)) (-. (< A C))))
+stmt (gtTrge () ((> B C)) (-> (>= C A) (> B A)))
+
+## <title> Transitive Inequality </title>
+## <table>
+##   (>=       [ B ]           [   [ C ] )
+##   (-> (>= A [ B ] ) (>= [ A [ C ] ))
+## </table>
+stmt (geTrge () ((>= B C)) (-> (>= A B) (>= A C)))
 
 # This is identical to eqtr. So ideally we would use eqtr instead.
 ## <title> Substitution </title>
@@ -1045,39 +1054,39 @@ stmt (EqReplaceEq1 () ((= A B) (= B C)) (= A C))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
-##   (=          A ]   ]           [ B ]   )
-##   (<-> (-. (< A ] C ] )) (-. (< [ B ] C)))
+##   (=       A ]   ]       [ B ]   )
+##   (<-> (>= A ] C ] ) (>= [ B ] C))
 ## </table>
-stmt (geeq1i ()
-  ((= A B))
-   (<-> (-. (< A C)) (-. (< B C))))
+stmt (geeq1i () (
+     (= A C))
+     (<-> (>= A B) (>= C B)))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
-##   (=            [ A ]           [   [ B ] )
-##   (<-> (-. (< C [ A ] )) (-. (< [ C [ B ] )))
+##   (=         [ A ]       [   [ B ] )
+##   (<-> (>= C [ A ] ) (>= [ C [ B ] ))
 ## </table>
 stmt (geeq2i ()
   ((= A B))
-  (<-> (-. (< C A)) (-. (< C B))))
+  (<-> (>= C A) (>= C B)))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
-##   (=           A ]   ]            [ B ]   )
-##   (<-> (-. (<= A ] C ] )) (-. (<= [ B ] C)))
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (> A ] C ] ) (> [ B ] C))
 ## </table>
 stmt (gteq1i ()
-  ((= A B))
-  (<-> (-. (<= A C)) (-. (<= B C))))
+  ((= A C))
+	(<-> (> A B) (> C B)))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
-##   (=             [ A ]            [   [ B ] )
-##   (<-> (-. (<= C [ A ] )) (-. (<= [ C [ B ] )))
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (> C [ A ] ) (> [ C [ B ] ))
 ## </table>
 stmt (gteq2i ()
-  ((= A B))
-  (<-> (-. (<= C A)) (-. (<= C B))))
+  ((= B C))
+  (<-> (> A B) (> A C)))
 
 # Equality inference for the divides relation.
 ## <title> Equivalence over Divides </title>
@@ -1104,6 +1113,10 @@ stmt (expeq1i () ((= A B)) (= (exp A C) (exp B C)))
 ## <title> Equality over Exponentiation </title>
 stmt (expeq2i () ((= A B)) (= (exp C A) (exp C B)))
 
+stmt (expeq1d () ((-> ph (= A B))) (-> ph (= (exp A C) (exp B C))))
+
+stmt (expeq2d () ((-> ph (= A B))) (-> ph (= (exp C A) (exp C B))))
+
 ## <title> Operator Conversion </title>
 ## <suggest> right('Infer', '≠') </suggest>
 stmt (ltneq () () (-> (< A B) (-. (= A B))))
@@ -1114,11 +1127,11 @@ stmt (ltle () () (-> (< A B) (<= A B)))
 
 ## <title> Inequality Conversion </title>
 ## <suggest> right('Infer', '≠') </suggest>
-stmt (gtneq () () (-> (-. (<= A B)) (-. (= A B))))
+stmt (gtneq () () (-> (> A B) (-. (= A B))))
 
 ## <title> Inequality Conversion </title>
 ## <suggest> right('Infer', '≥') </suggest>
-stmt (gtge () () (-> (-. (<= A B)) (-. (< A B))))
+stmt (gtge () () (-> (> A B) (>= A B)))
 
 ## <title> Equality Conversion </title>
 ## <suggest> right('Infer', '≤') </suggest>
@@ -1126,7 +1139,31 @@ stmt (eqle() () (-> (= A B) (<= A B)))
 
 ## <title> Equality Conversion </title>
 ## <suggest> right('Infer', '≥') </suggest>
-stmt (eqge() () (-> (= A B) (-. (< A B))))
+stmt (eqge() () (-> (= A B) (>= A B)))
+
+## <title> Equality Conversion </title>
+## <suggest> right('Infer', '¬<') </suggest>
+stmt (eqnlt () () (-> (= A B) (-. (< A B))))
+
+## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '¬<') </suggest>
+stmt (gtnlt () () (-> (> A B) (-. (< A B))))
+
+## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '¬≤') </suggest>
+stmt (gtnle () () (-> (> A B) (-. (<= A B))))
+
+## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '¬>') </suggest>
+stmt (ltngt () () (-> (< A B) (-. (> A B))))
+
+## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '¬≥') </suggest>
+stmt (ltnge () () (-> (< A B) (-. (>= A B))))
+
+## <title> Inequality Conversion </title>
+## <suggest> right('Infer', '¬>') </suggest>
+stmt (eqngt () () (-> (= A B) (-. (> A B))))
 
 ## <title> Proper Subset Implies Inequality </title>
 ## <suggest> right('Infer', '≠') </suggest>
@@ -1220,7 +1257,7 @@ stmt (notDividesSeti ((B x) (A x)) ((-. (| A B)))  (e. A ({|} x (-. (| x B)))))
 
 stmt (unSubset () ((C_ S U) (C_ T U)) (C_ (u. S T) U))
 
-stmt (provePrime ((A y)) ((C_ ({...} (2) A) ({|} y (-. (| y (+ A (1)))))) (-. (<= A (0)))) (prime (+ A (1))))
+stmt (provePrime ((A y)) ((C_ ({...} (2) A) ({|} y (-. (| y (+ A (1)))))) (> A (0))) (prime (+ A (1))))
 
 stmt (provePrime2 ((A y)) ((C_ ({...} (2) (.- A (1))) ({|} y (-. (| y A)))) (< (1) A)) (prime A))
 
@@ -1644,9 +1681,9 @@ stmt (ltDiff ((A x) (B x)) () (<-> (< A B) (E. x (/\ (= (+ A x) B) (-. (= x (0))
 
 ## <title> All nonzero natural numbers are positive </title>
 ## <suggest> right('Equivalence', '<') </suggest>
-stmt (0inequalities2 () () (<-> (-. (= A (0))) (-. (<= A (0)))))
+stmt (0inequalities2 () () (<-> (-. (= A (0))) (> A (0))))
 
-stmt (neqlt () () (-> (-. (= B A)) (\/ (< A B) (< B A))))
+stmt (neqlt () () (-> (-. (= A B)) (\/ (< A B) (> A B))))
 
 stmt (lemul1 () () (-> (<= A B) (<= (* A C) (* B C))))
 
