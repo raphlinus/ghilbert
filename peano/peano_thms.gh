@@ -2592,7 +2592,7 @@ thm (EqReplaceImp1Eq0Add0 () (
 ## <title> Perform a substitution </title>
 ## <summary>
 ##   Substitute A in for y in an expression describing the
-##   <a href="addass">associate property of addition</a>.
+##   <a href="addass">associative property of addition</a>.
 ## </summary>
 thm (sbc-addass ((A y) (B y) (C y)) () (<-> ([/] A y (= (+ (+ y B) C) (+ y (+ B C)))) (= (+ (+ A B) C) (+ A (+ B C))))
   y A B addeq1 C addeq1d
@@ -2616,13 +2616,13 @@ thm (addass () () (= (+ (+ A B) C) (+ A (+ B C)))
         (+ B C) pa_ax3r eqcomi  
         EqReplaceEq1
       ## </d 'Additive Identity'>
-      ## <d 'Substitute x in for 0'>
-        ## <d 'Substitute x in for 0'>
+      ## <d 'Substitute 0 for x'>
+        ## <d 'Substitute 0 for x'>
           (0) x B C sbc-addass
           bicomi
-        ## </d 'Substitute x in for 0'>
+        ## </d 'Substitute 0 for x'>
         mpbi
-      ## </d 'Substitute x in for 0'>
+      ## </d 'Substitute 0 for x'>
     ## </d 'Basis Case'>
     ## <d 'If numbers are equal, their successors are too'>
       (+ (+ y B) C) (+ y (+ B C)) pa_ax2 biimpi
@@ -2653,20 +2653,20 @@ thm (addass () () (= (+ (+ A B) C) (+ A (+ B C)))
   ## </d 'Apply Peano Axiom 4 Several Times'>
 
   ## <d 'Induction'>
-    ## <d 'Substitute y and y" with x'>
-      ## <d 'Substitute y with x'>
+    ## <d 'Substitute y and y" for x'>
+      ## <d 'Substitute y for x'>
         y x B C sbc-addass bicomi  
         sylbi2
-      ## </d 'Substitute y with x'>
-      ## <d 'Substitute y" with x'>
+      ## </d 'Substitute y for x'>
+      ## <d 'Substitute y" for x'>
         (S y) x B C sbc-addass bicomi
         sylib
-      ## </d 'Substitute y" with x'>
+      ## </d 'Substitute y" for x'>
     ## </d>
     ## <d 'Induction'>
       A inductionsuc
     ## </d>
-    ## <d 'Substitute A in for x'>
+    ## <d 'Substitute A for x'>
       A x B C sbc-addass
       mpbi
     ## </d>
@@ -19103,6 +19103,21 @@ thm (fibonacci-stepeq () () (-> (= A B) (= (fibonacci-step A) (fibonacci-step B)
   EqReplaceImp1Eq1
 )
 
+thm (fibonacci-stepeqi () (
+     hyp1 (= A B))
+     (= (fibonacci-step A) (fibonacci-step B))
+  hyp1
+  A B fibonacci-stepeq
+  ax-mp
+)
+
+thm (fibonacci-stepeqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (fibonacci-step A) (fibonacci-step B)))
+  hyp1
+  A B fibonacci-stepeq
+  syl
+)
 
 
 ## <title> Substitution </title>
@@ -19210,17 +19225,132 @@ thm (EqReplaceEq1Head0 () (
   EqReplaceEq1
 )
 
+thm (headFibStep1 () () (= (head (fibonacci-step (<,> (head A) (tail A)))) (tail A))
+  (head A) (tail A) fibonacci-step-op
+  headeqi  
+  ## <d 'Apply Head Operator '>
+    (tail A) (+ (head A) (tail A)) headop
+    EqReplaceEq1
+  ## </d 'Apply Head Operator '>
+)
+
+thm (headFibStep2 ((A x)) () (= (head (recurse (lambda x (fibonacci-step x)) (2) (<,> (head A) (tail A)))) (+ (head A) (tail A)))
+  x y fibonacci-stepeq
+  funlambda
+  (1) (<,> (head A) (tail A)) recursesuc  
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceEq0Recurse1
+  ## </d 'Evaluate'>
+
+  x y fibonacci-stepeq
+  funlambda
+  (<,> (head A) (tail A)) recurse1  
+  EqReplaceEq1Apply1
+  ## <d 'Evaluate'>
+    (= x y) id
+    fibonacci-stepeqd
+    (= x (<,> (head A) (tail A))) id
+    fibonacci-stepeqd
+    applylambda
+    EqReplaceEq1Apply1
+  ## </d 'Evaluate'>
+  (head A) (tail A) fibonacci-step-op    
+  EqReplaceEq1Apply1  
+  ## <d 'Evaluate'>
+    (= x y) id
+    fibonacci-stepeqd
+    (= x (<,> (tail A) (+ (head A) (tail A)))) id
+    fibonacci-stepeqd
+    applylambda
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+  (tail A)(+ (head A) (tail A)) fibonacci-step-op      
+  EqReplaceEq1
+  ## <d 'Apply Head Operator '>
+    headeqi  
+    (+ (head A) (tail A)) (+ (tail A) (+ (head A) (tail A))) headop
+    EqReplaceEq1
+  ## </d 'Apply Head Operator '>
+)
+
 thm (fibonacci0 () () (= (fibonacci (0)) (0))
   (0) x df-fibonacci
   x y fibonacci-stepeq
   funlambda
   (<,> (0) (1)) recurse0    
-    EqReplaceEq1Head0
-    
-    ## <d 'Apply Head Operator '>
-      (0) (1) headop
-      EqReplaceEq1
-    ## </d 'Apply Head Operator '>
+  EqReplaceEq1Head0  
+  ## <d 'Apply Head Operator '>
+    (0) (1) headop
+    EqReplaceEq1
+  ## </d 'Apply Head Operator '>
+)
+
+thm (fibonacci-step1 () () (= (recurse (lambda x (fibonacci-step x)) (1) (<,> (0) (1))) (<,> (1) (1)))
+  x y fibonacci-stepeq
+  funlambda
+  (<,> (0) (1)) recurse1    
+  ## <d 'Evaluate'>
+    (= x y) id
+    fibonacci-stepeqd
+    (= x (<,> (0) (1))) id
+    fibonacci-stepeqd
+    applylambda
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+  (0) (1) fibonacci-step-op  
+  ## <d 'Additive Identity '>
+    (1) pa_ax3r
+    EqReplaceEq1Op1
+  ## </d 'Additive Identity '>  
+  EqReplaceEq1
+)
+
+thm (fibonacci-step2 () () (= (recurse (lambda x (fibonacci-step x)) (2) (<,> (0) (1))) (<,> (1) (2)))
+  x y fibonacci-stepeq
+  funlambda
+  (1) (<,> (0) (1)) recursesuc  
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceEq0Recurse1
+  ## </d 'Evaluate'>
+  x fibonacci-step1  
+  EqReplaceEq1Apply1
+  
+  ## <d 'Evaluate'>
+    (= x y) id
+    fibonacci-stepeqd
+    (= x (<,> (1) (1))) id
+    fibonacci-stepeqd
+    applylambda
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+  (1) (1) fibonacci-step-op  
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceEq1Op1
+  ## </d 'Evaluate'>  
+  EqReplaceEq1
+)
+
+thm (fibonacci1 () () (= (fibonacci (1)) (1))
+  (1) x df-fibonacci
+  x fibonacci-step1  
+  EqReplaceEq1Head0  
+  ## <d 'Apply Head Operator '>
+    (1) (1) headop
+    EqReplaceEq1
+  ## </d 'Apply Head Operator '>
+)
+
+thm (fibonacci2 () () (= (fibonacci (2)) (1))
+  (2) x df-fibonacci
+  x fibonacci-step2
+  EqReplaceEq1Head0  
+  ## <d 'Apply Head Operator '>
+    (1) (2) headop
+    EqReplaceEq1
+  ## </d 'Apply Head Operator '>
 )
 
 # Summation. Big Sigma.
