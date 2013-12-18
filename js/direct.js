@@ -187,6 +187,50 @@ GH.Direct.prototype.parseText = function(text) {
 	this.offset += text.length + 1;
 };
 
+// Add theorem statement with hypotheses and conclusion.
+GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHistory) {
+	var hypSteps = [];
+	var tmpHierarchy = new GH.ProofHierarchy(null, 0, '');
+	var concl;
+	var styling;
+	var summary = (shownIndex == thmctx.history.length - 1) ? thmctx.styleScanner.summary : '';
+	if ((shownIndex == thmctx.history.length - 1) && (this.thmctx.state != GH.DirectThm.StateType.THM)) {
+		for (var j = 0; j < this.thmctx.hyps.length; j+= 2) {
+			var hyp = this.thmctx.hyps[j + 1];
+			var hypName = 'Hypothesis - ' + this.thmctx.hyps[j];
+			var newHypStep = new GH.ProofStep(hypName, [], hyp, hyp.beg, hyp.end, [], false, null);
+			newHypStep.hierarchy = tmpHierarchy;
+			hypSteps.push(newHypStep);
+		}
+		concl = this.thmctx.concl;
+		styling = this.thmctx.styleScanner.get_styling('');
+		if (!concl) {
+			concl = 'Missing Conclusion';
+			concl.beg = 0;
+			concl.end = 0;
+		}
+	} else {
+		var name = this.thmctx.newSyms[shownIndex];
+		var sym = this.vg.syms[name];
+		var hyps = sym [2];
+		concl = sym[3];
+		styling = sym[6];
+		GH.Direct.replace_thmname(name, styling);
+		
+		for (var j = 0; j < hyps.length; j++) {
+			var hyp = hyps[j];
+			var hypName = 'Hypothesis ' + (j + 1);
+			var newHypStep = new GH.ProofStep(hypName, [], hyp, hyp.beg, hyp.end, [], false, null);
+			newHypStep.hierarchy = tmpHierarchy;
+			hypSteps.push(newHypStep);
+		}
+	}
+	concl.hierarchy = tmpHierarchy;
+	var thmStatement = new GH.ProofStep('Conclusion', hypSteps, concl, concl.beg, concl.end, [], false, styling);
+	thmStatement.hierarchy = tmpHierarchy;
+	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, 'Theorem', 0));
+};
+
 // Display the proofs in the right panel.
 GH.Direct.prototype.updateProofs = function(cursorPosition) {
 	var thmctx = this.thmctx;
@@ -194,19 +238,29 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
     	pstack = thmctx.proofctx.mandstack;
 		thmctx.history.push(thmctx.proofctx.stackHistory);
 		thmctx.hierarchies.push(thmctx.proofctx.hierarchy);
-		var shownHistory = thmctx.history[thmctx.history.length - 1];
+		var shownIndex = thmctx.history.length - 1;
 		for (var i = thmctx.history.length - 2; i >= 0; i--) {
-			for (var j = 0; j < thmctx.history[i].length; j++) {
-				if (cursorPosition <= thmctx.hierarchies[i].end) {
-					shownHistory = thmctx.history[i];
-				}
+			if ((thmctx.history[i].length > 0) && (cursorPosition <= thmctx.hierarchies[i].end)) {
+				shownIndex = i;
 			}
-		}		
+		}
+		var shownHistory = thmctx.history[shownIndex];
 		this.rootSegments = [];
 		this.notationGuide = new GH.notationGuide(this.vg.syms);
+
+		// The definition 'proofs' are currently exactly the same as the theorem statement..
+		if (thmctx.thmType != GH.DirectThm.ThmType.DEFINITION) {
+			// Add theorem statement with hypotheses and conclusion.
+			this.updateThmStatement(thmctx, shownIndex, shownHistory);
+		}
+
+		// Add proof.
 		for (var j = 0; j < shownHistory.length; j++) {
-			var summary = (j == 0) ? thmctx.styleScanner.summary : '';
-			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, j));
+			var header = '';
+			if (j == 0) {
+				header = (thmctx.thmType == GH.DirectThm.ThmType.NORMAL) ? 'Proof' : 'Definition';
+			}
+			this.rootSegments.push(shownHistory[j].displayStack(this.stack, null, header, j + 1));
 			this.notationGuide.addStep(shownHistory[j]);
 		}
 		
@@ -474,7 +528,6 @@ GH.DirectThm.prototype.tok = function(tok) {
 				if (this.vg.syms.hasOwnProperty(tok)) {
 					return this.createError(tok + " already exists.", tok);
 				}
-				// Is this the best place to do this?
 				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling(''));
 				if (this.thmType == thmType.NORMAL) {
 					this.state = stateType.POST_NAME;
@@ -654,7 +707,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.concl = thestep || 'null';
 		// Immediately print the conclusion if this is a definition.
 		if (this.thmType == thmType.DEFINITION) {
-			var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, null)
+			var conclusion = new GH.ProofStep('Definition', [], this.concl, this.concl.beg, this.concl.end, [], false, null);
 			conclusion.hierarchy = new GH.ProofHierarchy(null, 0, 'Definition');
 			this.proofctx.stackHistory.push(conclusion);
 		}

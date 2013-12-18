@@ -633,6 +633,9 @@ GH.ProofSegment.prototype.clearArrows = function() {
 };
 
 GH.ProofSegment.handleMouseOver = function(position) {
+	if (position[position.length - 1] == 0) {
+		return;  // The proof statement is not interactive.
+	}
 	var positionCopy = position.slice(0);
 	var segments = GH.ProofSegment.findSegments(position);
 	for (var i = 0; i < segments.length; i++) {
@@ -646,6 +649,9 @@ GH.ProofSegment.handleMouseOver = function(position) {
 };
 
 GH.ProofSegment.handleMouseOut = function(position) {
+	if (position[position.length - 1] == 0) {
+		return;  // The proof statement is not interactive.
+	}
 	var segments = GH.ProofSegment.findSegments(position);
 	for (var i = 0; i < segments.length; i++) {
 		segments[i].clearArrows();
@@ -654,6 +660,9 @@ GH.ProofSegment.handleMouseOut = function(position) {
 };
 
 GH.ProofSegment.handleClick = function(position) {
+	if (position[position.length - 1] == 0) {
+		return;  // The proof statement is not interactive.
+	}
 	var segments = GH.ProofSegment.findSegments(position);
 	segments[0].handleClick();
 	window.direct.text.setCursorPosition(segments[0].step.end);

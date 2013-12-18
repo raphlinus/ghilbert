@@ -373,6 +373,9 @@ GH.ProofStep.prototype.print = function() {
 };
 
 GH.ProofStep.computeLink = function(filename, stepName) {
+	if (filename == '') {
+		return null;
+	}
 	filename = filename.replace(new RegExp('/git'), '');
 	if (filename.match(new RegExp('/proofs_upto'))) {
 		var splitUp = filename.split('/');
@@ -440,15 +443,21 @@ GH.ProofStep.nameToHtml = function(name, title, link, isPrimary) {
  * Returns the proof step displayed as a set of blocks.
  * This is the main entry point for displaying the proof steps.
  */
-GH.ProofStep.prototype.displayStack = function(stack, summary, segmentCount) {
-	var summaryElement = document.createElement("div");
-	stack.appendChild(summaryElement);
-	summaryElement.innerHTML = summary;
-	if (summary != '') {
-		summaryElement.setAttribute('class', 'summary');
-	} else {
-		summaryElement.setAttribute('class', 'no-summary');
+GH.ProofStep.prototype.displayStack = function(stack, summary, header, segmentCount) {
+	if (summary !== null) {
+		var summaryElement = document.createElement("div");
+		stack.appendChild(summaryElement);
+		summaryElement.innerHTML = summary;
+		if (summary != '') {
+			summaryElement.setAttribute('class', 'summary');
+		} else {
+			summaryElement.setAttribute('class', 'no-summary');
+		}
 	}
+	var headerElement = document.createElement("div");
+	stack.appendChild(headerElement);
+	headerElement.innerHTML = header;
+	headerElement.setAttribute('class', 'thmHeader');
 	return GH.ProofSegment.createSegments(this, stack, segmentCount);
 };
 
