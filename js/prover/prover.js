@@ -350,8 +350,20 @@ GH.Prover.prototype.printNum = function(num) {
 	this.println(GH.numUtil.numToSexpString(num));
 };
 
-GH.Prover.prototype.openNumberAdder = function() {
-	var num = window.prompt('Enter a number:', '');
+GH.Prover.prototype.openExpAdder = function() {
+	var expression = window.prompt('Enter a number, a set, or a tuple. \n\nFor example, 13 or {2,4} or (2, 5, 1).', '');
+	if (expression == null) {
+		return;
+	} else if (expression[0] == '{') {
+		this.addSet(expression);
+	} else if (expression[0] == '(') {
+		this.addTuple(expression);
+	} else{
+		this.addNumber(expression);
+	}
+}
+
+GH.Prover.prototype.addNumber = function(num) {
 	num = parseInt(num);
 	if ((!isNaN(num)) && (num >= 0)) {
 		this.printNum(num);
@@ -359,11 +371,9 @@ GH.Prover.prototype.openNumberAdder = function() {
 	}
 }
 
-GH.Prover.prototype.openSetAdder = function() {
-	var set = window.prompt('Enter a set of numbers:', '');
-	if (set == null) {
-		return;
-	}
+GH.Prover.prototype.addSet = function(set) {
+	set = set.replace('{', '');
+	set = set.replace('}', '');
 	if (set == '') {
 		set = [];
 	} else {
@@ -376,11 +386,9 @@ GH.Prover.prototype.openSetAdder = function() {
 	this.direct.update(true);
 }
 
-GH.Prover.prototype.openTupleAdder = function() {
-	var tuple = window.prompt('Enter a sequence of numbers:', '');
-	if (tuple == null) {
-		return;
-	}
+GH.Prover.prototype.addTuple = function(tuple) {
+	tuple = tuple.replace('(', '');
+	tuple = tuple.replace(')', '');
 	tuple = tuple.split(',');
 	for (var i = 0; i < tuple.length; i++) {
 		tuple[i] = parseInt(tuple[i]);

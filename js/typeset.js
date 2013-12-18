@@ -282,6 +282,12 @@ GH.typesetindex = function(term, prec) {
     return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
 };
 
+GH.typesetfibonacci = function(term, prec) {	
+    var f_slug = GH.stringslug('F');
+	var index = GH.subscriptSlug(GH.typeset(term[1]));
+    return GH.combineslugs([f_slug, index], prec);
+};
+
 GH.typesetrecursep = function(term, prec) {
     var recursep_slug = GH.stringslug('recursep ');
     var fun_slug = GH.typeset(term[1]);
@@ -514,6 +520,8 @@ GH.typesetCategory = function(sexp, typesettingData, prec) {
 		return GH.typesetrecurse(sexp, prec);
 	} else if (typesettingData[1] == 'index') {
 		return GH.typesetindex(sexp, prec);
+	} else if (typesettingData[1] == 'fibonacci') {
+		return GH.typesetfibonacci(sexp, prec);
 	} else if (typesettingData[1] == 'clab') {
 		return GH.typesetclab(sexp, prec);
 	} else if (typesettingData[1] == 'interval') {
@@ -659,6 +667,7 @@ GH.typeset.OPERATIONS = [
 	[['_'], 'index'],
 ],
 [ // 3000
+	[['fibonacci'], 'fibonacci'],
 	[['head'], 'postfix', '<sub>h</sub>'],
 	[['tail'], 'postfix', '<sub>t</sub>'],
 ],

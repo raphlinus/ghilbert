@@ -25,17 +25,7 @@ GH.ProofGenerator.evaluatorApply.dependsOn = function(sexp, variable) {
 		}
 		return false;
 	} else {
-		// This is just a check that sexp.operator == variable.operator.
-		// It's a dumb way to do this, but the .beg and .end values make this more complicated.
-		if (sexp.operator.length != variable.operator.length) {
-			return false;
-		}
-		for (var i = 0; i < sexp.operator.length; i++) {
-			if (sexp.operator[i] != variable.operator[i]) {
-				return false;
-			}
-		}
-		return true;
+		return (sexp.operator.valueOf() == variable.operator.valueOf());
 	}
 };
 

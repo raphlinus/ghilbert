@@ -175,6 +175,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/prime.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/setEquality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/subset.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/substitution.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/successor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/sum.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/union.js" type="text/javascript"></script>
@@ -227,9 +228,7 @@ class EditHandler(users.AuthenticatedHandler):
         o.write("""
   <span id="saving"></span>
   <input type="button" id="save" onclick="log(mainpanel); GH.save(window.mainpanel.getValue(), url)" name="save" value="save"/>
-  <input type="button" id="set-adder" onclick="window.direct.prover.openTupleAdder()" name="tupleAdder" value="tuple"/>
-  <input type="button" id="set-adder" onclick="window.direct.prover.openSetAdder()" name="setAdder" value="set"/>
-  <input type="button" id="number-adder" onclick="window.direct.prover.openNumberAdder()" name="numberAdder" value="num"/>
+  <input type="button" id="exp-adder" onclick="window.direct.prover.openExpAdder()" name="numberAdder" value="Add"/>
 <br/>
 """)
         if useAce: o.write("""<div id="canvas"></div>

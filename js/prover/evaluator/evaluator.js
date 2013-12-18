@@ -27,6 +27,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorIfn(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorInterval(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorHalfMinus(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorSubstitution(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorApply(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSum(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorProduct(prover));
@@ -101,7 +102,7 @@ GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
-		if (GH.operatorUtil.getType(sexp) != 'wff') {
+		if ((GH.operatorUtil.getType(sexp) != 'wff') || (sexp.operator == '[/]')) {
 			var allReduced = true;
 			for (var i = 0; i < sexp.operands.length; i++) {
 				if ((!this.prover.operatorUtil.isReduced(sexp.operands[i])) &&

@@ -14,7 +14,9 @@ GH.ProofSegment = function(state, type, step, hasPrevious) {
 	this.hasCloseColumn = false;
 
 	this.smallElement = null;
-	this.largeElement = GH.ProofSegment.createLargeElement();
+	// The large wrapper contains the arrow sidebar and the large element.
+	this.largeWrapper = GH.ProofSegment.createLargeWrapper(type);
+	this.largeElement = this.largeWrapper.children[1];
 };
 
 GH.ProofSegment.State = {
@@ -34,17 +36,17 @@ GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount) {
 	if (!conclusion.isError) {
 		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false);
 		rootSegment.siblingIndex = segmentCount;
-		stack.appendChild(rootSegment.largeElement);
+		stack.appendChild(rootSegment.largeWrapper);
 	
 		var stepsData = GH.ProofSegment.findImportantSteps(conclusion, null);
 		rootSegment.attachChildren(stepsData, true);
 		rootSegment.addNames();
 		rootSegment.resize();
 	} else {
-		var errorBlock = GH.ProofSegment.createLargeElement();
+		var errorBlock = GH.ProofSegment.createLargeWrapper(GH.ProofSegment.Type.WHITE_OUTER);
 		errorBlock.className += ' error';
 		stack.appendChild(errorBlock);
-		var tableElement = GH.ProofSegment.addTable(errorBlock);
+		var tableElement = GH.ProofSegment.addTable(errorBlock.children[1]);
 		var errorMsg = GH.ProofStep.stepToHtml(conclusion.conclusion, '');
 		tableElement.appendChild(errorMsg);
 	}
@@ -204,10 +206,10 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion) {
 		}
 
 		if (type % 2 == 0) {
-			var referenceElement = skipType ? this.largeElement : this.parent.largeElement;
-			stack.insertBefore(child.largeElement, referenceElement);
+			var referenceElement = skipType ? this.largeWrapper : this.parent.largeWrapper;
+			stack.insertBefore(child.largeWrapper, referenceElement);
 		} else {
-			this.largeElement.appendChild(child.largeElement);
+			this.largeElement.appendChild(child.largeWrapper);
 		}
 		child.addHandlers();
 		child.updateVisibility();
@@ -310,10 +312,19 @@ GH.ProofSegment.addTable = function(parent) {
 	return tableElement;
 };
 
-GH.ProofSegment.createLargeElement = function() {
+GH.ProofSegment.createLargeWrapper = function(type) {
+	var largeWrapper = document.createElement("div");
+	var sidebar = document.createElement("div");
 	var largeElement = document.createElement("div");
-	largeElement.setAttribute('class', 'proof-block');
-	return largeElement;
+	if (type % 2 == 0) {
+		sidebar.setAttribute('class', 'sidebar');
+		largeElement.setAttribute('class', 'proof-block outer-block');
+	} else {
+		largeElement.setAttribute('class', 'proof-block');
+	}
+	largeWrapper.appendChild(sidebar);
+	largeWrapper.appendChild(largeElement);
+	return largeWrapper;
 };
 
 GH.ProofSegment.prototype.getPrevElement = function() {
@@ -329,7 +340,7 @@ GH.ProofSegment.prototype.updateVisibility = function() {
 		GH.ProofSegment.removeClass(this.smallElement, 'open-bottom');
 		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-open-top');
 		GH.ProofSegment.removeClass(this.smallElement, 'highlighted-open-bottom');
-		this.largeElement.setAttribute('style', 'display: none');
+		this.largeWrapper.setAttribute('style', 'display: none');
 	} else if (this.state == GH.ProofSegment.State.LARGE) {
 		if (this.type % 2) {
 			this.smallElement.setAttribute('style', 'display: none');
@@ -343,7 +354,7 @@ GH.ProofSegment.prototype.updateVisibility = function() {
 				GH.ProofSegment.addClass(this.getPrevElement(), 'highlighted-bottom');
 			}
 		}
-		this.largeElement.setAttribute('style', '');
+		this.largeWrapper.setAttribute('style', '');
 	}
 	if (((this.type + !this.isOpen) % 4) >= 2) {
 		GH.ProofSegment.addClass(this.largeElement, 'gray-block');
@@ -372,8 +383,9 @@ GH.ProofSegment.prototype.resizeTables = function(){
 	for (var i = 0; i < this.children.length; i++) {
 		var row = this.children[i].smallElement;
 		var lastCell = this.getNameColumn(row);
+		var margin = (this.type % 2 == 0) ? 65 : 20;
 		// The width is equal to the current width plus the difference between the block and the table width.
-		var newWidth = this.largeElement.offsetWidth - row.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - 20;
+		var newWidth = this.largeWrapper.offsetWidth - row.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - margin;
 		lastCell.setAttribute('style', 'width: ' + newWidth);
 	}
 };
@@ -383,7 +395,7 @@ GH.ProofSegment.prototype.getActiveElement = function () {
 		return this.smallElement;
 	}
 	if (this.state == GH.ProofSegment.State.LARGE) {
-		return this.largeElement;
+		return this.largeWrapper;
 	}
 };
 
@@ -418,6 +430,7 @@ GH.ProofSegment.prototype.highlight = function() {
 		GH.ProofSegment.addClass(this.getPrevElement(), GH.ProofStep.ORANGE_STEP_);
 		GH.ProofSegment.addClass(this.getPrevElement(), 'open-bottom');
 		GH.ProofSegment.addClass(this.smallElement, 'open-top');
+		var prevSegment = this.parent && this.parent.children[this.siblingIndex - 1];
 	}
 };
 
@@ -433,6 +446,7 @@ GH.ProofSegment.prototype.lowlight = function() {
 
 GH.ProofSegment.prototype.handleClick = function() {
 	this.delayedAttachChildren();
+	this.clearArrows();
 	if (this.largeElement.children.length > 0) {
 		this.state = GH.ProofSegment.State.LARGE;
 		this.lowlight();
@@ -489,16 +503,152 @@ GH.ProofSegment.findSegments = function(position) {
 	}
 };
 
+GH.ProofSegment.prototype.findCollapseArrows = function() {
+	var arrows = [];
+	for (var i = 0; i < this.children.length; i++) {		
+		if (this.children[i].state == GH.ProofSegment.State.LARGE) {
+			arrows = this.children[i].findCollapseArrows();
+			// Delete the previous arrow if this overlaps with it.
+			if ((arrows.length > 0) && (arrows[arrows.length - 1].segment.getSidebar() == this.children[i].getSidebar())) {
+				arrows.pop();
+			}
+			var className = (this.children[i].type % 2 == 0) ? 'collapse-down' : 'collapse-in';
+			arrows.push({segment: this.children[i], class: className});
+		}
+	}
+	return arrows;
+};
+
+GH.ProofSegment.findArrows = function(position) {
+	var segment = window.direct.rootSegments[position.pop()];
+	while (position.length > 0) {
+		segment = segment.children[position.pop()];
+	}
+
+	var parentOpen = (segment.parent && segment.parent.isOpen);
+	var hasChildren = (segment.largeElement.children.length > 0) || segment.attachChildrenData;
+    var lastSibling = segment.parent && (segment.siblingIndex == segment.parent.children.length - 1);
+	var isPrevious = segment.parent && segment.parent.hasPrevious && (segment.siblingIndex == 0);
+	var isHighlighted = GH.ProofSegment.hasClass(segment.smallElement, 'highlighted-step');
+	if (GH.ProofSegment.hasClass(segment.smallElement, 'highlighted-bottom') && segment.parent) {
+		return segment.parent.findCollapseArrows();
+	}
+	if ((!parentOpen && (!lastSibling || hasChildren) && !isPrevious) || isHighlighted) {
+		if (isHighlighted) {
+			return segment.findCollapseArrows();
+		}
+		var prevSegment = segment.parent && segment.parent.children[segment.siblingIndex - 1];
+		if (prevSegment && segment.hasPrevious) {
+			return [
+				{segment: prevSegment, class: 'expand-up'},
+				// The down arrow occurs on the segment line, but the top arrow creates and offset which
+				// is negected by using the prevSegment again.
+				{segment: prevSegment, class: 'expand-down'}
+			];
+		} else {
+			return [{segment: segment, class: 'expand-up'}];
+		}
+	} else {
+		if (!isPrevious || parentOpen) {
+			return segment.parent.findCollapseArrows();
+		} else {
+			return segment.parent.parent.findCollapseArrows();
+		}
+	}
+};
+
+GH.ProofSegment.prototype.getSidebar = function() {
+	var blockSegment;
+	if (((this.state != GH.ProofSegment.State.SMALL) && (this.type % 2 != 1)) || (!this.parent)) {
+		blockSegment = this;
+	} else if (this.parent.type % 2 == 1) {
+		blockSegment = this.parent.parent;
+	} else {
+		blockSegment = this.parent;
+	}
+	return blockSegment.largeWrapper.children[0];
+};
+
+GH.ProofSegment.getSidebarPosition = function(block, siblingIndex) {
+	var position = GH.ProofSegment.PADDING;
+	if (block.type % 2 == 1) {
+		position += GH.ProofSegment.getSidebarPosition(block.parent, block.siblingIndex);
+	}
+	for (var i = 0; i < siblingIndex; i++) {
+		var child = block.children[i];
+		if ((child.state == GH.ProofSegment.State.SMALL) || (child.type % 2 == 0)) {
+			position += child.smallElement.clientHeight;
+		} else {
+			position += child.largeElement.clientHeight;
+		}
+	}
+	return position;
+};
+
+GH.ProofSegment.addArrows = function(arrows) {
+	var segment = arrows.segment;
+	var className = arrows.class;
+
+	var top;
+	var bottom;	
+	var sidebar;
+	if ((segment.state == GH.ProofSegment.State.SMALL) || (segment.type % 2 == 1)) {
+		top    = GH.ProofSegment.getSidebarPosition(segment.parent, segment.siblingIndex);
+		bottom = GH.ProofSegment.getSidebarPosition(segment.parent, segment.siblingIndex + 1);
+	} else {
+		top    = GH.ProofSegment.getSidebarPosition(segment, 0);
+		bottom = GH.ProofSegment.getSidebarPosition(segment, segment.children.length);
+	}
+	sidebar = segment.getSidebar();
+	var height = bottom - top;
+
+	if (className == 'collapse-in') {
+		var topArrows = document.createElement("div");
+		var bottomArrows = document.createElement("div");
+		topArrows.setAttribute('class', 'collapse-down');
+		bottomArrows.setAttribute('class', 'collapse-up');
+		topArrows.setAttribute('style', 'height: ' + (height / 2) + 'px; top: ' + top + 'px');
+		bottomArrows.setAttribute('style', 'height: ' + (height / 2) + 'px; top: ' + top + 'px');
+		sidebar.appendChild(topArrows);
+		sidebar.appendChild(bottomArrows);
+	} else {
+		var arrows = document.createElement("div");
+		arrows.setAttribute('class', className);
+		arrows.setAttribute('style', 'height: ' + height + 'px; top: ' + top + 'px');
+		sidebar.appendChild(arrows);
+	}
+};
+
+GH.ProofSegment.prototype.clearArrows = function() {
+	var sidebar = this.getSidebar();
+	if (sidebar) {
+		sidebar.innerHTML = '';
+	}
+	this.largeWrapper.children[0].innerHTML = '';
+	for (var i = 0; i < this.children.length; i++) {
+		if (this.children[i].state == GH.ProofSegment.State.LARGE) {
+			this.children[i].clearArrows();
+		}
+	}
+};
+
 GH.ProofSegment.handleMouseOver = function(position) {
+	var positionCopy = position.slice(0);
 	var segments = GH.ProofSegment.findSegments(position);
 	for (var i = 0; i < segments.length; i++) {
+		segments[i].clearArrows();
 		segments[i].highlight();
+	}
+	var arrows = GH.ProofSegment.findArrows(positionCopy);
+	for (var i =0; i < arrows.length; i++) {
+		GH.ProofSegment.addArrows(arrows[i]);
 	}
 };
 
 GH.ProofSegment.handleMouseOut = function(position) {
 	var segments = GH.ProofSegment.findSegments(position);
 	for (var i = 0; i < segments.length; i++) {
+		segments[i].clearArrows();
 		segments[i].lowlight();
 	}
 };
@@ -640,3 +790,6 @@ GH.ProofSegment.removeClass = function(element, className) {
 		element.className = element.className.replace(new RegExp(' ' + className), '');
 	}
 };
+
+// The top padding in the proof-block class plus 1 for the border.
+GH.ProofSegment.PADDING = 7;
