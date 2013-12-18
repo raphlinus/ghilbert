@@ -16,7 +16,8 @@ The tar file at {{{https://code.google.com/p/ghilbert/downloads/detail?name=ghil
 
 To be able to push, add the following to {{{.netrc}}} in your home directory:
 
-{{{machine ghilbert-app.appspot.com
+{{{
+machine ghilbert-app.appspot.com
   login USER
   password PASSWORD
 }}}
@@ -27,5 +28,16 @@ Once this is done, you should be able to run {{{git push}}}.
 
 Pushing to a local copy of the app is similar, but you will probably need to run the following command once to tell git that it can push large amounts of data:
 
-{{{git config http.postBuffer 524288000
+{{{
+git config http.postBuffer 524288000
 }}}
+
+Then pushing to the local app looks like this:
+
+{{{
+git remote add local http://localhost:8080/git
+git push local
+}}}
+
+The first time you push to local you'll likely need to add {{{-f}}} to the {{{git push}}} command.
+
