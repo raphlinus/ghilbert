@@ -777,7 +777,7 @@ class VerifyCtx:
         # proofctx.fvvarmap.get(var, None) is just None and
         # check_free_in() will return False unless var occurs _explicitly_
         # free in term.
-        self.check_free_in(var, term, proofctx.fvvarmap.get(var, None))
+        return self.check_free_in(var, term, proofctx.fvvarmap.get(var, None))
 
     # match templ, which is an expression in the variable space of the
     # assertion being applied, against exp, an expression in the variable

@@ -707,3 +707,29 @@ stmt (KindMismatchInInterface () () (= (separate x φ φ) (separate x φ φ)))
 stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
 !reject test.gh Expected a binding variable, found term variable A
 
+!append in.ghi
+stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
+!reject test.gh Expected a binding variable, found term variable A
+!unshare
+
+# Attempt to apply a theorem which violates a freeness constraint
+!append axioms.ghi
+kind (formula)
+tvar (formula p q φ)
+term (formula (↔ p q))
+
+kind (object)
+tvar (object s t A B C)
+var (object x y z)
+term (formula (= s t))
+term (object (1))
+
+term (formula (∃ z φ))
+stmt (ThereExistsAddRemove ((φ z)) () (↔ (∃ z φ) φ))
+!append test.gh
+import (AXIOMS axioms.ghi () "")
+var (object z)
+thm (bad () () (↔ (∃ z (= z (1))) (= z (1)))
+ z (= z (1)) ThereExistsAddRemove
+)
+!reject test.gh something about freemaps
