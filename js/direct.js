@@ -195,12 +195,14 @@ GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHisto
 	var styling;
 	var summary = (shownIndex == thmctx.history.length - 1) ? thmctx.styleScanner.summary : '';
 	if ((shownIndex == thmctx.history.length - 1) && (this.thmctx.state != GH.DirectThm.StateType.THM)) {
-		for (var j = 0; j < this.thmctx.hyps.length; j+= 2) {
-			var hyp = this.thmctx.hyps[j + 1];
-			var hypName = 'Hypothesis - ' + this.thmctx.hyps[j];
-			var newHypStep = new GH.ProofStep(hypName, [], hyp, hyp.beg, hyp.end, [], false, null);
-			newHypStep.hierarchy = tmpHierarchy;
-			hypSteps.push(newHypStep);
+		if (this.thmctx.hyps != null) {
+			for (var j = 0; j < this.thmctx.hyps.length; j+= 2) {
+				var hyp = this.thmctx.hyps[j + 1];
+				var hypName = 'Hypothesis - ' + this.thmctx.hyps[j];
+				var newHypStep = new GH.ProofStep(hypName, [], hyp, hyp.beg, hyp.end, [], false, null);
+				newHypStep.hierarchy = tmpHierarchy;
+				hypSteps.push(newHypStep);
+			}
 		}
 		concl = this.thmctx.concl;
 		styling = this.thmctx.styleScanner.get_styling('');

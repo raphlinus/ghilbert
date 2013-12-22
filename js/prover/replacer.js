@@ -310,7 +310,7 @@ GH.ProofGenerator.replacer.prototype.getReplaceOperation = function(replaceeOper
 	}
 
 	// TODO: Replace the table with this.
-	if (GH.operatorUtil.EQUIVALENCE_OPERATORS.indexOf(replacementOperator) > -1) {
+	if (GH.operatorUtil.EQUIVALENCE_OPERATORS.indexOf(replacementOperator.valueOf()) > -1) {
 		var name = this.equalizer.actionName(replaceeOperator, [index]) + 'i';
 		if (!this.prover.symbolDefined(name)) {
 			// alert(name + ' is not defined.');

@@ -139,7 +139,7 @@ GH.typesetAnd = function (term, prec) {
 		 ((term[1][0] == '=') && (term[2][0] == '='))) {
 			 
 		// This doesn't work for compound expressions like A < B + C < D.	
-		if (GH.strEquals(term[1][2], term[2][1])) {
+		if (term[1][2].toString() == term[2][1].toString()) {
 			var operators = [];
 			var operator = '';
 			for (var i = 1; i < 3; i++) {
@@ -282,8 +282,8 @@ GH.typesetindex = function(term, prec) {
     return GH.combineslugs(slugs, GH.min(prec, x_slug.prec));
 };
 
-GH.typesetfibonacci = function(term, prec) {	
-    var f_slug = GH.stringslug('F');
+GH.typesetStrIndex = function(term, name, prec) {	
+    var f_slug = GH.stringslug(name);
 	var index = GH.subscriptSlug(GH.typeset(term[1]));
     return GH.combineslugs([f_slug, index], prec);
 };
@@ -520,8 +520,8 @@ GH.typesetCategory = function(sexp, typesettingData, prec) {
 		return GH.typesetrecurse(sexp, prec);
 	} else if (typesettingData[1] == 'index') {
 		return GH.typesetindex(sexp, prec);
-	} else if (typesettingData[1] == 'fibonacci') {
-		return GH.typesetfibonacci(sexp, prec);
+	} else if (typesettingData[1] == 'strIndex') {
+		return GH.typesetStrIndex(sexp, typesettingData[2], prec);
 	} else if (typesettingData[1] == 'clab') {
 		return GH.typesetclab(sexp, prec);
 	} else if (typesettingData[1] == 'interval') {
@@ -603,6 +603,12 @@ GH.typeset.OPERATIONS = [
 [ // 10
 	[['lambda', 'λ'], 'infix', 'n', '↦'],
 ],
+[ // 100
+	[['<->', '↔'], 'infix', 'n', '↔'],
+],
+[ // 250
+	[['->', '→'], 'infix', 'r', '→'],
+],
 [ // 40
 	[['A.', '∀'],  'binder', '∀'],
     [['E.', '∃'],  'binder', '∃'],
@@ -611,12 +617,6 @@ GH.typeset.OPERATIONS = [
 ],
 [ // 40
     [['[/]'], 'subst'],
-],
-[ // 100
-	[['<->', '↔'], 'infix', 'n', '↔'],
-],
-[ // 250
-	[['->', '→'], 'infix', 'r', '→'],
 ],
 [ // 300
 	[['\\/', '∨'], 'infix', 'r', '∨'],
@@ -667,7 +667,8 @@ GH.typeset.OPERATIONS = [
 	[['_'], 'index'],
 ],
 [ // 3000
-	[['fibonacci'], 'fibonacci'],
+	[['fibonacci'], 'strIndex', 'F'],
+	[['tri'], 'strIndex', 'T'],
 	[['head'], 'postfix', '<sub>h</sub>'],
 	[['tail'], 'postfix', '<sub>t</sub>'],
 ],

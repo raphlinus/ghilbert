@@ -204,14 +204,13 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 		this.buttonController.addSuggestionButton('Evaluate', 'window.direct.prover.handleEvaluate()', true);
 	}
 	
-	/*
 	if ((this.stack.length == 0) && (this.conclusions.length >= 1)) {
 		var lastConclusion = this.conclusions[this.conclusions.length - 1];
 		// TODO: Remove the conditional, existGeneralize and instantiate code once the multireplace is working better.
 		if (this.multiReplacer.isApplicable(lastConclusion)) {	
 			this.buttonController.addSuggestionButton('Replace', 'window.direct.prover.handleMultiReplace()', true);
 		}
-		if (this.conditionalReplacer.isApplicable(lastConclusion)) {
+		/*if (this.conditionalReplacer.isApplicable(lastConclusion)) {
 			this.buttonController.addSuggestionButton('Cond.', 'window.direct.prover.handleConditional()', true);
 		}
 		if (this.existGeneralizer.isApplicable(lastConclusion)) {
@@ -219,8 +218,8 @@ GH.Prover.prototype.updateSuggestButtons = function() {
 		}
 		if (this.instantiator.isApplicable(this.activeExp)) {
 			this.buttonController.addSuggestionButton('Instant.', 'window.direct.prover.handleInstantiate()', true);
-		}
-	}*/
+		}*/
+	}
 
 	if ((this.stack.length == 0) && (this.activeExp.parent == null)) {	
 		if (this.conclusions.length >= 2) {
@@ -638,6 +637,11 @@ GH.Prover.prototype.getTerm = function(name) {
 
 GH.Prover.prototype.create = function(operator, operands) {
 	return this.operatorUtil.create(operator, operands);
+};
+
+GH.Prover.prototype.getType = function(sexp) {
+	var types = this.getOperatorTypes(sexp.operator);
+	return types[types.length - 1];
 };
 
 GH.Prover.prototype.getOperatorTypes = function(operator) {

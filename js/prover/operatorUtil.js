@@ -41,6 +41,7 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'iota') return ['set', 'nat'];
 	if (operator == '{...}') return ['nat', 'nat', 'set'];
 	if (operator == '!') return ['nat', 'nat'];
+	if (operator == 'fibonacci') return ['nat', 'nat'];
 	return null;
 };
 
@@ -443,6 +444,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
 	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
 	{ symbols: ['ifn'], name: 'ternary conditional', link: 'arithmetic/ifn'},
+	{ symbols: ['fibonacci'], unicode: 'F<sub>A</sub>', name: 'Fibonacci number', link: 'arithmetic/fibonacci'},
+	{ symbols: ['tri'], unicode: 'T<sub>A</sub>', name: 'triangular number', link: 'arithmetic/triangle'},
 	
 	{ symbols: ['e.'],  unicode: '∈', name: 'element of', link: 'set/element-of'},
 	{ symbols: ['{|}'],  unicode: '{|}', name: 'set abstraction', link: 'set/abstraction'},

@@ -32,6 +32,8 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorSum(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorProduct(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorFactorial(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorFibonacci(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorTriangle(prover));
   this.generators.push(this.constant);
 };
 
@@ -102,12 +104,12 @@ GH.ProofGenerator.evaluator.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.evaluator.prototype.inline = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
-		if ((GH.operatorUtil.getType(sexp) != 'wff') || (sexp.operator == '[/]')) {
+		if ((this.prover.getType(sexp) != 'wff') || (sexp.operator == '[/]')) {
 			var allReduced = true;
 			for (var i = 0; i < sexp.operands.length; i++) {
 				if ((!this.prover.operatorUtil.isReduced(sexp.operands[i])) &&
 				     (!generator.isOperandReducable || generator.isOperandReducable(i)) &&
-				     (GH.operatorUtil.getType(sexp.operands[i]) != 'wff')) {// Don't evaluate wffs. They don't have parents.
+				     (this.prover.getType(sexp.operands[i]) != 'wff')) {// Don't evaluate wffs. They don't have parents.
 					sexp = this.prover.evaluate(sexp.operands[i]).parent;
 					allReduced = false;
 				}
@@ -164,7 +166,7 @@ GH.ProofGenerator.evaluator.prototype.addTheorem = function(sexp) {
 	var generator = this.findGenerator(sexp.operator);
 	if (generator) {
 		var result = this.calculate(sexp);
-		var type = GH.operatorUtil.getType(sexp);
+		var type = this.prover.getType(sexp);
 		var conclusion = sexp.toString();
 		if (type == 'wff') {
 			if (!result) {
@@ -235,3 +237,13 @@ GH.ProofGenerator.evaluator.prototype.batchEvaluation = function(operator, leftB
 	this.prover.direct.update(true);
 };
 
+// For unary operators
+GH.ProofGenerator.evaluator.prototype.batchEvaluation1 = function(operator, bounds) {
+	for (var i = bounds[0]; i <= bounds[1]; i++) {
+		var num = GH.numUtil.createNum(i);
+		window.console.log(i);
+		var sexp = GH.sExpression.createOperator(operator, [num]);
+		this.prover.evaluate(sexp);
+	}
+	this.prover.direct.update(true);
+};

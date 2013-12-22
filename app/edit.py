@@ -160,6 +160,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/equality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/exponent.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/factorial.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/fibonacci.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/greaterThan.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/greaterThanEqual.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/halfminus.js" type="text/javascript"></script>
@@ -178,6 +179,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/substitution.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/successor.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/sum.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/triangle.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/union.js" type="text/javascript"></script>
 <script src="/js/prover/theorem/attachDecorator.js" type="text/javascript"></script>
 <script src="/js/prover/theorem/baseTheorem.js" type="text/javascript"></script>
