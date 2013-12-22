@@ -28,6 +28,8 @@ term (nat (product A B S))
 term (nat (head A))
 term (nat (tail A))
 term (nat (<,> A B))
+term (nat (fibonacci A))
+term (nat (tri A))
 
 term (nat (2))
 term (nat (3))
@@ -1711,6 +1713,31 @@ stmt (tyex ((A x)) () (E. x (= x A)))
 
 ## <title> Subset and Element Of Equivalence <title>
 stmt (elSubseti () ((e. A S)) (C_ ({} A) S))
+
+## <title> Recursive Definition of Fibonacci Numbers </title>
+stmt (df-fibRecurse () () (= (fibonacci (+ A (2))) (+ (fibonacci A) (fibonacci (+ A (1))))))
+
+## <title> Equivalence for fibonacci </title> ##
+stmt (fibonaccieq () () (-> (= A B) (= (fibonacci A) (fibonacci B))))
+
+stmt (fibonaccieqi () ((= A B)) (= (fibonacci A) (fibonacci B)))
+
+stmt (fibonaccieqd () ((-> ph (= A B))) (-> ph (= (fibonacci A) (fibonacci B))))
+
+stmt (fibonacci0 () () (= (fibonacci (0)) (0)))
+
+stmt (fibonacci1 () () (= (fibonacci (1)) (1)))
+
+## <title> Equivalence for triangular number </title> ##
+stmt (trieq () () (-> (= A B) (= (tri A) (tri B))))
+
+stmt (trieqi () ((= A B)) (= (tri A) (tri B)))
+
+stmt (trieqd () ((-> ph (= A B))) (-> ph (= (tri A) (tri B))))
+
+stmt (trianglePlus1r () () (= (tri (+ A (1))) (+ (+ (tri A) A) (1))))
+
+stmt (triangle0 () () (= (tri (0)) (0)))
 
 ## <title> Expand Ordered Pair </title>
 stmt (opexpand () () (= A (<,> (head A) (tail A))))

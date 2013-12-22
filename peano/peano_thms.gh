@@ -10169,47 +10169,6 @@ thm (sqrtuniq () ()
    A C lesym bicomi bitri biimpi syl
 )
 
-# number 30.0
-thm (opthlem1 () ()
-   (/\ (<= (* (+ A B) (+ A B)) (+ (* (+ A B) (+ A B)) B))
-       (< (+ (* (+ A B) (+ A B)) B) (* (S (+ A B)) (S (+ A B)))))
- # First part is easy
- (* (+ A B) (+ A B)) B  addge01t
-
-   # A + B <= A + B
-   (+ A B) leid
-   # A + B <= (A + B)'
-   (+ A B)  (1) addge01t  (+ A B) a1suc (+ A B) leeq2i mpbir
- # Now multiply them out
- (+ A B) (+ A B) (+ A B) (S (+ A B)) lemul3 mp2an
-
- # Throw in a free A on the right side
- (* (+ A B) (S (+ A B))) A addge01t
- (* (+ A B) (+ A B)) (* (+ A B) (S (+ A B))) (+  (* (+ A B) (S (+ A B))) A) letr mp2an
- # And add B to each side
- (* (+ A B) (+ A B)) (+ (* (+ A B) (S (+ A B))) A)  B leadd1 mpbi
- # Convert le to lt using suc
-(+ (* (+ A B) (+ A B)) B) (+ (+ (* (+ A B) (S (+ A B))) A)  B) lesuc mpbir
-
-
- # Expand left side of (A+B)'**2 and distribute.
- (+ A B) a1suc (S (+ A B)) muleq1i
- (+ A B) (1) (S (+ A B)) distl eqtr
- # Remove 1*
- (S (+ A B)) (1) mulcom   (S (+ A B)) mulid eqtr3     (* (+ A B) (S (+ A B))) addeq2i eqtr
- # Expand (A+B)'
- (+ A B) a1suc (* (+ A B) (S (+ A B))) addeq2i eqtr
- # Pull the 1 out to the right and reassoc
- addassrli
- (* (+ A B) (S (+ A B))) A B addass (1) addeq1i eqtr4
- # Convert the +1 to a suc
-
- (+ (+ (* (+ A B) (S (+ A B))) A) B)  a1suc eqtr4
- (+ (* (+ A B) (+ A B)) B)  lteq2i mpbir
-
- pm3.2i
-)
-
 # == Iota ==
 
 thm (iotaseqi () (hyp (=_ S T)) (= (iota S) (iota T))
@@ -15936,7 +15895,7 @@ thm (divval () (hyp (> B (0)) hyp2 (= (+ (* B C) (mod A B)) A)) (= (div A B) C)
 )
 
 ## <title> 0th Triangular Number </title>
-thm (tri0 () () (= (tri (0)) (0))
+thm (triangle0 () () (= (tri (0)) (0))
   (0) df-tri    
   ## <d 'Evaluate'>
     ## <d 'Evaluate'>
@@ -16432,7 +16391,15 @@ thm (trianglePlus1 () () (= (+ (tri A) (+ A (1))) (tri (+ A (1))))
   ## </d 'Triangular Number Definition '>
 )
 
-
+## <title> Triangular Number Recurrence Relation </title>
+## <summary> Formula for the next triangular number in terms of the previous one. </summary>
+thm (trianglePlus1r () () (= (tri (+ A (1))) (+ (+ (tri A) A) (1)))
+  A trianglePlus1 eqcomi 
+  ## <d 'Associative Property '>
+    (tri A) A (1) addass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+)
 
 ## <title> Substitution </title>
 ## <table>
@@ -16449,7 +16416,7 @@ thm (LtReplaceLe1 () (
   ax-mp
 )
 
-## <title> Triangular Numbers are Monotonic </title>
+## <title> Triangular Numbers are Monotonically Increasing </title>
 thm (triMonotonic () () (< (tri A) (tri (+ A (1))))
   (0) A addge02t
   0less1
@@ -16504,6 +16471,7 @@ thm (EqReplaceLt0Tri0 () (
 )
 
 
+## <title> Triangular Numbers are Monotonically Increasing </title>
 thm (triMonotonic2 () () (< (tri A) (tri (+ (+ A B) (1))))
   ## <d 'Basis Case'>
     A triMonotonic    
@@ -16531,6 +16499,7 @@ thm (triMonotonic2 () () (< (tri A) (tri (+ (+ A B) (1))))
   mpbi
 )
 
+## <title> Triangular Numbers are Monotonically Increasing </title>
 thm (triMonotonic3 () () (-> (< A B) (< (tri A) (tri B)))
   A B x ltDiff3
   (+ (+ A x) (1)) B trieq  
@@ -16547,6 +16516,7 @@ thm (triMonotonic3 () () (-> (< A B) (< (tri A) (tri B)))
   ## </d 'Quantified Non-free Variable '>
 )
 
+## <title> Triangular Numbers are Monotonically Increasing </title>
 thm (triMonotonic4 () () (-> (<= A B) (<= (tri A) (tri B)))
   A B triMonotonic3  
   ## <d 'Inequality Conversion '>
@@ -16926,6 +16896,10 @@ thm (opuniq.1 () () (-> (= (<,> A B) (<,> A' B')) (/\ (= A A') (= B B')))
 )
 
 ## <title> Ordered Pair Theorem </title>
+## <summary>
+##   Two ordered pairs are equal if and only if the first and the
+##   second numbers of the pair are equal.
+## </summary>
 thm (opth () () (<-> (= (<,> A B) (<,> A' B')) (/\ (= A A') (= B B')))
   A B A' B' opuniq.1
   A A' B B' opeq12
@@ -17236,7 +17210,7 @@ thm (exTriangle ((A x)(A z)) () (E. x (E. z (/\ (<= x z) (= (+ (tri z) x) A))))
   ## <d>
     ## <d 'Basis Case'>
       (0) leid
-      tri0
+      triangle0
       (0) addeq1i  
       ## <d 'Additive Identity Axiom '>
         (0) pa_ax3
@@ -17391,6 +17365,11 @@ thm (EqReplaceEx1Ex1Eq0 () (
   BiReplaceEx1Ex1
 )
 
+## <title> Every number maps to an ordered pair </title>
+## <summary>
+##   For any number A, there exists a number x and a number y
+##   such that the pair (x, y) maps to A.
+## </summary>
 thm (exOp ((A x)(A y)) () (E. x (E. y (= (<,> x y) A)))
   x z A exTriangle
   x z y df-le  
@@ -17414,6 +17393,13 @@ thm (exOp ((A x)(A y)) () (E. x (E. y (= (<,> x y) A)))
   EqReplaceEx1Ex1Eq0
 )
 
+## <title> Every number maps to a unique ordered pair </title>
+## <summary>
+##   For any number A, there exists a unique number x and a unique number y
+##   such that the pair (x, y) maps to A. This theorem shows that the first
+##   number x is unique. The theorem <a href="eutail">eutail</a> shows that
+##   the second number is unique.
+## </summary>
 thm (euhead ((A x)(A y)) () (E! x (E. y (= (<,> x y) A)))
   x z y opeq1 A eqeq1d y exbid rwffi
   z eu2
@@ -17480,6 +17466,13 @@ thm (euhead ((A x)(A y)) () (E! x (E. y (= (<,> x y) A)))
   mpbirRemove
 )
 
+## <title> Every number maps to a unique ordered pair </title>
+## <summary>
+##   For any number A, there exists a unique number x and a unique number y
+##   such that the pair (x, y) maps to A. This theorem shows that the second
+##   number y is unique. The theorem <a href="euhead">euhead</a> shows that
+##   the first number is unique.
+## </summary>
 thm (eutail ((A x)(A y)) () (E! y (E. x (= (<,> x y) A)))
   y z x opeq2 A eqeq1d x exbid rwffi
   z eu2 
@@ -17698,6 +17691,11 @@ thm (ImpReplaceEx1Ex1An1An0 () (
   ImpReplaceEx1Ex1An1
 )
 
+## <title> Ordered Pair Expansion </title>
+## <summary>
+##   Every number can be expanded into a ordered pair using the
+##   head and tail operations.
+## </summary>
 ## <suggest> left('Simplify', '(,)') </suggest>
 thm (opexpand () () (= A (<,> (head A) (tail A)))
   x y A exOp
@@ -21364,19 +21362,20 @@ thm (EqReplaceEq0Add0Fibonacci0 () (
 )
 
 ## <title> Recursive Definition of Fibonacci Numbers </title>
-thm (df-fibRecurse () () (= (+ (fibonacci A) (fibonacci (+ A (1)))) (fibonacci (+ A (2))))
+thm (df-fibRecurse () () (= (fibonacci (+ A (2))) (+ (fibonacci A) (fibonacci (+ A (1)))))
   y (recurse (lambda x (fibonacci-step x)) A (<,> (0) (1)))
   fibStepRecurse
-  y (0) x A fibStepToFib  
+  y (0) x A fibStepToFib
   EqReplaceEq0Add0
-  y (1) x A fibStepToFib  
+  y (1) x A fibStepToFib
   EqReplaceEq0Add1
-  y (2) x A fibStepToFib  
-  EqReplaceEq1  
+  y (2) x A fibStepToFib
+  EqReplaceEq1
   ## <d 'Additive Identity Axiom '>
     A pa_ax3
     EqReplaceEq0Add0Fibonacci0
   ## </d 'Additive Identity Axiom '>
+  eqcomi
 )
 
 # Summation. Big Sigma.
@@ -25813,6 +25812,17 @@ thm (arithmeticsum () () (= (sum (0) A (lambda x x)) (div (* A (+ A (1))) (2)))
   ## </d 'Induction'>
 )
 
+## <title> Triangular Numbers as an Arithmetic Series </title>
+## <summary>
+##   Adding the first A numbers sums to the A-th triangular number.
+## </summary
+thm (arithmeticsumtri () () (= (sum (0) A (lambda x x)) (tri A))
+  A x arithmeticsum  
+  ## <d 'Triangular Number Definition '>
+    A df-tri eqcomi
+    EqReplaceEq1
+  ## </d 'Triangular Number Definition '>
+)
 
 ## <title> Divide the difference </title> 
 ## <suggest> right('Simplify', '|') </suggest>
