@@ -629,6 +629,8 @@ GH.typeset.OPERATIONS = [
 ],
 [
 	[['prime'], 'postfix', ' is prime'],
+	[['even'],  'postfix', ' is even'],
+	[['odd'],   'postfix', ' is odd'],
 ],
 [ // 1050
 	[['=', '=z', '=q', '=_'],    'infix', 'n', '='],
@@ -708,4 +710,6 @@ GH.typeset.NEGATED_OPERATIONS = [
 	[['C.', '⊂'],             'infix', 'n', '⊄'],
     [['|'],                    'infix', 'n', '∤'],
     [['prime'],                'postfix', ' is not prime'],
+    [['even'],                 'postfix', ' is not even'],
+    [['odd'],                  'postfix', ' is not odd'],
 ]];

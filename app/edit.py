@@ -262,11 +262,14 @@ url = %s;
 // TODO: better handling of raw urls (ideally draw from a specific commit)
 uc = new GH.XhrUrlCtx('/', '/git' + url);
 v = new GH.VerifyCtx(uc, run);
+""" % (json.encode(thmname), json.encode(url)))
+        if url[-4:] != '.ghi':
+            o.write("""
 v.set_suppress_errors(true);
 run(uc, '/proofs_upto/%s', v);
 v.set_suppress_errors(false);
 
-""" % (json.encode(thmname), json.encode(url), urllib.quote(arg)))
+""" % (urllib.quote(arg)))
         if useAce:
             o.write('window.mainpanel = new GH.AceEdit(editor);\n')
         else:

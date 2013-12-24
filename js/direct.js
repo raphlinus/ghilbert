@@ -230,7 +230,8 @@ GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHisto
 	concl.hierarchy = tmpHierarchy;
 	var thmStatement = new GH.ProofStep('Conclusion', hypSteps, concl, concl.beg, concl.end, [], false, styling);
 	thmStatement.hierarchy = tmpHierarchy;
-	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, 'Theorem', 0));
+	var header = (thmctx.thmType == GH.DirectThm.ThmType.AXIOM) ? 'Axiom' : 'Theorem';
+	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, header, 0));
 };
 
 // Display the proofs in the right panel.
@@ -259,10 +260,12 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 		// Add proof.
 		for (var j = 0; j < shownHistory.length; j++) {
 			var header = '';
+			var summary = '';
 			if (j == 0) {
 				header = (thmctx.thmType == GH.DirectThm.ThmType.NORMAL) ? 'Proof' : 'Definition';
+				summary = (thmctx.thmType == GH.DirectThm.ThmType.NORMAL) ? null : thmctx.styleScanner.summary;
 			}
-			this.rootSegments.push(shownHistory[j].displayStack(this.stack, null, header, j + 1));
+			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, header, j + 1));
 			this.notationGuide.addStep(shownHistory[j]);
 		}
 		
@@ -402,6 +405,7 @@ GH.DirectThm = function(vg) {
 GH.DirectThm.ThmType = {
 	NORMAL : 0,
 	DEFINITION : 1,
+	AXIOM: 2
 };
 
 GH.DirectThm.StateType = {
@@ -511,6 +515,9 @@ GH.DirectThm.prototype.tok = function(tok) {
 			} else if (tok == 'defthm') {
 				this.state = stateType.POST_THM;
 				this.thmType = thmType.DEFINITION;
+			} else if (tok == 'stmt') {
+				this.state = stateType.POST_THM;
+				this.thmType = thmType.AXIOM;
 			} else {
 				return this.createError('Expected thm', tok);
 			}
@@ -531,7 +538,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 					return this.createError(tok + " already exists.", tok);
 				}
 				GH.Direct.replace_thmname(tok, this.styleScanner.get_styling(''));
-				if (this.thmType == thmType.NORMAL) {
+				if (this.thmType != thmType.DEFINITION) {
 					this.state = stateType.POST_NAME;
 				} else {
 					// Definitions have the kind after the name.
@@ -583,7 +590,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 			if (tok == '(') {
 			  	this.pushEmptySExp_(tok);
 				this.state = stateType.S_EXPRESSION;
-			} else if ((tok == ')') && (this.thmType != thmType.DEFINITION)) {
+			} else if ((tok == ')') && (this.thmType == thmType.NORMAL)) {
 				pc = this.proofctx;
 				if (pc.mandstack.length != 0) {
 					//this.proofctx.stackHistory.push(new GH.ProofStep([], tok + ' Error', tok.beg, tok.end, [], true, null));
@@ -671,32 +678,42 @@ GH.DirectThm.prototype.tok = function(tok) {
 		this.proofctx.varlist = [];
 		this.proofctx.varmap = {};
 	} else if (state == stateType.POST_HYPOTHESES) {
-		if (thestep.length & 1) {
-			return this.createError('Odd length hypothesis list', tok);
+		if (this.thmType != thmType.AXIOM) {
+			if (thestep.length & 1) {
+				return this.createError('Odd length hypothesis list', tok);
+			}
+			this.hyps = [];
+			for (i = 0; i < thestep.length; i += 2) {
+				var hypname = thestep[i];
+				if (GH.typeOf(hypname) != 'string') {
+					return this.createError('Hyp label must be string', tok);
+				}
+				if (this.hypmap.hasOwnProperty(hypname)) {
+					return this.createError('Repeated hypothesis label ' + hypname, tok);
+				}
+				var hyp = thestep[i + 1];
+				try {
+					this.vg.kind_of(hyp, this.proofctx.varlist,
+					this.proofctx.varmap, false, this.vg.syms);
+				} catch (e1) {
+					return this.createError(e1, tok);
+				}
+				this.hypmap[hypname] = hyp;
+				this.hyps = thestep;
+				//log ('hypothesis: ' + hypname + ' ' + GH.sexp_to_string(hyp));
+			}
+			this.proofctx.num_hypvars = this.proofctx.varlist.length;
+		} else {
+			this.hyps = [];
+			for (var i = 0; i < thestep.length; i++) {
+				var hypName = 'hyp' + (i + 1);
+				this.hypmap[hyp] = thestep[i];
+				this.hyps.push(hypName);
+				this.hyps.push(thestep[i]);
+			}
 		}
-		this.hyps = [];
-		for (i = 0; i < thestep.length; i += 2) {
-			var hypname = thestep[i];
-			if (GH.typeOf(hypname) != 'string') {
-				return this.createError('Hyp label must be string', tok);
-			}
-			if (this.hypmap.hasOwnProperty(hypname)) {
-				return this.createError('Repeated hypothesis label ' + hypname, tok);
-			}
-			var hyp = thestep[i + 1];
-			try {
-				this.vg.kind_of(hyp, this.proofctx.varlist,
-				this.proofctx.varmap, false, this.vg.syms);
-			} catch (e1) {
-				return this.createError(e1, tok);
-			}
-			this.hypmap[hypname] = hyp;
-			this.hyps = thestep;
-			//log ('hypothesis: ' + hypname + ' ' + GH.sexp_to_string(hyp));
-		}
-		this.proofctx.num_hypvars = this.proofctx.varlist.length;
   } else if (state == stateType.POST_S_EXPRESSION && this.concl == null) {
-		if (this.thmType != thmType.DEFINITION) {
+		if (this.thmType == thmType.NORMAL) {
 			pc = this.proofctx;
 			try {
 				this.vg.kind_of(thestep, pc.varlist, pc.varmap, false, this.vg.syms);

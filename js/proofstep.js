@@ -352,7 +352,7 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.begin = begin;
 	this.end = end;
 	this.isError = isError;
-	this.link = styling ? GH.ProofStep.computeLink(styling.filename, name) : null;
+	this.link = styling ? GH.ProofStep.computeLink(styling.filename, styling.isAxiom, name) : null;
 	this.substitution = null;
 	this.thmNumber = styling ? styling.thmNumber : 0;
 	this.styling = styling ? styling.table : null;
@@ -372,7 +372,7 @@ GH.ProofStep.prototype.print = function() {
 	return GH.sExpression.printRaw(this.conclusion);
 };
 
-GH.ProofStep.computeLink = function(filename, stepName) {
+GH.ProofStep.computeLink = function(filename, isAxiom, stepName) {
 	if (filename == '') {
 		return null;
 	}
@@ -382,7 +382,7 @@ GH.ProofStep.computeLink = function(filename, stepName) {
 		splitUp.splice(0, 4);
 		splitUp.pop();
 		filename = '/' + splitUp.join('/');
-	} else {
+	} else if (!isAxiom) {
 		filename = filename.replace(new RegExp('.ghi'), '.gh');
 	}
 	return filename + '/' + stepName;

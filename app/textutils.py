@@ -37,6 +37,7 @@ def tokenize(line):
 
 # Returns a list of (name, (startline, endline)) tuples, where lines are
 # 0-based, and exclusive of endline. Ignore comment blocks for now
+# Splits gh and ghi files.
 def split_gh_file(lines):
     level = 0
     result = []
@@ -51,7 +52,7 @@ def split_gh_file(lines):
                 startline = i + 1
             else:
                 toks = tokenize(line)
-                if len(toks) >= 3 and toks[0] in ('thm', 'defthm') and toks[1] == '(':
+                if len(toks) >= 3 and toks[0] in ('thm', 'defthm', 'stmt') and toks[1] == '(':
                     name = toks[2]
                 elif level + delta == 0 and len(toks) and toks[-1] == ')':
                     startline = i + 1

@@ -480,6 +480,9 @@ GH.ProofSegment.prototype.getPosition = function() {
 
 GH.ProofSegment.findSegments = function(position) {
 	var segment = window.direct.rootSegments[position.pop()];
+	if (!segment) {
+		return [];
+	}
 	while (position.length > 0) {
 		segment = segment.children[position.pop()];
 	}
@@ -521,6 +524,9 @@ GH.ProofSegment.prototype.findCollapseArrows = function() {
 
 GH.ProofSegment.findArrows = function(position) {
 	var segment = window.direct.rootSegments[position.pop()];
+	if (!segment) {
+	return [];
+	}
 	while (position.length > 0) {
 		segment = segment.children[position.pop()];
 	}

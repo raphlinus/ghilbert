@@ -385,6 +385,9 @@ GH.notationGuide.prototype.addSymbolsFromSexp = function(sexp) {
 	var isString = (GH.typeOf(sexp) == 'string');
 	if (isString) {
 		var str = sexp.valueOf();
+		if (!this.syms[str]) {
+			return;
+		}
 		var kind = this.syms[str][1];
 		if (!this.variables.hasOwnProperty(kind)) {
 			this.variables[kind] = [str];
@@ -460,8 +463,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['{...}'], unicode: '{A...B}', name: 'set interval', link: 'tuple/interval'},
 	
 	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
-	{ symbols: ['head'],  name: 'head', link: 'tuple/head'},
-	{ symbols: ['tail'],  name: 'tail', link: 'tuple/tail'},
+	{ symbols: ['head'], unicode: 'A<sub>h</sub>', name: 'head', link: 'tuple/head'},
+	{ symbols: ['tail'], unicode: 'A<sub>t</sub>', name: 'tail', link: 'tuple/tail'},
 	{ symbols: ['<+>'], unicode: 'A<sub>1</sub>+A<sub>2</sub>+...+A<sub>N</sub>', name: 'sum a finite sequence', link: 'tuple/add'},
 	{ symbols: ['<*>'], unicode: 'A<sub>1</sub>∙A<sub>2</sub>∙∙∙A<sub>N</sub>', name: 'multiply a finite sequence', link: 'tuple/multiply'},
 	{ symbols: ['<{}>'], unicode: '{A<sub>1</sub>, A<sub>2</sub>,...,A<sub>N</sub>}', name: 'a finite set', link: 'tuple/set'},
@@ -472,6 +475,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['<>'], unicode: '(A, B, C)', name: 'tuple', link: 'tuple/tuple'},
 
 	{ symbols: ['|'],  name: 'divides', link: 'number-theory/divides'},
+	{ symbols: ['even'],  name: 'even number', link: 'number-theory/even'},
+	{ symbols: ['odd'],  name: 'odd number', link: 'number-theory/odd'},
 	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/prime'},
 	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/prime'},
 	{ symbols: ['sqrt'], name: 'square root'},
