@@ -7,6 +7,19 @@ tvar (wff ph ps ch th ta)
 term (wff (-> ph ps))
 term (wff (-. ph))
 
+## <title> First Axiom: Simplification </title>
+## <summary>
+##   One of the three axioms of <a href="/wiki/peano/logic">propositional calculus</a>.
+##   This axiom is called "the principle of simplification" in Principia Mathematica
+##   because "it enables us to pass from the joint assertion of φ and ψ to the assertion
+##   of φ	simply."
+##
+##   <a href="/wiki/peano/logic">Propositional calculus</a> can be thought of as asserting formulas
+##   that are universally "true" when their variables are replaced by any combination of
+##   "true" and "false."  Propositional calculus was first formalized by
+##    <a href="http://en.wikipedia.org/wiki/Gottlob_Frege">Frege</a> in 1879 and simplified by
+##    <a href="http://en.wikipedia.org/wiki/Jan_%C5%81ukasiewicz">Lukasiewicz</a> around 1930.
+## </summary>
 #  Axiom //Simp//.  Axiom A1 of [bib/Margaris] p. 49.  One of the 3 axioms of
 #      propositional calculus.  The 3 axioms are also given as Definition 2.1
 #      of [bib/Hamilton] p. 28.  This axiom is called //Simp// or "the principle of
@@ -40,22 +53,31 @@ term (wff (-. ph))
 #      grow exponentially with the number of variables, but it is unknown if the
 #      same is true of proofs - an answer to this would resolve the P=NP
 #      conjecture in complexity theory.
-## <title> First Axiom: Simplification </title>
 ## <table>
 ##  (-> <g> ph (-> ps <g> ph))
 ## </table>
+## <axiom>
 stmt (ax-1 () () (-> ph (-> ps ph)))
 
+## <title> Second Logic Axiom: Frege </title>
 #  Axiom //Frege//.  Axiom A2 of [bib/Margaris] p. 49.  One of the 3 axioms of
 #      propositional calculus.  It "distributes" an antecedent over two
 #      consequents.  This axiom was part of Frege's original system and is known
 #      as //Frege// in the literature.  It is also proved as Theorem *2.77 of
 #      [bib/WhiteheadRussell] p. 108.  The other direction of this axiom also
 #      turns out to be true, as demonstrated by [[pm5.41]].
-## <title> Second Logic Axiom: Distribution </title>
+## <summary>
+##   Axiom Frege. One of the three axioms of <a href="/wiki/peano/logic">propositional calculus</a>.
+##   It distributes an antecedent over two consequents.  This axiom was part of
+##   <a href="http://en.wikipedia.org/wiki/Gottlob_Frege">Frege</a>'s original
+##   system and is known as Frege in the literature. The other direction of this
+##   axiom also turns out to be true, as demonstrated by
+##   <a href="/edit/peano/prop.gh/pm5.41">pm5.41</a>.
+## </summary>
 ## <table>
 ##   (-> (-> <b> ph (-> ps ch)) (-> (-> <b> ph ps) (-> <b> ph ch)))
 ## </table>
+## <axiom>
 stmt (ax-2 () () (-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
 
 #  Axiom //Transp//.  Axiom A3 of [bib/Margaris] p. 49.  One of the 3 axioms of
@@ -69,9 +91,20 @@ stmt (ax-2 () () (-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
 #      the reader is advised that in the field of philosophical logic,
 #      "contraposition" has a different technical meaning.
 ## <title> Third Logic Axiom: Contraposition </title>
+## <summary>
+##   One of the three axioms of <a href="/wiki/peano/logic">propositional calculus</a>.
+##   It swaps or "transposes" the order of the consequents when negation is removed. 
+##   An informal example is that the statement "if there are no clouds in the sky,
+##   it is not raining" implies the statement "if it is raining, there are clouds in
+##   the sky."  This axiom is called Transp or "the principle of transposition" in
+##   Principia Mathematica. We will also use the term "contraposition" for this
+##   principle, although note that in the field of philosophical logic, "contraposition"
+##   has a different technical meaning.
+## </summary>
 ## <table>
 ##   (-> (-> (-. <b> ph) (-. <g> ps)) (-> <g> ps <b> ph))
 ## </table>
+## <axiom>
 stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 
 #  Rule of Modus Ponens.  The postulated inference rule of propositional
@@ -85,9 +118,16 @@ stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 #        and the assertion (conclusion), abbreviating the English words "and" and
 #        "implies."  They are not part of the formal language.
 ## <title> Modus Ponens Axiom </title>
+## <summary>
+##   Rule of Modus Ponens.  The postulated inference rule of
+##   <a href="/wiki/peano/logic">propositional calculus</a>. The rule says, "if φ
+##   is true, and φ implies ψ, then ψ must also be true."  This rule is sometimes
+##   called "detachment," since it detaches the minor premise from the major premise.
+## </summary>
 ## <table>
 ##      ph ] ]
 ##  (-> ph ] [ ps)
 ##         [ [ ps
 ## </table>
+## <axiom>
 stmt (ax-mp () (ph (-> ph ps)) ps)

@@ -10,29 +10,64 @@ term (wff (A. x ph))
 term (wff (= A B))
 
 # roughly equivalent to ax-17
+## <title> Axiom of Quantifier Introduction </title>
+## <summary>
+##   Axiom to quantify a variable over a formula in which it does not occur.
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+## <axiom>
 stmt (alnfi ((ph x))
   ()
   (-> ph (A. x ph)))
 
 ## <title> Generalization Axiom </title>
+## <summary>
+##    Rule of Generalization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##    This rule says that if something is unconditionally true, then it is true for all values of a variable.
+##    Theorem <a href="/edit/peano/peano_thms.gh/a4i">a4i</a> shows we can go the other way. In other words,
+##    we can add or remove universal quantifiers from the beginning of any theorem as required.
+## </summary>
 ## <table>
 ##       [ ph ]
 ## (A. x [ ph ] )
 ## </table>
+## <axiom>
 stmt (gen ()
   (ph)
   (A. x ph))
 
 # roughly Margaris A5, but without the subst
+## <title> Axiom 4: Specialization </title>
+## <summary>
+##   Axiom of Specialization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##   A quantified wff implies the wff without a quantifier. In other words if
+##   something is true for all x, it is true for any specific x. Note that the converse of this axiom does
+##   not hold in general, but a weaker inference form of the converse holds in the
+##   <a href="gen">Rule of Generalization</a>. A conditional forms of the converse is given by the 
+##   <a href="alnfi">Axiom alnfi</a>.
+## </summary>
 ## <suggest> right('Remove', '∀') </suggest>
+## <axiom>
 stmt (ax-4 () () (-> (A. x ph) ph))
 
 # Margaris A4, a.k.a. ax-5
+## <title> Axiom 5: Quantified Implication </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+## <axiom>
 stmt (ax-alim () ()
   (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
-
+  
+## <title> Axiom 6: Quantified Negation </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+## <axiom>
 stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
 
+## <title> Axiom 7: Quantifier Commutation </title>
+## <summary>
+##   Axiom of Quantifier Commutation. This axiom says universal quantifiers can be swapped.
+##   It is one of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+## <axiom>
 stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 
 # Similar to ax-8, but for nat's instead of var's.
@@ -41,11 +76,17 @@ stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 ## <table>
 ##   (-> (/\ (= <r> A <g> B) (= <r> A <b> C)) (= <g> B <b> C))
 ## </table>
+## <axiom>
 stmt (ax-eqtr () ()
   (-> (/\ (= A B) (= A C)) (= B C)))
 
 # Similar to ax-9, but expanded to nat's instead of var's.
-## <title> There is a number equal to any expression </title>
+## <title> Axiom of Existence </title>
+## <summary>
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus with equality</a>.
+##   One thing this tells us is that at least one number exists.
+## </summary>
+## <axiom>
 stmt (ax-tyex ((A x)) ()
   (-. (A. x (-. (= x A)))))
 
@@ -60,44 +101,93 @@ term (nat (+ A B))
 term (nat (* A B))
 
 # Equality axiom for addition
+## <title> Addition of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their sums are equal.
+## </summary>
+## <axiom>
 stmt (addeq12 () ()
     (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
-
-# Equality axiom for multiplication
+    
+## <title> Multiplication of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their products are equal.
+## </summary>
+## <axiom>
 stmt (muleq12 () ()
     (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
 
+## <title> Peano Axiom 1: 0 is the first natural number </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic. 0 is the first natural number. It has no predecessor.
+##   It is not a successor to anything.
+## </summary>
 stmt (pa_ax1 () () (-. (= (0) (S A))))
 
-# Note that the biconditional captures equality properties of S as
-# well as the traditional Peano axiom 2.
-## <title> Axiom: Numbers are equal under succession </title>
+## <title> Peano Axiom 2: Succession Equality </title>
+## <summary>
+##   Two natural numbers are equal iff their successors are equal.
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic. Note that the biconditional captures equality properties of
+##   successor just as well as the traditional Peano axiom 2.
+## </summary>
 ## <table>
 ##   (<-> (= <g> A <r> B) (= (S <g> A) (S <r> B)))
 ## </table>
+## <axiom>
 stmt (pa_ax2 () ()
   (<-> (= A B) (= (S A) (S B))))
 
-## <title> Additive Identity Axiom </title>
+## <title> Peano Axiom 3: Additive Identity Axiom </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic.
+## </summary>
 ## <suggest> auto-right('Simplify', '0') </suggest>
+## <axiom>
 stmt (pa_ax3 () ()
   (= (+ A (0)) A))
 
 ## <title> Peano Axiom 4: Addition </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic.
+## </summary>
 ## <suggest> left('Equivalence', 'R') </suggest>
+## <axiom>
 stmt (pa_ax4 () ()
   (= (+ A (S B)) (S (+ A B))))
 
-## <title> Multiply by 0 Axiom </title>
+## <title> Peano Axiom 5: Multiply by 0 </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic.
+## </summary>
 ## <suggest> right('Simplify','0') </suggest>
+## <axiom>
 stmt (pa_ax5 () ()
   (= (* A (0)) (0)))
 
 ## <title> Peano Axiom 6: Multiplication </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>
+##   for arithmetic.
+## </summary>
 ## <suggest> right('Distribute','+') </suggest>
+## <axiom>
 stmt (pa_ax6 () ()
   (= (* A (S B)) (+ (* A B) A)))
-
+  
+## <title> Peano Induction Axiom </title>
+## <summary>
+##   One of the <a href="/wiki/peano/arithmetic/axioms">Peano axioms</a>.
+##   The more traditional statement of mathematical induction is derived
+##   from this axiom in the <a href="/edit/peano/peano_thms.gh/finds">finds</a>
+##   and <a href="/edit/peano/peano_thms.gh/induction">induction</a>
+##   theorems.
+## </summary>
+## <axiom>
 stmt (pa_ind ((ph y)) ()
   (-> (/\           (A. x (-> (= x (0)) ph))
           (A. y (-> (A. x (-> (= x y) ph))
