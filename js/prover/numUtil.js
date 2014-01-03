@@ -109,6 +109,9 @@ GH.numUtil.decimalNumber = function(sexp) {
 	if (GH.typeOf(sexp) == 'string') {
 		return NaN;
 	}
+	if (sexp[0].valueOf() == '1to1') {
+		return NaN;
+	}
 
 	var num = parseInt(sexp[0]);
 	if ((0 <= num) && (num <= 10)) {

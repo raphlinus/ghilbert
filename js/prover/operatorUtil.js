@@ -12,6 +12,8 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'A.') 	return ['bind', 'wff', 'wff'];
 	if (operator == 'E.') 	return ['bind', 'wff', 'wff'];
 	if (operator == '=') 	return ['nat', 'nat', 'wff'];
+	if (operator == '=q') 	return ['rat', 'rat', 'wff'];
+	// if (operator == '=z') 	return ['rat', 'rat', 'wff'];
 	if (operator == '<=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<') 	return ['nat', 'nat', 'wff'];
 	if (operator == '>=') 	return ['nat', 'nat', 'wff'];
@@ -56,9 +58,13 @@ GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == '-') 	return ['int', 'int', 'int'];
 	if (operator == '*z') 	return ['int', 'int', 'int'];
 	if (operator == '-n') 	return ['int', 'int'];
+	if (operator == '-qn') 	return ['rat', 'rat'];
 	if (operator == '=q') 	return ['rat', 'rat', 'wff'];
 	if (operator == '*q') 	return ['rat', 'rat', 'rat'];
 	if (operator == '+q') 	return ['rat', 'rat', 'rat'];
+	if (operator == '-q') 	return ['rat', 'rat', 'rat'];
+	if (operator == '/') 	return ['rat', 'rat', 'rat'];
+	if (operator == '</>') 	return ['int', 'int', 'rat'];
 	return null;
 };
 
@@ -87,6 +93,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '=') {		return 'Eq';
 	} else if (operator == '=z') {		return 'Zeq';
 	} else if (operator == '=q') {		return 'Qeq';
+	} else if (operator == '=mod') {	return 'Modcon';
 	} else if (operator == '<=z') {		return 'Zle';
 	} else if (operator == '<z') {		return 'Zlt';
 	} else if (operator == '<=') {		return 'Le';
@@ -100,8 +107,11 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '*z') {		return 'Zmul';
 	} else if (operator == '+q') {		return 'Qadd';
 	} else if (operator == '*q') {		return 'Qmul';
+	} else if (operator == '/') {		return 'Qdiv';
 	} else if (operator == '-n') {		return 'Neg';
+	} else if (operator == '-qn') {		return 'Qneg';
 	} else if (operator == '-') {		return 'Minus';
+	} else if (operator == '-q') {		return 'Qminus';
 	} else if (operator == '*') {		return 'Mul';
 	} else if (operator == 'e.') {		return 'El';
 	} else if (operator == '=_') {		return 'Seq';
@@ -122,6 +132,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '<+>') {	    return 'TSum';
 	} else if (operator == '<{}>') {	return 'TSet';
 	} else if (operator == '{.|}') {	return 'Apset';
+	} else if (operator == '</>') {	return 'Frac';
 	} else {
 		return operator.charAt(0).toUpperCase() + operator.slice(1);
 	}
@@ -138,12 +149,14 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '=') {		return 'eq';
 	} else if (operator == '=z') {		return 'zeq';
 	} else if (operator == '=q') {		return 'eqq';
+	} else if (operator == '=mod') {	return 'modcon';
 	} else if (operator == '<=z') {		return 'zle';
 	} else if (operator == '<z') {		return 'zlt';
 	} else if (operator == '+z') {		return 'zadd';
 	} else if (operator == '*z') {		return 'zmul';
 	} else if (operator == '+q') {		return 'qadd';
 	} else if (operator == '*q') {		return 'qmul';
+	} else if (operator == '/') {		return 'qdiv';
 	} else if (operator == '<=') {		return 'le';
 	} else if (operator == '<') {		return 'lt';
 	} else if (operator == '>=') {		return 'ge';
@@ -152,7 +165,9 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == 'S') {		return 'suc';
 	} else if (operator == '+') {		return 'add';
 	} else if (operator == '-n') {		return 'neg';
+	} else if (operator == '-qn') {		return 'qneg';
 	} else if (operator == '-') {		return 'minus';
+	} else if (operator == '-q') {		return 'qminus';
 	} else if (operator == '*') {		return 'mul';
 	} else if (operator == '.-') {		return 'halfminus';
 	} else if (operator == 'e.') {		return 'el';
@@ -174,6 +189,7 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '<+>') {	    return 'tuplesum';
 	} else if (operator == '<{}>') {	return 'tupleset';
 	} else if (operator == '{.|}') {	return 'applyset';
+	} else if (operator == '</>') {	return 'frac';
 	} else {
 		// Otherwise assume the operator is its name.
 		return operator;
@@ -443,9 +459,16 @@ GH.notationGuide.guideData = [
 	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
 	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
 	{ symbols: ['+z'],  unicode: '+', name: 'integer plus', link: 'arithmetic/add'},
+	{ symbols: ['+q'],  unicode: '+', name: 'rational plus', link: 'arithmetic/add'},
 	{ symbols: ['*'],  unicode: '∙', name: 'times', link: 'arithmetic/multiply'},
+	{ symbols: ['*z'],  unicode: '∙', name: 'integer times', link: 'arithmetic/multiply'},
+	{ symbols: ['*q'],  unicode: '∙', name: 'rational times', link: 'arithmetic/multiply'},
 	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
 	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
+	{ symbols: ['-'],  unicode: '-', name: 'minus'},
+	{ symbols: ['-q'],  unicode: '-', name: 'rational minus'},
+	{ symbols: ['-n'],  unicode: '-', name: 'negative sign'},
+	{ symbols: ['-qn'],  unicode: '-', name: 'negative sign'},
 	{ symbols: ['ifn'], name: 'ternary conditional', link: 'arithmetic/ifn'},
 	{ symbols: ['fibonacci'], unicode: 'F<sub>A</sub>', name: 'Fibonacci number', link: 'arithmetic/fibonacci'},
 	{ symbols: ['tri'], unicode: 'T<sub>A</sub>', name: 'triangular number', link: 'arithmetic/triangle'},
@@ -461,6 +484,11 @@ GH.notationGuide.guideData = [
 	{ symbols: ['i^i'], unicode: '∩', name: 'intersection', link: 'set/intersection', link: 'set/intersection'},
 	{ symbols: ['min'], name: 'set minimum', link: 'set/minimum'},
 	{ symbols: ['{...}'], unicode: '{A...B}', name: 'set interval', link: 'tuple/interval'},
+
+	{ symbols: ['top'], unicode: 'A<sub>t</sub>', name: 'top (numerator)'},
+	{ symbols: ['bottom'], unicode: 'A<sub>b</sub>', name: 'bottom (denominator)'},
+	{ symbols: ['</>'], unicode: 'A / B', name: 'fraction'},
+	{ symbols: ['/'], unicode: 'A / B', name: 'division'},
 	
 	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
 	{ symbols: ['head'], unicode: 'A<sub>h</sub>', name: 'head', link: 'tuple/head'},

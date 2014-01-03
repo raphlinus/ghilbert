@@ -321,9 +321,10 @@ GH.typesetrecurse = function(term, prec) {
 
 GH.typesetapply = function(term, prec) {
     var fun_slug = GH.typeset(term[1]);
-	if (prec >= fun_slug.prec) {
-        fun_slug = GH.parenthesize(fun_slug);
-    }
+	// Not sure why this was here. It's creating problems. Maybe there's a good reason for it.
+	// if (prec >= fun_slug.prec) {
+    //     fun_slug = GH.parenthesize(fun_slug);
+    // }
 	var input = GH.typeset(term[2]);
     var input_slug = (term[2][0] == '<,>') ? input : GH.parenthesize(input);
     var slugs = [fun_slug, input_slug];
@@ -645,16 +646,18 @@ GH.typeset.OPERATIONS = [
 ],
 [ // 2200
 	[['+', '+z', '+q'], 'infix', 'l', '+'],
-	[['.-', '-'],       'infix', 'l', '-'],  // Minus
+	[['.-', '-', '-q'],       'infix', 'l', '-'],  // Minus
 ],
 [ // Not sure where to put fractions.
 	[['</>'], 'infix', 'n', '/'],
 ],
 [	
 	[['-n'], 'unary', '-'],  // Negative Sign
+	[['-qn'], 'unary', '-'],  // Negative Sign
 ],
 [ // 2300
     [['*', '*z', '*q', '∙'], 'infix', 'l', '∙'],
+    [['/'], 'infix', 'l', '/'],
 ],
 [ // 2500
 	[['exp'], 'exp'],
@@ -673,6 +676,8 @@ GH.typeset.OPERATIONS = [
 	[['tri'], 'strIndex', 'T'],
 	[['head'], 'postfix', '<sub>h</sub>'],
 	[['tail'], 'postfix', '<sub>t</sub>'],
+	[['top'], 'postfix', '<sub>t</sub>'],
+	[['bottom'], 'postfix', '<sub>b</sub>'],
 ],
 [
 	[['i^i'], 'infix', 'l', '∩'],
