@@ -149,12 +149,15 @@ stmt (zaddzeq12d ()
 ## <title> Integer Addition is a homomorphism </title>
 stmt (zaddhomomorph() () (=z (+z (int A) (int B)) (int (+ A B))))
 
+## <title> Negative Signs Cancel </title>
+## <suggest> left('Simplify','-') </suggest>
 stmt (negzeq2 () () (<-> (=z A B) (=z (-n A) (-n B))))
 
 stmt (negzeq  () () (-> (=z A B) (=z (-n A) (-n B))))
 
 stmt (negzeqi() ((=z A B)) (=z (-n A) (-n B)))
 
+## <title> Double Negative </title>
 stmt (doubleneg() () (=z (-n (-n A)) A))
 
 ## <title> Integer Addition Identity </title>
@@ -202,11 +205,11 @@ stmt (minuszeq2d () (
 
 ## <title> Cancel using subtraction </title>
 ## <suggest> right('Simplify','0') </suggest>
-stmt (minuscan() () (=z (+z A (-n A)) (0z)))
+stmt (negcan() () (=z (+z A (-n A)) (0z)))
 
 ## <title> Cancel using subtraction </title>
 ## <suggest> right('Simplify','0') </suggest>
-stmt (minuscan2() () (=z (+z (-n A) A) (0z)))
+stmt (minuscan () () (=z (- A A) (0z)))
 
 ## <title> Addition is the inverse of Subtraction </title>
 ## <suggest> right('Simplify','-') </suggest>
@@ -291,6 +294,13 @@ stmt (zmulass () () (=z (*z (*z A B) C) (*z A (*z B C))))
 ## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
 stmt (zdistr() () (=z (*z A (+z B C)) (+z (*z A B) (*z A C))))
 
+## <title> Distributive Property </title>
+## <table>
+##   (=z (*z (+z B C) <c> A ) (+z (*z B <c> A) (*z C <c> A)))
+## </table>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (zdistl () () (=z (*z (+z B C) A) (+z (*z B A) (*z C A))))
+
 stmt (zlezeq1 () () (-> (=z A B) (<-> (<=z A C) (<=z B C))))
 
 stmt (zlezeq2 () () (-> (=z A B) (<-> (<=z C A) (<=z C B))))
@@ -330,7 +340,16 @@ stmt (zmulcan() () (-> (-. (=z A (0z))) (<-> (=z (*z B A) (*z C A)) (=z B C))))
 stmt (zmulcan0 () () (-> (-. (=z A (0z))) (<-> (=z (*z B A) (0z)) (=z B (0z)))))
 
 ## <title> Zero Product Property </title>
-stmt (zeroProductz () () (-> (/\ (-. (=z A (0z))) (-. (=z B (0z)))) (-. (=z (*z B A) (0z)))))
+stmt (zeroProductz () () (-> (/\ (-. (=z A (0z))) (-. (=z B (0z)))) (-. (=z (*z A B) (0z)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct () () (-> (-. (=z A (0z))) (<-> (=z B (0z)) (=z (*z A B) (0z)))))
+
+## <title> Zero Product Property </title>
+stmt (zeroFactors () () (<-> (=z (*z A B) (0z)) (\/ (=z A (0z)) (=z B (0z)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct2 () () (<-> (-. (=z (*z A B) (0z))) (/\ (-. (=z A (0z))) (-. (=z B (0z))))))
 
 ## <title> Addition on Both Sides of Inequality </title>
 ## <suggest> right('Cancel', '+') </suggest>
@@ -370,6 +389,12 @@ stmt (zge0() () (<-> (<=z (0z) A) (<= (tail A) (head A))))
 ## <title> Invert Integer Mapping </title>
 stmt (intzn() () (-> (<=z (0z) A) (=z (int (zn A)) A)))
 
-# Commented out because it hasn't been proven yet.
-## <title> Product of Numbers above 1 </title>
-#stmt (posProduct () () (-> (/\ (<=z (1z) A) (<=z (1z) B)) (<=z (1z) (*z A B))))
+## <title> Multiply Negated Number </title>
+## <suggest> right('Equivalence', '-') left('Equivalence', '-') </suggest>
+stmt (negzmul () () (=z (-n (*z A B)) (*z (-n A) B)))
+
+## <title> Definition of Minus </title>
+stmt (df-minus () () (=z (- A B) (+z A (-n B))))
+
+## <title> 0 does not equal 1 </title>
+stmt (0znotEqual1 () () (-. (=z (0z) (1z))))

@@ -30,6 +30,7 @@ term (nat (tail A))
 term (nat (<,> A B))
 term (nat (fibonacci A))
 term (nat (tri A))
+term (nat (ifn ph A B))
 
 term (nat (2))
 term (nat (3))
@@ -1245,6 +1246,13 @@ stmt (inseq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
 ## <suggest> right('Commute', '=') </suggest>
 stmt (seqcom () () (<-> (=_ S T) (=_ T S)))
 
+## <title> Commutative Property of Set Equality </title>
+## <table>
+##   (=_ <r> S <g> T)
+##   (=_ <g> T <r> S)
+## </table>
+stmt (seqcomi () ((=_ S T)) (=_ T S))
+
 ## <title> Commutative Property </title>
 ## <suggest> right('Commute', '∪') </suggest>
 stmt (uncom () () (=_ (u. S T) (u. T S)))
@@ -1593,6 +1601,10 @@ stmt (headeqi () ((= A B)) (= (head A) (head B)))
 ## <title> Equality theorem for tail </title>
 stmt (taileqi () ((= A B)) (= (tail A) (tail B)))
 
+stmt (headeqd () ((-> ph (= A B))) (-> ph (= (head A) (head B))))
+
+stmt (taileqd () ((-> ph (= A B))) (-> ph (= (tail A) (tail B))))
+
 ## <title> Ordered Pair Equality </title>
 stmt (opeq1 () () (-> (= A B) (= (<,> A C) (<,> B C))))
 
@@ -1741,3 +1753,52 @@ stmt (triangle0 () () (= (tri (0)) (0)))
 
 ## <title> Expand Ordered Pair </title>
 stmt (opexpand () () (= A (<,> (head A) (tail A))))
+
+## <title> Alpha conversion for set abstraction </title> 
+stmt (abeq ((ph y) (ps x))
+  ((-> (= x y) (<-> ph ps)))
+  (=_ ({|} x ph) ({|} y ps)))
+
+## <title> Make an implicit substitution explicit </title>
+stmt (sbcie ((A x) (ps x))
+  ((-> (= x A) (<-> ph ps)))
+  (<-> ([/] A x ph) ps))
+		
+## <title> First branch of ternary expression </title>
+stmt (ifn1 () () (-> ph (= (ifn ph A B) A)))
+
+## <title> Second branch of ternary expression </title>
+stmt (ifn2 () () (-> (-. ph) (= (ifn ph A B) B)))
+	
+## <title> Equivalence of predicate in ifn </title>
+stmt (ifnbi1 () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B))))
+
+stmt (ifnbi1i () (
+     (<-> ph ps))
+     (= (ifn ph A B) (ifn ps A B)))
+		 
+stmt (ifnbi1d () (
+     (-> ch (<-> ph ps)))
+     (-> ch (= (ifn ph A B) (ifn ps A B))))
+		 
+## <title> Equality of first term for ifn </title>
+stmt (ifneq2 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C))))
+
+stmt (ifneq2i () (
+     (= A B))
+     (= (ifn ph A C) (ifn ph B C)))
+		 
+stmt (ifneq2d () (
+     (-> ps (= A B)))
+     (-> ps (= (ifn ph A C) (ifn ph B C))))
+
+## <title> Equality of second term for ifn </title>
+stmt (ifneq3 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B))))
+
+stmt (ifneq3i () (
+     (= A B))
+     (= (ifn ph C A) (ifn ph C B)))
+
+stmt (ifneq3d () (
+     (-> ps (= A B)))
+     (-> ps (= (ifn ph C A) (ifn ph C B))))

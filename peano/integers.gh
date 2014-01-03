@@ -237,7 +237,7 @@ thm (zeqtr() () (-> (/\ (=z A B) (=z B C)) (=z A C))
 )
 
 thm (zeqzeq1() () (-> (=z A B) (<-> (=z A C) (=z B C)))
-    B A C zeqtr ex
+  B A C zeqtr ex
   B A zeqcom
   sylbi2
   A B C zeqtr ex
@@ -1025,6 +1025,8 @@ thm (negop() () (=z (-n (<,> A B)) (<,> B A))
   ## </d 'Apply Head Operator '>
 )
 
+## <title> Negative Signs Cancel </title>
+## <suggest> left('Simplify','-') </suggest>
 thm (negzeq2 () () (<-> (=z A B) (=z (-n A) (-n B)))
   ## <d 'Expand Ordered Pair'>
     A opzexpand
@@ -1079,6 +1081,7 @@ thm (negzeqi() (hyp (=z A B)) (=z (-n A) (-n B))
   mpbi
 )
 
+## <title> Double Negative </title>
 thm (doubleneg() () (=z (-n (-n A)) A)
   ## <d 'Expand Ordered Pair '>
     A opzexpand
@@ -1394,8 +1397,8 @@ thm (minuszeq2d () (
 )
 
 ## <title> Cancel using subtraction </title>
-## <suggest> right('Simplify','0') </suggest>
-thm (minuscan() () (=z (+z A (-n A)) (0z))
+## <suggest> right('Simplify','-') </suggest>
+thm (negcan() () (=z (+z A (-n A)) (0z))
   ## <d 'Expand Expression into Ordered Pairs'>
     A opzexpand
     A opzexpand
@@ -1425,14 +1428,37 @@ thm (minuscan() () (=z (+z A (-n A)) (0z))
 )
 
 ## <title> Cancel using subtraction </title>
-## <suggest> right('Simplify','0') </suggest>
-thm (minuscan2() () (=z (+z (-n A) A) (0z))
-  A minuscan
+## <suggest> right('Simplify','-') </suggest>
+thm (negcan2() () (=z (+z (-n A) A) (0z))
+  A negcan
   ## <d 'Commutative Property of Addition '>
     A (-n A) zaddcom
     (0z) zeqzeq1i
     mpbi
   ## </d 'Commutative Property of Addition '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=z  [ A ]   ]   ]  C)
+##   (=z  [ A ]   [ B ] )
+##   (=z  [   [   [ B ]  C)
+## </table>
+thm (ZeqReplaceZeq0 () (
+     replacee (=z A C)
+     substitution (=z A B)) 
+     (=z B C)
+  replacee substitution
+  C zeqzeq1i
+  mpbi
+)
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (minuscan () () (=z (- A A) (0z))
+  A negcan  
+  A A df-minus zeqcomi  
+  ZeqReplaceZeq0
 )
 
 ## <title> Addition is the inverse of Subtraction </title>
@@ -1448,7 +1474,7 @@ thm (zaddcan () () (=z (+z (- A B) B) A)
     mpbi
   ## </d 'Associative Property '>
   ## <d 'Cancel using subtraction '>
-    B minuscan2
+    B negcan2
     A zaddzeq2i
     (+z (- A B) B) zeqzeq2i
     mpbi
@@ -1470,7 +1496,7 @@ thm (zaddcanr () () (=z (- (+z A B) B) A)
     mpbi
   ## </d 'Associative Property '>  
   ## <d 'Cancel using subtraction '>
-    B minuscan
+    B negcan
     A zaddzeq2i
     (- (+z A B) B) zeqzeq2i
     mpbi
@@ -1649,6 +1675,7 @@ thm (df-zmul () () (=z (*z A B) (<,> (+ (* (head A) (head B)) (* (tail A) (tail 
     A B dfzmul eqzeqi
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq1() () (-> (=z A B) (=z (*z A C) (*z B C)))
   A B zeqexpand
   (head C) muleq1d  
@@ -1694,6 +1721,7 @@ thm (zmulzeq1() () (-> (=z A B) (=z (*z A C) (*z B C)))
   ## </d 'Definition of Integer Multiplication'>
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq2() () (-> (=z A B) (=z (*z C A) (*z C B)))
   A B zeqexpand
   (head C) muleq2d    
@@ -1740,6 +1768,7 @@ thm (zmulzeq2() () (-> (=z A B) (=z (*z C A) (*z C B)))
   ## </d 'Definition of Integer Multiplication'>
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq1i () (
      hyp1 (=z A B))
      (=z (*z A C) (*z B C))
@@ -1748,6 +1777,7 @@ thm (zmulzeq1i () (
   ax-mp
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq1d () (
      hyp1 (-> ph (=z A B)))
      (-> ph (=z (*z A C) (*z B C)))
@@ -1756,6 +1786,7 @@ thm (zmulzeq1d () (
   syl
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq2i () (
      hyp1 (=z A B))
      (=z (*z C A) (*z C B))
@@ -1764,6 +1795,7 @@ thm (zmulzeq2i () (
   ax-mp
 )
 
+## <title> Multiply Both Sides </title>
 thm (zmulzeq2d () (
      hyp1 (-> ph (=z A B)))
      (-> ph (=z (*z C A) (*z C B)))
@@ -1772,6 +1804,7 @@ thm (zmulzeq2d () (
   syl
 )
 
+## <title> Multiply Equal Numbers </title>
 thm (zmulzeq12() () (-> (/\ (=z A B) (=z C D)) (=z (*z A C) (*z B D)))
   A B C zmulzeq1
   C D B zmulzeq2
@@ -1801,6 +1834,51 @@ thm (zmulzeq12d ()
    hyp2 (-> ph (=z C D)))
   (-> ph (=z (*z A C) (*z B D)))
   hyp1 hyp2 jca A B C D zmulzeq12 syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=z A  [ B ]   ]   ] )
+##   (=z    [ B ]   [ C ] )
+##   (=z A  [   [   [ C ] )
+## </table>
+thm (ZeqReplaceZeq1 () (
+     replacee (=z A B)
+     substitution (=z B C)) 
+     (=z A C)
+  replacee substitution
+  A zeqzeq2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=z A (+z  [ B ]   ]   ]  D))
+##   (=z        [ B ]   [ C ] )
+##   (=z A (+z  [   [   [ C ]  D))
+## </table>
+thm (ZeqReplaceZeq1Zadd0 () (
+     replacee (=z A (+z B D))
+     substitution (=z B C)) 
+     (=z A (+z C D))
+  replacee substitution
+  D zaddzeq1i
+  ZeqReplaceZeq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=z A (+z B  [ C ]   ]   ] ))
+##   (=z          [ C ]   [ D ] )
+##   (=z A (+z B  [   [   [ D ] ))
+## </table>
+thm (ZeqReplaceZeq1Zadd1 () (
+     replacee (=z A (+z B C))
+     substitution (=z C D)) 
+     (=z A (+z B D))
+  replacee substitution
+  B zaddzeq2i
+  ZeqReplaceZeq1
 )
 
 ## <title> Multiplication on Ordered Pairs </title>
@@ -2266,7 +2344,7 @@ thm (zmulass () () (=z (*z (*z A B) C) (*z A (*z B C)))
 ## <title> Distributive Property </title>
 ## <summary>
 ##   Distribution of integer addition through multiplication.
-##   See <a href="distl">distl</a> for distribution in the opposite direction.
+##   See <a href="zdistl">zdistl</a> for distribution in the opposite direction.
 ## </summary>
 ## <table>
 ##   (=z (*z <c> A (+z B C)) (+z (*z <c> A B) (*z <c> A C)))
@@ -2341,6 +2419,32 @@ thm (zdistr() () (=z (*z A (+z B C)) (+z (*z A B) (*z A C)))
       mpbi
     ## </d 'Definition of Integer Multiplication '>
   ## </d 'Definition of Integer Multiplication'>
+)
+
+
+## <title> Distributive Property </title>
+## <summary>
+##   Distribution of integer addition through multiplication.
+##   See <a href="zdistr">zdistr</a> for distribution in the opposite direction.
+## </summary>
+## <table>
+##   (=z (*z (+z B C) <c> A ) (+z (*z B <c> A) (*z C <c> A)))
+## </table>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+thm (zdistl () () (=z (*z (+z B C) A) (+z (*z B A) (*z C A)))
+  A B C zdistr  
+  ## <d 'Commutative Property of Multiplication '>
+    A (+z B C) zmulcom
+    ZeqReplaceZeq0
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Commutative Property of Multiplication '>
+    A B zmulcom
+    ZeqReplaceZeq1Zadd0
+  ## </d 'Commutative Property of Multiplication '>  
+  ## <d 'Commutative Property of Multiplication '>
+    A C zmulcom
+    ZeqReplaceZeq1Zadd1
+  ## </d 'Commutative Property of Multiplication '>
 )
 
 ## <title> Def. Integer Less Than or Equal To' </title>
@@ -3370,21 +3474,232 @@ thm (zmulcan0 () () (-> (-. (=z A (0z))) (<-> (=z (*z B A) (0z)) (=z B (0z))))
   ## </d 'Multiply by 0 '>
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imbi2i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-.  [ ch ]   ]    ] )))
+##   (<->               [ ch ]   [ th ] )
+##   (-> ph (-> ps (-.  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Imp1Not0 () (
+     replacee (-> ph (-> ps (-. ch)))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (-. th)))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Imp1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-. (=z  [ A ]   ]   ]  C))))
+##   (=z                    [ A ]   [ B ] )
+##   (-> ph (-> ps (-. (=z  [   [   [ B ]  C))))
+## </table>
+thm (ZeqReplaceImp1Imp1Not0Zeq0 () (
+     replacee (-> ph (-> ps (-. (=z A C))))
+     substitution (=z A B)) 
+     (-> ph (-> ps (-. (=z B C))))
+  replacee substitution
+  C zeqzeq1i
+  BiReplaceImp1Imp1Not0
+)
+
 ## <title> Zero Product Property </title>
-thm (zeroProductz () () (-> (/\ (-. (=z A (0z))) (-. (=z B (0z)))) (-. (=z (*z B A) (0z))))
-  A B zmulcan0  
+thm (zeroProductz () () (-> (/\ (-. (=z A (0z))) (-. (=z B (0z)))) (-. (=z (*z A B) (0z))))
+  A B zmulcan0
   ## <d 'Infer Left to Right '>
     (=z (*z B A) (0z)) (=z B (0z)) bi1
     syl
-  ## </d 'Infer Left to Right '>  
+  ## </d 'Infer Left to Right '>
   ## <d 'Contrapositive '>
     (=z (*z B A) (0z)) (=z B (0z)) con34b
     sylib
   ## </d 'Contrapositive '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A zmulcom
+    ZeqReplaceImp1Imp1Not0Zeq0
+  ## </d 'Commutative Property of Multiplication '>
   ## <d 'Import-Export Theorem '>
-    (-. (=z A (0z))) (-. (=z B (0z))) (-. (=z (*z B A) (0z))) impexp bicomi
+    (-. (=z A (0z))) (-. (=z B (0z))) (-. (=z (*z A B) (0z))) impexp bicomi
     mpbi
   ## </d 'Import-Export Theorem '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/  [ ps ]   ]    ]  th)))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (-. (\/  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Not0Or0 () (
+     replacee (<-> ph (-. (\/ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (\/ ch th)))
+  replacee substitution
+  th orbi1i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/ ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (\/ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Or1 () (
+     replacee (<-> ph (-. (\/ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (\/ ps th)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+## <title> Zero Product Property </title>
+thm (zeroFactors () () (<-> (=z (*z A B) (0z)) (\/ (=z A (0z)) (=z B (0z))))
+  A B zeroProductz  
+  ## <d 'Contrapositive '>
+    (/\ (-. (=z A (0z))) (-. (=z B (0z)))) (-. (=z (*z A B) (0z))) con34b
+    mpbi
+    (=z (*z A B) (0z)) notnotr
+    sylbi2
+  ## </d 'Contrapositive '>  
+  ## <d 'DeMorgan's Law '>
+    (-. (=z A (0z))) (-. (=z B (0z))) anor
+    (=z A (0z)) notnotr
+    BiReplaceBi1Not0Or0
+    (=z B (0z)) notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (=z A (0z)) (=z B (0z))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+
+  A (0z) B zmulzeq1  
+  ## <d 'Multiply by 0 '>
+    B zmul0r
+    ZeqReplaceImp1Zeq1
+  ## </d 'Multiply by 0 '>
+  B (0z) A zmulzeq2  
+  ## <d 'Multiply by 0 '>
+    A zmul0
+    ZeqReplaceImp1Zeq1
+  ## </d 'Multiply by 0 '>
+  jaoi
+  impbii
+)
+
+## <title> Zero Product Property </title>
+thm (nonzeroProduct2 () () (<-> (-. (=z (*z A B) (0z))) (/\ (-. (=z A (0z))) (-. (=z B (0z)))))
+  A B zeroFactors  
+  ## <d 'Negate Both Sides '>
+    (=z (*z A B) (0z)) (\/ (=z A (0z)) (=z B (0z))) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'DeMorgan's Law '>
+    (=z A (0z)) (=z B (0z)) oran
+    BiReplaceBi1Not0
+  ## </d 'DeMorgan's Law '>
+  ## <d 'Double Negative '>
+    (/\ (-. (=z A (0z))) (-. (=z B (0z)))) notnotr
+    bitri
+  ## </d 'Double Negative '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (=z A  [ B ]   ]   ] )))
+##   (=z                  [ B ]   [ C ] )
+##   (-> ph (-> ps (=z A  [   [   [ C ] )))
+## </table>
+thm (ZeqReplaceImp1Imp1Zeq1 () (
+     replacee (-> ph (-> ps (=z A B)))
+     substitution (=z B C)) 
+     (-> ph (-> ps (=z A C)))
+  replacee substitution
+  A zeqzeq2i
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (=z  [ A ]   ]   ]  C)))
+##   (=z                [ A ]   [ B ] )
+##   (-> ph (-> ps (=z  [   [   [ B ]  C)))
+## </table>
+thm (ZeqReplaceImp1Imp1Zeq0 () (
+     replacee (-> ph (-> ps (=z A C)))
+     substitution (=z A B)) 
+     (-> ph (-> ps (=z B C)))
+  replacee substitution
+  C zeqzeq1i
+  BiReplaceImp1Imp1
+)
+
+thm (nonzeroProduct () () (-> (-. (=z A (0z))) (<-> (=z B (0z)) (=z (*z A B) (0z))))
+  A B zeroProductz  
+  ## <d 'Import-Export Theorem '>
+    (-. (=z A (0z))) (-. (=z B (0z))) (-. (=z (*z A B) (0z))) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  A B (0z) zmulcan  
+  ## <d 'Infer Right to Left '>
+    (=z (*z B A) (*z (0z) A)) (=z B (0z)) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  ## <d 'Multiply by 0 '>
+    A zmul0r
+    ZeqReplaceImp1Imp1Zeq1
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A zmulcom
+    ZeqReplaceImp1Imp1Zeq0
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Contrapositive '>
+    (=z B (0z)) (=z (*z A B) (0z)) con34b
+    sylib
+  ## </d 'Contrapositive '>
+  impbid  
+  ## <d 'Negate Both Sides '>
+    (=z B (0z)) (=z (*z A B) (0z)) notbi bicomi
+    sylib
+  ## </d 'Negate Both Sides '>
 )
 
 ## <title> Substitution </title>
@@ -3578,18 +3893,17 @@ thm (0less1 () () (< (0) (1))
   axlttri2i
 )
 
+## <title> 0 is less than 1 </title>
 thm (0zless1() () (<z (0z) (1z)) 
   (0) (0) (1) (0) zltop
   df0z zeqcomi  
   ZeqReplaceBi0Zlt0
   df1z zeqcomi   
-  ZeqReplaceBi0Zlt1
-  
+  ZeqReplaceBi0Zlt1  
   ## <d 'Additive Identity '>
     (0) pa_ax3r
     EqReplaceBi1Lt0
-  ## </d 'Additive Identity '>
-  
+  ## </d 'Additive Identity '>  
   ## <d 'Additive Identity Axiom '>
     (1) pa_ax3
     EqReplaceBi1Lt1
@@ -3597,8 +3911,6 @@ thm (0zless1() () (<z (0z) (1z))
   0less1  
   mpbirRemove
 )
-
-
 
 ## <title> Substitution </title>
 ## <table>
@@ -3744,21 +4056,6 @@ thm (zltzletr() () (-> (/\ (<z A B) (<=z B C)) (<z A C))
   sylib
 )
 
-## <title> Substitution </title>
-## <table>
-##   (-> ph (-.  [ ps ]   ]    ] ))
-##   (<->        [ ps ]   [ ch ] )
-##   (-> ph (-.  [    [   [ ch ] ))
-## </table>
-thm (BiReplaceImp1Not0 () (
-     replacee (-> ph (-. ps))
-     substitution (<-> ps ch)) 
-     (-> ph (-. ch))
-  replacee substitution
-  con4biir
-  sylib
-)
-
 ## <title> Operator Conversion </title>
 ## <suggest> right('Infer', '≠') </suggest>
 thm (zltneq() () (-> (<z A B) (-. (=z A B))) 
@@ -3799,7 +4096,14 @@ thm (zltle() () (-> (<z A B) (<=z A B))
     A B df-zle bicomi  
     sylib
   ## </d 'Definition of less than or equal'>
-)  
+)
+
+## <title> 0 does not equal 1 </title>
+thm (0znotEqual1 () () (-. (=z (0z) (1z)))
+ 0zless1
+ (0z) (1z) zltneq  
+  ax-mp
+)
 
 ## <title> Rearrange Multiplication Terms </title>
 thm (zmul4() () (=z (*z (*z A B) (*z C D)) (*z (*z A C) (*z B D)))
@@ -4272,6 +4576,100 @@ thm (intznle () () (-> (<z (0z) (int (zn A))) (=z (int (zn A)) A))
   ## </d 'Operator Conversion '>
   A intzn
   syl
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (=z (-n  [ A ]   ]   ] ) C)
+##   (=z      [ A ]   [ B ] )
+##   (=z (-n  [   [   [ B ] ) C)
+## </table>
+thm (ZeqReplaceZeq0Neg0 () (
+     replacee (=z (-n A) C)
+     substitution (=z A B)) 
+     (=z (-n B) C)
+  replacee substitution
+  negzeqi
+  ZeqReplaceZeq0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (=z (-n (*z  [ A ]   ]   ]  C)) D)
+##   (=z          [ A ]   [ B ] )
+##   (=z (-n (*z  [   [   [ B ]  C)) D)
+## </table>
+thm (ZeqReplaceZeq0Neg0Zmul0 () (
+     replacee (=z (-n (*z A C)) D)
+     substitution (=z A B)) 
+     (=z (-n (*z B C)) D)
+  replacee substitution
+  C zmulzeq1i
+  ZeqReplaceZeq0Neg0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=z (-n (*z A  [ B ]   ]   ] )) D)
+##   (=z            [ B ]   [ C ] )
+##   (=z (-n (*z A  [   [   [ C ] )) D)
+## </table>
+thm (ZeqReplaceZeq0Neg0Zmul1 () (
+     replacee (=z (-n (*z A B)) D)
+     substitution (=z B C)) 
+     (=z (-n (*z A C)) D)
+  replacee substitution
+  A zmulzeq2i
+  ZeqReplaceZeq0Neg0
+)
+
+## <title> Multiply Negated Number </title>
+## <suggest> right('Equivalence', '-') left('Equivalence', '-') </suggest>
+thm (negzmul () () (=z (-n (*z A B)) (*z (-n A) B))
+  (head A) (tail A) (head B) (tail B) zmulop
+  negzeqi  
+  ## <d 'Expand Ordered Pair '>
+    A opzexpand zeqcomi
+    ZeqReplaceZeq0Neg0Zmul0
+  ## </d 'Expand Ordered Pair '>  
+  ## <d 'Expand Ordered Pair '>
+    B opzexpand zeqcomi
+    ZeqReplaceZeq0Neg0Zmul1
+  ## </d 'Expand Ordered Pair '>
+  (+ (* (head A) (head B)) (* (tail A) (tail B))) (+ (* (head A) (tail B)) (* (tail A) (head B))) negop  
+  ZeqReplaceZeq1
+  
+  ## <d 'Commutative Property '>
+    (* (head A) (tail B)) (* (tail A) (head B)) addcom
+    (+ (* (head A) (head B)) (* (tail A) (tail B))) opeq1i eqzeqi
+    (-n (*z A B)) zeqzeq2i
+    mpbi
+  ## </d 'Commutative Property '>    
+  ## <d 'Commutative Property '>
+    (* (head A) (head B)) (* (tail A) (tail B)) addcom
+    (+ (* (tail A) (head B)) (* (head A) (tail B))) opeq2i eqzeqi
+    (-n (*z A B)) zeqzeq2i     
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  (tail A) (head A) (head B) (tail B) zmulop zeqcomi      
+  ZeqReplaceZeq1
+  A df-neg zeqcomi      
+      (<,> (head B) (tail B)) zmulzeq1i
+      ZeqReplaceZeq1
+      
+      ## <d 'Expand Ordered Pair '>
+        B opzexpand
+        ## <d 'Commutative Property'>
+          B (<,> (head B) (tail B)) zeqcom
+          mpbi
+        ## </d 'Commutative Property'>
+        (-n A) zmulzeq2i
+        ZeqReplaceZeq1
+      ## </d 'Expand Ordered Pair '>
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>
