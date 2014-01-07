@@ -31,6 +31,7 @@ term (nat (<,> A B))
 term (nat (fibonacci A))
 term (nat (tri A))
 term (nat (ifn ph A B))
+term (wff (=mod A B C))
 
 term (nat (2))
 term (nat (3))
@@ -693,6 +694,14 @@ stmt (ltcon () () (<-> (< A B) (> B A)))
 ## <title> Converse of < </title>
 stmt (ltconi () ((< A B)) (> B A))
 
+## <title> Def. Greater Than or Equal to </title>
+## <suggest> right('Define', '≤') left('Simplify', '≥') </suggest>
+stmt (df-ge () () (<-> (>= A B) (-. (< A B))))
+
+## <title> Def. Greater Than </title>
+## <suggest> right('Define', '<') left('Simplify', '>') </suggest>
+stmt (df-gt () () (<-> (> A B) (-. (<= A B))))
+
 ## <title> Commutative Property </title>
 ## <suggest> right('Commute', '+') </suggest>
 stmt (addcom () () (= (+ A B) (+ B A)))
@@ -872,6 +881,21 @@ stmt (axlttri2i () ((-. (= A B)) (<= A B)) (< A B))
 ##  (< (* B ] [  A  ] ) (* [ C ] [ A ))
 ## </table>
 stmt (ltmul2i () ((< B C) (< (0) A)) (< (* B A) (* C A)))
+
+stmt (ltmul () () (-> (/\ (< A B) (< C D)) (< (* A C) (* B D))))
+
+stmt (gtmul () () (-> (/\ (> A B) (> C D)) (> (* A C) (* B D))))
+
+stmt (ltmul4 () () (-> (/\ (< A B) (< C D)) (< (+ (* B C) (* A D)) (+ (* B D) (* A C)))))
+
+stmt (gtmul4 () () (-> (/\ (> B A) (> D C)) (> (+ (* B D) (* A C)) (+ (* B C) (* A D)))))
+
+stmt (lthalfminus () () (-> (< A B) (< (0) (.- B A))))
+
+stmt (gthalfminus () () (-> (> B A) (> (.- B A) (0))))
+
+## <title> A number is less, equal, or greater </title>
+stmt (inequalities () () (\/ (< A B) (\/ (= A B) (> A B))))
 
 stmt (emptySnIn1 () ((-. (e. A S))) (=_ (i^i ({} A) S) ({/})))
 
@@ -1369,6 +1393,14 @@ stmt (halfminus () () (-> (<= B A) (= (+ (.- A B) B) A)))
 ## </table>
 stmt (halfminuscan () () (= (.- (+ A B) B) A))
 
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (halfminusdist () () (= (* A (.- B C)) (.- (* A B) (* A C))))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (halfminusdist2 () () (= (* (.- B C) A) (.- (* B A) (* C A))))
+
 ## <title> Apply the identity function </title>
 stmt (applyfunid ((A x)) () (= (apply (lambda x x) A) A))
 
@@ -1802,3 +1834,10 @@ stmt (ifneq3i () (
 stmt (ifneq3d () (
      (-> ps (= A B)))
      (-> ps (= (ifn ph C A) (ifn ph C B))))
+
+## <title> Modulo Congruence Definition </title>
+## <summary>
+##   Two numbers A and B are congruent modulo C if there values
+##   mod C are equal.
+## </summary>
+stmt (df-modcon () () (<-> (=mod A B C) (= (mod A C) (mod B C))))

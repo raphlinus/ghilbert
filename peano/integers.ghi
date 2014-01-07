@@ -2,7 +2,7 @@ param (PROP /peano/prop.ghi () "")
 param (PEANO_MIN /peano/peano_min.ghi (PROP) "")
 param (PEANO /peano/peano_ax.ghi (PROP PEANO_MIN) "")
 param (NAIVE_SET /peano/naive_set.ghi (PROP PEANO_MIN PEANO) "")
-param (PEANO_THMS /peano/peano_thms.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
+param (PEANO_THMS /peano/peano_stmts.ghi (PROP PEANO_MIN PEANO NAIVE_SET) "")
 
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
@@ -13,6 +13,9 @@ tvar (wff zi si)
 term (wff (=z A B))
 term (wff (<=z A B))
 term (wff (<z A B))
+term (wff (>z A B))
+term (wff (>=z A B))
+term (wff (zpos A))
 term (nat (+z A B))
 term (nat (*z A B))
 term (nat (-n A))
@@ -21,6 +24,15 @@ term (nat (int A))
 term (nat (zn A))
 term (nat (0z))
 term (nat (1z))
+term (nat (2z))
+term (nat (3z))
+term (nat (4z))
+term (nat (5z))
+term (nat (6z))
+term (nat (7z))
+term (nat (8z))
+term (nat (9z))
+term (nat (10z))
 
 
 ## <title> Convert Natural to Integer Equality </title>
@@ -321,6 +333,47 @@ stmt (zlezeq2d () (
      (-> ph (=z A B)))
      (-> ph (<-> (<=z C A) (<=z C B))))
 
+stmt (zltzeq1 () () (-> (=z A B) (<-> (<z A C) (<z B C))))
+stmt (zltzeq2 () () (-> (=z A B) (<-> (<z C A) (<z C B))))
+stmt (zltzeq1i () (
+     (=z A B))
+     (<-> (<z A C) (<z B C)))
+
+stmt (zltzeq1d () (
+     (-> ph (=z A B)))
+     (-> ph (<-> (<z A C) (<z B C))))
+
+stmt (zltzeq2i () (
+     (=z A B))
+     (<-> (<z C A) (<z C B)))
+
+stmt (zltzeq2d () (
+     (-> ph (=z A B)))
+     (-> ph (<-> (<z C A) (<z C B))))
+
+	 
+## <title> Less Than Converse </title>
+## <suggest> left('Commute', '>') right('Commute', '<') </suggest>
+stmt (zltcon () () (<-> (<z A B) (>z B A)))
+
+## <title> Converse of ≤ </title>
+## <suggest> right('Commute', '≤') left('Commute', '≥') </suggest>
+stmt (zlecon () () (<-> (<=z A B) (>=z B A)))
+
+## <title> Squares are not negative </title>
+stmt (posSquares () () (-> (-. (=z A (0z))) (zpos (*z A A))))
+
+## <title> Definition of a Positive Integer </title>
+## <suggest> left('Simplify', '+') </suggest>
+stmt (df-zpos () () (<-> (zpos A) (>z A (0z))))
+
+stmt (zposeq () () (-> (=z A B) (<-> (zpos A) (zpos B))))
+stmt (zposeqi () ((=z A B)) (<-> (zpos A) (zpos B)))
+
+stmt (zposeqd () ((-> ph (=z A B))) (-> ph (<-> (zpos A) (zpos B))))
+
+stmt (posProduct2 () () (-> (zpos A) (<-> (zpos (*z A B)) (zpos B))))
+
 ## <title> Natural-Integer Mappings Cancel </title>
 stmt (znint() () (= (zn (int A)) A))
 
@@ -348,8 +401,16 @@ stmt (nonzeroProduct () () (-> (-. (=z A (0z))) (<-> (=z B (0z)) (=z (*z A B) (0
 ## <title> Zero Product Property </title>
 stmt (zeroFactors () () (<-> (=z (*z A B) (0z)) (\/ (=z A (0z)) (=z B (0z)))))
 
+stmt (productPos () () (-> (zpos (*z A B)) (<-> (zpos A) (zpos B))))
+
+## <title> 0 is not positive </title>
+stmt (0NotPos () () (-> (=z A (0z)) (-. (zpos A))))
+
 ## <title> Zero Product Property </title>
 stmt (nonzeroProduct2 () () (<-> (-. (=z (*z A B) (0z))) (/\ (-. (=z A (0z))) (-. (=z B (0z))))))
+
+## <title> Multiply Two Positive Numbers </title>
+stmt (posproduct1 () () (-> (/\ (zpos A) (zpos B)) (zpos (*z A B))))
 
 ## <title> Addition on Both Sides of Inequality </title>
 ## <suggest> right('Cancel', '+') </suggest>

@@ -45,7 +45,11 @@ thm (ZeqReplaceImp1Zeq1 () (
 ##   The numerator or top of a rational number. This is the same as the head of an
 ##   ordered pair. This definition is just a way of explaining that the head
 ##   of the ordered pair is the numerator. The head of the ordered pair is expected
-##   to be in the format of an integer.
+##   to be in the format of an integer. This is only used in the construction of the rationals. It is
+##   ambiguous since the number 1/2, could be represented as 1/2, 2/4, or 6/12 and the bottom value
+##   would be different in each case. Thus all the theorems in the construction of the rationals
+##   assume that we do not know the value of bottom, we only know the ratio between the top and bottom
+##   values.
 ## </summary>
 defthm (df-top nat (top A) () () (= (top A) (head A))
   (head A) eqid
@@ -89,7 +93,11 @@ thm (topeqd () (
 ##   The numerator or bottom of a rational number. This is the same as the tail of an
 ##   ordered pair. This definition is just a way of explaining that the tail
 ##   of the ordered pair is the denominator. The tail of the ordered pair is expected
-##   to be in the format of an integer.
+##   to be in the format of an integer. This is only used in the construction of the rationals. It is
+##   ambiguous since the number 1/2, could be represented as 1/2, 2/4, or 6/12 and the bottom value
+##   would be different in each case. Thus all the theorems in the construction of the rationals
+##   assume that we do not know the value of bottom, we only know the ratio between the top and bottom
+##   values.
 ## </summary>
 defthm (df-bottom nat (bottom A) () () (= (bottom A) (tail A))
   (tail A) eqid
@@ -178,6 +186,7 @@ thm (bottomNot0 () () (<-> (e. A (rationals)) (-. (=z (bottom A) (0z))))
 )
 
 ## <title> Definition of Rational Equality </title>
+## <summary> For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary> 
 ## <suggest> left('Simplify', '=') </suggest>
 defthm (df-eqq wff (=q A B) () ()
       (<-> (=q A B) (/\ (=z (*z (top A) (bottom B)) (*z (top B) (bottom A)))
@@ -252,7 +261,8 @@ thm (BiReplaceBi1An1 () (
 )
 
 ## <title> Symmetric Property </title>
-## <summary> Rational equality is symmetric. </summary>
+## <summary> Rational equality is symmetric.
+##   For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary>
 ## <suggest> right('Commute', '=') </suggest>
 thm (eqqcom () () (<-> (=q A B) (=q B A))
   A B df-eqq
@@ -269,6 +279,10 @@ thm (eqqcom () () (<-> (=q A B) (=q B A))
 )
 
 ## <title> Symmetric Property </title>
+## <table>
+##   (=z <r> A <g> B)
+##   (=z <g> B <r> A)
+## </table>
 thm (eqqcomi() (hyp (=q A B)) (=q B A)
   hyp
   A B eqqcom  
@@ -693,6 +707,7 @@ thm (eqqtr.3 () () (-> (/\ (-. (=z (bottom B) (0z))) (-. (=z (top B) (0z)))) (->
 )
 
 ## <title> Transitive Property </title>
+## <summary> For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary> 
 ## <suggest> right('Transitive', '=') </suggest>
 thm (eqqtr () () (-> (/\ (=q A B) (=q B C)) (=q A C))
   B A C eqqtr.2
@@ -770,6 +785,15 @@ thm (eqqeqq2d () (
   hyp1
   A B C eqqeqq2
   syl
+)
+
+## <title> Transitive Property </title>
+thm (eqqeqq12d ()
+  (hyp1 (-> ph (=q A B))
+   hyp2 (-> ph (=q C D)))
+  (-> ph (<-> (=q A C) (=q B D)))
+  hyp1 C eqqeqq1d
+  hyp2 B eqqeqq2d bitrd
 )
 
 ## <title> Transitive Property </title>
@@ -1544,6 +1568,7 @@ defthm (df-qmul nat (*q A B) () () (=q (*q A B) (</> (*z (top A) (top B)) (*z (b
 ##   Rational number multiplication is defined using integer multiplication.
 ##   Use the commutative property of integer multiplication to show that
 ##   rational number multiplication has the same property.
+##   For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>.
 ## </summary>
 thm (qmulcom () () (=q (*q A B) (*q B A))
   A B df-qmul  
@@ -2097,6 +2122,7 @@ thm (QeqReplaceQeq1Qmul1Qmul1 () (
 )
 
 ## <title> Associative Property of Rational Multiplication </title>
+## <summary> For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary>
 ## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 thm (qmulass () () (=q (*q (*q A B) C) (*q A (*q B C)))
   ## <d 'Expand Numerators and Denominators'>
@@ -2198,6 +2224,17 @@ thm (qmulid () () (=q (*q A (1q)) A)
     (*q A (1q)) eqqeqq2i
     mpbi 
   ## </d 'Combine Numerator and Denominator'>'
+)
+
+## <title> Rational Multiplication Identity </title>
+## <summary> 1 is the identity for rational multiplication. </summary>
+## <suggest> right('Simplify','1') </suggest>
+thm (qmulidr () () (=q (*q (1q) A) A)
+  A qmulid  
+  ## <d 'Commutative Property of Multiplication '>
+    A (1q) qmulcom
+    QeqReplaceQeq0
+  ## </d 'Commutative Property of Multiplication '>
 )
 
 ## <title> Definition of Rational Multiplication </title>
@@ -2332,6 +2369,7 @@ thm (qaddfrac () () (=q (+q (</> A B) (</> C D)) (</> (+z (*z A D) (*z C B)) (*z
 )
 
 ## <title> Commutative Property of Rational Addition </title>
+## <summary> For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary> 
 ## <table> (=q (+q <r> A <g> B) (+q <g> B <r> A)) </table>
 ## <suggest> right('Commute', '+') </suggest>
 thm (qaddcom () () (=q (+q A B) (+q B A))
@@ -2615,6 +2653,7 @@ thm (ZeqReplaceQeq1Frac0Zadd0Zadd1 () (
 )
 
 ## <title> Associative Property of Rational Addition </title>
+## <summary> For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>. </summary> 
 ## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
 thm (qaddass () () (=q (+q (+q A B) C) (+q A (+q B C)))
   ## <d 'Expand Numerators and Denominators'>
@@ -2879,6 +2918,7 @@ thm (qdistrNaN () () (-> (-. (e. A (rationals))) (=q (+q (*q A B) (*q A C)) (*q 
 ## <summary>
 ##   Distribution of rational addition through multiplication.
 ##   See <a href="qdistl">qdistl</a> for distribution in the opposite direction.
+##   For more information see the <a href="/wiki/peano/arithmetic/rationals">construction of the rationals</a>.
 ## </summary>
 ## <table>
 ##   (=z (+z (*z <c> A B) (*z <c> A C)) (*z <c> A (+z B C)))
@@ -3081,6 +3121,8 @@ thm (qdistl () () (=q (+q (*q B A) (*q C A)) (*q (+q B C) A))
 ## <summary>
 ##   This is the unary negative sign for rational numbers, not to be confused with
 ##   binary <a href="df-minus">subtraction</a> which is defined using the negative sign.
+##   The negative is defined by negating the numerator. See
+##   <a href="/peano/integers.gh/df-neg">df-neg</a> for the integer version.
 ## </summary>
 defthm (df-qneg nat (-qn A) () () (=q (-qn A) (</> (-n (top A)) (bottom A)))
   (</> (-n (top A)) (bottom A)) eqqid
@@ -3149,6 +3191,7 @@ thm (ZeqReplaceQeq1Frac0Neg0 () (
   ZeqReplaceQeq1Frac0
 )
 
+## <title> Negative Applied to a Fraction </title>
 thm (negfrac () () (=q (-qn (</> A B)) (</> (-n A) B))
   (</> A B) df-qneg  
   ## <d 'Grab the top of a fraction '>
@@ -3172,6 +3215,39 @@ thm (doubleqneg () () (=q (-qn (-qn A)) A)
   ## <d>
     A fracExpand eqqcomi
     QeqReplaceQeq1
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q (-qn  [ A ]   ]   ] ) C)
+##   (=q       [ A ]   [ B ] )
+##   (=q (-qn  [   [   [ B ] ) C)
+## </table>
+thm (QeqReplaceQeq0Qneg0 () (
+     replacee (=q (-qn A) C)
+     substitution (=q A B)) 
+     (=q (-qn B) C)
+  replacee substitution
+  qnegeqqi
+  QeqReplaceQeq0
+)
+
+## <title> Negative of 0 is 0 </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (qneg0 () () (=q (-qn (0q)) (0q))
+  (0z) (1z) negfrac
+  ## <d>
+  neg0  
+  ZeqReplaceQeq1Frac0
+  ## </d>
+  ## <d>
+  df-0q eqqcomi
+  QeqReplaceQeq0Qneg0
+  ## </d>
+  ## <d>
+  df-0q eqqcomi  
+  QeqReplaceQeq1
   ## </d>
 )
 
@@ -3203,6 +3279,29 @@ thm (ZeqReplaceImp1Qeq0Frac1 () (
   replacee substitution
   A fraczeq2i
   QeqReplaceImp1Qeq0
+)
+
+## <title> Closure of rationals under negation </title>
+thm (qnegClosure () () (<-> (e. (-qn A) (rationals)) (e. A (rationals)))
+  A df-qneg
+  (-qn A) (</> (-n (top A)) (bottom A)) dfeqq2  
+  ax-mp  
+  ## <d 'Grab the bottom of a fraction '>
+    (-n (top A)) (bottom A) bottomfrac
+    ZeqReplaceBi1Zeq0
+  ## </d 'Grab the bottom of a fraction '>  
+  ## <d 'Negate Both Sides '>
+    (=z (bottom (-qn A)) (0z)) (=z (bottom A) (0z)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  ## <d>
+    A bottomNot0 bicomi  
+    bitri
+  ## </d>
+  ## <d>
+    (-qn A) bottomNot0 bicomi  
+    bitr3icom
+  ## </d>
 )
 
 ## <title> 0 equals any number with 0 in numerator </title>
@@ -3270,6 +3369,7 @@ thm (fraceqq0 () () (<-> (=q A (0q)) (/\ (=z (top A) (0z)) (-. (=z (bottom A) (0
 ##   This is the binary subtraction operation, not to be confused with the
 ##   unary <a href="df-qneg">negative sign</a> which is used in the definition.
 ## </summary>
+## <suggest> left('Simplify', '-') right('Define', '-') </suggest>
 defthm (df-qminus nat (-q A B) () () (=q (-q A B) (+q A (-qn B)))
   (+q A (-qn B)) eqqid
 )
@@ -3458,6 +3558,31 @@ thm (qaddcan () () (-> (e. A (rationals)) (=q (-q A A) (0q)))
   ## </d 'Numerator is 0'>
 )
 
+## <title> Cancel using Subtraction </title>
+thm (qaddcan2 () () (-> (/\ (=q A B) (e. B (rationals))) (=q (-q A B) (0q)))
+  A B B qminuseqq1
+  B qaddcan
+  anim12i  
+  ## <d 'Transitive Property '>
+    (-q A B) (-q B B) (0q) eqqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Subtraction Identity </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (qminusid () () (=q (-q A (0q)) A)
+  A (0q) df-qminus  
+  ## <d 'Negative of 0 is 0 '>
+    qneg0
+    QeqReplaceQeq1Qadd1
+  ## </d 'Negative of 0 is 0 '>  
+  ## <d 'Rational Addition Identity '>
+    A qaddid
+    QeqReplaceQeq1
+  ## </d 'Rational Addition Identity '>
+)
+
 ## <summary>
 ##   Division by 1 is a homomorphism respecting <a href="df-qmul">multiplication</a>.
 ## </summary>
@@ -3596,6 +3721,13 @@ thm (ifneqq3 () () (-> (=q A C) (=q (ifn ph B A) (ifn ph B C)))
 )
 
 ## <title> Definition of Division </title>
+## <summary>
+##   Division is defined by multiplying a number with its numerator and denominator reversed.
+##   NaN needs to be treated as a special case since it represents x/0 for any arbitrary value of x.
+##   Reversing the numerator and denominator in this case might result in the number 0 when x is nonzero
+##   or in the number 0/0 when x is zero. For division to be well-defined we treat NaN as a special
+##   case that always returns NaN.
+## </summary>
 ## <suggest> left('Simplify', '/') right('Define', '/') </suggest>
 defthm (df-qdiv nat (/ A B) () () (=q (/ A B) (ifn (e. B (rationals)) (*q A (</> (bottom B) (top B))) (NaN)))
   (ifn (e. B (rationals)) (*q A (</> (bottom B) (top B))) (NaN)) eqqid
@@ -3610,8 +3742,6 @@ thm (qdiveqq1 () () (-> (=q A C) (=q (/ A B) (/ C B)))
   C B df-qdiv eqqcomi    
   QeqReplaceImp1Qeq1
 )
-
-
 
 ## <title> Substitution </title>
 ## <table>
@@ -3930,6 +4060,33 @@ thm (elRationalEqq () () (-> (=q A B) (<-> (/\ (e. A (rationals)) (e. B (rationa
   ## </d 'Double Negative '>
 )
 
+## <title> Closure of rationals under subtraction </title>
+thm (qminusClosure () () (-> (/\ (e. A (rationals)) (e. B (rationals))) (e. (-q A B) (rationals)))
+  A (-qn B) qaddClosure
+  ## <d>
+  B qnegClosure  
+  BiReplaceBi1An1  
+  ## </d>
+  ## <d 'Infer Right to Left '>
+    (e. (+q A (-qn B)) (rationals)) (/\ (e. A (rationals)) (e. B (rationals))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>
+  ## <d 'Definition of Minus'>
+  A B df-qminus eqqcomi
+  (+q A (-qn B)) (-q A B) elRationalEqq    
+  ## <d 'Infer Right to Left '>
+    (/\ (e. (+q A (-qn B)) (rationals)) (e. (-q A B) (rationals))) (e. (+q A (-qn B)) (rationals)) bi2
+    syl
+  ## </d 'Infer Right to Left '>  
+  ## <d 'Remove Left Side of AND '>
+    (e. (+q A (-qn B)) (rationals)) (e. (-q A B) (rationals)) pm3.27
+    ImpReplaceImp1Imp1
+  ## </d 'Remove Left Side of AND '>
+  ax-mp
+  syl
+  ## </d>
+)
+
 thm (ifnbi1q () () (-> (<-> ph ps) (=q (ifn ph A B) (ifn ps A B)))
   ph ps A B ifnbi1 eqeqqd
 )
@@ -4172,6 +4329,13 @@ thm (df-qdivNaN () () (-> (-. (e. B (rationals))) (=q (/ A B) (NaN)))
   ## </d 'Definition of Division '>
 )
 
+## <title> Divide by NaN </title>
+thm (qdivNaN () () (=q (/ A (NaN)) (NaN))
+  irrationalNaN
+  (NaN) A df-qdivNaN  
+  ax-mp
+)
+
 ## <title> Divide by 0 </title>
 ## <summary> Division by 0 gives Not a Number.
 thm (divideBy0 () () (=q (/ A (0q)) (NaN))
@@ -4349,6 +4513,7 @@ thm (QeqReplaceImp1Qeq0Qdiv1 () (
 )
 
 ## <title> Cancel using Division </title>
+## <suggest> right('Simplify', '1') </suggest>
 thm (qdivcan () () (-> (/\ (-. (=q A (0q))) (e. A (rationals))) (=q (/ A A) (1q)))
   ## <d>
     (bottom A) (top A) (bottom A) (top A) qdivfrac
@@ -4441,6 +4606,1433 @@ thm (qdivid () () (=q (/ A (1q)) A)
     A fracExpand eqqcomi
     QeqReplaceQeq1
   ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=z (*z A  [ B ]   ]   ] ) D))
+##   (=z               [ B ]   [ C ] )
+##   (-> ph (=z (*z A  [   [   [ C ] ) D))
+## </table>
+thm (ZeqReplaceImp1Zeq0Zmul1 () (
+     replacee (-> ph (=z (*z A B) D))
+     substitution (=z B C)) 
+     (-> ph (=z (*z A C) D))
+  replacee substitution
+  A zmulzeq2i
+  ZeqReplaceImp1Zeq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=z A (*z  [ B ]   ]   ]  D)))
+##   (=z               [ B ]   [ C ] )
+##   (-> ph (=z A (*z  [   [   [ C ]  D)))
+## </table>
+thm (ZeqReplaceImp1Zeq1Zmul0 () (
+     replacee (-> ph (=z A (*z B D)))
+     substitution (=z B C)) 
+     (-> ph (=z A (*z C D)))
+  replacee substitution
+  D zmulzeq1i
+  ZeqReplaceImp1Zeq1
+)
+
+thm (top0b () () (<-> (=q A (0q)) (/\ (=z (top A) (0z)) (-. (=z (bottom A) (0z)))))
+  A (</> (0z) (1z)) df-eqq
+  df-0q eqqcomi  
+  QeqReplaceBi0Qeq1
+  ## <d>
+  ## <d 'Grab the bottom of a fraction '>
+    (0z) (1z) bottomfrac
+    ZeqReplaceBi1An0Zeq0Zmul1
+  ## </d 'Grab the bottom of a fraction '>  
+  ## <d 'Grab the top of a fraction '>
+    (0z) (1z) topfrac
+    ZeqReplaceBi1An0Zeq1Zmul0
+  ## </d 'Grab the top of a fraction '>  
+  ## <d 'Grab the bottom of a fraction '>
+    (0z) (1z) bottomfrac
+    ZeqReplaceBi1An1Bi1Zeq0
+  ## </d 'Grab the bottom of a fraction '>
+  ## </d>  
+  ## <d 'Multiply by 0 '>
+    (bottom A) zmul0r
+    ZeqReplaceBi1An0Zeq1
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Integer Multiplication Identity '>
+    (top A) zmulid
+    ZeqReplaceBi1An0Zeq0
+  ## </d 'Integer Multiplication Identity '>
+  0zless1    
+  ## <d 'Operator Conversion '>
+    (0z) (1z) zltneq
+    ax-mp
+  ## </d 'Operator Conversion '>    
+    ## <d 'Symmetric Property '>
+      (0z) (1z) zeqcom
+      mtbi
+    ## </d 'Symmetric Property '>    
+    (=z (bottom A) (0z)) biNotRemove2
+    (=z (top A) (0z)) anbi2i
+    bitri
+)
+
+## <title> Multiply by 0 </title>
+thm (qmul0 () () (-> (e. A (rationals)) (=q (*q A (0q)) (0q)))
+  ## <d 'Expand Numerator and Denominator'>
+  df-0q
+  A qmuleqq2i  
+  A (</> (0z) (1z)) df-qmul
+  (*q A (0q)) eqqeqq2i
+  mpbi
+  ## <d 'Grab the top of a fraction '>
+    (0z) (1z) topfrac
+    ZeqReplaceQeq1Frac0Zmul1
+  ## </d 'Grab the top of a fraction '>  
+  ## <d 'Grab the bottom of a fraction '>
+    (0z) (1z) bottomfrac
+    ZeqReplaceQeq1Frac1Zmul1
+  ## </d 'Grab the bottom of a fraction '>
+  ## </d>
+  
+  ## <d 'Integer Identities'>
+  ## <d 'Multiply by 0 '>
+    (top A) zmul0
+    ZeqReplaceQeq1Frac0
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Integer Multiplication Identity '>
+    (bottom A) zmulid
+    ZeqReplaceQeq1Frac1
+  ## </d 'Integer Multiplication Identity '>
+  ## </d 'Integer Identities'>
+  ## <d 'Simplify when denominator is not 0'>
+  (e. A (rationals)) a1i
+  (</> (0z) (bottom A)) top0b  
+  ## <d 'Grab the top of a fraction '>
+    (0z) (bottom A) topfrac
+    ZeqReplaceBi1An0Zeq0
+  ## </d 'Grab the top of a fraction '>  
+  ## <d 'Grab the bottom of a fraction '>
+    (0z) (bottom A) bottomfrac
+    ZeqReplaceBi1An1Not0Zeq0
+  ## </d 'Grab the bottom of a fraction '>
+  ## <d>
+  (0z) zeqid  
+  (-. (=z (bottom A) (0z))) anRemove1
+  (=q (</> (0z) (bottom A)) (0q)) bibi2i
+  mpbi
+  ## </d>  
+  ## <d 'Infer Right to Left '>
+    (=q (</> (0z) (bottom A)) (0q)) (-. (=z (bottom A) (0z))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>
+  ## <d>
+  A bottomNot0 bicomi  
+  sylbi2
+  ## </d>
+  eqqtrd
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q (/ (*q  [ A ]   ]   ]  C) D) A')
+##   (=q         [ A ]   [ B ] )
+##   (=q (/ (*q  [   [   [ B ]  C) D) A')
+## </table>
+thm (QeqReplaceQeq0Qdiv0Qmul0 () (
+     replacee (=q (/ (*q A C) D) A')
+     substitution (=q A B)) 
+     (=q (/ (*q B C) D) A')
+  replacee substitution
+  C qmuleqq1i
+  QeqReplaceQeq0Qdiv0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q (/ (*q A  [ B ]   ]   ] ) D) A')
+##   (=q           [ B ]   [ C ] )
+##   (=q (/ (*q A  [   [   [ C ] ) D) A')
+## </table>
+thm (QeqReplaceQeq0Qdiv0Qmul1 () (
+     replacee (=q (/ (*q A B) D) A')
+     substitution (=q B C)) 
+     (=q (/ (*q A C) D) A')
+  replacee substitution
+  A qmuleqq2i
+  QeqReplaceQeq0Qdiv0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=q (*q  [ A ]   ]   ]  C) D))
+##   (=q             [ A ]   [ B ] )
+##   (-> ph (=q (*q  [   [   [ B ]  C) D))
+## </table>
+thm (QeqReplaceImp1Qeq0Qmul0 () (
+     replacee (-> ph (=q (*q A C) D))
+     substitution (=q A B)) 
+     (-> ph (=q (*q B C) D))
+  replacee substitution
+  C qmuleqq1i
+  QeqReplaceImp1Qeq0
+)
+
+## <title> Ass. Multiply & Divide </title>
+## <summary> Reorder multiplication and division. </summary>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+thm (qdivmulass () () (=q (/ (*q A B) C) (*q A (/ B C)))
+  (bottom C) (*z (top A) (top B)) (*z (bottom A) (bottom B)) (top C) qdivfrac
+  (top A) (bottom A) (top B) (bottom B) qmulfrac
+  (</> (top C) (bottom C)) qdiveqq1i  
+  ## <d>
+  ## <d>
+    A fracExpand eqqcomi
+    QeqReplaceQeq0Qdiv0Qmul0
+  ## </d>  
+  ## <d>
+    B fracExpand eqqcomi
+    QeqReplaceQeq0Qdiv0Qmul1
+  ## </d>  
+  ## <d>
+    C fracExpand eqqcomi
+    QeqReplaceQeq0Qdiv1
+  ## </d>
+  ## </d>
+  eqqcomi  
+  QeqReplaceImp1Qeq0
+
+  (bottom C) (top B) (bottom B) (top C) qdivfrac  
+  ## <d>
+    B fracExpand eqqcomi
+    QeqReplaceImp1Qeq0Qdiv0
+  ## </d>  
+  ## <d>
+    C fracExpand eqqcomi
+    QeqReplaceImp1Qeq0Qdiv1
+  ## </d>
+  (</> (top A) (bottom A)) qmuleqq2d  
+  ## <d>
+    A fracExpand eqqcomi
+    QeqReplaceImp1Qeq0Qmul0
+  ## </d>
+  
+  ## <d 'Multiply Fractions '>
+    (top A) (bottom A) (*z (top B) (bottom C)) (*z (bottom B) (top C)) qmulfrac
+    QeqReplaceImp1Qeq1
+  ## </d 'Multiply Fractions '>  
+  ## <d 'Associative Property of Integer Multiplication '>
+    (top A) (top B) (bottom C) zmulass zeqcomi
+    ZeqReplaceImp1Qeq1Frac0
+  ## </d 'Associative Property of Integer Multiplication '>
+  
+  ## <d 'Associative Property of Integer Multiplication '>
+    (bottom A) (bottom B) (top C) zmulass zeqcomi
+    ZeqReplaceImp1Qeq1Frac1
+  ## </d 'Associative Property of Integer Multiplication '>  
+  ## <d 'Symmetric Property '>
+    (*q A (/ B C)) (</> (*z (*z (top A) (top B)) (bottom C)) (*z (*z (bottom A) (bottom B)) (top C))) eqqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  eqqtrd
+
+  ## <d 'NaN case'>
+  ## <d 'NaN case'>
+  C (*q A B) df-qdivNaN
+  C bottomNot0  
+  BiReplaceImp0Not0  
+  ## <d 'Double Negative '>
+    (=z (bottom C) (0z)) notnotr
+    sylbi2
+  ## </d 'Double Negative '>
+
+  C B df-qdivNaN
+  C bottomNot0  
+  BiReplaceImp0Not0  
+  ## <d 'Double Negative '>
+    (=z (bottom C) (0z)) notnotr
+    sylbi2
+  ## </d 'Double Negative '>
+  A qmuleqq2d
+  A qmulNaN  
+  QeqReplaceImp1Qeq1  
+  ## <d 'Symmetric Property '>
+    (*q A (/ B C)) (NaN) eqqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  eqqtrd
+  ## </d 'NaN case'>
+  jaoi  
+
+  ## <d 'Commutative Property of OR '>
+    (-. (=z (bottom C) (0z))) (=z (bottom C) (0z)) orcom
+    sylbi2
+  ## </d 'Commutative Property of OR '>  
+  ## <d 'Excluded Middle'>
+    (=z (bottom C) (0z)) exmid
+    ax-mpRemove
+  ## </d 'Excluded Middle'>
+  ## </d 'NaN case'>
+)
+
+## <title> Division is multiplying by reciprocal </title>
+## <summary>
+##   Division is identical to multiplying by the reciprocal of
+##   a number.
+## </summary>
+## <suggest> left('Simplify', '/') </suggest>
+thm (qdivReciprocal () () (=q (/ A B) (*q A (/ (1q) B)))
+  A (1q) B qdivmulass
+  ## <d 'Rational Multiplication Identity '>
+    A qmulid
+    QeqReplaceQeq0Qdiv0
+  ## </d 'Rational Multiplication Identity '>
+)
+
+## <title> Distributive Property </title>
+## <summary> Distribute division over addition </title>
+thm (qdivdist () () (=q (/ (+q A B) C) (+q (/ A C) (/ B C)))
+  A C qdivReciprocal
+  B C qdivReciprocal
+  qaddeqq12i  
+  ## <d 'Distributive Property '>
+    A (/ (1q) C) B qdistl
+    QeqReplaceQeq1
+  ## </d 'Distributive Property '>
+  ## <d>
+    (+q A B) C qdivReciprocal eqqcomi  
+    QeqReplaceQeq1
+  ## </d>
+  eqqcomi
+)
+
+## <title> Cancel using Division </title>
+thm (qdivcan2 () () (-> (/\ (-. (=q A (0q))) (e. A (rationals))) (=q (/ (*q B A) A) B))
+  A qdivcan
+  B qmuleqq2d  
+  ## <d 'Rational Multiplication Identity '>
+    B qmulid
+    QeqReplaceImp1Qeq1
+  ## </d 'Rational Multiplication Identity '>
+  ## <d>
+  B A A qdivmulass eqqcomi  
+  QeqReplaceImp1Qeq0
+  ## </d>
+)
+
+## <title> Cancel using Division </title>
+thm (qdivcan3 () () (-> (/\ (-. (=q A (0q))) (e. A (rationals))) (=q (/ (*q A B) A) B))
+  A B qdivcan2  
+  ## <d 'Commutative Property of Multiplication '>
+    B A qmulcom
+    QeqReplaceImp1Qeq0Qdiv0
+  ## </d 'Commutative Property of Multiplication '>
+)
+
+## <title> Definition of a Positive Rational </title>
+## <summary>
+##   This definition is used to construct the <a href="df-zlt">definition of less than </a>.
+##   Once less than is defined <a href="qltpos">the usual definition</a> holds.
+## </summary>
+## <suggest> left('Simplify', '+') </suggest>
+defthm (df-qpos wff (qpos A) () () (<-> (qpos A) (zpos (*z (top A) (bottom A))))
+  (zpos (*z (top A) (bottom A))) biid
+)
+
+
+thm (notPosTop0 () () (-> (=z (top A) (0z)) (-. (qpos A)))
+  (=z (top A) (0z)) (=z (bottom A) (0z)) orc
+  (top A) (bottom A) zeroFactors  
+  ## <d 'Infer Right to Left '>
+    (=z (*z (top A) (bottom A)) (0z)) (\/ (=z (top A) (0z)) (=z (bottom A) (0z))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  syl
+  (*z (top A) (bottom A)) 0NotPos  
+  syl
+  A df-qpos bicomi  
+  BiReplaceImp1Not0
+)
+
+thm (notPosBottom0 () () (-> (=z (bottom A) (0z)) (-. (qpos A)))
+  (=z (bottom A) (0z)) (=z (top A) (0z)) olc
+  (top A) (bottom A) zeroFactors  
+  
+  ## <d 'Infer Right to Left '>
+    (=z (*z (top A) (bottom A)) (0z)) (\/ (=z (top A) (0z)) (=z (bottom A) (0z))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  syl
+  (*z (top A) (bottom A)) 0NotPos  
+  syl
+  A df-qpos bicomi  
+  BiReplaceImp1Not0
+)
+
+thm (qposeqq.1 () () (-> (=q A B) (-> (\/ (=z (bottom A) (0z)) (=z (top A) (0z))) (<-> (qpos A) (qpos B))))
+  A B dfeqq2  
+  ## <d 'Infer Left to Right '>
+    (=z (bottom A) (0z)) (=z (bottom B) (0z)) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  (=z (bottom A) (0z)) (=z (bottom B) (0z)) ancl  
+  syl
+  A notPosBottom0
+  B notPosBottom0
+  anim12i
+  (qpos A) (qpos B) pm5.21  
+  syl  
+  ImpReplaceImp1Imp1
+
+  A notPosTop0
+  (-. (=z (bottom A) (0z))) adantr
+  (=q A B) adantl
+
+  B A (0q) eqqtr  
+  ## <d 'Symmetric Property '>
+    B A eqqcom
+    BiReplaceImp0An0
+  ## </d 'Symmetric Property '>
+  A top0b  
+  BiReplaceImp0An1
+  B top0b    
+  sylib
+  ## <d 'Remove Right Side of AND '>
+    (=z (top B) (0z)) (-. (=z (bottom B) (0z))) pm3.26
+    syl
+  ## </d 'Remove Right Side of AND '>
+  B notPosTop0    
+  syl
+  jca
+  (qpos A) (qpos B) pm5.21    
+  syl  
+  ## <d 'Import-Export Theorem '>
+    (=q A B) (/\ (=z (top A) (0z)) (-. (=z (bottom A) (0z)))) (<-> (qpos A) (qpos B)) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jaod  
+  ## <d 'Distributive Property '>
+    (=z (bottom A) (0z)) (=z (top A) (0z)) (-. (=z (bottom A) (0z))) ordi
+    BiReplaceImp1Imp0
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Excluded Middle'>
+    (=z (bottom A) (0z)) exmid
+    
+    (\/ (=z (bottom A) (0z)) (=z (top A) (0z))) anRemove2
+    (<-> (qpos A) (qpos B)) imbi1i
+    sylib
+  ## </d 'Excluded Middle'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=z A (*z (*z B  [ C ]   ]   ] ) A')))
+##   (=z                     [ C ]   [ D ] )
+##   (-> ph (=z A (*z (*z B  [   [   [ D ] ) A')))
+## </table>
+thm (ZeqReplaceImp1Zeq1Zmul0Zmul1 () (
+     replacee (-> ph (=z A (*z (*z B C) A')))
+     substitution (=z C D)) 
+     (-> ph (=z A (*z (*z B D) A')))
+  replacee substitution
+  B zmulzeq2i
+  ZeqReplaceImp1Zeq1Zmul0
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (<->  [ ch ]   ]    ]  ta)))
+##   (<->                [ ch ]   [ th ] )
+##   (-> ph (-> ps (<->  [    [   [ th ]  ta)))
+## </table>
+thm (BiReplaceImp1Imp1Bi0 () (
+     replacee (-> ph (-> ps (<-> ch ta)))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (<-> th ta)))
+  replacee substitution
+  ta bibi1i
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (<-> ch  [ th ]   ]    ] )))
+##   (<->                   [ th ]   [ ta ] )
+##   (-> ph (-> ps (<-> ch  [    [   [ ta ] )))
+## </table>
+thm (BiReplaceImp1Imp1Bi1 () (
+     replacee (-> ph (-> ps (<-> ch th)))
+     substitution (<-> th ta)) 
+     (-> ph (-> ps (<-> ch ta)))
+  replacee substitution
+  ch bibi2i
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/  [ ps ]   ]    ]  th)))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (-. (\/  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Not0Or0 () (
+     replacee (<-> ph (-. (\/ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (\/ ch th)))
+  replacee substitution
+  th orbi1i
+  BiReplaceBi1Not0
+)
+
+thm (qposeqq () () (-> (=q A B) (<-> (qpos A) (qpos B)))
+  A B dfeqq1
+  ## <d 'Multiply Both Sides by Numerator of A'>
+  (top A) zmulzeq2d
+  ## <d 'Associative Property of Integer Multiplication '>
+    (top A) (top A) (bottom B) zmulass zeqcomi
+    ZeqReplaceImp1Zeq0
+  ## </d 'Associative Property of Integer Multiplication '>
+  ## </d 'Multiply Both Sides by Numerator of A'>
+  ## <d 'Multiply Both Sides by Denominator of B'>
+  (bottom B) zmulzeq1d
+  ## <d 'Associative Property of Integer Multiplication '>
+    (*z (top A) (top A)) (bottom B) (bottom B) zmulass
+    ZeqReplaceImp1Zeq0
+  ## </d 'Associative Property of Integer Multiplication '>
+  ## </d 'Multiply Both Sides by Denominator of B'>
+  ## <d 'Associate & Commute'>
+  ## <d 'Commutative Property of Multiplication '>
+    (top B) (bottom A) zmulcom
+    ZeqReplaceImp1Zeq1Zmul0Zmul1
+  ## </d 'Commutative Property of Multiplication '>  
+  ## <d 'Associative Property of Integer Multiplication '>
+    (top A) (bottom A) (top B) zmulass zeqcomi
+    ZeqReplaceImp1Zeq1Zmul0
+  ## </d 'Associative Property of Integer Multiplication '>  
+  ## <d 'Associative Property of Integer Multiplication '>
+    (*z (top A) (bottom A)) (top B) (bottom B) zmulass
+    ZeqReplaceImp1Zeq1
+  ## </d 'Associative Property of Integer Multiplication '>
+  ## </d 'Associate & Commute'>
+
+  (*z (*z (top A) (top A)) (*z (bottom B) (bottom B))) 
+  (*z (*z (top A) (bottom A)) (*z (top B) (bottom B))) zposeq  
+  syl
+  (/\ (-. (=z (top A) (0z))) (-. (=z (bottom A) (0z)))) a1d
+
+  ## <d>
+  (top A) posSquares
+  (=q A B) a1i
+  A B dfeqq2  
+  ## <d 'Negate Both Sides '>
+    (=z (bottom A) (0z)) (=z (bottom B) (0z)) notbi
+    sylib
+  ## </d 'Negate Both Sides '>
+  
+  ## <d 'Infer Left to Right '>
+    (-. (=z (bottom A) (0z))) (-. (=z (bottom B) (0z))) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  (bottom B) posSquares  
+  ImpReplaceImp1Imp1
+  anim12d
+  (*z (top A) (top A)) (*z (bottom B) (bottom B)) posproduct1  
+  ImpReplaceImp1Imp1
+  jcad  
+  ## <d 'Commute Conjunction '>
+    (<-> (zpos (*z (*z (top A) (top A)) (*z (bottom B) (bottom B)))) (zpos (*z (*z (top A) (bottom A)) (*z (top B) (bottom B))))) (zpos (*z (*z (top A) (top A)) (*z (bottom B) (bottom B)))) ancom
+    BiReplaceImp1Imp1
+  ## </d 'Commute Conjunction '>  
+  ## <d>
+    (zpos (*z (*z (top A) (top A)) (*z (bottom B) (bottom B)))) (zpos (*z (*z (top A) (bottom A)) (*z (top B) (bottom B)))) pm5.36
+    BiReplaceImp1Imp1
+  ## </d>  
+  ## <d 'Remove Right Side of AND '>
+    (zpos (*z (*z (top A) (bottom A)) (*z (top B) (bottom B)))) (<-> (zpos (*z (*z (top A) (top A)) (*z (bottom B) (bottom B)))) (zpos (*z (*z (top A) (bottom A)) (*z (top B) (bottom B))))) pm3.26
+    ImpReplaceImp1Imp1
+  ## </d 'Remove Right Side of AND '>
+  (*z (top A) (bottom A)) (*z (top B) (bottom B)) productPos    
+  ImpReplaceImp1Imp1
+  ## <d>
+  A df-qpos bicomi  
+  BiReplaceImp1Imp1Bi0
+  B df-qpos bicomi    
+  BiReplaceImp1Imp1Bi1
+  ## </d>  
+  ## <d 'DeMorgan's Law '>
+    (-. (=z (top A) (0z))) (-. (=z (bottom A) (0z))) anor
+    (=z (top A) (0z)) notnotr
+    BiReplaceBi1Not0Or0
+    (=z (bottom A) (0z)) notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceImp1Imp0
+  ## </d 'DeMorgan's Law '>
+
+  A B qposeqq.1  
+  ## <d 'Commutative Property of OR '>
+    (=z (bottom A) (0z)) (=z (top A) (0z)) orcom
+    BiReplaceImp1Imp0
+  ## </d 'Commutative Property of OR '>
+  jaod  
+  ## <d 'Commutative Property of OR '>
+    (-. (\/ (=z (top A) (0z)) (=z (bottom A) (0z)))) (\/ (=z (top A) (0z)) (=z (bottom A) (0z))) orcom
+    BiReplaceImp1Imp0
+  ## </d 'Commutative Property of OR '>
+  ## <d 'Definition of OR '>
+    (\/ (=z (top A) (0z)) (=z (bottom A) (0z))) exmid
+    
+    (<-> (qpos A) (qpos B)) impRemove1
+    (=q A B) imbi2i
+    mpbi
+  ## </d 'Definition of OR '>
+)
+
+thm (qposeqqi () (
+     hyp1 (=q A B))
+     (<-> (qpos A) (qpos B))
+  hyp1
+  A B qposeqq
+  ax-mp
+)
+
+thm (qposeqqd () (
+     hyp1 (-> ph (=q A B)))
+     (-> ph (<-> (qpos A) (qpos B)))
+  hyp1
+  A B qposeqq
+  syl
+)
+
+## <title> Def. Rational Less Than </title>
+## <suggest> left('Simplify', '<') </suggest>
+defthm (df-qlt wff (<q A B) () () (<-> (<q A B) (qpos (-q B A)))
+  (qpos (-q B A)) biid
+)
+
+## <title> Equivalence for <q </title> ##
+thm (qlteqq1 () () (-> (=q A C) (<-> (<q A B) (<q C B)))
+  (=q A C) id
+  B qminuseqq2d
+  qposeqqd
+  A B df-qlt
+  ## <d 'Commutative Property'>
+    (<q A B) (qpos (-q B A)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  C B df-qlt
+  ## <d 'Commutative Property'>
+    (<q C B) (qpos (-q B C)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (qlteqq1i () (
+     hyp1 (=q A C))
+     (<-> (<q A B) (<q C B))
+  hyp1
+  A C B qlteqq1
+  ax-mp
+)
+
+## <title> Equivalence for <q </title> ##
+thm (qlteqq2 () () (-> (=q B C) (<-> (<q A B) (<q A C)))
+  (=q B C) id
+  A qminuseqq1d
+  qposeqqd
+  A B df-qlt
+  ## <d 'Commutative Property'>
+    (<q A B) (qpos (-q B A)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A C df-qlt
+  ## <d 'Commutative Property'>
+    (<q A C) (qpos (-q C A)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+thm (qlteqq1d () (
+     hyp1 (-> ph (=q A C)))
+     (-> ph (<-> (<q A B) (<q C B)))
+  hyp1
+  A C B qlteqq1
+  syl
+)
+
+thm (qlteqq2i () (
+     hyp1 (=q B C))
+     (<-> (<q A B) (<q A C))
+  hyp1
+  B C A qlteqq2
+  ax-mp
+)
+
+## <title> Equivalence for <q </title> ##
+thm (qlteqq12 () () (-> (/\ (=q A B) (=q C D)) (<-> (<q A C) (<q B D)))
+  A B C qlteqq1
+  C D B qlteqq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (<q A C) (<q B C) (<q B D) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (qlteqq2d () (
+     hyp1 (-> ph (=q B C)))
+     (-> ph (<-> (<q A B) (<q A C)))
+  hyp1
+  B C A qlteqq2
+  syl
+)
+
+thm (qlteqq12d () (
+     hyp1 (-> ph (=q A B))
+     hyp2 (-> ph (=q C D)))
+     (-> ph (<-> (<q A C) (<q B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D qlteqq12
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (qpos  [ A ]   ]   ] ))
+##   (=q            [ A ]   [ B ] )
+##   (<-> ph (qpos  [   [   [ B ] ))
+## </table>
+thm (QeqReplaceBi1Qpos0 () (
+     replacee (<-> ph (qpos A))
+     substitution (=q A B)) 
+     (<-> ph (qpos B))
+  replacee substitution
+  qposeqqi
+  bitri
+)
+
+## <title> Alternative Def. of Positive Rational </title>
+## <summary>
+##   The <a href="df-df-qpos">definition of positive rationals</a> was used to construct the
+##   definition of less than. This theorem shows that the usual definition
+##   of a positive number holds once less than has been defined.
+## </summary>
+thm (qltpos () () (<-> (<q (0q) A) (qpos A))
+  (0q) A df-qlt  
+  ## <d 'Subtraction Identity '>
+    A qminusid
+    QeqReplaceBi1Qpos0
+  ## </d 'Subtraction Identity '>
+)
+
+## <title> Def. Rational Less Than or Equal </title>
+defthm (df-qle wff (<=q A B) () () (<-> (<=q A B) (\/ (<q A B) (=q A B)))
+  (\/ (<q A B) (=q A B)) biid
+)
+
+## <title> Equivalence for <=q </title> ##
+thm (qleeqq1 () () (-> (=q A C) (<-> (<=q A B) (<=q C B)))
+  (=q A C) id
+  B qlteqq1d
+  (=q A C) id
+  B eqqeqq1d
+  orbi12d
+  A B df-qle
+  ## <d 'Commutative Property'>
+    (<=q A B) (\/ (<q A B) (=q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  C B df-qle
+  ## <d 'Commutative Property'>
+    (<=q C B) (\/ (<q C B) (=q C B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (qleeqq1i () (
+     hyp1 (=q A C))
+     (<-> (<=q A B) (<=q C B))
+  hyp1
+  A C B qleeqq1
+  ax-mp
+)
+
+## <title> Equivalence for <=q </title> ##
+thm (qleeqq2 () () (-> (=q B C) (<-> (<=q A B) (<=q A C)))
+  (=q B C) id
+  A qlteqq2d
+  (=q B C) id
+  A eqqeqq2d
+  orbi12d
+  A B df-qle
+  ## <d 'Commutative Property'>
+    (<=q A B) (\/ (<q A B) (=q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A C df-qle
+  ## <d 'Commutative Property'>
+    (<=q A C) (\/ (<q A C) (=q A C)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+thm (qleeqq1d () (
+     hyp1 (-> ph (=q A C)))
+     (-> ph (<-> (<=q A B) (<=q C B)))
+  hyp1
+  A C B qleeqq1
+  syl
+)
+
+thm (qleeqq2i () (
+     hyp1 (=q B C))
+     (<-> (<=q A B) (<=q A C))
+  hyp1
+  B C A qleeqq2
+  ax-mp
+)
+
+## <title> Equivalence for <=q </title> ##
+thm (qleeqq12 () () (-> (/\ (=q A B) (=q C D)) (<-> (<=q A C) (<=q B D)))
+  A B C qleeqq1
+  C D B qleeqq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (<=q A C) (<=q B C) (<=q B D) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+thm (qleeqq2d () (
+     hyp1 (-> ph (=q B C)))
+     (-> ph (<-> (<=q A B) (<=q A C)))
+  hyp1
+  B C A qleeqq2
+  syl
+)
+
+thm (qleeqq12d () (
+     hyp1 (-> ph (=q A B))
+     hyp2 (-> ph (=q C D)))
+     (-> ph (<-> (<=q A C) (<=q B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D qleeqq12
+  syl
+)
+
+## <title> Def. of Rational Greater than or Equal </title>
+defthm (df-qge wff (>=q A B) () ()
+      (<-> (>=q A B) (-. (<q A B)))
+  (-. (<q A B)) biid
+)
+
+## <title> Equivalence for >=q </title> ##
+thm (qgeeqq1 () () (-> (=q A C) (<-> (>=q A B) (>=q C B)))
+  (=q A C) id
+  B qlteqq1d
+  notbid
+  A B df-qge
+  ## <d 'Commutative Property'>
+    (>=q A B) (-. (<q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  C B df-qge
+  ## <d 'Commutative Property'>
+    (>=q C B) (-. (<q C B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (qgeeqq1i () (
+     hyp1 (=q A C))
+     (<-> (>=q A B) (>=q C B))
+  hyp1
+  A C B qgeeqq1
+  ax-mp
+)
+
+## <title> Equivalence for >=q </title> ##
+thm (qgeeqq2 () () (-> (=q B C) (<-> (>=q A B) (>=q A C)))
+  (=q B C) id
+  A qlteqq2d
+  notbid
+  A B df-qge
+  ## <d 'Commutative Property'>
+    (>=q A B) (-. (<q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A C df-qge
+  ## <d 'Commutative Property'>
+    (>=q A C) (-. (<q A C)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+
+thm (qgeeqq1d () (
+     hyp1 (-> ph (=q A C)))
+     (-> ph (<-> (>=q A B) (>=q C B)))
+  hyp1
+  A C B qgeeqq1
+  syl
+)
+
+thm (qgeeqq2i () (
+     hyp1 (=q B C))
+     (<-> (>=q A B) (>=q A C))
+  hyp1
+  B C A qgeeqq2
+  ax-mp
+)
+
+## <title> Equivalence for >=q </title> ##
+thm (qgeeqq12 () () (-> (/\ (=q A B) (=q C D)) (<-> (>=q A C) (>=q B D)))
+  A B C qgeeqq1
+  C D B qgeeqq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (>=q A C) (>=q B C) (>=q B D) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (qgeeqq2d () (
+     hyp1 (-> ph (=q B C)))
+     (-> ph (<-> (>=q A B) (>=q A C)))
+  hyp1
+  B C A qgeeqq2
+  syl
+)
+
+thm (qgeeqq12d () (
+     hyp1 (-> ph (=q A B))
+     hyp2 (-> ph (=q C D)))
+     (-> ph (<-> (>=q A C) (>=q B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D qgeeqq12
+  syl
+)
+
+
+
+## <title> Definition of Rational Greater than </title>
+defthm (df-qgt wff (>q A B) () ()
+      (<-> (>q A B) (-. (<=q A B)))
+  (-. (<=q A B)) biid
+)
+
+## <title> Equivalence for >q </title> ##
+thm (qgteqq1 () () (-> (=q A C) (<-> (>q A B) (>q C B)))
+  (=q A C) id
+  B qleeqq1d
+  notbid
+  A B df-qgt
+  ## <d 'Commutative Property'>
+    (>q A B) (-. (<=q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  C B df-qgt
+  ## <d 'Commutative Property'>
+    (>q C B) (-. (<=q C B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (qgteqq1i () (
+     hyp1 (=q A C))
+     (<-> (>q A B) (>q C B))
+  hyp1
+  A C B qgteqq1
+  ax-mp
+)
+
+## <title> Equivalence for >q </title> ##
+thm (qgteqq2 () () (-> (=q B C) (<-> (>q A B) (>q A C)))
+  (=q B C) id
+  A qleeqq2d
+  notbid
+  A B df-qgt
+  ## <d 'Commutative Property'>
+    (>q A B) (-. (<=q A B)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A C df-qgt
+  ## <d 'Commutative Property'>
+    (>q A C) (-. (<=q A C)) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+
+thm (qgteqq1d () (
+     hyp1 (-> ph (=q A C)))
+     (-> ph (<-> (>q A B) (>q C B)))
+  hyp1
+  A C B qgteqq1
+  syl
+)
+
+thm (qgteqq2i () (
+     hyp1 (=q B C))
+     (<-> (>q A B) (>q A C))
+  hyp1
+  B C A qgteqq2
+  ax-mp
+)
+
+## <title> Equivalence for >q </title> ##
+thm (qgteqq12 () () (-> (/\ (=q A B) (=q C D)) (<-> (>q A C) (>q B D)))
+  A B C qgteqq1
+  C D B qgteqq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (>q A C) (>q B C) (>q B D) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (qgteqq2d () (
+     hyp1 (-> ph (=q B C)))
+     (-> ph (<-> (>q A B) (>q A C)))
+  hyp1
+  B C A qgteqq2
+  syl
+)
+
+thm (qgteqq12d () (
+     hyp1 (-> ph (=q A B))
+     hyp2 (-> ph (=q C D)))
+     (-> ph (<-> (>q A C) (>q B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D qgteqq12
+  syl
+)
+
+## <title> Product of positive numbers is positive </title>
+thm (qposproduct1 () () (-> (/\ (qpos A) (qpos B)) (qpos (*q A B)))
+  A df-qpos
+  B df-qpos
+  anbi12i
+  ## <d 'Infer Left to Right '>
+    (/\ (qpos A) (qpos B)) (/\ (zpos (*z (top A) (bottom A))) (zpos (*z (top B) (bottom B)))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## <d>
+  (*z (top A) (bottom A)) (*z (top B) (bottom B)) posproduct1    
+  syl
+  ## </d>
+
+  ## <d 'Positive Multiplication'>
+  A B df-qmul
+  qposeqqi
+  (</> (*z (top A) (top B)) (*z (bottom A) (bottom B))) df-qpos  
+  (*z (top A) (top B)) (*z (bottom A) (bottom B)) topfrac
+  (*z (top A) (top B)) (*z (bottom A) (bottom B)) bottomfrac
+  zmulzeq12i
+  (top A) (top B) (bottom A) (bottom B) zmul4  
+  ZeqReplaceZeq1
+  zposeqi    
+  bitri
+  bitri
+  bicomi  
+  sylib
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q (*q  [ A ]   ]   ]  C) D)
+##   (=q      [ A ]   [ B ] )
+##   (=q (*q  [   [   [ B ]  C) D)
+## </table>
+thm (QeqReplaceQeq0Qmul0 () (
+     replacee (=q (*q A C) D)
+     substitution (=q A B)) 
+     (=q (*q B C) D)
+  replacee substitution
+  C qmuleqq1i
+  QeqReplaceQeq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q (*q A  [ B ]   ]   ] ) D)
+##   (=q        [ B ]   [ C ] )
+##   (=q (*q A  [   [   [ C ] ) D)
+## </table>
+thm (QeqReplaceQeq0Qmul1 () (
+     replacee (=q (*q A B) D)
+     substitution (=q B C)) 
+     (=q (*q A C) D)
+  replacee substitution
+  A qmuleqq2i
+  QeqReplaceQeq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=q A (-qn  [ B ]   ]   ] ))
+##   (=q         [ B ]   [ C ] )
+##   (=q A (-qn  [   [   [ C ] ))
+## </table>
+thm (QeqReplaceQeq1Qneg0 () (
+     replacee (=q A (-qn B))
+     substitution (=q B C)) 
+     (=q A (-qn C))
+  replacee substitution
+  qnegeqqi
+  QeqReplaceQeq1
+)
+
+## <title> Multiply Negated Number </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (qnegqmul () () (=q (*q (-qn A) B) (-qn (*q A B)))
+  ## <d 'Expand Fractions'>
+  A fracExpand
+  qnegeqqi
+  (top A) (bottom A) negfrac 
+  QeqReplaceQeq1
+  B fracExpand 
+  qmuleqq12i  
+  ## <d 'Multiply Fractions '>
+    (-n (top A)) (bottom A) (top B) (bottom B) qmulfrac
+    QeqReplaceQeq1
+  ## </d 'Multiply Fractions '>  
+  ## </d>
+  ## <d 'Multiply Negated Number '>
+    (top A) (top B) negzmul zeqcomi
+    ZeqReplaceQeq1Frac0
+  ## </d 'Multiply Negated Number '>
+  ## <d>
+    (*z (top A) (top B)) (*z (bottom A) (bottom B)) negfrac eqqcomi  
+    QeqReplaceQeq1
+  ## </d>  
+  ## <d 'Definition of Rational Multiplication '>
+    A B df-qmul eqqcomi
+    QeqReplaceQeq1Qneg0
+  ## </d 'Definition of Rational Multiplication '>
+)
+
+## <title> Multiply Negated Number </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (qnegqmul2 () () (=q (*q A (-qn B)) (-qn (*q A B)))
+  B A qnegqmul  
+  ## <d 'Commutative Property of Multiplication '>
+    (-qn B) A qmulcom
+    QeqReplaceQeq0
+  ## </d 'Commutative Property of Multiplication '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A qmulcom
+    QeqReplaceQeq1Qneg0
+  ## </d 'Commutative Property of Multiplication '>
+)
+
+## <title> Distributive Property </title>
+## <summary> Distribute multiplication over subtraction. </summary>
+## <table>
+##   (=q (*q <c> A (+q B C)) (-q (*q <c> A B) (*q <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (qminusdist () () (=q (*q A (-q B C)) (-q (*q A B) (*q A C)))
+  ## <d>
+    A B (-qn C) qdistr  eqqcomi  
+  ## </d>
+  ## <d 'Definition of Subtraction '>
+    B C df-qminus eqqcomi
+    QeqReplaceQeq0Qmul1
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Multiply Negated Number '>
+    A C qnegqmul2
+    QeqReplaceQeq1Qadd1
+  ## </d 'Multiply Negated Number '>  
+  ## <d 'Definition of Subtraction '>
+    (*q A B) (*q A C) df-qminus eqqcomi
+    QeqReplaceQeq1
+  ## </d 'Definition of Subtraction '>
+)
+
+## <title> Positive numbers have positive reciprocals </title>
+thm (posReciprocal () () (<-> (qpos (/ (1q) A)) (qpos A))
+  ## <d 'Rational' Definition of Division'>
+  A (1q) df-qdivrat  
+  ## <d 'Rational Multiplication Identity '>
+    (</> (bottom A) (top A)) qmulidr
+    QeqReplaceImp1Qeq1
+  ## </d 'Rational Multiplication Identity '>
+  ## </d>
+
+  ## <d 'Definition of Positive Rational'>
+    qposeqqd
+    (</> (bottom A) (top A)) df-qpos
+    (bottom A) (top A) topfrac
+    (bottom A) (top A) bottomfrac
+    zmulzeq12i
+    zposeqi  
+    bitri  
+    BiReplaceImp1Bi1
+  ## </d>
+  ## <d 'Commutative Property'>
+    (bottom A) (top A) zmulcom
+    zposeqi  
+    BiReplaceImp1Bi1
+  ## </d>
+  ## <d>
+    A df-qpos bicomi  
+    BiReplaceImp1Bi1
+  ## </d>
+
+  ## <d 'NaN case'>
+  A (NaN) (1q) qdiveqq2
+  (=q A (NaN)) id
+  eqqeqq12d
+  (1q) qdivNaN    
+  (=q (/ (1q) A) A) biRemove2
+  (=q A (NaN)) imbi2i
+  mpbi
+  qposeqqd
+  A irrationalNaN2 bicomi  
+  sylbi2
+  jaoi  
+  ## <d 'Definition of OR '>
+    (e. A (rationals)) exmid    
+    ax-mpRemove
+  ## </d 'Definition of OR '>
+  ## </d>
+)
+
+## <title> 0 is not positive </title>
+thm (0qnotPos () () (-> (=q A (0q)) (-. (qpos A)))
+  A top0b  
+  ## <d 'Infer Left to Right '>
+    (=q A (0q)) (/\ (=z (top A) (0z)) (-. (=z (bottom A) (0z)))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## <d 'Remove Right Side of AND '>
+    (=z (top A) (0z)) (-. (=z (bottom A) (0z))) pm3.26
+    syl
+  ## </d 'Remove Right Side of AND '>
+  A notPosTop0    
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (qpos  [ A ]   ]   ] )))
+##   (=q                  [ A ]   [ B ] )
+##   (-> ph (-> ps (qpos  [   [   [ B ] )))
+## </table>
+thm (QeqReplaceImp1Imp1Qpos0 () (
+     replacee (-> ph (-> ps (qpos A)))
+     substitution (=q A B)) 
+     (-> ph (-> ps (qpos B)))
+  replacee substitution
+  qposeqqi
+  BiReplaceImp1Imp1
+)
+
+## <title> Multiply a positive number on an inequality </title>
+thm (qmulqlt.1 () () (-> (qpos A) (-> (<q B C) (<q (*q A B) (*q A C))))
+  ## <d 'Positive Product Formula'>
+  A (-q C B) qposproduct1  
+  ## <d 'Import-Export Theorem '>
+    (qpos A) (qpos (-q C B)) (qpos (*q A (-q C B))) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  ## </d>
+  ## <d 'Distributive Property '>
+    A C B qminusdist
+    QeqReplaceImp1Imp1Qpos0
+  ## </d 'Distributive Property '>  
+  ## <d 'Def. Rational Less Than '> 
+  ## <d 'Def. Rational Less Than '>
+    B C df-qlt bicomi
+    BiReplaceImp1Imp0
+  ## </d 'Def. Rational Less Than '>  
+  ## <d 'Def. Rational Less Than '>
+    (*q A B) (*q A C) df-qlt bicomi
+    BiReplaceImp1Imp1
+  ## </d 'Def. Rational Less Than '>
+  ## </d 'Def. Rational Less Than '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Imp0 () (
+     replacee (<-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  bitri
+)
+
+## <title> Less Than Implies Not Equal </title>
+thm (qltneq () () (-> (e. A (rationals)) (-> (<q A B) (-. (=q A B))))
+  B A qaddcan2  
+  ## <d 'Symmetric Property '>
+    B A eqqcom
+    BiReplaceImp0An0
+  ## </d 'Symmetric Property '>
+  (-q B A) 0qnotPos  
+  syl
+
+  ## <d>
+    A B df-qlt bicomi  
+    BiReplaceImp1Not0
+  ## </d>  
+  ## <d 'Import-Export Theorem '>
+    (=q A B) (e. A (rationals)) (-. (<q A B)) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  com12  
+  ## <d 'Contrapositive '>
+    (=q A B) (-. (<q A B)) con34b
+    (<q A B) notnotr
+    BiReplaceBi1Imp0
+    sylib
+  ## </d 'Contrapositive '>
+)
+
+## <title> Multiply Inequality by a Positive Number </title>
+## <summary> Multiplication by a positive rational preserves the inequality relation. </summary>
+thm (qmulqlt () () (-> (/\ (<q (0q) A) (e. A (rationals))) (<-> (<q (*q A B) (*q A C)) (<q B C)))
+  (/ (1q) A) (*q A B) (*q A C) qmulqlt.1
+  ## <d>
+  A posReciprocal   
+  sylbi2
+  ## </d>
+  ## <d>
+  A qltpos bicomi  
+  sylbi2
+  ## </d>
+  (e. A (rationals)) adantr
+
+  0rational
+  (0q) A qltneq  
+  ax-mp  
+  ## <d 'Symmetric Property '>
+    (0q) A eqqcom
+    BiReplaceImp1Not0
+  ## </d 'Symmetric Property '>
+  (e. A (rationals)) anim1i
+
+  ## <d 'Commutative Property of Multiplication '>
+    (/ (1q) A) (*q A B) qmulcom
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Division is multiplying by reciprocal '>
+    (*q A B) A qdivReciprocal eqqcomi
+    QeqReplaceQeq1
+  ## </d 'Division is multiplying by reciprocal '>
+  (/\ (-. (=q A (0q))) (e. A (rationals))) a1i
+  A B qdivcan3
+  eqqtrd
+
+  ## <d 'Commutative Property of Multiplication '>
+    (/ (1q) A) (*q A C) qmulcom
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Division is multiplying by reciprocal '>
+    (*q A C) A qdivReciprocal eqqcomi
+    QeqReplaceQeq1
+  ## </d 'Division is multiplying by reciprocal '>
+  (/\ (-. (=q A (0q))) (e. A (rationals))) a1i
+  A C qdivcan3
+  eqqtrd
+  qlteqq12d  
+  syl  
+  ## <d 'Infer Left to Right '>
+    (<q (*q (/ (1q) A) (*q A B)) (*q (/ (1q) A) (*q A C))) (<q B C) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  syld
+
+  A B C qmulqlt.1
+  A qltpos bicomi  
+  sylbi2
+  (e. A (rationals)) adantr
+  impbid
+)
+
+## <title> Definition of 2 as a Fraction </title>
+defthm (df-2q nat (2q) () () (=q (2q) (</> (2z) (1z)))
+  (</> (2z) (1z)) eqqid
+)
+
+## <title> Definition of 3 as a Fraction </title>
+defthm (df-3q nat (3q) () () (=q (3q) (</> (3z) (1z)))
+  (</> (3z) (1z)) eqqid
+)
+
+## <title> Definition of 4 as a Fraction </title>
+defthm (df-4q nat (4q) () () (=q (4q) (</> (4z) (1z)))
+  (</> (4z) (1z)) eqqid
+)
+
+## <title> Definition of 5 as a Fraction </title>
+defthm (df-5q nat (5q) () () (=q (5q) (</> (5z) (1z)))
+  (</> (5z) (1z)) eqqid
+)
+
+## <title> Definition of 6 as a Fraction </title>
+defthm (df-6q nat (6q) () () (=q (6q) (</> (6z) (1z)))
+  (</> (6z) (1z)) eqqid
+)
+
+## <title> Definition of 7 as a Fraction </title>
+defthm (df-7q nat (7q) () () (=q (7q) (</> (7z) (1z)))
+  (</> (7z) (1z)) eqqid
+)
+
+## <title> Definition of 8 as a Fraction </title>
+defthm (df-8q nat (8q) () () (=q (8q) (</> (8z) (1z)))
+  (</> (8z) (1z)) eqqid
+)
+
+## <title> Definition of 9 as a Fraction </title>
+defthm (df-9q nat (9q) () () (=q (9q) (</> (9z) (1z)))
+  (</> (9z) (1z)) eqqid
+)
+
+## <title> Definition of 10 as a Fraction </title>
+defthm (df-10q nat (10q) () () (=q (10q) (</> (10z) (1z)))
+  (</> (10z) (1z)) eqqid
+)
+
+## <title> Definition of One-Tenth </title>
+defthm (df-.1 nat (.1) () () (=q (.1) (/ (1q) (10q)))
+  (/ (1q) (10q)) eqqid
 )
 
 thm (emptyThm () () (T)
