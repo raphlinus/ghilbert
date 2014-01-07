@@ -353,6 +353,11 @@ GH.typesetApplySet = function(term) {
 	}
 };
 
+GH.typesetmodcon = function(term, prec) {
+	var newterm = ['=mod', term[1], term[2]];
+	return GH.typesetinfix(newterm, 'n', prec, '≡<sub>' + term[3] + '</sub>');
+};
+
 GH.typesetsum = function(term) {
 	var bottomVariable;
 	var application;
@@ -453,7 +458,7 @@ GH.typesetTuple = function(term) {
 	for (var i = 0; i < elements.length; i++) {
 		slugs.push(GH.typeset(elements[i]));
 		if (i < elements.length - 1) {
-		    slugs.push(GH.stringslug(','));
+		    slugs.push(GH.stringslug(', '));
 		}
 	}
     slugs.push(GH.stringslug(')'));
@@ -539,6 +544,8 @@ GH.typesetCategory = function(sexp, typesettingData, prec) {
 		return GH.typesetapply(sexp, prec);
 	} else if (typesettingData[1] == 'sum') {
 		return GH.typesetsum(sexp, prec);
+	} else if (typesettingData[1] == 'modcon') {
+		return GH.typesetmodcon(sexp, prec);
 	} else if (typesettingData[1] == 'product') {
 		return GH.typesetproduct(sexp, prec);
 	} else {
@@ -632,17 +639,23 @@ GH.typeset.OPERATIONS = [
 	[['prime'], 'postfix', ' is prime'],
 	[['even'],  'postfix', ' is even'],
 	[['odd'],   'postfix', ' is odd'],
+	[['zpos'],  'postfix', ' is positive'],
+	[['zneg'],  'postfix', ' is negative'],
+	[['qpos'],  'postfix', ' is positive'],
+	[['qneg'],  'postfix', ' is negative'],
 ],
 [ // 1050
 	[['=', '=z', '=q', '=_'],    'infix', 'n', '='],
 	[['<=', '<=z', '<=q', '≤'], 'infix', 'n', '≤'],
     [['<', '<z', '<q'],          'infix', 'n', '&lt;'],
-    [['>='],                     'infix', 'n', '≥'],
+    [['>=', '>=z', '>=q'],       'infix', 'n', '≥'],
+    [['>',  '>z',  '>q'],        'infix', 'n', '>'],
     [['>'],                      'infix', 'n', '>'],
     [['|'],                      'infix', 'n', '|'],	
     [['e.', '∈'],               'infix', 'n', '∈'],
     [['C_', '⊆'],               'infix', 'n', '⊆'],
     [['C.', '⊂'],               'infix', 'n', '⊂'],
+	[['=mod'],                   'modcon'],
 ],
 [ // 2200
 	[['+', '+z', '+q'], 'infix', 'l', '+'],
@@ -717,4 +730,8 @@ GH.typeset.NEGATED_OPERATIONS = [
     [['prime'],                'postfix', ' is not prime'],
     [['even'],                 'postfix', ' is not even'],
     [['odd'],                  'postfix', ' is not odd'],
+    [['zpos'],                 'postfix', ' is not positive'],
+    [['zneg'],                 'postfix', ' is not negative'],
+    [['qpos'],                 'postfix', ' is not positive'],
+    [['qneg'],                 'postfix', ' is not negative'],
 ]];

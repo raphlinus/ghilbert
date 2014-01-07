@@ -13,6 +13,7 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'E.') 	return ['bind', 'wff', 'wff'];
 	if (operator == '=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '=q') 	return ['rat', 'rat', 'wff'];
+	if (operator == 'qpos') return ['rat', 'wff'];
 	// if (operator == '=z') 	return ['rat', 'rat', 'wff'];
 	if (operator == '<=') 	return ['nat', 'nat', 'wff'];
 	if (operator == '<') 	return ['nat', 'nat', 'wff'];
@@ -54,17 +55,25 @@ GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == '=z') 	return ['int', 'int', 'wff'];
 	if (operator == '<=z') 	return ['int', 'int', 'wff'];
 	if (operator == '<z') 	return ['int', 'int', 'wff'];
+	if (operator == '>=z') 	return ['int', 'int', 'wff'];
+	if (operator == '>z') 	return ['int', 'int', 'wff'];
 	if (operator == '+z') 	return ['int', 'int', 'int'];
 	if (operator == '-') 	return ['int', 'int', 'int'];
 	if (operator == '*z') 	return ['int', 'int', 'int'];
 	if (operator == '-n') 	return ['int', 'int'];
 	if (operator == '-qn') 	return ['rat', 'rat'];
 	if (operator == '=q') 	return ['rat', 'rat', 'wff'];
+	if (operator == '<q') 	return ['rat', 'rat', 'wff'];
+	if (operator == '<=q') 	return ['rat', 'rat', 'wff'];
+	if (operator == '>q') 	return ['rat', 'rat', 'wff'];
+	if (operator == '>=q') 	return ['rat', 'rat', 'wff'];
 	if (operator == '*q') 	return ['rat', 'rat', 'rat'];
 	if (operator == '+q') 	return ['rat', 'rat', 'rat'];
 	if (operator == '-q') 	return ['rat', 'rat', 'rat'];
 	if (operator == '/') 	return ['rat', 'rat', 'rat'];
 	if (operator == '</>') 	return ['int', 'int', 'rat'];
+	if (operator == 'zpos') return ['int', 'wff'];
+	if (operator == 'qpos') return ['rat', 'wff'];
 	return null;
 };
 
@@ -96,6 +105,12 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '=mod') {	return 'Modcon';
 	} else if (operator == '<=z') {		return 'Zle';
 	} else if (operator == '<z') {		return 'Zlt';
+	} else if (operator == '>=z') {		return 'Zge';
+	} else if (operator == '>z') {		return 'Zgt';
+	} else if (operator == '<=q') {		return 'Qle';
+	} else if (operator == '<q') {		return 'Qlt';
+	} else if (operator == '>=q') {		return 'Qge';
+	} else if (operator == '>q') {		return 'Qgt';
 	} else if (operator == '<=') {		return 'Le';
 	} else if (operator == '<') {		return 'Lt';
 	} else if (operator == '>=') {		return 'Ge';
@@ -152,8 +167,14 @@ GH.operatorUtil.getThmName = function(operator) {
 	} else if (operator == '=mod') {	return 'modcon';
 	} else if (operator == '<=z') {		return 'zle';
 	} else if (operator == '<z') {		return 'zlt';
+	} else if (operator == '>=z') {		return 'zge';
+	} else if (operator == '>z') {		return 'zgt';
 	} else if (operator == '+z') {		return 'zadd';
 	} else if (operator == '*z') {		return 'zmul';
+	} else if (operator == '<=q') {		return 'qle';
+	} else if (operator == '<q') {		return 'qlt';
+	} else if (operator == '>=q') {		return 'qge';
+	} else if (operator == '>q') {		return 'qgt';
 	} else if (operator == '+q') {		return 'qadd';
 	} else if (operator == '*q') {		return 'qmul';
 	} else if (operator == '/') {		return 'qdiv';
@@ -456,6 +477,16 @@ GH.notationGuide.guideData = [
 	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
 	{ symbols: ['>='], unicode: '≥', name: 'greater than or equal to', link: 'arithmetic/less-than-equal'},
 	{ symbols: ['>'],  unicode: '>', name: 'greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['<=z'], unicode: '≤', name: 'integer less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<z'],  unicode: '<', name: 'integer less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>=z'], unicode: '≥', name: 'integer greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>z'],  unicode: '>', name: 'integer greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['<=q'], unicode: '≤', name: 'rational less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<q'],  unicode: '<', name: 'rational less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>=q'], unicode: '≥', name: 'rational greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>q'],  unicode: '>', name: 'rational greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['=q'],  unicode: '=', name: 'rational equals', link: 'arithmetic/equality'},
+	
 	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
 	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
 	{ symbols: ['+z'],  unicode: '+', name: 'integer plus', link: 'arithmetic/add'},
@@ -464,14 +495,31 @@ GH.notationGuide.guideData = [
 	{ symbols: ['*z'],  unicode: '∙', name: 'integer times', link: 'arithmetic/multiply'},
 	{ symbols: ['*q'],  unicode: '∙', name: 'rational times', link: 'arithmetic/multiply'},
 	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
+	{ symbols: ['0z', '1z', '2z', '3z', '4z', '5z', '6z', '7z', '8z', '9z', '10z'],  unicode: '0-10', name: 'integers', link: 'arithmetic/numbers'},
+	{ symbols: ['0q', '1q', '2q', '3q', '4q', '5q', '6q', '7q', '8q', '9q', '10q'],  unicode: '0-10', name: 'rationals', link: 'arithmetic/numbers'},
+	{ symbols: ['.1'],  unicode: '0.1', name: 'decimal notation'},
 	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
-	{ symbols: ['-'],  unicode: '-', name: 'minus'},
-	{ symbols: ['-q'],  unicode: '-', name: 'rational minus'},
-	{ symbols: ['-n'],  unicode: '-', name: 'negative sign'},
-	{ symbols: ['-qn'],  unicode: '-', name: 'negative sign'},
+	{ symbols: ['-'],  unicode: '-', name: 'minus', link: 'arithmetic/minus'},
+	{ symbols: ['-q'],  unicode: '-', name: 'rational minus', link: 'arithmetic/minus'},
+	{ symbols: ['-n'],  unicode: '-', name: 'negative sign', link: 'arithmetic/negative-sign'},
+	{ symbols: ['-qn'],  unicode: '-', name: 'negative sign', link: 'arithmetic/negative-sign'},
 	{ symbols: ['ifn'], name: 'ternary conditional', link: 'arithmetic/ifn'},
 	{ symbols: ['fibonacci'], unicode: 'F<sub>A</sub>', name: 'Fibonacci number', link: 'arithmetic/fibonacci'},
 	{ symbols: ['tri'], unicode: 'T<sub>A</sub>', name: 'triangular number', link: 'arithmetic/triangle'},
+
+	{ symbols: ['int'], unicode: 'int', name: 'natural to integer'},
+	{ symbols: ['zn'], unicode: 'zn', name: 'integer to natural'},
+	{ symbols: ['zpos'], unicode: 'positive', name: 'positive integer', link: 'arithmetic/positive'},
+	{ symbols: ['zneg'], unicode: 'negative', name: 'negative integer', link: 'arithmetic/negative'},
+	{ symbols: ['qpos'], unicode: 'positive', name: 'positive rational', link: 'arithmetic/positive'},
+	{ symbols: ['qneg'], unicode: 'negative', name: 'negative rational', link: 'arithmetic/negative'},
+	
+	{ symbols: ['NaN'], unicode: 'NaN', name: 'not a number', link: 'arithmetic/rationals/NaN'},
+	{ symbols: ['rationals'], unicode: 'rationals', name: 'set of rationals', link: 'arithmetic/rationals/rationals-set'},
+	{ symbols: ['top'], unicode: 'A<sub>t</sub>', name: 'top (numerator)', link: 'arithmetic/rationals/top'},
+	{ symbols: ['bottom'], unicode: 'A<sub>b</sub>', name: 'bottom (denominator)', link: 'arithmetic/rationals/bottom'},
+	{ symbols: ['</>'], unicode: 'A / B', name: 'fraction', link: 'arithmetic/rationals/fraction'},
+	{ symbols: ['/'], unicode: 'A / B', name: 'division', link: 'arithmetic/divide'},
 	
 	{ symbols: ['e.'],  unicode: '∈', name: 'element of', link: 'set/element-of'},
 	{ symbols: ['{|}'],  unicode: '{|}', name: 'set abstraction', link: 'set/abstraction'},
@@ -484,11 +532,6 @@ GH.notationGuide.guideData = [
 	{ symbols: ['i^i'], unicode: '∩', name: 'intersection', link: 'set/intersection', link: 'set/intersection'},
 	{ symbols: ['min'], name: 'set minimum', link: 'set/minimum'},
 	{ symbols: ['{...}'], unicode: '{A...B}', name: 'set interval', link: 'tuple/interval'},
-
-	{ symbols: ['top'], unicode: 'A<sub>t</sub>', name: 'top (numerator)'},
-	{ symbols: ['bottom'], unicode: 'A<sub>b</sub>', name: 'bottom (denominator)'},
-	{ symbols: ['</>'], unicode: 'A / B', name: 'fraction'},
-	{ symbols: ['/'], unicode: 'A / B', name: 'division'},
 	
 	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
 	{ symbols: ['head'], unicode: 'A<sub>h</sub>', name: 'head', link: 'tuple/head'},
@@ -512,7 +555,8 @@ GH.notationGuide.guideData = [
 	{ symbols: ['lincom'], name: 'linear combination'},
 	{ symbols: ['gcd'], name: 'greatest common denominator'},
 	{ symbols: ['mod'], name: 'modulo', link: 'arithmetic/mod'},
-	{ symbols: ['div'], unicode: '÷', name: 'integer division', link: 'arithmetic/div'},
+	{ symbols: ['=mod'], unicode: '≡<sub>A</sub>', name: 'congruent modulo A', link: 'arithmetic/modcon'},
+	{ symbols: ['div'], unicode: '÷', name: 'whole number division', link: 'arithmetic/div'},
 	{ symbols: ['beta'], name: 'Godel\'s beta function'},
 	{ symbols: ['relprim'], name: 'relatively prime'},
 	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function', link: 'function/lambda'},

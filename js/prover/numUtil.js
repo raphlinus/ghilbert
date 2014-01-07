@@ -82,7 +82,9 @@ GH.numUtil.numToFullSexp = function(num) {
 
 GH.numUtil.numOfDigits = function(num) {
 	if (num >= 10) {
-		return 1 + GH.numUtil.numOfDigits(num / 10);
+		return GH.numUtil.numOfDigits(num / 10) + 1;
+	} else if ((0 < num) && (num < 1)) {
+		return GH.numUtil.numOfDigits(num * 10) - 1;
 	} else {
 		return 1;
 	}
@@ -93,13 +95,19 @@ GH.numUtil.mostSignificantDigit = function(num) {
 	return num - num % Math.pow(10, GH.numUtil.numOfDigits(num) - 1);
 };
 
+GH.numUtil.isTen = function(str) {
+	return ((str == '10') || (str == '10z') || (str == '10q'));
+};
+
 GH.numUtil.powerOfTen = function(sexp) {
-	if (sexp[0] == '10') {
+	if (GH.numUtil.isTen(sexp[0])) {
 		return 10;
-	} else {
-		if ((sexp[0] == '*') && (sexp[1][0] == '10')) {
-			return 10 * GH.numUtil.powerOfTen(sexp[2]);
-		}
+	} else if (sexp[0] == '.1') {
+		return 0.1;
+	} else if ((sexp[0] == '*') && GH.numUtil.isTen(sexp[1][0])) {
+		return 10 * GH.numUtil.powerOfTen(sexp[2]);
+	} else if ((sexp[0] == '*') && (sexp[1][0] == '.1')) {
+		return 0.1 * GH.numUtil.powerOfTen(sexp[2]);
 	}
 	return 0;
 };
@@ -111,6 +119,10 @@ GH.numUtil.decimalNumber = function(sexp) {
 	}
 	if (sexp[0].valueOf() == '1to1') {
 		return NaN;
+	}
+	
+	if (sexp[0] == '.1') {
+		return 0.1;
 	}
 
 	var num = parseInt(sexp[0]);
@@ -124,15 +136,14 @@ GH.numUtil.decimalNumber = function(sexp) {
 		//   The left side must have more digits than the right.
 		//   An addition can not appear on the left side.
 		if ((GH.numUtil.numOfDigits(upperDigit) > GH.numUtil.numOfDigits(lowerDigit)) &&
-			(lowerDigit != 0) &&
-		    (sexp[1][0] != '+')){
+			(lowerDigit != 0) && (sexp[1][0] != '+')){
 			return upperDigit + lowerDigit;
 		}
 	} else if (sexp[0] == '*') {
 		var digit = GH.numUtil.decimalNumber(sexp[1]);
 		var base10 = GH.numUtil.powerOfTen(sexp[2]);
 		// Only allow one possible representation. Ten is expressed as 10, not 1 * 10. Zero cannot be expressed as 0 * 10.
-		if ((base10 != 0) && (1 < digit) && (digit <= 10)) {
+		if ((base10 != 0) && (1 < digit) && (digit <= 10) && ((digit != 10) || (base10 >= 1))) {
 			return digit * base10;
 		}
 	}
