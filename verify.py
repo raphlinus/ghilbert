@@ -645,8 +645,8 @@ class VerifyCtx:
                     # where t is 'tvar' or 'var', kind is the epression's kind
                     # and expr is the actual value on the stack.
                     el = proofctx.mandstack[i]
-                    if el[1] != tkind[1]: # is this ok given kindbind?
-                        raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + tkind[1] + ' got ' + el[1])
+                    #if el[1] != tkind[1]: # is this ok given kindbind?
+                    #    raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + tkind[1] + ' got ' + el[1])
                     self.match(tkind[2], el[2], env)
                 sp = len(proofctx.stack) - len(hyps)
                 if sp < 0:
@@ -669,9 +669,9 @@ class VerifyCtx:
                             raise VerifyError('binding variables ' + invmap[exp] + ' and ' + var + ' both map to ' + exp)
                         invmap[exp] = var
                     exp_kind = self.kind_of_expression(exp)
-                    if syms[var][0] == 'tvar' and syms[var][1] != exp_kind:
-                        raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
-                            ' wanted ' + syms[var][1] + ' found ' + exp_kind)
+                    # if syms[var][0] == 'tvar' and syms[var][1] != exp_kind:
+                    #     raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
+                    #         ' wanted ' + syms[var][1] + ' found ' + exp_kind)
 
                 for clause in fv:
                     tvar = clause[0]
@@ -1072,9 +1072,9 @@ class ImportCtx(InterfaceCtx):
             except KeyError:
                 raise VerifyError(\
                     'Variable %s not known in import context' % sexp)
-            if kind is not None and kind != v[1]:
-                raise VerifyError('Expected expression of kind %s, found %s' %
-                                  (kind, sexp))
+            #if kind is not None and kind != v[1]:
+            #    raise VerifyError('Expected expression of kind %s, found %s' %
+            #                      (kind, sexp))
             if binding_var and v[0] != 'var':
                 raise VerifyError(\
                     'Expected a binding variable, found term variable %s' %

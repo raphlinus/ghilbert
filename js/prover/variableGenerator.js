@@ -11,7 +11,7 @@ GH.Prover.variableGenerator.VARIABLE_NAMES = {
 };
 
 GH.Prover.variableGenerator.prototype.generate = function(type) {
-	if ((type == 'int') || (type == 'rat')) {
+	if ((type == 'n.nat') || (type == 'z.nat') || (type == 'q.nat') || (type == 'int') || (type == 'rat')) {
 		type = 'nat';
 	}
 	if (GH.Prover.variableGenerator.VARIABLE_NAMES[type].length <= this.usedVariables[type]) {
@@ -31,7 +31,7 @@ GH.Prover.variableGenerator.isVariable = function(name) {
 };
 
 GH.Prover.variableGenerator.generateUnused = function(sexp, type) {
-	if ((type == 'int') || (type == 'rat')) {
+	if ((type == 'n.nat') || (type == 'z.nat') || (type == 'q.nat') || (type == 'int') || (type == 'rat')) {
 		type = 'nat';
 	}
 	var names = GH.Prover.variableGenerator.VARIABLE_NAMES[type];
@@ -68,7 +68,7 @@ GH.Prover.variableGenerator.fillInMissing = function(names, types) {
 		if (!names[i]) {
 			var done = false;
 			var type = types[i];
-			if ((type == 'int') || (type == 'rat')) {
+			if ((type == 'n.nat') || (type == 'z.nat') || (type == 'q.nat') || (type == 'int') || (type == 'rat')) {
 				type = 'nat';
 			}
 			var possibleNames = NAMES[type];

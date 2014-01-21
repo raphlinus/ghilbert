@@ -147,11 +147,11 @@ GH.sExpression.prototype.copy = function() {
 };
 
 GH.sExpression.prototype.child = function () {
-	if (this.operands.length > 1) {
+	/* if (this.operands.length > 1) {
 		alert('Warning this expression has more than one child.');
 	} else if (this.operands.length == 0) {
 		alert('Warning this expression has no children.');
-	}
+	}*/
 	return this.operands[0];
 };
 

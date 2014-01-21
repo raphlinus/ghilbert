@@ -619,7 +619,7 @@ GH.typeset.OPERATIONS = [
 ],
 [ // 40
 	[['A.', '∀'],  'binder', '∀'],
-    [['E.', '∃'],  'binder', '∃'],
+    [['E.', 'n.E.', 'z.E.', '∃'],  'binder', '∃'],
     [['E!', '∃!'], 'binder', '∃!'],
     [['E*', '∃*'], 'binder', '∃*'],
 ],
@@ -639,14 +639,14 @@ GH.typeset.OPERATIONS = [
 	[['prime'], 'postfix', ' is prime'],
 	[['even'],  'postfix', ' is even'],
 	[['odd'],   'postfix', ' is odd'],
-	[['zpos'],  'postfix', ' is positive'],
-	[['zneg'],  'postfix', ' is negative'],
+	[['zpos', 'pos'],  'postfix', ' is positive'],
+	[['zneg', 'neg'],  'postfix', ' is negative'],
 	[['qpos'],  'postfix', ' is positive'],
 	[['qneg'],  'postfix', ' is negative'],
 ],
 [ // 1050
-	[['=', '=z', '=q', '=_'],    'infix', 'n', '='],
-	[['<=', '<=z', '<=q', '≤'], 'infix', 'n', '≤'],
+	[['=', 'n.=', 'z.=', 'q.=', '=z', '=q', '=_'],    'infix', 'n', '='],
+	[['<=', 'n.<=', 'z.<=', 'q.<=', '<=z', '<=q', '≤'], 'infix', 'n', '≤'],
     [['<', '<z', '<q'],          'infix', 'n', '&lt;'],
     [['>=', '>=z', '>=q'],       'infix', 'n', '≥'],
     [['>',  '>z',  '>q'],        'infix', 'n', '>'],
@@ -658,18 +658,18 @@ GH.typeset.OPERATIONS = [
 	[['=mod'],                   'modcon'],
 ],
 [ // 2200
-	[['+', '+z', '+q'], 'infix', 'l', '+'],
+	[['+', 'n.+', 'z.+', '+z', '+q'], 'infix', 'l', '+'],
 	[['.-', '-', '-q'],       'infix', 'l', '-'],  // Minus
 ],
 [ // Not sure where to put fractions.
 	[['</>'], 'infix', 'n', '/'],
 ],
 [	
-	[['-n'], 'unary', '-'],  // Negative Sign
+	[['-n', 'z.-n'], 'unary', '-'],  // Negative Sign
 	[['-qn'], 'unary', '-'],  // Negative Sign
 ],
 [ // 2300
-    [['*', '*z', '*q', '∙'], 'infix', 'l', '∙'],
+    [['*', 'n.*', 'z.*', '*z', '*q', '∙'], 'infix', 'l', '∙'],
     [['/'], 'infix', 'l', '/'],
 ],
 [ // 2500
@@ -687,8 +687,8 @@ GH.typeset.OPERATIONS = [
 [ // 3000
 	[['fibonacci'], 'strIndex', 'F'],
 	[['tri'], 'strIndex', 'T'],
-	[['head'], 'postfix', '<sub>h</sub>'],
-	[['tail'], 'postfix', '<sub>t</sub>'],
+	[['head', 'n.head'], 'postfix', '<sub>h</sub>'],
+	[['tail', 'n.tail'], 'postfix', '<sub>t</sub>'],
 	[['top'], 'postfix', '<sub>t</sub>'],
 	[['bottom'], 'postfix', '<sub>b</sub>'],
 ],
@@ -699,13 +699,17 @@ GH.typeset.OPERATIONS = [
 [ // 9999
 	[['T'], 'string', 'T'],
 	[['F'], 'string', 'F'],
+	[['n.0'], 'string', '0<sub>N</sub>'],
+	[['n.1'], 'string', '1<sub>N</sub>'],
+	[['z.0'], 'string', '0<sub>Z</sub>'],
+	[['z.1'], 'string', '1<sub>Z</sub>'],
 	[['S'], 'postfix', '′'],
 	[['primeset'], 'string', 'Primes'],
     [['{|}'], 'clab'],
     [['{...}'], 'interval'],
     [['{}'], 'singleton'],
 	[['{/}'], 'string', '∅'],
-	[['<,>'], 'tuple'],
+	[['<,>', 'n.<,>'], 'tuple'],
 	[['<>'], 'tuple'],
 	[['<{}>'], 'tupleOperation', '{', ',', '…', '}'],
 	[['<+>'],  'tupleOperation', '', '+', '…', ''],
@@ -721,7 +725,7 @@ GH.typeset.MAX_PREC  = GH.typeset.OPERATIONS.length - 1;
 
 GH.typeset.NEGATED_OPERATIONS = [
 [
-	[['=', '=z', '=q', '=_'], 'infix', 'n', '≠'],
+	[['=', '=z', '=q', 'n.=', 'z.=', 'q.=', '=_'], 'infix', 'n', '≠'],
     [['e.', '∈'],             'infix', 'n', '∉'],
     [['C_', '⊆'],             'infix', 'n', '⊈'],
 	[['E.', '∃'],             'binder', '&#8708'],
@@ -730,6 +734,8 @@ GH.typeset.NEGATED_OPERATIONS = [
     [['prime'],                'postfix', ' is not prime'],
     [['even'],                 'postfix', ' is not even'],
     [['odd'],                  'postfix', ' is not odd'],
+    [['pos'],                 'postfix', ' is not positive'],
+    [['neg'],                 'postfix', ' is not negative'],
     [['zpos'],                 'postfix', ' is not positive'],
     [['zneg'],                 'postfix', ' is not negative'],
     [['qpos'],                 'postfix', ' is not positive'],

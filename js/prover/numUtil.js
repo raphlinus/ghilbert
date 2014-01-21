@@ -5,8 +5,7 @@ GH.numUtil = {};
 // to the standard base-10 numbering system.
 GH.numUtil.numToSexpString = function(num) {
 	if (num < 0) {
-		alert('Negative numbers not yet supported.');
-		return;
+		return '(-n ' + GH.numUtil.numToSexpString(-num) + ')';
 	}
 	
 	// Handle single-digit numbers.
@@ -168,9 +167,14 @@ GH.numUtil.decimalNumberSexp = function(sexp) {
 		return NaN;
 	}
 
+	var sign = 1;
+	if (sexp.operator == '-n') {
+		sign = -1;
+		sexp = sexp.child();
+	}
 	var num = parseInt(sexp.operator);
 	if ((0 <= num) && (num <= 10)) {
-		return num;
+		return sign * num;
 	} else if (sexp.operator == '+') {
 		var upperDigit = GH.numUtil.decimalNumberSexp(sexp.operands[0]);
 		var lowerDigit = GH.numUtil.decimalNumberSexp(sexp.operands[1]);
@@ -181,14 +185,14 @@ GH.numUtil.decimalNumberSexp = function(sexp) {
 		if ((GH.numUtil.numOfDigits(upperDigit) > GH.numUtil.numOfDigits(lowerDigit)) &&
 			(lowerDigit != 0) &&
 		    (sexp.operands[0].operator != '+')){
-			return upperDigit + lowerDigit;
+			return sign * (upperDigit + lowerDigit);
 		}
 	} else if (sexp.operator == '*') {
 		var digit = GH.numUtil.decimalNumberSexp(sexp.operands[0]);
 		var base10 = GH.numUtil.powerOfTenSexp(sexp.operands[1]);
 		// Only allow one possible representation. Ten is expressed as 10, not 1 * 10. Zero cannot be expressed as 0 * 10.
 		if ((base10 != 0) && (1 < digit) && (digit <= 10)) {
-			return digit * base10;
+			return sign * digit * base10;
 		}
 	}
 	return NaN;

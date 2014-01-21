@@ -9,10 +9,10 @@ GH.ProofGenerator.evaluatorMultiply.prototype.variableAction = function(sexp) {
 
 	// TODO: Add a check that the numbers are reduced and not 0 * 5.
 	if (leftNum == 0) {
-		return new GH.action('pa_ax5r', [sexp.right()]);
+		return new GH.action('mul0r', [sexp.right()]);
 	}
 	if (rightNum == 0) {
-		return new GH.action('pa_ax5', [sexp.left()]);
+		return new GH.action('mul0', [sexp.left()]);
 	}
 	if (leftNum == 1) {
 		return new GH.action('mulidr', [sexp.right()]);
@@ -38,6 +38,26 @@ GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
+    var leftNeg = (sexp.left().operator == '-n');
+    var rightNeg = (sexp.right().operator == '-n');
+	if (leftNeg && rightNeg) {
+		sexp = this.prover.openExp(sexp, 'Negative Multiplication');
+		this.prover.print([sexp.left().child(), sexp.right().child()], 'doublenegmul');
+		result = this.prover.getLast().right();
+		result = this.prover.evaluate(result, 'Positive Multiplication');
+		return this.prover.closeExp(result);
+	} else if (leftNeg) {
+		this.prover.print([sexp.left().child(), sexp.right()], 'negmul');
+		result = this.prover.getLast().right().child();
+		result = this.prover.evaluate(result, 'Positive Multiplication');
+		return this.prover.closeExp(result);
+	} else if (rightNeg) {
+		this.prover.print([sexp.left(), sexp.right().child()], 'negmul2');
+		result = this.prover.getLast().right().child();
+		result = this.prover.evaluate(result, 'Positive Multiplication');
+		return this.prover.closeExp(result);
+	}
+
 	if ((leftNum == 0) || (leftNum == 1) || (rightNum == 0) || (rightNum == 1)) {
 		return false;
 	} else if ((leftNum < 10) && (rightNum < 10)) {
@@ -57,7 +77,7 @@ GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
 GH.ProofGenerator.evaluatorMultiply.prototype.canAddTheorem = function(sexp) {
 	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
 	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
-	return ((leftNum < 10) && (rightNum < 10));
+	return ((leftNum > 0) && (leftNum < 10) && (rightNum > 0) && (rightNum < 10));
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.theoremName = function(sexp) {	

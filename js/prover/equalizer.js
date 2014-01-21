@@ -16,11 +16,11 @@ GH.ProofGenerator.equalizer.prototype.actionName = function(operator, indices) {
 		}
 	}
 
-	var base = GH.operatorUtil.getThmName(operator);
+	var base = GH.operatorUtil.getThmName(operator, true);
 	// It probably would make more sense to use the output type rather than the type of the first indices, but
 	// the name isn't super important.
 	var replacementType = this.prover.getOperatorTypes(operator)[indices[0]];
-	var equivalence = GH.operatorUtil.getThmName(GH.operatorUtil.getEquivalenceOperator(replacementType));
+	var equivalence = GH.operatorUtil.getThmName(GH.operatorUtil.getEquivalenceOperator(replacementType), false);
 	return base + equivalence + suffix;
 };
 
@@ -40,7 +40,7 @@ GH.ProofGenerator.equalizer.prototype.findConclusionSingle = function(sexp, indi
 	// This is basically the same as findConclusionMultiple, just the variable names are switched around.
 	// TODO: Combine duplicate code with inline.
 	var operator = sexp.parent.operator;
-	var dfName = 'df-' + GH.operatorUtil.getThmName(operator);
+	var dfName = 'df-' + GH.operatorUtil.getThmName(operator, false);
 	var dfSymbol = this.prover.getSymbol(dfName);
 	var definition = dfSymbol[3];
 	definition = GH.sExpression.fromRaw(definition);
@@ -68,7 +68,7 @@ GH.ProofGenerator.equalizer.prototype.inline = function(sexp) {};
 
 GH.ProofGenerator.equalizer.prototype.equalizeSingle = function(sexp) {
 	var operator = sexp.parent.operator;
-	var dfName = 'df-' + GH.operatorUtil.getThmName(operator);
+	var dfName = 'df-' + GH.operatorUtil.getThmName(operator, false);
 	var dfSymbol = this.prover.getSymbol(dfName);
 	var definition = dfSymbol[3];
 	definition = GH.sExpression.fromRaw(definition);

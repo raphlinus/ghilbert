@@ -171,6 +171,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/lessThanEqual.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/modulo.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/multiply.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/negative.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/product.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/properSubset.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/prime.js" type="text/javascript"></script>

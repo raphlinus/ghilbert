@@ -7,6 +7,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorAnd(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorMultiply(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorEquality(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorNegative(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorLessThan(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorLessThanEqual(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorGreaterThan(prover));
