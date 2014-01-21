@@ -1307,7 +1307,7 @@ GH.InterfaceCtx = function(verify, prefix, params) {
 };
 
 GH.InterfaceCtx.prototype.get_kind = function(rawkind) {
-    return this.verify.get_kind(this.prefix + rawkind);
+    return this.verify.get_kind(this.kinds[rawkind]);
 };
 
 GH.InterfaceCtx.prototype.var_cmd = function(cmd, arg) {
