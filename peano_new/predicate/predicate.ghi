@@ -1,0 +1,214 @@
+param (PROP prop.ghi () "")
+param (PREDICATE_MIN predicate_min.ghi (PROP) "")
+
+tvar (wff ph ps ch)
+tvar (nat A B C D)
+var (nat x y z)
+
+# Definition of exists - could be done through def instead of axiom here.
+term (wff (E. x ph))
+
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∀') </suggest>
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+stmt (a4i () ((A. x ph)) ph)
+stmt (mpg ()
+  ((-> (A. x ph) ps)
+   ph)
+  ps
+)
+
+stmt (19.3 ((ph x))
+  ()
+  (<-> (A. x ph) ph)
+)
+
+# aka 19.7
+stmt (alnex () ()
+  (<-> (A. x (-. ph)) (-. (E. x ph)))
+)
+
+stmt (19.8a () ()
+  (-> ph (E. x ph))
+)
+
+stmt (19.8ai () (ph) (E. x ph))
+
+stmt (19.2 () ()
+  (-> (A. x ph) (E. x ph))
+)
+
+## <title> Quantified Non-free Variable </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.9 ((ph x)) () (<-> (E. x ph) ph)
+)
+
+stmt (19.9d ((ps x)) ((-> ph (E. x ps))) (-> ph ps))
+
+stmt (19.15 () () (-> (A. x (<-> ph ps)) (<-> (A. x ph) (A. x ps))))
+
+stmt (19.15i ()
+  ((A. x (<-> ph ps)))
+  (<-> (A. x ph) (A. x ps))
+)
+
+stmt (19.15d () ((-> ph (A. x (<-> ps ch))))
+      (-> ph (<-> (A. x ps) (A. x ch)))
+     )
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (A. x [ ph ] ) (A. x [ ps ] ))
+## </table>
+stmt (albii ()
+  ((<-> ph ps))
+  (<-> (A. x ph) (A. x ps))
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (A. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (A. x       [    [ [ ps ] )
+## </table>
+stmt (albiii ()
+  ((A. x ph)
+   (<-> ph ps))
+  (A. x ps)
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (E. x [ ph ] ) (E. x [ ps ] ))
+## </table>
+stmt (exbii ()
+  ((<-> ph ps))
+  (<-> (E. x ph) (E. x ps))
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (E. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (E. x       [    [ [ ps ] )
+## </table>
+stmt (exbiii ()
+  ((E. x ph)
+   (<-> ph ps))
+  (E. x ps)
+)
+
+# aka 19.6
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∃') </suggest>
+stmt (alex () ()
+  (<-> (A. x ph) (-. (E. x (-. ph))))
+)
+
+stmt (19.20i ()
+  ((-> ph ps))
+  (-> (A. x ph) (A. x ps))
+)
+
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∀') left('Equivalence', '∀→') </suggest>
+stmt (19.21 ((ph x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> ph (A. x ps)))
+)
+
+stmt (19.21ai ((ph x))
+  ((-> ph ps))
+  (-> ph (A. x ps))
+)
+
+stmt (19.5 () ()
+  (<-> (A. x (A. y ph)) (A. y (A. x ph)))
+)
+
+stmt (19.22 () ()
+  (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
+)
+
+stmt (19.22i ()
+  ((-> ph ps))
+  (-> (E. x ph) (E. x ps))
+)
+
+stmt (19.22d ((ph x))
+  ((-> ph (-> ps ch)))
+  (-> ph (-> (E. x ps) (E. x ch)))
+)
+
+stmt (19.18 () ()
+  (-> (A. x (<-> ph ps)) (<-> (E. x ph) (E. x ps)))
+)
+
+## <title> Change Quantifiers </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∀→') </suggest>
+stmt (19.23 ((ps x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> (E. x ph) ps)))
+
+stmt (exbid ((ph x))
+  ((-> ph (<-> ps ch)))
+  (-> ph (<-> (E. x ps) (E. x ch)))
+)
+
+## <title> Combine Existence Quantifiers </title>
+## <suggest> right('Infer', '∃∃') </suggest>
+stmt (doubleex ((ph y) (ps x)) () (-> (/\ (E. x ph) (E. y ps)) (E. x (E. y (/\ ph ps)))))
+
+## <title> Move Existential Quantifier </title>
+stmt (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps))))
+
+## <title> Add existence quantifier </title>
+## <table>
+##   (->       [ ph  ] ps)
+##   (-> (E. x [ ph) ] ps)
+## </table>
+stmt (19.23ai ((ps x))
+  ((-> ph ps))
+  (-> (E. x ph) ps))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (19.26 () () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) (A. x ps))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
+stmt (19.41l ((ph x)) () (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps))))
+
+# Move to prop
+stmt (albi2d ((ph x)) ((-> ph (<-> ps ch))) (-> ph (<-> (A. x ps) (A. x ch))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∃→') </suggest>
+stmt (19.41 ((ps x)) () (<-> (E. x (/\ ph ps)) (/\ (E. x ph) ps)))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∀') left('Equivalence', '∀∧') </suggest>
+stmt (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps))))
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.29 () ()  (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps))))
+
+stmt (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps)))))
+
+## <title> Remove Existential Quantifier </title>
+stmt (exax1d () ((-> ph (E. x (A. x ps)))) (-> ph (A. x ps)))
+
+stmt (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+stmt (aaan ((ph y) (ps x)) () (<-> (A. x (A. y (/\ ph ps))) (/\ (A. x ph) (A. y ps))))
+
+stmt (albiim () () (<-> (A. x (<-> ph ps)) (/\ (A. x (-> ph ps)) (A. x (-> ps ph)))))
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.29r () () (-> (/\ (E. x ph) (A. x ps)) (E. x (/\ ph ps))))

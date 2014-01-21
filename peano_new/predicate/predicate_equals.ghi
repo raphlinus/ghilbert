@@ -1,0 +1,549 @@
+param (PROP prop.ghi () "")
+
+# Predicate equals is identical to equality, but instead of importing as a parameter
+# predicate_min, predicate, and equality_min those statements are listed here. Basically,
+# this cuts down the parameters from four to one.
+
+kind (nat)
+
+tvar (wff ph ps ch)
+tvar (nat A B C D)
+var (nat x y z)
+
+term (wff (= A B))
+term (wff (A. x ph))
+term (wff (E. x ph))
+
+
+#------------ Axioms ----------------------
+
+# roughly equivalent to ax-17
+## <title> Axiom of Quantifier Introduction </title>
+## <summary>
+##   Axiom to quantify a variable over a formula in which it does not occur.
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+## <axiom>
+stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
+
+## <title> Generalization Axiom </title>
+## <summary>
+##    Rule of Generalization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##    This rule says that if something is unconditionally true, then it is true for all values of a variable.
+##    Theorem <a href="/edit/peano/peano_thms.gh/a4i">a4i</a> shows we can go the other way. In other words,
+##    we can add or remove universal quantifiers from the beginning of any theorem as required.
+## </summary>
+## <table>
+##       [ ph ]
+## (A. x [ ph ] )
+## </table>
+## <axiom>
+stmt (gen ()
+  (ph)
+  (A. x ph))
+
+# roughly Margaris A5, but without the subst
+## <title> Axiom 4: Specialization </title>
+## <summary>
+##   Axiom of Specialization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##   A quantified wff implies the wff without a quantifier. In other words if
+##   something is true for all x, it is true for any specific x. Note that the converse of this axiom does
+##   not hold in general, but a weaker inference form of the converse holds in the
+##   <a href="gen">Rule of Generalization</a>. A conditional forms of the converse is given by the 
+##   <a href="alnfi">Axiom alnfi</a>.
+## </summary>
+## <suggest> right('Remove', '∀') </suggest>
+## <axiom>
+stmt (ax-4 () () (-> (A. x ph) ph))
+
+# Margaris A4, a.k.a. ax-5
+## <title> Axiom 5: Quantified Implication </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+## <axiom>
+stmt (ax-alim () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+  
+## <title> Axiom 6: Quantified Negation </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+## <axiom>
+stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
+
+## <title> Axiom 7: Quantifier Commutation </title>
+## <summary>
+##   Axiom of Quantifier Commutation. This axiom says universal quantifiers can be swapped.
+##   It is one of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+## <axiom>
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
+
+
+#------------ Equality Axioms ----------------------
+
+## <title> Equality Reflexive Property </title>
+## <axiom>
+stmt (eqid () () (= A A))
+
+## <title> Symmetric Property </title>
+## <table>
+##   (<-> (= <r> A <g> B) (= <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '=') </suggest>
+stmt (eqcom () () (<-> (= A B) (= B A)))
+
+## <title> Equality Transitive Property </title>
+## <suggest> right('Simplify', '=') </suggest>
+## <table>
+##   (-> (/\ (= <r> A <g> B) (= <g> B <b> C)) (= <r> A <b> C))
+## </table>
+## <axiom>
+stmt (eqtr () () (-> (/\ (= A B) (= B C)) (= A C)))
+
+# Similar to ax-9, but expanded to nat's instead of var's.
+## <title> There is a number equal to any expression </title>
+## <summary>
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus with equality</a>.
+##   One thing this tells us is that at least one number exists.
+## </summary>
+## <axiom>
+stmt (tyex ((A x)) () (E. x (= x A)))
+
+
+#------------ Pure Predicate Calculus without Equality ----------------------
+
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∀') </suggest>
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+stmt (a4i () ((A. x ph)) ph)
+stmt (mpg ()
+  ((-> (A. x ph) ps)
+   ph)
+  ps
+)
+
+stmt (19.3 ((ph x))
+  ()
+  (<-> (A. x ph) ph)
+)
+
+# aka 19.7
+stmt (alnex () ()
+  (<-> (A. x (-. ph)) (-. (E. x ph)))
+)
+
+stmt (19.8a () ()
+  (-> ph (E. x ph))
+)
+
+stmt (19.8ai () (ph) (E. x ph))
+
+stmt (19.2 () ()
+  (-> (A. x ph) (E. x ph))
+)
+
+## <title> Quantified Non-free Variable </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.9 ((ph x)) () (<-> (E. x ph) ph)
+)
+
+stmt (19.9d ((ps x)) ((-> ph (E. x ps))) (-> ph ps))
+
+stmt (19.15 () () (-> (A. x (<-> ph ps)) (<-> (A. x ph) (A. x ps))))
+
+stmt (19.15i ()
+  ((A. x (<-> ph ps)))
+  (<-> (A. x ph) (A. x ps))
+)
+
+stmt (19.15d () ((-> ph (A. x (<-> ps ch))))
+      (-> ph (<-> (A. x ps) (A. x ch)))
+     )
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (A. x [ ph ] ) (A. x [ ps ] ))
+## </table>
+stmt (albii ()
+  ((<-> ph ps))
+  (<-> (A. x ph) (A. x ps))
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (A. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (A. x       [    [ [ ps ] )
+## </table>
+stmt (albiii ()
+  ((A. x ph)
+   (<-> ph ps))
+  (A. x ps)
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (E. x [ ph ] ) (E. x [ ps ] ))
+## </table>
+stmt (exbii ()
+  ((<-> ph ps))
+  (<-> (E. x ph) (E. x ps))
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (E. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (E. x       [    [ [ ps ] )
+## </table>
+stmt (exbiii ()
+  ((E. x ph)
+   (<-> ph ps))
+  (E. x ps)
+)
+
+# aka 19.6
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∃') </suggest>
+stmt (alex () ()
+  (<-> (A. x ph) (-. (E. x (-. ph))))
+)
+
+stmt (19.20i ()
+  ((-> ph ps))
+  (-> (A. x ph) (A. x ps))
+)
+
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∀') left('Equivalence', '∀→') </suggest>
+stmt (19.21 ((ph x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> ph (A. x ps)))
+)
+
+stmt (19.21ai ((ph x))
+  ((-> ph ps))
+  (-> ph (A. x ps))
+)
+
+stmt (19.5 () ()
+  (<-> (A. x (A. y ph)) (A. y (A. x ph)))
+)
+
+stmt (19.22 () ()
+  (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
+)
+
+stmt (19.22i ()
+  ((-> ph ps))
+  (-> (E. x ph) (E. x ps))
+)
+
+stmt (19.22d ((ph x))
+  ((-> ph (-> ps ch)))
+  (-> ph (-> (E. x ps) (E. x ch)))
+)
+
+stmt (19.18 () ()
+  (-> (A. x (<-> ph ps)) (<-> (E. x ph) (E. x ps)))
+)
+
+## <title> Change Quantifiers </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∀→') </suggest>
+stmt (19.23 ((ps x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> (E. x ph) ps)))
+
+stmt (exbid ((ph x))
+  ((-> ph (<-> ps ch)))
+  (-> ph (<-> (E. x ps) (E. x ch)))
+)
+
+## <title> Combine Existence Quantifiers </title>
+## <suggest> right('Infer', '∃∃') </suggest>
+stmt (doubleex ((ph y) (ps x)) () (-> (/\ (E. x ph) (E. y ps)) (E. x (E. y (/\ ph ps)))))
+
+## <title> Move Existential Quantifier </title>
+stmt (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps))))
+
+## <title> Add existence quantifier </title>
+## <table>
+##   (->       [ ph  ] ps)
+##   (-> (E. x [ ph) ] ps)
+## </table>
+stmt (19.23ai ((ps x))
+  ((-> ph ps))
+  (-> (E. x ph) ps))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (19.26 () () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) (A. x ps))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
+stmt (19.41l ((ph x)) () (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps))))
+
+# Move to prop
+stmt (albi2d ((ph x)) ((-> ph (<-> ps ch))) (-> ph (<-> (A. x ps) (A. x ch))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∃→') </suggest>
+stmt (19.41 ((ps x)) () (<-> (E. x (/\ ph ps)) (/\ (E. x ph) ps)))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∀') left('Equivalence', '∀∧') </suggest>
+stmt (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps))))
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.29 () ()  (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps))))
+
+stmt (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps)))))
+
+## <title> Remove Existential Quantifier </title>
+stmt (exax1d () ((-> ph (E. x (A. x ps)))) (-> ph (A. x ps)))
+
+stmt (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+stmt (aaan ((ph y) (ps x)) () (<-> (A. x (A. y (/\ ph ps))) (/\ (A. x ph) (A. y ps))))
+
+stmt (albiim () () (<-> (A. x (<-> ph ps)) (/\ (A. x (-> ph ps)) (A. x (-> ps ph)))))
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+stmt (19.29r () () (-> (/\ (E. x ph) (A. x ps)) (E. x (/\ ph ps))))
+
+
+#------------ Equality ----------------------
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##   (= A [    C ] ]  )
+##        [ (= C ] [B )
+## </table>
+stmt (eqtr2 () () (-> (/\ (= A B) (= A C)) (= B C)))
+
+term (wff (E! x ph))
+stmt (df-eu ((ph y)) ()
+  (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
+
+term (wff ([/] A x ph) (x A))
+stmt (df-subst ((A z) (ph z)) ()
+  (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph))))))
+
+term (wff (rwff x ph))
+stmt (df-rwff () ()
+  (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph)))))
+
+## <title> Symmetric Property </title>
+## <table>
+##   (= <r> A <g> B)
+##   (= <g> B <r> A)
+## </table>
+stmt (eqcomi () ((= A B)) (= B A))
+
+## <title> Symmetric Property </title>
+## <table>
+##   (-> ph (= <r> A <g> B))
+##   (-> ph (= <g> B <r> A))
+## </table>
+stmt (eqcomd ()
+  ((-> ph (= A B)))
+   (-> ph (= B A)))
+
+## <title> Equivalence over Equality </title>
+stmt(eqeq1 () () (-> (= A B) (<-> (= A C) (= B C))))
+
+## <title> Equivalence over Equality </title>
+stmt(eqeq2 () () (-> (= A B) (<-> (= C A) (= C B))))
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=      A ]    ] [    B ] )
+##   (<-> (= A ] C) ] [ (= B ] C))
+## </table>
+stmt (eqeq1i () ((= A B)) (<-> (= A C) (= B C)))
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=        [ A  ] [      [ B)
+##   (<-> (= C [ A) ] [ (= C [ B))
+## </table>
+stmt (eqeq2i () ((= A B)) (<-> (= C A) (= C B)))
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (-> ph (=      A ]    ] [    B ] ))
+##   (-> ph (<-> (= A ] C) ] [ (= B ] C)))
+## </table>
+stmt(eqeq1d () ((-> ph (= A B))) (-> ph (<-> (= A C) (= B C))))
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (-> ph (=        [ A  ] [      [ B))
+##   (-> ph (<-> (= C [ A) ] [ (= C [ B)))
+## </table>
+stmt(eqeq2d () ((-> ph (= A B))) (-> ph (<-> (= C A) (= C B))))
+
+stmt (eqeq12 () () (-> (/\ (= A B) (= C D)) (<-> (= A C) (= B D))))
+
+## <title> Transitive Property </title>
+stmt (eqeq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (<-> (= A C) (= B D))))
+
+## <title> Equivalence over Equality </title>
+stmt (eqeq12i ()
+  ((= A B)
+   (= C D))
+  (<-> (= A C) (= B D)))
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A  [    B ] ] )
+##         [ (= B ] [ C)
+##   (= A  [      [ [ C)
+## </table>
+stmt (eqtri () ((= A B) (= B C)) (= A C))
+
+## <title> Transitive Property </title>
+## <table>
+##   (-> ph (= A  [    B ] ] ))
+##   (-> ph       [ (= B ] [ C))
+##   (-> ph (= A  [      [ [ C))
+## </table>
+stmt (eqtrd () ((-> ph (= A B)) (-> ph (= B C))) (-> ph (= A C)))
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [ B    ] ]  )
+##   (= A [      [ [ C)
+##        [ (= B ] [ C)
+## </table>
+stmt (eqtr3 ()
+  ((= A B)
+   (= A C))
+  (= B C))
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A    [   [ B)
+##        (= [ C [ B )
+##   (= A    [ C ]   )
+## </table>
+stmt (eqtr4 ()
+  ((= A B)
+   (= C B))
+  (= A C))
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##   (= A [    C ] ]  )
+##        [ (= C ] [ B )
+## </table>
+stmt (eqtr5 () ((= A B) (= A C)) (= C B))
+
+## <title> Syllogism </title>
+stmt (syl5eq ()
+  ((-> ph (= A B))
+   (= C A))
+  (-> ph (= C B)))
+
+## <title> Syllogism </title>
+stmt (syl5eqr ()
+  ((-> ph (= A B))
+          (= A C))
+   (-> ph (= C B)))
+
+## <title> Syllogism </title>
+## <table>
+##   (-> ph (= A [    B ] ]  ))
+##               [ (= B ] [ C)
+##   (-> ph (= A [      [ [ C))
+## </table>
+stmt (syl6eq ()
+  ((-> ph (= A B))
+   (= B C))
+  (-> ph (= A C)))
+
+## <title> Syllogism </title>
+stmt (syl6eqr ()
+  ((-> ph (= A B))
+   (= C B))
+  (-> ph (= A C)))
+
+## <title> Syllogism </title>
+stmt (sylan9eq ()
+  ((-> ph (= A B))
+   (-> ps (= B C)))
+  (-> (/\ ph ps) (= A C)))
+
+## <title> Make Implicit Substitution Explicit </title>
+## <summary>
+##   A representation of explicit substitution, inferred from an implicit substitution hypothesis.
+## </summary>
+stmt (ceqsal ((A x) (ps x))
+  ((-> (= x A) (<-> ph ps)))
+  (<-> (A. x (-> (= x A) ph)) ps))
+
+## <title> Make Implicit Substitution Explicit </title>
+## <summary>
+##   A representation of explicit substitution, inferred from an implicit substitution hypothesis.
+## </summary>
+stmt (ceqsex ((ps x) (A x))
+  ((-> (= x A) (<-> ph ps)))
+  (<-> (E. x (/\ (= x A) ph)) ps))
+
+stmt (vtocl ((A x) (ps x)) ((-> (= x A) (<-> ph ps)) ph) ps)
+
+## <title> Equality over substitution </title>
+## <summary>
+##   If A = B, then substituting A into an expression is the same as
+##   substituting B.
+## </summary>
+stmt (dfsbcq () () (-> (= A B) (<-> ([/] A x ph) ([/] B x ph))))
+
+## <title> Make an implicit substitution explicit </title>
+stmt (sbcie ((A x) (ps x))
+  ((-> (= x A) (<-> ph ps)))
+  (<-> ([/] A x ph) ps))
+
+## <title> Convert Arbitrary Substitution into Universal Quantifier </title>
+stmt (cla4g ((A x) (ps x))
+  ((-> (= x A) (<-> ph ps)))
+  (-> (A. x ph) ps))
+
+## <title> Quantifier variable exchange </title>
+stmt (exalpha ((ph y) (ps x)) ((-> (= x y) (<-> ph ps))) (<-> (E. x ph) (E. y ps)))
+
+## <title> Relatively Well-Formed Formula Infernece </title>
+stmt (rwffi ((ps x) (ph y)) ((-> (= x y) (<-> ph ps))) (rwff x ph))
+
+## <title> Symmetric Property </title>
+stmt (eqcoms () ((-> (= A B) ph)) (-> (= B A) ph))
+
+## <title> Add Substitutions to both sides </title>
+stmt (sbcbid ((ph x)) ((-> ph (<-> ps ch))) (-> ph (<-> ([/] A x ps) ([/] A x ch))))
+
+## <title> Existence when number is used in substitution </title>
+stmt (sbcex ((A x) (ph x)) () (-> ([/] A y ph) (E. x ([/] x y ph))))
+
+## <title> Substitute any number into a universal statement </title>
+stmt (a4sbc () () (-> (A. x ph) ([/] A x ph)))
+
+## <title> Negation Preserves Relatively Well-Formed-ness </title>
+stmt (not-rwff () ((rwff x ph)) (rwff x (-. ph)))
+
+## <title> Transitive Property </title>
+stmt (3eqtr4g () ((-> ph (= A B)) (= C A) (= D B)) (-> ph (= C D)))
+
+stmt (alpha ((ph y) (ps x)) ((-> (= x y) (<-> ph ps))) (<-> (A. x ph) (A. y ps)))
+
+stmt (substex ((ph x y) (ps y) (ch x) (A y))
+  ((-> (/\ ph (/\ (= y A) ps)) ch))
+  (-> (/\ ph (E. x ps)) (E. y ch)))

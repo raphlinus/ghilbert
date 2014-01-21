@@ -1,0 +1,35 @@
+param (PROP prop.ghi () "")
+param (PREDICATE_MIN predicate_min.ghi (PROP) "")
+param (PREDICATE predicate.ghi (PROP PREDICATE_MIN) "")
+
+tvar (nat A B C D)
+var (nat x y z)
+term (wff (= A B))
+
+## <title> Equality Reflexive Property </title>
+## <axiom>
+stmt (eqid () () (= A A))
+
+## <title> Symmetric Property </title>
+## <table>
+##   (<-> (= <r> A <g> B) (= <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '=') </suggest>
+stmt (eqcom () () (<-> (= A B) (= B A)))
+
+## <title> Equality Transitive Property </title>
+## <suggest> right('Simplify', '=') </suggest>
+## <table>
+##   (-> (/\ (= <r> A <g> B) (= <g> B <b> C)) (= <r> A <b> C))
+## </table>
+## <axiom>
+stmt (eqtr () () (-> (/\ (= A B) (= B C)) (= A C)))
+
+# Similar to ax-9, but expanded to nat's instead of var's.
+## <title> There is a number equal to any expression </title>
+## <summary>
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus with equality</a>.
+##   One thing this tells us is that at least one number exists.
+## </summary>
+## <axiom>
+stmt (tyex ((A x)) () (E. x (= x A)))

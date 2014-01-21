@@ -1,0 +1,865 @@
+import (PROP ../prop.ghi () "")
+import (PREDICATE_MIN predicate_min.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+var (nat v w x y z)
+
+# == Pure predicate calculus ==
+
+## <title> Axiom 4 Inference </title>
+thm (a4i ()
+  (hyp (A. x ph))
+  ph
+  hyp x ph ax-4 ax-mp
+)
+
+## <title> Modus Ponus & Generalization </title>
+## <table>
+##  (-> (A. x [ ph ] ) [ ps)
+##            [ ph ]   ]
+##            [    [   [ ps 
+## </table>
+thm (mpg ()
+  (hyp1 (-> (A. x ph) ps)
+   hyp2 ph)
+  ps
+  hyp2
+  ## <d>
+    x gen
+  ## </d>
+  hyp1 ax-mp
+)
+
+## <title> Quantified Non-free Variable </title>
+## <suggest> right('Simplify', '∀') </suggest>
+thm (19.3 ((ph x))
+  ()
+  (<-> (A. x ph) ph)
+  x ph ax-4 ph x alnfi impbii
+)
+
+## <title> Double Negative </title>
+thm (notnotbi () () (<-> (-. (-. ph)) ph)
+  ph notnot2
+  ph notnot1
+  impbii
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∀') </suggest>
+defthm (df-ex wff (E. x ph) () () (<-> (E. x ph) (-. (A. x (-. ph))))
+     (-. (A. x (-. ph))) biid)
+
+# aka 19.7
+## <title> Convert between ∃ and ∀ </title>
+thm (alnex () ()
+  (<-> (A. x (-. ph)) (-. (E. x ph)))
+  x ph df-ex con2bii
+)
+
+## <title> Add existential quantifier </title>
+thm (19.8a () ()
+  (-> ph (E. x ph))
+  x (-. ph) ax-4 con2i
+  x ph df-ex sylibr
+)
+
+## <title> Add Existential Quantifier </title>
+thm (19.8ai () (hyp ph) (E. x ph) hyp ph x 19.8a ax-mp )
+
+## <title> Universal quantifier implies existential quantifier </title>
+thm (19.2 () ()
+  (-> (A. x ph) (E. x ph))
+  x ph ax-4 ph x 19.8a syl
+)
+
+## <title> Quantified Non-free Variable </title>
+## <suggest> right('Simplify', '∃') </suggest>
+thm (19.9 ((ph x))
+  ()
+  (<-> (E. x ph) ph)
+
+  x (-. ph) 19.3
+  x ph alnex bitr3i con4bii bicomi
+)
+
+## <title> Remove Existence Quantifier </title>
+## <table>
+##   (-> ph [ (E. x [ ps))
+##   (-> ph [       [ ps)
+## </table>
+thm (19.9d ((ps x)) (h (-> ph (E. x ps)))
+  (-> ph ps)
+  h
+  x ps 19.9
+  sylib
+)
+
+## <title> Distribute ∀ over biconditional </title>
+## <suggest> right('Distribute', '∀') </suggest>
+thm (19.15 () ()
+  (-> (A. x (<-> ph ps)) (<-> (A. x ph) (A. x ps)))
+
+  ph ps bi1 x gen
+  x (<-> ph ps) (-> ph ps) ax-alim ax-mp
+  x ph ps ax-alim syl
+
+    ph ps bi2 x gen
+    x (<-> ph ps) (-> ps ph) ax-alim ax-mp
+    x ps ph ax-alim syl
+  impbid
+)
+
+## <title> Distribute ∀ over biconditional </title>
+thm (19.15i ()
+  (hyp (A. x (<-> ph ps)))
+  (<-> (A. x ph) (A. x ps))
+  hyp x ph ps 19.15 ax-mp)
+  
+## <title> Distribute ∀ over biconditional </title>
+thm (19.15d () (H1 (-> ph (A. x (<-> ps ch))))
+      (-> ph (<-> (A. x ps) (A. x ch)))
+     H1 x ps ch 19.15 syl)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (A. x [ ph ] ) (A. x [ ps ] ))
+## </table>
+thm (albii ()
+  (hyp (<-> ph ps))
+  (<-> (A. x ph) (A. x ps))
+  hyp x gen 19.15i)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (A. x       [ ph ] )
+##          (<-> [ ph ] [ ps ] )
+##   (A. x       [    [ [ ps ] )
+## </table>
+thm (albiii ()
+  (hyp1 (A. x ph)
+   hyp2 (<-> ph ps))
+  (A. x ps)
+  hyp1 hyp2 x albii mpbi
+)
+
+# aka 19.6
+
+## <title> Definition of ∃ </title>
+## <suggest> right('Equivalence', '∃') </suggest>
+thm (alex () ()
+  (<-> (A. x ph) (-. (E. x (-. ph))))
+  ph notnot x albii
+  x (-. ph) df-ex con2bii bitri
+)
+
+## <title> Generalize Over Conditional </title>
+## <table>
+##   (->       [ ph ]        [ ps ] )
+##   (-> (A. x [ ph ]) (A. x [ ps ] ))
+## </table>
+thm (19.20i ()
+  (hyp (-> ph ps))
+  (-> (A. x ph) (A. x ps))
+  x ph ps ax-alim hyp mpg
+)
+
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∀') left('Equivalence', '∀→') </suggest>
+thm (19.21 ((ph x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> ph (A. x ps)))
+
+  x ph ps ax-alim ph x alnfi syl5
+    (-> ph (A. x ps)) x alnfi
+      x ps ax-4
+      ph imim2i
+      x 19.20i
+    syl
+  impbii
+)
+
+## <title> Add Quantifier to consequent </title>
+thm (19.21ai ((ph x))
+  (hyp (-> ph ps))
+  (-> ph (A. x ps))
+  ph x alnfi hyp x 19.20i syl
+)
+
+thm (albi2d ((ph x)) (hyp (-> ph (<-> ps ch))) (-> ph (<-> (A. x ps) (A. x ch)))
+  ph x alnfi
+  hyp
+  x 19.20i  
+  syl
+  
+  ## <d 'Distribute ∀ '>
+    x ps ch 19.15
+    syl
+  ## </d 'Distribute ∀ '>
+)
+
+## <title> Commute universal quantifiers </title>
+## <suggest> right('Commute', '∀') </suggest>
+thm (19.5 () ()
+  (<-> (A. x (A. y ph)) (A. y (A. x ph)))
+  x (A. y ph) ax-4 y ph ax-4 syl x 19.21ai y 19.21ai
+    y (A. x ph) ax-4 x ph ax-4 syl y 19.21ai x 19.21ai
+  impbii
+)
+
+## <title> Add Existential Quantifier to both sides </title>
+thm (19.22 () ()
+  (-> (A. x (-> ph ps)) (-> (E. x ph) (E. x ps)))
+
+  ph ps con34b x albii
+    x (-. ps) (-. ph) ax-alim sylbi con3d
+    x ph df-ex x ps df-ex imbi12i sylibr
+)
+
+## <title> Add Existential Quantifier to both sides </title>
+## <table>
+##   (->       [ ph ]        [ ps ] )
+##   (-> (E. x [ ph ]) (E. x [ ps ] ))
+## </table>
+thm (19.22i ()
+  (hyp (-> ph ps))
+  (-> (E. x ph) (E. x ps))
+  x ph ps 19.22 hyp mpg
+)
+
+## <title> Add Existential Quantifier to both sides </title>
+thm (19.22d ((ph x))
+  (hyp (-> ph (-> ps ch)))
+  (-> ph (-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.22 syl
+)
+
+thm (19.18 () ()
+  (-> (A. x (<-> ph ps)) (<-> (E. x ph) (E. x ps)))
+  ph ps bi1 x 19.20i x ph ps 19.22 syl
+    ph ps bi2 x 19.20i x ps ph 19.22 syl
+  impbid
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (<->       [ ph ]         [ ps ] )
+##   (<-> (E. x [ ph ] ) (E. x [ ps ] ))
+## </table>
+thm (exbii ()
+  (hyp (<-> ph ps))
+  (<-> (E. x ph) (E. x ps))
+  x ph ps 19.18 hyp mpg
+)
+
+## <title> Equivalence over Quantification </title>
+## <table>
+##   (E. x       [ ph ] ]    ] )
+##          (<-> [ ph ] [ ps ] )
+##   (E. x       [    [ [ ps ] )
+## </table>
+thm (exbiii ()
+  (hyp1 (E. x ph)
+   hyp2 (<-> ph ps))
+  (E. x ps)
+  hyp1 hyp2 x exbii mpbi
+)
+
+## <title> Add Existential Quantifiers </title>
+thm (exbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E. x ps) (E. x ch)))
+  hyp x 19.21ai x ps ch 19.18 syl
+)
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (19.26 () () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) (A. x ps)))
+  ph ps pm3.26 x 19.20i
+    ph ps pm3.27 x 19.20i
+  jca
+    ph ps pm3.2 x 19.20i x ps  (/\ ph ps) ax-alim syl
+    imp
+  impbii
+)
+
+# 19.26 with reversed
+## <title> Distributive Property </title>
+thm (alan12 () () (-> (/\ (A. x ph) (A. x ps)) (A. x (/\ ph ps)))
+  x ph ps 19.26 biimpri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->      [ ph ]   [ ps ] )
+##   (<-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Not0 () (
+     replacee (<-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-. (E. x  [ ph ]   ]    ] )) ch)
+##   (<->            [ ph ]   [ ps ] )
+##   (<-> (-. (E. x  [    [   [ ps ] )) ch)
+## </table>
+thm (BiReplaceBi0Not0Ex1 () (
+     replacee (<-> (-. (E. x ph)) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. (E. x ps)) ch)
+  replacee substitution
+  x exbii
+  BiReplaceBi0Not0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-. (E. x (-.  [ ph ]   ]    ] ))) ch)
+##   (<->                [ ph ]   [ ps ] )
+##   (<-> (-. (E. x (-.  [    [   [ ps ] ))) ch)
+## </table>
+thm (BiReplaceBi0Not0Ex1Not0 () (
+     replacee (<-> (-. (E. x (-. ph))) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. (E. x (-. ps))) ch)
+  replacee substitution
+  con4biir
+  BiReplaceBi0Not0Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x  [ ps ]   ]    ] )))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (-. (E. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceBi1Not0Ex1 () (
+     replacee (<-> ph (-. (E. x ps)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (E. x ch)))
+  replacee
+  substitution
+x exbii
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1An0 () (
+     replacee (<-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ ch th))
+  replacee
+  substitution
+th anbi1i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee
+  substitution
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/ ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (\/ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Or1 () (
+     replacee (<-> ph (-. (\/ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (\/ ps th)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/  [ ps ]   ]    ]  th)))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (-. (\/  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Not0Or0 () (
+     replacee (<-> ph (-. (\/ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (\/ ch th)))
+  replacee substitution
+  th orbi1i
+  BiReplaceBi1Not0
+)
+
+## <title> Distributive ∃ Over Disjunction </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (exdi () () (<-> (E. x (\/ ph ps)) (\/ (E. x ph) (E. x ps)))
+  x (-. ph) (-. ps) 19.26  
+  ## <d 'Definition of ∃ '>
+    x (/\ (-. ph) (-. ps)) alex
+    bitr3icom
+  ## </d 'Definition of ∃ '>  
+  ## <d 'Definition of ∃ '>
+    x (-. ph) alex
+    ph notnotr
+    BiReplaceBi1Not0Ex1
+    BiReplaceBi1An0
+  ## </d 'Definition of ∃ '>  
+  ## <d 'Definition of ∃ '>
+    x (-. ps) alex
+    ps notnotr
+    BiReplaceBi1Not0Ex1
+    BiReplaceBi1An1
+  ## </d 'Definition of ∃ '>
+  ## <d 'DeMorgan's Law '>
+    (-. (E. x ph)) (-. (E. x ps)) anor
+    (E. x ph) notnotr
+    BiReplaceBi1Not0Or0
+    (E. x ps) notnotr
+    BiReplaceBi1Not0Or1
+    bitri
+  ## </d 'DeMorgan's Law '>
+  ## <d 'DeMorgan's Law '>
+    (-. ph) (-. ps) anor
+    ph notnotr
+    BiReplaceBi1Not0Or0
+    ps notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceBi0Not0Ex1Not0
+  ## </d 'DeMorgan's Law '>
+  ## <d 'Double Negative '>
+    (\/ ph ps) notnotr
+    BiReplaceBi0Not0Ex1
+  ## </d 'Double Negative '>
+  ## <d 'Negate Both Sides '>
+    (E. x (\/ ph ps)) (\/ (E. x ph) (E. x ps)) notbi
+    bicomi
+    mpbi
+  ## </d 'Negate Both Sides '>
+)
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+thm (19.29 () ()  (-> (/\ (A. x ph) (E. x ps)) (E. x (/\ ph ps)))
+  x ph (-. ps) ax-alim
+    x ps alnex
+  syl6ib
+  con3i
+    (A. x ph) (E. x ps) df-an
+      x (-> ph (-. ps)) alex con2bii
+  3imtr4i
+    ph ps df-an x exbii
+  sylibr
+)
+
+## <title> Combine universal and Existence Quantifiers </title>
+## <suggest> right('Simplify', '∃') </suggest>
+thm (19.29r () ()
+  (-> (/\ (E. x ph) (A. x ps)) (E. x (/\ ph ps)))
+  x ps ph 19.29 ancoms ps ph ancom x exbii sylib
+)
+
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∀∨') left('Equivalence', '∨∀') </suggest>
+thm (19.32 ((ph x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ ph (A. x ps)))
+
+  x (-. ph) ps 19.21
+    ph ps df-or x albii
+      ph (A. x ps) df-or
+  3bitr4i
+)
+
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∀∨') left('Equivalence', '∨∀') </suggest>
+thm (19.31 ((ps x))
+  ()
+  (<-> (A. x (\/ ph ps)) (\/ (A. x ph) ps))
+
+  x ps ph 19.32
+  ph ps orcom x albii
+  (A. x ph) ps orcom
+  3bitr4i
+)
+
+## <title> Change Quantifiers </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∀→') </suggest>
+thm (19.23 ((ps x))
+  ()
+  (<-> (A. x (-> ph ps)) (-> (E. x ph) ps))
+
+  ph ps imor x albii
+  x (-. ph) ps 19.31 bitri
+  x ph alnex ps orbi1i bitri
+  (E. x ph) ps imor bitr4i
+)
+
+## <title> Add existence quantifier </title>
+## <table>
+##   (->       [ ph  ] ps)
+##   (-> (E. x [ ph) ] ps)
+## </table>
+thm (19.23ai ((ps x))
+  (hyp (-> ph ps))
+  (-> (E. x ph) ps)
+  hyp x 19.22i
+  x ps 19.9 sylib
+)
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∃→') </suggest>
+thm (19.41 ((ps x)) () (<-> (E. x (/\ ph ps)) (/\ (E. x ph) ps))
+  x (/\ ph ps) df-ex
+    x (-. ph) (-. ps) 19.31
+      ph ps ianor x albii
+        (E. x ph) ps ianor x ph alnex (-. ps) orbi1i bitr4i
+    3bitr4i con2bii
+  bitr4i
+)
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
+thm (19.41l ((ph x)) () (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
+thm (19.41r ((ph x)) ()
+  (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps)))
+  ph  ps  ancom    x  exbii
+  x  ps  ph  19.41    bitri
+  (E. x ps)  ph  ancom    bitri
+)
+
+## <title> Exchange biconditional with two conditionals </title>
+thm (albiim () ()
+  (<-> (A. x (<-> ph ps)) (/\ (A. x (-> ph ps)) (A. x (-> ps ph))))
+  ph ps dfbi2 x albii
+  x (-> ph ps) (-> ps ph) 19.26 bitri
+)
+
+# 19.28
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∀') left('Equivalence', '∀∧') </suggest>
+thm (alan1 ((ph x)) () (<-> (A. x (/\ ph ps)) (/\ ph (A. x ps)))
+  x ph ps 19.26
+    x ph 19.3 (A. x ps) anbi1i
+  bitri
+)
+
+# 19.27
+## <title> Quantifiers Moved Around Non-free Variable </title>
+thm (alan2 ((ps x)) () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) ps))
+  ph  ps  ancom     x  albii    x  ps  ph  alan1  bitri
+  ps  (A. x ph)  ancom    bitri
+)
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+thm (exor2 ((ps x)) () (<-> (E. x (\/ ph ps)) (\/ (E. x ph) ps))
+x  (\/ ph ps)  df-ex
+  ph  ps  ioran    x  albii  notbii
+    x (-. ph)  (-. ps)  alan2  notbii
+  bitri
+  (A. x (-. ph))  ps  pm4.53    bitri
+bitri
+x  ph  df-ex    ps  orbi1i  bitr4i
+)
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+thm (aaan ((ph y) (ps x)) ()
+  (<-> (A. x (A. y (/\ ph ps))) (/\ (A. x ph) (A. y ps)))
+  y ph ps alan1 x albii
+  x ph (A. y ps) alan2 bitri
+)
+
+## <title> Add Universal Quantifier </title>
+thm (ex6 () () (-> (E. x ph) (A. x (E. x ph)))
+     x ph df-ex
+       x (-. ph) ax-6
+     sylbi
+       x ph df-ex x albii
+     sylibr)
+     
+## <title> Remove Universal Quantifier </title>
+thm (axex () () (<-> (A. x (E. x ph)) (E. x ph))
+     x (E. x ph) ax-4
+     x ph ex6
+     impbii)
+     
+## <title> Remove Existential Quantifier </title>
+thm (exax1 () () (-> (E. x (A. x ph)) (A. x ph))
+     x (A. x ph) df-ex
+       x ph ax-6 con1i
+     sylbi)
+     
+## <title> Remove Existential Quantifier </title>
+thm (exax () () (<-> (E. x (A. x ph)) (A. x ph))
+     x ph exax1
+     (A. x ph) x 19.8a
+     impbii)
+     
+## <title> Remove Existential Quantifier </title>
+thm (exax1d () (1 (-> ph (E. x (A. x ps)))) (-> ph (A. x ps))
+     1 x ps exax1 syl)
+     
+## <title> Move Existential Quantifier </title>
+thm (eximp1 () () (-> (E. x (-> ph ps)) (-> (A. x ph) (E. x ps)))
+     ph ps pm2.27 x 19.20i
+       x (-> ph ps) ps 19.22
+     syl com12)
+     
+## <title> Move Existential Quantifier </title>
+thm (eximp1d () (1 (-> ph (E. x (-> ps ch)))) (-> ph (-> (A. x ps) (E. x ch)))
+     1 x ps ch eximp1 syl)
+
+thm (mpexax () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x ps)))
+     ph ps pm2.27 x 19.22i eximp1d
+     )
+
+thm (mpexaxp () () (-> (E. x ph) (-> (A. x (-> ph ps)) (E. x (/\ ph ps))))
+     x ph (/\ ph ps) mpexax
+       ph ps ancl x 19.20i
+     syl5
+     )
+
+## <title> Commutativity of existential quantifiers </title>
+## <suggest> right('Commute', '∃') </suggest>
+thm (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph)))
+  y  ph  df-ex  x  exbii
+  x  (-. (A. y (-. ph)))  df-ex  bitri
+  (A. y (-. ph)) notnot  x  albii  notbii  bitr4i
+  x  y  (-. ph)  ax-7  y  x  (-. ph)  ax-7  impbii  notbii  bitri
+
+    x  ph  df-ex  y  exbii
+    y  (-. (A. x (-. ph)))  df-ex  bitri
+    (A. x (-. ph)) notnot  y  albii  notbii  bitr4i
+  bitr4i
+)
+
+# A variant of 19.37
+## <title> Quantifier Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '→∃') left('Equivalence', '∃→') </suggest>
+thm (imex ((ph x)) () (<-> (-> ph (E. x ps)) (E. x (-> ph ps)))
+   ph  (E. x ps)  imor    (-. ph) (E. x ps) orcom  bitri
+
+   x  ps  (-. ph)  exor2   bitr4i
+  ph  ps   imor  (-. ph)  ps  orcom  bitri x  exbii  bitr4i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+## <title> Combine Existence Quantifiers </title>
+## <suggest> right('Infer', '∃∃') </suggest>
+thm (doubleex ((ph y) (ps x)) () (-> (/\ (E. x ph) (E. y ps)) (E. x (E. y (/\ ph ps))))
+  (E. y ps) x alnfi
+  (E. x ph) anim2i  
+  ## <d 'Combine universal and Existence Quantifiers '>
+    x ph (E. y ps) 19.29r
+    syl
+  ## </d 'Combine Universal and Existence Quantifiers '>
+  ph y alnfi
+  (E. y ps) anim1i  
+  ImpReplaceImp1Ex1  
+  ## <d 'Combine Universal and Existence Quantifiers '>
+    y ph ps 19.29
+    ImpReplaceImp1Ex1
+  ## </d 'Combine Universal and Existence Quantifiers '>
+)
+
+## <title> Remove For All </title>
+## <table>
+##              [ ph ]
+##   (<-> (A. x [ ph ] ) (T))
+## </table>
+thm (alRemove2 () (hyp ph) (<-> (A. x ph) (T))
+  tru
+  (A. x ph) a1i
+  hyp
+  x gen
+  (T) a1i
+  pm3.2i  
+  (A. x ph) (T) dfbi2
+  ## <d 'Commutative Property'>
+    (<-> (A. x ph) (T)) (/\ (-> (A. x ph) (T)) (-> (T) (A. x ph))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+)
+
+## <title> Remove For All </title>
+## <table>
+##              [ (-. [ ph ] )
+##   (<-> (A. x [     [ ph ] ) (F))
+## </table>
+thm (alNotRemove2() (hyp (-. ph)) (<-> (A. x ph) (F))
+  notfal
+  (-. (A. x ph)) a1i
+
+  x ph ax-4  
+  (A. x ph) ph con34b
+  mpbi
+  hyp
+  ax-mpRemove
+  (-. (F)) a1i
+  pm3.2i  
+  
+  (-. (A. x ph)) (-. (F)) dfbi2
+  ## <d 'Commutative Property'>
+    (<-> (-. (A. x ph)) (-. (F))) (/\ (-> (-. (A. x ph)) (-. (F))) (-> (-. (F)) (-. (A. x ph)))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+  
+  (A. x ph) (F) notbi
+  ## <d 'Commutative Property'>
+    (<-> (A. x ph) (F)) (<-> (-. (A. x ph)) (-. (F))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+)
+
+## <title> Remove There Exists </title>
+## <table>
+##              [ ph ]
+##   (<-> (E. x [ ph ] ) (T))
+## </table>
+thm (exRemove2 () (hyp ph) (<-> (E. x ph) (T))
+  tru
+  (E. x ph) a1i
+  hyp
+  x gen
+  x ph 19.2
+  ax-mp
+  (T) a1i
+  pm3.2i
+  
+  (E. x ph) (T) dfbi2
+  ## <d 'Commutative Property'>
+    (<-> (E. x ph) (T)) (/\ (-> (E. x ph) (T)) (-> (T) (E. x ph))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+)
+
+## <title> Remove There Exists </title>
+## <table>
+##              [ (-. [ ph ] )
+##   (<-> (E. x [     [ ph ] ) (F))
+## </table>
+thm (exNotRemove2() (hyp (-. ph)) (<-> (E. x ph) (F))
+  notfal (-. (E. x ph)) a1i
+  x ph df-ex
+  hyp x gen
+  notnoti
+  (E. x ph) biNotRemove2
+  mpbi
+  (-. (F)) a1i
+  pm3.2i
+  
+  (-. (E. x ph)) (-. (F)) dfbi2
+  ## <d 'Commutative Property'>
+    (<-> (-. (E. x ph)) (-. (F))) (/\ (-> (-. (E. x ph)) (-. (F))) (-> (-. (F)) (-. (E. x ph)))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+  
+  (E. x ph) (F) notbi
+  ## <d 'Commutative Property'>
+    (<-> (E. x ph) (F)) (<-> (-. (E. x ph)) (-. (F))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  mpbi
+)
+
+export (PREDICATE predicate.ghi (PROP PREDICATE_MIN) "")

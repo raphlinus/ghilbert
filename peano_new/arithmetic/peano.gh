@@ -1,0 +1,1860 @@
+# Building up theorems of peano arithmetic.
+
+import (PROP ../prop.ghi () "")
+import (PREDICATE_EQ ../predicate/predicate_equals.ghi (PROP) "")
+import (PEANO_MIN peano_min.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+# == Basic Peano arithmetic ==
+
+## <title> Definition of 1 </title>
+defthm (df-1 nat (1) () () (= (1) (S (0)))
+        (S (0)) eqid)
+
+## <title> Add a number to both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (+ <g> A <r> C) (+ <b> B <r> C)))
+## </table>
+thm (addeq1 () () (-> (= A B) (= (+ A C) (+ B C)))
+  C eqid A B C C addeq12 mpan2)
+
+## <title> Add a number to both sides of an equation </title>
+thm (addeq2 () ()
+  (-> (= A B) (= (+ C A) (+ C B)))
+  C eqid C C A B addeq12 mpan)
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (+ A ] [ C ] ) (+ [ B ] [ D))
+## </table>
+thm (addeq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (+ A C) (+ B D))
+  hyp1 hyp2 A B C D addeq12 mp2an
+)
+
+## <title> Equality over Addition </title>
+thm (addeq1d ()
+  (h (-> ph (= A B)))
+  (-> ph (= (+ A C) (+ B C)))
+  h A B C addeq1 syl
+)
+
+## <title> Equality over Addition </title>
+thm (addeq2d ()
+  (h (-> ph (= A B)))
+  (-> ph (= (+ C A) (+ C B)))
+  h A B C addeq2 syl
+)
+
+## <title> Equality over Addition </title>
+thm (addeq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (+ A C) (+ B D)))
+  hyp1 hyp2 jca A B C D addeq12 syl
+)
+
+## <title> Equality over Succession </title>
+## <table>
+##  (=    A  ] [    B)
+##  (= (S A) ] [ (S B)
+## </table>	
+thm (pa_ax2i () (hyp (= A B)) (= (S A) (S B))
+  hyp
+  A B pa_ax2
+  mpbi
+)
+
+## <title> Add a number to both sides </title>
+## <table>
+##  (=    A ]        ]    [ B ] )
+##  (= (+ A ] <g> C) ] (+ [ B ] <g> C))
+## </table>
+thm (addeq1i ()
+  (hyp (= A B))
+  (= (+ A C) (+ B C))
+  hyp A B C addeq1 ax-mp
+)
+
+## <title> Add a number to both sides </title>
+## <table>
+##  (=          [ A ]   [          [ B )
+##  (= (+ <g> C [ A ] ) [ (+ <g> C [ B))
+## </table>
+thm (addeq2i ()
+  (hyp (= A B))
+  (= (+ C A) (+ C B))
+  C eqid hyp C C A B addeq12 mp2an
+)
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* A <r> C) (* B <r> C)))
+## </table>
+thm (muleq1 () ()
+  (-> (= A B) (= (* A C) (* B C)))
+  C eqid A B C C muleq12 mpan2)
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* <r> C A) (* <r> C B)))
+## </table>
+thm (muleq2 () ()
+  (-> (= A B) (= (* C A) (* C B)))
+  C eqid C C A B muleq12 mpan)
+
+## <title> Equality over Multiplication </title>
+thm (muleq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (* A C) (* B D))
+  hyp1 hyp2 A B C D muleq12 mp2an
+)
+
+## <title> Equality over Multiplication </title>
+thm (muleq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= (* A C) (* B C)))
+  hyp C eqid A B C C muleq12 mpan2 syl
+)
+
+## <title> Multiply both sides by a number </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (* A ] C) (* [ B ] C))
+## </table>
+thm (muleq1i ()
+  (hyp (= A B))
+  (= (* A C) (* B C))
+  hyp A B C muleq1 ax-mp
+)
+
+## <title> Multiply both sides by a number </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (* C [ A ] ) (* C [ B))
+## </table>
+thm (muleq2i () (hyp (= A B))
+  (= (* C A) (* C B))
+  hyp A B C muleq2 ax-mp
+)
+
+thm (muleq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (* C A) (* C B)))
+  hyp1
+  A B C muleq2
+  syl
+)
+
+thm (suceqd ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= (S A) (S B)))
+  hyp A B pa_ax2 sylib)
+
+## <title> Proof by Induction </title>
+thm (finds ((A x) (ch x) (th x) (ta x) (ph y))
+  (hyp1 (-> (= x (0)) (<-> ph ps))
+   hyp2 (-> (= x y) (<-> ph ch))
+   hyp3 (-> (= x (S y)) (<-> ph th))
+   hyp4 (-> (= x A) (<-> ph ta))
+   basis ps
+   induction (-> ch th))
+  ta
+
+  hyp4
+    basis hyp1 mpbiri x gen
+      induction
+        hyp2 ceqsal
+          hyp3 ceqsal
+      3imtr4i y gen
+    x ph y pa_ind mp2an
+    a4i
+  vtocl
+)
+
+## <title> Induction </title>
+## <table>
+##       ([/] (0) z ph) ] ]                  ]
+##   (-> ([/]  y  z ph) ] [ ([/] (S y) z [ ph))
+##                      [ [ ([/] A         z [ ph)
+## </table>
+## <summary>
+##   Induction using substitution and the successor operation. Using substitution, 
+##   we can simplify the 6 hypotheses of <a href="finds">finds</a> into just two
+##   the basis case and the inductive step. For a similar proof, using +1 instead of
+##   the successor see <a href="induction">induction</a>.
+## </summary>
+thm (inductionsuc ((ph y)) (basis ([/] (0) z ph) inductiveHyp (-> ([/] y z ph) ([/] (S y) z ph))) ([/] A z ph)
+  x (0) z ph dfsbcq
+  x y z ph dfsbcq
+  x (S y) z ph dfsbcq
+  x A z ph dfsbcq
+  basis
+  inductiveHyp
+  finds
+)
+
+## <title> Additive Identity </title>
+## <table> 
+##   (= (+ <r> (0) A) A)
+## </table>
+## <suggest> auto-right('Simplify', '0') </suggest>
+thm (pa_ax3r () ()
+  (= (+ (0) A) A)
+
+  x (0) (0) addeq2 (= x (0)) id eqeq12d
+    x y (0) addeq2 (= x y) id eqeq12d
+      x (S y) (0) addeq2 (= x (S y)) id eqeq12d
+        x A (0) addeq2 (= x A) id eqeq12d
+          (0) pa_ax3
+            (+ (0) y) y pa_ax2
+              (0) y pa_ax4 (S y) eqeq1i
+            bitr4i biimpi
+  finds
+)
+
+## <title> Peano Axiom 4: Addition </title>
+## <suggest> left('Equivalence', 'L') </suggest>
+thm (pa_ax4r () ()
+  (= (+ (S A) B) (S (+ A B)))
+
+  x (0) (S A) addeq2 x (0) A addeq2 suceqd eqeq12d
+    x y (S A) addeq2 x y A addeq2 suceqd eqeq12d
+      x (S y) (S A) addeq2 x (S y) A addeq2 suceqd eqeq12d
+        x B (S A) addeq2 x B A addeq2 suceqd eqeq12d
+
+          (S A) pa_ax3 A pa_ax3 (+ A (0)) A pa_ax2 mpbi eqtr4
+
+            (+ (S A) y) (S (+ A y)) pa_ax2 biimpi
+              A y pa_ax4 (+ A (S y)) (S (+ A y)) pa_ax2 mpbi
+            syl6eqr
+              (S A) y pa_ax4
+             syl5eq
+
+  finds
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="addcom">commutative  property of addition</a>.
+## </summary>
+thm (sbc-addcom ((A y) (B y)) () (<-> ([/] A y (= (+ y B) (+ B y))) (= (+ A B) (+ B A)))
+  y A B addeq1
+  y A B addeq2
+  eqeq12d
+  sbcie
+)
+
+## <title> Commutative Property of Addition </title>
+## <table> (= (+ <r> A <g> B) (+ <g> B <r> A)) </table>
+## <suggest> right('Commute', '+') </suggest>
+thm (addcom () () (= (+ A B) (+ B A))
+  ## <d>
+    ## <d 'Basis Case'>
+      B pa_ax3r
+      ## <d 'Additive Identity'>
+        ## <d 'Additive Identity'>
+          B pa_ax3 eqcomi 
+        ## </d 'Additive Identity'>
+        eqtri
+      ## </d 'Additive Identity'>
+      ## <d 'Substitute x in for 0'>
+        ## <d 'Substitute x in for 0'>
+          (0) x B sbc-addcom
+          bicomi
+        ## </d 'Substitute x in for 0'>
+        mpbi
+      ## </d 'Substitute x in for 0'>
+    ## </d 'Basis Case'>
+    ## <d 'If numbers are equal, their successors are too'>
+      (+ y B) (+ B y) pa_ax2 biimpi
+    ## </d>
+  ## </d>
+  ## <d 'Apply Peano Axiom 4'>
+    ## <d 'Apply Peano Axiom 4'>
+      y B pa_ax4r eqcomi  
+    ## </d>
+    EqReplaceImp1Eq0
+  ## </d>
+  ## <d 'Apply Peano Axiom 4'>
+    ## <d 'Apply Peano Axiom 4'>
+      B y pa_ax4 eqcomi  
+    ## </d>
+    EqReplaceImp1Eq1
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Substitute y and y" with x'>
+      y x B sbc-addcom bicomi  
+      sylbi2
+
+      (S y) x B sbc-addcom bicomi
+      sylib
+    ## </d>
+    ## <d 'Induction'>
+      A inductionsuc
+    ## </d>
+    ## <d 'Substitute A in for x'>
+      A x B sbc-addcom  
+      mpbi
+    ## </d>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (+ B  [ C ]   ]   ] )))
+##   (=                [ C ]   [ D ] )
+##   (-> ph (= A (+ B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceImp1Eq1Add1 () (
+     replacee (-> ph (= A (+ B C)))
+     substitution (= C D)) 
+     (-> ph (= A (+ B D)))
+  replacee substitution
+  B addeq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+  [ A ]   ]   ]  C) D))
+##   (=            [ A ]   [ B ] )
+##   (-> ph (= (+  [   [   [ B ]  C) D))
+## </table>
+thm (EqReplaceImp1Eq0Add0 () (
+     replacee (-> ph (= (+ A C) D))
+     substitution (= A B)) 
+     (-> ph (= (+ B C) D))
+  replacee substitution
+  C addeq1i
+  EqReplaceImp1Eq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee
+  substitution
+A eqeq2i
+mpbi
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="addass">associative property of addition</a>.
+## </summary>
+thm (sbc-addass ((A y) (B y) (C y)) () (<-> ([/] A y (= (+ (+ y B) C) (+ y (+ B C)))) (= (+ (+ A B) C) (+ A (+ B C))))
+  y A B addeq1 C addeq1d
+  y A (+ B C) addeq1
+  eqeq12d
+  sbcie
+)
+
+## <title> Additive Identity </title>
+## <summary>
+##   Identical to the third <a href="/wiki/peano/arithmetic/axioms">Peano axiom</a>
+##   for arithmetic. This theorem simply renames it to addid.
+## </summary>
+## <suggest> auto-right('Simplify', '0') </suggest>
+thm (addid () () (= (+ A (0)) A)
+  A pa_ax3
+)
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+thm (addass () () (= (+ (+ A B) C) (+ A (+ B C)))
+  ## <d>
+    ## <d 'Basis Case'>
+      ## <d>
+        B pa_ax3r
+      ## </d>
+      ## <d>
+        C addeq1i
+      ## </d>
+      ## <d 'Additive Identity'>
+        (+ B C) pa_ax3r eqcomi  
+        EqReplaceEq1
+      ## </d 'Additive Identity'>
+      ## <d 'Substitute 0 for x'>
+        ## <d 'Substitute 0 for x'>
+          (0) x B C sbc-addass
+          bicomi
+        ## </d 'Substitute 0 for x'>
+        mpbi
+      ## </d 'Substitute 0 for x'>
+    ## </d 'Basis Case'>
+    ## <d 'If numbers are equal, their successors are too'>
+      (+ (+ y B) C) (+ y (+ B C)) pa_ax2 biimpi
+    ## </d 'If numbers are equal, their successors are too'>
+  ## </d>
+  ## <d 'Apply Peano Axiom 4 Several Times'>
+    ## <d 'Peano Axiom 4'>
+      ## <d 'Peano Axiom 4: Addition '>
+        (+ y B) C pa_ax4r
+        eqcomi
+      ## </d 'Peano Axiom 4: Addition '>
+      EqReplaceImp1Eq0
+    ## </d 'Peano Axiom 4'>
+    ## <d 'Peano Axiom 4'>
+      ## <d 'Peano Axiom 4: Addition '>
+        y B pa_ax4r
+        eqcomi
+      ## </d 'Peano Axiom 4: Addition '>
+      EqReplaceImp1Eq0Add0
+    ## </d 'Peano Axiom 4'>
+    ## <d 'Peano Axiom 4'>
+      ## <d 'Peano Axiom 4: Addition '>
+        y (+ B C) pa_ax4r
+        eqcomi
+      ## </d 'Peano Axiom 4: Addition '>
+      EqReplaceImp1Eq1
+    ## </d 'Peano Axiom 4'>
+  ## </d 'Apply Peano Axiom 4 Several Times'>
+
+  ## <d 'Induction'>
+    ## <d 'Substitute y and y" for x'>
+      ## <d 'Substitute y for x'>
+        y x B C sbc-addass bicomi  
+        sylbi2
+      ## </d 'Substitute y for x'>
+      ## <d 'Substitute y" for x'>
+        (S y) x B C sbc-addass bicomi
+        sylib
+      ## </d 'Substitute y" for x'>
+    ## </d>
+    ## <d 'Induction'>
+      A inductionsuc
+    ## </d>
+    ## <d 'Substitute A for x'>
+      A x B C sbc-addass
+      mpbi
+    ## </d>
+  ## </d>
+)
+
+## <title> Multiply by 0 </title>
+## <suggest> auto-right('Simplify','0') </suggest>
+thm (pa_ax5r () ()
+  (= (* (0) A) (0))
+
+  x (0) (0) muleq2 (0) eqeq1d
+    x y (0) muleq2 (0) eqeq1d
+      x (S y) (0) muleq2 (0) eqeq1d
+        x A (0) muleq2 (0) eqeq1d
+          (0) pa_ax5
+            (0) y pa_ax6
+            (* (0) y) pa_ax3 eqtri (0) eqeq1i biimpri
+  finds
+)
+
+## <title> Peano Axiom 6 Reversed </title>
+thm (pa_ax6r () ()
+  (= (* (S A) B) (+ (* A B) B))
+
+  x (0) (S A) muleq2 x (0) A muleq2 (= x (0)) id addeq12d eqeq12d
+    x y (S A) muleq2 x y A muleq2 (= x y) id addeq12d eqeq12d
+      x (S y) (S A) muleq2 x (S y) A muleq2 (= x (S y)) id addeq12d eqeq12d
+        x B (S A) muleq2 x B A muleq2 (= x B) id addeq12d eqeq12d
+          (S A) pa_ax5 A pa_ax5 (0) addeq1i (0) pa_ax3 eqtri eqtr4
+
+            (* (S A) y) (+ (* A y) y) (S A) addeq1
+            (S A) y pa_ax6 syl5eq
+            (+ (* A y) y) A pa_ax4 syl6eq
+              (* A y) y A addass y A addcom (* A y) addeq2i eqtri
+              (* A y) A y addass eqtr4
+              (+ (+ (* A y) y) A) (+ (+ (* A y) A) y) pa_ax2 mpbi
+            syl6eq
+              A y pa_ax6 (S y) addeq1i
+              (+ (* A y) A) y pa_ax4 eqtri
+            syl6eqr
+  finds
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="mulcom">commutative  property of multiplication</a>.
+## </summary>
+thm (sbc-mulcom ((A y) (B y)) () (<-> ([/] A y (= (* y B) (* B y))) (= (* A B) (* B A)))
+  y A B muleq1
+  y A B muleq2
+  eqeq12d
+  sbcie
+)
+
+## <title> Commutative Property </title>
+## <table>
+##   (= (* <r> A <g> B) (* <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '*') </suggest>
+thm (mulcom () () (= (* A B) (* B A))
+  ## <d>
+    ## <d 'Basis Case'>
+      B pa_ax5r
+      ## <d 'Multiply by 0'>
+        B pa_ax5 eqcomi
+      ## </d>
+      ## <d 'Multiply by 0'>
+        eqtri
+      ## </d>
+      ## <d 'Substitute x in for 0'>
+        ## <d 'Substitute x in for 0'>
+          (0) x B sbc-mulcom
+          bicomi
+        ## </d 'Substitute x in for 0'>
+        mpbi
+      ## </d 'Substitute x in for 0'>
+    ## </d 'Basis Case'>
+    ## <d 'Add B to both sides'>
+      (* y B) (* B y) B addeq1
+    ## </d>
+  ## </d>
+  ## <d 'Peano Axiom 6'>
+    ## <d 'Peano Axiom 6'>
+      y B pa_ax6r eqcomi
+    ## </d>
+    EqReplaceImp1Eq0
+  ## </d 'Peano Axiom 6'>
+  ## <d 'Peano Axiom 6'>
+    ## <d 'Peano Axiom 6'>
+      B y pa_ax6 eqcomi
+    ## </d>
+    EqReplaceImp1Eq1
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Substitute y and y" with x'>
+      y x B sbc-mulcom bicomi
+      sylbi2
+
+      (S y) x B sbc-mulcom bicomi
+      sylib
+    ## </d>
+    ## <d 'Induction'>
+      A inductionsuc
+    ## </d>
+    ## <d 'Substitute A in for x'>
+      A x B sbc-mulcom
+      mpbi
+    ## </d>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (* A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (* A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Mul1 () (
+     replacee (= (* A B) D)
+     substitution (= B C)) 
+     (= (* A C) D)
+  replacee substitution
+  A muleq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (+  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Add0 () (
+     replacee (= A (+ B D))
+     substitution (= B C)) 
+     (= A (+ C D))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1
+)
+
+## <title> Multiplicative Identity </title>
+## <summary>
+##   One is the identity of multiplication. Proved from the
+##   <a href="/peano/peano_min.ghi">peano axioms</a>. </summary>
+## <suggest> right('Simplify', '1') </suggest>
+## <table>
+##   (= (* A <r> (1)) A)
+## </table>
+## <suggest> auto-right('Simplify') </suggest>
+thm (mulid () () (= (* A (1)) A)
+  A (0) pa_ax6
+  ## <d 'Multiplication by 0' >
+    A pa_ax5
+    EqReplaceEq1Add0
+  ## </d 'Multiplication by 0' >
+  ## <d 'Additive Identity' >
+    A pa_ax3r
+    eqtri
+  ## </d 'Additive Identity' >
+  ## <d 'Definition of 1' >
+    ## <d 'Definition of 1' >
+      df-1 eqcomi
+    ## </d>
+    EqReplaceEq0Mul1
+  ## </d>
+)
+
+thm (add23 () ()
+  (= (+ (+ A B) C) (+ (+ A C) B))
+  A B C addass
+  B C addcom A addeq2i eqtri
+  A C B addass eqtr4
+)
+
+## <title> Rearrange Addition Terms </title>
+## <table>
+##   (= (+ (+ A <g> B) (+ <r> C D)) (+ (+ A <r> C) (+ <g> B D)))
+## </table>
+thm (add4 () ()
+  (= (+ (+ A B) (+ C D)) (+ (+ A C) (+ B D)))
+  (+ A B) C D addass
+  A B C add23 D addeq1i eqtr3
+  (+ A C) B D addass eqtri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (+ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= A (+ B C))
+     substitution (= C D)) 
+     (= A (+ B D))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+ C  [ D ]   ]    ] )))
+##   (=              [ D ]   [ A' ] )
+##   (= A (+ B (+ C  [   [   [ A' ] )))
+## </table>
+thm (EqReplaceEq1Add1Add1 () (
+     replacee (= A (+ B (+ C D)))
+     substitution (= D A')) 
+     (= A (+ B (+ C A')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Add1
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="distr">distributive property</a>.
+## </summary>
+thm (sbc-distr ((A y) (B y) (C y)) () (<-> ([/] A y (= (* y (+ B C)) (+ (* y B) (* y C)))) (= (* A (+ B C)) (+ (* A B) (* A C))))
+  y A (+ B C) muleq1
+  y A B muleq1
+  y A C muleq1
+  addeq12d
+  eqeq12d
+  sbcie
+)
+
+## <title> Distributive Property </title>
+## <summary>
+##   Distribution of addition through multiplication. See <a href="distl">distl</a>
+##   for distribution in the opposite direction.
+## </summary>
+## <table>
+##   (= (* <c> A (+ B C)) (+ (* <c> A B) (* <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (distr () () (= (* A (+ B C)) (+ (* A B) (* A C)))
+  ## <d>
+    ## <d 'Basis Case'>
+      ## <d 'Multiply B+C by 0'>
+        (+ B C) pa_ax5r
+      ## </d 'Multiply by 0'>
+      ## <d 'Multiply B and C by 0'>
+        ## <d 'Multiply B and C by 0'>
+          ## <d 'Multiply B and C by 0'>
+            B pa_ax5r
+            C pa_ax5r
+            addeq12i
+          ## </d>
+          ## <d 'Add 0 + 0'>
+            (0) pa_ax3 eqtri
+          ## </d>
+          eqcomi
+        ## </d 'Multiply B and C by 0'>
+        eqtri
+      ## </d 'Multiply B and C by 0'>
+      ## <d 'Substitute x in for 0'>
+        ## <d 'Substitute x in for 0'>
+          (0) x B C sbc-distr
+          bicomi
+        ## </d 'Substitute x in for 0'>
+        mpbi
+      ## </d 'Substitute x in for 0'>
+    ## </d 'Basis Case'>
+    ## <d 'Add B+C to both sides'> 
+      (* y (+ B C)) (+ (* y B) (* y C)) (+ B C) addeq1
+    ## </d 'Add B+C to both sides'>
+  ## </d>
+
+  ## <d 'Peano Axiom 6'>
+    ## <d 'Peano Axiom 6'>
+      y (+ B C) pa_ax6r eqcomi
+    ## </d 'Peano Axiom 6'>
+    EqReplaceImp1Eq0
+  ## </d 'Peano Axiom 6'>
+  ## <d 'Rearrange terms & Peano Axiom 6'>
+    ## <d>
+      (* y B) (* y C) B C add4
+    ## </d>
+    ## <d 'Peano Axiom 6'>
+      ## <d 'Peano Axiom 6'>
+        y B pa_ax6r eqcomi
+      ## </d 'Peano Axiom 6'>
+      EqReplaceEq1Add0
+    ## </d 'Peano Axiom 6'>
+    ## <d 'Peano Axiom 6'>
+      ## <d 'Peano Axiom 6'>
+        y C pa_ax6r eqcomi
+      ## </d 'Peano Axiom 6'>
+      EqReplaceEq1Add1
+    ## </d 'Peano Axiom 6'>
+    EqReplaceImp1Eq1
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Substitute y and y" with x'>
+      y x B C sbc-distr bicomi
+      sylbi2
+      (S y) x B C sbc-distr bicomi
+      sylib
+    ## </d>
+    ## <d 'Induction'>
+      A inductionsuc
+    ## </d>
+    ## <d 'Substitute A in for x'>
+      A x B C sbc-distr
+      mpbi
+    ## </d>
+  ## </d>
+)
+
+## <title> Distributive Property </title>
+## <summary>
+##   Distribution of addition through multiplication. See <a href="distr">distr</a>
+##   for distribution in the opposite direction.
+## </summary>
+## <table>
+##   (= (* (+ A B) <c> C) (+ (* A <c> C) (* B <c> C)))
+## </table>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+thm (distl () () (= (* (+ A B) C) (+ (* A C) (* B C)))
+   ## <d>
+     C A B distr
+   ## </d>
+   ## <d 'Commute C∙(A + B)' >
+     C (+ A B) mulcom
+     EqReplaceEq0
+   ## </d>
+   ## <d 'Commute C∙A' >
+     C A mulcom
+     EqReplaceEq1Add0
+   ## </d>
+   ## <d 'Commute C∙B' >
+     C B mulcom  
+     EqReplaceEq1Add1
+   ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (*  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (*  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= A (* B D))
+     substitution (= B C)) 
+     (= A (* C D))
+  replacee substitution
+  D muleq1i
+  EqReplaceEq1
+)
+
+## <title> Perform a substitution </title>
+## <summary>
+##   Substitute A in for y in an expression describing the
+##   <a href="mulass">associate property of multiplication</a>.
+## </summary>
+thm (sbc-mulass ((A y) (B y) (C y)) () (<-> ([/] A y (= (* (* y B) C) (* y (* B C)))) (= (* (* A B) C) (* A (* B C))))
+  y A B muleq1 C muleq1d
+  y A (* B C) muleq1
+  eqeq12d
+  sbcie
+)
+
+## <title> Associative Property </title>
+## <summary> Multiplication is associative </summary>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+thm (mulass () () (= (* (* A B) C) (* A (* B C)))
+  ## <d>
+    ## <d 'Basis Case'>
+      ## <d 'Multiply by 0'>
+        ## <d>
+          B pa_ax5r
+        ## </d>
+        ## <d 'Multiply both sides by C'>
+          C muleq1i
+        ## </d>
+        ## <d 'Multiply by 0'>
+          C pa_ax5r
+          eqtri
+        ## </d>
+      ## </d 'Multiply by 0'>
+      ## <d 'Multiply by 0'>
+        ## <d 'Multiply by 0'>
+          (* B C) pa_ax5r eqcomi
+        ## </d 'Multiply by 0'>
+        eqtri
+      ## </d 'Multiply by 0'>
+      ## <d 'Substitute x in for 0'>
+        ## <d 'Substitute x in for 0'>
+          (0) x B C sbc-mulass
+          bicomi
+        ## </d 'Substitute x in for 0'>
+        mpbi
+      ## </d 'Substitute x in for 0'>
+    ## </d 'Basis Case'>
+    ## <d 'Add B∙ C to both sides'>
+      (* (* y B) C) (* y (* B C)) (* B C) addeq1
+    ## </d>
+  ## </d>
+  ## <d 'Distribution & Peano Axiom 6'>
+    ## <d 'Distribution & Peano Axiom 6'>
+      ## <d 'Distributive Property'> 
+        (* y B) B C distl eqcomi
+      ## </d 'Distributive Property'>
+      ## <d 'Peano Axiom 6'>
+        y B pa_ax6r eqcomi
+      ## </d 'Peano Axiom 6'>
+      EqReplaceEq1Mul0
+    ## </d>
+    EqReplaceImp1Eq0
+  ## </d>
+  ## <d 'Peano Axiom 6'>
+    ## <d 'Peano Axiom 6'>
+      y (* B C) pa_ax6r eqcomi
+    ## </d>
+    EqReplaceImp1Eq1
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Substitute y and y" with x'>
+      ## <d 'Substitute y with x'>
+        y x B C sbc-mulass bicomi  
+        sylbi2
+      ## </d 'Substitute y with x'>
+      ## <d 'Substitute y" with x'>
+        (S y) x B C sbc-mulass bicomi
+        sylib
+      ## </d 'Substitute y" with x'>
+    ## </d>
+    ## <d 'Induction'>
+      A inductionsuc
+    ## </d>
+    ## <d 'Substitute A in for x'>
+      A x B C sbc-mulass
+      mpbi
+    ## </d>
+  ## </d>
+)
+
+## <title> Cancellation of addition </title>
+## <suggest> right('Cancel', '+') </suggest>
+thm (addcan () ()
+  (<-> (= (+ B A) (+ C A)) (= B C))
+  x (0) B addeq2 x (0) C addeq2 eqeq12d (= B C) bibi1d
+    x y B addeq2 x y C addeq2 eqeq12d (= B C) bibi1d
+      x (S y) B addeq2 x (S y) C addeq2 eqeq12d (= B C) bibi1d
+        x A B addeq2 x A C addeq2 eqeq12d (= B C) bibi1d
+
+          B pa_ax3 C pa_ax3 eqeq12i
+
+            B y pa_ax4 C y pa_ax4 eqeq12i
+            (+ B y) (+ C y) pa_ax2 bitr4i (= B C) bibi1i biimpri
+  finds
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (S  [ B ]   ]   ] ))
+##   (=       [ B ]   [ C ] )
+##   (= A (S  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Suc0 () (
+     replacee (= A (S B))
+     substitution (= B C)) 
+     (= A (S C))
+  replacee substitution
+  pa_ax2i
+  EqReplaceEq1
+)
+
+## <title> Successor Adds One </title>
+## <summary> Successor is equivalent to adding one </summary>
+## <suggest> right('Equivalence', '+1') </suggest>
+thm (a1suc () () (= (S A) (+ A (1)))
+  ## <d>
+    df-1
+  ## </d>
+  ## <d>
+    A addeq2i
+  ## </d>
+  ## <d 'Peano Axiom 4'>
+    A (0) pa_ax4 eqtri
+  ## </d>
+  ## <d 'Additive Identity'>
+    A pa_ax3
+    EqReplaceEq1Suc0
+  ## </d>
+  eqcomi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee
+  substitution
+  ph biim2i
+  ax-mp
+)
+
+thm (df-le-just ((A x) (B x) (A y) (B y)) ()
+       (<-> (E. x (= (+ A x) B)) (E. y (= (+ A y) B)))
+      x y A addeq2 B eqeq1d exalpha)
+
+## <title> Definition of Less Than or Equal to </title>
+## <suggest> right('Define', '≤') left('Simplify', '≤') </suggest>
+defthm (df-le wff (<= A B) ((A x) (B x)) ()
+        (<-> (<= A B) (E. x (= (+ A x) B)))
+        # WTS (<-> (E. y (= (+ A y) B)) (E. x (= (+ A x) B)))
+        y A B x df-le-just)
+
+## <title> Definition of Less Than </title>
+defthm (df-lt wff (< A B) () () (<-> (< A B) (/\ (<= A B) (-. (= A B))))
+        (/\ (<= A B) (-. (= A B))) biid)
+
+## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
+thm (leeq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (<= A C) (<= B C)))
+  hyp
+    A B x addeq1 C eqeq1d x exbid
+      A C x df-le B C x df-le bibi12i
+    sylibr
+  syl
+)
+
+## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
+## <table>
+##   (-> ph (=         [ A ]       [   [ B ] ))
+##   (-> ph (<-> (<= C [ A ] ) (<= [ C [ B ] )))
+## </table>
+thm (leeq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (<= C A) (<= C B)))
+  hyp
+    A B (+ C x) eqeq2 x exbid
+      C A x df-le C B x df-le bibi12i
+    sylibr
+  syl
+)
+
+## <title> Inequality Equivalence </title>
+thm (leeq1 () () (-> (= A B) (<-> (<= A C) (<= B C)))
+ (= A B) id
+ C leeq1d
+)
+
+## <title> Inequality Equivalence </title>
+thm (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B)))
+ (= A B) id
+ C leeq2d
+)
+
+## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
+## <table>
+##   (=       A ]   ]       [ B ]   )
+##   (<-> (<= A ] C ] ) (<= [ B ] C))
+## </table>
+thm (leeq1i ()
+  (hyp (= A B))
+  (<-> (<= A C) (<= B C))
+  hyp (= A B) id C leeq1d ax-mp
+)
+
+## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
+## <table>
+##   (=         [ A ]       [   [ B ] )
+##   (<-> (<= C [ A ] ) (<= [ C [ B ] ))
+## </table>
+thm (leeq2i ()
+  (hyp (= A B))
+  (<-> (<= C A) (<= C B))
+  hyp (= A B) id C leeq2d ax-mp
+)
+
+## <title> Addition is Monotonic </title>
+## <summary> Addition is strictly monotonic in the first addend </summary>
+## <suggest> left('Cancel', '+') </suggest>
+thm (leadd1 () ()
+  (<-> (<= A B) (<= (+ A C) (+ B C)))
+  (+ A x) C B addcan
+  A x C add23 (+ B C) eqeq1i bitr3i
+  x exbii
+    A B x df-le
+      (+ A C) (+ B C) x df-le
+  3bitr4i
+)
+
+## <title> Addition is Monotonic </title>
+## <summary> Addition is strictly monotonic in the second addend </summary>
+## <suggest> left('Cancel', '+') </suggest>
+## <table>
+##   (<-> (<= A B) (<= (+ <g> C A) (+ <g> C B)))
+## </table>
+thm (leadd2 () ()
+  (<-> (<= A B) (<= (+ C A) (+ C B)))
+  A B C leadd1
+  A C addcom (+ B C) leeq1i bitri
+  B C addcom (+ C A) leeq2i bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Equivalence for < </title> ##
+thm (lteq1 () () (-> (= A C) (<-> (< A B) (< C B)))
+  (= A C) id
+  B leeq1d
+  (= A C) id
+  B eqeq1d
+  notbid
+  anbi12d
+  A B df-lt bicomi
+  BiReplaceImp1Bi0
+  C B df-lt bicomi
+  BiReplaceImp1Bi1
+)
+thm (lteq1i () (
+     hyp1 (= A C))
+     (<-> (< A B) (< C B))
+  hyp1
+  A C B lteq1
+  ax-mp
+)
+
+## <title> Equivalence for < </title> ##
+thm (lteq2 () () (-> (= B C) (<-> (< A B) (< A C)))
+  (= B C) id
+  A leeq2d
+  (= B C) id
+  A eqeq2d
+  notbid
+  anbi12d
+  A B df-lt bicomi
+  BiReplaceImp1Bi0
+  A C df-lt bicomi
+  BiReplaceImp1Bi1
+)
+
+thm (lteq1d () (
+     hyp1 (-> ph (= A C)))
+     (-> ph (<-> (< A B) (< C B)))
+  hyp1
+  A C B lteq1
+  syl
+)
+
+thm (lteq2i () (
+     hyp1 (= B C))
+     (<-> (< A B) (< A C))
+  hyp1
+  B C A lteq2
+  ax-mp
+)
+
+thm (lteq2d () (
+     hyp1 (-> ph (= B C)))
+     (-> ph (<-> (< A B) (< A C)))
+  hyp1
+  B C A lteq2
+  syl
+)
+
+## <title> Def. Greater Than or Equal to </title>
+## <suggest> right('Define', '≤') left('Simplify', '≥') </suggest>
+defthm  (df-ge wff (>= A B) () () (<-> (>= A B) (-. (< A B)))
+  (-. (< A B)) biid
+)
+
+## <title> Def. Greater Than </title>
+## <suggest> right('Define', '<') left('Simplify', '>') </suggest>
+defthm  (df-gt wff (> A B) () () (<-> (> A B) (-. (<= A B)))
+  (-. (<= A B)) biid
+)
+
+## <title> Equivalence for > </title> ##
+thm (gteq2 () () (-> (= B C) (<-> (> A B) (> A C)))
+  (= B C) id
+  A leeq2d
+  notbid
+  A B df-gt bicomi
+  BiReplaceImp1Bi0
+  A C df-gt bicomi
+  BiReplaceImp1Bi1
+)
+
+thm (gteq2i () (
+     hyp1 (= B C))
+     (<-> (> A B) (> A C))
+  hyp1
+  B C A gteq2
+  ax-mp
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (>    A ]       [ B ] )
+##  (> (+ A ] C) (+ [ B ] C))
+## </table>
+thm (gtadd1i () (hyp (> A B)) (> (+ A C) (+ B C))
+  A B C leadd1  
+  ## <d 'Negate Both Sides '>
+    (<= A B) (<= (+ A C) (+ B C)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Def. Greater Than '>
+    A B df-gt bicomi
+    bitr3icom
+  ## </d 'Def. Greater Than '>  
+  ## <d 'Def. Greater Than '>
+    (+ A C) (+ B C) df-gt bicomi
+    bitri
+  ## </d 'Def. Greater Than '>
+  hyp  
+  mpbiRemove
+)
+
+## <title> Addition Over Inequality </title>
+## <table>
+##  (>    A ]       [ B ] )
+##  (> (+ A ] C) (+ [ B ] C))
+## </table>
+thm (gtadd2i () (hyp (> A B)) (> (+ C A) (+ C B))
+  A B C leadd2  
+  ## <d 'Negate Both Sides '>
+    (<= A B) (<= (+ C A) (+ C B)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Def. Greater Than '>
+    A B df-gt bicomi
+    bitr3icom
+  ## </d 'Def. Greater Than '>  
+  ## <d 'Def. Greater Than '>
+    (+ C A) (+ C B) df-gt bicomi
+    bitri
+  ## </d 'Def. Greater Than '>
+  hyp  
+  mpbiRemove
+)
+
+## <title> Basic Inequality </title>
+thm (1nle0 () () (> (1) (0))
+  x pa_ax1 (0) (S x) eqcom mtbi
+  x a1suc x (1) addcom eqtri (0) eqeq1i mtbi
+  x gen x (= (+ (1) x) (0)) alnex mpbi
+  (1) (0) x df-le mtbir  
+  ## <d 'Def. Greater Than '>
+    (1) (0) df-gt bicomi
+    mpbi
+  ## </d 'Def. Greater Than '>
+)
+
+thm (addge01t () () (<= A (+ A B))
+  x B tyex x B A addeq2 x 19.22i ax-mp
+  A (+ A B) x df-le mpbir
+)
+
+thm (addge02t () () (<= A (+ B A))
+  A B addge01t A B addcom A leeq2i mpbi
+)
+
+
+## <title> Reflexive Property </title>
+## <summary> Less than or equal is a reflexive relation </summary>
+thm (leid () ()
+  (<= A A)
+  A (0) addge01t
+  A pa_ax3 A leeq2i mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (> A  [   [   [ C ] )
+## </table>
+thm (EqReplaceGt1 () (
+     replacee (> A B)
+     substitution (= B C)) 
+     (> A C)
+  replacee substitution
+  A gteq2i
+  mpbi
+)
+
+thm (leconlem () () (> (+ A (1)) A)
+  1nle0
+  A gtadd2i  
+  ## <d 'Additive Identity Axiom '>
+    A pa_ax3
+    EqReplaceGt1
+  ## </d 'Additive Identity Axiom '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x  [ ph ]   ]    ] )
+##   (->    [ ph ]   [ ps ] )
+##   (E. x  [    [   [ ps ] )
+## </table>
+thm (ImpReplaceEx1 () (
+     replacee (E. x ph)
+     substitution (-> ph ps)) 
+     (E. x ps)
+  replacee
+  substitution
+x 19.22i
+ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+## <title> Addition implies ≤ </title>
+thm (provele () () (-> (= (+ A B) C) (<= A C))
+  (= (+ A B) C) z alnfi
+  z B tyex  
+  ## <d 'Symmetric Property '>
+    z B eqcom
+    exbiii
+  ## </d 'Symmetric Property '>
+  B z A addeq2
+  C eqeq1d  
+  ImpReplaceEx1
+  ## <d 'Infer Left to Right '>
+    (= (+ A B) C) (= (+ A z) C) bi1
+    ImpReplaceEx1
+  ## </d 'Infer Left to Right '>
+  z (= (+ A B) C) (= (+ A z) C) eximp1    
+  ax-mp  
+  syl
+  ## <d 'Definition of Less Than or Equal to '>
+    A C z df-le bicomi
+    sylib
+  ## </d 'Definition of Less Than or Equal to '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y  [ ps ]   ]    ] )))
+##   (->                 [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y  [    [   [ ch ] )))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y ps)))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y ch)))
+  replacee substitution
+  y 19.22i
+  ImpReplaceImp1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (/\  [ ps ]   ]    ]  th))))
+##   (->                     [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (/\  [    [   [ ch ]  th))))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1An0 () (
+     replacee (-> ph (E. x (E. y (/\ ps th))))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y (/\ ch th))))
+  replacee substitution
+  th anim1i
+  ImpReplaceImp1Ex1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (=  [ A ]   ]   ]  C) ph)
+##   (=      [ A ]   [ B ] )
+##   (-> (=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceImp0Eq0 () (
+     replacee (-> (= A C) ph)
+     substitution (= A B)) 
+     (-> (= B C) ph)
+  replacee substitution
+  C eqeq1i
+  sylbi2
+)
+
+## <title> Remove Existence Quantifier </title>
+thm (ex-nf ((ph x)) () (-> (E. x ph) ph)
+  x ph 19.9 biimpi
+)
+
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '≤ ≤') </suggest>
+thm (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C))
+  ## <d 'Definition of ≤'>
+    A B x df-le
+    B C y df-le
+    anbi12i  
+  ## </d 'A'>
+  ## <d 'Combine Existence Quantifiers '>
+    x (= (+ A x) B) y (= (+ B y) C) doubleex
+    ImpReplaceBi1
+  ## </d 'Combine Existence Quantifiers '>
+  ## <d 'Add y to both sides'>
+    (+ A x) B y addeq1
+    ImpReplaceImp1Ex1Ex1An0
+  ## </d 'Add y to both sides'>
+  ## <d 'Transitive Property '>
+    (+ (+ A x) y) (+ B y) C eqtr
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Transitive Property '>
+  ## <d 'Addition implies ≤'>
+    A (+ x y) C provele
+    ## <d 'Associative Property '>
+      ## <d 'Associative Property '>
+        A x y addass eqcomi
+      ## </d 'Associative Property '>
+      EqReplaceImp0Eq0
+    ## </d 'Associative Property '>  
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Addition implies ≤'>
+  ## <d 'Remove Quantifiers'>
+    ## <d 'Remove Quantifier'>
+      y (<= A C) ex-nf  
+      ImpReplaceImp1Ex1
+    ## </d 'Remove Quantifier'>
+    ## <d 'Remove Quantifier'>
+      x (<= A C) ex-nf  
+      syl
+    ## </d 'Remove Quantifier'>
+  ## </d 'Remove Quantifiers'>
+)
+
+thm (lefoo ((A z)) ()
+  (\/ (= A (0)) (E. z (= (+ (1) z) A)))
+  x (0) (0) eqeq1 x (0) (+ (1) z) eqeq2 z exbid orbi12d
+    x y (0) eqeq1 x y (+ (1) z) eqeq2 z exbid orbi12d
+      x (S y) (0) eqeq1 x (S y) (+ (1) z) eqeq2 z exbid orbi12d
+        x A (0) eqeq1 x A (+ (1) z) eqeq2 z exbid orbi12d
+
+  # invariant: x = 0 \/ E. z 1 + z = x
+  (0) eqid (E. z (= (+ (1) z) (0))) orci
+
+  z y tyex
+    z y (1) addeq2
+    y a1suc y (1) addcom eqtri syl6eqr
+    z 19.22i
+  ax-mp (= (S y) (0)) olci
+  (\/ (= y (0)) (E. z (= (+ (1) z) y))) a1i
+  finds
+)
+
+thm (lefoo3 () ()
+  (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B)))
+  A B x df-le
+    x y lefoo
+      x (0) A addeq2
+      A pa_ax3 syl6eq B eqeq1d biimpd com12
+        (+ (1) y) x A addeq2 A (1) y addass syl5eq
+        B eqeq1d biimprd com12
+        y 19.22d
+        (+ A (1)) B y df-le syl6ibr
+      orim12d
+    mpi
+  x 19.23ai sylbi
+    A leid (= A B) id A leeq2d mpbii
+      A (1) addge01t A (+ A (1)) B letr mpan
+    jaoi
+  impbii
+)
+
+thm (nnltp1let () ()
+  (<-> (< A B) (<= (+ A (1)) B))
+  A B df-lt
+  A B lefoo3 (-. (= A B)) anbi1i bitri
+  A leconlem
+  ## <d 'Def. Greater Than '>
+    (+ A (1)) A df-gt
+    mpbi
+  ## </d 'Def. Greater Than '>
+  (= A B) id (+ A (1)) leeq2d mtbii
+   con2i pm4.71i
+      (<= (+ A (1)) B) (= A B) pm5.61
+      (<= (+ A (1)) B) (= A B) orcom (-. (= A B)) anbi1i bitr3i
+    bitri
+  bitr4i
+)
+
+thm (ge0 () () (>= A (0))
+    1nle0  
+    ## <d 'Def. Greater Than '>
+      (1) (0) df-gt
+      mpbi
+    ## </d 'Def. Greater Than '>
+    (1) A addge02t
+    (1) (+ A (1)) (0) letr mpan
+  mto
+  A (0) nnltp1let mtbir
+  ## <d 'Def. Greater Than or Equal to '>
+    A (0) df-ge bicomi
+    mpbi
+  ## </d 'Def. Greater Than or Equal to '>
+)
+
+## <title> Converse of ≤ </title>
+## <suggest> right('Commute', '≤') left('Commute', '≥') </suggest>
+thm (lecon () () (<-> (<= A B) (>= B A))
+  (= x (0)) id B leeq1d (= x (0)) id B lteq2d notbid bibi12d
+    (= x y) id B leeq1d (= x y) id B lteq2d notbid bibi12d
+      (= x (S y)) id B leeq1d (= x (S y)) id B lteq2d notbid bibi12d
+        (= x A) id B leeq1d (= x A) id B lteq2d notbid bibi12d
+
+  # base case
+  (0) B addge02t
+    B pa_ax3 (0) leeq2i
+  mpbi
+  B ge0
+  # It would be better to keep everything in terms of >=.
+  ## <d 'Def. Greater Than or Equal to '>
+    B (0) df-ge
+    mpbi
+  ## </d 'Def. Greater Than or Equal to '>
+  2th
+
+  # induction step
+  (<= y B) (-. (< B y)) (-. (= y B)) anbi1
+    y B nnltp1let y B df-lt bitr3i
+      B (+ y (1)) nnltp1let
+      B y (1) leadd1 bitr4i
+      B y lefoo3 bitri
+      B y nnltp1let (= B y) orbi2i bitr4i
+        B y eqcom (< B y) orbi1i
+        (= y B) (< B y) orcom bitri
+      bitri notbii
+      (< B y) (= y B) ioran bitri
+    bibi12i
+  sylibr
+    y a1suc B leeq1i y a1suc B lteq2i notbii bibi12i
+  sylibr
+  finds
+  
+  ## <d 'Def. Greater Than or Equal to '>
+    B A df-ge bicomi
+    bitri
+  ## </d 'Def. Greater Than or Equal to '>
+)
+
+## <title> No Natural Numbers Below Zero </title>
+thm (0le () () (<= (0) A)
+  (0) A lecon
+   bicomi
+   A ge0
+   mpbiRemove
+)
+
+## <title> 0 is not equal to 1 </title>
+thm (0ne1 () ()
+  (-. (= (0) (1)))
+  (0) pa_ax1
+  df-1 (0) eqeq2i mtbir
+)
+
+
+## <title> Same upper and lower bound implies equality </title>
+## <summary> Trichotomy law (may be a poor choice of name) </summary>
+## <suggest> left('Simplify', '=') </suggest>
+thm (lesym () () (<-> (= A B) (/\ (<= A B) (<= B A)))
+  # A=B -> A<=B
+  B leid    (= A B) id B leeq1d    mpbiri
+  # A=B -> B<=A
+  A leid    (= A B) id A leeq1d    mpbii
+  jca
+
+  A B lecon  
+  ## <d 'Def. Greater Than or Equal to '>
+    B A df-ge
+    bitri
+  ## </d 'Def. Greater Than or Equal to '>
+  B A df-lt
+  notbii   bitri
+  (<= B A) (-. (= B A)) ianor
+  bitri biimpi
+
+  (<= B A) (-. (-. (= B A))) imor bicomi biimpi syl  imp
+  (= B A) notnot2 syl
+  eqcomd
+
+  impbii
+)
+
+## <title> Total Relationship </title>
+## <summary> Less than or equal is a total relationship </summary>
+thm (letot () () (\/ (<= A B) (<= B A))
+  (< B A)  id   (< B A)  (< B A)  imor    mpbi  
+  ## <d 'Def. Greater Than or Equal to '>
+    B A df-ge bicomi
+    orbi1ii
+  ## </d 'Def. Greater Than or Equal to '>
+
+   A  B  lecon  biimpri
+   B  A  df-lt    biimpi  pm3.26d
+  orim12i
+  ax-mp
+)
+
+## <title> Multiply Both Sides </title>
+## <summary> Multiplication is monotonic in its second argument </summary>
+thm (lemul2 () () (-> (<= A B) (<= (* C A) (* C B)))
+
+  A B x df-le
+    (0) eqid
+      y (* C x) (* C A) addeq2
+        (+ A x) B C muleq2
+        C A x distr syl5eqr
+      sylan9eq
+      (= (0) (0)) adantl x substex
+    mpan
+  sylbi
+    (* C A) (* C B) y df-le
+  sylibr
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Le0 () (
+     replacee (-> ph (<= A C))
+     substitution (= A B)) 
+     (-> ph (<= B C))
+  replacee substitution
+  C leeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Le1 () (
+     replacee (-> ph (<= A B))
+     substitution (= B C)) 
+     (-> ph (<= A C))
+  replacee substitution
+  A leeq2i
+  sylib
+)
+
+## <title> Inequality Multiplication </title>
+thm (lemul1n () () (-> (<= A B) (<= (* A C) (* B C)))
+  A B C lemul2  
+  ## <d 'Commutative Property '>
+    C A mulcom
+    EqReplaceImp1Le0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    C B mulcom
+    EqReplaceImp1Le1
+  ## </d 'Commutative Property '>
+)
+
+## <title> Inequality Multiplication </title>
+## <summary>
+##   This theorem takes <a href="lemuln">lemuln</a> and adds and extra restriction
+##   that C ≥ 0. From <a href="0le">0le</a> we know that this is true for all natural
+##   numbers, but this theorem is used in an interface where the numbers may not be
+##   natural numbers.
+## </summary>
+thm (lemul1 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* A C) (* B C)))
+  A B C lemul1n
+  (<= (0) C) adantr
+)
+
+## <title> 0 is less than or equal to 1 </title>
+## <summary>
+##   This theorem applies the <a href="0le">0le</a> theorem that all natural numbers
+##   are greater than or equal to 0. This theorem is used in an interface where the numbers
+##   are be negative and <a href="0le">0le</a> does not apply.
+## </summary>
+thm (0le1 () () (<= (0) (1))
+  (1) 0le
+)
+
+## <title> Inequality Conversion </title>
+## <suggest> left('Simplify', '<') </suggest>
+thm (axlttri () ()
+  (<-> (< A B) (-. (\/ (= A B) (< B A))))
+  A B df-lt
+  A B lecon  
+  ## <d 'Def. Greater Than or Equal to '>
+    B A df-ge
+    bitri
+  ## </d 'Def. Greater Than or Equal to '>
+  (-. (= A B)) anbi1i bitri
+    (< B A) (= A B) ioran
+      (< B A) (= A B) orcom notbii
+    bitr3i
+  bitri
+)
+
+## <title> Less Than or Equal from Nonnegative Difference </title>
+thm (exle ((A x)(B x)) () (<-> (<= A B) (E. x (/\ (<= (0) x) (= (+ A x) B))))
+  A B x df-le
+  (A. x (<= (0) x)) anbi1i
+  x 0le
+  x gen  
+  (<= A B) anRemove2
+  (/\ (E. x (= (+ A x) B)) (A. x (<= (0) x))) bibi1i
+  mpbi  
+  ## <d 'Commute Conjunction '>
+    (E. x (= (+ A x) B)) (A. x (<= (0) x)) ancom
+    bitri
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Combine universal and Existence Quantifiers '>
+    x (<= (0) x) (= (+ A x) B) 19.29
+    ImpReplaceBi1
+  ## </d 'Combine universal and Existence Quantifiers '>
+  (<= (0) x) (= (+ A x) B) pm3.27
+  x 19.22i  
+  ## <d 'Definition of Less Than or Equal to '>
+    A B x df-le bicomi
+    sylib
+  ## </d 'Definition of Less Than or Equal to '>
+  impbii
+)
+
+## <title> Cancellation of addition </title>
+## <suggest> right('Cancel', '+') </suggest>
+thm (addcan2 () ()
+  (<-> (= (+ A B) (+ A C)) (= B C))
+  A B addcom A C addcom eqeq12i
+    B A C addcan bitri
+)
+
+thm (lemul4 () () (-> (<= (* A (S C)) (* B (S C)))  (<= A B))
+  A B lecon      
+  ## <d 'Def. Greater Than or Equal to '>
+    B A df-ge
+    bitri
+  ## </d 'Def. Greater Than or Equal to '>
+  biimpri   con1i
+  B  A  df-lt    sylib
+  B  A  x  df-le    biimpi    (-. (= B A)) anim1i    syl
+  x  (= (+ B x) A)  (-. (= B A))  19.41    biimpri    syl
+      x  (0)  B  addeq2    B  pa_ax3    syl6eq    A  eqeq1d    biimpd    com12    con3d
+      (= (+ B x) A)  (-. (= B A))  (-. (= x (0)))    pm3.31    ax-mp
+        (+ B x)  A  (S C)  muleq1
+        (+ B x)  (S C)  mulcom    (S C)  B  x  distr   eqtri
+        (S C)  B  mulcom    (* (S C) x)  addeq1i    eqtri    syl5eqr
+        (-. (= B A)) adantr
+      jca
+      x  y  lefoo      ori
+          z  (* (1) C)tyex
+            z  (* (1) C)  (1) addeq2
+            (1)  C  pa_ax6    (1)  (S C)  mulcom    eqtr3    (* (1) C)  (1)  addcom    eqtr3  eqcomi    syl6eq
+          z  19.22i    ax-mp
+          (1)  (* (S C) (1))  z  df-le    mpbir
+          (1)  (* (S C) (1))  (* (S C) y)  leadd1    mpbi
+            (+ (1) y)  x  (S C)  muleq2    (S C)  (1)  y  distr    syl5eqr
+            (+ (1) (* (S C) y))  leeq2d    biimpd
+          mpi
+            (1)  (* (S C) y)  addge01t    (1)  (+ (1) (* (S C) y))  (* (S C) x)  letr
+            (<= (1) (+ (1) (* (S C) y)))  (<= (+ (1) (* (S C) y)) (* (S C) x))  (<= (1) (* (S C) x))  pm3.3    ax-mp    ax-mp
+          syl
+      y  19.22i    syl    y  (<= (1) (* (S C) x))  19.9    sylib
+      (1)  (* (S C) x)  (* B (S C))  leadd2    sylib
+      (= (+ (* B (S C)) (* (S C) x)) (* A (S C)))  id    (+ (* B (S C)) (1))  leeq2d    biimpd    anim12i
+     (<= (+ (* B (S C)) (1)) (+ (* B (S C)) (* (S C) x)))  (<= (+ (* B (S C)) (1)) (* A (S C)))  pm3.35    syl
+    syl
+  x  19.22i    syl    x  (<= (+ (* B (S C)) (1)) (* A (S C)))  19.9    sylib
+  (* B (S C))  (* A (S C))  nnltp1let    biimpri    syl
+  (* A (S C))  (* B (S C))  lecon    biimpi
+  ## <d 'Def. Greater Than or Equal to '>
+    (* B (S C)) (* A (S C)) df-ge
+    sylib
+  ## </d 'Def. Greater Than or Equal to '>
+  con2i    syl
+  con4i
+)
+
+## <summary> Multiplication is strictly monotonic with nonzero multiplicand </summary>
+thm (lemul5 () ()
+  (<-> (<= (* A (S C)) (* B (S C))) (<= A B))
+  A C B lemul4
+    A B (S C) lemul2
+    (S C) A mulcom (* (S C) B) leeq1i sylib
+    (S C) B mulcom (* A (S C)) leeq2i sylib
+  impbii
+)
+
+## <summary> Multiplication cancellation with nonzero multiplicand </summary>
+thm (sucmulcan () ()
+  (<-> (= (* A (S C)) (* B (S C))) (= A B))
+  (* A (S C)) (* B (S C)) lesym
+    A C B lemul5
+      B C A lemul5
+    anbi12i
+  bitri
+    A B lesym
+  bitr4i
+)
+
+## <title> Cancel Multiplication </title>
+thm (mulcan () () (-> (-. (= C (0))) (<-> (= (* A C) (* B C)) (= A B)))
+  C x lefoo ori 
+  x a1suc x (1) addcom eqtri C eqeq1i x exbii sylibr
+    (S x) C A muleq2 (S x) C B muleq2 eqeq12d
+    A x B sucmulcan syl5rbbr x 19.23ai
+  syl
+)
+
+export (ADD_MULTIPLY add_multiply_min.ghi (PROP PREDICATE_EQ) "")
+export (INEQUALITY inequality_min.ghi (PROP PREDICATE_EQ ADD_MULTIPLY) "")

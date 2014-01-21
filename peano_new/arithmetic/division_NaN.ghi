@@ -1,0 +1,264 @@
+# This file constructs rationals numbers from integers. It defines a new different version
+# of addition, multiplication, and equality. Unfortunately, it does allow division by 0 which
+# results in the symbol NaN or Not a Number. This file produces many of the most basic
+# associative, commutative, distributive property, but for example additive cancellation is
+# only valid when the symbol NaN is absent. The result of this file is used as an input to
+# division.gh which removes the NaN symbol and produces all the important axioms of rational
+# arithmetic.
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat x)
+
+term (nat (+ A B))
+term (nat (-n A))
+term (nat (* A B))
+term (nat (/ A B))
+term (wff (<= A B))
+term (nat (0))
+term (nat (1))
+term (nat (ifn ph A B))
+term (nat (NaN))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (addass () () (= (+ (+ A B) C) (+ A (+ B C))))
+
+## <title> Additive Identity </title>
+## <suggest> auto-right('Simplify', '0') </suggest>
+stmt (addid () () (= (+ A (0)) A))
+
+## <title> Commutative Property </title>
+## <table>
+##   (= (+ <r> A <g> B) (+ <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '+') </suggest>
+stmt (addcom () () (= (+ A B) (+ B A)))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (mulass () () (= (* (* A B) C) (* A (* B C))))
+
+## <title> Commutative Property </title>
+## <table>
+##   (= (* <r> A <g> B) (* <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '*') </suggest>
+stmt (mulcom () () (= (* A B) (* B A)))
+
+# Distribution of addition through multiplication
+## <title> Distributive Property </title>
+## <table>
+##   (= (* <c> A (+ B C)) (+ (* <c> A B) (* <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (distr () () (= (* A (+ B C)) (+ (* A B) (* A C))))
+
+## <title> Multiplicative Identity </title>
+## <suggest> right('Simplify', '1') </suggest>
+## <table>
+##   (= (* A <r> (1)) A)
+## </table>
+## <suggest> auto-right('Simplify') </suggest>
+stmt (mulid () () (= (* A (1)) A))
+
+## <title> Reflexive Property </title>
+stmt (leid () () (<= A A))
+
+## <title> 0 is not equal to 1 </title>
+stmt (0ne1 () () (-. (= (0) (1))))
+
+## <title> 0 is less than or equal to 1 </title>
+stmt (0le1 () () (<= (0) (1)))
+
+## <title> Same upper and lower bound implies equality </title>
+## <summary> Trichotomy law (may be a poor choice of name) </summary>
+## <suggest> left('Simplify', '=') </suggest>
+#stmt (lesym () () (<-> (= A B) (/\ (<= A B) (<= B A))))
+
+## <title> Total Relationship </title>
+## <summary> Less than or equal is a total relationship </summary>
+#stmt (letot () () (\/ (<= A B) (<= B A)))
+
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '≤ ≤') </suggest>
+#stmt (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C)))
+
+## <title> Inequality Multiplication </title>
+#stmt (lemul1 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* A C) (* B C))))
+
+# Equality axiom for addition
+## <title> Addition of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their sums are equal.
+## </summary>
+## <axiom>
+stmt (addeq12 () () (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
+    
+## <title> Multiplication of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their products are equal.
+## </summary>
+## <axiom>
+stmt (muleq12 () () (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
+
+## <title> Inequality Equivalence </title>
+stmt (leeq1 () () (-> (= A B) (<-> (<= A C) (<= B C))))
+
+## <title> Inequality Equivalence </title>
+stmt (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B))))
+
+## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
+## <table>
+##   (=       A ]   ]       [ B ]   )
+##   (<-> (<= A ] C ] ) (<= [ B ] C))
+## </table>
+stmt (leeq1i () ((= A B)) (<-> (<= A C) (<= B C)))
+
+## <title> Equivalence over Inequality </title>
+## <summary> Equality inference for less than or equal relation </summary>
+## <table>
+##   (=         [ A ]       [   [ B ] )
+##   (<-> (<= C [ A ] ) (<= [ C [ B ] ))
+## </table>
+stmt (leeq2i () ((= A B)) (<-> (<= C A) (<= C B)))
+
+## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
+stmt (leeq1d () ((-> ph (= A B))) (-> ph (<-> (<= A C) (<= B C))))
+
+## <title> Inequality Equivalence </title>
+## <summary> Equality deduction for less than or equal relation </summary>
+## <table>
+##   (-> ph (=         [ A ]       [   [ B ] ))
+##   (-> ph (<-> (<= C [ A ] ) (<= [ C [ B ] )))
+## </table>
+stmt (leeq2d () ((-> ph (= A B))) (-> ph (<-> (<= C A) (<= C B))))
+
+## <title> Less Than or Equal from Nonnegative Difference </title>
+#stmt (exle ((A x)(B x)) () (<-> (<= A B) (E. x (/\ (<= (0) x) (= (+ A x) B)))))
+
+stmt (negeq () () (-> (= A B) (= (-n A) (-n B))))
+
+stmt (negeqd () ((-> ph (= A B))) (-> ph (= (-n A) (-n B))))
+
+stmt (negeqi () ((= A B)) (= (-n A) (-n B)))
+
+stmt (negcan () () (-> (-. (= A (NaN))) (= (+ A (-n A)) (0))))
+	
+## <title> First branch of ternary expression </title>
+stmt (ifn1 () () (-> ph (= (ifn ph A B) A)))
+
+## <title> Second branch of ternary expression </title>
+stmt (ifn2 () () (-> (-. ph) (= (ifn ph A B) B)))
+		 
+## <title> Equality of first term for ifn </title>
+stmt (ifneq2 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C))))
+
+## <title> Equality of second term for ifn </title>
+stmt (ifneq3 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B))))
+
+stmt (ifneq13 () () (-> (/\ (<-> ph ps) (= A B)) (= (ifn ph C A) (ifn ps C B))))
+
+## <title> 1 does not equal NaN </title>
+stmt (0NaN () () (-. (= (0) (NaN))))
+
+## <title> 1 does not equal NaN </title>
+stmt (1NaN () () (-. (= (1) (NaN))))
+
+stmt (addClosure () () (<-> (-. (= (+ A B) (NaN))) (/\ (-. (= A (NaN))) (-. (= B (NaN))))))
+
+stmt (mulClosure () () (<-> (-. (= (* A B) (NaN))) (/\ (-. (= A (NaN))) (-. (= B (NaN))))))
+
+stmt (negClosure () () (<-> (-. (= (-n A) (NaN))) (-. (= A (NaN)))))
+
+## <title> Add a number to both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (+ <g> A <r> C) (+ <b> B <r> C)))
+## </table>
+stmt (addeq1 () () (-> (= A B) (= (+ A C) (+ B C))))
+
+## <title> Add a number to both sides of an equation </title>
+stmt (addeq2 () ()
+  (-> (= A B) (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ A C) (+ B C))))
+
+## <title> Equality over Addition </title>
+stmt (addeq2d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (+ A C) (+ B D))))
+
+## <table>
+##   (=     A ] ]   ]       [ B ] ] )
+##   (=       [ [ C ]       [   [ [ D)
+##   (= (+ A ] [ C ] ) (+ [ B ] [ D))
+## </table>
+stmt (addeq12i () ((= A B) (= C D)) (= (+ A C) (+ B D)))
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (+ A ] C) (+ [ B ] C))
+## </table>
+stmt (addeq1i () ((= A B)) (= (+ A C) (+ B C)))
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (+ C [ A ] ) (+ C [ B))
+## </table>
+stmt (addeq2i () ((= A B)) (= (+ C A) (+ C B)))
+	
+stmt (muleq1 () () (-> (= A C) (= (* A B) (* C B))))
+
+stmt (muleq2 () () (-> (= A B) (= (* C A) (* C B))))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (* A ] C) (* [ B ] C))
+## </table>
+stmt (muleq1i () ((= A B)) (= (* A C) (* B C)))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (* C [ A ] ) (* C [ B))
+## </table>
+stmt (muleq2i () ((= A B)) (= (* C A) (* C B)))
+
+stmt (addcanNaN () () (-> (-. (= B (NaN))) (<-> (= (+ A B) (+ C B)) (= A C))))
+
+stmt (mulcan () () (-> (/\ (-. (= C (0))) (-. (= C (NaN)))) (<-> (= (* A C) (* B C)) (= A B))))
+
+stmt (diveq1 () () (-> (= A C) (= (/ A B) (/ C B))))
+
+stmt (diveq2 () () (-> (= A C) (= (/ B A) (/ B C))))
+
+stmt (diveq12 () () (-> (/\ (= A B) (= C D)) (= (/ A C) (/ B D))))
+
+## <title> Cancel using Division </title>
+stmt (divcan4 () () (-> (/\ (-. (= A (0))) (-. (= A (NaN)))) (= (* A (/ B A)) B)))
+
+stmt (divclosure () () (-> (/\ (-. (= A (NaN))) (/\ (-. (= B (0))) (-. (= B (NaN))))) (-. (= (/ A B) (NaN)))))
+
+## <title> Equality over Multiplication </title>
+stmt (muleq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (* A C) (* B C))))
+	
+stmt (muleq2d () ((-> ph (= A B))) (-> ph (= (* C A) (* C B))))
