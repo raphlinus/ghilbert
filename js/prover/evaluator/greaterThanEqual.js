@@ -4,11 +4,6 @@
 };
 
 GH.ProofGenerator.evaluatorGreaterThanEqual.prototype.variableAction = function(sexp) {
-	var leftNum  = this.prover.calculate(sexp.left());
-	var rightNum = this.prover.calculate(sexp.right());
-	if (rightNum == 0) {
-		return new GH.action('ge0', [sexp.left()]);
-	}
 	return null;
 };
 

@@ -169,6 +169,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/interval.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/lessThan.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/lessThanEqual.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/minus.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/modulo.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/multiply.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/negative.js" type="text/javascript"></script>

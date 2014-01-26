@@ -25,8 +25,8 @@ GH.ProofGenerator.evaluatorLessThan.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.evaluatorLessThan.prototype.inline = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	if ((leftNum == 0) && (rightNum > 0)) {
-		return this.zeroLessThanNum(sexp);
+	if ((leftNum == 0) && (10 >= rightNum) && (rightNum > 0)) {
+		return this.zeroLessThanNum(sexp, rightNum);
 	} else if (leftNum < rightNum) {
 		if ((leftNum <= 10) && (rightNum <= 10)) {
 			return this.addToBothSides(sexp, 0, rightNum - leftNum, leftNum, 'Single-Digit Inequality');
@@ -45,14 +45,14 @@ GH.ProofGenerator.evaluatorLessThan.prototype.inline = function(sexp) {
 	return null;
 };
 
-GH.ProofGenerator.evaluatorLessThan.prototype.zeroLessThanNum = function(sexp) {
-	var equality = this.prover.create('=',  [sexp.left(), sexp.right()]);
-	var lessEq   = this.prover.create('<=', [sexp.left(), sexp.right()]);
-	this.prover.evaluate(equality, 'Number Not Zero');
-	sexp = this.prover.openExp(sexp, 'Less Than Or Equal To Zero');
-	this.prover.evaluate(lessEq);
+GH.ProofGenerator.evaluatorLessThan.prototype.zeroLessThanNum = function(sexp, rightNum) {
+	sexp = this.prover.openExp(sexp, 'Separate into smaller inequalities');
+	var inequality1 = this.prover.create('<', [0, rightNum - 1]);
+	var inequality2 = this.prover.create('<', [rightNum - 1, rightNum]);
+	var result1 = this.prover.evaluate(inequality1, 'Smaller Inequality');
+	var result2 = this.prover.evaluate(inequality2, 'Smaller Inequality');
+	sexp = this.prover.replace(result1.right());
 	sexp = this.prover.closeExp(sexp);
-	this.prover.print([], 'axlttri2i');
 	return this.prover.getLast();
 };
 

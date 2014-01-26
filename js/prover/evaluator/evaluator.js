@@ -28,6 +28,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorIfn(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorInterval(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorHalfMinus(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorMinus(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSubstitution(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorApply(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSum(prover));

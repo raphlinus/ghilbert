@@ -8,10 +8,10 @@ GH.ProofGenerator.evaluatorAdd.prototype.variableAction = function(sexp) {
 	var rightNum = this.prover.calculate(sexp.right());
 
 	if (leftNum == 0) {
-		return new GH.action('pa_ax3r', [sexp.right()]);
+		return new GH.action('addidr', [sexp.right()]);
 	}
 	if (rightNum == 0) {
-		return new GH.action('pa_ax3', [sexp.left()]);
+		return new GH.action('addid', [sexp.left()]);
 	}
 	return null;
 }
@@ -55,6 +55,14 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 		return false;
 	} else if (rightNum == 0) {
 		return false;
+	} else if (rightNum < 0) {
+		this.prover.print([sexp.left(), sexp.right().child()], 'df-minusr');
+		result = this.prover.getLast();
+		return this.prover.evaluate(result.right());
+	} else if (leftNum < 0) {
+		this.prover.print([sexp.left().child(), sexp.right()], 'negminus2');
+		result = this.prover.getLast();
+		return this.prover.evaluate(result.right());
 	} else if ((leftNum == 1) && (rightNum < 10)) {
 		return this.successorRight_(rightNum);
 	} else if ((rightNum == 1) && (leftNum < 10)) {

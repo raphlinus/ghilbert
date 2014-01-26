@@ -452,11 +452,11 @@ class VerifyCtx:
             else:
                 out.write('Exporting %s\n' % ifname)
                 ctx = ExportCtx(ifname, self, prefix, params)
-                
+
             if not self.run(self.urlctx, url, ctx, out):
                 raise VerifyError (cmd + " of interface %s, URL %s" %
                                    (ifname, url))
-                
+
             # Check that all passed interface parameters were in fact used.
             if len(ctx.used_params) != len(params):
                 raise VerifyError(
@@ -491,7 +491,7 @@ class VerifyCtx:
                 begin = 'defthm (LABEL KIND (DEFSYM VAR ...)'
             raise SyntaxError('Expected ' + begin +
                  ' ((TVAR BVAR ...) ...) ({HYPNAME HYP} ...) CONC STEP ...)')
-            
+
         if len(hyps) & 1:
             raise VerifyError('hyp list must have even length')
 
@@ -645,8 +645,8 @@ class VerifyCtx:
                     # where t is 'tvar' or 'var', kind is the epression's kind
                     # and expr is the actual value on the stack.
                     el = proofctx.mandstack[i]
-                    #if el[1] != tkind[1]: # is this ok given kindbind?
-                    #    raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + tkind[1] + ' got ' + el[1])
+                    if el[1] != self.kinds[tkind[1]]:
+                        raise VerifyError('kind mismatch for ' + tkind[2] + ': expected ' + self.kinds[tkind[1]] + ' got ' + el[1])
                     self.match(tkind[2], el[2], env)
                 sp = len(proofctx.stack) - len(hyps)
                 if sp < 0:
@@ -669,9 +669,9 @@ class VerifyCtx:
                             raise VerifyError('binding variables ' + invmap[exp] + ' and ' + var + ' both map to ' + exp)
                         invmap[exp] = var
                     exp_kind = self.kind_of_expression(exp)
-                    # if syms[var][0] == 'tvar' and syms[var][1] != exp_kind:
-                    #     raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
-                    #         ' wanted ' + syms[var][1] + ' found ' + exp_kind)
+                    if syms[var][0] == 'tvar' and self.kinds[syms[var][1]] != exp_kind:
+                        raise VerifyError('kind mismatch: ' + sexp_to_string(exp) +
+                            ' wanted ' + self.kinds[syms[var][1]] + ' found ' + exp_kind)
 
                 for clause in fv:
                     tvar = clause[0]
@@ -823,7 +823,7 @@ def term_common(kindname, sig, freespecs, kinds, terms, vars):
         raise VerifyError('Unknown kind ' + kindname)
     except TypeError:
         raise SyntaxError('A term kind name must be an atom.')
-                            
+
     termname = sig[0]
     if termname in terms:
         raise VerifyError('A term ' + termname + ' already exists.')
@@ -901,7 +901,7 @@ def term_common(kindname, sig, freespecs, kinds, terms, vars):
 
     return (kind, argkinds, freemap)
 
-    
+
 def invertible_match(newexp, origexp, env, inv):
     if type(newexp) == type('var'):
         if type(origexp) != type('var'):
@@ -1072,9 +1072,9 @@ class ImportCtx(InterfaceCtx):
             except KeyError:
                 raise VerifyError(\
                     'Variable %s not known in import context' % sexp)
-            #if kind is not None and kind != v[1]:
-            #    raise VerifyError('Expected expression of kind %s, found %s' %
-            #                      (kind, sexp))
+            if kind is not None and kind != v[1] and (not(v[1] in self.verify.kinds) or kind != self.verify.kinds[v[1]]):
+                raise VerifyError('Expected expression of kind %s, found %s' %
+                                  (kind, sexp))
             if binding_var and v[0] != 'var':
                 raise VerifyError(\
                     'Expected a binding variable, found term variable %s' %
@@ -1244,7 +1244,7 @@ class ExportCtx(InterfaceCtx):
     def kinds_match(self, export_kind, verify_kind):
         # I suspect we also should follow self.verify.kinds in the other direction,
         # but would like a test case before putting it in.
-        return (export_kind == verify_kind or 
+        return (export_kind == verify_kind or
             verify_kind == self.verify.kinds.get(export_kind))
 
     def do_cmd(self, cmd, arg, out):
@@ -1303,7 +1303,7 @@ class ExportCtx(InterfaceCtx):
                 raise VerifyError(\
                     'Term freemap mismatch with verify context for ' +
                     local_termname)
-            
+
             self.myterms[local_termname] = termname
             self.terms[local_termname] = termname
 
@@ -1413,7 +1413,7 @@ class ExportCtx(InterfaceCtx):
                 for v in d_orig:
                     if not v in d:
                         raise VerifyError('Export context free variable constraint context in stmt %d is too weak' % local_label)
-                
+
             # Remember we've used a stmt with name local_label
             self.assertions[local_label] = 0
         elif cmd == 'param':
@@ -1472,14 +1472,14 @@ if __name__ == '__main__':
         else:
             print >> sys.stderr, 'Unknown option:', arg
         i = i + 1
-        
+
     fn = sys.argv[i]
     urlctx = UrlCtx('', fn, sys.stdin)
     ctx = VerifyCtx(urlctx, run, error_counter.error_handler)
     if fn == '-':
         url = fn
     else :
-        url = 'file://' + fn        
+        url = 'file://' + fn
     ctx.run(urlctx, url, ctx, sys.stdout)
     if error_counter.count != 0:
         print 'Number of errors: %d' % error_counter.count

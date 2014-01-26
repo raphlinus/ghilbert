@@ -25,8 +25,8 @@ GH.ProofGenerator.evaluatorGreaterThan.prototype.isApplicable = function(sexp) {
 GH.ProofGenerator.evaluatorGreaterThan.prototype.inline = function(sexp) {
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
-	if ((rightNum == 0) && (leftNum > 0)) {
-		return this.numMoreThanZero(sexp);
+	if ((rightNum == 0) && (10 >= leftNum) && (leftNum > 0)) {
+		return this.numMoreThanZero(sexp, leftNum);
 	} else if (leftNum < rightNum) {
 		this.prover.evaluate(this.prover.create('<', [sexp.left(), sexp.right()]));
 		var result = this.prover.getLast();
@@ -45,14 +45,14 @@ GH.ProofGenerator.evaluatorGreaterThan.prototype.inline = function(sexp) {
 	return null;
 };
 
-GH.ProofGenerator.evaluatorGreaterThan.prototype.numMoreThanZero = function(sexp) {
-	var equality = this.prover.create('=',  [sexp.left(), sexp.right()]);
-	var more     = this.prover.create('>=', [sexp.left(), sexp.right()]);
-	this.prover.evaluate(equality, 'Number Not Zero');
-	sexp = this.prover.openExp(sexp, 'Greater Than Or Equal To Zero');
-	this.prover.evaluate(more);
+GH.ProofGenerator.evaluatorGreaterThan.prototype.numMoreThanZero = function(sexp, leftNum) {
+	sexp = this.prover.openExp(sexp, 'Separate into smaller inequalities');
+	var inequality1 = this.prover.create('>', [leftNum, leftNum - 1]);
+	var inequality2 = this.prover.create('>', [leftNum - 1, 0]);
+	var result1 = this.prover.evaluate(inequality1, 'Smaller Inequality');
+	var result2 = this.prover.evaluate(inequality2, 'Smaller Inequality');
+	sexp = this.prover.replace(result1.right());
 	sexp = this.prover.closeExp(sexp);
-	this.prover.print([], 'axgrtrii');
 	return this.prover.getLast();
 };
 
@@ -137,7 +137,7 @@ GH.ProofGenerator.evaluatorGreaterThan.prototype.arbitraryNumbers = function(sex
 		result = this.prover.evaluate(result);
 	}
 	
-	if (base >= rightNum) {
+	if (rightResult > base) {
 		result = result && this.prover.openExp(result, 'First Digit is Lower');
 		this.prover.evaluate(this.prover.create('>', [rightResult, base]));
 		var tmpResult = this.prover.getLast().right();
@@ -146,7 +146,7 @@ GH.ProofGenerator.evaluatorGreaterThan.prototype.arbitraryNumbers = function(sex
 		result = this.close(result);
 	}
 	
-	while (base / 10 >= rightNum) {
+	while ((base / 10 >= rightNum) && (base > 1)) {
 		result = result && this.prover.openExp(result, 'Fewer Digits');
 		base /= 10;
 		this.prover.evaluate(this.prover.create('>', [rightResult, base]));

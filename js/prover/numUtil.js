@@ -171,6 +171,9 @@ GH.numUtil.decimalNumberSexp = function(sexp) {
 	if (sexp.operator == '-n') {
 		sign = -1;
 		sexp = sexp.child();
+		if ((sexp.operator == '-n') || (sexp.operator == '0')) {
+			return NaN;  // Double Negatives and -0 are unacceptable.
+		}
 	}
 	var num = parseInt(sexp.operator);
 	if ((0 <= num) && (num <= 10)) {

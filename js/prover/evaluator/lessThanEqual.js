@@ -4,11 +4,6 @@
 };
 
 GH.ProofGenerator.evaluatorLessThanEqual.prototype.variableAction = function(sexp) {
-	var leftNum  = this.prover.calculate(sexp.left());
-	var rightNum = this.prover.calculate(sexp.right());
-	if (leftNum == 0) {
-		return new GH.action('0le', [sexp.right()]);
-	}
 	return null;
 };
 
