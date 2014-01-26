@@ -168,6 +168,11 @@ defthm (df-minus nat (- A B) () () (= (- A B) (+ A (-n B)))
   (+ A (-n B)) eqid
 )
 
+## <title> Minus Definition Reversed </title>
+thm (df-minusr () () (= (+ A (-n B)) (- A B))
+  A B df-minus eqcomi
+)
+
 ## <title> Equivalence for - </title> ##
 thm (minuseq1 () () (-> (= A C) (= (- A B) (- C B)))
   A C (-n B) addeq1
@@ -1500,6 +1505,113 @@ thm (negne0 () () (<-> (-. (= A (0))) (-. (= (-n A) (0))))
   ## <d 'Symmetric Property '>
     (0) A eqcom
     BiReplaceBi0Not0
+  ## </d 'Symmetric Property '>
+)
+
+## <title> Negative distributes over addition </title>
+thm (negadd () () (= (- (-n A) B) (-n (+ A B)))
+  ## <d 'Cancel Addition Twice'>
+  A negcan
+  B negcan
+  addeq12i  
+  ## <d 'Additive Identity '>
+    (0) addidr
+    EqReplaceEq1
+  ## </d 'Additive Identity '>
+  ## </d>
+
+  A (-n A) B (-n B) add4
+  EqReplaceEq0
+
+  ## <d>
+    (+ A B) negcan eqcomi  
+    EqReplaceEq1
+  ## </d>
+
+  addcan2i  
+  ## <d 'Definition of Subtraction '>
+    (-n A) B df-minus eqcomi
+    EqReplaceEq0
+  ## </d 'Definition of Subtraction '>
+)
+
+thm (negminus2 () () (= (+ (-n A) B) (-n (- A B)))
+  A (-n B) negadd  
+  ## <d 'Negative and Subtraction Cancel '>
+    (-n A) B minusneg
+    EqReplaceEq0
+  ## </d 'Negative and Subtraction Cancel '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceEq1Neg0
+  ## </d 'Definition of Subtraction '>
+)
+
+thm (negminus3 () () (= (- (-n A) B) (-n (+ A B)))
+  A (-n B) negminus2  
+  ## <d 'Definition of Subtraction '>
+    (-n A) B df-minus eqcomi
+    EqReplaceEq0
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Negative and Subtraction Cancel '>
+    A B minusneg
+    EqReplaceEq1Neg0
+  ## </d 'Negative and Subtraction Cancel '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+ A  [ B ]   ]   ] ) D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceImp1Eq0Add1 () (
+     replacee (-> ph (= (+ A B) D))
+     substitution (= B C)) 
+     (-> ph (= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceImp1Eq0
+)
+
+## <title> Subtraction Value from Addition </title>
+thm (minusValue () () (-> (= (+ A B) C) (= A (- C B)))
+  (+ A B) C (-n B) addeq1  
+  ## <d 'Associative Property '>
+  ## <d 'Associative Property '>
+    A B (-n B) addass
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>  
+  ## <d 'Definition of Subtraction '>
+    C B df-minus eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Definition of Subtraction '>
+  ## </d 'Associative Property '>
+  
+  ## <d 'Cancel using subtraction '>
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceImp1Eq0Add1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    A addid
+    EqReplaceImp1Eq0
+  ## </d 'Additive Identity '>
+  ## </d 'Cancel using subtraction '>
+)
+
+## <title> Subtraction Value from Addition </title>
+## <table>
+##   (= (+ <c> A [ B ] ) <m> C)
+##   (= (- <m> C [ B ] ) <c> A)
+## </table>
+thm (minusValuei () (hyp (= (+ A B) C)) (= (- C B) A)
+  hyp
+  A B C minusValue   
+  ax-mp  
+  ## <d 'Symmetric Property '>
+    A (- C B) eqcom
+    mpbi
   ## </d 'Symmetric Property '>
 )
 

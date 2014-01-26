@@ -315,6 +315,8 @@ stmt (albiim () () (<-> (A. x (<-> ph ps)) (/\ (A. x (-> ph ps)) (A. x (-> ps ph
 ## <suggest> right('Simplify', '∃') </suggest>
 stmt (19.29r () () (-> (/\ (E. x ph) (A. x ps)) (E. x (/\ ph ps))))
 
+stmt (ex-nf ((ph x)) () (-> (E. x ph) ph))
+
 
 #------------ Equality ----------------------
 
@@ -329,6 +331,20 @@ stmt (eqtr2 () () (-> (/\ (= A B) (= A C)) (= B C)))
 term (wff (E! x ph))
 stmt (df-eu ((ph y)) ()
   (<-> (E! x ph) (E. y (A. x (<-> ph (= x y))))))
+
+stmt (eubid ((ph x)) ((-> ph (<-> ps ch))) (-> ph (<-> (E! x ps) (E! x ch))))
+
+## <title> Quantifier variable exchange </title>
+stmt (eualpha ((ph y) (ps x)) ((-> (= x y) (<-> ph ps))) (<-> (E! x ph) (E! y ps)))
+
+stmt (tyeu ((A x)) () (E! x (= x A)))
+
+## <title> A number exists that proves the antecedent </title>
+## <table>
+##   (-> <r> (= x A) [ ph)
+##                   [ ph
+## </table>
+stmt (vtocle ((A x) (ph x)) ((-> (= x A) ph)) ph)
 
 term (wff ([/] A x ph) (x A))
 stmt (df-subst ((A z) (ph z)) ()

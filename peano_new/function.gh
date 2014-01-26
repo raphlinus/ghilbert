@@ -1,0 +1,422 @@
+import (PROP prop.ghi () "")
+import (PREDICATE_EQ predicate/predicate_equals.ghi (PROP) "")
+import (SET_MIN set_min.ghi (PROP PREDICATE_EQ) "")
+import (SET set.ghi (PROP PREDICATE_EQ SET_MIN) "")
+import (ORDERED_PAIR arithmetic/ordered-pair.ghi (PROP PREDICATE_EQ) "")
+
+
+tvar (wff ph ps ch th ta et)
+tvar (nat A B C D)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V)
+tvar (wff zi si)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+# number 157.5
+## <summary>
+##   Definition of "apply" to apply a function (reperesented by a set S) to an
+##   input.
+## </summary>
+thm (df-apply-just ((A y) (S y) (A z) (S z)) ()
+  (= (iota ({|} z (e. (<,> A z) S)))
+     (iota ({|} y (e. (<,> A y) S))))
+   z  y  A  opeq2     (<,> A z)  (<,> A y)  S  ax-eleq1    syl   abeq     ({|} z (e. (<,> A z) S))  ({|} y (e. (<,> A y) S))  ax-iotaeq    ax-mp)
+
+# Definition of function application
+defthm  (df-apply nat (apply S A) ( (A z) (S z)) ()
+  (= (apply S A) (iota ({|} z (e. (<,> A z) S))))
+  y A S z df-apply-just)
+
+## <title> Equivalence for apply </title> ##
+thm (applyseq1 () () (-> (=_ S T) (= (apply S A) (apply T A)))
+  S T (<,> A z) eleq2
+  z abbi2d
+  iotaseqd
+  S A z df-apply  
+  ## <d 'Symmetric Property '>
+    (apply S A) (iota ({|} z (e. (<,> A z) S))) eqcom
+    mpbi
+  ## </d 'Symmetric Property '>
+  EqReplaceImp1Eq0
+  T A z df-apply    
+  ## <d 'Symmetric Property '>
+    (apply T A) (iota ({|} z (e. (<,> A z) T))) eqcom
+    mpbi
+  ## </d 'Symmetric Property '>
+  EqReplaceImp1Eq1
+)
+
+thm (applyseq1i () (
+     hyp1 (=_ S T))
+     (= (apply S A) (apply T A))
+  hyp1
+  S T A applyseq1
+  ax-mp
+)
+
+thm (applyseq1d () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (= (apply S A) (apply T A)))
+  hyp1
+  S T A applyseq1
+  syl
+)
+
+## <title> Equivalence for apply </title> ##
+thm (applyeq2 () () (-> (= A B) (= (apply S A) (apply S B)))
+  A B z opeq1
+  S eleq1d
+  z abbi2d
+  iotaseqd
+  S A z df-apply
+  ## <d 'Commutative Property'>
+    (apply S A) (iota ({|} z (e. (<,> A z) S))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  S B z df-apply
+  ## <d 'Commutative Property'>
+    (apply S B) (iota ({|} z (e. (<,> B z) S))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq1
+)
+thm (applyeq2i () (
+     hyp1 (= A B))
+     (= (apply S A) (apply S B))
+  hyp1
+  A B S applyeq2
+  ax-mp
+)
+
+thm (applyeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (apply S A) (apply S B)))
+  hyp1
+  A B S applyeq2
+  syl
+)
+
+# number 86.0
+thm (df-fun-just ((S x y x' y')) ()
+  (<-> (/\ (A. x  (E! y  (e. (<,> x  y ) S))) (A. x (-> (e. x S) (E. y (E. z (= x (<,> y z)))))))
+       (/\ (A. x' (E! y' (e. (<,> x' y') S))) (A. x' (-> (e. x' S) (E. y' (E. z' (= x' (<,> y' z'))))))))
+  x  x'  y'  opeq1    (<,> x y')  (<,> x' y')  S  ax-eleq1  syl    y'  eubid
+    y  y'  x  opeq2     (<,> x y)  (<,> x y')  S  ax-eleq1    syl    eualpha
+  syl5bb
+  alpha
+
+ x  x'  S  ax-eleq1
+  x  x'  (<,>  y' z')  eqeq1  z'  exbid  y'  exbid
+   y  y'  z  opeq1   x  eqeq2d  z  exbid
+     z  z'  y'  opeq2    x  eqeq2d   exalpha
+   syl6bb    exalpha
+  syl5bb
+ imbi12d  alpha
+anbi12i
+)
+
+## <title> Function Definition </title>
+## <summary>
+##   Functions are represented by sets of ordered pairs, but not every set is a valid function.
+##   fun S is true when the set S is a valid function and false otherwise.
+## </summary>
+defthm (df-fun wff (fun S) ((S x y))  ()  (<-> (fun S) (/\ (A. x  (E! y  (e. (<,> x  y ) S))) (A. x (-> (e. x S) (E. y (E. z (= x (<,> y z))))))))
+x' y' S z'  x y z df-fun-just)
+
+# Equality identity for fun
+thm (funseq () () (-> (=_ S T) (<-> (fun S) (fun T)))
+  S  T  (<,> x y)  eleq2  y eubid
+  x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
+    S  T  x  eleq2  (E. y (E. z (= x (<,> y z))))  imbi1d
+    x  19.21ai  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  19.15  syl
+  anbi12d
+  S  x  y  z  df-fun  syl5bb
+  T  x  y  z  df-fun  syl6bbr
+)
+thm (funseqi () (
+     hyp1 (=_ S T))
+     (<-> (fun S) (fun T))
+  hyp1
+  S T funseq
+  ax-mp
+)
+
+thm (funseqd () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (<-> (fun S) (fun T)))
+  hyp1
+  S T funseq
+  syl
+)
+
+# == Lambda and function application ==
+
+## <summary>
+##   Definition of the lambda operator, which creates a functional set from an
+##   expression in one variable.
+## </summary>
+thm (df-lambda-just ((A x x')) ()
+  (=_ ({|} x (E. y (= x (<,> y A)))) ({|} x' (E. y (= x' (<,> y A)))))
+  x  x'  (<,> y A) eqeq1  y  exbid
+#  y  y'  A  opeq1  x'  eqeq2d % exalpha  syl6bb
+  abeq
+)
+
+defthm  (df-lambda set (lambda y A) ((A x)) ()
+        (=_ (lambda y A) ({|} x (E. y (= x (<,> y A)))))
+          x' y A x df-lambda-just)
+
+## <summary> Asserts that membership in functional set of a lambda works the way you'd expect. </summary>
+thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
+     (<-> (e. (<,> x A) (lambda x B)) (= A B))
+  x  B  z  df-lambda  (<,> x A) eleq2i
+    h1  B  C  x  opeq2  syl  z  eqeq2d
+    x  y  C  opeq1  z  eqeq2d  bitrd  exalpha
+    z  gen  z  (E. x (= z (<,> x B)))  (E. y (= z (<,> y C)))  abbi2  ax-mp
+  (<,> x A)  eleq2i  bitri
+  z  (<,> x A)  (<,> y C)  eqeq1  y  exbid  elab  bitri
+    x  A  y  C  opth  y  exbii bitri
+      h1  (= A C)  anim1i
+        C  B  A eqtr2  ex  eqcoms  com12  eqcoms  com12  imp  syl  y  19.22i  y  (= B A)  ex-nf  syl
+          y  x  tyex  h1     ancli    eqcoms
+        B  A  C eqtr2  ex  (= x y)  anim2d   mpan9    ancoms  ex  y  19.22d  mpi
+      impbii
+    bitri
+  B  A  eqcom  bitri
+)
+
+## <title> Lambda constructs are functions </title>
+thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
+#(A. y (E! v (e. (<,> y v) (lambda x A))))
+v  B  tyeu  z eqid
+ x  A  w  df-lambda    (<,> y v)  eleq2i
+ w  (<,> y v)  (<,> x A)  eqeq1    x  exbid  elab   bitri
+ y  v  x  A  opth  x  exbii  bitri
+  h1  eqcoms eqcomd v  eqeq2d  biimprd  imp  x  19.22i  x  (= v B)  ex-nf  syl
+    x  y  tyex
+    h1 eqcoms eqcomd v  eqeq2d  biimpd  com12  ancld  com12  eqcoms  com12 x  19.22d  mpi
+  impbii
+ bitri     (= z z)  a1i  v eubid  ax-mp
+mpbir
+v  x  y  opeq2  (<,> y v)  (<,> y x)  (lambda x A)  ax-eleq1  syl  eualpha  mpbi
+y gen
+
+    x  A  y  df-lambda    y  eleq2i
+    y  y'  (<,> x A) eqeq1  x  exbid  rwffi  abid  bitri  biimpi
+    w  A  tyex    w  A  x  opeq2  y  eqeq2d   biimprd  w  19.22i  ax-mp  x  gen  jctil
+    x  (E. w (-> (= y (<,> x A)) (= y (<,> x w))))  (= y (<,> x A))  19.29   syl
+    w  (-> (= y (<,> x A)) (= y (<,> x w)))  (= y (<,> x A))   19.41  x  exbii  sylibr
+    (= y (<,> x A))  (= y (<,> x w))  pm3.35  ancoms  w  19.22i  x  19.22i  syl
+    y  gen
+  pm3.2i
+
+  (lambda x A)  y  x  w  df-fun  mpbir
+)
+
+## <summary> Existential uniqueness implies iota is a member </summary>
+thm (iotacl ((S x)) ()
+   (-> (E! x (e. x S)) (e. (iota S) S))
+  x (e. x S) y df-eu biimpi
+
+
+    x y elsnc (e. x S)  bibi2i x gen 19.15i biimpri
+    S ({} y) x  df-seq biimpri
+  syl
+  y 19.22i syl
+
+  S ({} y) ax-iotaeq y ax-iota  syl6eq
+  (iota S) y elsnc  sylibr
+  S ({} y) (iota S) eleq2
+
+  biimprd mpd y 19.22i
+  syl
+    y (e. (iota S) S) ex-nf
+  syl
+)
+
+## <summary> Another iota utility theorem.  Asserts that if exactly one x has the property ph, then that x can be found using iota. </summary>
+thm (iotacl2 () ()
+   (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
+x  ph  y  df-eu   biimpi
+  x  ph  (= x y)  abbi2
+    ({|} x ph)  ({|} x (= x y))  ax-iotaeq
+      y  x  df-sn    ({} y)  ({|} x (= x y))  ax-iotaeq  ax-mp
+  y  ax-iota       eqtr3     (iota ({|} x ph))  eqeq2i  biimpi    syl  syl
+   (iota ({|} x ph))  y  x  ph  dfsbcq   biimprd  syl
+   (iota ({|} x ph))  x  ph  ax-elab   syl6ibr
+    ph  (= x y)  bi2  x  19.20i
+    x  (-> (= x y) ph)  y  a4sbc    syl
+
+    y  x  (-> (= x y) ph)  z  df-subst   sylib
+    x  (= z y)  (/\ (= x z) (-> (= x y) ph))  19.41l   biimpri  z  19.22i    #syl
+      # ugh.
+      (= z y)  (= x z)  (-> (= x y) ph)  anass
+        (= z y)  (= x z)  (-> (= x y) ph)  anass
+          (= z y)  (= x z)  (-> (= x y) ph)  anass
+          z  y  x  eqtr2   z  x  eqcom        sylan2br   (-> (= x y) ph)  anim1i     sylbir
+          y  x  eqcom    biimpi    (-> (= x y) ph)  anim1i  syl
+         (= x y)  ph  pm3.35    syl
+        sylbi  (/\ (= z y) (= x z))  (-> (= x y) ph)  ph  pm5.3      mpbi
+       sylbir
+      (= z y)  (= x z)  ph  anass  sylib
+     x  19.22i  z  19.22i  syl
+    x  (= z y)  (/\ (= x z)  ph)  19.41l  biimpi  z  19.22i  syl
+   syl
+   y  x  ph  z  df-subst    sylibr
+ jca
+ ([/] y x ph)  (e. (iota ({|} x ph)) ({|} x ph))  pm3.35  ancoms  syl
+ y  19.22i  syl
+ y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
+)
+
+# number 159.5
+## <summary> apply actually works (assuming S is a function). </summary>
+thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
+#      y  x  (e. (<,> A x) S)  ax-elab
+  S  w  x  z  df-fun  biimpi     pm3.26d
+  w  (E! x (e. (<,> w x) S))  A  a4sbc    syl
+  w  A  x  opeq1    (<,> w x)  (<,> A x)  S  ax-eleq1  syl  x  eubid    sbcie   sylib
+  x  (e. (<,> A x) S)   iotacl2  syl
+  S  A  x  df-apply  (apply S A)  (iota ({|} x (e. (<,> A x) S)))  ({|} x (e. (<,> A x) S))  ax-eleq1  ax-mp  sylibr
+  (apply S A)  x  (e. (<,> A x) S)  ax-elab    sylib
+    x  (apply S A)  A  opeq2   (<,> A x)  (<,> A (apply S A))  S  ax-eleq1  syl
+  sbcie  sylib
+)
+
+thm (applylambda.1 ((B x) (A y)) (hyp (-> (= x y) (= A B))) (= (apply (lambda x A) x) A)
+  hyp funlambda
+  (lambda x A) x funapply
+  ax-mp
+  hyp
+  (apply (lambda x A) x) ellambda    
+  mpbi
+)
+
+thm (applylambda.2 ((B x) (A y)) (hyp (-> (= x y) (= A B))) (-> (= x C) (= (apply (lambda x A) C) A))
+  x C (lambda x A) applyeq2
+  A eqeq1d
+  hyp
+  applylambda.1
+  (= (apply (lambda x A) C) A) biRemove1
+  (= x C) imbi2i
+  mpbi
+)
+
+## <title> Apply the function </title>
+thm (applylambda ((D x) (A x) (C x) (B y)) (hyp (-> (= x y) (= B D)) hyp2 (-> (= x A) (= B C))) (= (apply (lambda x B) A) C)
+  hyp
+  A applylambda.2
+  hyp2
+  eqtrd
+  vtocle
+)
+
+## <title> Apply a constant function </title>
+thm (applylambdaconst ((A x) (B x)) () (= (apply (lambda x A) B) A)
+  A eqid (= x y) a1i
+  A eqid (= x B) a1i
+  applylambda
+)
+
+## <title> Apply the identity function </title>
+thm (applyfunid ((A x)) () (= (apply (lambda x x) A) A)
+  (= x y) id
+  (= x A) id
+  applylambda
+)
+
+thm (syl6seqr ()
+  (hyp1 (-> ph (=_ S T))
+   hyp2 (=_ U T))
+  (-> ph (=_ S U))
+  hyp1    S  T  x  df-seq    sylib
+  x  (<-> (e. x S) (e. x T))  ax-4    syl
+      hyp2    U  T  x  df-seq    mpbi    a4i
+  syl6bbr
+  x  19.21ai
+  S  U  x  df-seq       sylibr
+)
+
+# First equality identity for lambda.
+thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))
+  (=_ (lambda x A) (lambda y B))
+ x eqid
+  x  A  z  df-lambda
+  (= x x) a1i
+    h1    A  B  x  opeq2    syl
+    x  y  B  opeq1    eqtrd
+    z  eqeq2d
+    exalpha    bicomi
+    z  gen
+      z  (E. y (= z (<,> y B)))  (E. x (= z (<,> x A)))  abbi2
+    ax-mp
+  syl6seqr
+    y  B  z  df-lambda
+  syl6seqr
+ ax-mp
+)
+
+# Second equality identity for lambda
+thm (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B)))
+    A  B  x  opeq2    y  eqeq2d    x  19.20i
+    x  (= y (<,> x A))  (= y (<,> x B))  19.18    syl
+    y  19.21ai
+    y  (E. x (= y (<,> x A)))  (E. x (= y (<,> x B)))  abbi2    syl
+    x  B  y  df-lambda    syl6seqr
+    ({|} y (E. x (= y (<,> x A))))  (lambda x B)  seqcom   sylib
+    x  A  y  df-lambda    syl6seqr
+    (lambda x B)  (lambda x A)  seqcom    sylib
+)
+
+thm (lambdaeq2i () (
+     hyp1 (A. x (= B C)))
+     (=_ (lambda x B) (lambda x C))
+  hyp1
+  x B C lambdaeq2
+  ax-mp
+)
+
+thm (lambdaeq2d () (
+     hyp1 (-> ph (A. x (= B C))))
+     (-> ph (=_ (lambda x B) (lambda x C)))
+  hyp1
+  x B C lambdaeq2
+  syl
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm() () (T)
+ tru
+)
+
+export (set set.ghi (PROP PREDICATE_EQ SET_MIN) "")

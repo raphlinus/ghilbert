@@ -132,6 +132,12 @@ stmt (0ne1 () () (-. (= (0) (1))))
 ## <title> 0 is less than or equal to 1 </title>
 stmt (0le1 () () (<= (0) (1)))
 
+## <title> 0 is less than 1 </title>
+stmt (0less1 () () (< (0) (1)))
+
+## <title> 1 is more than 0 </title>
+stmt (1greater0 () () (> (1) (0)))
+
 ## <title> Inequality Equivalence </title>
 stmt (leeq1 () () (-> (= A B) (<-> (<= A C) (<= B C))))
 
@@ -174,17 +180,6 @@ stmt (df-9 () () (= (9) (+ (8) (1))))
 ## <title> Definition of 10 </title>
 stmt (df-10 () () (= (10) (+ (9) (1))))
 
-## <title> Reflexive Property </title>
-#stmt (eqid () () (= A A))
-
-## <title> Multiplicative Identity </title>
-## <suggest> right('Simplify', '1') </suggest>
-## <table>
-##   (= (* A <r> (1)) A)
-## </table>
-## <suggest> auto-right('Simplify') </suggest>
-#stmt (mulid () () (= (* A (1)) A))
-
 ## <title> Multiplicative Identity </title>
 ## <suggest> auto-right('Simplify', '1') </suggest>
 stmt (mulidr() () (= (* (1) A) A))
@@ -206,10 +201,6 @@ stmt (addneq2i () ((-. (= A B))) (-. (= (+ C A) (+ C B))))
 
 
 
-## <title> Addition is Monotonic </title>
-## <summary> Addition is strictly monotonic in the first addend </summary>
-## <suggest> left('Cancel', '+') </suggest>
-#stmt (leadd1 () () (<-> (<= A B) (<= (+ A C) (+ B C))))
 
 ## <title> Addition is Monotonic </title>
 ## <summary> Addition is strictly monotonic in the second addend </summary>
@@ -258,10 +249,6 @@ stmt (ltadd2 () () (<-> (< A B) (< (+ C A) (+ C B))))
 ## <title> Inequality relation for two equal sums </title>
 stmt (ltadd12 () () (-> (= (+ A B) (+ C D)) (<-> (< A C) (< D B))))
 
-## <title> Transitive Property </title>
-## <suggest> right('Simplify', '≤ ≤') </suggest>
-#stmt (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C)))
-
 ## <title> Combine Inequalities </title>
 stmt (letradd () () (-> (/\ (<= A B) (<= C D)) (<= (+ A C) (+ B D))))
 
@@ -307,29 +294,6 @@ stmt (mul0 () () (= (* A (0)) (0)))
 ## <suggest> auto-right('Simplify','0') </suggest>
 stmt (mul0r () () (= (* (0) A) (0)))
 
-## <title> Associative Property </title>
-## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
-#stmt (addass () ()
-#  (= (+ (+ A B) C) (+ A (+ B C)))
-#)
-
-## <title> Associative Property </title>
-## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
-#stmt (mulass () ()
-#  (= (* (* A B) C) (* A (* B C)))
-#)
-
-## <title> Symmetric Property </title>
-## <suggest> right('Commute', '=') </suggest>
-#stmt (eqcom () () (<-> (= A B) (= B A)))
-
-## <title> Symmetric Property </title>
-## <table>
-##   (= <r> A <g> B)
-##   (= <g> B <r> A)
-## </table>
-#stmt (eqcomi () ((= A B)) (= B A))
-
 ## <title> Converse of ≤ </title>
 ## <suggest> right('Commute', '≤') left('Commute', '≥') </suggest>
 stmt (lecon () () (<-> (<= A B) (>= B A)))
@@ -356,22 +320,6 @@ stmt (df-ge () () (<-> (>= A B) (-. (< A B))))
 ## <suggest> right('Define', '<') left('Simplify', '>') </suggest>
 stmt (df-gt () () (<-> (> A B) (-. (<= A B))))
 
-## <title> Commutative Property </title>
-## <suggest> right('Commute', '+') </suggest>
-#stmt (addcom () () (= (+ A B) (+ B A)))
-
-## <title> Commutative Property </title>
-## <table>
-##   (= (* <r> A <g> B) (* <g> B <r> A))
-## </table>
-## <suggest> right('Commute', '*') </suggest>
-#stmt (mulcom () () (= (* A B) (* B A)))
-
-# Distribution of addition through multiplication
-## <title> Distributive Property </title>
-## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
-#stmt (distr () () (= (* A (+ B C)) (+ (* A B) (* A C))))
-
 ## <title> Distributive Property </title>
 ## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
 stmt (distl () () (= (* (+ A B) C) (+ (* A C) (* B C))))
@@ -383,42 +331,6 @@ stmt (distl () () (= (* (+ A B) C) (+ (* A C) (* B C))))
 ## <summary> Distribution of addition through multiplication, both arguments </summary>
 ## <suggest> right('Distribute', 'RL') left('Distribute', 'RL') </suggest>
 stmt (distrl () () (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D)))))
-
-## <title> Equivalence over Equality </title>
-#stmt(eqeq1 () () (-> (= A B) (<-> (= A C) (= B C))))
-
-## <title> Equivalence over Equality </title>
-#stmt(eqeq2 () () (-> (= A B) (<-> (= C A) (= C B))))
-
-## <title> Equivalence over Equality </title>
-## <table>
-##   (=      A ]    ] [    B ] )
-##   (<-> (= A ] C) ] [ (= B ] C))
-## </table>
-#stmt (eqeq1i () ((= A B)) (<-> (= A C) (= B C)))
-
-## <title> Equivalence over Equality </title>
-## <table>
-##   (=        [ A  ] [      [ B)
-##   (<-> (= C [ A) ] [ (= C [ B))
-## </table>
-#stmt (eqeq2i () ((= A B)) (<-> (= C A) (= C B)))
-
-## <title> Equivalence over Equality </title>
-## <table>
-##   (-> ph (=      A ]    ] [    B ] ))
-##   (-> ph (<-> (= A ] C) ] [ (= B ] C)))
-## </table>
-#stmt(eqeq1d () ((-> ph (= A B))) (-> ph (<-> (= A C) (= B C))))
-
-## <title> Equivalence over Equality </title>
-## <table>
-##   (-> ph (=        [ A  ] [      [ B))
-##   (-> ph (<-> (= C [ A) ] [ (= C [ B)))
-## </table>
-#stmt(eqeq2d () ((-> ph (= A B))) (-> ph (<-> (= C A) (= C B))))
-
-#stmt (eqeq12 () () (-> (/\ (= A B) (= C D)) (<-> (= A C) (= B D))))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
@@ -462,30 +374,6 @@ stmt (muleq1i () ((= A B)) (= (* A C) (* B C)))
 ## </table>
 stmt (muleq2i () ((= A B)) (= (* C A) (* C B)))
 
-## <title> Transitive Property </title>
-## <table>
-##   (= A  [    B ] ] )
-##         [ (= B ] [ C)
-##   (= A  [      [ [ C)
-## </table>
-#stmt (eqtr () ((= A B) (= B C)) (= A C))
-
-## <title> Transitive Property </title>
-## <table>
-##   (-> ph (= A  [    B ] ] ))
-##   (-> ph       [ (= B ] [ C))
-##   (-> ph (= A  [      [ [ C))
-## </table>
-#stmt (eqtrd () ((-> ph (= A B)) (-> ph (= B C))) (-> ph (= A C)))
-
-## <title> Transitive Property </title>
-## <table>
-##   (= A [      [ [ B)
-##   (= A [    C ] ]  )
-##        [ (= C ] [ B )
-## </table>
-#stmt (eqtr5 () ((= A B) (= A C)) (= C B))
-
 ## <title> Equivalence over Inequality </title>
 ## <table>
 ##  (<=    A ] ]   ] [ C)
@@ -527,15 +415,7 @@ stmt (axlttri2i () ((-. (= A B)) (<= A B)) (< A B))
 ##  (<      [ [ (0) ]      [   [ [ A )
 ##  (< (* B ] [  A  ] ) (* [ C ] [ A ))
 ## </table>
-#stmt (ltmul2i () ((< B C) (< (0) A)) (< (* B A) (* C A)))
-
-#stmt (ltmul () () (-> (/\ (< A B) (< C D)) (< (* A C) (* B D))))
-
-#stmt (gtmul () () (-> (/\ (> A B) (> C D)) (> (* A C) (* B D))))
-
-#stmt (ltmul4 () () (-> (/\ (< A B) (< C D)) (< (+ (* B C) (* A D)) (+ (* B D) (* A C)))))
-
-#stmt (gtmul4 () () (-> (/\ (> B A) (> D C)) (> (+ (* B D) (* A C)) (+ (* B C) (* A D)))))
+stmt (ltmul2i () ((< B C) (< (0) A)) (< (* B A) (* C A)))
 
 ## <title> A number is less, equal, or greater </title>
 stmt (inequalities () () (\/ (< A B) (\/ (= A B) (> A B))))
@@ -546,7 +426,7 @@ stmt (inequalities () () (\/ (< A B) (\/ (= A B) (> A B))))
 ##  (>      [ [ A ]      [   [ [ (0) )
 ##  (> (+ B ] [ A ] ) (+ [ C ] [  A  ))
 ## </table>
-#stmt (gtmul2i () ((> B C) (> A (0)))  (> (* B A) (* C A)))
+stmt (gtmul2i () ((> B C) (> A (0)))  (> (* B A) (* C A)))
 
 ## <title> Inequality Conversion </title>
 stmt (axgrtrii () ((-. (= A B)) (>= A B)) (> A B))
@@ -829,9 +709,6 @@ stmt (muleq12i ()
 ## <title> Cancellation of addition </title>
 stmt (addcan2 () () (<-> (= (+ A B) (+ A C)) (= B C)))
 
-## <title> Cancellation of addition </title>
-#stmt (addcan () () (<-> (= (+ B A) (+ C A)) (= B C)))
-
 ## <title> Rearrange Addition Terms </title>
 ## <table>
 ##   (= (+ (+ A <g> B) (+ <r> C D)) (+ (+ A <r> C) (+ <g> B D)))
@@ -846,12 +723,6 @@ stmt (add24 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ C B))))
 
 ## <title> Rearrange Addition Terms </title>
 stmt (add432 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ B C))))
-
-
-## <title> Inequality Equivalence </title>
-#stmt (leeq1 () () (-> (= A B) (<-> (<= A C) (<= B C))))
-## <title> Inequality Equivalence </title>
-#stmt (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B))))
 
 ## <title> Equivalence over Inequality </title>
 ## <summary> Equality inference for less than or equal relation </summary>
@@ -884,12 +755,6 @@ stmt (leeq2d () ((-> ph (= A B))) (-> ph (<-> (<= C A) (<= C B))))
 ## <title> Inequality relation for two equal sums </title>
 stmt (leadd12 () () (-> (= (+ A B) (+ C D)) (<-> (<= A C) (<= D B))))
 
-## <title> Cancel Multiplication </title>
-#stmt (mulcant () () (-> (< (0) C) (<-> (= (* A C) (* B C)) (= A B))))
-
-## <title> Cancel Multiplication </title>
-#stmt (mulcant2 () () (-> (< (0) C) (<-> (= (* C A) (* C B)) (= A B))))
-
 stmt (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0)))))
 
 ## <title> Cancel Multiplication </title>
@@ -910,6 +775,20 @@ stmt (mulcani () ((-. (= A (0))) (= (* B A) (* C A))) (= B C))
 ##   (=          [ B   ]          [ C)
 ## </table>
 stmt (mulcan2i () ((-. (= A (0))) (= (* A B) (* A C))) (= B C))
+
+## <title> Cancel Addition </title>
+## <table>
+##   (= (+ A ] <r> C ) ] (+ [ B <r> C))
+##   (=    A ]         ]    [ B)
+## </table>
+stmt (addcani () ((= (+ A C) (+ B C))) (= A B))
+
+## <title> Cancel Addition </title>
+## <table>
+##   (=  (+ <r> C [ A ) ] (+ <r> C [ B ))
+##   (=           [ A   ]          [ B)
+## </table>
+stmt (addcan2i () ((= (+ C A) (+ C B))) (= A B))
 
 stmt (0lt1() () (< (0) (1)))
 
@@ -966,14 +845,9 @@ stmt (ltmul0 () () (-> (/\ (< (0) A) (< (0) B)) (< (0) (* A B))))
 
 stmt (gtmul0() () (-> (/\ (> A (0)) (> B (0))) (> (* A B) (0))))
 
-## <title> Inequality Multiplication </title>
-#stmt (lemul1 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* A C) (* B C))))
-
 ## <title> Multiply Both Sides </title>
 ## <summary> Multiplication is monotonic in its second argument </summary>
 stmt (lemul2 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* C A) (* C B))))
-
-#stmt (lemul12 () () (-> (/\ (<= A B) (<= C D)) (<= (* A C) (* B D))))
 	
 ## <title> First branch of ternary expression </title>
 stmt (ifn1 () () (-> ph (= (ifn ph A B) A)))

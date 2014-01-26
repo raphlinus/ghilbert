@@ -527,6 +527,29 @@ thm (addcan2 () ()
     B A C addcan bitri
 )
 
+## <title> Cancel Addition </title>
+## <table>
+##   (= (+ A ] <r> C ) ] (+ [ B <r> C))
+##   (=    A ]         ]    [ B)
+## </table>
+thm (addcani () (hyp (= (+ A C) (+ B C))) (= A B)
+  hyp
+  A C B addcan  
+  mpbi
+)
+
+## <title> Cancel Addition </title>
+## <table>
+##   (=  (+ <r> C [ A ) ] (+ <r> C [ B ))
+##   (=           [ A   ]          [ B)
+## </table>
+thm (addcan2i () (hyp (= (+ C A) (+ C B))) (= A B)
+  hyp
+  C A B addcan2  
+  mpbi
+)
+
+
 ## <title> Inequality over Addition </title>
 ## <table>
 ##   (-. (=    [ A ]   ]      [ B ] ))
@@ -3179,23 +3202,6 @@ thm (exlt ((A x)(B x)) () (-> (< A B) (E. x (/\ (< (0) x) (= (+ A x) B))))
   ## </d>
 )
 
-# missing
-## <summary> Multiplication is strictly monotonic when the other multiplicand is nonzero </summary>
-#thm (ltmul1 () ()
-#  (-> (< (0) A) (-> (< B C) (< (* A B) (* A C))))
-#  (0) A (* A B) ltadd1
-#  (* A B) addidr (+ A (* A B)) lteq1i bitri
-#  A (* A B) addcom (* A B) lteq2i bitri
-#    A B (1) distr
-#    A mulid (* A B) addeq2i eqtri
-#    (* A B) lteq2i
-#  bitr4i biimpi
-#    B C nnltp1let
-#    (+ B (1)) C A lemul2 sylbi
-#  anim12i
-#  (* A B) (* A (+ B (1))) (* A C) ltletr syl ex
-#)
-
 ## <title> Substitution </title>
 ## <table>
 ##   (-> ph (-> ps (<  [ A ]   ]   ]  C)))
@@ -3213,29 +3219,6 @@ ps imbi2i
 ph imbi2i
 mpbi
 )
-
-# missing
-## <title> Multiplication is Monotonic </title>
-## <table>
-##  (<    B ] ]     ]      [ C ] ]   )
-##  (<      [ [ (0) ]      [   [ [ A )
-##  (< (* B ] [  A  ] ) (* [ C ] [ A ))
-## </table>
-#thm (ltmul2i () (hyp (< B C) hyp2 (< (0) A)) (< (* B A) (* C A))
-#  hyp
-#  hyp2
-#  A B C ltmul1
-#  ## <d>
-#    A B mulcom
-#  ## </d>
-#    EqReplaceImp1Imp1Lt0
-#  ## <d>
-#    A C mulcom
-#  ## </d>
-#    EqReplaceImp1Imp1Lt1
-#  ax-mp
-#  ax-mp
-#)
 
 ## <title> Substitution </title>
 ## <table>
@@ -3339,30 +3322,35 @@ thm (EqReplaceImp1Imp1Gt1 () (
   BiReplaceImp1Imp1
 )
 
-# missing
-#thm (gtmul2() () (-> (> A (0)) (-> (> C B) (> (* C A) (* B A))))
-#  A B C ltmul1  
-#  ## <d 'Converse of < '>
-#    (0) A ltcon
-#    sylbi2
-#  ## </d 'Converse of < '>  
-#  ## <d 'Converse of < '>
-#    B C ltcon
-#    BiReplaceImp1Imp0
-#  ## </d 'Converse of < '>  
-#  ## <d 'Converse of < '>
-#    (* A B) (* A C) ltcon
-#    BiReplaceImp1Imp1
-#  ## </d 'Converse of < '>  
-#  ## <d 'Commutative Property '>
-#    A C mulcom
-#    EqReplaceImp1Imp1Gt0
-#  ## </d 'Commutative Property '>  
-#  ## <d 'Commutative Property '>
-#    A B mulcom
-#    EqReplaceImp1Imp1Gt1
-#  ## </d 'Commutative Property '>
-#)
+## <title> Substitution </title>
+## <table>
+##   (-> ph (>  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (>  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Gt0 () (
+     replacee (-> ph (> A C))
+     substitution (= A B)) 
+     (-> ph (> B C))
+  replacee substitution
+  C gteq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (> A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (> A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Gt1 () (
+     replacee (-> ph (> A B))
+     substitution (= B C)) 
+     (-> ph (> A C))
+  replacee substitution
+  A gteq2i
+  sylib
+)	
 
 ## <title> Substitution </title>
 ## <table>
@@ -3393,20 +3381,6 @@ thm (BiReplaceImp0An1Not0 () (
   con4biir
   BiReplaceImp0An1
 )
-
-## <title> Multiplication is Monotonic </title>
-## <table>
-##  (>    B ] ]   ]      [ C ] ]     )
-##  (>      [ [ A ]      [   [ [ (0) )
-##  (> (+ B ] [ A ] ) (+ [ C ] [  A  ))
-## </table>
-#thm (gtmul2i () (hyp (> B C) hyp2 (> A (0)))  (> (* B A) (* C A))
-#   hyp
-#   hyp2
-#   A B C gtmul2
-#   ax-mp
-#   ax-mp
-#)
 
 ## <title> Substitution </title>
 ## <table>
@@ -3800,83 +3774,6 @@ thm (gtmul0() () (-> (/\ (> A (0)) (> B (0))) (> (* A B) (0)))
   ## </d 'Converse of < '>
 )
 
-## <summary> If a product of a nonzero number and some other number is zero, that number is zero </summary>
-#thm (mul0 () () (-> (= (* (S A) B) (0)) (= B (0)))
-#x  (* A B)  tyex
-#  x (* A B)  B  addeq1
-#  A  B  pa_ax6r        syl6eqr
-#  (0)  eqeq1d    biimprd  com12    x  B  addcom  (0)  eqeq1i   syl6ib
-#  x  19.22d
-#mpi
-#B  (0)  x  df-le  sylibr
-#B  eq0le0        sylibr
-#)
-
-## <summary> Multiplication cancellation with nonzero multiplicand </summary>
-#thm (mulcan () ()
-#  (<-> (= (* A (S C)) (* B (S C))) (= A B))
-#  (* A (S C)) (* B (S C)) lesym
-#    A C B lemul5
-#      B C A lemul5
-#    anbi12i
-#  bitri
-#    A B lesym
-#  bitr4i
-#)
-
-## <summary> Cancellation for multiplication (over nonzero multiplicand) </summary>
-#thm (mulcan2.1 () () (-> (<= A B) (-> (= (* (S C) A) (* (S C) B)) (= A B)))
-#  A  B  x  df-le  biimpi
-#    (+ A x)  B  (S C)  muleq2
-#    (S C)  A  x  distr  (* (S C) B)  eqeq1i  sylib  eqcomd
-#      (* (S C) A)  pa_ax3
-#      (* (S C) B)  eqeq1i  biimpri  eqcomd
-#      anim12i    (* (S C) B)  (+ (* (S C) A) (* (S C) x))  (+ (* (S C) A) (0))  eqtr2  syl
-#      (* (S C) A)  (* (S C) x)  (0)  addcan2  sylib
-#      C  x  mul0  syl     A   addeq2d
-#      ex  anc2li    (+ A x)  B  (+ A (0))  eqtr2  syl6   A  pa_ax3  B   eqeq2i  biimpi  eqcomd syl6
-#    x  19.22i  syl
-#       19.9d
-#)
-
-# number 127.5
-#thm (mulcan2 () () (-> (= (* (S A) B) (* (S A) C)) (= B C))
-#  B  C  letot
-#    B  C  A  mulcan2.1
-#      C  B  A  mulcan2.1
-#      (* (S A) C)  (* (S A) B)  eqcom  (= C B)   imbi1i  sylib
-#      imp  eqcomd  ex
-#
-#    jaoi
-#  ax-mp
-#)
-
-# missing
-## <title> Cancel Multiplication </title>
-#thm (mulcant () () (-> (< (0) C) (<-> (= (* A C) (* B C)) (= A B)))
-#  (0) C axlttri C ge0 
-#  ## <d 'Def. Greater Than or Equal to '>
-#    C (0) df-ge
-#    mpbi
-#  ## </d 'Def. Greater Than or Equal to '>
-#  (= (0) C) biorfi  (0) C eqcom bitr3i notbii bitri
-#  C x lefoo ori sylbi
-#  x a1suc x (1) addcom eqtri C eqeq1i x exbii sylibr
-#
-#    (S x) C A muleq2 (S x) C B muleq2 eqeq12d
-#    A x B mulcan syl5rbbr x 19.23ai
-#  syl
-#)
-
-## <title> Cancel Multiplication </title>
-#thm (mulcant2 () ()
-#  (-> (< (0) C) (<-> (= (* C A) (* C B)) (= A B)))
-#  C A B mulcant
-#  A C mulcom B C mulcom eqeq12i syl5bbr
-#)
-
-
-
 ## <title> Substitution </title>
 ## <table>
 ##   (-> ph (<-> (=  [ A ]   ]   ]  C) ps))
@@ -3932,8 +3829,6 @@ thm (mulcan2i () (Anot0 (-. (= A (0))) hyp (= (* A B) (* A C))) (= B C)
   ax-mp
   mpbi
 )
-
-# == Some naive set theory ==
 
 
 
@@ -4680,8 +4575,7 @@ thm (0less1 () () (< (0) (1))
   ## </d 'Inequality Conversion '>
 )
 
-
-## <title> One-Digit Inequality </title>
+## <title> 1 is more than 0 </title>
 thm (1greater0 () () (> (1) (0))
   0less1 ltconi
 )
@@ -6169,6 +6063,64 @@ thm (ltmul1 () () (-> (/\ (< A B) (< (0) C)) (< (* A C) (* B C)))
     sylib
   ## </d 'Inequality Conversion '>
   ## </d>
+)
+
+## <title> Multiplication is Monotonic </title>
+## <table>
+##  (<    B ] ]     ]      [ C ] ]   )
+##  (<      [ [ (0) ]      [   [ [ A )
+##  (< (* B ] [  A  ] ) (* [ C ] [ A ))
+## </table>
+thm (ltmul2i () (hyp (< B C) hyp2 (< (0) A)) (< (* B A) (* C A))
+  hyp
+  hyp2
+  pm3.2i
+  B C A ltmul1
+  ax-mp
+)
+
+thm (gtmul2 () () (-> (/\ (> A B) (> C (0))) (> (* C A) (* C B)))
+  B A C ltmul1  
+  ## <d 'Converse of < '>
+    B A ltcon
+    BiReplaceImp0An0
+  ## </d 'Converse of < '>  
+  ## <d 'Converse of < '>
+    (0) C ltcon
+    BiReplaceImp0An1
+  ## </d 'Converse of < '>  
+  ## <d 'Converse of < '>
+    (* B C) (* A C) ltcon
+    sylib
+  ## </d 'Converse of < '>  
+  ## <d 'Commutative Property '>
+    A C mulcom
+    EqReplaceImp1Gt0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    B C mulcom
+    EqReplaceImp1Gt1
+  ## </d 'Commutative Property '>
+)
+
+## <title> Multiplication is Monotonic </title>
+## <table>
+##  (>    B ] ]   ]      [ C ] ]     )
+##  (>      [ [ A ]      [   [ [ (0) )
+##  (> (+ B ] [ A ] ) (+ [ C ] [  A  ))
+## </table>
+thm (gtmul2i () (hyp (> B C) hyp2 (> A (0)))  (> (* B A) (* C A))
+  hyp hyp2 pm3.2i
+  B C A gtmul2
+  ax-mp  
+  ## <d 'Commutative Property '>
+    A B mulcom
+    EqReplaceGt0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    A C mulcom
+    EqReplaceGt1
+  ## </d 'Commutative Property '>
 )
 
 ## <title> Substitution </title>

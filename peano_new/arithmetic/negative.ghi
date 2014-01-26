@@ -20,6 +20,10 @@ stmt (negeq  () () (-> (= A B) (= (-n A) (-n B))))
 
 term (nat (- A B))
 
+## <table>
+##  (=     [ A      [ B)
+##  (= (-n [ A) (-n [ B))
+## </table>
 stmt (negeqi() ((= A B)) (= (-n A) (-n B)))
 
 stmt (negeqd () ((-> ph (= A B))) (-> ph (= (-n A) (-n B))))
@@ -46,6 +50,9 @@ stmt (negcan2() () (= (+ (-n A) A) (0)))
 ## <title> Definition of Subtraction </title>
 ## <suggest> right('Define', '-') left('Simplify', '-') </suggest>
 stmt (df-minus () () (= (- A B) (+ A (-n B))))
+
+## <title> Minus Definition Reversed </title>
+stmt (df-minusr () () (= (+ A (-n B)) (- A B)))
 
 ## <title> Equivalence for - </title> ##
 stmt (minuseq1 () () (-> (= A C) (= (- A B) (- C B))))
@@ -125,3 +132,19 @@ stmt (negPositive () () (<-> (pos (-n A)) (zneg A)))
 ## <title> Negative of Subtraction </title>
 ## <suggest> left('Simplify', '-') </suggest>
 stmt (negminus () () (= (- A B) (-n (- B A))))
+
+## <title> Negative of Subtraction </title>
+stmt (negminus2 () () (= (+ (-n A) B) (-n (- A B))))
+
+## <title> Negative of Subtraction </title>
+stmt (negminus3 () () (= (- (-n A) B) (-n (+ A B))))
+
+## <title> Negative distributes over addition </title>
+stmt (negadd () () (= (- (-n A) B) (-n (+ A B))))
+
+## <title> Subtraction Value from Addition </title>
+## <table>
+##   (= (+ <c> A [ B ] ) <m> C)
+##   (= (- <m> C [ B ] ) <c> A)
+## </table>
+stmt (minusValuei () ((= (+ A B) C)) (= (- C B) A))

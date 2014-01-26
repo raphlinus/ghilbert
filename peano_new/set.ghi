@@ -184,12 +184,18 @@ stmt (inass () () (=_ (i^i (i^i S T) U) (i^i S (i^i T U))))
 ## </table>
 stmt (eleq1i () ((= A B)) (<-> (e. A S) (e. B S)))
 
+stmt (eleq1d () ((-> ph (= A B))) (-> ph (<-> (e. A S) (e. B S))))
+
+stmt (eleq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T))))
+
 ## <title> Equivalence over Element Of </title>
 ## <table>
 ##   (=_        [ S  ] [       [ T )
 ##   (<-> (e. A [ S) ] [ (e. A [ T ))
 ## </table>
 stmt (eleq2i () ((=_ S T)) (<-> (e. A S) (e. A T)))
+
+stmt (elab ((A x) (ps x)) ((-> (= x A) (<-> ph ps))) (<-> (e. A ({|} x ph)) ps))
 
 ## <title> Subset and Element Of Equivalence <title>
 stmt (elSubseti () ((e. A S)) (C_ ({} A) S))
@@ -204,3 +210,12 @@ stmt (abeq ((ph y) (ps x))
 stmt (abbi2 () () (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps))))
 
 stmt (abid () ((rwff x ph)) (<-> (e. x ({|} x ph)) ph))
+
+## <title> Equality deduction for set abstraction </title>
+stmt (abbi2d ((ph x)) ((-> ph (<-> ps ch))) (-> ph (=_ ({|} x ps) ({|} x ch))))
+
+stmt (iotaseqd () ((-> ph (=_ S T))) (-> ph (= (iota S) (iota T))))
+
+## <title> Singleton has One Element </title>
+## <suggest> right('Simplify', '=') </suggest>
+stmt (elsnc () () (<-> (e. A ({} B)) (= A B)))

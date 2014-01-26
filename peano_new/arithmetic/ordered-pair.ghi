@@ -1,8 +1,8 @@
 param (PROP prop.ghi () "")
-param (PREDICATE predicate.ghi (PROP) "")
+param (PREDICATE ../predicate/predicate_equals.ghi (PROP) "")
 
 tvar (wff ph ps ch th ta)
-tvar (nat A B C D)
+tvar (nat A B C D A' B')
 
 term (nat (head A))
 term (nat (tail A))
@@ -54,3 +54,10 @@ stmt (opeq12d () ((-> ph (= A B)) (-> ph (= C D))) (-> ph (= (<,> A C) (<,> B D)
 
 ## <title> Expand Ordered Pair </title>
 stmt (opexpand () () (= A (<,> (head A) (tail A))))
+
+## <title> Ordered Pair Theorem </title>
+## <summary>
+##   Two ordered pairs are equal if and only if the first and the
+##   second numbers of the pair are equal.
+## </summary>
+stmt (opth () () (<-> (= (<,> A B) (<,> A' B')) (/\ (= A A') (= B B'))))
