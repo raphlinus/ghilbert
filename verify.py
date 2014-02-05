@@ -1097,7 +1097,7 @@ class ImportCtx(InterfaceCtx):
             raise VerifyError('Expression %s has unknown term symbol' %
                               sexp_to_string(sexp))
         # t is (kind, argkinds, freemap)
-        if kind is not None and t[0] != kind:
+        if kind is not None and t[0] != kind and (not(t[0] in self.verify.kinds) or kind != self.verify.kinds[t[0]]):
             raise VerifyError('Expected expression of kind %s, found %s' %
                               (kind, sexp_to_string(sexp)))
         newterm = [tmapped]

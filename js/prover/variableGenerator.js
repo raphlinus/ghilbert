@@ -11,14 +11,19 @@ GH.Prover.variableGenerator.VARIABLE_NAMES = {
 };
 
 GH.Prover.variableGenerator.prototype.generate = function(type) {
-	if ((type == 'n.nat') || (type == 'z.nat') || (type == 'q.nat') || (type == 'int') || (type == 'rat')) {
+	var lowercase = false;
+	if ((type == 'n.nat') || (type == 'z.nat') || (type == 'q.nat') || (type == 'r.nat') || (type == 'int') || (type == 'rat')) {
 		type = 'nat';
+		lowercase = true;
 	}
 	if (GH.Prover.variableGenerator.VARIABLE_NAMES[type].length <= this.usedVariables[type]) {
 		alert('No more unused variable names.');
 	}
 	var result = GH.Prover.variableGenerator.VARIABLE_NAMES[type][this.usedVariables[type]];
 	this.usedVariables[type]++;
+	if (lowercase) {
+		result = result.toLowerCase();
+	}
 	return result;
 };
 

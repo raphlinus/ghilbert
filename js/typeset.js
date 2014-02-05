@@ -645,7 +645,7 @@ GH.typeset.OPERATIONS = [
 	[['qneg'],  'postfix', ' is negative'],
 ],
 [ // 1050
-	[['=', 'n.=', 'z.=', 'q.=', '=z', '=q', '=_'],    'infix', 'n', '='],
+	[['=', 'n.=', 'z.=', 'q.=', 'r.=','=z', '=q', '=_'],    'infix', 'n', '='],
 	[['<=', 'n.<=', 'z.<=', 'q.<=', '<=z', '<=q', '≤'], 'infix', 'n', '≤'],
     [['<', '<z', '<q'],          'infix', 'n', '&lt;'],
     [['>=', '>=z', '>=q'],       'infix', 'n', '≥'],
@@ -658,19 +658,19 @@ GH.typeset.OPERATIONS = [
 	[['=mod'],                   'modcon'],
 ],
 [ // 2200
-	[['+', 'n.+', 'z.+', '+z', '+q'], 'infix', 'l', '+'],
-	[['.-', '-', '-q'],       'infix', 'l', '-'],  // Minus
+	[['+', 'n.+', 'z.+', 'r.+', '+z', '+q'], 'infix', 'l', '+'],
+	[['.-', '-', '-q', 'z.-', 'q.-', 'r.-'],       'infix', 'l', '-'],  // Minus
 ],
 [ // Not sure where to put fractions.
 	[['</>'], 'infix', 'n', '/'],
 ],
 [	
-	[['-n', 'z.-n'], 'unary', '-'],  // Negative Sign
+	[['-n', 'z.-n', 'q.-n', 'r.-n'], 'unary', '-'],  // Negative Sign
 	[['-qn'], 'unary', '-'],  // Negative Sign
 ],
 [ // 2300
-    [['*', 'n.*', 'z.*', '*z', '*q', '∙'], 'infix', 'l', '∙'],
-    [['/'], 'infix', 'l', '/'],
+    [['*', 'n.*', 'z.*', 'r.*', '*z', '*q', '∙'], 'infix', 'l', '∙'],
+    [['/', 'r./'], 'infix', 'l', '/'],
 ],
 [ // 2500
 	[['exp'], 'exp'],
@@ -699,10 +699,13 @@ GH.typeset.OPERATIONS = [
 [ // 9999
 	[['T'], 'string', 'T'],
 	[['F'], 'string', 'F'],
+	[['N'], 'string', 'ℕ'],
 	[['n.0'], 'string', '0<sub>N</sub>'],
 	[['n.1'], 'string', '1<sub>N</sub>'],
 	[['z.0'], 'string', '0<sub>Z</sub>'],
 	[['z.1'], 'string', '1<sub>Z</sub>'],
+	[['r.0'], 'string', '0<sub>R</sub>'],
+	[['r.1'], 'string', '1<sub>R</sub>'],
 	[['S'], 'postfix', '′'],
 	[['primeset'], 'string', 'Primes'],
     [['{|}'], 'clab'],

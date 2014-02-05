@@ -15,6 +15,7 @@ GH.operatorUtil.getOperatorTypes = function(operator) {
 	if (operator == 'n.=') 	return ['n.nat', 'n.nat', 'wff'];
 	if (operator == 'n.<=') return ['n.nat', 'n.nat', 'wff'];
 	if (operator == 'z.=') 	return ['z.nat', 'z.nat', 'wff'];
+	if (operator == 'r.=') 	return ['r.nat', 'r.nat', 'wff'];
 	if (operator == 'z.<=') return ['z.nat', 'z.nat', 'wff'];
 	if (operator == 'q.=') 	return ['q.nat', 'q.nat', 'wff'];
 	if (operator == 'q.<=') return ['q.nat', 'q.nat', 'wff'];
@@ -74,6 +75,15 @@ GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == 'q.+') 	return ['q.nat', 'q.nat', 'q.nat'];
 	if (operator == 'q.*') 	return ['q.nat', 'q.nat', 'q.nat'];
 	if (operator == 'q.E.') return ['bind', 'z.nat', 'wff'];
+	
+	if (operator == 'r.=') 	return ['r.nat', 'r.nat', 'wff'];
+	if (operator == 'r.<=') return ['r.nat', 'r.nat', 'wff'];	
+	if (operator == 'r.+') 	return ['r.nat', 'r.nat', 'r.nat'];
+	if (operator == 'r.-') 	return ['r.nat', 'r.nat', 'r.nat'];
+	if (operator == 'r.-n') return ['r.nat', 'r.nat'];
+	if (operator == 'r.*') 	return ['r.nat', 'r.nat', 'r.nat'];
+	if (operator == 'r./') 	return ['r.nat', 'r.nat', 'r.nat'];
+	if (operator == 'r.E.') return ['bind', 'r.nat', 'wff'];
 
 	if (operator == 'int') 	return ['nat', 'int'];
 	if (operator == '=z') 	return ['int', 'int', 'wff'];
@@ -134,6 +144,7 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == 'q.<=') {	return 'Qle';
 	} else if (operator == '=z') {		return 'Zeq';
 	} else if (operator == '=q') {		return 'Qeq';
+	} else if (operator == 'r.=') {		return 'Req';
 	} else if (operator == '=mod') {	return 'Modcon';
 	} else if (operator == '<=z') {		return 'Zle';
 	} else if (operator == '<z') {		return 'Zlt';
@@ -156,6 +167,11 @@ GH.operatorUtil.getName = function(operator) {
 	} else if (operator == '*z') {		return 'Zmul';
 	} else if (operator == '+q') {		return 'Qadd';
 	} else if (operator == '*q') {		return 'Qmul';
+	} else if (operator == 'r.+') {		return 'Radd';
+	} else if (operator == 'r.*') {		return 'Rmul';
+	} else if (operator == 'r./') {		return 'Rdiv';
+	} else if (operator == 'r.-') {		return 'Rsub';
+	} else if (operator == 'r.-n') {	return 'Rneg';
 	} else if (operator == '/') {		return 'Div';
 	} else if (operator == '-n') {		return 'Neg';
 	} else if (operator == '-qn') {		return 'Qneg';
@@ -204,8 +220,11 @@ GH.operatorUtil.getThmName = function(operator, prefixed) {
 	} else if (operator == 'z.<=') {	if (prefixed) { return 'z.le';} else { return 'le';}
 	} else if (operator == 'q.=') {		if (prefixed) { return 'q.eq';} else { return 'eq';}
 	} else if (operator == 'q.<=') {	if (prefixed) { return 'q.le';} else { return 'le';}
+	} else if (operator == 'r.=') {		if (prefixed) { return 'r.eq';} else { return 'eq';}
+	} else if (operator == 'r.<=') {	if (prefixed) { return 'r.le';} else { return 'le';}
 	} else if (operator == '=z') {		return 'zeq';
 	} else if (operator == '=q') {		return 'eqq';
+	} else if (operator == '=r') {		return 'req';
 	} else if (operator == '=mod') {	return 'modcon';
 	} else if (operator == '<=z') {		return 'zle';
 	} else if (operator == '<z') {		return 'zlt';
@@ -233,6 +252,10 @@ GH.operatorUtil.getThmName = function(operator, prefixed) {
 	} else if (operator == 'z.*') {		if (prefixed) { return 'z.mul';} else { return 'mul';}
 	} else if (operator == 'q.+') {		if (prefixed) { return 'q.add';} else { return 'add';}
 	} else if (operator == 'q.*') {		if (prefixed) { return 'q.mul';} else { return 'mul';}
+	} else if (operator == 'r.+') {		if (prefixed) { return 'r.add';} else { return 'add';}
+	} else if (operator == 'r.-') {		if (prefixed) { return 'r.minus';} else { return 'minus';}
+	} else if (operator == 'r.-n') {	if (prefixed) { return 'r.neg';} else { return 'neg';}
+	} else if (operator == 'r.*') {		if (prefixed) { return 'r.mul';} else { return 'mul';}
 	} else if (operator == '-n') {		return 'neg';
 	} else if (operator == '-qn') {		return 'qneg';
 	} else if (operator == '-') {		return 'minus';
@@ -290,7 +313,7 @@ GH.operatorUtil.getUnicode = function(operator) {
 	}
 };
 
-GH.operatorUtil.EQUIVALENCE_OPERATORS = ['<->', '=', 'n.=', 'z.=', 'q.=', '=z', '=q', '=_'];
+GH.operatorUtil.EQUIVALENCE_OPERATORS = ['<->', '=', 'n.=', 'z.=', 'q.=', 'r.=', '=z', '=q', '=_'];
 
 GH.operatorUtil.EQUIVALENCE_MAP = [
 	[['wff'],         '<->'],
@@ -298,9 +321,13 @@ GH.operatorUtil.EQUIVALENCE_MAP = [
 	[['n.nat'],       'n.='],
 	[['z.nat'],       'z.='],
 	[['q.nat'],       'q.='],
+	[['r.nat'],       'r.='],
 	[['int'],          '=z'],
 	[['rat'],          '=q'],
-	[['set'],          '=_']
+	[['set'],          '=_'],
+	[['n.set'],        'n.=_'],
+	[['z.set'],        'z.=_'],
+	[['q.set'],        'q.=_']
 ];
 
 GH.operatorUtil.getEquivalenceOperator = function(type) {
