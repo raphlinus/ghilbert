@@ -1,0 +1,84 @@
+# The basic properties common to natural, integer, rational, real, and complex arithmetic.
+# derived initially from the Peano axioms and subsequently during the construction of the
+# integers, rationals, reals, and complex numbers.
+#
+# Proofs for these theorems are found in:
+#   - peano.gh for the natural numbers
+#   - negative_min.gh for integers
+#   - division_min.gh for rationals
+
+param (PROP prop.ghi () "")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat x)
+
+term (nat (+ A B))
+term (nat (* A B))
+term (nat (0))
+term (nat (1))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (addass () () (= (+ (+ A B) C) (+ A (+ B C))))
+
+## <title> Additive Identity </title>
+## <suggest> auto-right('Simplify', '0') </suggest>
+stmt (addid () () (= (+ A (0)) A))
+
+## <title> Commutative Property </title>
+## <table>
+##   (= (+ <r> A <g> B) (+ <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '+') </suggest>
+stmt (addcom () () (= (+ A B) (+ B A)))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (mulass () () (= (* (* A B) C) (* A (* B C))))
+
+## <title> Commutative Property </title>
+## <table>
+##   (= (* <r> A <g> B) (* <g> B <r> A))
+## </table>
+## <suggest> right('Commute', '*') </suggest>
+stmt (mulcom () () (= (* A B) (* B A)))
+
+# Distribution of addition through multiplication
+## <title> Distributive Property </title>
+## <table>
+##   (= (* <c> A (+ B C)) (+ (* <c> A B) (* <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (distr () () (= (* A (+ B C)) (+ (* A B) (* A C))))
+
+## <title> Multiplicative Identity </title>
+## <suggest> right('Simplify', '1') </suggest>
+## <table>
+##   (= (* A <r> (1)) A)
+## </table>
+## <suggest> auto-right('Simplify') </suggest>
+stmt (mulid () () (= (* A (1)) A))
+
+## <title> 0 is not equal to 1 </title>
+stmt (0ne1 () () (-. (= (0) (1))))
+
+# Equality axiom for addition
+## <title> Addition of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their sums are equal.
+## </summary>
+## <axiom>
+stmt (addeq12 () () (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
+    
+## <title> Multiplication of Equal Numbers Axiom </title>
+## <summary>
+##   When two equal numbers are added, their products are equal.
+## </summary>
+## <axiom>
+stmt (muleq12 () () (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
+
+## <title> Cancellation of addition </title>
+## <suggest> right('Cancel', '+') </suggest>
+stmt (addcan () () (<-> (= (+ B A) (+ C A)) (= B C)))

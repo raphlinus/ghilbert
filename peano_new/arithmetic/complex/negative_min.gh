@@ -1,0 +1,148 @@
+import (PROP ../../prop.ghi () "")
+import (R_PREDICATE ../../predicate/all.ghi (PROP) "r.")
+import (ORDERED_PAIR ../common/ordered-pair.ghi (PROP R_PREDICATE) "r.")
+import (R_REALS ../reals/common.ghi (PROP R_PREDICATE) "r.")
+import (PREDICATE_ALL ../../predicate/all.ghi (PROP) "")
+import (EQUALITY_COM equality_com.ghi (PROP R_PREDICATE PREDICATE_ALL) "")
+import (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE_ALL) "")
+import (ADD_MULTIPLY_COM add_multiply_com.ghi (PROP PREDICATE_ALL R_PREDICATE R_REALS EQUALITY_COM ADD_MULTIPLY_MIN) "")
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (r.nat a b c d a' b' c' d')
+var (r.nat v w x y z)
+
+
+## <title> Definition of Negative </title>
+## <summary>
+##   The complex negative is defined by negating both the real and imaginary parts.
+##   This is the unary negative sign, not to be confused with binary
+##   <a href="df-minus">subtraction</a> which is defined using the negative sign.
+## </summary>
+defthm (df-neg nat (-n A) () () (= (-n A) (<,> (r.-n (head A))  (r.-n (tail A))))
+  (<,> (r.-n (head A))  (r.-n (tail A))) eqid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+thm (negeq () () (-> (= A B) (= (-n A) (-n B)))
+  (head A) (head B) r.negeq
+  (tail A) (tail B) r.negeq
+  anim12i
+  A B dfeq bicomi  
+  sylbi2
+  (r.-n (head A)) (r.-n (head B)) (r.-n (tail A)) (r.-n (tail B)) opeq12
+  syl
+  A df-neg eqcomi  
+  EqReplaceImp1Eq0
+  B df-neg eqcomi   
+  EqReplaceImp1Eq1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee substitution
+  A eqeq2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,>  [ b ]   ]   ]  d))
+##   (r.=       [ b ]   [ c ] )
+##   (= A (<,>  [   [   [ c ]  d))
+## </table>
+thm (ReqReplaceEq1Op0 () (
+     replacee (= A (<,> b d))
+     substitution (r.= b c)) 
+     (= A (<,> c d))
+  replacee substitution
+  d opeq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (<,> b  [ c ]   ]   ] ))
+##   (r.=         [ c ]   [ d ] )
+##   (= A (<,> b  [   [   [ d ] ))
+## </table>
+thm (ReqReplaceEq1Op1 () (
+     replacee (= A (<,> b c))
+     substitution (r.= c d)) 
+     (= A (<,> b d))
+  replacee substitution
+  b opeq2i
+  EqReplaceEq1
+)
+
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (negcan () () (= (+ A (-n A)) (0))
+  ## <d 'Expand A and -A as ordered pairs'>
+    A opexpand
+    A df-neg
+    pm3.2i
+    A  (<,> (head A) (tail A)) (-n A) (<,> (r.-n (head A)) (r.-n (tail A))) addeq12     
+    ax-mp
+    ## <d 'Addition on Ordered Pairs '>
+      (head A) (tail A) (r.-n (head A)) (r.-n (tail A)) addop
+      EqReplaceEq1
+    ## </d 'Addition on Ordered Pairs '>
+  ## </d>
+  ## <d 'Cancel using subtraction '>
+    ## <d 'Cancel using subtraction '>
+      (head A) r.negcan
+      ReqReplaceEq1Op0
+    ## </d 'Cancel using subtraction '>
+    ## <d 'Cancel using subtraction '>
+      (tail A) r.negcan
+      ReqReplaceEq1Op1
+    ## </d 'Cancel using subtraction '>
+  ## </d 'Cancel using subtraction '>
+  ## <d>
+    df-0 eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+export (NEGATIVE_MIN ../common/negative_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")

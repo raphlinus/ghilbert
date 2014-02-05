@@ -1,0 +1,33 @@
+param (PROP prop.ghi () "")
+param (PREDICATE ../../predicate/predicate_all.ghi (PROP) "")
+param (R_PREDICATE ../../predicate/all.ghi (PROP) "r.")
+param (R_REALS ../common/reals/common.ghi (PROP R_PREDICATE) "r.")
+param (EQUALITY_COM equality_com.ghi (PROP R_PREDICATE PREDICATE) "")
+param (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (r.nat a b c d)
+var (nat x y z)
+
+term (nat (i))
+
+## <title> i squared equals -1 </title>
+stmt (iSquared () () (= (+ (* (i) (i)) (1)) (0)))
+
+## <title> Addition on Ordered Pairs </title>
+## <suggest> right('Equivalence', '+') </suggest>
+stmt (addop () () (= (+ (<,> a b) (<,> c d)) (<,> (r.+ a c) (r.+ b d))))
+
+## <title> Multiplication on Ordered Pairs </title>
+## <suggest> right('Equivalence', '∙') </suggest>
+stmt (mulop () () (= (* (<,> a b) (<,> c d)) (<,> (r.- (r.* a c) (r.* b d)) (r.+ (r.* b c) (r.* a d)))))
+
+## <title> Definition of 0 as a Complex Number </title>
+stmt (df-0 () () (= (0) (<,> (r.0) (r.0))))
+
+## <title> Definition of 1 as a Complex Number </title>
+stmt (df-1 () () (= (1) (<,> (r.1) (r.0))))
+
+## <title> Definition of i as a Complex Number </title>
+stmt (df-i () () (= (i) (<,> (r.0) (r.1))))

@@ -1,8 +1,8 @@
 import (PROP prop.ghi () "")
-import (PREDICATE_EQ predicate/predicate_equals.ghi (PROP) "")
-import (SET_MIN set_min.ghi (PROP PREDICATE_EQ) "")
-import (SET set.ghi (PROP PREDICATE_EQ SET_MIN) "")
-import (ORDERED_PAIR arithmetic/ordered-pair.ghi (PROP PREDICATE_EQ) "")
+import (PREDICATE predicate/all.ghi (PROP) "")
+import (SET_MIN set_min.ghi (PROP PREDICATE) "")
+import (SET set.ghi (PROP PREDICATE SET_MIN) "")
+import (ORDERED_PAIR arithmetic/common/ordered-pair.ghi (PROP PREDICATE) "")
 
 
 tvar (wff ph ps ch th ta et)
@@ -243,62 +243,6 @@ y gen
   (lambda x A)  y  x  w  df-fun  mpbir
 )
 
-## <summary> Existential uniqueness implies iota is a member </summary>
-thm (iotacl ((S x)) ()
-   (-> (E! x (e. x S)) (e. (iota S) S))
-  x (e. x S) y df-eu biimpi
-
-
-    x y elsnc (e. x S)  bibi2i x gen 19.15i biimpri
-    S ({} y) x  df-seq biimpri
-  syl
-  y 19.22i syl
-
-  S ({} y) ax-iotaeq y ax-iota  syl6eq
-  (iota S) y elsnc  sylibr
-  S ({} y) (iota S) eleq2
-
-  biimprd mpd y 19.22i
-  syl
-    y (e. (iota S) S) ex-nf
-  syl
-)
-
-## <summary> Another iota utility theorem.  Asserts that if exactly one x has the property ph, then that x can be found using iota. </summary>
-thm (iotacl2 () ()
-   (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
-x  ph  y  df-eu   biimpi
-  x  ph  (= x y)  abbi2
-    ({|} x ph)  ({|} x (= x y))  ax-iotaeq
-      y  x  df-sn    ({} y)  ({|} x (= x y))  ax-iotaeq  ax-mp
-  y  ax-iota       eqtr3     (iota ({|} x ph))  eqeq2i  biimpi    syl  syl
-   (iota ({|} x ph))  y  x  ph  dfsbcq   biimprd  syl
-   (iota ({|} x ph))  x  ph  ax-elab   syl6ibr
-    ph  (= x y)  bi2  x  19.20i
-    x  (-> (= x y) ph)  y  a4sbc    syl
-
-    y  x  (-> (= x y) ph)  z  df-subst   sylib
-    x  (= z y)  (/\ (= x z) (-> (= x y) ph))  19.41l   biimpri  z  19.22i    #syl
-      # ugh.
-      (= z y)  (= x z)  (-> (= x y) ph)  anass
-        (= z y)  (= x z)  (-> (= x y) ph)  anass
-          (= z y)  (= x z)  (-> (= x y) ph)  anass
-          z  y  x  eqtr2   z  x  eqcom        sylan2br   (-> (= x y) ph)  anim1i     sylbir
-          y  x  eqcom    biimpi    (-> (= x y) ph)  anim1i  syl
-         (= x y)  ph  pm3.35    syl
-        sylbi  (/\ (= z y) (= x z))  (-> (= x y) ph)  ph  pm5.3      mpbi
-       sylbir
-      (= z y)  (= x z)  ph  anass  sylib
-     x  19.22i  z  19.22i  syl
-    x  (= z y)  (/\ (= x z)  ph)  19.41l  biimpi  z  19.22i  syl
-   syl
-   y  x  ph  z  df-subst    sylibr
- jca
- ([/] y x ph)  (e. (iota ({|} x ph)) ({|} x ph))  pm3.35  ancoms  syl
- y  19.22i  syl
- y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
-)
-
 # number 159.5
 ## <summary> apply actually works (assuming S is a function). </summary>
 thm (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S))
@@ -418,5 +362,3 @@ thm (lambdaeq2d () (
 thm (emptyThm() () (T)
  tru
 )
-
-export (set set.ghi (PROP PREDICATE_EQ SET_MIN) "")

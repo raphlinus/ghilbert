@@ -1,0 +1,1259 @@
+import (PROP ../../prop.ghi () "")
+import (PREDICATE ../../predicate/all.ghi (PROP) "")
+import (NATURALS ../naturals/common.ghi (PROP PREDICATE) "")
+import (NEGATIVE negative.ghi (PROP PREDICATE NATURALS) "")
+import (DIVISION_MIN division_min.ghi (PROP PREDICATE NATURALS) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+## <title> Divide a number on both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (/ <g> A <r> C) (/ <b> B <r> C)))
+## </table>
+thm (diveq1 () () (-> (= A B) (= (/ A C) (/ B C)))
+  C eqid A B C C diveq12 mpan2)
+
+## <title> Divide a number on both sides of an equation </title>
+thm (diveq2 () () (-> (= A B) (= (/ C A) (/ C B)))
+  C eqid C C A B diveq12 mpan)
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (/ A ] [ C ] ) (/ [ B ] [ D))
+## </table>
+thm (diveq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (/ A C) (/ B D))
+  hyp1 hyp2 A B C D diveq12 mp2an
+)
+
+## <title> Equality over Addition </title>
+thm (diveq1d ()
+  (h (-> ph (= A B)))
+  (-> ph (= (/ A C) (/ B C)))
+  h A B C diveq1 syl
+)
+
+## <title> Equality over Addition </title>
+thm (diveq2d ()
+  (h (-> ph (= A B)))
+  (-> ph (= (/ C A) (/ C B)))
+  h A B C diveq2 syl
+)
+
+## <title> Equality over Addition </title>
+thm (diveq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (/ A C) (/ B D)))
+  hyp1 hyp2 jca A B C D diveq12 syl
+)
+
+## <title> Add a number to both sides </title>
+## <table>
+##  (=    A ]        ]    [ B ] )
+##  (= (/ A ] <g> C) ] (/ [ B ] <g> C))
+## </table>
+thm (diveq1i ()
+  (hyp (= A B))
+  (= (/ A C) (/ B C))
+  hyp A B C diveq1 ax-mp
+)
+
+## <title> Add a number to both sides </title>
+## <table>
+##  (=          [ A ]   [          [ B )
+##  (= (/ <g> C [ A ] ) [ (/ <g> C [ B))
+## </table>
+thm (diveq2i ()
+  (hyp (= A B))
+  (= (/ C A) (/ C B))
+  C eqid hyp C C A B diveq12 mp2an
+)
+
+## <title> Cancel with Division </title>
+thm (divcani () (Anot0 (-. (= A (0)))) (= (* A (/ B A)) B)
+  Anot0
+  A B divcan
+  ax-mp
+)
+
+## <title> Cancel with Division </title>
+thm (reciprocalcan () () (-> (-. (= A (0))) (= (* A (/ (1) A)) (1)))
+  A (1) divcan
+)
+
+## <title> Cancel with Division </title>
+thm (reciprocalcani () (Anot0 (-. (= A (0)))) (= (* A (/ (1) A)) (1))
+  Anot0
+  (1) divcani
+)
+
+## <title> Cancel With Division </title>
+thm (divcan2 () () (-> (-. (= A (0))) (= (/ (* A B) A) B))
+  A (* A B) divcan
+  A (/ (* A B) A) B mulcan2
+  mpbid
+)
+
+## <title> Cancel with Division </title>
+thm (divcan2i () (Anot0 (-. (= A (0)))) (= (/ (* A B) A) B)
+  Anot0
+  Anot0
+  (* A B) divcani
+  mulcan2i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (/  [ A ]   ]   ]  C) D))
+##   (=            [ A ]   [ B ] )
+##   (-> ph (= (/  [   [   [ B ]  C) D))
+## </table>
+thm (EqReplaceImp1Eq0Div0 () (
+     replacee (-> ph (= (/ A C) D))
+     substitution (= A B)) 
+     (-> ph (= (/ B C) D))
+  replacee substitution
+  C diveq1i
+  EqReplaceImp1Eq0
+)
+
+## <title> Cancel with Division </title>
+thm (divcan3 () () (-> (-. (= A (0))) (= (/ (* B A) A) B))
+  A B divcan2  
+  ## <d 'Commutative Property '>
+    A B mulcom
+    EqReplaceImp1Eq0Div0
+  ## </d 'Commutative Property '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+## <title> Divide by 1 </title>
+thm (divid () () (= (/ A (1)) A)
+  ## <d 'Cancel with Division'>
+  0ne1
+  (1) A divcan  
+  ## <d 'Symmetric Property '>
+    (1) (0) eqcom
+    BiReplaceImp0Not0
+  ## </d 'Symmetric Property '>  
+  ## </d>
+  ax-mp  
+  ## <d 'Multiplicative Identity '>
+    (/ A (1)) mulidr
+    EqReplaceEq0
+  ## </d 'Multiplicative Identity '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (* B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (* B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Mul1 () (
+     replacee (= A (* B C))
+     substitution (= C D)) 
+     (= A (* B D))
+  replacee substitution
+  B muleq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (*  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (*  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= A (* B D))
+     substitution (= B C)) 
+     (= A (* C D))
+  replacee substitution
+  D muleq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (*  [ B ]   ]   ]  D)))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= A (*  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceImp1Eq1Mul0 () (
+     replacee (-> ph (= A (* B D)))
+     substitution (= B C)) 
+     (-> ph (= A (* C D)))
+  replacee substitution
+  D muleq1i
+  EqReplaceImp1Eq1
+)
+
+## <title> Expand Fraction </title>
+thm (expandFrac () () (-> (-. (= B (0))) (= (/ A B) (* A (/ (1) B))))
+  B A divcan
+  ## <d>
+    A mulid eqcomi
+    (* B (/ A B)) eqeq2i
+    sylib
+  ## </d>  
+  ## <d>
+    B reciprocalcan eqcomd
+    A muleq2d
+    jca    
+    ## <d 'Equality Transitive Property '>
+      (* B (/ A B)) (* A (1)) (* A (* B (/ (1) B))) eqtr
+      syl
+    ## </d 'Equality Transitive Property '>
+  ## </d>  
+  ## <d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    A B (/ (1) B) mulass eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property '>
+    A B mulcom
+    EqReplaceImp1Eq1Mul0
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    B A (/ (1) B) mulass
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>
+  ## </d 'Commutative Property '>
+  B (/ A B) (* A (/ (1) B)) mulcan2
+  mpbid
+)
+
+## <title> Expand Fraction </title>
+thm (expandFraci () (Bnot0 (-. (= B (0)))) (= (/ A B) (* A (/ (1) B)))
+  Bnot0
+  Bnot0
+  A divcani
+  ## <d>
+    A mulid eqcomi
+    (* B (/ A B)) eqeq2i
+    mpbi
+  ## </d>
+  ## <d>
+    Bnot0 reciprocalcani eqcomi
+    EqReplaceEq1Mul1
+  ## </d>
+  ## <d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    A B (/ (1) B) mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## <d 'Commutative Property '>
+    A B mulcom
+    EqReplaceEq1Mul0
+  ## </d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    B A (/ (1) B) mulass
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## </d>
+  mulcan2i
+)
+
+## <title> Cancel using Division </title>
+thm (frac1 () () (-> (-. (= A (0))) (= (/ A A) (1)))
+  A A expandFrac
+  A (1) divcan
+  eqtrd
+)
+
+## <title> Cancel using Division </title>
+thm (frac1i () (Anot0 (-. (= A (0)))) (= (/ A A) (1))
+  Anot0
+  A expandFraci
+  Anot0
+  (1) divcani    
+  EqReplaceEq1
+)
+
+## <title> Division & Multiplication Ass. </title>
+thm (divmulass () () (-> (-. (= C (0))) (= (* A (/ B C)) (/ (* A B) C)))
+  C B expandFrac
+  A muleq2d
+  ## <d 'Associative Property '>
+    A B (/ (1) C) mulass eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>
+  ## <d 'Unexpand Fraction'>
+    C (* A B) expandFrac eqcomd eqtrd
+  ## </d>
+)
+
+## <title> Division & Multiplication Ass. </title>
+thm (divmulassi () (Cnot0 (-. (= C (0)))) (= (* A (/ B C)) (/ (* A B) C))
+  Cnot0
+  B expandFraci
+  A muleq2i
+  ## <d 'Associative Property '>
+    A B (/ (1) C) mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## <d 'Unexpand Fraction'>
+    Cnot0
+    (* A B) expandFraci eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> Zero Product Property </title>
+## <table>
+##   (-. (=    A ] ]    ]   (0)))
+##   (-. (=      [ [  B ]   (0)))
+##   (-. (= (* A ] [  B ] ) (0)))
+## </table>
+thm (zeroProducti () (Anot0 (-. (= A (0))) Bnot0 (-. (= B (0)))) (-. (= (* A B) (0)))
+  Anot0
+  Bnot0
+  pm3.2i
+  A B zeroProductz  
+  ax-mp
+)
+
+## <title> Multiply Denominators </title>
+thm (mulBottom () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (= (* (/ (1) A) (/ (1) B)) (/ (1) (* A B))))
+  ## <d>
+    A reciprocalcan
+  ## </d>
+  ## <d>
+    B reciprocalcan
+    anim12i
+    (* A (/ (1) A)) (1) (* B (/ (1) B)) (1) muleq12  
+    syl
+    ## <d 'Multiplicative Identity '>
+      (1) mulidr
+      EqReplaceImp1Eq1
+    ## </d 'Multiplicative Identity '>
+  ## </d>
+  ## <d>
+    A (/ (1) A) B (/ (1) B) mul4    
+    EqReplaceImp1Eq0
+  ## </d>
+
+  ## <d 'Reciprocal Cancel'>
+    A B zeroProductz
+    (* A B) reciprocalcan  
+    syl
+    eqcomd
+    (* (* A B) (* (/ (1) A) (/ (1) B))) eqeq2d
+    mpbid
+  ## </d>
+  ## <d 'Cancel Multiplication'>
+    A B zeroProductz
+    (* A B) (* (/ (1) A) (/ (1) B)) (/ (1) (* A B)) mulcan2
+    syl
+    mpbid
+  ## </d>
+)
+
+## <title> Multiply Denominators </title>
+thm (mulBottomi () (Anot0 (-. (= A (0))) Bnot0 (-. (= B (0)))) (= (* (/ (1) A) (/ (1) B)) (/ (1) (* A B)))
+  ## <d>
+  Anot0 Bnot0 zeroProducti
+  Anot0
+  reciprocalcani
+  ## </d>
+  ## <d>
+  Bnot0
+  reciprocalcani
+  muleq12i  
+  ## <d 'Multiplicative Identity '>
+    (1) mulidr
+    EqReplaceEq1
+  ## </d 'Multiplicative Identity '>
+  ## </d>
+  ## <d>
+    A (/ (1) A) B (/ (1) B) mul4  
+    EqReplaceEq0
+  ## </d>
+
+  ## <d 'Reciprocal Cancel'>
+    Anot0 Bnot0 zeroProducti
+    reciprocalcani
+    eqcomi
+    (* (* A B) (* (/ (1) A) (/ (1) B))) eqeq2i
+    mpbi
+  ## </d>
+  ## <d 'Cancel Multiplication'>
+    mulcan2i
+  ## </d>
+)
+
+## <title> Multiply Fractions </title>
+thm (fracmul () () (-> (/\ (-. (= B (0))) (-. (= D (0)))) (= (* (/ A B) (/ C D)) (/ (* A C) (* B D))))
+  B A expandFrac
+  D C expandFrac
+  anim12i
+  (/ A B) (* A (/ (1) B)) (/ C D) (* C (/ (1) D)) muleq12
+  syl
+  ## <d>
+    A (/ (1) B) C (/ (1) D) mul4   
+    EqReplaceImp1Eq1
+    B D mulBottom
+    (* A C) muleq2d
+    eqtrd
+  ## </d>
+  ## <d>
+    B D zeroProductz
+    (* B D) (* A C) expandFrac  eqcomd  
+    syl
+    eqtrd
+  ## </d>
+)
+
+## <title> Multiply Fractions </title>
+thm (fracmuli () (Bnot0 (-. (= B (0))) Dnot0 (-. (= D (0)))) (= (* (/ A B) (/ C D)) (/ (* A C) (* B D)))
+  Bnot0 A expandFraci
+  Dnot0 C expandFraci
+  muleq12i
+  A (/ (1) B) C (/ (1) D) mul4  
+  EqReplaceEq1
+  ## <d>
+    Bnot0 Dnot0 mulBottomi  
+    EqReplaceEq1Mul1
+  ## </d>
+  ## <d 'Simplify Fraction'>
+    Bnot0 Dnot0 zeroProducti (* A C) expandFraci eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> Fraction with common factor </title>
+## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+thm (fracFactors () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B)))
+  ## <d>
+    C frac1 eqcomd
+    (/ A B) muleq2d
+  ## </d>
+  ## <d>
+    (/ A B) mulid
+    EqReplaceImp1Eq0
+  ## </d>
+  ## <d>
+    (-. (= B (0))) a1i    
+    ## <d 'Import-Export Theorem '>
+      (-. (= B (0))) (-. (= C (0))) (= (/ A B) (* (/ A B) (/ C C))) impexp bicomi
+      mpbi
+    ## </d 'Import-Export Theorem '>
+  ## </d>
+  B C A C fracmul
+  eqtrd eqcomd
+)
+
+## <title> Fraction with common factor </title>
+## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+thm (fracFactorsi () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B))
+  (/ A B) mulid eqcomi
+  ## <d>
+    Cnot0 frac1i eqcomi  
+    EqReplaceEq1Mul1
+  ## </d>
+  ## <d>
+    Bnot0 Cnot0
+    A C fracmuli  
+    EqReplaceEq1
+  ## </d>
+  eqcomi
+)
+
+## <title> Distribute Division over Addition </title>
+thm (divdistr () () (-> (-. (= C (0))) (= (+ (/ A C) (/ B C)) (/ (+ A B) C)))
+  C A expandFrac
+  C B expandFrac
+  addeq12d
+  ## <d 'Distributive Property '>
+    A B (/ (1) C) distl eqcomi  
+    EqReplaceImp1Eq1
+  ## </d 'Distributive Property '>
+  ## <d>
+    C (+ A B) expandFrac eqcomd
+    eqtrd
+  ## </d>
+)
+
+## <title> Distribute Division over Addition </title>
+thm (divdistri () (Cnot0 (-. (= C (0)))) (= (+ (/ A C) (/ B C)) (/ (+ A B) C))
+  Cnot0
+  A expandFraci
+  Cnot0
+  B expandFraci
+  addeq12i  
+  ## <d 'Distributive Property '>
+    A B (/ (1) C) distl eqcomi
+    EqReplaceEq1
+  ## </d 'Distributive Property '>
+  ## <d>
+    Cnot0
+    (+ A B) expandFraci eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (/ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Div1 () (
+     replacee (= A (/ B C))
+     substitution (= C D)) 
+     (= A (/ B D))
+  replacee substitution
+  B diveq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (/  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= A (/ B D))
+     substitution (= B C)) 
+     (= A (/ C D))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (/ B  [ C ]   ]   ] )))
+##   (=                [ C ]   [ D ] )
+##   (-> ph (= A (/ B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceImp1Eq1Div1 () (
+     replacee (-> ph (= A (/ B C)))
+     substitution (= C D)) 
+     (-> ph (= A (/ B D)))
+  replacee substitution
+  B diveq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (/  [ B ]   ]   ]  D)))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= A (/  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceImp1Eq1Div0 () (
+     replacee (-> ph (= A (/ B D)))
+     substitution (= B C)) 
+     (-> ph (= A (/ C D)))
+  replacee substitution
+  D diveq1i
+  EqReplaceImp1Eq1
+)
+
+
+## <title> Add Fractions </title>
+## <summary> Add fractions without a common denominator. </summary>
+thm (addfrac () () (-> (/\ (-. (= B (0))) (-. (= D (0)))) (= (+ (/ A B) (/ C D)) (/ (+ (* A D) (* B C)) (* B D))))
+  B D A fracFactors eqcomd
+  D B C fracFactors eqcomd    
+  ## <d 'Commute Conjunction '>
+    (-. (= D (0))) (-. (= B (0))) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Commutative Property '>
+    D B mulcom
+    EqReplaceImp1Eq1Div1
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    C B mulcom
+    EqReplaceImp1Eq1Div0
+  ## </d 'Commutative Property '>
+  addeq12d
+  ## <d>
+    B D zeroProductz
+    (* B D) (* A D) (* B C) divdistr  
+    syl eqtrd
+  ## </d>
+)
+
+## <title> Add Fractions </title>
+## <summary> Add fractions without a common denominator. </summary>
+thm (addfraci () (Bnot0 (-. (= B (0))) Dnot0 (-. (= D (0)))) (= (+ (/ A B) (/ C D)) (/ (+ (* A D) (* B C)) (* B D)))
+  Bnot0 Dnot0 A fracFactorsi eqcomi
+  Dnot0 Bnot0 C fracFactorsi eqcomi  
+  ## <d 'Commutative Property '>
+    D B mulcom
+    EqReplaceEq1Div1
+  ## </d 'Commutative Property '>
+  ## <d 'Commutative Property '>
+    C B mulcom
+    EqReplaceEq1Div0
+  ## </d 'Commutative Property '>
+  addeq12i
+  ## <d>
+    Bnot0 Dnot0 zeroProducti (* A D) (* B C) divdistri  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> Negative Numerator </title>
+## <summary> A negative numerator is equivalent to a negative fraction. </summary>
+thm (negNumerator () () (-> (-. (= B (0))) (= (/ (-n A) B) (-n (/ A B))))
+  B (-n (1)) A divmulass eqcomd
+  ## <d>
+    A mulneg1
+    B diveq1i
+    EqReplaceImp1Eq0
+  ## </d>
+  (/ A B) mulneg1     
+  EqReplaceImp1Eq1
+)
+
+## <title> Negative Numerator </title>
+## <summary> A negative numerator is equivalent to a negative fraction. </summary>
+thm (negNumeratori () (Bnot0 (-. (= B (0)))) (= (/ (-n A) B) (-n (/ A B)))
+  A mulneg1 eqcomi
+  B diveq1i
+  Bnot0
+  ## <d>
+    (-n (1)) A divmulassi eqcomi  
+    EqReplaceEq1
+  ## </d>
+  (/ A B) mulneg1   
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (=  [ A ]   ]   ]  C))
+##   (=      [ A ]   [ B ] )
+##   (-. (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceNot0Eq0 () (
+     replacee (-. (= A C))
+     substitution (= A B)) 
+     (-. (= B C))
+  replacee substitution
+  C eqeq1i
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (-n  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (= A (-n  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Neg0 () (
+     replacee (= A (-n B))
+     substitution (= B C)) 
+     (= A (-n C))
+  replacee substitution
+  negeqi
+  EqReplaceEq1
+)
+
+## <title> Negative Denominator </title>
+## <summary> A negative denominator is equivalent to a negative fraction. </summary>
+thm (negDenominatori () (Bnot0 (-. (= B (0)))) (= (/ A (-n B)) (-n (/ A B)))
+  ## <d>
+    B mulneg1 eqcomi
+    A diveq2i
+  ## </d>
+  ## <d 'Multiply top and bottom by -1'>  
+  Bnot0
+  B negne0  
+  mpbi
+  B mulneg1 eqcomi  
+  EqReplaceNot0Eq0
+
+  neg1ne0
+  A fracFactorsi eqcomi
+  ## <d 'Commutative Property '>
+    (* (-n (1)) B) (-n (1)) mulcom
+    EqReplaceEq1Div1
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    (-n (1)) (-n (1)) B mulass eqcomi
+    EqReplaceEq1Div1
+  ## </d 'Associative Property '>
+  EqReplaceEq1
+  ## </d>
+  ## <d>
+  (1) (1) doublenegmul  
+  ## <d 'Multiplicative Identity '>
+    (1) mulidr
+    EqReplaceEq1
+  ## </d 'Multiplicative Identity '>
+  B muleq1i  
+  ## <d 'Multiplicative Identity '>
+    B mulidr
+    EqReplaceEq1
+  ## </d 'Multiplicative Identity '>  
+  EqReplaceEq1Div1
+  ## </d>
+  ## <d>
+  ## <d 'Negative Multiplication '>
+    A (1) negmul2
+    A mulid
+    EqReplaceEq1Neg0
+    EqReplaceEq1Div0
+  ## </d 'Negative Multiplication '>
+  ## <d>
+  Bnot0
+  A negNumeratori  
+  EqReplaceEq1
+  ## </d>
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (=  [ A ]   ]   ]  C)))
+##   (=              [ A ]   [ B ] )
+##   (<-> ph (-. (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceBi1Not0Eq0 () (
+     replacee (<-> ph (-. (= A C)))
+     substitution (= A B)) 
+     (<-> ph (-. (= B C)))
+  replacee substitution
+  C eqeq1i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (/ A  [ B ]   ]   ] ) D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= (/ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceImp1Eq0Div1 () (
+     replacee (-> ph (= (/ A B) D))
+     substitution (= B C)) 
+     (-> ph (= (/ A C) D))
+  replacee substitution
+  A diveq2i
+  EqReplaceImp1Eq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (/ A (-n  [ B ]   ]   ] )) D))
+##   (=                  [ B ]   [ C ] )
+##   (-> ph (= (/ A (-n  [   [   [ C ] )) D))
+## </table>
+thm (EqReplaceImp1Eq0Div1Neg0 () (
+     replacee (-> ph (= (/ A (-n B)) D))
+     substitution (= B C)) 
+     (-> ph (= (/ A (-n C)) D))
+  replacee substitution
+  negeqi
+  EqReplaceImp1Eq0Div1
+)
+
+## <title> Negative Denominator </title>
+thm (negDenominator () () (-> (-. (= B (0))) (= (-n (/ A B)) (/ A (-n B))))
+  B A negNumerator eqcomd
+  ## <d 'Multiply top and bottom by -1'>  
+    B negne0
+    B mulneg1 eqcomi  
+    EqReplaceBi1Not0Eq0
+
+    (* (-n (1)) B) (-n (1)) A fracFactors
+    neg1ne0  
+    (-. (= (* (-n (1)) B) (0))) anRemove2
+    (= (/ (* A (-n (1))) (* (* (-n (1)) B) (-n (1)))) (/ A (* (-n (1)) B))) imbi1i
+    mpbi
+    ImpReplaceBi1
+  
+  ## <d 'Double Negative '>
+  ## <d 'Negative Multiplication '>
+    (* (-n (1)) B) (1) negmul2
+    (* (-n (1)) B) mulid
+    EqReplaceEq1Neg0
+    EqReplaceImp1Eq0Div1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Negative Multiplication '>
+    (1) B negmul
+    B mulidr
+    EqReplaceEq1Neg0
+    EqReplaceImp1Eq0Div1Neg0
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Double Negative '>
+    B doubleneg
+    EqReplaceImp1Eq0Div1
+  ## </d 'Double Negative '>
+  ## </d 'Double Negative '>  
+  ## <d 'Negative Multiplication '>
+    (1) B negmul
+    B mulidr
+    EqReplaceEq1Neg0
+    EqReplaceImp1Eq1Div1
+  ## </d 'Negative Multiplication '>
+  
+  ## <d 'Negative Multiplication '>
+    A (1) negmul2
+    A mulid
+    EqReplaceEq1Neg0
+    EqReplaceImp1Eq0Div0
+  ## </d 'Negative Multiplication '>
+  eqtrd
+)
+
+## <title> Double Negative Fraction </title>
+thm (doublenegfrac () () (-> (-. (= B (0))) (= (/ (-n A) (-n B)) (/ A B)))
+  B (-n A) negDenominator eqcomd
+  B A negNumerator
+  negeqd    
+  ## <d 'Double Negative '>
+    (/ A B) doubleneg
+    EqReplaceImp1Eq1
+  ## </d 'Double Negative '>
+  eqtrd
+)
+
+## <title> Double Negative Fraction </title>
+thm (doublenegfraci () (Bnot0 (-. (= B (0)))) (= (/ (-n A) (-n B)) (/ A B))
+  Bnot0
+  (-n A) negDenominatori
+  Bnot0
+  A negNumeratori  
+  EqReplaceEq1Neg0  
+  ## <d 'Double Negative '>
+    (/ A B) doubleneg
+    EqReplaceEq1
+  ## </d 'Double Negative '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (= A  [ B ]   ]   ] ) ph)
+##   (=         [ B ]   [ C ] )
+##   (<-> (= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceBi0Eq1 () (
+     replacee (<-> (= A B) ph)
+     substitution (= B C)) 
+     (<-> (= A C) ph)
+  replacee substitution
+  A eqeq2i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (=  [ A ]   ]   ]  C) ph)
+##   (=       [ A ]   [ B ] )
+##   (<-> (=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceBi0Eq0 () (
+     replacee (<-> (= A C) ph)
+     substitution (= A B)) 
+     (<-> (= B C) ph)
+  replacee substitution
+  C eqeq1i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (= A  [ B ]   ]   ] ) ps))
+##   (=                [ B ]   [ C ] )
+##   (-> ph (<-> (= A  [   [   [ C ] ) ps))
+## </table>
+thm (EqReplaceImp1Bi0Eq1 () (
+     replacee (-> ph (<-> (= A B) ps))
+     substitution (= B C)) 
+     (-> ph (<-> (= A C) ps))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Bi0
+)
+
+## <title> Nonzero numbers have nonzero reciprocal </title>
+thm (reciprocalNot0 () () (-> (-. (= A (0))) (-. (= (/ (1) A) (0))))
+  ## <d>
+  A reciprocalcan  
+  (0) eqeq1d  
+  ## <d 'Commutative Biconditional '>
+    (= (* A (/ (1) A)) (0)) (= (1) (0)) bicom
+    sylib
+  ## </d 'Commutative Biconditional '>
+
+  A (/ (1) A) (0) mulcan2
+  ## </d>
+
+  ## <d>
+  ## <d 'Multiply by 0'>
+    A mul0
+    EqReplaceImp1Bi0Eq1
+  ## </d>
+  ## </d>
+  ## <d>
+  jca  
+  ## <d 'Cancel A'>
+    (= (1) (0)) (= (* A (/ (1) A)) (0)) (= (/ (1) A) (0)) bitr
+    syl
+  ## </d 'Transitive Property '>
+  ## </d>
+  ## <d>  
+    0ne1  
+    ## <d 'Symmetric Property '>
+      (0) (1) eqcom
+      mtbi
+    ## </d 'Symmetric Property '>
+    (= (/ (1) A) (0)) biNotRemove1
+    (-. (= A (0))) imbi2i
+    mpbi
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (/  [ A ]   ]   ]  C) D)
+##   (=     [ A ]   [ B ] )
+##   (= (/  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Div0 () (
+     replacee (= (/ A C) D)
+     substitution (= A B)) 
+     (= (/ B C) D)
+  replacee substitution
+  C diveq1i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (/ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (/ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Div1 () (
+     replacee (= (/ A B) D)
+     substitution (= B C)) 
+     (= (/ A C) D)
+  replacee substitution
+  A diveq2i
+  EqReplaceEq0
+)
+
+## <title> Common Division in Fraction </title>
+thm (fracFactors2 () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A C) (/ B C)) (/ A B)))
+  C A expandFrac eqcomd
+  C B expandFrac eqcomd
+  diveq12d
+  (-. (= B (0))) a1i  
+  ## <d 'Import-Export Theorem '>
+    (-. (= B (0))) (-. (= C (0))) (= (/ (* A (/ (1) C)) (* B (/ (1) C))) (/ (/ A C) (/ B C))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  eqcomd
+
+  C reciprocalNot0
+  (-. (= B (0))) anim2i
+  B (/ (1) C) A fracFactors  
+  syl
+  eqtrd
+)
+
+## <title> Common Division in Fraction </title>
+thm (fracFactors2i () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0)))) (= (/ (/ A C) (/ B C)) (/ A B))
+  Bnot0
+  Cnot0 C reciprocalNot0 ax-mp
+  A fracFactorsi
+  ## <d>
+    Cnot0 A expandFraci eqcomi  
+    EqReplaceEq0Div0
+  ## </d>
+  ## <d>
+    Cnot0 B expandFraci eqcomi
+    EqReplaceEq0Div1
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (* B  [ C ]   ]   ] )))
+##   (=                [ C ]   [ D ] )
+##   (-> ph (= A (* B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceImp1Eq1Mul1 () (
+     replacee (-> ph (= A (* B C)))
+     substitution (= C D)) 
+     (-> ph (= A (* B D)))
+  replacee substitution
+  B muleq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Commute Division </title>
+thm (divcom () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ (/ A C) B)))
+  ## <d>
+    C (/ A B) expandFrac
+    B A expandFrac
+    (/ (1) C) muleq1d
+    anim12i  
+    ## <d 'Equality Transitive Property '>
+      (/ (/ A B) C) (* (/ A B) (/ (1) C)) (* (* A (/ (1) B)) (/ (1) C)) eqtr
+      syl
+    ## </d 'Equality Transitive Property '>
+  ## </d>
+  ## <d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    A (/ (1) B) (/ (1) C) mulass
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property '>
+    (/ (1) B) (/ (1) C) mulcom
+    EqReplaceImp1Eq1Mul1
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    A (/ (1) C) (/ (1) B) mulass eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>
+  ## </d 'Commutative Property '>
+  ## <d 'Commute Conjunction '>
+    (-. (= C (0))) (-. (= B (0))) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>
+
+  ## <d 'Contract Fraction'>
+    B (/ A C) expandFrac
+    C A expandFrac
+    (/ (1) B) muleq1d
+    anim12i
+    ## <d 'Equality Transitive Property '>
+      (/ (/ A C) B) (* (/ A C) (/ (1) B)) (* (* A (/ (1) C)) (/ (1) B)) eqtr
+      syl
+    ## </d 'Equality Transitive Property '>
+    eqcomd
+  ## </d>
+  eqtrd
+)
+
+## <title> Commute Division </title>
+thm (divcomi () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0)))) (= (/ (/ A B) C) (/ (/ A C) B))
+  ## <d>
+    Cnot0 (/ A B) expandFraci
+    Bnot0 A expandFraci
+    (/ (1) C) muleq1i  
+    EqReplaceEq1
+  ## </d>
+  ## <d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    A (/ (1) B) (/ (1) C) mulass
+    EqReplaceEq1
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property '>
+    (/ (1) B) (/ (1) C) mulcom
+    EqReplaceEq1Mul1
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    A (/ (1) C) (/ (1) B) mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## </d 'Commutative Property '>  
+  ## <d 'Contract Fraction'>
+    Bnot0 (/ A C) expandFraci
+    Cnot0 A expandFraci
+    (/ (1) B) muleq1i  
+    EqReplaceEq1 eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/ (/  [ B ]   ]   ]  D) A'))
+##   (=          [ B ]   [ C ] )
+##   (= A (/ (/  [   [   [ C ]  D) A'))
+## </table>
+thm (EqReplaceEq1Div0Div0 () (
+     replacee (= A (/ (/ B D) A'))
+     substitution (= B C)) 
+     (= A (/ (/ C D) A'))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1Div0
+)
+
+## <title> Divide Fractions </title>
+thm (divideFraci () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0))) Dnot0 (-. (= D (0)))) (= (/ (* A D) (* B C)) (/ (/ A B) (/ C D)))
+  Bnot0 Cnot0 zeroProducti
+  Bnot0
+  (* A D) fracFactors2i
+  ## <d>
+    Bnot0 C divcan2i  
+    EqReplaceEq0Div1
+  ## </d>
+  eqcomi
+
+  ## <d 'Divide top and bottom by D'>
+  Cnot0
+  Dnot0
+  (/ (* A D) B) fracFactors2i  eqcomi
+
+  ## <d>
+  Bnot0 Dnot0 (* A D) divcomi  
+  EqReplaceEq1Div0
+  ## </d>
+  ## <d>
+  Dnot0 A divcan2i   
+  ## <d 'Commutative Property '>
+    D A mulcom
+    EqReplaceEq0Div0
+  ## </d 'Commutative Property '>  
+  EqReplaceEq1Div0Div0
+  ## </d>  
+  EqReplaceEq1
+  ## <d>
+)
+
+## <title> Distribute Division Over Subtraction </title>
+thm (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C)))
+  C B negNumerator
+  (/ A C) addeq2d eqcomd
+  C A (-n B) divdistr
+  eqtrd  
+  ## <d 'Definition of Subtraction '>
+    (/ A C) (/ B C) df-minus eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceImp1Eq1Div0
+  ## </d 'Definition of Subtraction '>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (DIVISION division.ghi (PROP PREDICATE NATURALS NEGATIVE) "")

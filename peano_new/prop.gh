@@ -5525,4 +5525,29 @@ thm (orRemoveF1 () () (<-> (\/ (F) ps) ps)    notfal ps orNotRemove1 )
 ## <title> Remove falsehood from disjunction </title>
 thm (orRemoveF2 () () (<-> (\/ ps (F)) ps)    notfal ps orNotRemove2 )
 
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee
+  substitution
+  ph biim2i
+  ax-mp
+)
+
+## <suggest> right('Simplify', '↔') </suggest>
+thm (mpbi-inline () () (-> (/\ ph (<-> ph ps)) ps)
+  ph ps pm5.36  
+  ## <d>
+    ps (<-> ph ps) pm3.26
+    ImpReplaceBi1
+  ## </d>
+)
+
 export (PROP /peano/prop.ghi () "")

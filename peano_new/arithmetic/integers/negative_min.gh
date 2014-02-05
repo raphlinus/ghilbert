@@ -1,0 +1,193 @@
+import (PROP ../../prop.ghi () "")
+import (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+import (ORDERED_PAIR ../common/ordered-pair.ghi (PROP N_PREDICATE) "n.")
+import (N_NATURALS ../naturals/common.ghi (PROP N_PREDICATE) "n.")
+import (PREDICATE_ALL ../../predicate/all.ghi (PROP) "")
+import (EQUALITY_INT equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE_ALL) "")
+import (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE_ALL) "")
+import (ADD_MULTIPLY ../common/add_multiply.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")
+import (ADD_MULTIPLY_INT add_multiply_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATURALS EQUALITY_INT ADD_MULTIPLY_MIN) "")
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (n.nat a b c d a' b' c' d')
+var (n.nat v w x y z)
+
+
+## <title> Definition of Negative </title>
+## <summary>
+##   This is the unary negative sign, not to be confused with binary
+##   <a href="df-minus">subtraction</a> which is defined using the negative sign.
+##   Integers are defined using a pair of natural numbers that represent the positive
+##   and negative parts of the number. The negative sign is defined by swapping the pair
+##   of numbers.
+## </summary>
+defthm (df-neg nat (-n A) () () (= (-n A) (<,> (tail A) (head A)))
+  (<,> (tail A) (head A)) eqid
+)
+
+## <summary> Apply the negative operation to an ordered pair. </summary>
+thm (negop () () (= (-n (<,> a b)) (<,> b a))
+  (<,> a b) df-neg  
+  ## <d 'Apply Tail Operator '>
+    a b tailop
+    (head (<,> a b)) opeq1i
+    (-n (<,> a b)) eqeq2i  
+    mpbi
+  ## </d 'Apply Tail Operator '>    
+  ## <d 'Apply Head Operator '>
+    a b headop
+    b opeq2i
+    (-n (<,> a b)) eqeq2i      
+    mpbi
+  ## </d 'Apply Head Operator '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.=  [ A ]   ]   ]  C))
+##   (n.=          [ A ]   [ B ] )
+##   (<-> ph (n.=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceBi1Neq0 () (
+     replacee (<-> ph (n.= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.= b c))
+  replacee substitution
+  c n.eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceBi1Neq1 () (
+     replacee (<-> ph (n.= a b))
+     substitution (n.= b c)) 
+     (<-> ph (n.= a c))
+  replacee substitution
+  a n.eqeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Eq0 () (
+     replacee (<-> ph (= A C))
+     substitution (= A B)) 
+     (<-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= A B))
+     substitution (= B C)) 
+     (<-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  bitri
+)
+
+## <title> Negative Signs Cancel </title>
+## <suggest> left('Simplify','-') </suggest>
+thm (negeq2 () () (<-> (= A B) (= (-n A) (-n B)))
+  ## <d 'Expand Ordered Pair'>
+    A opexpand
+    B opexpand
+    eqeq12i
+  ## </d>
+  ## <d 'Natural-Integer Equality Conversion '>
+    (head A) (tail A) (head B) (tail B) opzeq
+    bitri
+  ## </d 'Natural-Integer Equality Conversion '>  
+  ## <d 'Commute Terms'>
+    ## <d 'Symmetric Property '>
+      (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) n.eqcom
+      bitri
+    ## </d 'Symmetric Property '>
+    ## <d 'Commutative Property '>
+      (head B) (tail A) n.addcom
+      NeqReplaceBi1Neq0
+    ## </d 'Commutative Property '>
+    ## <d 'Commutative Property '>
+      (head A) (tail B) n.addcom
+      NeqReplaceBi1Neq1
+    ## </d 'Commutative Property '>
+  ## </d 'Commute Terms'>
+  ## <d 'Natural-Integer Equality Conversion '>
+    (tail A) (head A) (tail B) (head B) opzeq bicomi
+    bitri
+  ## </d 'Natural-Integer Equality Conversion '>
+  ## <d 'Definition of Negative'>
+    ## <d 'Definition of Negative'>
+    A df-neg eqcomi  
+    EqReplaceBi1Eq0
+    ## </d 'Definition of Negative'>
+    ## <d 'Definition of Negative'>
+       B df-neg eqcomi  
+      EqReplaceBi1Eq1
+    ## </d 'Definition of Negative'>
+  ## </d 'Definition of Negative'>
+)
+
+thm (negeq  () () (-> (= A B) (= (-n A) (-n B)))
+  A B negeq2  
+  ## <d 'Infer Left to Right '>
+    (= A B) (= (-n A) (-n B)) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+)
+
+thm (negeqi () (hyp (= A B)) (= (-n A) (-n B))
+  hyp
+  A B negeq2
+  mpbi
+)
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (negcan () () (= (+ A (-n A)) (0))
+  ## <d 'Expand Expression into Ordered Pairs'>
+    A opexpand
+    A opexpand
+    negeqi
+    (head A) (tail A) negop  
+    (-n A) eqeq2i
+    mpbi
+    addeq12i  
+  ## </d 'Expand Expression into Ordered Pairs'>
+  ## <d 'Add Ordered Pairs '>
+    (head A) (tail A) (tail A) (head A) addop
+    (+ A (-n A)) eqeq2i
+    mpbi
+  ## </d 'Add Ordered Pairs '>
+  ## <d 'Commutative Property '>
+    (tail A) (head A) n.addcom
+    (n.+ (head A) (tail A)) opeq2i
+    (+ A (-n A)) eqeq2i    
+    mpbi
+  ## </d 'Addition on Ordered Pairs '>
+  ## <d '0 equivalence class'>
+    (n.+ (head A) (tail A)) zequivalence0 eqcomi      
+    (+ A (-n A)) eqeq2i
+    mpbi
+  ## </d '0 equivalence class'>
+)
+
+export (NEGATIVE_MIN ../common/negative_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")

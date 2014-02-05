@@ -1,0 +1,62 @@
+import (PROP ../../prop.ghi () "")
+import (PREDICATE ../../predicate/all.ghi (PROP) "")
+import (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
+import (ADD_MULTIPLY ../common/add_multiply.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+import (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+import (INEQUALITY_NAT inequality_nat.ghi (PROP PREDICATE ADD_MULTIPLY_MIN INEQUALITY_MIN) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x exbii
+  sylib
+)
+
+## <summary> Multiplication cancellation with nonzero multiplicand </summary>
+thm (sucmulcan () () (<-> (= (* A (+ C (1))) (* B (+ C (1)))) (= A B))
+  (* A (+ C (1))) (* B (+ C (1))) lesym
+    A C B lemul5
+      B C A lemul5
+    anbi12i
+  bitri
+    A B lesym
+  bitr4i
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (=  [ A ]   ]   ]  C)))
+##   (=               [ A ]   [ B ] )
+##   (-> ph (E. x (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceImp1Ex1Eq0 () (
+     replacee (-> ph (E. x (= A C)))
+     substitution (= A B)) 
+     (-> ph (E. x (= B C)))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Ex1
+)
+
+## <title> Cancel Multiplication </title>
+thm (mulcan () () (-> (-. (= C (0))) (<-> (= (* A C) (* B C)) (= A B)))
+  C x lefoo ori (1) x addcom EqReplaceImp1Ex1Eq0
+    (+ x (1)) C A muleq2 (+ x (1)) C B muleq2 eqeq12d
+    A x B sucmulcan syl5rbbr x 19.23ai
+  syl
+)
+
+export (MULCAN_MIN ../common/mulcan_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")

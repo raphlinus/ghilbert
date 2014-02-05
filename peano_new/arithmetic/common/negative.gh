@@ -1,0 +1,1689 @@
+import (PROP ../../prop.ghi () "")
+import (PREDICATE_EQ ../../predicate/all.ghi (PROP) "")
+import (NATURALS ../naturals/common.ghi (PROP PREDICATE_EQ) "")
+import (NEGATIVE_MIN negative_min.ghi (PROP PREDICATE_EQ NATURALS) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+thm (negeqi() (hyp (= A B)) (= (-n A) (-n B))
+  hyp
+  A B negeq
+  ax-mp
+)
+
+thm (negeqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (-n A) (-n B)))
+  hyp1
+  A B negeq
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (+ B  [ C ]   ]   ] )))
+##   (=                [ C ]   [ D ] )
+##   (-> ph (= A (+ B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceImp1Eq1Add1 () (
+     replacee (-> ph (= A (+ B C)))
+     substitution (= C D)) 
+     (-> ph (= A (+ B D)))
+  replacee substitution
+  B addeq2i
+  EqReplaceImp1Eq1
+)
+
+thm (negeq2() () (<-> (= A B) (= (-n A) (-n B)))
+  A B negeq
+  (-n A) (-n B) A addeq2  
+  ## <d 'Cancel using subtraction '>
+    A negcan
+    EqReplaceImp1Eq0
+  ## </d 'Cancel using subtraction '>
+  ## <d>  
+  B addeq1d  
+  ## <d 'Additive Identity '>
+    B addidr
+    EqReplaceImp1Eq0
+  ## </d>
+  ## </d 'Additive Identity '>
+  ## <d>  
+  ## <d 'Associative Property '>
+    A (-n B) B addass
+    EqReplaceImp1Eq1
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property '>
+    (-n B) B addcom
+    EqReplaceImp1Eq1Add1
+  ## </d 'Commutative Property '>  
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceImp1Eq1Add1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    A addid
+    EqReplaceImp1Eq1
+  ## </d 'Additive Identity '>
+  ## </d>    
+  ## <d 'Symmetric Property '>
+    B A eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  impbii
+)
+
+## <title> Double Negative </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (doubleneg () () (= (-n (-n A)) A)
+  (-n A) negcan
+  ## <d>
+  A negcan eqcomi  
+  ## <d 'Commutative Property '>
+    A (-n A) addcom
+    EqReplaceEq1
+  ## </d 'Commutative Property '>
+  EqReplaceEq1
+  ## </d>
+  ## <d>
+  (-n A) (-n (-n A)) A addcan2  
+  mpbi
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Negative of 0 is 0 </title>
+thm (neg0 () () (= (-n (0)) (0))
+  (0) negcan  
+  ## <d 'Additive Identity '>
+    (-n (0)) addidr
+    EqReplaceEq0
+  ## </d 'Additive Identity '>
+)
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (negcan2() () (= (+ (-n A) A) (0))
+  A negcan
+  ## <d 'Commutative Property of Addition '>
+    A (-n A) addcom
+    (0) eqeq1i
+    mpbi
+  ## </d 'Commutative Property of Addition '>
+)
+
+## <title> Definition of Subtraction </title>
+## <summary>
+##   This is the binary subtraction operation, not to be confused with the
+##   unary <a href="df-neg">negative sign</a> which is used in the definition.
+## </summary>
+## <suggest> right('Define', '-') left('Simplify', '-') </suggest>
+defthm (df-minus nat (- A B) () () (= (- A B) (+ A (-n B)))
+  (+ A (-n B)) eqid
+)
+
+## <title> Minus Definition Reversed </title>
+thm (df-minusr () () (= (+ A (-n B)) (- A B))
+  A B df-minus eqcomi
+)
+
+## <title> Equivalence for - </title> ##
+thm (minuseq1 () () (-> (= A C) (= (- A B) (- C B)))
+  A C (-n B) addeq1
+  A B df-minus
+  ## <d 'Commutative Property'>
+    (- A B) (+ A (-n B)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  C B df-minus
+  ## <d 'Commutative Property'>
+    (- C B) (+ C (-n B)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq1
+)
+
+thm (minuseq1i () (
+     hyp1 (= A C))
+     (= (- A B) (- C B))
+  hyp1
+  A C B minuseq1
+  ax-mp
+)
+
+## <title> Equivalence for - </title> ##
+thm (minuseq2 () () (-> (= B C) (= (- A B) (- A C)))
+  B C negeq
+  A addeq2d
+  A B df-minus
+  ## <d 'Commutative Property'>
+    (- A B) (+ A (-n B)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  A C df-minus
+  ## <d 'Commutative Property'>
+    (- A C) (+ A (-n C)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq1
+)
+
+thm (minuseq1d () (
+     hyp1 (-> ph (= A C)))
+     (-> ph (= (- A B) (- C B)))
+  hyp1
+  A C B minuseq1
+  syl
+)
+
+thm (minuseq2i () (
+     hyp1 (= B C))
+     (= (- A B) (- A C))
+  hyp1
+  B C A minuseq2
+  ax-mp
+)
+
+thm (minuseq2d () (
+     hyp1 (-> ph (= B C)))
+     (-> ph (= (- A B) (- A C)))
+  hyp1
+  B C A minuseq2
+  syl
+)
+
+thm (minuseq12 () () (-> (/\ (= A B) (= C D)) (= (- A C) (- B D)))
+  A B C minuseq1
+  C D B minuseq2
+  anim12i  
+  ## <d 'Transitive Property '>
+    (- A C) (- B C) (- B D) eqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Equality over Subtraction </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (- A ] [ C ] ) (- [ B ] [ D))
+## </table>
+thm (minuseq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (= (- A C) (- B D))
+  hyp1 hyp2 A B C D minuseq12 mp2an
+)
+
+## <title> Equality over Subtraction </title>
+thm (minuseq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (= (- A C) (- B D)))
+  hyp1 hyp2 jca A B C D minuseq12 syl
+)
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (minuscan () () (= (- A A) (0))
+  A negcan  
+  A A df-minus eqcomi  
+  EqReplaceEq0
+)
+
+## <title> Addition is the inverse of Subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (minuscan2 () () (= (+ (- A B) B) A)
+  ## <d 'Definition of Minus'>
+  A B df-minus
+  B addeq1i  
+  ## </d>
+  ## <d 'Associative Property '>
+    A (-n B) B addass
+    (+ (- A B) B) eqeq2i
+    mpbi
+  ## </d 'Associative Property '>
+  ## <d 'Cancel using subtraction '>
+    B negcan2
+    A addeq2i
+    (+ (- A B) B) eqeq2i
+    mpbi
+  ## </d 'Cancel using subtraction '>
+  ## <d 'Addition Identity '>
+    A addid
+    (+ (- A B) B) eqeq2i
+    mpbi
+  ## </d 'Addition Identity '>
+)
+
+## <title> Addition is the inverse of Subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+thm (addcanr () () (= (- (+ A B) B) A)
+  (+ A B) B df-minus
+  ## <d 'Associative Property '>
+    A B (-n B) addass
+    (- (+ A B) B) eqeq2i
+    mpbi
+  ## </d 'Associative Property '>  
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    A addeq2i
+    (- (+ A B) B) eqeq2i
+    mpbi
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Addition Identity '>
+    A addid
+    (- (+ A B) B) eqeq2i
+    mpbi
+  ## </d 'Addition Identity '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (+ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= A (+ B C))
+     substitution (= C D)) 
+     (= A (+ B D))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1
+)
+
+## <title> Negative and Subtraction Cancel </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (minusneg () () (= (- A (-n B)) (+ A B))
+  A (-n B) df-minus  
+  ## <d 'Double Negative '>
+    B doubleneg
+    EqReplaceEq1Add1
+  ## </d 'Double Negative '>
+)
+
+## <title> Subtraction Identity </title>
+## <suggest> right('Simplify', '0') </suggest>
+thm (minusid () () (= (- A (0)) A)
+  neg0
+  ## <d>
+    A addeq2i
+  ## </d>
+  ## <d>
+    A (0) df-minus eqcomi  
+    EqReplaceEq0
+  ## </d>  
+  ## <d 'Additive Identity '>
+    A addid
+    EqReplaceEq1
+  ## </d 'Additive Identity '>
+)
+
+## <title> Negative Multiplication </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (negmul () () (= (* (-n A) B) (-n (* A B)))
+  A negcan
+  ## <d 'Multiply both sides by B'>
+    B muleq1i
+  ## </d>
+  ## <d>  
+  ## <d 'Multiply by 0 '>
+    B mul0r
+    EqReplaceEq1
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Distributive Property '>
+    A (-n A) B distl
+    EqReplaceEq0
+  ## </d 'Distributive Property '>
+  ## </d>
+  ## <d 'Negative Cancellation'>
+    (* A B) negcan eqcomi  
+    EqReplaceEq1
+  ## </d>
+  ## <d 'Cancel A ∙ B from both sides'>
+  (* A B) (* (-n A) B) (-n (* A B)) addcan2  
+  mpbi
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (-n  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (= A (-n  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Neg0 () (
+     replacee (= A (-n B))
+     substitution (= B C)) 
+     (= A (-n C))
+  replacee substitution
+  negeqi
+  EqReplaceEq1
+)
+
+## <title> Negative Multiplication </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (negmul2 () () (= (* A (-n B)) (-n (* A B)))
+  B A negmul  
+  ## <d 'Commutative Property '>
+    (-n B) A mulcom
+    EqReplaceEq0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    B A mulcom
+    EqReplaceEq1Neg0
+  ## </d 'Commutative Property '>
+)
+
+## <title> Multiply by Negative 1 </title>
+thm (mulneg1 () () (= (* (-n (1)) A) (-n A))
+  (1) A negmul  
+  ## <d 'Multiplicative Identity '>
+    A mulidr
+    EqReplaceEq1Neg0
+  ## </d 'Multiplicative Identity '>
+)
+
+## <title> Multiply Two Negative Numbers </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (doublenegmul () () (= (* (-n A) (-n B)) (* A B))
+  A (-n B) negmul
+  ## <d>
+    A B negmul2  
+    EqReplaceEq1Neg0
+  ## </d>
+  ## <d>
+    (* A B) doubleneg
+    EqReplaceEq1
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (* A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (* A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Mul1 () (
+     replacee (= (* A B) D)
+     substitution (= B C)) 
+     (= (* A C) D)
+  replacee substitution
+  A muleq2i
+  EqReplaceEq0
+)
+
+## <title> Distribute Multiplication over Subtraction </title>
+## <table>
+##   (= (* <c> A (+ B C)) (+ (* <c> A B) (* <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (minusdistr () () (= (* A (- B C)) (- (* A B) (* A C)))
+  A B (-n C) distr  
+  ## <d 'Definition of Subtraction '>
+    B C df-minus eqcomi
+    EqReplaceEq0Mul1
+  ## </d 'Definition of Subtraction '>  
+  ## <d>  
+  ## <d 'Negative Multiplication '>
+    A C negmul2
+    EqReplaceEq1Add1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Definition of Subtraction '>
+    (* A B) (* A C) df-minus eqcomi
+    EqReplaceEq1
+  ## </d 'Definition of Subtraction '> 
+  ## </d>  
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (*  [ A ]   ]   ]  C) D)
+##   (=     [ A ]   [ B ] )
+##   (= (*  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Mul0 () (
+     replacee (= (* A C) D)
+     substitution (= A B)) 
+     (= (* B C) D)
+  replacee substitution
+  C muleq1i
+  EqReplaceEq0
+)
+
+## <title> Distribute Multiplication over Subtraction </title>
+## <table>
+##   (= (* (+ A B) <c> C) (+ (* A <c> C) (* B <c> C)))
+## </table>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+thm (minusdistl () () (= (* (- A B) C) (- (* A C) (* B C)))
+  A (-n B) C  distl  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceEq0Mul0
+  ## </d 'Definition of Subtraction '>
+  ## <d>  
+  ## <d 'Negative Multiplication '>
+    B C negmul
+    EqReplaceEq1Add1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Definition of Subtraction '>
+    (* A C) (* B C) df-minus eqcomi
+    EqReplaceEq1
+  ## </d 'Definition of Subtraction '>
+  ## </d>
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (<  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Lt0 () (
+     replacee (<-> ph (< A C))
+     substitution (= A B)) 
+     (<-> ph (< B C))
+  replacee substitution
+  C lteq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (< A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Lt1 () (
+     replacee (<-> ph (< A B))
+     substitution (= B C)) 
+     (<-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (< A (+  [ B ]   ]   ]  D)))
+##   (=               [ B ]   [ C ] )
+##   (<-> ph (< A (+  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceBi1Lt1Add0 () (
+     replacee (<-> ph (< A (+ B D)))
+     substitution (= B C)) 
+     (<-> ph (< A (+ C D)))
+  replacee substitution
+  D addeq1i
+  EqReplaceBi1Lt1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (< A (+ B  [ C ]   ]   ] )))
+##   (=                 [ C ]   [ D ] )
+##   (<-> ph (< A (+ B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceBi1Lt1Add1 () (
+     replacee (<-> ph (< A (+ B C)))
+     substitution (= C D)) 
+     (<-> ph (< A (+ B D)))
+  replacee substitution
+  B addeq2i
+  EqReplaceBi1Lt1
+)
+
+thm (ltneg () () (<-> (< A B) (> (-n A) (-n B)))
+  ## <d 'Add -A to both sides'>
+    A B (-n A) ltadd1
+  ## </d 'Add -A to both sides'>
+  ## <d 'Cancel A'>
+    A negcan
+    EqReplaceBi1Lt0
+  ## </d 'Cancel A'>
+  ## <d 'Add -B to both sides'>
+  (0) (+ B (-n A)) (-n B) ltadd1  
+  ## <d 'Additive Identity '>
+    (-n B) addidr
+    EqReplaceBi1Lt0
+  ## </d 'Additive Identity '>  
+  bitri
+  ## </d>  
+  ## <d 'Cancel B'>
+  ## <d 'Commutative Property '>
+    B (-n A) addcom
+    EqReplaceBi1Lt1Add0
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    (-n A) B (-n B) addass
+    EqReplaceBi1Lt1
+  ## </d 'Associative Property '>  
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceBi1Lt1Add1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    (-n A) addid
+    EqReplaceBi1Lt1
+  ## </d 'Additive Identity '>
+  ## </d>  
+  ## <d 'Converse of < '>
+    (-n B) (-n A) ltcon
+    bitri
+  ## </d 'Converse of < '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (> A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (> A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Gt1 () (
+     replacee (<-> ph (> A B))
+     substitution (= B C)) 
+     (<-> ph (> A C))
+  replacee substitution
+  A gteq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (>  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (>  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Gt0 () (
+     replacee (-> ph (> A C))
+     substitution (= A B)) 
+     (-> ph (> B C))
+  replacee substitution
+  C gteq1i
+  sylib
+)
+
+## <title> Multiply Two Negative Numbers </title>
+thm (negProduct () () (-> (/\ (zneg A) (zneg B)) (pos (* A B)))
+  A df-zneg
+  A (0) ltneg
+  neg0  
+  EqReplaceBi1Gt1
+  bitri
+  B df-zneg
+  B (0) ltneg
+  neg0  
+  EqReplaceBi1Gt1
+  bitri
+  anbi12i
+  (-n A) (-n B) gtmul0  
+  ImpReplaceBi1  
+  ## <d 'Multiply Two Negative Numbers '>
+    A B doublenegmul
+    EqReplaceImp1Gt0
+  ## </d 'Multiply Two Negative Numbers '>
+  ## <d 'Definition of a Positive Number '>
+    (* A B) df-pos bicomi
+    sylib
+  ## </d 'Definition of a Positive Number '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (\/ ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceOr1Or1 () (
+     replacee (\/ ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (\/ ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  orbi2ii
+)
+
+## <title> A number is negative, positive or 0 </title>
+thm (0negpos () () (\/ (zneg A) (\/ (= A (0)) (pos A)))
+  A (0) inequalities
+  A df-pos bicomi  
+  BiReplaceOr1Or1
+  A df-zneg bicomi    
+  orbi1ii
+)
+
+
+## <title> Nonzero numbers are negative or positive </title>
+thm (negpos () () (-> (-. (= A (0))) (\/ (zneg A) (pos A)))
+  A 0negpos
+  ## <d>
+    (zneg A) (= A (0)) (pos A) or12  
+    mpbi  
+  ## </d>
+  ## <d 'Definition of OR '>
+    (= A (0)) (\/ (zneg A) (pos A)) df-or
+    mpbi
+  ## </d 'Definition of OR '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+## <title> Positive Proof by Cases </title>
+thm (posCases () () (-> (/\ (-. (zneg A)) (-. (= A (0)))) (pos A))
+  A 0negpos  
+  ## <d>
+  ## <d 'Associative Property of OR '>
+    (zneg A) (= A (0)) (pos A) orass bicomi
+    mpbi
+  ## </d 'Associative Property of OR '>  
+  ## <d 'Definition of OR '>
+    (\/ (zneg A) (= A (0))) (pos A) df-or
+    mpbi
+  ## </d 'Definition of OR '>  
+  ## </d>
+  ## <d>
+    ## <d 'DeMorgan's Law '>
+      (zneg A) (= A (0)) oran
+      BiReplaceImp0Not0
+    ## </d 'DeMorgan's Law '>  
+    ## <d 'Double Negative '>
+      (/\ (-. (zneg A)) (-. (= A (0)))) notnotr
+      sylbi2
+    ## </d 'Double Negative '>
+  ## </d>
+)
+
+## <title> Negative Proof by Cases </title>
+thm (negCases () () (-> (/\ (-. (pos A)) (-. (= A (0)))) (zneg A))
+  A 0negpos   
+  ## <d>
+  ## <d 'Commutative Property of OR '>
+    (zneg A) (\/ (= A (0)) (pos A)) orcom
+    mpbi
+  ## </d 'Commutative Property of OR '>
+  ## <d 'Definition of OR '>
+    (\/ (= A (0)) (pos A)) (zneg A) df-or
+    mpbi
+  ## </d 'Definition of OR '>
+  ## <d 'Commutative Property of OR '>
+    (= A (0)) (pos A) orcom
+    BiReplaceImp0Not0
+  ## </d 'Commutative Property of OR '>
+  ## </d>
+  ## <d 'DeMorgan's Law '>
+  ## <d 'DeMorgan's Law '>
+    (pos A) (= A (0)) oran
+    BiReplaceImp0Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (/\ (-. (pos A)) (-. (= A (0)))) notnotr
+    sylbi2
+  ## </d 'Double Negative '>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+## <title> Negative numbers are not positive </title>
+thm (negNotPos () () (-> (zneg A) (-. (pos A)))
+  A df-zneg
+  ## <d 'Infer Left to Right '>
+    (zneg A) (< A (0)) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>  
+  ## <d 'Inequality Conversion '>
+    A (0) ltngt
+    syl
+  ## </d 'Inequality Conversion '>
+  ## <d>
+    A df-pos bicomi 
+    BiReplaceImp1Not0 
+  ## </d>
+)  
+
+## <title> Positive numbers are not negative </title>
+thm (posNotNeg () () (-> (pos A) (-. (zneg A)))
+  A df-pos
+  ## <d 'Infer Left to Right '>
+    (pos A) (> A (0)) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>  
+  ## <d 'Inequality Conversion '>
+    A (0) gtnlt
+    syl
+  ## </d 'Inequality Conversion '>
+  ## <d>
+    A df-zneg bicomi 
+    BiReplaceImp1Not0 
+  ## </d>
+)  
+
+## <title> Squares are not negative </title>
+thm (posSquares () () (-> (-. (= A (0))) (pos (* A A)))
+  A negpos
+  ## <d 'Multiply Two Negative Numbers'>
+  A A negProduct  
+  ## <d 'Conjunction is Idempotent '>
+    (zneg A) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  ## </d>
+  ## <d 'Multiply Two Positive Numbers'>
+  A A posproduct1
+  ## <d 'Conjunction is Idempotent '>
+    (pos A) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  ## </d>
+  jaoi  
+  syl
+)
+
+## <title> Squares are not negative </title>
+thm (squareNotNeg () () (>= (* A A) (0))
+  A (0) A muleq1  
+  ## <d 'Multiply by 0 '>
+    A mul0r
+    EqReplaceImp1Eq1
+  ## </d 'Multiply by 0 '>
+  A posSquares
+  (* A A) df-pos  
+  sylib
+  orim12i  
+  ## <d 'Excluded Middle '>
+    (= A (0)) exmid    
+    ax-mpRemove
+  ## </d 'Excluded Middle '>  
+  ## <d 'Commutative Property of OR '>
+    (= (* A A) (0)) (> (* A A) (0)) orcom
+    mpbi
+  ## </d 'Commutative Property of OR '>  
+  ## <d '≥ means > OR = '>
+    (* A A) (0) gegeo bicomi
+    mpbi
+  ## </d '≥ means > OR = '>
+)
+
+thm (posProduct.2 () () (-> (pos (* A B)) (-. (= B (0))))
+  ## <d 'Zero Product Property'>
+  A B zeroFactors  
+  ## <d 'Infer Right to Left '>
+    (= (* A B) (0)) (\/ (= A (0)) (= B (0))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>
+  ## </d>
+  (* A B) 0NotPosd   
+  syl
+  ## <d 'Contrapositive '>
+    (\/ (= A (0)) (= B (0))) (-. (pos (* A B))) con34b
+    mpbi
+    (pos (* A B)) notnotr
+    sylbi2
+  ## </d 'Contrapositive '>
+  ## <d>
+  ## <d 'DeMorgan's Law '>
+    (= A (0)) (= B (0)) oran
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (/\ (-. (= A (0))) (-. (= B (0)))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+  ## </d>  
+  ## <d 'Remove Left Side of AND '>
+    (-. (= A (0))) (-. (= B (0))) pm3.27
+    syl
+  ## </d 'Remove Left Side of AND '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (< A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Lt1 () (
+     replacee (-> ph (< A B))
+     substitution (= B C)) 
+     (-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee substitution
+  ch anbi1i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee substitution
+  ph anbi2i
+  sylbi2
+)
+
+thm (negPosProduct () () (-> (/\ (zneg A) (pos B)) (zneg (* A B)))
+  A (0) B ltmul1  
+  ## <d 'Multiply by 0 '>
+    B mul0r
+    EqReplaceImp1Lt1
+  ## </d 'Multiply by 0 '>
+
+  ## <d 'Definition of Positive and Negative Integer '>
+  ## <d 'Definition of a Negative Integer '>
+    A df-zneg bicomi
+    BiReplaceImp0An0
+  ## </d 'Definition of a Negative Integer '>  
+  ## <d 'Definition of a Positive Number '>
+  ## <d 'Converse of < '>
+    (0) B ltcon
+    BiReplaceImp0An1
+  ## </d 'Converse of < '>  
+  ## <d 'Definition of a Positive Number '>
+    B df-pos bicomi
+    BiReplaceImp0An1
+  ## </d 'Definition of a Positive Number '>
+  ## </d 'Definition of a Positive Number '>  
+  ## <d 'Definition of a Negative Integer '>
+    (* A B) df-zneg bicomi
+    sylib
+  ## </d 'Definition of a Negative Integer '>
+  ## </d>
+)
+
+
+thm (posNegProduct () () (-> (/\ (pos A) (zneg B)) (zneg (* A B)))
+  B A negPosProduct   
+  ## <d 'Commute Conjunction '>
+    (zneg B) (pos A) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Commutative Property '>
+    B A mulcom
+    (* B A) (* A B) znegeq  
+    ax-mp  
+  ## </d 'Commutative Property '>  
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-. (zneg  [ A ]   ]   ] )) ph)
+##   (=             [ A ]   [ B ] )
+##   (-> (-. (zneg  [   [   [ B ] )) ph)
+## </table>
+thm (EqReplaceImp0Not0Zneg0 () (
+     replacee (-> (-. (zneg A)) ph)
+     substitution (= A B)) 
+     (-> (-. (zneg B)) ph)
+  replacee substitution
+  znegeqi
+  BiReplaceImp0Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Imp0 () (
+     replacee (<-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imim2i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (->         [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (ImpReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orim1i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orim2i
+  syl
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps (\/ ch  [ th ]   ]    ] )))
+##   (->                   [ th ]   [ ta ] )
+##   (-> ph (\/ ps (\/ ch  [    [   [ ta ] )))
+## </table>
+thm (ImpReplaceImp1Or1Or1 () (
+     replacee (-> ph (\/ ps (\/ ch th)))
+     substitution (-> th ta)) 
+     (-> ph (\/ ps (\/ ch ta)))
+  replacee substitution
+  ch orim2i
+  ImpReplaceImp1Or1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (/\ ph  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-. (/\ ph  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceNot0An1 () (
+     replacee (-. (/\ ph ps))
+     substitution (<-> ps ch)) 
+     (-. (/\ ph ch))
+  replacee substitution
+  ph anbi2i
+  mtbi
+)
+
+thm (posProduct () () (<-> (pos (* A B)) (\/ (/\ (zneg A) (zneg B)) (/\ (pos A) (pos B))))
+  ## <d 'A number is negative, positive or 0'>
+  A 0negpos
+  (pos (* A B)) jctr  
+  ## </d>
+  ## <d>
+  ## <d 'Distributive Property '>
+    (pos (* A B)) (zneg A) (\/ (= A (0)) (pos A)) andi
+    sylib
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Distributive Property '>
+    (pos (* A B)) (= A (0)) (pos A) andi  
+    BiReplaceImp1Or1
+  ## </d 'Distributive Property '>
+  ## </d>
+
+  ## <d 'Negative Case'>
+  (pos (* A B)) (zneg A) pm3.27
+  (* A B) posNotNeg
+  B A posNegProduct  
+  ## <d 'Contrapositive '>
+    (/\ (pos B) (zneg A)) (zneg (* B A)) con34b
+    mpbi
+  ## </d 'Contrapositive '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A mulcom  
+    EqReplaceImp0Not0Zneg0
+  ## </d 'Commutative Property of Multiplication '>  
+  syl  
+  ## <d 'DeMorgan's Law '>
+  ## <d 'DeMorgan's Law '>
+    (pos B) (zneg A) anor
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (-. (pos B)) (-. (zneg A))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Commutative Property of OR '>
+    (-. (pos B)) (-. (zneg A)) orcom
+    sylib
+  ## </d 'Commutative Property of OR '>  
+  ## <d 'Definition of OR '>
+    (-. (zneg A)) (-. (pos B)) df-or
+    (zneg A) notnotr
+    BiReplaceBi1Imp0
+    sylib
+  ## </d 'Definition of OR '>
+  A B posProduct.2
+  (zneg A) a1d
+  jcad
+  B negCases    
+  ImpReplaceImp1Imp1  
+  ## <d 'Import-Export Theorem '>
+    (pos (* A B)) (zneg A) (zneg B) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jca  
+  ImpReplaceImp1Or0
+  ## </d 'Negative Case'> 
+
+  ## <d 'Positive Case'>
+  (pos (* A B)) (pos A) pm3.27
+  (* A B) posNotNeg
+  A B posNegProduct  
+  ## <d 'Contrapositive '>
+    (/\ (pos A) (zneg B)) (zneg (* A B)) con34b
+    mpbi
+  ## </d 'Contrapositive '>  
+  ## <d 'Definition of AND '>
+    (pos A) (zneg B) df-an
+    BiReplaceImp1Not0
+  ## </d 'Definition of AND '>  
+  ## <d 'Double Negative '>
+    (-> (pos A) (-. (zneg B))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+  syl
+  A B posProduct.2
+  (pos A) a1d
+  jcad
+  B posCases  
+  ImpReplaceImp1Imp1
+  ## <d 'Import-Export Theorem '>
+    (pos (* A B)) (pos A) (pos B) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jca
+  ImpReplaceImp1Or1Or1
+  ## </d 'Positive Case'>
+
+  ## <d 'Zero Case'>
+  (= A (0)) (= B (0)) orc
+  A B zeroFactors  
+  ## <d 'Infer Right to Left '>
+    (= (* A B) (0)) (\/ (= A (0)) (= B (0))) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  syl
+  (* A B) 0NotPosd
+  syl
+  ## <d 'AND and → Equivalance '>
+    (= A (0)) (-. (pos (* A B))) iman
+    mpbi
+    (pos (* A B)) notnotr  
+    BiReplaceNot0An1
+  ## </d 'AND and → Equivalance '>
+  
+  ## <d 'Commute Conjunction '>
+    (= A (0)) (pos (* A B)) ancom
+    mtbi
+  ## </d 'Commute Conjunction '>
+  (/\ (pos A) (pos B)) orNotRemove1
+  (/\ (zneg A) (zneg B)) orbi2i
+  sylib
+  ## </d 'Zero Case'>
+  ## <d 'Add Opposite Direction'>
+  A B negProduct
+  A B posproduct1
+  jaoi
+  impbii
+  ## </d>
+)
+
+thm (productPos () () (-> (pos (* A B)) (<-> (pos A) (pos B)))
+  A B posProduct
+  ## <d 'Infer Left to Right '>
+    (pos (* A B)) (\/ (/\ (zneg A) (zneg B)) (/\ (pos A) (pos B))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## <d>
+    A negNotPos
+    B negNotPos
+    anim12i
+    ImpReplaceImp1Or0
+  ## </d>
+  ## <d>
+  (pos A) (pos B) pm5.1
+  ImpReplaceImp1Or1
+  (pos A) (pos B) pm5.21
+  ImpReplaceImp1Or0
+  ## </d>
+  ## <d 'Disjunction is Idempotent '>
+    (<-> (pos A) (pos B)) oridm
+    sylib
+  ## </d 'Disjunction is Idempotent '>
+  ## <d 'Positive Number Definition'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/  [ ps ]   ]    ]  th)))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (-. (\/  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Not0Or0 () (
+     replacee (<-> ph (-. (\/ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (\/ ch th)))
+  replacee substitution
+  th orbi1i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/ ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (\/ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Or1 () (
+     replacee (<-> ph (-. (\/ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (\/ ps th)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceBi1Not0
+)
+
+thm (notPos () () (-> (-. (pos A)) (\/ (zneg A) (= A (0))))
+  A posCases  
+  ## <d 'Contrapositive '>
+    (/\ (-. (zneg A)) (-. (= A (0)))) (pos A) con34b
+    mpbi
+  ## </d 'Contrapositive '>  
+  ## <d 'DeMorgan's Law '>
+    (-. (zneg A)) (-. (= A (0))) anor
+    (zneg A) notnotr
+    BiReplaceBi1Not0Or0
+    (= A (0)) notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (zneg A) (= A (0))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+)
+
+## <title> Negative of a positive number </title>
+thm (negPositive () () (<-> (pos (-n A)) (zneg A))
+  (-n A) df-pos  
+  ## <d 'Converse of < '>
+    (0) (-n A) ltcon bicomi
+    bitri
+  ## </d 'Converse of < '>
+  (0) (-n A) A ltadd1  
+  ## <d 'Additive Identity '>
+    A addidr
+    EqReplaceBi1Lt0
+  ## </d 'Additive Identity '>  
+  ## <d 'Cancel using subtraction '>
+    A negcan2
+    EqReplaceBi1Lt1
+  ## </d 'Cancel using subtraction '>  
+  bitri  
+  ## <d 'Definition of a Negative Number '>
+    A df-zneg bicomi
+    bitri
+  ## </d 'Definition of a Negative Number '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (+ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Add1 () (
+     replacee (= (+ A B) D)
+     substitution (= B C)) 
+     (= (+ A C) D)
+  replacee substitution
+  A addeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+  [ A ]   ]   ]  C) D)
+##   (=     [ A ]   [ B ] )
+##   (= (+  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Add0 () (
+     replacee (= (+ A C) D)
+     substitution (= A B)) 
+     (= (+ B C) D)
+  replacee substitution
+  C addeq1i
+  EqReplaceEq0
+)
+
+## <title> Subtract from 0 </title>
+## <suggest> right('Simplify', '-') </suggest>
+thm (0minus () () (= (- (0) A) (-n A))
+  ## <d 'Definition of Subtraction '>
+    (0) A df-minus
+    (-n A) addidr
+    EqReplaceEq1
+  ## </d 'Definition of Subtraction '>
+)
+
+## <title> Negative of Subtraction </title>
+## <suggest> left('Simplify', '-') </suggest>
+thm (negminus () () (= (- A B) (-n (- B A)))
+  ## <d>
+  A negcan
+  B negcan
+  addeq12i  
+  ## <d 'Additive Identity '>
+    (0) addidr
+    EqReplaceEq1
+  ## </d 'Additive Identity '>
+  ## </d>
+
+  A (-n A) B (-n B) add24  
+  EqReplaceEq0  
+  ## <d 'Definition of Subtraction '>
+  ## <d 'Definition of Subtraction '>
+    B A df-minus eqcomi
+    EqReplaceEq0Add1
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceEq0Add0
+  ## </d 'Definition of Subtraction '>
+  ## </d 'Definition of Subtraction '>
+  ## <d>
+  (- B A) minuseq1i  
+  ## <d 'Addition is the inverse of Subtraction '>
+    (- A B) (- B A) addcanr
+    EqReplaceEq0
+  ## </d 'Addition is the inverse of Subtraction '>
+  (- B A) 0minus  
+  EqReplaceEq1
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-. (=  [ A ]   ]   ]  C))
+##   (=      [ A ]   [ B ] )
+##   (-. (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceNot0Eq0 () (
+     replacee (-. (= A C))
+     substitution (= A B)) 
+     (-. (= B C))
+  replacee substitution
+  C eqeq1i
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (= A  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (-. (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceNot0Eq1 () (
+     replacee (-. (= A B))
+     substitution (= B C)) 
+     (-. (= A C))
+  replacee substitution
+  A eqeq2i
+  mtbi
+)
+
+## <title> Negative 1 is not 0 </title>
+thm (neg1ne0 () () (-. (= (-n (1)) (0)))
+  0ne1
+  (0) (-n (1)) (1) addcan bicomi  
+  mtbi
+  ## <d 'Additive Identity '>
+    (-n (1)) addidr
+    EqReplaceNot0Eq0
+  ## </d 'Additive Identity '>  
+  ## <d 'Cancel using subtraction '>
+    (1) negcan
+    EqReplaceNot0Eq1
+  ## </d 'Cancel using subtraction '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Eq0 () (
+     replacee (<-> ph (= A C))
+     substitution (= A B)) 
+     (<-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= A B))
+     substitution (= B C)) 
+     (<-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->      [ ph ]   [ ps ] )
+##   (<-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Not0 () (
+     replacee (<-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  bitr3icom
+)
+
+## <title> Negative 1 is not 0 </title>
+thm (negne0 () () (<-> (-. (= A (0))) (-. (= (-n A) (0))))
+  (0) (-n A) A addcan bicomi  
+  ## <d 'Additive Identity '>
+    (-n A) addidr
+    EqReplaceBi1Eq0
+  ## </d 'Additive Identity '>  
+  ## <d 'Cancel using subtraction '>
+    A negcan
+    EqReplaceBi1Eq1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Negate Both Sides '>
+    (= (0) A) (= (-n A) (0)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>    
+  ## <d 'Symmetric Property '>
+    (0) A eqcom
+    BiReplaceBi0Not0
+  ## </d 'Symmetric Property '>
+)
+
+## <title> Negative distributes over addition </title>
+thm (negadd () () (= (- (-n A) B) (-n (+ A B)))
+  ## <d 'Cancel Addition Twice'>
+  A negcan
+  B negcan
+  addeq12i  
+  ## <d 'Additive Identity '>
+    (0) addidr
+    EqReplaceEq1
+  ## </d 'Additive Identity '>
+  ## </d>
+
+  A (-n A) B (-n B) add4
+  EqReplaceEq0
+
+  ## <d>
+    (+ A B) negcan eqcomi  
+    EqReplaceEq1
+  ## </d>
+
+  addcan2i  
+  ## <d 'Definition of Subtraction '>
+    (-n A) B df-minus eqcomi
+    EqReplaceEq0
+  ## </d 'Definition of Subtraction '>
+)
+
+thm (negminus2 () () (= (+ (-n A) B) (-n (- A B)))
+  A (-n B) negadd  
+  ## <d 'Negative and Subtraction Cancel '>
+    (-n A) B minusneg
+    EqReplaceEq0
+  ## </d 'Negative and Subtraction Cancel '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceEq1Neg0
+  ## </d 'Definition of Subtraction '>
+)
+
+thm (negminus3 () () (= (- (-n A) B) (-n (+ A B)))
+  A (-n B) negminus2  
+  ## <d 'Definition of Subtraction '>
+    (-n A) B df-minus eqcomi
+    EqReplaceEq0
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Negative and Subtraction Cancel '>
+    A B minusneg
+    EqReplaceEq1Neg0
+  ## </d 'Negative and Subtraction Cancel '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+ A  [ B ]   ]   ] ) D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceImp1Eq0Add1 () (
+     replacee (-> ph (= (+ A B) D))
+     substitution (= B C)) 
+     (-> ph (= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceImp1Eq0
+)
+
+## <title> Subtraction Value from Addition </title>
+thm (minusValue () () (-> (= (+ A B) C) (= A (- C B)))
+  (+ A B) C (-n B) addeq1  
+  ## <d 'Associative Property '>
+  ## <d 'Associative Property '>
+    A B (-n B) addass
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>  
+  ## <d 'Definition of Subtraction '>
+    C B df-minus eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Definition of Subtraction '>
+  ## </d 'Associative Property '>
+  
+  ## <d 'Cancel using subtraction '>
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceImp1Eq0Add1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    A addid
+    EqReplaceImp1Eq0
+  ## </d 'Additive Identity '>
+  ## </d 'Cancel using subtraction '>
+)
+
+## <title> Subtraction Value from Addition </title>
+## <table>
+##   (= (+ <c> A [ B ] ) <m> C)
+##   (= (- <m> C [ B ] ) <c> A)
+## </table>
+thm (minusValuei () (hyp (= (+ A B) C)) (= (- C B) A)
+  hyp
+  A B C minusValue   
+  ax-mp  
+  ## <d 'Symmetric Property '>
+    A (- C B) eqcom
+    mpbi
+  ## </d 'Symmetric Property '>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (NEGATIVE negative.ghi (PROP PREDICATE_EQ NATURALS) "")

@@ -1,0 +1,42 @@
+param (PROP prop.ghi () "")
+param (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+param (N_NATURALS ../common/collections/naturals.ghi (PROP N_PREDICATE) "n.")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (n.nat a b c d)
+var (nat x y z)
+
+term (n.nat (head A))
+term (n.nat (tail A))
+term (nat (<,> a b))
+term (nat (int a))
+
+## <title> Definition of Integer Equality </title>
+stmt (df-eq () () (<-> (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A)))))
+
+## <title> Expand Ordered Pair </title>
+## <suggest> left('Simplify', '<,>') </suggest>
+stmt (opexpand () () (= A (<,> (head A) (tail A))))
+
+stmt (opeq1i () ((n.= a b)) (= (<,> a c) (<,> b c)))
+
+stmt (opeq2i () ((n.= a b)) (= (<,> c a) (<,> c b)))
+
+stmt (headop () () (n.= (head (<,> a b)) a))
+
+stmt (tailop () () (n.= (tail (<,> a b)) b))
+
+## <title> Expand Integer Equality </title>
+stmt (zeqexpand () () (-> (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A)))))
+
+## <title> Natural-Integer Equality Conversion </title>
+## <suggest> right('Equivalence', '=N') left('Equivalence', '=z') </suggest>
+stmt (opzeq () () (<-> (= (<,> a b) (<,> c d)) (n.= (n.+ a d) (n.+ c b))))
+
+
+## <title> Def. Natural to Integer Mapping </title>
+## <suggest> left('Simplify', 'int') </suggest>
+stmt (df-int () () (= (int a) (<,> a (n.0))))

@@ -1,0 +1,228 @@
+# This file contains theorems related to natural number arithmetic. However, it does not
+# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
+# theorems that are valid for natural numbers, integers, rational numbers, and real
+# numbers.
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (ADD_MULTIPLY_MIN add_multiply_min.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (2))
+term (nat (3))
+term (nat (4))
+term (nat (5))
+term (nat (6))
+term (nat (7))
+term (nat (8))
+term (nat (9))
+term (nat (10))
+
+
+## <title> Additive Identity </title>
+## <suggest> auto-right('Simplify', '0') </suggest>
+stmt (addidr () () (= (+ (0) A) A))
+
+## <title> Definition of 2 </title>
+stmt (df-2 () () (= (2) (+ (1) (1))))
+
+## <title> Definition of 3 </title>
+stmt (df-3 () () (= (3) (+ (2) (1))))
+
+## <title> Definition of 4 </title>
+stmt (df-4 () () (= (4) (+ (3) (1))))
+
+## <title> Definition of 5 </title>
+stmt (df-5 () () (= (5) (+ (4) (1))))
+
+## <title> Definition of 6 </title>
+stmt (df-6 () () (= (6) (+ (5) (1))))
+
+## <title> Definition of 7 </title>
+stmt (df-7 () () (= (7) (+ (6) (1))))
+
+## <title> Definition of 8 </title>
+stmt (df-8 () () (= (8) (+ (7) (1))))
+
+## <title> Definition of 9 </title>
+stmt (df-9 () () (= (9) (+ (8) (1))))
+
+## <title> Definition of 10 </title>
+stmt (df-10 () () (= (10) (+ (9) (1))))
+
+## <title> Multiplicative Identity </title>
+## <suggest> auto-right('Simplify', '1') </suggest>
+stmt (mulidr() () (= (* (1) A) A))
+
+## <title> Inequality over Addition </title>
+## <table>
+##   (-. (=      [ A ]      [   [ B ))
+##   (-. (= (+ C [ A ] ) (+ [ C [ B)))
+## </table>
+stmt (addneq2i () ((-. (= A B))) (-. (= (+ C A) (+ C B))))
+
+## <title> Multiply by 0 </title>
+## <summary> This rederives one of the Peano axioms. </summary>
+stmt (mul0 () () (= (* A (0)) (0)))
+
+## <title> Multiply by 0 </title>
+## <suggest> auto-right('Simplify','0') </suggest>
+stmt (mul0r () () (= (* (0) A) (0)))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (distl () () (= (* (+ A B) C) (+ (* A C) (* B C))))
+
+## <title> Distributive Property </title>
+## <table>
+##   (= (* (+ <m> A <b> B) (+ <c> C <g> D)) (+ (+ (* <m> A <c> C) (* <b> B <c> C)) (+ (* <m> A <g> D) (* <b> B <g> D))))
+## </table>
+## <summary> Distribution of addition through multiplication, both arguments </summary>
+## <suggest> right('Distribute', 'RL') left('Distribute', 'RL') </suggest>
+stmt (distrl () () (= (* (+ A B) (+ C D)) (+ (+ (* A C) (* B C)) (+ (* A D) (* B D)))))
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (+ A ] C) (+ [ B ] C))
+## </table>
+stmt (addeq1i () ((= A B)) (= (+ A C) (+ B C)))
+
+## <title> Equality over Addition </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (+ C [ A ] ) (+ C [ B))
+## </table>
+stmt (addeq2i () ((= A B)) (= (+ C A) (+ C B)))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (=    A ]       [ B ] )
+##   (= (* A ] C) (* [ B ] C))
+## </table>
+stmt (muleq1i () ((= A B)) (= (* A C) (* B C)))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (=      [ A ]        [ B )
+##   (= (* C [ A ] ) (* C [ B))
+## </table>
+stmt (muleq2i () ((= A B)) (= (* C A) (* C B)))
+
+# This is identical to eqtr. So ideally we would use eqtr instead.
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+stmt (EqReplaceEq1 () ((= A B) (= B C)) (= A C))
+
+## <title> Add a number to both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (+ <g> A <r> C) (+ <b> B <r> C)))
+## </table>
+stmt (addeq1 () () (-> (= A B) (= (+ A C) (+ B C))))
+
+## <title> Add a number to both sides of an equation </title>
+stmt (addeq2 () ()
+  (-> (= A B) (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ A C) (+ B C))))
+
+## <title> Equality over Addition </title>
+stmt (addeq2d ()
+  ((-> ph (= A B)))
+  (-> ph (= (+ C A) (+ C B))))
+
+## <title> Equality over Addition </title>
+stmt (addeq12i () ((= A B) (= C D)) (= (+ A C) (+ B D)))
+
+## <title> Equality over Addition </title>
+stmt (addeq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (+ A C) (+ B D))))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* A <r> C) (* B <r> C)))
+## </table>
+stmt (muleq1 () () (-> (= A B) (= (* A C) (* B C))))
+
+## <title> Equality over Multiplication </title>
+## <table>
+##   (-> (= A B) (= (* <r> C A) (* <r> C B)))
+## </table>
+stmt (muleq2 () () (-> (= A B) (= (* C A) (* C B))))
+
+## <title> Equality over Multiplication </title>
+stmt (muleq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (* A C) (* B C))))
+	
+stmt (muleq2d () ((-> ph (= A B))) (-> ph (= (* C A) (* C B))))
+
+stmt (muleq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (* A C) (* B D))))
+
+## <title> Equality over Multiplication </title>
+stmt (muleq12i ()
+  ((= A B)
+   (= C D))
+  (= (* A C) (* B D)))
+
+## <title> Cancellation of addition </title>
+stmt (addcan2 () () (<-> (= (+ A B) (+ A C)) (= B C)))
+
+## <title> Rearrange Addition Terms </title>
+## <table>
+##   (= (+ (+ A <g> B) (+ <r> C D)) (+ (+ A <r> C) (+ <g> B D)))
+## </table>
+stmt (add4 () () (= (+ (+ A B) (+ C D)) (+ (+ A C) (+ B D))))
+
+## <title> Rearrange the second and fourth terms </title>
+## <table>
+##   (= (+ (+ A <g> B) (+ C <r> D)) (+ (+ A <r> D) (+ C <g> B)))
+## </table>
+stmt (add24 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ C B))))
+
+## <title> Rearrange Addition Terms </title>
+## <table>
+##   (= (+ (+ A <r> B) <g> C) (+ (+ A <g> C) <r> B))
+## </table>
+stmt (add23 () () (= (+ (+ A B) C) (+ (+ A C) B)))
+
+## <title> Rearrange Addition Terms </title>
+stmt (add432 () () (= (+ (+ A B) (+ C D)) (+ (+ A D) (+ B C))))
+
+## <title> Cancel Addition </title>
+## <table>
+##   (= (+ A ] <r> C ) ] (+ [ B <r> C))
+##   (=    A ]         ]    [ B)
+## </table>
+stmt (addcani () ((= (+ A C) (+ B C))) (= A B))
+
+## <title> Cancel Addition </title>
+## <table>
+##   (=  (+ <r> C [ A ) ] (+ <r> C [ B ))
+##   (=           [ A   ]          [ B)
+## </table>
+stmt (addcan2i () ((= (+ C A) (+ C B))) (= A B))
+
+## <title> Reorder Multiplication Terms </title>
+stmt (mul4() () (= (* (* A B) (* C D)) (* (* A C) (* B D))))
+
+## <title> Reorder Multiplication Terms </title>
+stmt (mul42() () (= (* (* A B) (* C D)) (* (* A D) (* C B))))
+
+## <title> Commutative Property </title>
+stmt (mulcom12 () () (= (* A (* B C)) (* B (* A C))))

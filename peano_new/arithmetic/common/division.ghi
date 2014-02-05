@@ -1,0 +1,171 @@
+param (PROP prop.ghi () "")
+param (PREDICATE predicate_eq.ghi (PROP) "")
+param (NATURALS ../naturals/common.ghi (PROP PREDICATE) "")
+param (NEGATIVE negative.ghi (PROP PREDICATE NATURALS) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat x)
+
+term (nat (/ A B))
+
+stmt (diveq12 () () (-> (/\ (= A B) (= C D)) (= (/ A C) (/ B D))))
+
+stmt (divcan () () (-> (-. (= B (0))) (= (* B (/ A B)) A)))
+
+## <title> Divide a number on both sides of an equation </title>
+## <table>
+##   (-> (= <g> A <b> B) (= (/ <g> A <r> C) (/ <b> B <r> C)))
+## </table>
+stmt (diveq1 () () (-> (= A B) (= (/ A C) (/ B C))))
+
+## <title> Divide a number on both sides </title>
+## <table>
+##  (=    A ]        ]    [ B ] )
+##  (= (/ A ] <g> C) ] (/ [ B ] <g> C))
+## </table>
+stmt (diveq1i ()
+  ((= A B))
+  (= (/ A C) (/ B C)))
+	
+## <title> Equality over Division </title>
+stmt (diveq1d ()
+  ((-> ph (= A B)))
+  (-> ph (= (/ A C) (/ B C))))
+
+## <title> Divide a number on both sides of an equation </title>
+stmt (diveq2 () () (-> (= A B) (= (/ C A) (/ C B))))
+
+## <title> Divide a number on both sides </title>
+## <table>
+##  (=          [ A ]   [          [ B )
+##  (= (/ <g> C [ A ] ) [ (/ <g> C [ B))
+## </table>
+stmt (diveq2i ()
+  ((= A B))
+  (= (/ C A) (/ C B)))
+	
+## <title> Equality over Division </title>
+stmt (diveq2d ()
+  ((-> ph (= A B)))
+  (-> ph (= (/ C A) (/ C B))))
+	
+## <title> Equality over Division </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (/ A ] [ C ] ) (/ [ B ] [ D))
+## </table>
+stmt (diveq12i ()
+  ((= A B)
+   (= C D))
+  (= (/ A C) (/ B D)))
+	
+## <title> Equality over Division </title>
+stmt (diveq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (/ A C) (/ B D))))
+
+## <title> Cancel with Division </title>
+stmt (divcani () ((-. (= A (0)))) (= (* A (/ B A)) B))
+
+## <title> Cancel with Division </title>
+stmt (reciprocalcan () () (-> (-. (= A (0))) (= (* A (/ (1) A)) (1))))
+
+## <title> Cancel with Division </title>
+stmt (reciprocalcani () ((-. (= A (0)))) (= (* A (/ (1) A)) (1)))
+
+## <title> Cancel With Division </title>
+stmt (divcan2 () () (-> (-. (= A (0))) (= (/ (* A B) A) B)))
+
+## <title> Cancel with Division </title>
+stmt (divcan2i () ((-. (= A (0)))) (= (/ (* A B) A) B))
+
+## <title> Cancel with Division </title>
+stmt (divcan3 () () (-> (-. (= A (0))) (= (/ (* B A) A) B)))
+
+## <title> Divide by 1 </title>
+stmt (divid () () (= (/ A (1)) A))
+
+## <title> Expand Fraction </title>
+stmt (expandFrac () () (-> (-. (= B (0))) (= (/ A B) (* A (/ (1) B)))))
+
+## <title> Expand Fraction </title>
+stmt (expandFraci () ((-. (= B (0)))) (= (/ A B) (* A (/ (1) B))))
+
+## <title> Cancel using Division </title>
+stmt (frac1 () () (-> (-. (= A (0))) (= (/ A A) (1))))
+
+## <title> Cancel using Division </title>
+stmt (frac1i () ((-. (= A (0)))) (= (/ A A) (1)))
+
+## <title> Division & Multiplication Ass. </title>
+stmt (divmulass () () (-> (-. (= C (0))) (= (* A (/ B C)) (/ (* A B) C))))
+
+## <title> Division & Multiplication Ass. </title>
+stmt (divmulassi () ((-. (= C (0)))) (= (* A (/ B C)) (/ (* A B) C)))
+
+## <title> Zero Product Property </title>
+## <table>
+##   (-. (=    A ] ]    ]   (0)))
+##   (-. (=      [ [  B ]   (0)))
+##   (-. (= (* A ] [  B ] ) (0)))
+## </table>
+stmt (zeroProducti () ((-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0))))
+
+## <title> Multiply Fractions </title>
+stmt (fracmul () () (-> (/\ (-. (= B (0))) (-. (= D (0)))) (= (* (/ A B) (/ C D)) (/ (* A C) (* B D)))))
+
+## <title> Multiply Fractions </title>
+stmt (fracmuli () ((-. (= B (0))) (-. (= D (0)))) (= (* (/ A B) (/ C D)) (/ (* A C) (* B D))))
+
+## <title> Fraction with common factor </title>
+## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+stmt (fracFactors () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B))))
+
+## <title> Fraction with common factor </title>
+## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+stmt (fracFactorsi () ((-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B)))
+
+## <title> Distribute Division over Addition </title>
+stmt (divdistr () () (-> (-. (= C (0))) (= (+ (/ A C) (/ B C)) (/ (+ A B) C))))
+
+## <title> Distribute Division over Addition </title>
+stmt (divdistri () ((-. (= C (0)))) (= (+ (/ A C) (/ B C)) (/ (+ A B) C)))
+
+## <title> Add Fractions </title>
+stmt (addfrac () () (-> (/\ (-. (= B (0))) (-. (= D (0)))) (= (+ (/ A B) (/ C D)) (/ (+ (* A D) (* B C)) (* B D)))))
+
+## <title> Add Fractions </title>
+stmt (addfraci () ((-. (= B (0))) (-. (= D (0)))) (= (+ (/ A B) (/ C D)) (/ (+ (* A D) (* B C)) (* B D))))
+
+## <title> Negative Numerator </title>
+## <summary> A negative numerator is equivalent to a negative fraction. </summary>
+stmt (negNumerator () () (-> (-. (= B (0))) (= (/ (-n A) B) (-n (/ A B)))))
+
+## <title> Negative Numerator </title>
+stmt (negNumeratori () ((-. (= B (0)))) (= (/ (-n A) B) (-n (/ A B))))
+
+## <title> Negative Denominator </title>
+stmt (negDenominatori () ((-. (= B (0)))) (= (/ A (-n B)) (-n (/ A B))))
+
+stmt (negDenominator () () (-> (-. (= B (0))) (= (-n (/ A B)) (/ A (-n B)))))
+
+## <title> Double Negative Fraction </title>
+stmt (doublenegfrac () () (-> (-. (= B (0))) (= (/ (-n A) (-n B)) (/ A B))))
+
+## <title> Double Negative Fraction </title>
+stmt (doublenegfraci () ((-. (= B (0)))) (= (/ (-n A) (-n B)) (/ A B)))
+
+## <title> Common Division in Fraction </title>
+stmt (fracFactors2 () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A C) (/ B C)) (/ A B))))
+
+## <title> Common Division in Fraction </title>
+stmt (fracFactors2i () ((-. (= B (0))) (-. (= C (0)))) (= (/ (/ A C) (/ B C)) (/ A B)))
+
+## <title> Commute Division </title>
+stmt (divcom () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ (/ A C) B))))
+
+## <title> Distribute Division Over Subtraction </title>
+stmt (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C))))
