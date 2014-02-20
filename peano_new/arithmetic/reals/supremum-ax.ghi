@@ -1,0 +1,20 @@
+# The supremum axiom. This is the axiom that distinguishes real numbers from the rationals.
+
+param (PROP      /peano_new/prop.ghi () "")
+param (PREDICATE /peano_new/predicate/all.ghi (PROP) "")
+param (REALS     /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+param (SET_MIN   /peano_new/set_min.ghi (PROP PREDICATE) "")
+param (SUPREMUM-DEF   /peano_new/arithmetic/reals/supremum-def.ghi (PROP PREDICATE REALS SET_MIN) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+tvar (set S T U V)
+
+## <title> Completeness Axiom </title>
+## <summary>
+##   Completeness  axiom. This is the axiom that distinguishes real numbers from the rationals.
+##   For every non-empty set that has an upper bound, there exists a supremum for that set within
+##   the set of real numbers.
+## </summary>
+stmt (ax-sup ((S x) (S y)) () (-> (/\ (-. (=_ S ({/}))) (E. x (upperbound x S))) (E. y (supremum y S))))

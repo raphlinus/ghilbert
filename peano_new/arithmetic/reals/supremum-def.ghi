@@ -1,0 +1,38 @@
+# Defines upper bound and supremum. Contains a theorem that there is at most one supremum.
+
+param (PROP      /peano_new/prop.ghi () "")
+param (PREDICATE /peano_new/predicate/all.ghi (PROP) "")
+param (REALS     /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+param (SET_MIN   /peano_new/set_min.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D ep)
+var (nat v w x y z)
+tvar (set S T U V)
+
+term (wff (upperbound A S))
+term (wff (supremum A S))
+
+## <title> Def. Set Upper Bound </title>
+stmt (df-upperbound ((S x) (A x)) () (<-> (upperbound A S) (A. x (-> (e. x S) (<= x A)))))
+
+## <title> Equivalence for upperbound </title> ##
+stmt (upperboundeq1 () () (-> (= A B) (<-> (upperbound A S) (upperbound B S))))
+
+## <title> Equivalence for upperbound </title> ##
+stmt (upperboundseq2 () () (-> (=_ S T) (<-> (upperbound A S) (upperbound A T))))
+
+## <title> Supremum Definition </title>
+stmt (df-supremum ((S x)(A x)) () (<-> (supremum A S) (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A)))))))
+
+## <title> Equivalence for supremum </title> ##
+stmt (supremumeq1 () () (-> (= A B) (<-> (supremum A S) (supremum B S))))
+
+## <title> Equivalence for supremum </title> ##
+stmt (supremumseq2 () () (-> (=_ S T) (<-> (supremum A S) (supremum A T))))
+
+## <title> There is at most one supremum </title>
+stmt (supremummo ((S x)) () (E* x (supremum x S)))
+
+## <title> No upper bounds below the supremum </title>
+stmt (belowSupremum ((S y)(A y)(ep y)) () (-> (/\ (> ep (0)) (supremum A S)) (E. y (/\ (e. y S) (> y (- A ep)))))) 

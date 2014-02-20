@@ -1,0 +1,34 @@
+param (PROP ../../prop.ghi () "")
+param (PREDICATE_EQ ../../predicate_eq.ghi (PROP) "")
+param (ADD_MULTIPLY_MIN ../../common/add_multiply_min.ghi (PROP PREDICATE_EQ) "")
+param (INEQUALITY_MIN ../../common/inequality_min.ghi (PROP PREDICATE_EQ ADD_MULTIPLY_MIN) "")
+
+# This file contains inequality theorems specific to natural numbers.
+# Numbers are assumed to be natural within the naturals directory. So it is safe to import this
+# file into any file in the naturals directory. However, outside this directory the prefix 'n.'
+# should be used to specify that this is for natural numbers only.
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+## <title> No Natural Numbers Below Zero </title>
+stmt (0le () () (<= (0) A))
+
+## <title> Definition of Less Than or Equal to </title>
+## <suggest> right('Define', '≤') left('Simplify', '≤') </suggest>
+stmt (df-le ((A x) (B x)) () (<-> (<= A B) (E. x (= (+ A x) B))))
+
+# This is also true for non-natural numbers.
+stmt (lemul5 () () (<-> (<= (* A (+ C (1))) (* B (+ C (1)))) (<= A B)))
+
+stmt (lefoo ((A z)) () (\/ (= A (0)) (E. z (= (+ (1) z) A))))
+
+## <title> Strong Induction </title>
+stmt (sind ((A x) (ta x) (ph y))              # ph(x) is some term in x; ph(A) is to be proved
+  ((-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   (-> (= x (+ y (1))) (<-> ph th))           # th is ph(y')
+   (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   ps
+   (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds
+  ta)

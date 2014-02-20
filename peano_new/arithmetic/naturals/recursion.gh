@@ -1,0 +1,252 @@
+# This file contains theorems related to natural number arithmetic. However, it does not
+# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
+# theorems that are valid for natural numbers, integers, rational numbers, and real
+# numbers.
+
+import (PROP ../../prop.ghi () "")
+import (PREDICATE ../../predicate/all.ghi (PROP) "")
+import (ORDERED_PAIR ../common/ordered-pair.ghi (PROP PREDICATE) "")
+import (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+import (NATURALS common.ghi (PROP PREDICATE) "")
+import (FUNCTION ../../function.ghi (PROP PREDICATE ORDERED_PAIR SET_MIN) "")
+import (RECURSION_MIN recursion_min.ghi (PROP PREDICATE ORDERED_PAIR SET_MIN FUNCTION NATURALS) "")
+import (ADD_MULTIPLY_NAT add_multiply_nat.ghi (PROP PREDICATE NATURALS) "")
+
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V)
+
+thm (recurseseq1i () (
+     hyp1 (=_ S T))
+     (= (recurse S A B) (recurse T A B))
+  hyp1
+  S T A B recurseseq1
+  ax-mp
+)
+
+thm (recurseseq1d () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (= (recurse S A B) (recurse T A B)))
+  hyp1
+  S T A B recurseseq1
+  syl
+)
+
+thm (recurseeq2i () (
+     hyp1 (= A B))
+     (= (recurse S A C) (recurse S B C))
+  hyp1
+  A B S C recurseeq2
+  ax-mp
+)
+
+thm (recurseeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (recurse S A C) (recurse S B C)))
+  hyp1
+  A B S C recurseeq2
+  syl
+)
+
+thm (recurseeq3i () (
+     hyp1 (= B C))
+     (= (recurse S A B) (recurse S A C))
+  hyp1
+  B C S A recurseeq3
+  ax-mp
+)
+
+thm (recurseeq3d () (
+     hyp1 (-> ph (= B C)))
+     (-> ph (= (recurse S A B) (recurse S A C)))
+  hyp1
+  B C S A recurseeq3
+  syl
+)
+
+thm (recurseeq23 () () (-> (/\ (= A B) (= C D)) (= (recurse S A C) (recurse S B D)))
+  A B S C recurseeq2
+  C D S B recurseeq3
+  anim12i    
+  ## <d 'Transitive Property '>
+    (recurse S A C) (recurse S B C) (recurse S B D) eqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (recurse S  [ A ]   ]   ]  C) D)
+##   (=             [ A ]   [ B ] )
+##   (= (recurse S  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Recurse1 () (
+     replacee (= (recurse S A C) D)
+     substitution (= A B)) 
+     (= (recurse S B C) D)
+  replacee substitution
+  S C recurseeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (apply S  [ B ]   ]   ] ))
+##   (=             [ B ]   [ C ] )
+##   (= A (apply S  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Apply1 () (
+     replacee (= A (apply S B))
+     substitution (= B C)) 
+     (= A (apply S C))
+  replacee substitution
+  S applyeq2i
+  EqReplaceEq1
+)
+
+## <title> Applying a Function Once </title>
+thm (recurse1 () (hyp (fun S)) (= (recurse S (1) A) (apply S A))
+  hyp
+  (0) A recursesuc  
+  ## <d 'Additive Identity Axiom '>
+    (1) addidr
+    EqReplaceEq0Recurse1
+  ## </d 'Additive Identity Axiom '>
+  hyp
+  A recurse0i
+  EqReplaceEq1Apply1
+)
+
+thm (recurseadd.1 ((A x) (S x) (B x) (C x)) () (<-> ([/] A x (= (recurse S x (recurse S B C)) (recurse S (+ x B) C))) (= (recurse S A (recurse S B C)) (recurse S (+ A B) C)))
+  x A S (recurse S B C) recurseeq2
+  x A B addeq1
+  S C recurseeq2d
+  eqeq12d
+  sbcie
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (recurse S  [ B ]   ]   ]  D)))
+##   (=                      [ B ]   [ C ] )
+##   (-> ph (= A (recurse S  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceImp1Eq1Recurse1 () (
+     replacee (-> ph (= A (recurse S B D)))
+     substitution (= B C)) 
+     (-> ph (= A (recurse S C D)))
+  replacee substitution
+  S D recurseeq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (recurse S (+ B  [ C ]   ]   ] ) A')))
+##   (=                           [ C ]   [ D ] )
+##   (-> ph (= A (recurse S (+ B  [   [   [ D ] ) A')))
+## </table>
+thm (EqReplaceImp1Eq1Recurse1Add1 () (
+     replacee (-> ph (= A (recurse S (+ B C) A')))
+     substitution (= C D)) 
+     (-> ph (= A (recurse S (+ B D) A')))
+  replacee substitution
+  B addeq2i
+  EqReplaceImp1Eq1Recurse1
+)
+
+thm (recurseadd () (hyp (fun S)) (= (recurse S A (recurse S B C)) (recurse S (+ A B) C))
+  hyp
+  (recurse S B C) recurse0i eqcomi
+  B addidr eqcomi
+  EqReplaceEq0Recurse1 eqcomi
+  (0) x S B C recurseadd.1 bicomi
+  mpbi
+
+  (recurse S y (recurse S B C)) (recurse S (+ y B) C) S applyeq2
+  hyp
+  y (recurse S B C) recursesuc eqcomi
+  EqReplaceImp1Eq0
+  hyp
+  (+ y B) C recursesuc eqcomi
+  EqReplaceImp1Eq1
+
+  ## <d 'Associative Property '>
+    y B (1) addass
+    EqReplaceImp1Eq1Recurse1
+  ## </d 'Associative Property '>
+
+  ## <d 'Commutative Property '>
+    B (1) addcom
+    EqReplaceImp1Eq1Recurse1Add1
+  ## </d 'Commutative Property '>
+
+  ## <d 'Associative Property '>
+    y (1) B addass
+    ## <d 'Commutative Property'>
+      (+ (+ y (1)) B) (+ y (+ (1) B)) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceImp1Eq1Recurse1
+  ## </d 'Associative Property '>
+  y x S B C recurseadd.1 bicomi
+  sylbi2
+  (+ y (1)) x S B C recurseadd.1 bicomi
+  sylib
+  A induction
+  A x S B C recurseadd.1  
+  mpbi
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+# export (RECURSION_MIN recursion_min.ghi (PROP PREDICATE ORDERED_PAIR SET_MIN FUNCTION ADD_MULTIPLY_MIN) "")

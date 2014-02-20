@@ -284,6 +284,10 @@ stmt (19.26 () () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) (A. x ps))))
 ## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
 stmt (19.41l ((ph x)) () (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps))))
 
+## <title> Quantifiers Moved Around Non-free Variable </title>
+## <suggest> right('Equivalence', '∧∃') left('Equivalence', '∃∧') </suggest>
+stmt (19.41r ((ph x)) () (<-> (E. x (/\ ph ps)) (/\ ph (E. x ps))))
+
 # Move to prop
 stmt (albi2d ((ph x)) ((-> ph (<-> ps ch))) (-> ph (<-> (A. x ps) (A. x ch))))
 
@@ -320,6 +324,18 @@ stmt (ex-nf ((ph x)) () (-> (E. x ph) ph))
 ## <title> Quantifier Moved Around Non-free Variable </title>
 ## <suggest> right('Equivalence', '→∃') left('Equivalence', '∃→') </suggest>
 stmt (imex ((ph x)) () (<-> (-> ph (E. x ps)) (E. x (-> ph ps))))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+stmt (exor2 ((ps x)) () (<-> (E. x (\/ ph ps)) (\/ (E. x ph) ps)))
+
+stmt (exani ((ps x)) ((-> ph ps)) (-> (E. x ph) ps))
+
+## <title> Quantifiers Moved Around Non-free Variable </title>
+stmt (alan2 ((ps x)) () (<-> (A. x (/\ ph ps)) (/\ (A. x ph) ps)))
+
+## <title> Distributive Property </title>
+stmt (alan12 () () (-> (/\ (A. x ph) (A. x ps)) (A. x (/\ ph ps))))
+
 
 
 #------------ Equality ----------------------
@@ -541,6 +557,9 @@ stmt (cla4g ((A x) (ps x))
 ## <title> Quantifier variable exchange </title>
 stmt (exalpha ((ph y) (ps x)) ((-> (= x y) (<-> ph ps))) (<-> (E. x ph) (E. y ps)))
 
+## <title> Quantifier variable exchange </title>
+stmt (exalpha1 ((ph y) (ps x)) ((-> (= x y) (-> ph ps))) (-> (E. x ph) (E. y ps)))
+
 ## <title> Relatively Well-Formed Formula Infernece </title>
 stmt (rwffi ((ps x) (ph y)) ((-> (= x y) (<-> ph ps))) (rwff x ph))
 
@@ -571,3 +590,23 @@ stmt (substex ((ph x y) (ps y) (ch x) (A y))
 stmt (eu4 ((ph y) (ps x))
   ((-> (= x y) (<-> ph ps)))
   (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ps) (= x y)))))))
+
+## <title> Unique Existence Implies Existence </title>
+## <suggest> right('Infer', '∃') </suggest>
+stmt (euex () () (-> (E! x ph) (E. x ph)))
+
+## <title> Substitution as Existence </title>
+## <suggest> right('Equivalence', '∃') left('Equivalence', '[/]') </suggest>
+stmt (sbc5 ((A x)) () (<-> ([/] A x ph) (E. x (/\ (= x A) ph))))
+
+
+## <title> Commutativity of existential quantifiers </title>
+## <suggest> right('Commute', '∃') </suggest>
+stmt (excom () () (<-> (E. x (E. y ph)) (E. y (E. x ph))))
+
+
+term (wff (E* x ph))
+
+stmt (mo4 ((ph y) (ps x))  ((-> (= x y) (<-> ph ps))) (<-> (E* x ph) (A. x (A. y (-> (/\ ph ps) (= x y))))))
+
+stmt (eu5 () ((rwff x ph)) (<-> (E! x ph) (/\ (E. x ph) (E* x ph))))

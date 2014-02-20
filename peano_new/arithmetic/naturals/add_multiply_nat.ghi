@@ -27,3 +27,17 @@ stmt (findplus1 ((A x) (ch x) (th x) (ta x) (ph y))
    ps
    (-> ch th))
   ta)
+
+## <title> Induction </title>
+stmt (pa_indplus1 ((ph y)) () (-> (/\ (A. x (-> (= x (0)) ph)) (A. y (-> (A. x (-> (= x y) ph)) (A. x (-> (= x (+ y (1))) ph))))) (A. x ph)))
+
+## <title> Proof by Induction </title>
+## <table>
+##       ([/] (0) z ph) ] ]                  ]
+##   (-> ([/]  y  z ph) ] [ ([/] (+ y (1)) z [ ph))
+##                      [ [ ([/] A         z [ ph)
+## </table>
+stmt (induction ((ph y)) (([/] (0) z ph) (-> ([/] y z ph) ([/] (+ y (1)) z ph))) ([/] A z ph))
+
+## <title> Proof by Induction </title>
+stmt (induction1 ((ph y)) () (-> (/\ ([/] (0) z ph) (A. y (-> ([/] y z ph) ([/] (+ y (1)) z ph)))) ([/] A z ph)))

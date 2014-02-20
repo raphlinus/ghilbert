@@ -24,17 +24,23 @@ term (nat (- A B))
 ##  (=     [ A      [ B)
 ##  (= (-n [ A) (-n [ B))
 ## </table>
-stmt (negeqi() ((= A B)) (= (-n A) (-n B)))
+stmt (negeqi () ((= A B)) (= (-n A) (-n B)))
 
 stmt (negeqd () ((-> ph (= A B))) (-> ph (= (-n A) (-n B))))
 
+## <suggest> left('Simplify', '-') </suggest>
 stmt (negeq2() () (<-> (= A B) (= (-n A) (-n B))))
+
+## <title> Negative can switch sides </title>
+## <suggest> right('Equivalence', '-') left('Equivalence', '-') </suggest>
+stmt (negeq3 () () (<-> (= A (-n B)) (= (-n A) B)))
 
 ## <title> Double Negative </title>
 ## <suggest> right('Simplify', '-') </suggest>
 stmt (doubleneg () () (= (-n (-n A)) A))
 
 ## <title> Negative of 0 is 0 </title>
+## <suggest> right('Simplify', '0') </suggest>
 stmt (neg0 () () (= (-n (0)) (0)))
 
 ## <title> Negative 1 is not 0 </title>
@@ -173,6 +179,9 @@ stmt (negminus3 () () (= (- (-n A) B) (-n (+ A B))))
 stmt (negadd () () (= (- (-n A) B) (-n (+ A B))))
 
 ## <title> Subtraction Value from Addition </title>
+stmt (minusValue () () (-> (= (+ A B) C) (= A (- C B))))
+
+## <title> Subtraction Value from Addition </title>
 ## <table>
 ##   (= (+ <c> A [ B ] ) <m> C)
 ##   (= (- <m> C [ B ] ) <c> A)
@@ -186,3 +195,58 @@ stmt (0minus () () (= (- (0) A) (-n A)))
 ## <title> Subtraction Identity </title>
 ## <suggest> right('Simplify', '0') </suggest>
 stmt (minusid () () (= (- A (0)) A))
+
+## <title> Add or subtract on both sides </title>
+stmt (gediff () () (<-> (>= A B) (>= (- A B) (0))))
+
+## <title> Add or subtract on both sides </title>
+stmt (gtdiff () () (<-> (> A B) (> (- A B) (0))))
+
+## <title> Positive Number Subtraction </title>
+stmt (subtractPositive () () (<-> (> B (0)) (< (- A B) A)))
+
+stmt (negle () () (<-> (>= A (0)) (<= (-n A) (0))))
+
+stmt (neglt () () (<-> (< (-n A) (0)) (> A (0))))
+
+stmt (negge () () (<-> (>= (-n A) (0)) (<= A (0))))
+
+stmt (neggt () () (<-> (> (-n A) (0)) (< A (0))))
+
+
+term (nat (abs A))
+
+## <title> Definition of Absolute Value </title>
+## <suggest> right('Define', '|x|') left('Simplify', '|x|') </suggest>
+stmt (df-abs () () (= (abs A) (ifn (>= A (0)) A (-n A))))
+
+## <title> Equivalence for abs </title> ##
+stmt (abseq () () (-> (= A B) (= (abs A) (abs B))))
+
+stmt (abseqi () (
+     (= A B))
+     (= (abs A) (abs B)))
+
+stmt (abseqd () (
+     (-> ph (= A B)))
+     (-> ph (= (abs A) (abs B))))
+
+## <title> Def. Absolute Value for Positive Numbers </title>
+stmt (dfabs1 () () (-> (>= A (0)) (= (abs A) A)))
+
+## <title> Def. Absolute Value for Negative Numbers </title>
+stmt (dfabs2 () () (-> (< A (0)) (= (abs A) (-n A))))
+
+## <title> The absolute value is not negative </title>
+stmt (absNotNeg () () (>= (abs A) (0)))
+
+## <title> The absolute value is idempotent </title>
+stmt (absidm () () (= (abs (abs A)) (abs A)))
+
+## <title> The absolute value is positive definite </title>
+stmt (absPosDef () () (<-> (= A (0)) (= (abs A) (0))))
+
+## <title> Two numbers have the same absolute value </title>
+stmt (absTwoValues () () (<-> (= (abs A) B) (/\ (\/ (= A B) (= (-n A) B)) (>= B (0)))))
+
+stmt (absTwoValues2 () () (\/ (= (abs A) A) (= (abs A) (-n A))))

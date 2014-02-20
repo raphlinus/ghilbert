@@ -163,7 +163,7 @@ thm (leeq2d () (
   syl
 )
 
-## <title> Equivalence for ≤ </title> ##
+## <title> Equivalence for ≤ </title>
 thm (leeq12 () () (-> (/\ (= A B) (= C D)) (<-> (<= A C) (<= B D)))
   A B C leeq1
   C D B leeq2
@@ -761,6 +761,30 @@ thm (geeq12d () (
   syl
 )
 
+## <title> Def. Greater Than or Equal </title>
+## <suggest> right('Simplify', '<') </suggest>
+thm (notge () () (<-> (-. (>= A B)) (< A B))
+  A B df-ge  
+  ## <d 'Negate Both Sides '>
+    (>= A B) (-. (< A B)) notbi
+    mpbi
+    (< A B) notnotr
+    bitri
+  ## </d 'Negate Both Sides '>
+)
+
+## <title> Def. Greater Than </title>
+## <suggest> right('Simplify', ' ≤') </suggest>
+thm (notgt () () (<-> (-. (> A B)) (<= A B))
+  A B df-gt  
+  ## <d 'Negate Both Sides '>
+    (> A B) (-. (<= A B)) notbi
+    mpbi
+    (<= A B) notnotr
+    bitri
+  ## </d 'Negate Both Sides '>
+)
+
 ## <title> Addition Over Inequality </title>
 ## <table>
 ##  (>    A ]       [ B ] )
@@ -851,28 +875,6 @@ thm (geadd2i () (hyp (>= A B)) (>= (+ C A) (+ C B))
   ## </d 'Def. Greater Than or Equal to '>
   hyp
   mpbiRemove
-)
-
-## <suggest> right('Simplify', '≤') </suggest>
-thm (notgt () () (<-> (-. (> A B)) (<= A B))
-  A B df-gt   
-  ## <d 'Negate Both Sides '>
-    (> A B) (-. (<= A B)) notbi
-    mpbi
-    (<= A B) notnotr
-    bitri
-  ## </d 'Negate Both Sides '>
-)
-
-## <suggest> right('Simplify', '<') </suggest>
-thm (notge () () (<-> (-. (>= A B)) (< A B))
-  A B df-ge  
-  ## <d 'Negate Both Sides '>
-    (>= A B) (-. (< A B)) notbi
-    mpbi
-    (< A B) notnotr
-    bitri
-  ## </d 'Negate Both Sides '>
 )
 
 ## <title> Substitution </title>
@@ -3037,11 +3039,7 @@ ax-mp
 # number 2.5
 thm (nalexi () (hyp (-. (A. x (-. ph)))) (E. x ph)
   hyp x ph df-ex mpbir)
-
-# number 4.0
-thm (impexpi  () (hyp (-> (/\ ph ps) ch)) (-> ps (-> ph ch))
-  hyp ancoms ps ph ch impexp mpbi)
-
+	
 ## <title> Import-Export Theorem </title>
 ## <table>
 ##   (-> (/\ ph [ ps ] ) [ ch)
@@ -3634,14 +3632,6 @@ thm (ImpReplaceBi1Ex1Ex1 () (
   replacee substitution
   y 19.22i
   ImpReplaceBi1Ex1
-)
-
-## <title> Commutation of conjuncts in consequent </title> 
-thm (ancomd () (h (-> ph (/\ ps ch)))
-  (-> ph (/\ ch ps))
-  h
-  ps ch ancom
- sylib
 )
 
 ## <title> Substitution </title>
@@ -4349,6 +4339,22 @@ thm (ltmul4 () () (-> (/\ (< A B) (< C D)) (< (+ (* A D) (* B C)) (+ (* A C) (* 
     sylib
   ## </d 'Quantified Non-free Variable '>
   ## </d>
+)
+
+thm (gemul1 () () (-> (/\ (>= B A) (>= C (0))) (>= (* B C) (* A C)))
+  A B C lemul1  
+  ## <d 'Converse of ≤ '>
+    A B lecon
+    BiReplaceImp0An0
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) C lecon
+    BiReplaceImp0An1
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (* A C) (* B C) lecon
+    sylib
+  ## </d 'Converse of ≤ '>
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>

@@ -1653,6 +1653,20 @@ stmt (pm3.41 () () (-> (-> ph ch) (-> (/\ ph ps) ch)))
 ## <title> 'Add to Antecedent' </title>
 stmt (pm3.42 () () (-> (-> ps ch) (-> (/\ ph ps) ch)))
 
+## <title> Add to Antecedent </title>
+## <table>
+##   (->     ph ]     ] ps)
+##   (-> (/\ ph ] ch) ] ps)
+## </table>
+stmt (pm3.41i () ((-> ph ps)) (-> (/\ ph ch) ps))
+
+## <title> Add to Antecedent </title>
+## <table>
+##   (->        [  ph ps)
+##   (-> (/\ ch [ ph) ps)
+## </table>
+stmt (pm3.42i () ((-> ph ps)) (-> (/\ ch ph) ps))
+
 #  Conjoin antecedent to left of consequent.  Theorem *4.7 of
 #      [bib/WhiteheadRussell] p. 120.
 ## <title> 'Add Antecedent as consequent' </title>
@@ -1779,6 +1793,7 @@ stmt (pm4.87 () () (/\ (/\ (<-> (-> (/\ ph ps) ch) (-> ph (-> ps ch))) (<-> (-> 
 
 #  Theorem *3.33 (Syll) of [bib/WhiteheadRussell] p. 112.
 ## <title> Syllogism </title>
+## <suggest> right ('Inter', '→') </suggest>
 stmt (pm3.33 () () (-> (/\ (-> ph ps) (-> ps ch)) (-> ph ch)))
 
 #  Theorem *3.34 (Syll) of [bib/WhiteheadRussell] p. 112.
@@ -4477,3 +4492,9 @@ stmt (mtbirRemove () ((<-> ph ps) (-. ps)) (-. ph))
 
 ## <suggest> right('Simplify', '↔') </suggest>
 stmt (mpbi-inline () () (-> (/\ ph (<-> ph ps)) ps))
+
+stmt (impexpi  () ((-> (/\ ph ps) ch)) (-> ps (-> ph ch)))
+
+stmt (anim3 () () (-> (/\ ph (-> ps ch)) (-> ps (/\ ph ch))))
+
+stmt (ancomd () ((-> ph (/\ ps ch))) (-> ph (/\ ch ps)))

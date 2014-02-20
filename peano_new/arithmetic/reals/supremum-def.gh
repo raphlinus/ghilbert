@@ -1,0 +1,792 @@
+# This file define the supremum. It does not prove much about it yet.
+
+import (PROP      /peano_new/prop.ghi () "")
+import (PREDICATE /peano_new/predicate/all.ghi (PROP) "")
+import (REALS     /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+import (SET_MIN   /peano_new/set_min.ghi (PROP PREDICATE) "")
+import (SET       /peano_new/set.ghi (PROP PREDICATE SET_MIN) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D' ep)
+var (nat v w x y z)
+tvar (set S T U V)
+
+thm (df-upperbound-just ((S x) (A x) (S y) (A y)) () (<-> (A. x (-> (e. x S) (<= x A))) (A. y (-> (e. y S) (<= y A))))
+  x y S ax-eleq1
+  x y A leeq1
+  imbi12d
+  alpha
+)
+
+## <title> Def. Set Upper Bound </title>
+## <summary>
+##   A number is an upper bound for a set if all numbers in that set are below it.
+##   For example, 0 and 1 are both upper bounds for the set of negative numbers.
+## </summary>
+defthm (df-upperbound wff (upperbound A S) ((S x) (A x)) () (<-> (upperbound A S) (A. x (-> (e. x S) (<= x A))))
+  y S A x df-upperbound-just
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Equivalence for upperbound </title> ##
+thm (upperboundeq1 () () (-> (= A B) (<-> (upperbound A S) (upperbound B S)))
+  (= A B) id
+  x leeq2d
+  (e. x S) imbi2d
+  x albi2d
+  A S x df-upperbound
+  ## <d 'Commutative Property'>
+    (upperbound A S) (A. x (-> (e. x S) (<= x A))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  B S x df-upperbound
+  ## <d 'Commutative Property'>
+    (upperbound B S) (A. x (-> (e. x S) (<= x B))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Equivalence for upperbound </title> ##
+thm (upperboundseq2 () () (-> (=_ S T) (<-> (upperbound A S) (upperbound A T)))
+  (=_ S T) id
+  x elseq2d
+  (<= x A) imbi1d
+  x albi2d
+  A S x df-upperbound
+  ## <d 'Commutative Property'>
+    (upperbound A S) (A. x (-> (e. x S) (<= x A))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A T x df-upperbound
+  ## <d 'Commutative Property'>
+    (upperbound A T) (A. x (-> (e. x T) (<= x A))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x  [ ps ]   ]    ] )))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (-. (E. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceBi1Not0Ex1 () (
+     replacee (<-> ph (-. (E. x ps)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (E. x ch)))
+  replacee substitution
+  x exbii
+  BiReplaceBi1Not0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x (-.  [ ps ]   ]    ] ))))
+##   (<->                   [ ps ]   [ ch ] )
+##   (<-> ph (-. (E. x (-.  [    [   [ ch ] ))))
+## </table>
+thm (BiReplaceBi1Not0Ex1Not0 () (
+     replacee (<-> ph (-. (E. x (-. ps))))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (E. x (-. ch))))
+  replacee substitution
+  con4biir
+  BiReplaceBi1Not0Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x (/\ ps  [ ch ]   ]    ] ))))
+##   (<->                      [ ch ]   [ th ] )
+##   (<-> ph (-. (E. x (/\ ps  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceBi1Not0Ex1An1 () (
+     replacee (<-> ph (-. (E. x (/\ ps ch))))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (E. x (/\ ps th))))
+  replacee substitution
+  ps anbi2i
+  BiReplaceBi1Not0Ex1
+)
+
+## <title> Alternative Upper Bound Definition </title>
+thm (dfupperbound1 ((S x)(A x)) () (<-> (upperbound A S) (-. (E. x (/\ (e. x S) (> x A)))))
+  A S x df-upperbound  
+  ## <d 'Definition of ∃ '>
+    x (-> (e. x S) (<= x A)) alex
+    bitri
+  ## </d 'Definition of ∃ '>  
+  ## <d 'AND and → Equivalance '>
+    ## <d 'AND and → Equivalance '>
+      (e. x S) (<= x A) iman
+      BiReplaceBi1Not0Ex1Not0
+    ## </d 'AND and → Equivalance '>  
+    ## <d 'Double Negative '>
+      (/\ (e. x S) (-. (<= x A))) notnotr
+      BiReplaceBi1Not0Ex1
+    ## </d 'Double Negative '>  
+  ## </d 'AND and → Equivalance '>
+  ## <d 'Def. Greater Than '>
+    x A df-gt bicomi
+    BiReplaceBi1Not0Ex1An1
+  ## </d 'Def. Greater Than '>
+)
+
+thm (df-supremum-just ((S x)(A x)(S y)(A y)) () (<-> (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A))))) (/\ (upperbound A S) (-. (E. y (/\ (upperbound y S) (< y A))))))
+  x y S upperboundeq1
+  x y A lteq1
+  anbi12d
+  exalpha
+  notbii
+  (upperbound A S) anbi2i
+)
+
+## <title> Supremum Definition </title>
+## <summary>
+##   Define the supremum as a number that is an upper bound of a set and no other upper
+##   bounds are beneath it. This defines a Boolean expression that is true when A is the
+##   supremum of S. <a href="../supremum.gh/df-sup">df-supremum </a> is a related definition
+##   that takes a set and returns its supremum. This definition exists because we have not yet
+##   proved that <a href="supremummo">there can not be multiple supremums</a>.
+## </summary>
+defthm (df-supremum wff (supremum A S) ((S x)(A x)) () (<-> (supremum A S) (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A))))))
+  A S y x df-supremum-just
+)
+
+thm (upperboundseq2d () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (<-> (upperbound A S) (upperbound A T)))
+  hyp1
+  S T A upperboundseq2
+  syl
+)
+
+thm (upperboundeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (upperbound A S) (upperbound B S)))
+  hyp1
+  A B S upperboundeq1
+  syl
+)
+
+## <title> Equivalence for supremum </title> ##
+thm (supremumeq1 () () (-> (= A B) (<-> (supremum A S) (supremum B S)))
+  (= A B) id
+  S upperboundeq1d
+  (= A B) id
+  x lteq2d
+  (upperbound x S) anbi2d
+  x exbid
+  notbid
+  anbi12d
+  A S x df-supremum
+  ## <d 'Commutative Property'>
+    (supremum A S) (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  B S x df-supremum
+  ## <d 'Commutative Property'>
+    (supremum B S) (/\ (upperbound B S) (-. (E. x (/\ (upperbound x S) (< x B))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Equivalence for supremum </title> ##
+thm (supremumseq2 () () (-> (=_ S T) (<-> (supremum A S) (supremum A T)))
+  (=_ S T) id
+  A upperboundseq2d
+  (=_ S T) id
+  x upperboundseq2d
+  (< x A) anbi1d
+  x exbid
+  notbid
+  anbi12d
+  A S x df-supremum
+  ## <d 'Commutative Property'>
+    (supremum A S) (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  A T x df-supremum
+  ## <d 'Commutative Property'>
+    (supremum A T) (/\ (upperbound A T) (-. (E. x (/\ (upperbound x T) (< x A))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-. (E. x  [ ps ]   ]    ] )))
+##   (<->              [ ps ]   [ ch ] )
+##   (-> ph (-. (E. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceImp1Not0Ex1 () (
+     replacee (-> ph (-. (E. x ps)))
+     substitution (<-> ps ch)) 
+     (-> ph (-. (E. x ch)))
+  replacee substitution
+  x exbii
+  BiReplaceImp1Not0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-. (E. x (/\  [ ps ]   ]    ]  th))))
+##   (<->                  [ ps ]   [ ch ] )
+##   (-> ph (-. (E. x (/\  [    [   [ ch ]  th))))
+## </table>
+thm (BiReplaceImp1Not0Ex1An0 () (
+     replacee (-> ph (-. (E. x (/\ ps th))))
+     substitution (<-> ps ch)) 
+     (-> ph (-. (E. x (/\ ch th))))
+  replacee substitution
+  th anbi1i
+  BiReplaceImp1Not0Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x albii
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-.  [ ps ]   ]    ] )))
+##   (<->              [ ps ]   [ ch ] )
+##   (-> ph (A. x (-.  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceImp1Al1Not0 () (
+     replacee (-> ph (A. x (-. ps)))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x (-. ch)))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Al1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps  [ ch ]   ]    ] )))
+##   (<->                 [ ch ]   [ th ] )
+##   (-> ph (A. x (-> ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Al1Imp1 () (
+     replacee (-> ph (A. x (-> ps ch)))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (-> ps th)))
+  replacee substitution
+  ps imbi2i
+  BiReplaceImp1Al1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps (-.  [ ch ]   ]    ] ))))
+##   (<->                     [ ch ]   [ th ] )
+##   (-> ph (A. x (-> ps (-.  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceImp1Al1Imp1Not0 () (
+     replacee (-> ph (A. x (-> ps (-. ch))))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (-> ps (-. th))))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Al1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps (E. y  [ ch ]   ]    ] ))))
+##   (<->                       [ ch ]   [ th ] )
+##   (-> ph (A. x (-> ps (E. y  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceImp1Al1Imp1Ex1 () (
+     replacee (-> ph (A. x (-> ps (E. y ch))))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (-> ps (E. y th))))
+  replacee substitution
+  y exbii
+  BiReplaceImp1Al1Imp1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps (E. y (-.  [ ch ]   ]    ] )))))
+##   (<->                           [ ch ]   [ th ] )
+##   (-> ph (A. x (-> ps (E. y (-.  [    [   [ th ] )))))
+## </table>
+thm (BiReplaceImp1Al1Imp1Ex1Not0 () (
+     replacee (-> ph (A. x (-> ps (E. y (-. ch)))))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (-> ps (E. y (-. th)))))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Al1Imp1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps (E. y (-. (->  [ ch ]   ]    ]  ta))))))
+##   (<->                               [ ch ]   [ th ] )
+##   (-> ph (A. x (-> ps (E. y (-. (->  [    [   [ th ]  ta))))))
+## </table>
+thm (BiReplaceImp1Al1Imp1Ex1Not0Imp0 () (
+     replacee (-> ph (A. x (-> ps (E. y (-. (-> ch ta))))))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (-> ps (E. y (-. (-> th ta))))))
+  replacee substitution
+  ta imbi1i
+  BiReplaceImp1Al1Imp1Ex1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-> ps (E. y (/\ ch  [ th ]   ]    ] )))))
+##   (<->                              [ th ]   [ ta ] )
+##   (-> ph (A. x (-> ps (E. y (/\ ch  [    [   [ ta ] )))))
+## </table>
+thm (BiReplaceImp1Al1Imp1Ex1An1 () (
+     replacee (-> ph (A. x (-> ps (E. y (/\ ch th)))))
+     substitution (<-> th ta)) 
+     (-> ph (A. x (-> ps (E. y (/\ ch ta)))))
+  replacee substitution
+  ch anbi2i
+  BiReplaceImp1Al1Imp1Ex1
+)
+
+## <title> Alternative Least Upper Bound Definition </title>
+thm (leastUpperBound ((S x)(A x)(S y)) () (-> (supremum A S) (A. x (-> (< x A) (E. y (/\ (e. y S) (> y x))))))
+  A S x df-supremum biimpi  
+  ## <d 'Def. Upper Bound'>
+    ## <d 'Remove Left Side of AND '>
+      (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A)))) pm3.27
+      syl
+    ## </d 'Remove Left Side of AND '>
+    x S y df-upperbound  
+    BiReplaceImp1Not0Ex1An0 
+  ## </d 'Def. Upper Bound'>
+  ## <d 'Definition of ∃ '>
+    ## <d 'Definition of ∃ '>
+      x (/\ (A. y (-> (e. y S) (<= y x))) (< x A)) df-ex
+      BiReplaceImp1Not0
+    ## </d 'Definition of ∃ '>  
+    ## <d 'Double Negative '>
+      (A. x (-. (/\ (A. y (-> (e. y S) (<= y x))) (< x A)))) notnotr
+      sylib
+    ## </d 'Double Negative '>
+  ## </d 'Definition of ∃ '>    
+  ## <d 'Commute AND and → Equivalance '>
+    ## <d 'Commute Conjunction '>
+      (A. y (-> (e. y S) (<= y x))) (< x A) ancom
+      BiReplaceImp1Al1Not0
+    ## </d 'Commute Conjunction '>  
+    ## <d 'Definition of AND '>
+      (< x A) (A. y (-> (e. y S) (<= y x))) df-an
+      BiReplaceImp1Al1Not0
+    ## </d 'Definition of AND '>  
+    ## <d 'Double Negative '>
+      (-> (< x A) (-. (A. y (-> (e. y S) (<= y x))))) notnotr
+      BiReplaceImp1Al1
+    ## </d 'Double Negative '>  
+  ## </d 'Definition of AND '>
+  ## <d 'AND and → Equivalance '>
+  ## <d 'Definition of ∃ '>
+    y (-> (e. y S) (<= y x)) alex
+    BiReplaceImp1Al1Imp1Not0
+  ## </d 'Definition of ∃ '>  
+  ## <d 'Double Negative '>
+    (E. y (-. (-> (e. y S) (<= y x)))) notnotr
+    BiReplaceImp1Al1Imp1
+  ## </d 'Double Negative '>  
+  ## <d 'AND and → Equivalance '>
+    ## <d 'AND and → Equivalance '>
+      (e. y S) (<= y x) iman
+      BiReplaceImp1Al1Imp1Ex1Not0
+    ## </d 'AND and → Equivalance '>  
+    ## <d 'Double Negative '>
+      (/\ (e. y S) (-. (<= y x))) notnotr
+      BiReplaceImp1Al1Imp1Ex1
+    ## </d 'Double Negative '>  
+    ## <d 'Def. Greater Than '>
+      y x df-gt bicomi
+      BiReplaceImp1Al1Imp1Ex1An1
+    ## </d 'Def. Greater Than '>
+  ## </d 'AND and → Equivalance '>
+  ## </d 'AND and → Equivalance '>
+)
+
+## <title> No upper bounds below the supremum </title>
+## <summary>
+##   For any number A - ϵ that is below the supremum is not an upper bound and
+##   so there is a number in the set that is above A-ϵ.
+## </summary>
+thm (belowSupremum ((S y)(A y)(ep y)) () (-> (/\ (> ep (0)) (supremum A S)) (E. y (/\ (e. y S) (> y (- A ep)))))
+  ep A subtractPositive biimpi
+  A S x y leastUpperBound
+  ## <d 'Universial Instantiate A-ϵ for x'>
+    x (- A ep) A lteq1
+    x (- A ep) y gteq2
+    (e. y S) anbi2d
+    y exbid
+    imbi12d
+    cla4g  
+    syl
+  ## </d>
+  anim12i  
+  ## <d 'Introduce conjunct as antecedent '>
+    (< (- A ep) A) (E. y (/\ (e. y S) (> y (- A ep)))) abai bicomi
+    sylib
+  ## </d 'Introduce conjunct as antecedent '>  
+  ## <d 'Remove Left Side of AND '>
+    (< (- A ep) A) (E. y (/\ (e. y S) (> y (- A ep)))) pm3.27
+    syl
+  ## </d 'Remove Left Side of AND '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x exbii
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\ ps  [ ch ]   ]    ] )))
+##   (<->                 [ ch ]   [ th ] )
+##   (-> ph (E. x (/\ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Ex1An1 () (
+     replacee (-> ph (E. x (/\ ps ch)))
+     substitution (<-> ch th)) 
+     (-> ph (E. x (/\ ps th)))
+  replacee substitution
+  ps anbi2i
+  BiReplaceImp1Ex1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\ ps (> A  [ B ]   ]   ] ))))
+##   (=                        [ B ]   [ C ] )
+##   (-> ph (E. x (/\ ps (> A  [   [   [ C ] ))))
+## </table>
+thm (EqReplaceImp1Ex1An1Gt1 () (
+     replacee (-> ph (E. x (/\ ps (> A B))))
+     substitution (= B C)) 
+     (-> ph (E. x (/\ ps (> A C))))
+  replacee substitution
+  A gteq2i
+  BiReplaceImp1Ex1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\ ps (> A (+ B  [ C ]   ]   ] )))))
+##   (=                             [ C ]   [ D ] )
+##   (-> ph (E. x (/\ ps (> A (+ B  [   [   [ D ] )))))
+## </table>
+thm (EqReplaceImp1Ex1An1Gt1Add1 () (
+     replacee (-> ph (E. x (/\ ps (> A (+ B C)))))
+     substitution (= C D)) 
+     (-> ph (E. x (/\ ps (> A (+ B D)))))
+  replacee substitution
+  B addeq2i
+  EqReplaceImp1Ex1An1Gt1
+)
+
+## <title> A supremum has no supremums below it </title>
+thm (supremummo.1 () () (-> (/\ (> A B) (supremum A S)) (-. (supremum B S)))
+  A B gtdiff
+  (supremum A S) anbi1i
+  ## <d>
+    (- A B) A S x belowSupremum
+    ImpReplaceBi1
+  ## </d>
+  ## <d 'Cancel A'>
+    ## <d 'Definition of Subtraction '>
+      A (- A B) df-minus
+      EqReplaceImp1Ex1An1Gt1
+    ## </d 'Definition of Subtraction '>  
+    ## <d 'Negative of Subtraction '>
+      B A negminus eqcomi
+      EqReplaceImp1Ex1An1Gt1Add1
+    ## </d 'Negative of Subtraction '>  
+    ## <d 'Commutative Property '>
+      A (- B A) addcom
+      EqReplaceImp1Ex1An1Gt1
+    ## </d 'Commutative Property '>  
+    ## <d 'Addition is the inverse of Subtraction '>
+      B A minuscan2
+      EqReplaceImp1Ex1An1Gt1
+    ## </d 'Addition is the inverse of Subtraction '>
+  ## </d 'Cancel A'>
+  ## <d 'Upper Bound Defintiion'>
+    B S x dfupperbound1
+    ## <d 'Negate Both Sides '>
+      (upperbound B S) (-. (E. x (/\ (e. x S) (> x B)))) notbi
+      mpbi
+      (E. x (/\ (e. x S) (> x B))) notnotr
+      bitri
+    ## </d 'Negate Both Sides '>
+    bicomi  
+    sylib
+  ## </d>
+  ## <d 'Supremum is an upper bound'>
+    B S x df-supremum  
+    ## <d 'Remove Right Side of AND '>
+      (upperbound B S) (-. (E. x (/\ (upperbound x S) (< x B)))) pm3.26
+      ImpReplaceBi1
+    ## </d 'Remove Right Side of AND '>  
+    ## <d 'Contrapositive '>
+      (supremum B S) (upperbound B S) con34b
+      mpbi
+    ## </d 'Contrapositive '>
+    syl
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ (-.  [ ps ]   ]    ] ) th))
+##   (<->            [ ps ]   [ ch ] )
+##   (-> ph (\/ (-.  [    [   [ ch ] ) th))
+## </table>
+thm (BiReplaceImp1Or0Not0 () (
+     replacee (-> ph (\/ (-. ps) th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ (-. ch) th))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Or0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  sylib
+)
+
+## <title> A supremum has no supremums below it </title>
+thm (supremummo.2 () () (-> (/\ (supremum A S) (supremum B S)) (<= B A))
+  B A S supremummo.1
+  ## <d 'Contrapositive '>
+    (/\ (> B A) (supremum B S)) (-. (supremum A S)) con34b
+    mpbi
+    (supremum A S) notnotr
+    sylbi2
+  ## </d 'Contrapositive '>
+
+  ## <d 'DeMorgan's Law '>
+  ## <d 'DeMorgan's Law '>
+    (> B A) (supremum B S) anor
+    BiReplaceImp1Not0
+    (\/ (-. (> B A)) (-. (supremum B S))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+  ## <d 'Def. Greater Than '>
+    B A df-gt
+    BiReplaceImp1Or0Not0
+    (<= B A) notnotr
+    BiReplaceImp1Or0
+  ## </d 'Double Negative '>
+  ## </d 'DeMorgan's Law '>
+
+  ## <d>
+    (supremum B S) anim1i
+  ## </d>
+  ## <d 'Excluded Middle'>
+    ## <d 'Distributive Property '>
+      (<= B A) (-. (supremum B S)) (supremum B S) andir
+      sylib
+    ## </d 'Distributive Property '>
+    ## <d 'Excluded Middle'>
+      ## <d 'Commute Conjunction '>
+        (-. (supremum B S)) (supremum B S) ancom
+        BiReplaceImp1Or1
+      ## </d 'Commute Conjunction '>  
+      ## <d 'Excluded Middle'>
+        (supremum B S) pm3.24    
+        (/\ (<= B A) (supremum B S)) orNotRemove2
+        (/\ (supremum A S) (supremum B S)) imbi2i
+        mpbi
+      ## </d 'Excluded Middle'>
+    ## </d 'Excluded Middle'>
+    ## <d 'Remove Right Side of AND '>
+      (<= B A) (supremum B S) pm3.26
+      syl
+    ## </d 'Remove Right Side of AND '>
+  ## </d 'Excluded Middle'>
+)
+
+## <title> There is at most one supremum </title>
+thm (supremummo ((S x)) () (E* x (supremum x S))
+  x S y supremummo.2
+  ## <d>
+    y S x supremummo.2
+    ## <d 'Commute Conjunction '>
+      (supremum y S) (supremum x S) ancom
+      sylbi2
+    ## </d 'Commute Conjunction '>
+  ## </d>
+  jca
+  ## <d 'Same upper and lower bound implies equality '>
+    ## <d 'Same upper and lower bound implies equality '>
+      y x lesym bicomi
+      sylib
+    ## </d 'Same upper and lower bound implies equality '>
+    ## <d 'Symmetric Property '>
+      y x eqcom
+      sylib
+    ## </d 'Symmetric Property '>
+  ## </d 'Same upper and lower bound implies equality '>
+  ## <d>
+  y gen
+    x gen
+    x y S supremumeq1
+    mo4 bicomi
+    mpbi
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (SUPREMUM-DEF /peano_new/arithmetic/reals/supremum-def.ghi (PROP PREDICATE REALS SET_MIN) "")

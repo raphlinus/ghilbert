@@ -58,7 +58,7 @@ defthm  (df-apply nat (apply S A) ( (A z) (S z)) ()
 
 ## <title> Equivalence for apply </title> ##
 thm (applyseq1 () () (-> (=_ S T) (= (apply S A) (apply T A)))
-  S T (<,> A z) eleq2
+  S T (<,> A z) elseq2
   z abbi2d
   iotaseqd
   S A z df-apply  
@@ -110,6 +110,7 @@ thm (applyeq2 () () (-> (= A B) (= (apply S A) (apply S B)))
   ## </d 'Commutative Property'>
   EqReplaceImp1Eq1
 )
+
 thm (applyeq2i () (
      hyp1 (= A B))
      (= (apply S A) (apply S B))
@@ -151,13 +152,13 @@ anbi12i
 ##   fun S is true when the set S is a valid function and false otherwise.
 ## </summary>
 defthm (df-fun wff (fun S) ((S x y))  ()  (<-> (fun S) (/\ (A. x  (E! y  (e. (<,> x  y ) S))) (A. x (-> (e. x S) (E. y (E. z (= x (<,> y z))))))))
-x' y' S z'  x y z df-fun-just)
+  x' y' S z'  x y z df-fun-just)
 
 # Equality identity for fun
 thm (funseq () () (-> (=_ S T) (<-> (fun S) (fun T)))
-  S  T  (<,> x y)  eleq2  y eubid
+  S  T  (<,> x y)  elseq2  y eubid
   x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
-    S  T  x  eleq2  (E. y (E. z (= x (<,> y z))))  imbi1d
+    S  T  x  elseq2  (E. y (E. z (= x (<,> y z))))  imbi1d
     x  19.21ai  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  19.15  syl
   anbi12d
   S  x  y  z  df-fun  syl5bb
@@ -197,13 +198,12 @@ defthm  (df-lambda set (lambda y A) ((A x)) ()
           x' y A x df-lambda-just)
 
 ## <summary> Asserts that membership in functional set of a lambda works the way you'd expect. </summary>
-thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
-     (<-> (e. (<,> x A) (lambda x B)) (= A B))
-  x  B  z  df-lambda  (<,> x A) eleq2i
+thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C))) (<-> (e. (<,> x A) (lambda x B)) (= A B))
+  x  B  z  df-lambda  (<,> x A) elseq2i
     h1  B  C  x  opeq2  syl  z  eqeq2d
     x  y  C  opeq1  z  eqeq2d  bitrd  exalpha
     z  gen  z  (E. x (= z (<,> x B)))  (E. y (= z (<,> y C)))  abbi2  ax-mp
-  (<,> x A)  eleq2i  bitri
+  (<,> x A)  elseq2i  bitri
   z  (<,> x A)  (<,> y C)  eqeq1  y  exbid  elab  bitri
     x  A  y  C  opth  y  exbii bitri
       h1  (= A C)  anim1i
@@ -219,7 +219,7 @@ thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
 thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
 #(A. y (E! v (e. (<,> y v) (lambda x A))))
 v  B  tyeu  z eqid
- x  A  w  df-lambda    (<,> y v)  eleq2i
+ x  A  w  df-lambda    (<,> y v)  elseq2i
  w  (<,> y v)  (<,> x A)  eqeq1    x  exbid  elab   bitri
  y  v  x  A  opth  x  exbii  bitri
   h1  eqcoms eqcomd v  eqeq2d  biimprd  imp  x  19.22i  x  (= v B)  ex-nf  syl
@@ -231,7 +231,7 @@ mpbir
 v  x  y  opeq2  (<,> y v)  (<,> y x)  (lambda x A)  ax-eleq1  syl  eualpha  mpbi
 y gen
 
-    x  A  y  df-lambda    y  eleq2i
+    x  A  y  df-lambda    y  elseq2i
     y  y'  (<,> x A) eqeq1  x  exbid  rwffi  abid  bitri  biimpi
     w  A  tyex    w  A  x  opeq2  y  eqeq2d   biimprd  w  19.22i  ax-mp  x  gen  jctil
     x  (E. w (-> (= y (<,> x A)) (= y (<,> x w))))  (= y (<,> x A))  19.29   syl
@@ -241,6 +241,74 @@ y gen
   pm3.2i
 
   (lambda x A)  y  x  w  df-fun  mpbir
+)
+
+# number 156.5
+thm (piecewisefun.1 ((A x) (S x) (T x)) () (<-> (e. A ({|} x (\/ (/\ ([/] (head x) x ph)  (e. x S)) (/\ (-. ([/] (head x) x ph)) (e. x T))))
+) (\/ (/\ ([/] (head A) x ph)  (e. A S)) (/\ (-. ([/] (head A) x ph)) (e. A T))))
+x  A  S  ax-eleq1  ([/] (head x) x ph)  anbi2d
+  x  A  T  ax-eleq1  (-. ([/] (head x) x ph))  anbi2d
+orbi12d
+  x  A  headeq
+  (head x)  (head A)  x  ph  dfsbcq  syl
+  (e. A S) anbi1d
+    x  A  headeq
+    (head x)  (head A)  x  ph  dfsbcq  syl  notbid
+    (e. A T) anbi1d
+  orbi12d
+bitrd
+elab
+)
+
+# number 157.0
+## <summary>
+##   Given two functions S, T and a discriminator ph, we can assemble a piecewise
+##   function which mimics S when ph is true and T otherwise.
+## </summary>
+thm (piecewisefun ((S x') (T x')) () (-> (/\ (fun S) (fun T)) (fun ({|} x' (\/ (/\ ([/] (head x') x' ph)  (e. x' S))
+                                                                         (/\ (-. ([/] (head x') x' ph)) (e. x' T))))))
+
+([/] x x' ph)  exmid
+  x  y  headop    (head (<,> x y))  x  x' ph  dfsbcq  ax-mp  bicomi
+    ([/] (head (<,> x y)) x' ph)   (e. (<,> x y) S)   ibar  (/\ (-. ([/] (head (<,> x y)) x' ph)) (e. (<,> x y) T)) orbi1d
+      (-. ([/] (head (<,> x y)) x' ph))  (e. (<,> x y) T)  pm3.26  con2i    (-. (/\ (-. ([/] (head (<,> x y)) x' ph)) (e. (<,> x y) T)))  (e. (<,> x y) S)  pm5.5    syl
+        (/\ (-. ([/] (head (<,> x y)) x' ph)) (e. (<,> x y) T))  (e. (<,> x y) S)  df-or  (/\ (-. ([/] (head (<,> x y)) x' ph)) (e. (<,> x y) T))  (e. (<,> x y) S)  orcom  bitr3i
+      syl5bbr
+    bitr3d
+      (<,> x y) x' ph S T piecewisefun.1
+    syl5bb
+   sylbi  y  eubid
+   S  x  y  z  df-fun  biimpi  pm3.26d  x  (E! y (e. (<,> x y) S))  ax-4  syl     syl5bir
+
+     x  y  headop    (head (<,> x y))  x  x' ph  dfsbcq  ax-mp  notbii bicomi
+       (-. ([/] (head (<,> x y)) x' ph))   (e. (<,> x y) T)   ibar  (/\ ([/] (head (<,> x y)) x' ph) (e. (<,> x y) S)) orbi1d
+         ([/] (head (<,> x y)) x' ph)  (e. (<,> x y) S)  pm3.26  con3i    (-. (/\ ([/] (head (<,> x y)) x' ph) (e. (<,> x y) S)))  (e. (<,> x y) T)  pm5.5    syl
+           (/\ ([/] (head (<,> x y)) x' ph) (e. (<,> x y) S))  (e. (<,> x y) T)  df-or  (/\ ([/] (head (<,> x y)) x' ph) (e. (<,> x y) S))  (e. (<,> x y) T)  orcom  bitr3i
+         syl5bbr
+       bitr3d
+       (/\ ([/] (head (<,> x y)) x' ph) (e. (<,> x y) S))  (/\ (-. ([/] (head (<,> x y)) x' ph)) (e. (<,> x y) T))  orcom  syl5bb
+         (<,> x y) x' ph S T piecewisefun.1
+       syl5bb
+      sylbi  y  eubid
+    T  x  y  z  df-fun  biimpi  pm3.26d  x  (E! y (e. (<,> x y) T))  ax-4  syl     syl5bir
+  jaoa
+ax-mp
+x  19.21ai
+
+
+x x' ph S T piecewisefun.1   biimpi
+  ([/] (head x) x' ph)  (e. x S)  pm3.27  (-. ([/] (head x) x' ph))  (e. x T)  pm3.27  orim12i  syl
+  S  x  y  z  df-fun  biimpi  pm3.27d  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  ax-4  syl
+    T  x  y  z  df-fun  biimpi  pm3.27d  x  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  ax-4  syl
+  jaao
+mpan9    ancoms  ex   x  19.21ai
+
+  ({|} x' (\/ (/\ ([/] (head x') x' ph)  (e. x' S))  (/\ (-. ([/] (head x') x' ph)) (e. x' T))))  x  y  z  df-fun  biimpri
+ex  com12  syl
+
+
+mpd
+
 )
 
 # number 159.5
@@ -312,8 +380,7 @@ thm (syl6seqr ()
 )
 
 # First equality identity for lambda.
-thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))
-  (=_ (lambda x A) (lambda y B))
+thm (lambdaeq1 ((A y) (B x)) (h1 (-> (= x y) (= A B)))  (=_ (lambda x A) (lambda y B))
  x eqid
   x  A  z  df-lambda
   (= x x) a1i
@@ -362,3 +429,5 @@ thm (lambdaeq2d () (
 thm (emptyThm() () (T)
  tru
 )
+
+export (FUNCTION function.ghi (PROP PREDICATE ORDERED_PAIR SET_MIN) "")

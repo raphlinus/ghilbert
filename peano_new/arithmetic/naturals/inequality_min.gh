@@ -4,7 +4,7 @@ import (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
 import (ADD_MULTIPLY ../common/add_multiply.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
 import (ADD_MULTIPLY_NAT add_multiply_nat.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
 
-tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
 
@@ -574,6 +574,7 @@ thm (nnltp1let () ()  (<-> (< A B) (<= (+ A (1)) B))
 )
 
 ## <title> Convert between ≤ and < </title>
+## <summary> This proves that natural numbers are whole numbers. </summary>
 ## <suggest> right('Equivalence', '≤-1') left('Equivalence', '<') </suggest>
 thm (lePlus1 () () (<-> (< A (+ B (1))) (<= A B))
    A (+ B (1)) nnltp1let
@@ -691,8 +692,7 @@ thm (letot () () (\/ (<= A B) (<= B A))
 
 ## <title> Multiply Both Sides </title>
 ## <summary> Multiplication is monotonic in its second argument </summary>
-thm (lemul2 () () (-> (<= A B) (<= (* C A) (* C B)))
-
+thm (lemul2nat () () (-> (<= A B) (<= (* C A) (* C B)))
   A B x df-le
     (0) eqid
       y (* C x) (* C A) addeq2
@@ -739,7 +739,7 @@ thm (EqReplaceImp1Le1 () (
 
 ## <title> Inequality Multiplication </title>
 thm (lemul1n () () (-> (<= A B) (<= (* A C) (* B C)))
-  A B C lemul2  
+  A B C lemul2nat  
   ## <d 'Commutative Property '>
     C A mulcom
     EqReplaceImp1Le0
@@ -879,13 +879,146 @@ thm (lemul4 () () (-> (<= (* A (+ C (1))) (* B (+ C (1))))  (<= A B))
 ## <summary> Multiplication is strictly monotonic with nonzero multiplicand </summary>
 thm (lemul5 () () (<-> (<= (* A (+ C (1))) (* B (+ C (1)))) (<= A B))
   A C B lemul4
-    A B (+ C (1)) lemul2
+    A B (+ C (1)) lemul2nat
     (+ C (1)) A mulcom (* (+ C (1)) B) leeq1i sylib
     (+ C (1)) B mulcom (* A (+ C (1))) leeq2i sylib
   impbii
 )
 
-export (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
-# import (INEQUALITY ../common/inequality.ghi (PROP PREDICATE ADD_MULTIPLY_MIN INEQUALITY_MIN) "")
 
-export (INEQUALITY_NAT inequality_nat.ghi (PROP PREDICATE ADD_MULTIPLY_MIN INEQUALITY_MIN) "")
+
+## <summary> For naturals, equal to zero is equivalent to less than or equal to zero </summary>
+thm (eq0le0 () () (<-> (= A (0)) (<= A (0)))
+     A (0) lesym
+     # 0 <= A
+     (0) A addge01t    A addidr (0) leeq2i     mpbi
+   mpbiran2
+)
+
+# number 58.0
+thm (sindlem1 ()
+  (h1 (-> ch (-> ps (\/ (-> th ph) ta)))
+   h2 (-> si (/\ th (-> ta ph))))
+  (-> si (-> ch (-> ps ph)))
+
+  si ch pm3.2
+  h2   h1    anim12i    syl6
+
+  (/\ th (-> ta ph))  ps  ax-1    (-> ps (\/ (-> th ph) ta))  anim1i    syl6
+  ps  (/\ th (-> ta ph))  (\/ (-> th ph) ta)  pm3.43    syl6
+
+  th  (-> ta ph)  (\/ (-> th ph) ta)  anass    biimpi    syl8
+
+
+    (-> ta ph)  (-> th ph)  ta  andi    biimpi
+    (-> ta ph)  (-> th ph)  pm3.27    (/\ (-> ta ph) ta)  orim1i    syl
+    (-> ta ph)  ta  ancom    biimpi   (-> th ph)  orim2i    syl
+    th  anim2i
+  syl8
+
+  ta  ph  pm3.35    (-> th ph)  orim2i    th  anim2i    syl8
+
+  th  (-> th ph)  ph  andi    biimpi    th  ph  pm3.27    (/\ th (-> th ph)) orim2i    syl    syl8
+
+  th  ph  pm3.35    ph  orim1i    syl8
+
+  ph  pm1.2    syl8
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (->             [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps biim2i
+  syl
+)
+
+
+## <title> Strong Induction </title>
+thm (sind ((A x) (ta x) (ph y))                    # ph(x) is some term in x; ph(A) is to be proved
+  (hyp1 (-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   hyp3 (-> (= x (+ y (1))) (<-> ph th))               # th is ph(y')
+   hyp4 (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   hyp5 ps
+   hyp6 (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds
+  ta
+
+# Tuck this away for later
+hyp4
+  z  x  tyex    x  leid    (= z x)  id    x  leeq2d    biimprd    mpi    z 19.22i    ax-mp
+
+    # Don't blink, or you'll miss the actual math content of this proof.
+    (= z (+ y (1))) id    x leeq2d
+       x (+ y (1)) lefoo3   biimpi
+       x y (1) leadd1 bicomi BiReplaceImp1Or1
+    ImpReplaceImp1Bi1
+    # That was it!  All that's left is a little bit of logic and a lot of juggling.
+    hyp3    biimprd  (<= x y) orim1i    syl6
+#      x  ph  ps  19.21    biimpri
+        z y tyex
+          (= z y) id   x leeq2d    biimprd    (<= x y) (<= x z) ph imim1    syl   x  19.21ai
+          x  (-> (<= x z) ph)  (-> (<= x y) ph)  ax-alim    syl
+          a2i    z 19.20i
+          z  (= z y)  (A. x (-> (<= x y) ph))  19.22    syl
+        mpi    z  (A. x (-> (<= x y) ph))  ex-nf    syl
+#.     syl .
+      # Now the logic is all done, and we just need to juggle.
+      # We'll need to use the consequent "x<=y -> ph" twice, so duplicate it here
+      (A. z (-> (= z y) (A. x (-> (<= x z) ph))))  (A. x (-> (<= x y) ph))  anidmdbi  biimpri  ax-mp
+      # Grind the first one into a theta
+      hyp6    (A. x (-> (<= x y) ph))  anim1i  syl
+      # Pull the quantifier off the second one
+      x  (-> (<= x y) ph)  ax-4    th  anim2i    syl
+    # Juggling lematized for your convenience
+    sindlem1
+
+    x    19.21ai    x  (= z (+ y (1)))  (-> (<= x z) ph)  19.21    sylib
+    z  19.21ai
+    y  gen
+
+        # Base case
+        (= z (0)) id    x leeq2d    biimpd   x eq0le0 biimpri    hyp5 hyp1 mpbiri   syl  syl6    x 19.21ai    z gen
+            # Instead of calling "x  ph  y pa_ind" as in finds, we call it like this:
+            z  (A. x (-> (<= x z) ph))  y  pa_indplus1
+        mpan
+    ax-mp
+
+    # Huzzah!  Now just some cleanup.
+    a4i    a4i
+  z 19.22i    ax-mp    z  ph  ex-nf    ax-mp
+vtocl
+)
+
+# number 40.0
+## <title> Natural Number </title>
+thm (0orpos () () (\/ (= A (0)) (<= (1) A))
+  # x = 0 \/ 1<= x
+    A z lefoo
+    (1) A z df-le    (= A (0)) orbi2i
+  mpbir
+)
+
+export (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+export (INEQUALITY_NAT inequality_nat_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN INEQUALITY_MIN) "")

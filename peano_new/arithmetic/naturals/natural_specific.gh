@@ -1,0 +1,367 @@
+import (PROP ../../prop.ghi () "")
+import (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+import (N_NATURALS common.ghi (PROP N_PREDICATE) "n.")
+import (PREDICATE ../../predicate/all.ghi (PROP) "")
+import (NATURALS common.ghi (PROP PREDICATE) "")
+import (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+import (IMPORT import.ghi (PROP N_PREDICATE N_NATURALS PREDICATE NATURALS SET_MIN) "")
+import (N_ADD_MULTIPLY_NAT add_multiply_nat.ghi (PROP N_PREDICATE N_NATURALS) "n.")
+import (N_INEQUALITY inequality_nat.ghi (PROP N_PREDICATE N_NATURALS) "n.")
+
+tvar (wff ph ps ch th ta et)
+tvar (nat A B C D A' B' C' D')
+var (nat V W X Y Z)
+tvar (n.nat a b c d a' b' c' d')
+var (n.nat v w x y z)
+
+## <title> Def. nat to n.nat equality </title>
+## <summary>
+##   The normal equality = involves two nats. The natural equality involves two n.nats.
+##   This equality involves a nat on the left and a n.nat on the right.
+## </summary>
+defthm (df-eqn wff (=n A a) () () (<-> (=n A a) (/\ (e. A (N)) (n.= (n A) a)))
+  (/\ (e. A (N)) (n.= (n A) a)) biid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Partial Def. of Equality </title>
+## <summary> Just use the first half of the definition of =n. </summary>
+thm (dfeqn1 () () (-> (=n A a) (e. A (N)))
+  A a df-eqn  
+  ## <d 'Remove Right Side of AND '>
+    (e. A (N)) (n.= (n A) a) pm3.26
+    ImpReplaceBi1
+  ## </d 'Remove Right Side of AND '>
+)
+
+## <title> Partial Def. of Equality </title>
+## <summary> Just use the second half of the definition of =n. </summary>
+thm (dfeqn2 () () (-> (=n A a) (n.= (n A) a))
+  A a df-eqn  
+  ## <d 'Remove Left Side of AND '>
+    (e. A (N)) (n.= (n A) a) pm3.27
+    ImpReplaceBi1
+  ## </d 'Remove Left Side of AND '>
+)
+
+thm (eqnid () () (<-> (e. A (N)) (=n A (n A)))
+  A (n A) df-eqn
+  (n A) n.eqid  
+  (e. A (N)) anRemove2
+  (=n A (n A)) bibi2i
+  mpbi
+  bicomi
+)
+
+## <title> Identity </title>
+thm (eqn () () (-> (e. A (N)) (=n A (n A)))
+  A eqnid   
+  ## <d 'Infer Left to Right '>
+    (e. A (N)) (=n A (n A)) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+)
+
+## <title> Transitive Property </title>
+thm (eqntr () () (-> (/\ (=n A (n B)) (=n B a)) (=n A a))
+  A (n B) dfeqn1
+  (=n B a) pm3.41i
+  A (n B) dfeqn2
+  B a dfeqn2
+  anim12i  
+  ## <d 'Equality Transitive Property '>
+    (n A) (n B) a n.eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  jca
+  ## <d>
+    A a df-eqn bicomi  
+    sylib
+  ## </d>
+)
+
+thm (naddeq12d () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (n.= (n.+ (n A) (n B)) (n.+ a b)))
+  hyp1 A a dfeqn2 syl
+  hyp2 B b dfeqn2 syl
+  n.addeq12d
+)
+
+## <table>
+##   (-> ph (=n    A ] ]   ]        [ a ] ] ))
+##   (-> ph (=n      [ [ B ]        [   [ [ b))
+##   (-> ph (=n (+ A ] [ B ] ) (n.+ [ a ] [ b)))
+## </table>
+thm (natAdd1 () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (=n (+ A B) (n.+ a b)))
+  ## <d>
+    hyp1 A a dfeqn1 syl
+    hyp2 B b dfeqn1 syl
+    jca
+    A B addClosure  
+    syl
+  ## </d>
+  ## <d>
+    hyp1 A a dfeqn1 syl
+    hyp2 B b dfeqn1 syl
+    jca
+  ## </d>
+  ## <d>
+    A B addHomomorph    
+    syl
+  ## </d>
+  ## <d>
+    hyp1 hyp2 naddeq12d
+    n.eqtrd
+  ## </d>
+  jca
+  ## <d>
+    (+ A B) (n.+ a b) df-eqn bicomi  
+    sylib
+  ## </d>
+)
+
+## <table>
+##   (->     ph ] ]    ]   (=n    A ] ]   ]        [ a ] ] ))
+##   (->        [ [ ps ]   (=n      [ [ B ]        [   [ [ b))
+##   (-> (/\ ph ] [ ps ] ) (=n (+ A ] [ B ] ) (n.+ [ a ] [ b)))
+## </table>
+thm (natAdd2 () (hyp1 (-> ph (=n A a)) hyp2 (-> ps (=n B b))) (-> (/\ ph ps) (=n (+ A B) (n.+ a b)))
+  hyp1 ps pm3.41i
+  hyp2 ph pm3.42i
+  natAdd1
+)
+
+thm (nmuleq12d () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (n.= (n.* (n A) (n B)) (n.* a b)))
+  hyp1 A a dfeqn2 syl
+  hyp2 B b dfeqn2 syl
+  n.muleq12d
+)
+
+## <table>
+##   (-> ph (=n    A ] ]   ]        [ a ] ] ))
+##   (-> ph (=n      [ [ B ]        [   [ [ b))
+##   (-> ph (=n (* A ] [ B ] ) (n.* [ a ] [ b)))
+## </table>
+thm (natMul1 () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (=n (* A B) (n.* a b)))
+  ## <d>
+    hyp1 A a dfeqn1 syl
+    hyp2 B b dfeqn1 syl
+    jca
+    A B mulClosure  
+    syl
+  ## </d>
+  ## <d>
+    hyp1 A a dfeqn1 syl
+    hyp2 B b dfeqn1 syl
+    jca
+  ## </d>
+  ## <d>
+    A B mulHomomorph    
+    syl
+  ## </d>
+  ## <d>
+    hyp1 hyp2 nmuleq12d
+    n.eqtrd
+  ## </d>
+  jca
+  ## <d>
+    (* A B) (n.* a b) df-eqn bicomi  
+    sylib
+  ## </d>
+)
+
+## <table>
+##   (->     ph ] ]    ]   (=n    A ] ]   ]        [ a ] ] ))
+##   (->        [ [ ps ]   (=n      [ [ B ]        [   [ [ b))
+##   (-> (/\ ph ] [ ps ] ) (=n (* A ] [ B ] ) (n.* [ a ] [ b)))
+## </table>
+thm (natMul2 () (hyp1 (-> ph (=n A a)) hyp2 (-> ps (=n B b))) (-> (/\ ph ps) (=n (* A B) (n.* a b)))
+  hyp1 ps pm3.41i
+  hyp2 ph pm3.42i
+  natMul1
+)
+
+thm (nleeq12d () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (<-> (n.<= (n A) (n B)) (n.<= a b)))
+  hyp1 A a dfeqn2 syl
+  hyp2 B b dfeqn2 syl
+  n.leeq12d
+)
+
+## <table>
+##   (-> ph (=n      A ] ]   ]         [ a ] ] ))
+##   (-> ph (=n        [ [ B ]         [   [ [ b))
+##   (-> ph (<-> (<= A ] [ B ] ) (n.<= [ a ] [ b)))
+## </table>
+thm (natLe1 () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (<-> (<= A B) (n.<= a b)))
+  hyp1 A a dfeqn1 syl
+  hyp2 B b dfeqn1 syl
+  jca  
+  A B leHomomorph  
+  syl
+  hyp1 hyp2 nleeq12d
+  bitrd
+)
+
+## <table>
+##   (->     ph ] ]    ]   (=n      A ] ]   ]         [ a ] ] ))
+##   (->        [ [ ps ]   (=n        [ [ B ]         [   [ [ b))
+##   (-> (/\ ph ] [ ps ] ) (<-> (<= A ] [ B ] ) (n.<= [ a ] [ b)))
+## </table>
+thm (natLe2 () (hyp1 (-> ph (=n A a)) hyp2 (-> ps (=n B b))) (-> (/\ ph ps) (<-> (<= A B) (n.<= a b)))
+  hyp1 ps pm3.41i
+  hyp2 ph pm3.42i
+  natLe1
+)
+
+thm (neqeq12d () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (<-> (n.= (n A) (n B)) (n.= a b)))
+  hyp1 A a dfeqn2 syl
+  hyp2 B b dfeqn2 syl
+  n.eqeq12d
+)
+
+## <table>
+##   (-> ph (=n      A ] ]   ]         [ a ] ] ))
+##   (-> ph (=n        [ [ B ]         [   [ [ b))
+##   (-> ph (<-> (<= A ] [ B ] ) (n.<= [ a ] [ b)))
+## </table>
+thm (natEq1 () (hyp1 (-> ph (=n A a)) hyp2 (-> ph (=n B b))) (-> ph (<-> (= A B) (n.= a b)))
+  hyp1 A a dfeqn1 syl
+  hyp2 B b dfeqn1 syl
+  jca  
+  A B eqHomomorph  
+  syl
+  hyp1 hyp2 neqeq12d
+  bitrd
+)
+
+## <table>
+##   (->     ph ] ]    ]   (=n     A ] ]   ]        [ a ] ] ))
+##   (->        [ [ ps ]   (=n       [ [ B ]        [   [ [ b))
+##   (-> (/\ ph ] [ ps ] ) (<-> (= A ] [ B ] ) (n.= [ a ] [ b)))
+## </table>
+thm (natEq2 () (hyp1 (-> ph (=n A a)) hyp2 (-> ps (=n B b))) (-> (/\ ph ps) (<-> (= A B) (n.= a b)))
+  hyp1 ps pm3.41i
+  hyp2 ph pm3.42i
+  natEq1
+)
+
+thm (eqn0 () () (=n (0) (n.0))
+  (0) (n.0) df-eqn
+  0nat
+  n0
+  pm3.2i  
+  mpbirRemove
+)
+
+thm (eqn1 () () (=n (1) (n.1))
+  (1) (n.1) df-eqn
+  1nat
+  n1
+  pm3.2i  
+  mpbirRemove
+)
+
+thm (0le () () (-> (e. A (N)) (<= (0) A))
+  eqn0
+  (e. A (N)) a1i
+  A eqn
+  natLe1
+  ## <d>
+    (n A) n.0le
+    (<= (0) A) biRemove2
+    (e. A (N)) imbi2i
+    mpbi
+  ## </d>
+)
+
+thm (addge01t () () (-> (/\ (e. A (N)) (e. B (N))) (<= A (+ A B)))
+  A eqn
+  (e. B (N)) pm3.41i
+  A eqn
+  B eqn
+  natAdd2
+  natLe1
+  ## <d>
+    (n A) (n B) n.addge01t    
+    (<= A (+ A B)) biRemove2
+    (/\ (e. A (N)) (e. B (N))) imbi2i
+    mpbi
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Le1 () (
+     replacee (-> ph (<= A B))
+     substitution (= B C)) 
+     (-> ph (<= A C))
+  replacee substitution
+  A leeq2i
+  sylib
+)
+
+thm (addge02t () () (-> (/\ (e. A (N)) (e. B (N))) (<= A (+ B A)))
+  A B addge01t  
+  ## <d 'Commutative Property '>
+    A B addcom
+    EqReplaceImp1Le1
+  ## </d 'Commutative Property '>
+)
+
+thm (provele () () (-> (/\ (e. A (N)) (/\ (e. B (N)) (e. C (N)))) (-> (= (+ A B) C) (<= A C)))
+  A eqn B eqn natAdd2
+  C eqn natEq2
+  A eqn (e. B (N)) pm3.41i C eqn natLe2
+  imbi12d
+  ## <d>
+  (n A) (n B) (n C) n.provele  
+  (-> (= (+ A B) C) (<= A C)) biRemove2
+  (/\ (/\ (e. A (N)) (e. B (N))) (e. C (N))) imbi2i
+  mpbi
+  ## <d 'Associative Property '>
+    (e. A (N)) (e. B (N)) (e. C (N)) anass
+    sylbi2
+  ## </d 'Associative Property '>
+  ## </d>
+)
+
+thm (lefoo3 () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B))))
+  A eqn
+  B eqn natLe2
+  A eqn
+  B eqn natEq2
+  A eqn
+  eqn1 (e. A (N)) a1i
+  natAdd1
+  B eqn natLe2
+  orbi12d
+  bibi12d
+  (n A) (n B) n.lefoo3  
+  (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B))) biRemove2
+  (/\ (e. A (N)) (e. B (N))) imbi2i
+  mpbi
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (NAT_SPECIFIC natural_specific.ghi (PROP PREDICATE NATURALS SET_MIN) "")

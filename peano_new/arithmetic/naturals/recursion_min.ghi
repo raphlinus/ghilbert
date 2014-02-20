@@ -1,0 +1,30 @@
+# This file contains theorems related to natural number arithmetic. However, it does not
+# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
+# theorems that are valid for natural numbers, integers, rational numbers, and real
+# numbers.
+
+param (PROP prop.ghi () "")
+param (PREDICATE predicate/all.ghi (PROP) "")
+param (ORDERED_PAIR arithmetic/common/ordered_pair.ghi (PROP PREDICATE) "")
+param (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+param (FUNCTION function.ghi (PROP PREDICATE ORDERED_PAIR SET_MIN) "")
+param (NATURALS common.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+tvar (set S T U V)
+
+term (nat (recurse S A B))
+
+stmt (recurseseq1 () () (-> (=_ S T) (= (recurse S A B) (recurse T A B))))
+
+stmt (recurseeq2 () () (-> (= A B) (= (recurse S A C) (recurse S B C))))
+
+stmt (recurseeq3 () () (-> (= B C) (= (recurse S A B) (recurse S A C))))
+
+## <title> Applying a Function 0 Times </title>
+stmt (recurse0i () ((fun S)) (= (recurse S (0) A) A))
+
+## <title> Recursion Applies a Function Multiple Times </title>
+stmt (recursesuc () ((fun S)) (= (recurse S (+ A (1)) B) (apply S (recurse S A B))))

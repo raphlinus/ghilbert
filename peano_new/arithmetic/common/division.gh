@@ -321,6 +321,15 @@ thm (expandFraci () (Bnot0 (-. (= B (0)))) (= (/ A B) (* A (/ (1) B)))
   mulcan2i
 )
 
+## <title> 0 divided by anything is 0 </title>
+thm (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0)))
+  A (0) expandFrac  
+  ## <d 'Multiply by 0 '>
+    (/ (1) A) mul0r
+    EqReplaceImp1Eq1
+  ## </d 'Multiply by 0 '>
+)
+
 ## <title> Cancel using Division </title>
 thm (frac1 () () (-> (-. (= A (0))) (= (/ A A) (1)))
   A A expandFrac
@@ -1249,6 +1258,288 @@ thm (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C)
     A B df-minus eqcomi
     EqReplaceImp1Eq1Div0
   ## </d 'Definition of Subtraction '>
+)
+
+## <title> Multiply Two Denominators </title>
+thm (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C))))
+  C (/ A B) expandFrac
+  (-. (= B (0))) pm3.42i
+  B C A (1) fracmul  
+  ## <d 'Evaluate'>
+    A mulid
+    EqReplaceImp1Eq1Div0
+  ## </d 'Evaluate'>
+  jca  
+  ## <d 'Equality Transitive Property '>
+    (/ (/ A B) C) (* (/ A B) (/ (1) C)) (/ A (* B C)) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+)
+
+## <title> Multiply Two Denominators </title>
+thm (doubledivi () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C)))
+  Bnot0
+  Cnot0 pm3.2i
+  B C A doublediv
+  ax-mp
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (pos  [ A ]   ]   ] ) ph)
+##   (=         [ A ]   [ B ] )
+##   (<-> (pos  [   [   [ B ] ) ph)
+## </table>
+thm (EqReplaceBi0Pos0 () (
+     replacee (<-> (pos A) ph)
+     substitution (= A B)) 
+     (<-> (pos B) ph)
+  replacee substitution
+  poseqi
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (->  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Imp0 () (
+     replacee (-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ (/\  [ ps ]   ]    ]  th) ta))
+##   (<->            [ ps ]   [ ch ] )
+##   (-> ph (\/ (/\  [    [   [ ch ]  th) ta))
+## </table>
+thm (BiReplaceImp1Or0An0 () (
+     replacee (-> ph (\/ (/\ ps th) ta))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ (/\ ch th) ta))
+  replacee substitution
+  th anbi1i
+  BiReplaceImp1Or0
+)
+
+## <title> A positive number has a positive reciprocal </title>
+thm (posReciprocal () () (-> (> A (0)) (> (/ (1) A) (0)))
+  ## <d 'Inequality Conversion '>
+    A (0) gtneq
+  ## </d 'Inequality Conversion '>
+  A posSquares
+  (* A A) posNotNeg  
+  syl  
+  syl
+
+  (* A A) (/ (1) A) posProduct  
+  ## <d 'Associative Property '>
+    A A (/ (1) A) mulass
+    EqReplaceBi0Pos0
+  ## </d 'Associative Property '>
+  (> A (0)) a1i
+   
+  ## <d 'Inequality Conversion '>
+    A (0) gtneq
+  ## </d 'Inequality Conversion '>
+  A (1) divcan   
+  syl
+  A muleq2d  
+  ## <d 'Evaluate'>
+    A mulid
+    EqReplaceImp1Eq1
+  ## </d 'Evaluate'>
+  (* A (* A (/ (1) A))) A poseq   
+  syl
+  bicomd
+  ## <d>
+  jca  
+  ## <d 'Commute Conjunction '>
+    (<-> (pos (* A (* A (/ (1) A)))) (\/ (/\ (zneg (* A A)) (zneg (/ (1) A))) (/\ (pos (* A A)) (pos (/ (1) A))))) (<-> (pos A) (pos (* A (* A (/ (1) A))))) ancom
+    sylib
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Transitive Property '>
+    (pos A) (pos (* A (* A (/ (1) A)))) (\/ (/\ (zneg (* A A)) (zneg (/ (1) A))) (/\ (pos (* A A)) (pos (/ (1) A)))) bitr
+    syl
+  ## </d 'Transitive Property '>
+
+  ## <d 'Infer Left to Right '>
+    (pos A) (\/ (/\ (zneg (* A A)) (zneg (/ (1) A))) (/\ (pos (* A A)) (pos (/ (1) A)))) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  A df-pos  
+  BiReplaceImp1Imp0  
+  ## <d 'Import-Export Theorem '>
+    (> A (0)) (> A (0)) (\/ (/\ (zneg (* A A)) (zneg (/ (1) A))) (/\ (pos (* A A)) (pos (/ (1) A)))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>  
+  ## <d 'Conjunction is Idempotent '>
+    (> A (0)) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  ## </d>
+  jca  
+  ## <d 'Distributive Property '>
+    (-. (zneg (* A A))) (/\ (zneg (* A A)) (zneg (/ (1) A))) (/\ (pos (* A A)) (pos (/ (1) A))) andi
+    sylib
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Associative Property '>
+    (-. (zneg (* A A))) (zneg (* A A)) (zneg (/ (1) A)) anass bicomi
+    BiReplaceImp1Or0
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commute Conjunction '>
+    (-. (zneg (* A A))) (zneg (* A A)) ancom
+    BiReplaceImp1Or0An0
+  ## </d 'Commute Conjunction '>
+  
+  ## <d 'Remove Left Side of AND '>
+    (zneg (* A A)) pm3.24
+    
+    (zneg (/ (1) A)) anNotRemove1
+    (/\ (-. (zneg (* A A))) (/\ (pos (* A A)) (pos (/ (1) A)))) orbi1i
+    sylib
+  ## </d 'Remove Left Side of AND '>
+  notfal  
+  (/\ (-. (zneg (* A A))) (/\ (pos (* A A)) (pos (/ (1) A)))) orNotRemove1
+  (> A (0)) imbi2i
+  mpbi  
+  ## <d 'Remove Left Side of AND '>
+    (-. (zneg (* A A))) (/\ (pos (* A A)) (pos (/ (1) A))) pm3.27
+    syl
+  ## </d 'Remove Left Side of AND '>  
+  ## <d 'Remove Left Side of AND '>
+    (pos (* A A)) (pos (/ (1) A)) pm3.27
+    syl
+  ## </d 'Remove Left Side of AND '>
+  (/ (1) A) df-pos  
+  sylib
+)
+
+thm (divNotZero () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (/ A B) (0))))
+  B reciprocalNot0
+  (-. (= A (0))) anim2i
+  A (/ (1) B) zeroProductz  
+  syl
+  B A expandFrac
+  (-. (= A (0))) a1i  
+  ## <d 'Import-Export Theorem '>
+    (-. (= A (0))) (-. (= B (0))) (= (/ A B) (* A (/ (1) B))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  (0) eqeq1d bicomd  
+  ## <d 'Negate Both Sides '>
+    (= (* A (/ (1) B)) (0)) (= (/ A B) (0)) notbi
+    sylib
+  ## </d 'Negate Both Sides '>
+  jca  
+  ## <d>
+    (-. (= (* A (/ (1) B)) (0))) (-. (= (/ A B) (0))) mpbi-inline
+    syl
+  ## </d>
+)
+
+thm (divNotZeroi () (Anot0 (-. (= A (0))) Bnot0 (-. (= B (0)))) (-. (= (/ A B) (0)))
+  Anot0
+  Bnot0
+  pm3.2i
+  A B divNotZero
+  ax-mp
+)
+
+thm (divDouble () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ A (/ B C)) (/ (* A C) B)))
+  B C divNotZero  
+  (-. (= B (0))) (-. (= C (0))) pm3.27
+  jca
+  (/ B C) C A fracFactors  
+  syl
+  ## <d 'Commutative Property '>
+    (/ B C) C mulcom
+    EqReplaceImp1Eq0Div1
+  ## </d 'Commutative Property '>
+  eqcomd  
+
+  (-. (= B (0))) (-. (= C (0))) pm3.27
+  C B divcan
+  syl
+  (* A C) diveq2d
+  jca  
+  ## <d 'Equality Transitive Property '>
+    (/ A (/ B C)) (/ (* A C) (* C (/ B C))) (/ (* A C) B) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+)
+
+## <title> One-Digit Inequality </title>
+thm (1notEqual0 () () (-. (= (1) (0)))
+  1greater0
+  ## <d 'Convert to ≠'>
+    (1) (0) gtneq
+    ax-mp
+  ## </d 'Convert to ≠'>
+)
+
+## <title> A number is its reciprocal's reciprocal </title>
+thm (doubleReciprocal () () (-> (-. (= A (0))) (= (/ (1) (/ (1) A)) A))
+  (1) A (1) divDouble  
+  ## <d 'Multiplicative Identity '>
+    A mulidr
+    EqReplaceImp1Eq1Div0
+  ## </d 'Multiplicative Identity '>
+  A divid  
+  EqReplaceImp1Eq1  
+  1notEqual0  
+  (-. (= A (0))) anRemove1
+  (= (/ (1) (/ (1) A)) A) imbi1i
+  mpbi
+)
+
+thm (posReciprocal2 () () (-> (-. (= A (0))) (<-> (> A (0)) (> (/ (1) A) (0))))
+  A posReciprocal
+  (-. (= A (0))) a1i
+
+  (/ (1) A) posReciprocal
+  A doubleReciprocal
+  (0) gteq1d
+  anim12i  
+  ## <d>
+    (> (/ (1) (/ (1) A)) (0)) (> A (0)) mpbi-inline
+    syl
+  ## </d>  
+  ## <d 'Commute Conjunction '>
+    (> (/ (1) A) (0)) (-. (= A (0))) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Import-Export Theorem '>
+    (-. (= A (0))) (> (/ (1) A) (0)) (> A (0)) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  impbid
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>

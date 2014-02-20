@@ -1,0 +1,768 @@
+import (PROP ../../prop.ghi () "")
+import (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+import (ORDERED_PAIR ../common/ordered-pair.ghi (PROP N_PREDICATE) "n.")
+import (N_NATURALS ../naturals/common.ghi (PROP N_PREDICATE) "n.")
+import (N_ADD_MULTIPLY_NAT ../naturals/add_multiply_nat.ghi (PROP N_PREDICATE N_NATURALS) "n.")
+import (N_INEQUALITY_NAT ../naturals/inequality_nat.ghi (PROP N_PREDICATE N_NATURALS) "n.")
+import (HALFMINUS ../naturals/halfminus.ghi (PROP N_PREDICATE N_NATURALS) "n.")
+import (PREDICATE_MIN ../../predicate/predicate_min.ghi (PROP) "")
+import (PREDICATE ../../predicate/predicate.ghi (PROP PREDICATE_MIN) "")
+import (EQUALITY_MIN ../../predicate/equality_min.ghi (PROP PREDICATE_MIN PREDICATE) "")
+import (EQUALITY ../../predicate/equality.ghi (PROP PREDICATE_MIN PREDICATE EQUALITY_MIN) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (n.nat a b c d a' b' c' d')
+var (nat v w x y z)              
+var (n.nat X Y Z)    # It is confusing that the lowercase and uppercases are switched. However, the javascript verifier complains when we export PREDICATE_ALL with x as a n.nat.
+
+export (PREDICATE_ALL ../../predicate/all.ghi (PROP) "")
+import (EQUALITY_INT equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE_ALL) "")
+import (NATURALS ../naturals/common.ghi (PROP PREDICATE_ALL) "")
+export (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE_ALL) "")
+import (ADD_MULTIPLY_INT add_multiply_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATURALS EQUALITY_INT ADD_MULTIPLY_MIN) "")
+export (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")
+import (INEQUALITY_INT inequality_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATURALS EQUALITY_INT ADD_MULTIPLY_MIN INEQUALITY_MIN) "")
+
+import (SET_MIN ../../set_min.ghi (PROP PREDICATE_ALL) "")
+import (SET ../../set.ghi (PROP PREDICATE_ALL SET_MIN) "")
+
+tvar (set S T U V)
+
+## <title> Def. Naturals as a Subset of the Integers </title>
+defthm (df-naturals set (N) () () (=_ (N) ({|} y (<= (0) y)))
+  x y (0) leeq2
+  abeq
+)
+
+## <title> Natural Numbers are not negative </title>
+thm (natpos () () (<-> (e. A (N)) (<= (0) A))
+  A x (<= (0) x) ax-elab
+  ## <d>
+    x df-naturals seqcomi
+    A elseq2i  
+    bitr3icom
+  ## </d>
+  ## <d 'Apply Substitution'>  
+    (= x A) id
+    (0) leeq2d
+    sbcie  
+    bitri
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=  [ A ]   ]   ]  C))
+##   (=           [ A ]   [ B ] )
+##   (<-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Le0 () (
+     replacee (<-> ph (<= A C))
+     substitution (= A B)) 
+     (<-> ph (<= B C))
+  replacee substitution
+  C leeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+thm (addClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (+ A B) (N)))
+		## <d>
+			B natpos
+
+    A natpos
+  ## </d>
+  ## <d 'Add B to both sides'>
+  (0) A B leadd1
+  bitri
+
+  ## <d 'Integer Addition Identity '>
+  ## <d 'Commutative Property of Addition '>
+    (0) B addcom  
+    EqReplaceBi1Le0
+  ## </d 'Commutative Property of Addition '>
+  ## <d 'Integer Addition Identity '>
+    B addid
+    EqReplaceBi1Le0
+  ## </d 'Integer Addition Identity '>
+  ## </d 'Integer Addition Identity '>
+  ## </d>
+
+  ## <d 'If B is natural it is not negative'>
+  anbi12i
+  ## <d 'Commute Conjunction '>
+    (e. B (N)) (e. A (N)) ancom
+    bitr3icom
+  ## </d 'Commute Conjunction '>
+  ## </d>
+  (0) B (+ A B) letr  
+  ImpReplaceBi1
+  ## <d>
+    (+ A B) natpos bicomi
+    sylib
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Le1 () (
+     replacee (-> ph (<= A B))
+     substitution (= B C)) 
+     (-> ph (<= A C))
+  replacee substitution
+  A leeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Le0 () (
+     replacee (-> ph (<= A C))
+     substitution (= A B)) 
+     (-> ph (<= B C))
+  replacee substitution
+  C leeq1i
+  sylib
+)
+
+thm (mulClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (* A B) (N)))
+  ## <d 'Inequality with Positive Multiplication'>
+  (0) A B lemul2  
+  ## <d 'Commutative Property '>
+    B A mulcom
+    EqReplaceImp1Le1
+  ## </d 'Commutative Property '>  
+  ## </d>
+  ## <d 'Evaluate'>
+    B mul0
+    EqReplaceImp1Le0
+  ## </d 'Evaluate'>
+  ## <d>
+    ## <d>
+      A natpos bicomi
+      B natpos bicomi
+      anbi12i  
+      sylbi2
+    ## </d>
+    ## <d>
+      (* A B) natpos bicomi  
+      sylib
+    ## </d>
+  ## </d>
+)
+
+## <title> Def. Integer to Natural Conversion </title>
+defthm (df-n n.nat (n A) () () (n.= (n A) (n..- (head A) (tail A)))
+  (n..- (head A) (tail A)) n.eqid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.= a  [ b ]   ]   ] ))
+##   (n.=           [ b ]   [ c ] )
+##   (-> ph (n.= a  [   [   [ c ] ))
+## </table>
+thm (NeqReplaceImp1Neq1 () (
+     replacee (-> ph (n.= a b))
+     substitution (n.= b c)) 
+     (-> ph (n.= a c))
+  replacee substitution
+  a n.eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.=  [ a ]   ]   ]  c))
+##   (n.=         [ a ]   [ b ] )
+##   (-> ph (n.=  [   [   [ b ]  c))
+## </table>
+thm (NeqReplaceImp1Neq0 () (
+     replacee (-> ph (n.= a c))
+     substitution (n.= a b)) 
+     (-> ph (n.= b c))
+  replacee substitution
+  c n.eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee substitution
+  ph anbi2i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (n.= a  [ B ]   ]   ] ) ph)
+##   (n.=         [ B ]   [ C ] )
+##   (<-> (n.= a  [   [   [ C ] ) ph)
+## </table>
+thm (NeqReplaceBi0Neq1 () (
+     replacee (<-> (n.= a b) ph)
+     substitution (n.= b c)) 
+     (<-> (n.= a c) ph)
+  replacee substitution
+  a n.eqeq2i
+  bitr3icom
+)
+
+## <title> Natural numbers are not negative </title>
+thm (natpos2 () () (<-> (e. A (N)) (n.<= (tail A) (head A)))
+  A natpos
+  A ge0  
+  bitri
+)
+
+
+
+thm (neq () () (-> (/\ (e. A (N)) (/\ (e. B (N)) (= A B))) (n.= (n A) (n B)))
+  (tail A) (head A) n.halfminus
+  A natpos2 bicomi sylbi2
+  (tail B) n.addeq1d
+  A B df-eq  
+  ## <d 'Infer Left to Right '>
+    (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  anim12i
+  ## <d 'Equality Transitive Property '>
+    (n.+ (n.+ (n..- (head A) (tail A)) (tail A)) (tail B)) (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) n.eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  (tail B) (head B) n.halfminus
+  B natpos2 bicomi sylbi2 n.eqcomd
+  (tail A) n.addeq1d
+  anim12i  
+  ## <d 'Equality Transitive Property '>
+    (n.+ (n.+ (n..- (head A) (tail A)) (tail A)) (tail B)) (n.+ (head B) (tail A)) (n.+ (n.+ (n..- (head B) (tail B)) (tail B)) (tail A)) n.eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  (n..- (head A) (tail A)) (tail A) (tail B) 
+  n.add23  
+  NeqReplaceImp1Neq0
+
+  ## <d>
+  (n.+ (n..- (head A) (tail A)) (tail B)) (tail A) 
+  (n.+ (n..- (head B) (tail B)) (tail B))
+  n.addcan  
+  sylib
+  ## </d>  
+  ## <d>
+  (n..- (head A) (tail A)) (tail B) (n..- (head B) (tail B)) 
+  n.addcan  
+  sylib
+  ## </d>  
+  ## <d>  
+  A df-n n.eqcomi  
+  NeqReplaceImp1Neq0
+  ## </d>  
+  ## <d>  
+  B df-n n.eqcomi  
+  NeqReplaceImp1Neq1
+  ## </d>    
+  ## <d 'Commute Conjunction '>
+  ## <d 'Associative Property '>
+    (e. A (N)) (= A B) (e. B (N)) anass
+    sylbi2
+  ## </d 'Associative Property '>  
+  ## <d 'Commute Conjunction '>
+    (= A B) (e. B (N)) ancom
+    BiReplaceImp0An1
+  ## </d 'Commute Conjunction '>
+  ## </d 'Commute Conjunction '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (=  [ A ]   ]   ]  C) ph)
+##   (=       [ A ]   [ B ] )
+##   (<-> (=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceBi0Eq0 () (
+     replacee (<-> (= A C) ph)
+     substitution (= A B)) 
+     (<-> (= B C) ph)
+  replacee substitution
+  C eqeq1i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.=  [ a ]   ]   ]  c))
+##   (n.=          [ a ]   [ b ] )
+##   (<-> ph (n.=  [   [   [ b ]  c))
+## </table>
+thm (NeqReplaceBi1Neq0 () (
+     replacee (<-> ph (n.= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.= b c))
+  replacee substitution
+  c n.eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (<,>  [ b ]   ]   ]  d)))
+##   (n.=              [ b ]   [ c ] )
+##   (-> ph (= A (<,>  [   [   [ c ]  d)))
+## </table>
+thm (NeqReplaceImp1Eq1Op0 () (
+     replacee (-> ph (= A (<,> b d)))
+     substitution (n.= b c)) 
+     (-> ph (= A (<,> c d)))
+  replacee substitution
+  d opeq1i
+  EqReplaceImp1Eq1
+)
+
+## <title> Natural Number as an Integer </title>
+## <summary>
+##   Express a natural number as an ordered pair representing an
+##   integer with a negative part of 0.
+## </summary>
+thm (natAsInt () () (-> (e. A (N)) (= A (<,> (n A) (n.0))))
+  ## <d 'Minus is the inverse of addition'>
+    (tail A) (head A) n.halfminus
+    A  natpos2 bicomi
+    sylbi2
+    ## <d 'Symmetric Property '>
+      (n.+ (n..- (head A) (tail A)) (tail A)) (head A) n.eqcom
+      sylib
+    ## </d 'Symmetric Property '>
+  ## </d>
+  ## <d 'Natural to Integer Equality'>
+    (head A) (tail A) (n..- (head A) (tail A)) (n.0) opzeq
+    A opexpand eqcomi
+    EqReplaceBi0Eq0
+    ## <d 'Additive Identity '>
+      (head A) n.addid
+      NeqReplaceBi1Neq0
+    ## </d 'Additive Identity '>
+    bicomi
+    sylib
+  ## </d>
+  ## <d>
+    A df-n n.eqcomi
+    NeqReplaceImp1Eq1Op0
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (n.=  [ a ]   ]   ]  c)))
+##   (n.=                 [ a ]   [ b ] )
+##   (-> ph (<-> ps (n.=  [   [   [ b ]  c)))
+## </table>
+thm (NeqReplaceImp1Bi1Neq0 () (
+     replacee (-> ph (<-> ps (n.= a c)))
+     substitution (n.= a b)) 
+     (-> ph (<-> ps (n.= b c)))
+  replacee substitution
+  c n.eqeq1i
+  BiReplaceImp1Bi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (n.= a  [ b ]   ]   ] )))
+##   (n.=                   [ b ]   [ c ] )
+##   (-> ph (<-> ps (n.= a  [   [   [ c ] )))
+## </table>
+thm (NeqReplaceImp1Bi1Neq1 () (
+     replacee (-> ph (<-> ps (n.= a b)))
+     substitution (n.= b c)) 
+     (-> ph (<-> ps (n.= a c)))
+  replacee substitution
+  a n.eqeq2i
+  BiReplaceImp1Bi1
+)
+
+thm (eqHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (= A B) (n.= (n A) (n B))))
+  A natAsInt
+  B natAsInt
+  anim12i
+
+  A (<,> (n A) (n.0)) B (<,> (n B) (n.0)) eqeq12
+  syl
+
+  (n A) (n.0) (n B) (n.0) opzeq  
+  BiReplaceImp1Bi1
+
+  ## <d 'Additive Identity '>
+    ## <d 'Additive Identity '>
+      (n A) n.addid
+      NeqReplaceImp1Bi1Neq0
+    ## </d 'Additive Identity '>
+    ## <d 'Additive Identity '>
+      (n B) n.addid
+      NeqReplaceImp1Bi1Neq1
+    ## </d 'Additive Identity '>
+  ## </d 'Additive Identity '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<=  [ a ]   ]   ]  c))
+##   (n.=           [ a ]   [ b ] )
+##   (<-> ph (n.<=  [   [   [ b ]  c))
+## </table>
+thm (NeqReplaceBi1Nle0 () (
+     replacee (<-> ph (n.<= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.<= b c))
+  replacee substitution
+  c n.leeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<= a  [ b ]   ]   ] ))
+##   (n.=             [ b ]   [ c ] )
+##   (<-> ph (n.<= a  [   [   [ c ] ))
+## </table>
+thm (NeqReplaceBi1Nle1 () (
+     replacee (<-> ph (n.<= a b))
+     substitution (n.= b c)) 
+     (<-> ph (n.<= a c))
+  replacee substitution
+  a n.leeq2i
+  bitri
+)
+
+## <title> A number with no negative part is natural </title>
+thm (0tailpos () () (e. (<,> a (n.0)) (N))
+  (<,> a (n.0)) natpos
+  (<,> a (n.0)) ge0
+  ## <d 'Apply Tail Operator '>
+    a (n.0) tailop  
+    NeqReplaceBi1Nle0
+  ## </d 'Apply Tail Operator '>
+
+  ## <d 'Apply Head Operator '>
+    a (n.0) headop
+    NeqReplaceBi1Nle1
+  ## </d 'Apply Head Operator '>
+  bitri
+  a n.0le
+  mpbirRemove
+)
+
+## <title> Substitution </title>
+## <table>
+##   (n.= a  [ b ]   ]   ] )
+##   (n.=    [ b ]   [ c ] )
+##   (n.= a  [   [   [ c ] )
+## </table>
+thm (NeqReplaceNeq1 () (
+     replacee (n.= a b)
+     substitution (n.= b c)) 
+     (n.= a c)
+  replacee substitution
+  a n.eqeq2i
+  mpbi
+)
+
+thm (ntail0 () () (n.= (n (<,> a (n.0))) a)
+  (<,> a (n.0)) df-n
+  ## <d 'Apply heads and tails'>
+  a (n.0) headop (tail (<,> a (n.0))) n.halfminuseq1i
+  NeqReplaceNeq1
+  a (n.0) tailop a n.halfminuseq2i  
+  NeqReplaceNeq1
+  ## </d>
+  a n.halfminuszero
+  NeqReplaceNeq1
+)
+
+## <title> Integer to Natural Equality </title>
+thm (tail0eq () () (-> (= A (<,> b (n.0))) (n.= (n A) b))
+  A (<,> b (n.0)) (N) ax-eleq1
+  ## <d 'Infer Right to Left '>
+    (e. A (N)) (e. (<,> b (n.0)) (N)) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  b 0tailpos
+  (e. A (N)) impRemove1
+  (= A (<,> b (n.0))) imbi2i
+  mpbi
+  b 0tailpos
+  (e. A (N)) anRemove1 bicomi
+  sylib
+  ## <d 'Commute Conjunction '>
+    (e. (<,> b (n.0)) (N)) (e. A (N)) ancom
+    sylib
+  ## </d 'Commute Conjunction '>
+
+  A (<,> b (n.0)) eqHomomorph
+  syl
+
+  ## <d 'Implication & Biconditional '>
+    (= A (<,> b (n.0))) (n.= (n A) (n (<,> b (n.0)))) ibib bicomi
+    mpbi
+  ## </d 'Implication & Biconditional '>
+  b ntail0  
+  NeqReplaceImp1Neq1
+)
+
+thm (addHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (n.= (n (+ A B)) (n.+ (n A) (n B))))
+  A natAsInt
+  B natAsInt
+  anim12i  
+  A (<,> (n A) (n.0)) B (<,> (n B) (n.0)) addeq12  
+  syl
+
+  (n A) (n.0) (n B) (n.0) addop
+  ## <d 'Additive Identity '>
+    (n.0) n.addid
+  ## </d 'Additive Identity '>
+  (n.+ (n A) (n B))  opeq2i  
+  EqReplaceEq1  
+  EqReplaceImp1Eq1
+
+  (+ A B) (n.+ (n A) (n B)) tail0eq  
+  syl
+)
+
+thm (mulHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (n.= (n (* A B)) (n.* (n A) (n B))))
+  A natAsInt
+  B natAsInt
+  anim12i  
+  A (<,> (n A) (n.0)) B (<,> (n B) (n.0)) muleq12  
+  syl
+
+  (n A) (n.0) (n B) (n.0) mulop  
+  EqReplaceImp1Eq1
+
+  ## <d 'Multiply by 0'>
+  ## <d 'Multiply by 0 '>
+    (n.0) n.mul0r
+  ## </d 'Multiply by 0 '>
+  (n.* (n A) (n B)) n.addeq2i  
+  ## <d 'Additive Identity '>
+    (n.* (n A) (n B)) n.addid
+    NeqReplaceNeq1
+  ## </d 'Additive Identity '>
+  (n.+ (n.* (n A) (n.0)) (n.* (n.0) (n B))) opeq1i
+
+  EqReplaceImp1Eq1
+  (n A) n.mul0
+  (n B) n.mul0r
+  n.addeq12i
+  ## <d 'Additive Identity '>
+    (n.0) n.addid
+    NeqReplaceNeq1
+  ## </d 'Additive Identity '>
+  (n.* (n A) (n B)) opeq2i    
+  EqReplaceImp1Eq1
+  ## </d>
+  (* A B) (n.* (n A) (n B)) tail0eq  
+  syl
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (n.<=  [ a ]   ]   ]  c)))
+##   (n.=                  [ a ]   [ b ] )
+##   (-> ph (<-> ps (n.<=  [   [   [ b ]  c)))
+## </table>
+thm (NeqReplaceImp1Bi1Nle0 () (
+     replacee (-> ph (<-> ps (n.<= a c)))
+     substitution (n.= a b)) 
+     (-> ph (<-> ps (n.<= b c)))
+  replacee substitution
+  c n.leeq1i
+  BiReplaceImp1Bi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (n.<= a  [ b ]   ]   ] )))
+##   (n.=                    [ b ]   [ c ] )
+##   (-> ph (<-> ps (n.<= a  [   [   [ c ] )))
+## </table>
+thm (NeqReplaceImp1Bi1Nle1 () (
+     replacee (-> ph (<-> ps (n.<= a b)))
+     substitution (n.= b c)) 
+     (-> ph (<-> ps (n.<= a c)))
+  replacee substitution
+  a n.leeq2i
+  BiReplaceImp1Bi1
+)
+
+thm (leHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (<= A B) (n.<= (n A) (n B))))
+  A natAsInt
+  B natAsInt
+  anim12i
+  ## <d>
+    A (<,> (n A) (n.0)) B (<,> (n B) (n.0)) leeq12  
+    syl
+  ## </d>
+  ## <d>
+    (n A) (n.0) (n B) (n.0) leop  
+    BiReplaceImp1Bi1
+  ## </d>  
+  ## <d 'Additive Identity '>
+  ## <d 'Additive Identity '>
+    (n A) n.addid
+    NeqReplaceImp1Bi1Nle0
+  ## </d 'Additive Identity '>  
+  ## <d 'Additive Identity '>
+    (n B) n.addid
+    NeqReplaceImp1Bi1Nle1
+  ## </d 'Additive Identity '>
+  ## </d 'Additive Identity '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (e.  [ A ]   ]   ]  S)
+##   (=   [ A ]   [ B ] )
+##   (e.  [   [   [ B ]  S)
+## </table>
+thm (EqReplaceEl0 () (
+     replacee (e. A S)
+     substitution (= A B)) 
+     (e. B S)
+  replacee substitution
+  S eleq1i
+  mpbi
+)
+
+## <title> 0 is a Natural Number </title>
+thm (0nat () () (e. (0) (N))
+  (n.0) 0tailpos
+  df0z eqcomi  
+  EqReplaceEl0
+)
+
+## <title> 1 is a Natural Number </title>
+thm (1nat () () (e. (1) (N))
+  (n.1) 0tailpos
+  df1z eqcomi  
+  EqReplaceEl0
+)
+
+thm (n0 () () (n.= (n (0)) (n.0))
+  (0) (<,> (n.0) (n.0)) neq
+  df0z  
+  (e. (<,> (n.0) (n.0)) (N)) anRemove2
+  (e. (0) (N)) anbi2i
+  sylbi2
+  0nat  
+  (e. (<,> (n.0) (n.0)) (N)) anRemove1
+  (n.= (n (0)) (n (<,> (n.0) (n.0)))) imbi1i
+  mpbi
+  (n.0) 0tailpos  
+  ax-mpRemove
+  (<,> (n.0) (n.0)) df-n  
+  NeqReplaceNeq1
+  (n.0) (n.0) headop
+  (tail (<,> (n.0) (n.0))) n.halfminuseq1i  
+  NeqReplaceNeq1
+  (n.0) (n.0) tailop
+  (n.0) n.halfminuseq2i    
+  NeqReplaceNeq1
+  (n.0) n.halfminusid  
+  NeqReplaceNeq1
+)
+
+thm (n1 () () (n.= (n (1)) (n.1))
+  (1) (<,> (n.1) (n.0)) neq
+  df1z  
+  (e. (<,> (n.1) (n.0)) (N)) anRemove2
+  (e. (1) (N)) anbi2i
+  sylbi2
+  1nat  
+  (e. (<,> (n.1) (n.0)) (N)) anRemove1
+  (n.= (n (1)) (n (<,> (n.1) (n.0)))) imbi1i
+  mpbi
+  (n.1) 0tailpos  
+  ax-mpRemove
+  (<,> (n.1) (n.0)) df-n  
+  NeqReplaceNeq1
+  (n.1) (n.0) headop
+  (tail (<,> (n.1) (n.0))) n.halfminuseq1i  
+  NeqReplaceNeq1
+  (n.1) (n.0) tailop
+  (n.1) n.halfminuseq2i    
+  NeqReplaceNeq1
+  (n.1) n.halfminuszero  
+  NeqReplaceNeq1
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (IMPORT_NAT ../naturals/import.ghi (PROP N_PREDICATE N_NATURALS PREDICATE_ALL NATURALS SET_MIN) "")

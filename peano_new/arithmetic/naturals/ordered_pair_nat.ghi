@@ -1,0 +1,18 @@
+param (PROP ../../prop.ghi () "")
+param (PREDICATE_EQ ../../predicate_eq.ghi (PROP) "")
+param (NATURALS common.ghi (PROP PREDICATE_EQ) "")
+param (ORDERED_PAIR ordered-pair.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+# This is used in maxex2 in recursion.gh. We should try to rewrite that theorem
+# so that this is not necessary. leop12 can be proved from the definition of the ordered pair.
+
+## <title> Ordered Pairs Ordering Theorem </title>
+## <summary>
+##   An ordering theorem on ordered pairs. Note that this breaks the abstraction somewhat,
+##   but if necessary we could define a special ordering rather than reusing <=.
+## </summary>
+stmt (leop12 () () (-> (/\ (<= A B) (<= C D)) (<= (<,> A C) (<,> B D))))

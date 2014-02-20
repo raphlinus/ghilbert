@@ -2253,20 +2253,38 @@ thm (pm3.27d () (pm3.27d.1 (-> ph (/\ ps ch))) (-> ph ch) pm3.27d.1 ps ch pm3.27
 thm (pm3.27bi () (pm3.27bi.1 (<-> ph (/\ ps ch))) (-> ph ch) pm3.27bi.1 biimpi pm3.27d)
 
 #  Theorem *3.41 of [bib/WhiteheadRussell] p. 113. 
-## <title> 'Add to Antecedent' </title>
+## <title> Add to Antecedent </title>
 thm (pm3.41 () () (-> (-> ph ch) (-> (/\ ph ps) ch)) ph ps pm3.26 ch imim1i)
 
 #  Theorem *3.42 of [bib/WhiteheadRussell] p. 113. 
-## <title> 'Add to Antecedent' </title>
+## <title> Add to Antecedent </title>
 thm (pm3.42 () () (-> (-> ps ch) (-> (/\ ph ps) ch)) ph ps pm3.27 ch imim1i)
+
+## <title> Add to Antecedent </title>
+## <table>
+##   (->     ph ]     ] ps)
+##   (-> (/\ ph ] ch) ] ps)
+## </table>
+thm (pm3.41i () (hyp (-> ph ps)) (-> (/\ ph ch) ps)
+  hyp ph ps ch pm3.41 ax-mp
+)
+
+## <title> Add to Antecedent </title>
+## <table>
+##   (->        [  ph ps)
+##   (-> (/\ ch [ ph) ps)
+## </table>
+thm (pm3.42i () (hyp (-> ph ps)) (-> (/\ ch ph) ps)
+  hyp ph ps ch pm3.42 ax-mp
+)
 
 #  Conjoin antecedent to left of consequent.  Theorem *4.7 of
 #      [bib/WhiteheadRussell] p. 120. 
-## <title> 'Add Antecedent as consequent' </title>
+## <title> Add Antecedent as consequent </title>
 thm (anclb () () (<-> (-> ph ps) (-> ph (/\ ph ps))) ph ps ancl ph ps pm3.27 ph imim2i impbii)
 
 #  Conjoin antecedent to right of consequent. 
-## <title> 'Add Antecedent as consequent' </title>
+## <title> Add Antecedent as consequent </title>
 thm (ancrb () () (<-> (-> ph ps) (-> ph (/\ ps ph))) ph ps ancr ps ph pm3.26 ph imim2i impbii)
 
 #  Conjunction implies implication.  Theorem *3.4 of [bib/WhiteheadRussell]
@@ -5548,6 +5566,20 @@ thm (mpbi-inline () () (-> (/\ ph (<-> ph ps)) ps)
     ps (<-> ph ps) pm3.26
     ImpReplaceBi1
   ## </d>
+)
+
+thm (impexpi  () (hyp (-> (/\ ph ps) ch)) (-> ps (-> ph ch))
+  hyp ancoms ps ph ch impexp mpbi)
+
+thm (anim3 () () (-> (/\ ph (-> ps ch)) (-> ps (/\ ph ch)))
+ ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch)  pm3.27 syl
+ ph  ps  ch  impexp  sylib
+  com23
+ ph  ps  ch  pm5.33   biimpi  ph  (-> (/\ ph ps) ch) pm3.26  syl
+   jctild
+  ph  (-> ph ch)  pm3.26
+  ph  ch  pm3.35       jca
+ syl6
 )
 
 export (PROP /peano/prop.ghi () "")

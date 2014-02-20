@@ -190,6 +190,42 @@ thm (ifneq13 () () (-> (/\ (<-> ph ps) (= A B)) (= (ifn ph C A) (ifn ps C B)))
   ## </d 'Transitive Property '>
 )
 
+## <title> Equivalence for ifn </title>
+thm (ifnbi123 () () (-> (/\ (<-> ph ps) (/\ (= A C) (= B D))) (= (ifn ph A B) (ifn ps C D)))
+  ph ps A B ifnbi1
+  A C ps B ifneq2
+  anim12i
+  ## <d 'Equality Transitive Property '>
+    (ifn ph A B) (ifn ps A B) (ifn ps C B) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  B D ps C ifneq3
+  anim12i
+  ## <d 'Equality Transitive Property '>
+    (ifn ph A B) (ifn ps C B) (ifn ps C D) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  ## <d 'Associative Property '>
+    (<-> ph ps) (= A C) (= B D) anass
+    sylbi2
+  ## </d 'Associative Property '>
+)
+
+thm (ifnbi123d () (
+     hyp1 (-> ph (<-> ps ch))
+     hyp2 (-> ph (= A B))
+     hyp3 (-> ph (= C D)))
+     (-> ph (= (ifn ps A C) (ifn ch B D)))
+  hyp1
+  hyp2
+  hyp3
+  jca
+  jca
+  ps ch A B C D ifnbi123
+  syl
+)
+
+
 ## <summary> This is used just for convenience to get an empty theorem. </summary>
 thm (emptyThm () () (T)
  tru

@@ -4,7 +4,7 @@ import (PROP ../../prop.ghi () "")
 import (PREDICATE ../../predicate/all.ghi (PROP) "")
 import (PEANO_MIN peano_min.ghi (PROP PREDICATE) "")
 
-tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
 
@@ -202,6 +202,120 @@ thm (inductionsuc ((ph y)) (basis ([/] (0) z ph) inductiveHyp (-> ([/] y z ph) (
   finds
 )
 
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee
+  substitution
+A eqeq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (S  [ B ]   ]   ] ))
+##   (=       [ B ]   [ C ] )
+##   (= A (S  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Suc0 () (
+     replacee (= A (S B))
+     substitution (= B C)) 
+     (= A (S C))
+  replacee substitution
+  pa_ax2i
+  EqReplaceEq1
+)
+
+## <title> Successor Adds One </title>
+## <summary> Successor is equivalent to adding one </summary>
+## <suggest> right('Equivalence', '+1') </suggest>
+thm (a1suc () () (= (S A) (+ A (1)))
+  ## <d>
+    df-1
+  ## </d>
+  ## <d>
+    A addeq2i
+  ## </d>
+  ## <d 'Peano Axiom 4'>
+    A (0) pa_ax4 eqtri
+  ## </d>
+  ## <d 'Additive Identity'>
+    A pa_ax3
+    EqReplaceEq1Suc0
+  ## </d>
+  eqcomi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (= A  [ B ]   ]   ] ) ph)
+##   (=        [ B ]   [ C ] )
+##   (-> (= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceImp0Eq1 () (
+     replacee (-> (= A B) ph)
+     substitution (= B C)) 
+     (-> (= A C) ph)
+  replacee
+  substitution
+	A eqeq2i
+	ph imbi1i
+	mpbi
+)
+
+## <title> Proof by Induction </title>
+## <summary>
+##   Same as <a href="finds">finds</a> except uses +1 instead of successor.
+## </summary>
+thm (findplus1 ((A x) (ch x) (th x) (ta x) (ph y))
+  (hyp1 (-> (= x (0)) (<-> ph ps))
+   hyp2 (-> (= x y) (<-> ph ch))
+   hyp3 (-> (= x (+ y (1))) (<-> ph th))
+   hyp4 (-> (= x A) (<-> ph ta))
+   basis ps
+   induction (-> ch th))
+  ta
+
+  hyp1
+  hyp2
+  hyp3
+  y a1suc  
+  eqcomi
+  EqReplaceImp0Eq1
+  hyp4
+  basis
+  induction
+  finds
+)
+
+## <title> Proof by Induction </title>
+## <table>
+##       ([/] (0) z ph) ] ]                  ]
+##   (-> ([/]  y  z ph) ] [ ([/] (+ y (1)) z [ ph))
+##                      [ [ ([/] A         z [ ph)
+## </table>
+## <summary>
+##   Using substitution, we simplify the 6 hypotheses of <a href="findplus1">findplus1</a>
+##   into just two the basis case and the inductive step. For a similar proof, using the successor
+##   instead of +1 see <a href="inductionsuc">inductionsuc</a>.
+## </summary>
+thm (induction ((ph y)) (basis ([/] (0) z ph) inductiveHyp (-> ([/] y z ph) ([/] (+ y (1)) z ph))) ([/] A z ph)
+  x (0) z ph dfsbcq
+  x y z ph dfsbcq
+  x (+ y (1)) z ph dfsbcq
+  x A z ph dfsbcq
+  basis
+  inductiveHyp
+  findplus1
+)
+
 ## <title> Additive Identity </title>
 ## <table> 
 ##   (= (+ <r> (0) A) A)
@@ -367,22 +481,6 @@ thm (EqReplaceImp1Eq0Add0 () (
   replacee substitution
   C addeq1i
   EqReplaceImp1Eq0
-)
-
-## <title> Substitution </title>
-## <table>
-##   (= A  [ B ]   ]   ] )
-##   (=    [ B ]   [ C ] )
-##   (= A  [   [   [ C ] )
-## </table>
-thm (EqReplaceEq1 () (
-     replacee (= A B)
-     substitution (= B C)) 
-     (= A C)
-  replacee
-  substitution
-A eqeq2i
-mpbi
 )
 
 ## <title> Perform a substitution </title>
@@ -950,41 +1048,6 @@ thm (addcan () ()
 
 ## <title> Substitution </title>
 ## <table>
-##   (= A (S  [ B ]   ]   ] ))
-##   (=       [ B ]   [ C ] )
-##   (= A (S  [   [   [ C ] ))
-## </table>
-thm (EqReplaceEq1Suc0 () (
-     replacee (= A (S B))
-     substitution (= B C)) 
-     (= A (S C))
-  replacee substitution
-  pa_ax2i
-  EqReplaceEq1
-)
-
-## <title> Successor Adds One </title>
-## <summary> Successor is equivalent to adding one </summary>
-## <suggest> right('Equivalence', '+1') </suggest>
-thm (a1suc () () (= (S A) (+ A (1)))
-  ## <d>
-    df-1
-  ## </d>
-  ## <d>
-    A addeq2i
-  ## </d>
-  ## <d 'Peano Axiom 4'>
-    A (0) pa_ax4 eqtri
-  ## </d>
-  ## <d 'Additive Identity'>
-    A pa_ax3
-    EqReplaceEq1Suc0
-  ## </d>
-  eqcomi
-)
-
-## <title> Substitution </title>
-## <table>
 ##   (<-> ph  [ ps ]   ]    ] )
 ##   (->      [ ps ]   [ ch ] )
 ##   (<-> ph  [    [   [ ch ] )
@@ -1037,46 +1100,165 @@ thm (pa_axplus1 () () (-. (= (0) (+ A (1))))
   ## </d 'Successor Adds One '>
 )
 
+
+
 ## <title> Substitution </title>
 ## <table>
-##   (-> (= A  [ B ]   ]   ] ) ph)
-##   (=        [ B ]   [ C ] )
-##   (-> (= A  [   [   [ C ] ) ph)
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
 ## </table>
-thm (EqReplaceImp0Eq1 () (
-     replacee (-> (= A B) ph)
-     substitution (= B C)) 
-     (-> (= A C) ph)
-  replacee
-  substitution
-	A eqeq2i
-	ph imbi1i
-	mpbi
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee substitution
+  ph anbi2i
+  sylbi2
 )
 
-## <title> Proof by Induction </title>
-## <summary>
-##   Same as <a href="finds">finds</a> except uses +1 instead of successor.
-## </summary>
-thm (findplus1 ((A x) (ch x) (th x) (ta x) (ph y))
-  (hyp1 (-> (= x (0)) (<-> ph ps))
-   hyp2 (-> (= x y) (<-> ph ch))
-   hyp3 (-> (= x (+ y (1))) (<-> ph th))
-   hyp4 (-> (= x A) (<-> ph ta))
-   basis ps
-   induction (-> ch th))
-  ta
 
-  hyp1
-  hyp2
-  hyp3
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x  [ ps ]   ]    ] )) th)
+##   (<->              [ ps ]   [ ch ] )
+##   (-> (/\ ph (A. x  [    [   [ ch ] )) th)
+## </table>
+thm (BiReplaceImp0An1Al1 () (
+     replacee (-> (/\ ph (A. x ps)) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph (A. x ch)) th)
+  replacee substitution
+  x albii
+  BiReplaceImp0An1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x (-> ps  [ ch ]   ]    ] ))) ta)
+##   (<->                     [ ch ]   [ th ] )
+##   (-> (/\ ph (A. x (-> ps  [    [   [ th ] ))) ta)
+## </table>
+thm (BiReplaceImp0An1Al1Imp1 () (
+     replacee (-> (/\ ph (A. x (-> ps ch))) ta)
+     substitution (<-> ch th)) 
+     (-> (/\ ph (A. x (-> ps th))) ta)
+  replacee substitution
+  ps imbi2i
+  BiReplaceImp0An1Al1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x (-> ps (A. y  [ ch ]   ]    ] )))) ta)
+##   (<->                           [ ch ]   [ th ] )
+##   (-> (/\ ph (A. x (-> ps (A. y  [    [   [ th ] )))) ta)
+## </table>
+thm (BiReplaceImp0An1Al1Imp1Al1 () (
+     replacee (-> (/\ ph (A. x (-> ps (A. y ch)))) ta)
+     substitution (<-> ch th)) 
+     (-> (/\ ph (A. x (-> ps (A. y th)))) ta)
+  replacee substitution
+  y albii
+  BiReplaceImp0An1Al1Imp1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x (-> ps (A. y (->  [ ch ]   ]    ]  ta))))) et)
+##   (<->                               [ ch ]   [ th ] )
+##   (-> (/\ ph (A. x (-> ps (A. y (->  [    [   [ th ]  ta))))) et)
+## </table>
+thm (BiReplaceImp0An1Al1Imp1Al1Imp0 () (
+     replacee (-> (/\ ph (A. x (-> ps (A. y (-> ch ta))))) et)
+     substitution (<-> ch th)) 
+     (-> (/\ ph (A. x (-> ps (A. y (-> th ta))))) et)
+  replacee substitution
+  ta imbi1i
+  BiReplaceImp0An1Al1Imp1Al1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x (-> ps (A. y (-> (= A  [ B ]   ]   ] ) ch))))) th)
+##   (=                                      [ B ]   [ C ] )
+##   (-> (/\ ph (A. x (-> ps (A. y (-> (= A  [   [   [ C ] ) ch))))) th)
+## </table>
+thm (EqReplaceImp0An1Al1Imp1Al1Imp0Eq1 () (
+     replacee (-> (/\ ph (A. x (-> ps (A. y (-> (= A B) ch))))) th)
+     substitution (= B C)) 
+     (-> (/\ ph (A. x (-> ps (A. y (-> (= A C) ch))))) th)
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp0An1Al1Imp1Al1Imp0
+)
+
+## <title> Induction </title>
+## <summary> Induction axiom rewritten using addition instead of successor </title>
+thm (pa_indplus1 ((ph y)) () (-> (/\ (A. x (-> (= x (0)) ph)) (A. y (-> (A. x (-> (= x y) ph)) (A. x (-> (= x (+ y (1))) ph))))) (A. x ph))
+  x ph y pa_ind
   y a1suc  
-  eqcomi
-  EqReplaceImp0Eq1
-  hyp4
-  basis
-  induction
-  finds
+  EqReplaceImp0An1Al1Imp1Al1Imp0Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee substitution
+  ch anbi1i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (A. x (->  [ ps ]   ]    ]  th))) ta)
+##   (<->                  [ ps ]   [ ch ] )
+##   (-> (/\ ph (A. x (->  [    [   [ ch ]  th))) ta)
+## </table>
+thm (BiReplaceImp0An1Al1Imp0 () (
+     replacee (-> (/\ ph (A. x (-> ps th))) ta)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph (A. x (-> ch th))) ta)
+  replacee substitution
+  th imbi1i
+  BiReplaceImp0An1Al1
+)
+
+thm (induction1 ((ph y)) () (-> (/\ ([/] (0) z ph) (A. y (-> ([/] y z ph) ([/] (+ y (1)) z ph)))) ([/] A z ph))
+  x ([/] x z ph) y pa_indplus1
+  ## <d>
+    x (0) z ph dfsbcq  ceqsal
+    BiReplaceImp0An0
+  ## </d>
+  ## <d>
+    x y z ph dfsbcq  ceqsal  
+    BiReplaceImp0An1Al1Imp0
+  ## </d>
+  ## <d>
+    x (+ y (1)) z ph dfsbcq  ceqsal  
+    BiReplaceImp0An1Al1Imp1
+  ## </d>
+  ## <d>
+    x A z ph dfsbcq
+    cla4g  
+    syl
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm() () (T)
+ tru
 )
 
 export (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")

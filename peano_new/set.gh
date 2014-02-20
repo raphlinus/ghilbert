@@ -129,7 +129,7 @@ thm (eleq1d ()
   h A B S ax-eleq1 syl
 )
 
-thm (eleq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T)))
+thm (elseq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T)))
   S T x df-seq
     x A S ax-eleq1 x A T ax-eleq1 bibi12d
   cla4g sylbi
@@ -140,15 +140,15 @@ thm (eleq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T)))
 ##   (=_        [ S  ] [       [ T )
 ##   (<-> (e. A [ S) ] [ (e. A [ T ))
 ## </table>
-thm (eleq2i ()
+thm (elseq2i ()
   (hyp (=_ S T))
   (<-> (e. A S) (e. A T))
-  hyp S T A eleq2 ax-mp
+  hyp S T A elseq2 ax-mp
 )
-thm (eleq2d ()
+thm (elseq2d ()
   (h (-> ph (=_ S T)))
   (-> ph (<-> (e. A S) (e. A T)))
-  h S T A eleq2 syl
+  h S T A elseq2 syl
 )
 ## <title> Substitution </title>
 ## <table>
@@ -264,7 +264,7 @@ thm (elab2 ((A x) (ps x))
   (hyp1 (-> (= x A) (<-> ph ps))
    hyp2 (=_ S ({|} x ph)))
   (<-> (e. A S) ps)
-  hyp2 A eleq2i hyp1 elab bitri
+  hyp2 A elseq2i hyp1 elab bitri
 )
 
 ## <title> Remove Set Abstraction </title>
@@ -285,13 +285,9 @@ thm (removeab ((S x)) () (=_ ({|} x (e. x S)) S)
   ## </d 'Definition of Set Equality '>
 )
 
-
-
 ## <title> Element in intersection is in both sets </title>
 ## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
-thm (elin () ()
-  (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T)))
-
+thm (elin () () (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T)))
   x A S ax-eleq1 x A T ax-eleq1 anbi12d
     S T x df-in
   elab2
@@ -299,9 +295,7 @@ thm (elin () ()
 
 ## <title> An element of a union is in one of the sets </title>
 ## <suggest> right('Distribute, 'R') left('Distribute', '-R') </suggest>
-thm (elun () ()
-  (<-> (e. A (u. S T)) (\/ (e. A S) (e. A T)))
-
+thm (elun () () (<-> (e. A (u. S T)) (\/ (e. A S) (e. A T)))
   x A S ax-eleq1 x A T ax-eleq1 orbi12d
     S T x df-un
   elab2
@@ -351,9 +345,7 @@ thm (BiReplaceBi1Al1 () (
 # constraints (S x) (T x). Consider S = {x + 1}, T = {x + 2}.
 # The problem was that df-seq lacked these constraints, but needs them.
 # Fixed.
-thm (dfss2 ((S x) (T x)) ()
-  (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
-
+thm (dfss2 ((S x) (T x)) () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
   S T df-ss
     (e. x S) (e. x T) pm4.71 (e. x S) (/\ (e. x S) (e. x T)) bicom bitri
 
@@ -544,6 +536,21 @@ thm (df-emptysetF () () (=_ ({/}) ({|} x (F)))
   BiReplaceSeq1Ab1
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
 ## <title> Empty Set Contains No Elements </title>
 thm (noel () ()
   (-. (e. A ({/})))
@@ -553,6 +560,38 @@ thm (noel () ()
       x df-emptyset
     elab2
   con2bii mpbi
+)
+
+## <title> A set with an element is not empty </title>
+thm (notEmpty () () (-> (e. A S) (-. (=_ S ({/}))))
+  ## <d>
+    x A tyex
+    x A S ax-eleq1  
+    x 19.22i
+    ax-mp
+    ## <d 'Infer Right to Left '>
+      (e. x S) (e. A S) bi2
+      x 19.22i
+      ax-mp
+    ## </d 'Infer Right to Left '>  
+    ## <d 'Quantifier Moved Around Non-free Variable '>
+      (e. A S) x (e. x S) imex bicomi
+      mpbi
+    ## </d 'Quantifier Moved Around Non-free Variable '>
+  ## </d>
+  ## <d 'Definition of ∃ '>
+    x (e. x S) df-ex
+    sylib
+  ## </d 'Definition of ∃ '>
+  ## <d>
+    S ({/}) x df-seq
+    x noel
+    (e. x S) biNotRemove2
+    x albii
+    bitri
+    bicomi
+    BiReplaceImp1Not0
+  ## </d>
 )
 
 ## <title> Singleton has One Element </title>
@@ -730,7 +769,7 @@ thm (SeqReplacerSeq0Ab1Or0El0 () (
      (=_ U ({|} x (\/ (e. A T) ph)))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi1i
 x abbi2i
 U seqseq2i
@@ -794,7 +833,7 @@ thm (SeqReplaceSeq0Ab1Or1El0 () (
      (=_ U ({|} x (\/ ph (e. A T))))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi2i
 x abbi2i
 U seqseq2i
@@ -831,7 +870,7 @@ thm (SeqReplaceSeq0Ab1An0El0 () (
      (=_ U ({|} x (/\ (e. A T) ph)))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph anbi1i
 x abbi2i
 U seqseq2i
@@ -840,7 +879,7 @@ mpbi
 
 ## <title> Equivalence over Intersection </title>
 thm (inseq1 () () (-> (=_ S T) (=_ (i^i S U) (i^i T U)))
-  S T x eleq2
+  S T x elseq2
   (e. x U) anbi1d
   x gen
   x (=_ S T) (<-> (/\ (e. x S) (e. x U)) (/\ (e. x T) (e. x U))) 19.21  
@@ -864,7 +903,7 @@ thm (inseq1i () (hyp1 (=_ S T)) (=_ (i^i S U) (i^i T U))
 
 ## <title> Equivalence for ∩ </title> ##
 thm (inseq2 () () (-> (=_ T U) (=_ (i^i S T) (i^i S U)))
-  T U x eleq2
+  T U x elseq2
   (e. x S) anbi2d
   x abbi2d
   S T x df-in
@@ -918,7 +957,7 @@ thm (SeqReplaceSeq0Ab1An1El0 () (
      (=_ U ({|} x (/\ ph (e. A T))))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph anbi2i
 x abbi2i
 U seqseq2i
@@ -1716,21 +1755,6 @@ thm (unidr() () (=_ (u. ({/}) S) S)
 
 ## <title> Substitution </title>
 ## <table>
-##   (-> ph (-.  [ ps ]   ]    ] ))
-##   (<->        [ ps ]   [ ch ] )
-##   (-> ph (-.  [    [   [ ch ] ))
-## </table>
-thm (BiReplaceImp1Not0 () (
-     replacee (-> ph (-. ps))
-     substitution (<-> ps ch)) 
-     (-> ph (-. ch))
-  replacee substitution
-  con4biir
-  sylib
-)
-
-## <title> Substitution </title>
-## <table>
 ##   (-> ph (E. x  [ ps ]   ]    ] ))
 ##   (<->          [ ps ]   [ ch ] )
 ##   (-> ph (E. x  [    [   [ ch ] ))
@@ -2270,7 +2294,7 @@ thm (iotacl ((S x)) () (-> (E! x (e. x S)) (e. (iota S) S))
 
   S ({} y) ax-iotaeq y ax-iota  syl6eq
   (iota S) y elsnc  sylibr
-  S ({} y) (iota S) eleq2
+  S ({} y) (iota S) elseq2
 
   biimprd mpd y 19.22i
   syl

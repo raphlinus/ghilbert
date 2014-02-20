@@ -1,0 +1,22 @@
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (NATURALS naturals.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (exp A B))
+
+## <title> Equivalence for exp </title>
+stmt (expeq1 () () (-> (= A B) (= (exp A C) (exp B C))))
+
+## <title> Equivalence for exp </title>
+stmt (expeq2 () () (-> (= B C) (= (exp A B) (exp A C))))
+
+## <title> 0th power of a number is 1 </title>
+## <suggest> right('Simplify', '1') </suggest>
+stmt (exp0 () () (= (exp A (0)) (1)))
+
+## <title> Multiply by the base for the next power </title>
+stmt (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B))))

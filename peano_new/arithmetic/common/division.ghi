@@ -85,6 +85,9 @@ stmt (divcan2i () ((-. (= A (0)))) (= (/ (* A B) A) B))
 ## <title> Cancel with Division </title>
 stmt (divcan3 () () (-> (-. (= A (0))) (= (/ (* B A) A) B)))
 
+## <title> 0 divided by anything is 0 </title>
+stmt (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0))))
+
 ## <title> Divide by 1 </title>
 stmt (divid () () (= (/ A (1)) A))
 
@@ -169,3 +172,23 @@ stmt (divcom () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ (/
 
 ## <title> Distribute Division Over Subtraction </title>
 stmt (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C))))
+
+## <title> Multiply Two Denominators </title>
+stmt (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C)))))
+
+## <title> Multiply Two Denominators </title>
+stmt (doubledivi () ((-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C))))
+
+## <title> A positive number has a positive reciprocal </title>
+stmt (posReciprocal () () (-> (> A (0)) (> (/ (1) A) (0))))
+
+stmt (posReciprocal2 () () (-> (-. (= A (0))) (<-> (> A (0)) (> (/ (1) A) (0)))))
+
+## <title> A number is its reciprocal's reciprocal </title>
+stmt (doubleReciprocal () () (-> (-. (= A (0))) (= (/ (1) (/ (1) A)) A)))
+
+stmt (divDouble () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ A (/ B C)) (/ (* A C) B))))
+
+stmt (divNotZeroi () ((-. (= A (0))) (-. (= B (0)))) (-. (= (/ A B) (0))))
+
+stmt (divNotZero () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (/ A B) (0)))))

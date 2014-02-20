@@ -1,0 +1,1683 @@
+# This file contains theorems related to natural number arithmetic. However, it does not
+# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
+# theorems that are valid for natural numbers, integers, rational numbers, and real
+# numbers.
+
+import (PROP ../../prop.ghi () "")
+import (PREDICATE ../../predicate/all.ghi (PROP) "")
+import (NATURALS common.ghi (PROP PREDICATE) "")
+import (INEQUALITY_NAT inequality_nat.ghi (PROP PREDICATE NATURALS) "")
+import (HALFMINUS halfminus.ghi (PROP PREDICATE NATURALS) "")
+import (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+import (SET ../../set.ghi (PROP PREDICATE SET_MIN) "")
+import (ORDERED_PAIR ../common/ordered-pair.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V)
+
+export (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
+import (ADD_MULTIPLY_NAT add_multiply_nat.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x  [ ph ]   ]    ] )
+##   (->    [ ph ]   [ ps ] )
+##   (E. x  [    [   [ ps ] )
+## </table>
+thm (ImpReplaceEx1 () (
+     replacee (E. x ph)
+     substitution (-> ph ps)) 
+     (E. x ps)
+  replacee
+  substitution
+x 19.22i
+ax-mp
+)
+
+# == Division, primality ==
+
+# number 36.5
+thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
+       (<-> (E. x (= (* A x) B)) (E. y (= (* A y) B)))
+      x y A muleq2 B eqeq1d exalpha)
+
+## <title> Divides Definition </title>
+## <suggest> left('Simplify', '|') right('Define', '|') </suggest>
+defthm (df-divides wff (| A B) ((A x) (B x)) ()
+       (<-> (| A B) (E. x (= (* A x) B)))
+        y A B x df-divides-just)
+
+## <title> Equivalence for | </title>
+thm (divideseq1 () () (-> (= A C) (<-> (| A B) (| C B)))
+  A C x muleq1
+  B eqeq1d
+  x exbid
+  A B x df-divides
+  bicomi
+  BiReplaceImp1Bi0
+  C B x df-divides
+  bicomi
+  BiReplaceImp1Bi1
+)
+
+# Equality inference for the divides relation.
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (| A ] C ] ) (| [ B ] C))
+## </table>
+thm (divideseq1i ()
+  (hyp (= A B))
+  (<-> (| A C) (| B C))
+  hyp A B C divideseq1 ax-mp
+)
+
+# Equality inference for the Divides relation.
+## <title> Equivalence over divides </title>
+## <table>
+##  (|    A ] ]   ] [ C)
+##     (= A ] [ B ] ] )
+##  (|      [ [ B ] [ C)
+## </table>
+thm (divideseq1ii ()
+  (hyp1 (| A C)
+   hyp2 (= A B))
+  (| B C)
+  hyp1 hyp2 C divideseq1i mpbi
+)
+
+## <title> Equivalence for | </title>
+thm (divideseq2 () () (-> (= B C) (<-> (| A B) (| A C)))
+  B C (* A x) eqeq2
+  x exbid
+  A B x df-divides bicomi
+  BiReplaceImp1Bi0
+  A C x df-divides bicomi
+  BiReplaceImp1Bi1
+)
+
+
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (| C [ A ] ) (| [ C [ B ] ))
+## </table>
+thm (divideseq2i ()
+  (hyp (= A B))
+  (<-> (| C A) (| C B))
+  hyp A B C divideseq2 ax-mp
+)
+
+## <title> Equivalence over Divides </title>
+## <table>
+##  (| C   [ A ] ] )
+##      (= [ A ] [ B)
+##  (| C   [   [ [ B)
+## </table>
+thm (divideseq2ii ()
+  (hyp1 (| C A)
+   hyp2 (= A B))
+  (| C B)
+  hyp1 hyp2 C divideseq2i mpbi
+)
+
+thm (divideseq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (| A C) (| B C)))
+  hyp1
+  A B C divideseq1
+  syl
+)
+
+thm (divideseq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (| C A) (| C B)))
+  hyp1
+  A B C divideseq2
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (= A  [ B ]   ]   ] ))
+##   (=          [ B ]   [ C ] )
+##   (E. x (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEx1Eq1 () (
+     replacee (E. x (= A B))
+     substitution (= B C)) 
+     (E. x (= A C))
+  replacee
+  substitution
+A eqeq2i
+x exbii
+mpbi
+)
+
+thm (proveDivides () (hyp (= (* A B) C)) (| A C)
+  x B tyex
+  x B A muleq2  
+  ImpReplaceEx1
+  hyp
+  EqReplaceEx1Eq1
+  A C x df-divides
+  
+  bicomi
+  mpbi
+)
+
+thm (proveDividesd () (hyp (-> ph (= (* A B) C))) (-> ph (| A C))
+  ph x alnfi
+  x B tyex
+  x B A muleq2
+  C eqeq1d
+  ph imbi2d
+  ImpReplaceEx1
+  hyp
+  
+  (-> ph (= (* A x) C)) biRemove2
+  x exbii
+  mpbi
+  
+  x ph (= (* A x) C) eximp1  
+  ax-mp  
+  syl
+  
+  ## <d 'Divides Definition '>
+    A C x df-divides
+    ## <d 'Commutative Property'>
+      (| A C) (E. x (= (* A x) C)) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    sylib
+  ## </d 'Divides Definition '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x albii
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (/\  [ ps ]   ]    ]  th)))
+##   (<->              [ ps ]   [ ch ] )
+##   (-> ph (A. x (/\  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceImp1Al1An0 () (
+     replacee (-> ph (A. x (/\ ps th)))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x (/\ ch th)))
+  replacee substitution
+  th anbi1i
+  BiReplaceImp1Al1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (/\ (\/ ps  [ ch ]   ]    ] ) ta)))
+##   (<->                     [ ch ]   [ th ] )
+##   (-> ph (A. x (/\ (\/ ps  [    [   [ th ] ) ta)))
+## </table>
+thm (BiReplaceImp1Al1An0Or1 () (
+     replacee (-> ph (A. x (/\ (\/ ps ch) ta)))
+     substitution (<-> ch th)) 
+     (-> ph (A. x (/\ (\/ ps th) ta)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceImp1Al1An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee
+  substitution
+con4biir
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee
+  substitution
+  ch anbi1i
+  th imbi1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee
+  substitution
+  ph anbi2i
+  th imbi1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (E. x  [ ps ]   ]    ] )))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (-. (E. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceBi1Not0Ex1 () (
+     replacee (<-> ph (-. (E. x ps)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (E. x ch)))
+  replacee
+  substitution
+x exbii
+con4biir
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x 19.20i
+  syl
+)
+
+thm (notDivides () ()  (-> (/\ (< (* A C) B) (< B (* A (+ C (1))))) (-. (| A B)))
+  (/\ (< (* A C) B) (< B (* A (+ C (1))))) x alnfi
+  (<= x C) exmid
+  (/\ (< (* A C) B) (< B (* A (+ C (1))))) anRemove1
+  ## <d 'Commutative Property '>
+    (/\ (\/ (<= x C) (-. (<= x C))) (/\ (< (* A C) B) (< B (* A (+ C (1)))))) (/\ (< (* A C) B) (< B (* A (+ C (1))))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  x albii
+  sylib
+  
+  ## <d 'Def. Greater Than '>
+    x C df-gt
+    ## <d 'Commutative Property'>
+      (> x C) (-. (<= x C)) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    BiReplaceImp1Al1An0Or1
+  ## </d 'Def. Greater Than '>
+
+  x C A lemul2nat
+  (< (* A C) B) anim1i
+  (* A x) (* A C) B lelttr
+  syl
+  (* A x) B ltneq
+  syl
+  (< B (* A (+ C (1)))) adantr
+  ## <d>
+    (<= x C) (< (* A C) B) (< B (* A (+ C (1)))) anass
+  ## </d>
+  sylbi2
+
+  (+ C (1)) x A lemul2nat
+  (< B (* A (+ C (1))) ) anim2i
+
+  B (* A (+ C (1))) (* A x) ltletr
+  syl
+  B (* A x) ltneq
+
+  ## <d>
+    B (* A x) eqcom
+  ## </d>
+  BiReplaceImp1Not0
+  syl
+
+  ## <d>
+    (< B (* A (+ C (1)))) (<= (+ C (1)) x) ancom
+  ## </d>
+  sylbi2
+
+  ## <d>
+    (+ C (1)) x lecon
+  ## </d>
+  BiReplaceImp0An0
+  C x nnltp1let
+
+  ## <d>
+    (+ C (1)) x lecon
+  ## </d>
+  bitri
+  ## <d>
+    C x ltcon
+  ## </d>
+  bitr3icom
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceImp0An0
+
+  (< (* A C) B) adantr
+  ## <d>
+    (> x C) (< B (* A (+ C (1)))) (< (* A C) B) anass
+  ## </d>
+  sylbi2
+
+  ## <d>
+    (< B (* A (+ C (1)))) (< (* A C) B) ancom
+  ## </d>
+  BiReplaceImp0An1
+  jaoi
+  (<= x C) (> x C) (/\ (< (* A C) B) (< B (* A (+ C (1))))) andir
+  ## <d>
+    bicomi
+  ## </d>
+  sylbi2
+
+  ImpReplaceImp1Al1
+
+  ## <d>
+    x (-. (= (* A x) B)) alex
+    (= (* A x) B) notnotr
+    BiReplaceBi1Not0Ex1
+    sylib
+  ## </d>
+  ## <d 'Divides Definition '>
+    A B x df-divides
+    ## <d 'Commutative Property'>
+      (| A B) (E. x (= (* A x) B)) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    BiReplaceImp1Not0
+  ## </d 'Divides Definition '>
+)
+
+## <title> A number divides itself </title>
+## <suggest> full('Simplify', 'T') </suggest>
+thm (dividessym () () (| A A)
+    x (1) tyex
+    x (1) A muleq2  eqcomd  A mulid  eqcomi syl5eq   eqcomd  x 19.22i
+  ax-mp
+  A A x df-divides
+  mpbir
+)
+
+# number 46.0
+thm (dividesmul () () (-> (| A B) (| A (* B C)))
+  A B x df-divides biimpi
+
+   y (* x C) tyex
+   y (* x C) A muleq2   y 19.22i
+  ax-mp
+
+  (* A x) B C muleq1
+  A x C mulass  syl5eqr
+  (* A y) eqeq2d
+  biimpd
+
+  y 19.21ai    y (= (* A y) (* A (* x C))) (= (* A y) (* B C)) 19.22 syl
+
+  mpi
+  x 19.22i syl
+  x (E. y (= (* A y) (* B C))) 19.9   biimpi  syl
+
+  A (* B C) y df-divides   biimpri   syl
+)
+
+thm (dividesmuli () (hyp (| A B)) (| A (* B C))
+  hyp
+  A B C dividesmul  
+  ax-mp
+)
+
+
+
+## <title> One-digit Addition </title>
+thm (1plus1 () () (= (+ (1) (1)) (2))
+  df-2
+  ## <d 'Commutative Property'>
+    (2) (+ (1) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (>  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (>  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceGt0 () (
+     replacee (> A C)
+     substitution (= A B)) 
+     (> B C)
+  replacee substitution
+  C gteq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (> A  [   [   [ C ] )
+## </table>
+thm (EqReplaceGt1 () (
+     replacee (> A B)
+     substitution (= B C)) 
+     (> A C)
+  replacee substitution
+  A gteq2i
+  mpbi
+)
+
+## <title> One-Digit Inequality </title>
+thm (2greater1 () () (> (2) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) addid
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+thm (add2greater1 () () (> (+ A (2)) (1))
+  (2) A addge02t  
+  ## <d 'Converse of ≤ '>
+    (2) (+ A (2)) lecon
+    mpbi
+  ## </d 'Converse of ≤ '>
+  2greater1
+  pm3.2i
+  (+ A (2)) (2) (1) gegttr  
+  ax-mp
+)
+
+thm (dividesadd.1 () () (-> (| (+ A (1)) (+ (* (+ A (1)) B) C)) (| (+ A (1)) C))
+    (+ A (1))  (+ (* (+ A (1)) B) C)  x  df-divides    biimpi
+        (* (+ A (1)) B)  C  addge01t
+        ( = (* (+ A (1)) x) (+ (* (+ A (1)) B) C))  id  (* (+ A (1)) B)  leeq2d    biimprd    mpi
+        (+ A (1))  B  mulcom    (* (+ A (1)) x)  leeq1i    sylib
+        (+ A (1))  x  mulcom    (* B (+ A (1)))  leeq2i    sylib
+        B  A  x  lemul5 biimpi    syl
+        B  x  y  df-le    sylib
+        (+ B y)  x  (+ A (1))  muleq2    eqcomd   y  19.22i    syl
+        ancri
+        y  (= (* (+ A (1)) x) (* (+ A (1)) (+ B y)))  (= (* (+ A (1)) x) (+ (* (+ A (1)) B) C))  19.41    sylibr
+          (* (+ A (1)) x)  (* (+ A (1)) (+ B y))  (+ (* (+ A (1)) B) C)  eqtr2
+          (+ A (1))  B  y  distr    (+ (* (+ A (1)) B) C)  eqeq1i    sylib
+          (* (+ A (1)) B)  (* (+ A (1)) y)  C  addcan2    biimpi    syl
+
+        y  19.22i    syl
+        (+ A (1))  C  y  df-divides    sylibr
+
+    x  19.22i   syl    x  (| (+ A (1)) C) 19.9    sylib
+)
+
+thm (divides1 () () (-. (| (+ A (2)) (1)))
+  A add2greater1
+    (+ A (2))  (1)  x  df-divides    biimpi
+        x  z  lefoo
+          0ne1
+            x  (0)  (+ A (2))  muleq2    (+ A (2)) mul0    syl6eq
+            (1) eqeq1d    biimpd    con3d
+          mpi    (E. z (= (+ (1) z) x))  orim1i
+        ax-mp
+        (= (* (+ A (2)) x) (1))  (E. z (= (+ (1) z) x))  imor    biimpri    ax-mp
+        ancli
+        (+ (1) z)  x  (+ A (2)) muleq2    (1)  eqeq1d    biimprd    z  19.22i    (= (* (+ A (2)) x) (1))  anim2i    syl
+        ancomd    z  (-> (= (* (+ A (2)) x) (1)) (= (* (+ A (2)) (+ (1) z)) (1)))  (= (* (+ A (2)) x) (1))  19.41    sylibr
+        (= (* (+ A (2)) x) (1))  (= (* (+ A (2)) (+ (1) z)) (1))  pm3.35    ancoms    z  19.22i    syl
+    x  19.22i    syl    x  (E. z (= (* (+ A (2)) (+ (1) z)) (1)))  19.9    sylib
+      x  (* (+ A (2)) z) tyex
+       x  (* (+ A (2)) z)  (+ A (2)) addeq2    (1)  eqeq1d    biimprd
+        (+ A (2))  (1)  z  distr    (1)  eqeq1i   biimpi
+        (+ A (2))  mulid    (* (+ A (2)) z)  addeq1i      syl5eqr
+       syl5com
+      x  19.22d    mpi
+      (+ A (2))  (1)  x  df-le    biimpri    syl
+    z  19.22i    syl    z  (<= (+ A (2)) (1)) 19.9    sylib
+    con3i
+    ## <d 'Def. Greater Than '>
+      (+ A (2)) (1) df-gt bicomi
+      sylbi2
+    ## </d 'Def. Greater Than '>
+  ax-mp
+)
+
+# number 128.6
+thm (dividesmul12 () () (-> (| A B) (| (* A C) (* B C)))
+  A  B  x  df-divides
+    (* A x)  B  C  muleq1
+      A  x  C  mulass    x  C  mulcom  (* x C)  (* C x)  A  muleq2  ax-mp  eqtri
+      A  C  x  mulass  eqtr4 (* B C)  eqeq1i  sylib
+    x  19.22i  sylbi
+  (* A C)  (* B C)  x  df-divides  sylibr
+)
+
+## <title> Divides relation is transitive </title>
+thm (dividestr () () (-> (/\ (| A B) (| B C)) (| A C))
+    A  B  x  df-divides    biimpi
+        B  C  y  df-divides    biimpi
+    anim12i
+    x  (= (* A x) B)  (E. y (= (* B y) C))  19.41    sylibr
+    y  (= (* B y) C)  (= (* A x) B)  19.41    biimpri    ancoms    x 19.22i    syl
+        (* A x)  B  y  muleq1     C  eqeq1d    biimprd
+        (= (* A x) B)  (= (* B y) C)  (= (* (* A x) y) C)  pm3.31    ax-mp
+        ancoms A  x  y  mulass    syl5eqr    z 19.21ai
+            z  (* x y)  tyex
+            z  (* x y)  A  muleq2    C  eqeq1d    biimprd    z  19.22i    ax-mp
+            z  (= (* A (* x y)) C)  (= (* A z) C)  eximp1    ax-mp
+        syl
+    y  19.22i    x  19.22i    syl
+    19.9d    19.9d
+    A  C  z  df-divides    sylibr
+)
+
+# number 87.0
+thm (df-min-just ((S x) (S y) (S x') (S y')) ()
+  (= (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))
+     (iota ({|} x' (/\ (e. x' S) (A. y' (-> (e. y' S) (<= x' y')))))))
+x  x'  S  ax-eleq1
+  (= x x')  id    y  leeq1d    (e. y S)  imbi2d   y  19.21ai
+  y  (-> (e. y S) (<= x y))  (-> (e. y S) (<= x' y))  19.15    syl
+    y  y'  S  ax-eleq1
+      (= y y')  id    x'  leeq2d
+    imbi12d   alpha
+  syl6bb
+  anbi12d
+  abeq
+  ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))  ({|} x' (/\ (e. x' S) (A. y' (-> (e. y' S) (<= x' y')))))    ax-iotaeq    ax-mp
+)
+
+defthm  (df-min nat (min S) ((S x) (S y)) ()
+        (= (min S) (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))))
+          x' S y' x y df-min-just)
+
+# number 88.0
+## <table>
+##   (-> (=_ <r> S <g> T) (= (min <r> S) (min <g> T)))
+## </table>
+thm (minseq () () (-> (=_ S T) (= (min S) (min T)))
+  S  T  x  df-seq    biimpi    x  (<-> (e. x S) (e. x T))  ax-4    syl
+    S  T  y  df-seq    biimpi    y  (<-> (e. y S) (e. y T))  ax-4    syl
+    (<= x y)  imbi1d
+    y  19.21ai
+    19.15d
+  anbi12d
+  x  19.21ai
+  x  (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))  (/\ (e. x T) (A. y (-> (e. y T) (<= x y))))  abbi2    syl
+  ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y)))))  ({|} x (/\ (e. x T) (A. y (-> (e. y T) (<= x y)))))  ax-iotaeq    syl
+
+  S  x  y  df-min    syl5eq
+  T  x  y  df-min    syl6eqr
+)
+
+thm (minseqi () (hyp (=_ S T)) (= (min S) (min T))
+  hyp
+  S T minseq
+  ax-mp
+)
+
+thm (minex.1 () ()
+  (-> (= y A)
+    (<->
+      (-> (e. y S) (/\ (e. (min S) S)
+                                (<= (min S) y)))
+      (-> (e. A S) (/\ (e. (min S) S)
+                                 (<= (min S) A)))))
+
+y  A  S  ax-eleq1
+  (= y A)  id    (min S)  leeq2d    (e. (min S) S) anbi2d
+  imbi12d
+)
+
+# number 102.0
+thm (minex.2.1 ((A w) (S w) (B w)) ()
+  (-> (/\ (e. B S) (A. w (-> (e. w S) (<= A w)))) (<= A B))
+
+w  (e. B S)  (-> (e. w S) (<= A w))  alan1    biimpri
+
+w  B  tyex
+
+  B  w  S ax-eleq1
+    (= B w) id    A leeq2d
+  imbi12d
+  eqcoms
+  biimprd
+  imp3a
+  ancomsd
+w  19.22i    ax-mp
+w  (/\ (e. B S) (-> (e. w S) (<= A w)))  (<= A B)  eximp1    ax-mp
+
+syl
+w  (<= A B)  ex-nf   syl
+)
+
+thm (minex.2.2 ((S w) (A w)) () (-> (/\ (e. A S) (A. w (-> (e. w S) (<= A w)))) (= A (min S)))
+    x  A  S  ax-eleq1
+      (= x A)  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
+      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= A w))  19.15    syl
+    anbi12d    biimprcd
+      (e. A S)  (A. w (-> (e. w S) (<= A w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= A w)))  (e. A S)  an4    bitri       biimpi
+      A  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= A w))))  anim2i   syl
+      x  S  w A minex.2.1  (<= x A)  anim1i    syl
+      A  x  lesym   sylibr    eqcomd       expcom
+    impbid
+
+    x  19.21ai
+    x  (= x A)  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abbi2    syl
+    ({|} x (= x A))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
+    S  x  w  df-min     syl6eqr
+    A x  df-sn  ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp       syl5eq
+    A  ax-iota    syl5eqr
+)
+
+thm (minex2.2 ((S w)) () (-> (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (= w' (min S)))
+    x  w'  S  ax-eleq1
+      (= x w')  id    w  leeq1d    (e. w S)  imbi2d   w  19.21ai
+      w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w))  19.15    syl
+    anbi12d    biimprcd
+      (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  ancom  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  anbi2i (e. x S)  (A. w (-> (e. w S) (<= x w)))  (A. w (-> (e. w S) (<= w' w)))  (e. w' S)  an4    bitri       biimpi
+      w'  S  w x minex.2.1   ancoms    (/\ (e. x S) (A. w (-> (e. w S) (<= w' w))))  anim2i   syl
+      x  S  w w' minex.2.1  (<= x w')  anim1i    syl
+      w'  x  lesym   sylibr    eqcomd       expcom
+    impbid
+
+    x  19.21ai
+    x  (= x w')  (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))  abbi2    syl
+    ({|} x (= x w'))  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ax-iotaeq    syl
+    S  x  w  df-min     syl6eqr
+    w' x  df-sn  ({} w')  ({|} x (= x w'))  ax-iotaeq    ax-mp       syl5eq
+    w'  ax-iota    syl5eqr
+)
+
+thm (minex.2 ((S w)) ()
+    (-> (A. w (-> (<= w z)
+      (-> (e. w S) (/\ (e. (min S) S)
+                                (<= (min S) w)))))
+      (-> (e. (+ z (1)) S) (/\ (e. (min S) S)
+                                (<= (min S) (+ z (1))))))
+### Please excuse this bit of time-travel.
+(<= w z) (e. w S)  (/\ (e. (min S) S) (<= (min S) w))  imdistan  biimpi
+  (<= w z)  (/\ (e. (min S) S) (<= (min S) w))  ancom  biimpi z  (1)  addge01t
+w  z  (+ z (1))  letr  ancoms  mpan  (/\ (e. (min S) S) (<= (min S) w))  anim2i  syl  syl6  ancomsd
+w 19.20i
+###
+
+
+# Case 1:  z' is in fact  min S.  This one is easy.
+#  S  y  z  df-min    (+ z (1))  eqeq2i    biimpi  (e. (+ z (1)) S)  a1d
+(+ z (1))  (min S)  S  ax-eleq1  biimpd
+    (+ z (1))  leid    (= (+ z (1)) (min S)) id  (+ z (1))  leeq1d    mpbii    (e. (+ z (1)) S)  a1d
+jcad
+# Tack this on for later
+(-> (e. (+ z (1)) S) (E. w (/\ (e. w S) (<= w z))))  orcd
+
+# Case 2: z' is in S but NOT the min.
+# What follows would be a lot more readable without all the mandhyps!
+  S  x  w  df-min  (+ z (1))  eqeq2i  notbii   biimpi
+  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (+ z (1)))  ax-iotaeq    (+ z (1))  ax-iota   syl6eq   eqcomd   con3i    syl
+  ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))  ({} (+ z (1)))  w'  df-seq  notbii    biimpi   syl
+  (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (+ z (1)))))  notnot    biimpri    w'  19.20i   con3i    syl
+  w'  (-. (<-> (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w)))))) (e. w' ({} (+ z (1))))))  df-ex    biimpri    syl
+  w'  (+ z (1))  elsnc    (e. w' ({|} x (/\ (e. x S) (A. w (-> (e. w S) (<= x w))))))  bibi2i    notbii   w'  exbii    sylib
+    x  w'  S   ax-eleq1
+      (= x  w')  id    w  leeq1d    (e. w S)  imbi2d     w  19.21ai    w  (-> (e. w S) (<= x w))  (-> (e. w S) (<= w' w)) 19.15   syl
+  anbi12d    elab    (= w' (+ z (1)))  bibi1i    notbii  w'  exbii  sylib
+  (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (+ z (1)))  xor     w'  exbii    sylib
+    # We now have z' != min S -> (case A) \/ (case B).  Let's reduce case B to something we like.
+    w'  (+ z (1))  S  ax-eleq1
+      (= w' (+ z (1)))  id  w  leeq1d   (e. w S)  imbi2d     w  19.21ai    19.15d       anbi12d    notbid  biimpd
+      (e. (+ z (1)) S)  (A. w (-> (e. w S) (<= (+ z (1)) w)))  pm3.13    syl6   imp
+      (e. (+ z (1)) S)  (-. (A. w (-> (e. w S) (<= (+ z (1)) w))))  imor    sylibr
+        (-> (e. w S) (<= (+ z (1)) w))  notnot2  w  19.20i  con3i  w  (-. (-> (e. w S) (<= (+ z (1)) w)))  df-ex      sylibr
+        (e. w S)  (<= (+ z (1)) w)  pm4.61    biimpi  (+ z (1))  w  lecon  w (+ z (1)) df-ge bitri
+       con2bii    biimpri   w  z  lePlus1    sylib  (e. w S)  anim2i    syl   w  19.22i    syl
+      syl6
+    (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (+ z (1)))))  orim2i    w'  19.22i       w'  (/\ (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w)))) (-. (= w' (+ z (1)))))  (-> (e. (+ z (1)) S) (E. w (/\ (e. w S) (<= w z))))  exor2    sylib  syl
+    # Okay, now let's work with case A.  First show that w' is in fact min S.
+    w'  S  w  minex.2.2
+    # Ok, now work out the consequences of w' = min S
+    (/\ (e. w' S) (A. w (-> (e. w S) (<= w' w))))  (= w' (min S))  anidmdbi    mpbir
+    (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  (/\ (= w' (min S)) (= w' (min S)))  pm5.3    mpbi
+    (e. w' S)  (= w' (min S))  (= w' (min S))  anass    sylibr
+    w'  (min S)  S ax-eleq1   biimpac    (= w' (min S))  anim1i    syl
+    pm4.71ri  biimpi   (e. w' S)  (A. w (-> (e. w S) (<= w' w)))  pm3.27   (/\ (e. (min S) S) (= w' (min S)))  anim2i      syl
+    (e. (min S) S)  (= w' (min S))  (A. w (-> (e. w S) (<= w' w)))  anass  sylib
+      (= w' (min S))  id    w leeq1d  (e. w S)  imbi2d    w  19.21ai    19.15d    biimpd   imp
+    (+ z (1)) S  w  (min S)  minex.2.1     impexpi    syl       (e. (min S) S)  anim2i    syl
+    (e. (min S) S)  (e. (+ z (1)) S)  (<= (min S) (+ z (1)))  anim3  syl
+  (-. (= w' (+ z (1)))) adantr   w'  exani   (-> (e. (+ z (1)) S) (E. w (/\ (e. w S) (<= w z))))  orim1i  syl
+
+# Great, now we can join up the two cases!
+pm2.61i
+# Pull out the common hypothesis
+(e. (+ z (1)) S)  (/\ (e. (min S) S) (<= (min S) (+ z (1))))  (E. w (/\ (e. w S) (<= w z)))  pm4.78    mpbi
+
+# Almost there; just need to apply the IHOP to case 2B.
+
+# Introduce the new antecedent and polish up the new conclusion
+  w  (/\ (e. w S) (<= w z))  (/\ (/\ (e. (min S) S) (<= (min S) w)) (<= w (+ z (1)))) 19.22
+    (e. (min S) S)  (<= (min S) w)  (<= w (+ z (1)))  anass     (min S)  w  (+ z (1))  letr   (e. (min S) S)  anim2i    sylbi  w 19.22i
+    w  (/\ (e. (min S) S) (<= (min S) (+ z (1))))  ex-nf  syl
+  syl6
+(/\ (e. (min S) S) (<= (min S) (+ z (1))))  orim2d     mpan9
+(/\ (e. (min S) S) (<= (min S) (+ z (1))))  pm1.2    syl
+impexpi
+
+syl
+)
+
+## <title> The minimum of a nonempty set exists </title>
+thm (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
+                                (<= (min S) A)))
+  x  (0)  S  minex.1
+    x  (+ y (1))  S  minex.1
+      x  A  S  minex.1
+        (0)  x  addge01t x  addidr    (0)  leeq2i    mpbi  (e. x S)  a1i   x  gen
+        (0)  S  x  minex.2.2  ancoms  mpan
+          (0)  (min S)  S  ax-eleq1  biimpd    com12                a2i
+            (0)  leid    (= (0) (min S))  id   (0) leeq1d  mpbii    (e. (0) S) imim2i
+        jcad    ax-mp
+          x  y  S  minex.2
+  sind
+)
+
+# Equality deduction for set minimum
+thm (minseqd () (h (-> ph (=_ S T)))
+  (-> ph (= (min S) (min T)))
+  h S T minseq syl
+)
+
+# number 89.0
+thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
+  (= (min ({|} x (E. y (= (+ (* B y) x) A))))
+     (min ({|} x' (E. y' (= (+ (* B y') x') A)))))
+  x  x'  (* B y)  addeq2    A  eqeq1d     y  exbid
+    y  y'  B  muleq2    x'  addeq1d    A  eqeq1d    exalpha
+  syl6bb
+  abeq
+  ({|} x (E. y (= (+ (* B y) x) A)))  ({|} x' (E. y' (= (+ (* B y') x') A)))  minseq    ax-mp
+)
+
+
+defthm  (df-mod nat (mod A B) ((A x y) (B x y)) ()
+        (= (mod A B) (min ({|} x (E. y (= (+ (* B y) x) A)))))
+          x'  y'  B  A  x  y df-mod-just)
+
+thm (modeq1 () () (-> (= A B) (= (mod A C) (mod B C)))
+  A B (+ (* C y) x) eqeq2 y exbid
+  x abbi2d minseqd
+    A C x y df-mod
+      B C x y df-mod
+  3eqtr4g
+)
+
+# Equality theorem for mod
+thm (modeq2 () () (-> (= A B) (= (mod C A) (mod C B)))
+  A  B  y  muleq1  x  addeq1d   C  eqeq1d   y  exbid x  19.21ai
+  x  (E. y (= (+ (* A y) x) C))  (E. y (= (+ (* B y) x) C))  abbi2  syl
+  ({|} x (E. y (= (+ (* A y) x) C)))  ({|} x (E. y (= (+ (* B y) x) C)))  minseq  syl
+  C  A  x  y  df-mod  syl5eq
+  C  B  x  y  df-mod  syl6eqr
+)
+
+thm (modeq1i () (
+     hyp1 (= A B))
+     (= (mod A C) (mod B C))
+  hyp1
+  A B C modeq1
+  ax-mp
+)
+
+thm (modeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (mod A C) (mod B C)))
+  hyp1
+  A B C modeq1
+  syl
+)
+
+thm (modeq2i () (
+     hyp1 (= A B))
+     (= (mod C A) (mod C B))
+  hyp1
+  A B C modeq2
+  ax-mp
+)
+
+thm (modeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (mod C A) (mod C B)))
+  hyp1
+  A B C modeq2
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A (+  [ B ]   ]   ]  D)))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= A (+  [   [   [ C ]  D)))
+## </table>
+thm (EqReplaceImp1Eq1Add0 () (
+     replacee (-> ph (= A (+ B D)))
+     substitution (= B C)) 
+     (-> ph (= A (+ C D)))
+  replacee substitution
+  D addeq1i
+  EqReplaceImp1Eq1
+)
+
+## <title> A nonempty set minimum is in the set </title>
+thm (mincl ((S x)) ()
+  (-> (E. x (e. x S)) (e. (min S) S))
+  x S minex pm3.26d x 19.23ai
+)
+
+thm (minsn () () (= (min ({} A)) A)
+  x ({} A) mincl
+  (min ({} A)) A elsnc
+  sylib
+  x A tyex
+  x A ({} A) ax-eleq1  
+  ImpReplaceEx1
+  A A elsnc
+  A eqid  
+  mpbirRemove  
+  (e. x ({} A)) biRemove2
+  x exbii
+  mpbi  
+  ax-mpRemove
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ S  [ T ]   ]   ] )
+##   (=_    [ T ]   [ U ] )
+##   (=_ S  [   [   [ U ] )
+## </table>
+thm (SeqReplaceSeq1 () (
+     replacee (=_ S T)
+     substitution (=_ T U)) 
+     (=_ S U)
+  replacee
+  substitution
+S seqseq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (<  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceLt0 () (
+     replacee (< A C)
+     substitution (= A B)) 
+     (< B C)
+  replacee substitution
+  C lteq1i
+  mpbi
+)
+
+thm (mod0 () () (= (mod A (0)) A)
+  A (0) x y df-mod
+  x z (* (0) y) addeq2  
+  ## <d 'Multiply by 0 '>
+  ## <d 'Multiply by 0 '>
+    y mul0r
+    EqReplaceImp1Eq1Add0
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Additive Identity '>
+    z addidr
+    EqReplaceImp1Eq1
+  ## </d 'Additive Identity '>
+  ## <d 'Multiply by 0 '>
+  A eqeq1d
+  y exbid  
+  ## <d 'Quantified Non-free Variable '>
+    y (= z A) 19.9
+    BiReplaceImp1Bi1
+  ## </d 'Quantified Non-free Variable '>
+  abeq  
+  ## <d>
+    A z df-sn seqcomi
+    SeqReplaceSeq1
+  ## </d>
+  minseqi
+  EqReplaceEq1
+  A minsn  
+  EqReplaceEq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (< (mod A  [ B ]   ]   ] ) D)
+##   (=         [ B ]   [ C ] )
+##   (< (mod A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceLt0Mod1 () (
+     replacee (< (mod A B) D)
+     substitution (= B C)) 
+     (< (mod A C) D)
+  replacee substitution
+  A modeq2i
+  EqReplaceLt0
+)
+
+thm (modval.1 () ()
+  (-> (/\ (= (+ (* (+ B (1)) D) C) A) (= (+ (* (+ B (1)) D') C') A))
+   (<-> (< D' D) (< C C')))
+
+  (+ (* (+ B (1)) D) C) A eqcom (+ (* (+ B (1)) D') C') A eqcom anbi12i
+  A (+ (* (+ B (1)) D) C) (+ (* (+ B (1)) D') C') eqtr2 sylbi
+
+  (* (+ B (1)) D) C (* (+ B (1)) D') C' leadd12 syl
+
+    (+ B (1)) D mulcom (* (+ B (1)) D') leeq1i
+    (+ B (1)) D' mulcom (* D (+ B (1))) leeq2i bitri
+    D B D' lemul5 bitri
+  syl5bbr
+  ## <d 'Negate Both Sides '>
+    (<= D D') (<= C' C) notbi
+    sylib
+  ## </d 'Negate Both Sides '>
+  ## <d 'Def. Greater Than '>
+    D D' df-gt bicomi
+    BiReplaceImp1Bi0
+  ## </d 'Def. Greater Than '>
+  ## <d 'Converse of < '>
+    D' D ltcon bicomi
+    BiReplaceImp1Bi0
+  ## </d 'Converse of < '>
+  ## <d 'Def. Greater Than '>
+    C' C df-gt bicomi
+    BiReplaceImp1Bi1
+  ## </d 'Def. Greater Than '>
+  ## <d 'Converse of < '>
+    C C' ltcon bicomi
+    BiReplaceImp1Bi1
+  ## </d 'Converse of < '>
+)
+
+thm (modval.2 () ()
+  (-> (/\ (= (+ (* (+ B (1)) D) C) A) (= (+ (* (+ B (1)) D') C') A))
+    (-> (< C C') (<= (+ (+ B (1)) C) C')))
+  B D C A D' C' modval.1
+  biimprd
+  D' D nnltp1let syl6ib
+
+  (+ D' (1)) D (+ B (1)) lemul2 (+ B (1)) 0le  
+  (<= (+ D' (1)) D) anRemove2
+  (<= (* (+ B (1)) (+ D' (1))) (* (+ B (1)) D)) imbi1i
+  mpbi
+  syl6
+
+    (+ B (1)) D' (1) distr
+    (+ B (1)) mulid (* (+ B (1)) D') addeq2i eqtri
+    (* (+ B (1)) D) leeq1i
+  syl6ib
+  #(* (+ B (1)) D) addid (+ (* (+ B (1)) D') (+ B (1))) leeq2i syl6ibr
+  #(+ B (1)) (0) (* (+ B (1)) D') leadd2 syl6ibr
+
+  (+ (* (+ B (1)) D') (+ B (1))) (* (+ B (1)) D) C leadd1 syl6ib
+
+    # Note: the next two lines are copied from modval.1, should be refactored
+    (+ (* (+ B (1)) D) C) A eqcom (+ (* (+ B (1)) D') C') A eqcom anbi12i
+    A (+ (* (+ B (1)) D) C) (+ (* (+ B (1)) D') C') eqtr2 sylbi
+    (+ (+ (* (+ B (1)) D') (+ B (1))) C) leeq2d
+  sylibd
+
+  (* (+ B (1)) D') (+ B (1)) C addass (+ (* (+ B (1)) D') C') leeq1i syl6ib
+  (+ (+ B (1)) C) C' (* (+ B (1)) D') leadd2 syl6ibr
+)
+
+thm (modval.3 () ()
+  (-> (/\ (= (+ (* B D) C) A) (= (+ (* B D') C') A)) (-> (< C C') (<= (+ B C) C')))
+    (0) B C addeq1 C addidr syl5eqr C' leeq1d
+    C C' df-lt pm3.26bi syl5bi
+    (/\ (= (+ (* B D) C) A) (= (+ (* B D') C') A)) a1d
+  (0) B eqcom B eq0le0 bitri B (0) lecon (0) B df-ge bitri
+  bitri con2bii
+  (0) B nnltp1let (1) addidr B leeq1i bitri
+  bitr3i
+
+  (.- B (1)) D C A D' C' modval.2
+
+  (1) B halfminus D muleq1d C addeq1d A eqeq1d
+    (1) B halfminus D' muleq1d C' addeq1d A eqeq1d
+  anbi12d
+
+  (1) B halfminus C addeq1d C' leeq1d
+  (< C C') imbi2d
+  imbi12d
+  mpbii
+  sylbi
+
+  pm2.61i
+)
+
+## <summary> Another way of specifying the value of minimum </summary>
+thm (minval ((ps x) (A x))
+  (h1 (rwff x ph)
+   h2 (-> (= x A) (<-> ph ps)))
+  (-> (/\ ps (A. x (-> ph (<= A x)))) (= A (min ({|} x ph))))
+
+  h2 elab
+  A ({|} x ph) minex sylbir
+    x (min ({|} x ph)) ({|} x ph) ax-eleq1
+    h1 abid syl5bbr
+      (= x (min ({|} x ph))) id A leeq2d
+    imbi12d
+    cla4g
+  anim12i
+    (e. (min ({|} x ph)) ({|} x ph)) (<= A (min ({|} x ph))) pm3.35
+    (<= (min ({|} x ph)) A) anim1i
+    an1rs
+  syl
+  A (min ({|} x ph)) lesym sylibr
+)
+
+## <suggest> right('Simplify', 'min') </suggest>
+thm (minsetval ((S x) (A x)) () (-> (/\ (e. A S) (A. x (-> (e. x S) (<= A x)))) (= A (min ({|} x (e. x S)))))
+  x y S ax-eleq1
+  rwffi
+  x A S ax-eleq1
+  minval
+)
+
+## <summary> If any number satisfies a predicate, the minimum does </summary>
+thm (minel ((ps x)) (
+  h1 (rwff x ph)
+  h2 (-> (= x (min ({|} x ph))) (<-> ph ps))
+  ) (-> (E. x ph) ps)
+
+  h1 abid x exbii
+  x ({|} x ph) mincl sylbir
+  h2 elab sylib
+)
+
+
+
+## <summary>
+##   Combines <a href="minsn">minsn</a> and <a href="snid">snid</a> into the form
+##   <a href="minun">minun</a> expects.
+## </summary>
+thm (minsn2 () () (/\ (= A (min ({} A))) (e. A ({} A)))
+  A minsn
+  eqcomi
+  A snid
+  pm3.2i
+)
+
+thm (minex2() () (-> (e. A S) (<= (min S) A))
+  A S minex  
+  ## <d ''Remove Left Side of AND' '>
+    (e. (min S) S) (<= (min S) A) pm3.27
+    syl
+  ## </d ''Remove Left Side of AND' '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (->  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Imp0 () (
+     replacee (-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (-> ch th))
+  replacee
+  substitution
+th imbi1i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Minimum of a Union </title>
+thm (minun() () (-> (/\ (e. (min S) S) (<= (min S) (min T))) (= (min S) (min (u. S T))))
+  (min S) S minex
+  ## <d ''Remove Right Side of AND' '>
+    (e. (min S) S) (<= (min S) (min S)) pm3.26
+    syl
+  ## </d ''Remove Right Side of AND' '>
+  (min S) S T unc
+  syl
+
+  y S minex2
+  (<= (min S) (min T)) a1i
+  y T minex2
+  (<= (min S) (min T)) a1i
+  (min S) (min T) y letr    
+  ## <d 'Import-Export Theorem '>
+    (<= (min S) (min T)) (<= (min T) y) (<= (min S) y) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  syld
+  jaod
+  y S T elun bicomi  
+  BiReplaceImp1Imp0
+  y 19.21ai
+  anim12i  
+  ## <d>
+    (min S) (u. S T) y minsetval
+    syl
+  ## </d>
+  y (u. S T) removeab
+  minseqi  
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ (e.  [ A ]   ]   ]  S) ph) ps)
+##   (=           [ A ]   [ B ] )
+##   (-> (/\ (e.  [   [   [ B ]  S) ph) ps)
+## </table>
+thm (EqReplaceImp0An0El0 () (
+     replacee (-> (/\ (e. A S) ph) ps)
+     substitution (= A B)) 
+     (-> (/\ (e. B S) ph) ps)
+  replacee substitution
+  S eleq1i
+  BiReplaceImp0An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph (<=  [ A ]   ]   ]  C)) ps)
+##   (=              [ A ]   [ B ] )
+##   (-> (/\ ph (<=  [   [   [ B ]  C)) ps)
+## </table>
+thm (EqReplaceImp0An1Le0 () (
+     replacee (-> (/\ ph (<= A C)) ps)
+     substitution (= A B)) 
+     (-> (/\ ph (<= B C)) ps)
+  replacee substitution
+  C leeq1i
+  BiReplaceImp0An1
+)
+
+thm (minuni () (hyp1 (/\ (= A (min S)) (e. A S)) hyp2 (<= A (min T))) (/\ (= A (min (u. S T))) (e. A (u. S T)))
+  hyp1  
+  ## <d ''Remove Left Side of AND' '>
+    (= A (min S)) (e. A S) pm3.27
+    ax-mp
+  ## </d ''Remove Left Side of AND' '>
+  hyp2
+  pm3.2i
+
+  S T minun
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi
+  
+  EqReplaceImp0An0El0
+
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi  
+  EqReplaceImp0An1Le0
+
+  hyp1
+  ## <d ''Remove Right Side of AND' '>
+    (= A (min S)) (e. A S) pm3.26
+    ax-mp
+  ## </d ''Remove Right Side of AND' '>
+  eqcomi  
+  EqReplaceImp1Eq0
+  ax-mp
+
+  hyp1  
+  ## <d ''Remove Left Side of AND' '>
+    (= A (min S)) (e. A S) pm3.27
+    ax-mp
+  ## </d ''Remove Left Side of AND' '>
+  A S T unc ax-mp
+  pm3.2i
+)
+
+## <summary> Main theorem giving mod its value </summary>
+thm (modval ((A y) (B y) (C y)) ()
+  (-> (/\ (< C B) (E. y (= (+ (* B y) C) A))) (= C (mod A B)))
+
+  (< C B) (E. y (= (+ (* B y) C) A)) pm3.27
+    y y' B muleq2 C addeq1d A eqeq1d exalpha
+
+    B y x A y' C modval.3
+      B x addge01t B (+ B x) C letr mpan
+    syl6
+    con3d
+    B C lecon C B df-ge bitri con2bii syl5ib
+    C x lecon x C df-ge bitri syl6ibr
+    ex y 19.23ai com12
+    y' 19.23ai
+    sylbi com3r
+    imp x 19.21ai
+  jca
+
+    x z (* B y) addeq2 A eqeq1d y exbid rwffi
+      x C (* B y) addeq2 A eqeq1d y exbid
+    minval
+  syl
+  A B x y df-mod C eqeq2i sylibr
+)
+
+## <title> Modulo Value </title>
+thm (modvali () (hyp (< C B)  hyp2 (= (+ (* B D) C) A)) (= (mod A B) C) 
+  hyp
+  y D tyex
+  y D B muleq2 
+  (* B y) (* B D) C addeq1  
+  syl
+  ImpReplaceEx1
+  hyp2
+  EqReplaceEx1Eq1
+  pm3.2i
+  C B y A modval  
+  ax-mp
+  
+  ## <d>
+    C (mod A B) eqcom
+  ## </d>
+  mpbi
+)
+
+# Identity law for modulo
+thm (modid () ()
+  (-> (< A B) (= (mod A B) A))
+  x (0) tyex
+    x (0) B muleq2 B mul0 syl6eq
+    A addeq1d A addidr syl6eq
+    x 19.22i
+  ax-mp
+  A B x A modval mpan2 eqcomd
+)
+
+# Definition of division using set minimum instead of iota
+thm (df-div-just ((A x y) (B x y)) ()
+  (= (min ({|} x (= (+ (* B x) (mod A B)) A)))
+    (min ({|} y (= (+ (* B y) (mod A B)) A))))
+  x y B muleq2 (mod A B) addeq1d A eqeq1d abeq
+  ({|} x (= (+ (* B x) (mod A B)) A)) ({|} y (= (+ (* B y) (mod A B)) A)) minseq ax-mp
+)
+
+defthm (df-div nat (div A B) ((A x) (B x)) ()
+  (= (div A B) (min ({|} x (= (+ (* B x) (mod A B)) A))))
+  y B A x df-div-just
+)
+
+## <title> Equivalence for div </title> ##
+thm (diveq1 () () (-> (= A C) (= (div A B) (div C B)))
+  A C B modeq1
+  (* B x) addeq2d
+  (= A C) id
+  eqeq12d
+  x abbi2d
+  minseqd
+  A B x df-div eqcomi  
+  EqReplaceImp1Eq0
+  C B x df-div eqcomi  
+  EqReplaceImp1Eq1
+)
+
+thm (diveq2 () () (-> (= B C) (= (div A B) (div A C)))
+  B C x muleq1
+  B C A modeq2
+  addeq12d
+  A eqeq1d
+  x abbi2d
+  minseqd
+  A B x df-div eqcomi  
+  EqReplaceImp1Eq0
+  A C x df-div eqcomi  
+  EqReplaceImp1Eq1
+)
+
+thm (diveq12 () () (-> (/\ (= A B) (= C D)) (= (div A C) (div B D)))
+  A B C diveq1
+  C D B diveq2
+  anim12i
+  ## <d 'Transitive Property '>
+    (div A C) (div B C) (div B D) eqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Divide both sides of an equation </title>
+## <table>
+##   (=      [ A    ]       [ C  )
+##   (= (div [ A B) ]  (div [ C B))
+## </table>
+thm (diveq1i () (
+     hyp1 (= A C))
+     (= (div A B) (div C B))
+  hyp1
+  A C B diveq1
+  ax-mp
+)
+
+thm (diveq1d () (
+     hyp1 (-> ph (= A C)))
+     (-> ph (= (div A B) (div C B)))
+  hyp1
+  A C B diveq1
+  syl
+)
+
+thm (diveq2i () (
+     hyp1 (= A B))
+     (= (div C A) (div C B))
+  hyp1
+  A B C diveq2
+  ax-mp
+)
+
+thm (diveq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (div C A) (div C B)))
+  hyp1
+  A B C diveq2
+  syl
+)
+
+# number 108.0
+thm (modex ((A y) (B y)) () (E. y (= (+ (* B y) (mod A B)) A))
+    y  (0)  tyex
+      y  (0)  B  muleq2
+    B  mul0  syl6eq  A  addeq1d    A  addidr  syl6eq   y  19.22i    ax-mp
+    x  A  (* B y)  addeq2  A  eqeq1d   y  exbid
+    ({|} x  (E. y (= (+ (* B y) x) A)))  seqid     elab2
+  biimpri  ax-mp
+  A  ({|} x  (E. y (= (+ (* B y) x) A)))  minex  ax-mp
+  pm3.26i
+  A  B  x  y  df-mod    (mod A B)  (min ({|} x (E. y (= (+ (* B y) x) A))))  ({|} x (E. y (= (+ (* B y) x) A)))  ax-eleq1  ax-mp
+mpbir
+
+    x  (mod A B)  (* B y)  addeq2  A  eqeq1d   y  exbid
+    ({|} x  (E. y (= (+ (* B y) x) A)))  seqid     elab2
+mpbi
+)
+
+# number 107.0
+thm (modle1 () () (<= (mod A B) A)
+    y  (0)  tyex
+      y  (0)  B  muleq2
+    B  mul0  syl6eq  A  addeq1d    A  addidr  syl6eq   y  19.22i    ax-mp
+    x  A  (* B y)  addeq2  A  eqeq1d   y  exbid
+    ({|} x  (E. y (= (+ (* B y) x) A)))  seqid     elab2
+  biimpri  ax-mp
+  A  ({|} x  (E. y (= (+ (* B y) x) A)))  minex  ax-mp
+  pm3.27i
+      A  B  x  y  df-mod    A  leeq1i  mpbir
+)
+
+## <summary> Main theorem about division </summary>
+thm (div () () (= (+ (* B (div A B)) (mod A B)) A)
+   x B A modex
+    x y B muleq2 (mod A B) addeq1d A eqeq1d rwffi
+    A B x df-div x eqeq2i biimpri x (div A B) B muleq2 syl (mod A B) addeq1d A eqeq1d
+    minel
+  ax-mp
+)
+
+# number 109.0
+thm (modmin ((A x) (B x) (C x)) () (-> (E. x (= (+ (* A x) B) C)) (<= (mod C A) B))
+
+    y B (* A x) addeq2 C eqeq1d x exbid
+    ({|} y (E. x (= (+ (* A x) y) C))) seqid elab2   biimpri
+    B  ({|} y (E. x (= (+ (* A x) y) C)))  minex  syl  pm3.27d
+          C  A  y  x  df-mod    B  leeq1i  biimpri  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (+ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= A (+ B C))
+     substitution (= C D)) 
+     (= A (+ B D))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1
+)
+
+
+# number 110.0
+thm (modlt2 () () (< (mod A (+ B (1))) (+ B (1)))
+B  pa_axplus1
+  (+ B (1))  (mod A (+ B (1))) x  df-le   biimpi
+    y  (+ B (1))  A modex
+      (+ (+ B (1)) x)  (mod A (+ B (1)))  (* (+ B (1)) y)  addeq2   A  eqeq1d  biimprd     y 19.22d
+    mpi
+  ## <d 'Distributive Property '>
+    (+ B (1)) y (1) distr
+    (+ B (1)) mulid
+    EqReplaceEq1Add1
+  ## </d 'Distributive Property '>
+  x addeq1i  
+  ## <d 'Associative Property '>
+    (* (+ B (1)) y) (+ B (1)) x addass
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+      A  eqeq1i  biimpri
+        (= (+ (* (+ B (1)) (+ y (1))) x) A)  z  alnfi
+          z  (+ y (1))  tyex
+          z  (+ y (1))  (+ B (1))  muleq2  x  addeq1d    A  eqeq1d    biimprd   z  19.22i    ax-mp
+          z  (= (+ (* (+ B (1)) (+ y (1))) x) A)  (= (+ (* (+ B (1)) z) x) A)  eximp1    ax-mp
+        syl
+      syl
+      z  (+ B (1))  x  A  modmin    syl
+    y  19.22i  syl     y  (<= (mod A (+ B (1))) x)  ex-nf    syl
+      x  (+ B (1))  addge02t      (= (+ (+ B (1)) x) (mod A (+ B (1))))  id    x  leeq2d   biimpd  mpi
+    jca
+    (mod A (+ B (1)))  x  lesym    biimpri  syl   eqcoms  ancli    eqcoms
+    (mod A (+ B (1)))  (+ (+ B (1)) x)  x  eqtr2    syl
+    x  addidr  syl6eqr
+    (+ B (1))  x  (0)  addcan    sylib  eqcomd
+  x  19.22i    syl  x  (= (0) (+ B (1)))  ex-nf  syl
+  con3i
+ax-mp
+  ## <d 'Def. Greater Than '>
+    (+ B (1)) (mod A (+ B (1))) df-gt bicomi
+    mpbi
+  ## </d 'Def. Greater Than '>
+  ## <d 'Converse of < '>
+    (mod A (+ B (1))) (+ B (1)) ltcon bicomi
+    mpbi
+  ## </d 'Converse of < '>
+)
+
+## <title> Divides and modulo equivalence </title>
+## <summary> Divides relation is equivalent to zero remainder </summary>
+thm (dividesmod () () (<-> (| A B) (= (mod B A) (0)))
+  A  B  x  df-divides
+    (* A x)  addid  B  eqeq1i  x  exbii  bitr4i
+  x  A  (0)  B  modmin  sylbi     (mod B A)  eq0le0      sylibr
+
+    x  A  B   modex
+    (mod B A)  (0)  (* A x)  addeq2  B  eqeq1d   (* A x)  addid  B  eqeq1i   syl6bb  x exbid    mpbii
+    A  B  x  df-divides  sylibr
+
+    impbii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+thm (muldiv () ()
+  (-> (< (0) B) (= (div (* B A) B) A))
+
+  (* B (div (* B A) B)) addid
+    B dividessym B B A dividesmul ax-mp
+    B (* B A) dividesmod mpbi
+    (* B (div (* B A) B)) addeq2i
+    B (* B A) div eqtr3
+  eqtr3
+  B (div (* B A) B) A mulcan2 mpbii
+  ## <d>
+    B eq0le0  
+    BiReplaceImp0Not0
+    B (0) df-gt bicomi  
+    sylbi2
+    ## <d 'Converse of < '>
+      (0) B ltcon bicomi
+      sylbi2
+    ## </d 'Converse of < '>
+  ## </d>
+)
+
+## <title> Cancel multiplication for numbers above 0 </title>
+## <table>
+##   (> <r> A (0))
+##   (= (div (* <r> A B) <r> A) B)
+## </table>
+thm (muldivi () (hyp (> A (0))) (= (div (* A B) A) B)
+  hyp  
+  ## <d 'Converse of < '>
+    (0) A ltcon bicomi
+    mpbi
+  ## </d 'Converse of < '>
+  A B muldiv  
+  ax-mp
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (MIN_MOD_DIV min_mod_div.ghi (PROP PREDICATE NATURALS SET_MIN) "")

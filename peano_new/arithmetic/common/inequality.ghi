@@ -71,6 +71,16 @@ stmt (ltadd1 () () (<-> (< A B) (< (+ A C) (+ B C))))
 ## <suggest> left('Cancel', '+') </suggest>
 stmt (ltadd2 () () (<-> (< A B) (< (+ C A) (+ C B))))
 
+stmt (gtadd1 () () (<-> (> B A) (> (+ B C) (+ A C))))
+
+stmt (gtadd2 () () (<-> (> B A) (> (+ C B) (+ C A))))
+
+## <title> Add on Both Sides of Inequality </title>
+stmt (geadd1 () ()  (<-> (>= A B) (>= (+ A C) (+ B C))))
+
+## <title> Addition is Monotonic </title>
+stmt (geadd2 () ()  (<-> (>= A B) (>= (+ C A) (+ C B))))
+
 ## <title> Inequality relation for two equal sums </title>
 stmt (ltadd12 () () (-> (= (+ A B) (+ C D)) (<-> (< A C) (< D B))))
 
@@ -180,6 +190,23 @@ stmt (df-ge () () (<-> (>= A B) (-. (< A B))))
 ## <suggest> right('Define', '<') left('Simplify', '>') </suggest>
 stmt (df-gt () () (<-> (> A B) (-. (<= A B))))
 
+## <title> Def. Greater Than or Equal </title>
+## <suggest> right('Simplify', '<') </suggest>
+stmt (notge () () (<-> (-. (>= A B)) (< A B)))
+
+## <title> Def. Greater Than </title>
+## <suggest> right('Simplify', ' ≤') </suggest>
+stmt (notgt () () (<-> (-. (> A B)) (<= A B)))
+
+## <title> Definition of Less Than </title>
+stmt (df-lt () () (<-> (< A B) (/\ (<= A B) (-. (= A B)))))
+
+## <title> Equivalence for < </title> ##
+stmt (lteq1 () () (-> (= A C) (<-> (< A B) (< C B))))
+
+## <title> Equivalence for < </title> ##
+stmt (lteq2 () () (-> (= B C) (<-> (< A B) (< A C))))
+
 ## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=      A ]   ]      [ B ]   )
@@ -193,6 +220,14 @@ stmt (lteq1i () ((= A B)) (<-> (< A C) (< B C)))
 ##   (<-> (< C [ A ] ) (< [ C [ B ] ))
 ## </table>
 stmt (lteq2i () ((= A B)) (<-> (< C A) (< C B)))
+
+stmt (lteq1d () (
+     (-> ph (= A C)))
+     (-> ph (<-> (< A B) (< C B))))
+
+stmt (lteq2d () (
+     (-> ph (= B C)))
+     (-> ph (<-> (< A B) (< A C))))
 
 ## <title> Equivalence over Inequality </title>
 ## <table>
@@ -226,6 +261,14 @@ stmt (lteq1ii () ((< A C) (= A B)) (< B C))
 ## </table>
 stmt (lteq2ii () ((< C A) (= A B)) (< C B))
 
+## <title> Equivalence for ≤ </title>
+stmt (leeq12 () () (-> (/\ (= A B) (= C D)) (<-> (<= A C) (<= B D))))
+
+stmt (leeq12d () (
+     (-> ph (= A B))
+     (-> ph (= C D)))
+     (-> ph (<-> (<= A C) (<= B D))))
+
 ## <title> Convert between inequalities </title>
 stmt (axlttri2i () ((-. (= A B)) (<= A B)) (< A B))
 
@@ -251,9 +294,33 @@ stmt (gtmul2i () ((> B C) (> A (0)))  (> (* B A) (* C A)))
 ## <title> Inequality Conversion </title>
 stmt (axgrtrii () ((-. (= A B)) (>= A B)) (> A B))
 
+## <title> Transitive Property </title>
+## <suggest> right('Simplify', '< <') </suggest>
+stmt (lttr () () (-> (/\ (< A B) (< B C)) (< A C)))
+
 ## <title> Transitive law </title>
 ## <suggest> right('Simplify', '<') </suggest>
 stmt (lelttr () () (-> (/\ (<= A B) (< B C)) (< A C)))
+
+## <title> Transitive law </title>
+## <suggest> right('Simplify', '<') </suggest>
+stmt (ltletr () () (-> (/\ (< A B) (<= B C)) (< A C)))
+
+## <title> Transitive Inequality </title>
+## <suggest> right('Transitive', '≥') </suggest>
+stmt (getr () ()  (-> (/\ (>= A B) (>= B C)) (>= A C)))
+
+## <title> Transitive Inequality </title>
+## <suggest> right('Transitive', '>') </suggest>
+stmt (gtgetr () () (-> (/\ (> C B) (>= B A)) (> C A)))
+
+## <title> Transitive Inequality </title>
+## <suggest> right('Transitive', '>') </suggest>
+stmt (gegttr () () (-> (/\ (>= C B) (> B A)) (> C A)))
+
+## <title> Transitive Inequality </title>
+## <suggest> right('Transitive', '>') </suggest>
+stmt (gttr () ()  (-> (/\ (> A B) (> B C)) (> A C)))
 
 ## <title> Transitive Inequality </title>
 ## <table>
@@ -339,6 +406,20 @@ stmt (gtTrge () ((> B C)) (-> (>= C A) (> B A)))
 ## </table>
 stmt (geTrge () ((>= B C)) (-> (>= A B) (>= A C)))
 
+## <title> Equivalence for >= </title>
+stmt (geeq1 () () (-> (= A C) (<-> (>= A B) (>= C B))))
+
+## <title> Equivalence for >= </title>
+stmt (geeq2 () () (-> (= B C) (<-> (>= A B) (>= A C))))
+
+stmt (geeq1d () (
+     (-> ph (= A C)))
+     (-> ph (<-> (>= A B) (>= C B))))
+
+stmt (geeq2d () (
+     (-> ph (= B C)))
+     (-> ph (<-> (>= A B) (>= A C))))
+
 ## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=       A ]   ]       [ B ]   )
@@ -357,6 +438,10 @@ stmt (geeq2i ()
   ((= A B))
   (<-> (>= C A) (>= C B)))
 
+stmt (gteq1 () () (-> (= A C) (<-> (> A B) (> C B))))
+
+stmt (gteq2 () () (-> (= B C) (<-> (> A B) (> A C))))
+
 ## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=      A ]   ]      [ B ]   )
@@ -374,6 +459,14 @@ stmt (gteq1i ()
 stmt (gteq2i ()
   ((= B C))
   (<-> (> A B) (> A C)))
+
+stmt (gteq1d () (
+     (-> ph (= A C)))
+     (-> ph (<-> (> A B) (> C B))))
+
+stmt (gteq2d () (
+     (-> ph (= B C)))
+     (-> ph (<-> (> A B) (> A C))))
 
 ## <title> Operator Conversion </title>
 ## <suggest> right('Infer', '≠') </suggest>
@@ -519,5 +612,9 @@ stmt (ltmul1 () () (-> (/\ (< A B) (< (0) C)) (< (* A C) (* B C))))
 
 stmt (ltmul4 () () (-> (/\ (< A B) (< C D)) (< (+ (* A D) (* B C)) (+ (* A C) (* B D)))))
 
+stmt (gtmul2 () () (-> (/\ (> A B) (> C (0))) (> (* C A) (* C B))))
+
 ## <title> Less Than or Equal from Positive Difference </title>
 stmt (exlt ((A x)(B x)) () (-> (< A B) (E. x (/\ (< (0) x) (= (+ A x) B)))))
+
+stmt (gemul1 () () (-> (/\ (>= B A) (>= C (0))) (>= (* B C) (* A C))))

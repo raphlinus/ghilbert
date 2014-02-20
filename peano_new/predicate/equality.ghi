@@ -225,6 +225,9 @@ stmt (cla4g ((A x) (ps x))
 ## <title> Quantifier variable exchange </title>
 stmt (exalpha ((ph y) (ps x)) ((-> (= x y) (<-> ph ps))) (<-> (E. x ph) (E. y ps)))
 
+## <title> Quantifier variable exchange </title>
+stmt (exalpha1 ((ph y) (ps x)) ((-> (= x y) (-> ph ps))) (-> (E. x ph) (E. y ps)))
+
 ## <title> Relatively Well-Formed Formula Infernece </title>
 stmt (rwffi ((ps x) (ph y)) ((-> (= x y) (<-> ph ps))) (rwff x ph))
 
@@ -255,3 +258,18 @@ stmt (substex ((ph x y) (ps y) (ch x) (A y))
 stmt (eu4 ((ph y) (ps x))
   ((-> (= x y) (<-> ph ps)))
   (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ps) (= x y)))))))
+
+## <title> Unique Existence Implies Existence </title>
+## <suggest> right('Infer', '∃') </suggest>
+stmt (euex () () (-> (E! x ph) (E. x ph)))
+
+## <title> Substitution as Existence </title>
+## <suggest> right('Equivalence', '∃') left('Equivalence', '[/]') </suggest>
+stmt (sbc5 ((A x)) () (<-> ([/] A x ph) (E. x (/\ (= x A) ph))))
+
+
+term (wff (E* x ph))
+
+stmt (mo4 ((ph y) (ps x))  ((-> (= x y) (<-> ph ps))) (<-> (E* x ph) (A. x (A. y (-> (/\ ph ps) (= x y))))))
+
+stmt (eu5 () ((rwff x ph)) (<-> (E! x ph) (/\ (E. x ph) (E* x ph))))

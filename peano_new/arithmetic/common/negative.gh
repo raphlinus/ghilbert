@@ -125,6 +125,31 @@ thm (doubleneg () () (= (-n (-n A)) A)
 
 ## <title> Substitution </title>
 ## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= A B))
+     substitution (= B C)) 
+     (<-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  bitri
+)
+
+## <title> Negative can switch sides </title>
+## <suggest> right('Equivalence', '-') left('Equivalence', '-') </suggest>
+thm (negeq3 () () (<-> (= A (-n B)) (= (-n A) B))
+  A (-n B) negeq2  
+  ## <d 'Double Negative '>
+    B doubleneg
+    EqReplaceBi1Eq1
+  ## </d 'Double Negative '>
+)
+
+## <title> Substitution </title>
+## <table>
 ##   (=  [ A ]   ]   ]  C)
 ##   (=  [ A ]   [ B ] )
 ##   (=  [   [   [ B ]  C)
@@ -148,7 +173,7 @@ thm (neg0 () () (= (-n (0)) (0))
 )
 
 ## <title> Cancel using subtraction </title>
-## <suggest> right('Simplify','-') </suggest>
+## <suggest> right('Simplify','0') </suggest>
 thm (negcan2() () (= (+ (-n A) A) (0))
   A negcan
   ## <d 'Commutative Property of Addition '>
@@ -1525,21 +1550,6 @@ thm (EqReplaceBi1Eq0 () (
 
 ## <title> Substitution </title>
 ## <table>
-##   (<-> ph (= A  [ B ]   ]   ] ))
-##   (=            [ B ]   [ C ] )
-##   (<-> ph (= A  [   [   [ C ] ))
-## </table>
-thm (EqReplaceBi1Eq1 () (
-     replacee (<-> ph (= A B))
-     substitution (= B C)) 
-     (<-> ph (= A C))
-  replacee substitution
-  A eqeq2i
-  bitri
-)
-
-## <title> Substitution </title>
-## <table>
 ##   (<-> (-.  [ ph ]   ]    ] ) ch)
 ##   (<->      [ ph ]   [ ps ] )
 ##   (<-> (-.  [    [   [ ps ] ) ch)
@@ -1679,6 +1689,751 @@ thm (minusValuei () (hyp (= (+ A B) C)) (= (- C B) A)
     A (- C B) eqcom
     mpbi
   ## </d 'Symmetric Property '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (>  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (>  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Gt0 () (
+     replacee (<-> ph (> A C))
+     substitution (= A B)) 
+     (<-> ph (> B C))
+  replacee substitution
+  C gteq1i
+  bitri
+)
+
+## <title> Positive Number Subtraction </title>
+## <summary> A number decreases when a positive number is subtracted from it. </summary>
+thm (subtractPositive () () (<-> (> B (0)) (< (- A B) A))
+  B (0) A gtadd2  
+  ## <d 'Additive Identity '>
+    A addid
+    EqReplaceBi1Gt1
+  ## </d 'Additive Identity '>
+  ## <d ' Subtract B from both sides'>
+  (+ A B) A (-n B) gtadd1  
+  ## <d 'Definition of Subtraction '>
+    (+ A B) B df-minus eqcomi
+    EqReplaceBi1Gt0
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Addition is the inverse of Subtraction '>
+    A B addcanr
+    EqReplaceBi1Gt0
+  ## </d 'Addition is the inverse of Subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceBi1Gt1
+  ## </d 'Definition of Subtraction '>  
+  bitri
+  ## <d ' Subtract ϵ from both sides'>  
+  ## <d 'Converse of < '>
+    (- A B) A ltcon bicomi
+    bitri
+  ## </d 'Converse of < '>
+)
+
+## <title> Add or subtract on both sides </title>
+thm (gtdiff () () (<-> (> A B) (> (- A B) (0)))
+  A B (-n B) gtadd1  
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceBi1Gt1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceBi1Gt0
+  ## </d 'Definition of Subtraction '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (>= A  [ B ]   ]   ] ))
+##   (=             [ B ]   [ C ] )
+##   (<-> ph (>= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Ge1 () (
+     replacee (<-> ph (>= A B))
+     substitution (= B C)) 
+     (<-> ph (>= A C))
+  replacee substitution
+  A geeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (>=  [ A ]   ]   ]  C))
+##   (=           [ A ]   [ B ] )
+##   (<-> ph (>=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Ge0 () (
+     replacee (<-> ph (>= A C))
+     substitution (= A B)) 
+     (<-> ph (>= B C))
+  replacee substitution
+  C geeq1i
+  bitri
+)
+
+## <title> Add or subtract on both sides </title>
+thm (gediff () () (<-> (>= A B) (>= (- A B) (0)))
+  A B (-n B) geadd1  
+  ## <d 'Cancel using subtraction '>
+    B negcan
+    EqReplaceBi1Ge1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceBi1Ge0
+  ## </d 'Definition of Subtraction '>
+)
+
+thm (neggt () () (<-> (> (-n A) (0)) (< A (0)))
+  (0) A gtdiff
+  ## <d 'Subtract from 0 '>
+    A 0minus
+    EqReplaceBi1Gt0
+  ## </d 'Subtract from 0 '>
+  ## <d 'Converse of < '>
+    A (0) ltcon bicomi
+    bitr3icom
+  ## </d 'Converse of < '>
+  bicomi
+)
+
+thm (negge () () (<-> (>= (-n A) (0)) (<= A (0)))
+  (0) A gediff  
+  ## <d 'Subtract from 0 '>
+    A 0minus
+    EqReplaceBi1Ge0
+  ## </d 'Subtract from 0 '>  
+  ## <d 'Converse of ≤ '>
+    A (0) lecon bicomi
+    bitr3icom
+  ## </d 'Converse of ≤ '>
+  bicomi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (>  [ A ]   ]   ]  C) ph)
+##   (=       [ A ]   [ B ] )
+##   (<-> (>  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceBi0Gt0 () (
+     replacee (<-> (> A C) ph)
+     substitution (= A B)) 
+     (<-> (> B C) ph)
+  replacee substitution
+  C gteq1i
+  bitr3icom
+)
+
+thm (neglt () () (<-> (< (-n A) (0)) (> A (0)))
+  (-n A) neggt  
+  ## <d 'Double Negative '>
+    A doubleneg
+    EqReplaceBi0Gt0
+  ## </d 'Double Negative '>
+  bicomi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (>=  [ A ]   ]   ]  C) ph)
+##   (=        [ A ]   [ B ] )
+##   (<-> (>=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceBi0Ge0 () (
+     replacee (<-> (>= A C) ph)
+     substitution (= A B)) 
+     (<-> (>= B C) ph)
+  replacee substitution
+  C geeq1i
+  bitr3icom
+)
+
+thm (negle () () (<-> (>= A (0)) (<= (-n A) (0)))
+  (-n A) negge  
+  ## <d 'Double Negative '>
+    A doubleneg
+    EqReplaceBi0Ge0
+  ## </d 'Double Negative '>
+)
+
+## <title> Definition of Absolute Value </title>
+## <summary>
+## </summary>
+## <suggest> right('Define', '|x|') left('Simplify', '|x|') </suggest>
+defthm (df-abs nat (abs A) () () (= (abs A) (ifn (>= A (0)) A (-n A)))
+  (ifn (>= A (0)) A (-n A)) eqid
+)
+
+## <title> Equivalence for abs </title> ##
+thm (abseq () () (-> (= A B) (= (abs A) (abs B)))
+  (= A B) id
+  (0) geeq1d
+  (= A B) id
+  (= A B) id
+  negeqd
+  ifnbi123d
+  A df-abs
+  ## <d 'Commutative Property'>
+    (abs A) (ifn (>= A (0)) A (-n A)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  B df-abs
+  ## <d 'Commutative Property'>
+    (abs B) (ifn (>= B (0)) B (-n B)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq1
+)
+thm (abseqi () (
+     hyp1 (= A B))
+     (= (abs A) (abs B))
+  hyp1
+  A B abseq
+  ax-mp
+)
+
+thm (abseqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (abs A) (abs B)))
+  hyp1
+  A B abseq
+  syl
+)
+
+## <title> Def. Absolute Value for Positive Numbers </title>
+thm (dfabs1 () () (-> (>= A (0)) (= (abs A) A))
+  (>= A (0)) A (-n A) ifn1
+  ## <d 'Definition of Absolute Value '>
+    A df-abs eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Definition of Absolute Value '>
+)
+
+## <title> Def. Absolute Value for Negative Numbers </title>
+thm (dfabs2 () () (-> (< A (0)) (= (abs A) (-n A)))
+  (>= A (0)) A (-n A) ifn2
+  ## <d 'Definition of Absolute Value '>
+    A df-abs eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Definition of Absolute Value '>
+  A (0) df-ge  
+  BiReplaceImp0Not0  
+  ## <d 'Double Negative '>
+    (< A (0)) notnotr
+    sylbi2
+  ## </d 'Double Negative '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\  [ ps ]   ]    ]  th))
+##   (->         [ ps ]   [ ch ] )
+##   (-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (ImpReplaceImp1An0 () (
+     replacee (-> ph (/\ ps th))
+     substitution (-> ps ch)) 
+     (-> ph (/\ ch th))
+  replacee substitution
+  th anim1i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1An1 () (
+     replacee (-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  sylib
+)
+
+## <title> The absolute value is not negative </title>
+thm (absNotNeg () () (>= (abs A) (0))
+  (>= A (0)) A (-n A) ifn1
+  ## <d 'Definition of Absolute Value '>
+    A df-abs eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Definition of Absolute Value '>
+  ## <d>
+    (abs A) A (0) geeq1  
+    syl
+    ## <d 'Implication & Biconditional '>
+      (>= A (0)) (>= (abs A) (0)) ibibr bicomi
+      mpbi
+    ## </d 'Implication & Biconditional '>
+  ## </d>
+  
+  (>= A (0)) A (-n A) ifn2  
+  ## <d 'Definition of Absolute Value '>
+    A df-abs eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Definition of Absolute Value '>
+  ## <d>
+  A negle  
+  ## <d 'Negate Both Sides '>
+    (>= A (0)) (<= (-n A) (0)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Def. Greater Than '>
+    (-n A) (0) df-gt bicomi
+    bitri
+  ## </d 'Def. Greater Than '>
+  biimpi
+  jca
+  (abs A) (-n A) (0) gteq1  
+  ImpReplaceImp1An0  
+  ## <d 'Commute Conjunction '>
+    (<-> (> (abs A) (0)) (> (-n A) (0))) (> (-n A) (0)) ancom
+    sylib
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Commutative Biconditional '>
+    (> (abs A) (0)) (> (-n A) (0)) bicom
+    BiReplaceImp1An1
+  ## </d 'Commutative Biconditional '>  
+  ## <d>
+    (> (-n A) (0)) (> (abs A) (0)) mpbi-inline
+    syl
+  ## </d>
+  ## </d>  
+  ## <d 'Inequality Conversion '>
+    (abs A) (0) gtge
+    syl
+  ## </d 'Inequality Conversion '>
+  jaoi  
+  ## <d 'Definition of OR '>
+    (>= A (0)) exmid    
+    ax-mpRemove
+  ## </d 'Definition of OR '>
+)
+
+## <title> The absolute value is idempotent </title>
+thm (absidm () () (= (abs (abs A)) (abs A))
+  (abs A) df-abs
+  ## <d>
+    A absNotNeg
+    (>= (abs A) (0)) (abs A) (-n (abs A)) ifn1  
+    ax-mp
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> The absolute value is positive definite </title>
+thm (absPosDef () () (<-> (= A (0)) (= (abs A) (0)))
+  ## <d 'A = 0 case'>
+    A (0) abseq
+    (0) df-abs
+    (>= (0) (0)) (0) (-n (0)) ifn1    
+    (0) eqid
+    ## <d 'Convert to ≥'>
+      (0) (0) eqge
+      ax-mp
+    ## </d 'Convert to ≥'>
+    ax-mpRemove
+    EqReplaceEq1  
+    EqReplaceImp1Eq1
+  ## </d>
+
+  A (0) neqlt
+  ## <d 'A < 0 case'>
+    ## <d>
+    A neggt bicomi biimpi
+    (>= A (0)) A (-n A) ifn2
+    ## </d>
+    A (0) df-ge  
+    ## <d 'Negate Both Sides '>
+      (>= A (0)) (-. (< A (0))) notbi
+      mpbi
+      (< A (0)) notnotr
+      bitri
+    ## </d 'Negate Both Sides '>
+    sylbi2
+    ## <d 'Definition of Absolute Value '>
+      A df-abs eqcomi
+      EqReplaceImp1Eq0
+    ## </d 'Definition of Absolute Value '>
+    (0) gteq1d bicomd
+    jca  
+    ## <d>
+      (> (-n A) (0)) (> (abs A) (0)) mpbi-inline
+      syl
+    ## </d>  
+    ## <d 'Inequality Conversion '>
+      (abs A) (0) gtneq
+      syl
+    ## </d 'Inequality Conversion '>
+  ## </d 'A < 0 case'>
+
+  ## <d 'A > 0 case'>
+    A (0) gtge
+    (>= A (0)) A (-n A) ifn1      
+    syl  
+    ## <d 'Definition of Absolute Value '>
+      A df-abs eqcomi
+      EqReplaceImp1Eq0
+    ## </d 'Definition of Absolute Value '>
+    (abs A) A (0) gteq1  
+    syl
+    ## <d 'Implication & Biconditional '>
+      (> A (0)) (> (abs A) (0)) ibibr bicomi
+      mpbi
+    ## </d 'Implication & Biconditional '>
+    ## <d 'Inequality Conversion '>
+      (abs A) (0) gtneq
+      syl
+    ## </d 'Inequality Conversion '>
+  ## </d 'A > 0 case'>  
+  jaoi  
+  syl  
+  ## <d 'Contrapositive '>
+    (-. (= A (0))) (-. (= (abs A) (0))) con34b
+    mpbi
+    (= (abs A) (0)) notnotr
+    sylbi2
+    (= A (0)) notnotr
+    sylib
+  ## </d 'Contrapositive '>
+  impbii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (-.  [ ps ]   ]    ] ) th))
+##   (<->             [ ps ]   [ ch ] )
+##   (-> ph (<-> (-.  [    [   [ ch ] ) th))
+## </table>
+thm (BiReplaceImp1Bi0Not0 () (
+     replacee (-> ph (<-> (-. ps) th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> (-. ch) th))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Bi0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1An1 () (
+     replacee (-> ph (/\ ps ch))
+     substitution (-> ch th)) 
+     (-> ph (/\ ps th))
+  replacee substitution
+  ps anim2i
+  syl
+)
+
+## <title> Two numbers have the same absolute value </title>
+thm (absTwoValues.1 () () (-> (/\ (\/ (= A (-n B)) (= A B)) (>= B (0))) (= (abs A) B))
+  A (-n B) (0) geeq1  
+  ## <d 'Negate Both Sides '>
+    (>= A (0)) (>= (-n B) (0)) notbi
+    sylib
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Def. Greater Than or Equal '>
+    A (0) notge
+    BiReplaceImp1Bi0
+  ## </d 'Def. Greater Than or Equal '>  
+  ## <d 'Def. Greater Than or Equal '>
+    (-n B) (0) notge
+    BiReplaceImp1Bi1
+  ## </d 'Def. Greater Than or Equal '>
+  B neglt  
+  BiReplaceImp1Bi1  
+  ## <d 'Infer Right to Left '>
+    (< A (0)) (> B (0)) bi2
+    syl
+  ## </d 'Infer Right to Left '>  
+  ## <d 'Import-Export Theorem '>
+    (= A (-n B)) (> B (0)) (< A (0)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  ancli  
+  ## <d 'Remove Right Side of AND '>
+    (= A (-n B)) (> B (0)) pm3.26
+    ImpReplaceImp1An0
+  ## </d 'Remove Right Side of AND '>
+
+  
+  A dfabs2
+  (= A (-n B)) anim2i
+  A (-n B) negeq  
+  ## <d 'Double Negative '>
+    B doubleneg
+    EqReplaceImp1Eq1
+  ## </d 'Double Negative '>
+  (= (abs A) (-n A)) anim1i   
+  syl  
+  ## <d 'Commute Conjunction '>
+    (= (-n A) B) (= (abs A) (-n A)) ancom
+    sylib
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Equality Transitive Property '>
+    (abs A) (-n A) B eqtr
+    syl
+  ## </d 'Equality Transitive Property '>  
+  syl
+
+  B (0) negeq
+  neg0  
+  EqReplaceImp1Eq1
+  (= A (-n B)) anim2i
+  ## <d 'Equality Transitive Property '>
+    A (-n B) (0) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  A absPosDef  
+  sylib
+  ancri  
+  ## <d 'Remove Left Side of AND '>
+    (= A (-n B)) (= B (0)) pm3.27
+    ImpReplaceImp1An1
+  ## </d 'Remove Left Side of AND '>
+
+  B (0) (abs A) eqeq2  
+  ## <d 'Infer Right to Left '>
+    (= (abs A) B) (= (abs A) (0)) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  com12  
+  ## <d 'Import-Export Theorem '>
+    (= (abs A) (0)) (= B (0)) (= (abs A) B) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>  
+  syl
+  jaoi  
+  ## <d 'Distributive Property '>
+    (= A (-n B)) (> B (0)) (= B (0)) andi bicomi
+    sylbi2
+  ## </d 'Distributive Property '>  
+  ## <d '≥ means > OR = '>
+    B (0) gegeo bicomi
+    BiReplaceImp0An1
+  ## </d '≥ means > OR = '>
+
+  (= A B) (>= B (0)) pm3.26
+  A B (0) geeq1  
+  ## <d 'Infer Right to Left '>
+    (>= A (0)) (>= B (0)) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  A dfabs1  
+  ImpReplaceImp1Imp1
+  (abs A) A B eqeq1  
+  ImpReplaceImp1Imp1  
+  ## <d 'Import-Export Theorem '>
+    (= A B) (>= B (0)) (<-> (= (abs A) B) (= A B)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jca  
+  ## <d 'Commutative Biconditional '>
+    (= (abs A) B) (= A B) bicom
+    BiReplaceImp1An1
+  ## </d 'Commutative Biconditional '>  
+  ## <d>
+    (= A B) (= (abs A) B) mpbi-inline
+    syl
+  ## </d>
+  jaoi  
+  ## <d 'Distributive Property '>
+    (= A (-n B)) (= A B) (>= B (0)) andir bicomi
+    sylbi2
+  ## </d 'Distributive Property '>
+)
+
+thm (absNotNeg2 () () (-> (= (abs A) B) (>= B (0)))
+  (abs A) B (0) geeq1
+  A absNotNeg  
+  (>= B (0)) biRemove1
+  (= (abs A) B) imbi2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ (\/  [ ph ]   ]    ]  ch) th) ta)
+##   (<->         [ ph ]   [ ps ] )
+##   (-> (/\ (\/  [    [   [ ps ]  ch) th) ta)
+## </table>
+thm (BiReplaceImp0An0Or0 () (
+     replacee (-> (/\ (\/ ph ch) th) ta)
+     substitution (<-> ph ps)) 
+     (-> (/\ (\/ ps ch) th) ta)
+  replacee substitution
+  ch orbi1i
+  BiReplaceImp0An0
+)
+
+## <title> Two numbers have the same absolute value </title>
+thm (absTwoValues () () (<-> (= (abs A) B) (/\ (\/ (= A B) (= (-n A) B)) (>= B (0))))
+  A dfabs1
+  ## <d 'Symmetric Property '>
+    (abs A) A eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  (= (abs A) B) id
+  anim12i  
+  ## <d 'Equality Transitive Property '>
+    A (abs A) B eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+
+  A dfabs2  
+  ## <d 'Symmetric Property '>
+    (abs A) (-n A) eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  (= (abs A) B) id
+  anim12i  
+  ## <d 'Equality Transitive Property '>
+    (-n A) (abs A) B eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  orim12i
+  ## <d>
+    ## <d 'Distributive Property '>
+      (>= A (0)) (< A (0)) (= (abs A) B) andir bicomi
+      sylbi2
+    ## </d 'Distributive Property '>
+    A (0) df-ge  
+    BiReplaceImp0An0Or0
+    ## <d 'Commutative Property of OR '>
+      (-. (< A (0))) (< A (0)) orcom
+      BiReplaceImp0An0
+    ## </d 'Commutative Property of OR '>  
+    ## <d 'Excluded Middle'>
+      (< A (0)) exmid    
+      (= (abs A) B) anRemove1
+      (\/ (= A B) (= (-n A) B)) imbi1i
+      mpbi
+    ## </d 'Excluded Middle'>
+  ## </d>
+  A B absNotNeg2
+  jca
+
+  (-n A) B negeq  
+  ## <d 'Double Negative '>
+    A doubleneg
+    EqReplaceImp1Eq0
+  ## </d 'Double Negative '>
+  (= A B) orim2i
+  (>= B (0)) anim1i
+  ## <d>
+    A B absTwoValues.1  
+    ## <d 'Commutative Property of OR '>
+      (= A (-n B)) (= A B) orcom
+      BiReplaceImp0An0
+    ## </d 'Commutative Property of OR '>  
+    syl
+  ## </d>
+  impbii
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  sylib
+)
+
+thm (absTwoValues2 () () (\/ (= (abs A) A) (= (abs A) (-n A)))
+  ## <d>
+    A x absTwoValues  
+    ## <d 'Remove Right Side of AND '>
+      (\/ (= A x) (= (-n A) x)) (>= x (0)) pm3.26
+      ImpReplaceBi1
+    ## </d 'Remove Right Side of AND '>
+    ## <d 'Symmetric Property '>
+      A x eqcom
+      BiReplaceImp1Or0
+    ## </d 'Symmetric Property '>
+    ## <d 'Symmetric Property '>
+      (-n A) x eqcom
+      BiReplaceImp1Or1
+    ## </d 'Symmetric Property '>
+  ## </d>
+  ancli  
+  ## <d 'Equality Transitive Property '>
+  ## <d 'Distributive Property '>
+    (= (abs A) x) (= x A) (= x (-n A)) andi
+    sylib
+  ## </d 'Distributive Property '>  
+  ## <d 'Equality Transitive Property '>
+    (abs A) x A eqtr
+    ImpReplaceImp1Or0
+  ## </d 'Equality Transitive Property '>  
+  ## <d 'Equality Transitive Property '>
+    (abs A) x (-n A) eqtr
+    ImpReplaceImp1Or1
+  ## </d 'Equality Transitive Property '>
+  ## </d 'Equality Transitive Property '>  
+  ## <d>
+    ## <d 'Symmetric Property '>
+      (abs A) x eqcom
+      sylbi2
+    ## </d 'Symmetric Property '>
+    vtocle
+  ## </d>
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>
