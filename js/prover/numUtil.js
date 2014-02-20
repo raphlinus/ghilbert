@@ -113,6 +113,9 @@ GH.numUtil.powerOfTen = function(sexp) {
 
 // Returns a number if the sexp is in the correct decimal format.
 GH.numUtil.decimalNumber = function(sexp) {
+	if (!sexp) {
+		return NaN;
+	}
 	if (GH.typeOf(sexp) == 'string') {
 		return NaN;
 	}

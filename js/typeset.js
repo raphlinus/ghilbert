@@ -171,6 +171,12 @@ GH.typesetbinder = function(term, prec, op) {
     return GH.combineslugs(slugs, prec);
 };
 
+GH.typesetabs = function(term, prec) {	
+    var bar_slug = GH.stringslug('|');
+	var slug = GH.typeset(term[1]);
+    return GH.combineslugs([bar_slug, slug, bar_slug], prec);
+};
+
 GH.typesetsubst = function(term, prec) {
     var open_slug = GH.stringslug('[');
     var A_slug = GH.typeset(term[1]);
@@ -492,7 +498,8 @@ GH.typesetVariables = function(sexp) {
 		ta: 'τ',
 		ph: 'φ',
 		ch: 'χ',
-		ps: 'ψ'
+		ps: 'ψ',
+		ep: 'ϵ'
 	};
 	if (sexp in trans) {
 		return trans[sexp];
@@ -510,6 +517,8 @@ GH.typesetCategory = function(sexp, typesettingData, prec) {
 		return GH.typesetunary(sexp, prec, typesettingData[2]);
 	} else if (typesettingData[1] == 'binder') {
 		return GH.typesetbinder(sexp, prec, typesettingData[2]);
+	} else if (typesettingData[1] == 'abs') {
+		return GH.typesetabs(sexp, prec);
 	} else if (typesettingData[1] == 'subst') {
 		return GH.typesetsubst(sexp, prec);
 	} else if (typesettingData[1] == 'string') {
@@ -643,9 +652,11 @@ GH.typeset.OPERATIONS = [
 	[['zneg', 'neg'],  'postfix', ' is negative'],
 	[['qpos'],  'postfix', ' is positive'],
 	[['qneg'],  'postfix', ' is negative'],
+	[['upperbound'], 'infix', 'n', ' is an upper bound of '],
+	[['supremum'],   'infix', 'n', ' is the supremum of '],
 ],
 [ // 1050
-	[['=', 'n.=', 'z.=', 'q.=', 'r.=','=z', '=q', '=_'],    'infix', 'n', '='],
+	[['=', 'n.=', '=n', 'z.=', 'q.=', 'r.=','=z', '=q', '=_'],    'infix', 'n', '='],
 	[['<=', 'n.<=', 'z.<=', 'q.<=', '<=z', '<=q', '≤'], 'infix', 'n', '≤'],
     [['<', '<z', '<q'],          'infix', 'n', '&lt;'],
     [['>=', '>=z', '>=q'],       'infix', 'n', '≥'],
@@ -657,9 +668,13 @@ GH.typeset.OPERATIONS = [
     [['C.', '⊂'],               'infix', 'n', '⊂'],
 	[['=mod'],                   'modcon'],
 ],
+[
+	[['sqrt'],  'unary', '√'],
+	[['abs'],   'abs'],
+],
 [ // 2200
 	[['+', 'n.+', 'z.+', 'r.+', '+z', '+q'], 'infix', 'l', '+'],
-	[['.-', '-', '-q', 'z.-', 'q.-', 'r.-'],       'infix', 'l', '-'],  // Minus
+	[['.-', '-', '-q', 'z.-', 'q.-', 'r.-'], 'infix', 'l', '-'],  // Minus
 ],
 [ // Not sure where to put fractions.
 	[['</>'], 'infix', 'n', '/'],
@@ -691,6 +706,7 @@ GH.typeset.OPERATIONS = [
 	[['tail', 'n.tail'], 'postfix', '<sub>t</sub>'],
 	[['top'], 'postfix', '<sub>t</sub>'],
 	[['bottom'], 'postfix', '<sub>b</sub>'],
+	[['sup'],   'unary', 'sup '],
 ],
 [
 	[['i^i'], 'infix', 'l', '∩'],
@@ -743,4 +759,6 @@ GH.typeset.NEGATED_OPERATIONS = [
     [['zneg'],                 'postfix', ' is not negative'],
     [['qpos'],                 'postfix', ' is not positive'],
     [['qneg'],                 'postfix', ' is not negative'],
+    [['upperbound'],           'infix', 'n', ' is not an upper bound of '],
+    [['supremum'],             'infix', 'n', ' is not the supremum of '],
 ]];

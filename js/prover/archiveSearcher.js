@@ -171,10 +171,17 @@ GH.archiveSearcher.checkFreenessConstraints = function(theorems, hyps) {
 		var thm = theorems[k];
 		var violations = false;
 		for (var i = 0; i < thm.freeness.length && !violations; i++) {
-			var bindVar = thm.freeness[i][1] && thm.freeness[i][1].operator.valueOf();
-			// This finds serious freeness violations that can not be corrected by adding a freeness
-			// constraint. Other freeness violations can be corrected automatically.
-			violations = violations || (thm.freeness[i][0].isVariablePresent(bindVar));
+			if (thm.freeness[i][1]) {
+				if (thm.freeness[i][1].operator == null) {
+					// I'm not sure why this is happening, but it is for df-le in natural_specific.gh
+					violations = true;
+				} else {
+					var bindVar = thm.freeness[i][1].operator.valueOf();
+					// This finds serious freeness violations that can not be corrected by adding a freeness
+					// constraint. Other freeness violations can be corrected automatically.
+					violations = violations || (thm.freeness[i][0].isVariablePresent(bindVar));
+				}
+			}
 		}
 		if (!violations) {
 			freeList.push(thm);

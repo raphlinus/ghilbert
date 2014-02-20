@@ -85,6 +85,7 @@ GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == 'r./') 	return ['r.nat', 'r.nat', 'r.nat'];
 	if (operator == 'r.E.') return ['bind', 'r.nat', 'wff'];
 
+	if (operator == '-') 	return ['nat', 'nat', 'nat'];
 	if (operator == 'int') 	return ['nat', 'int'];
 	if (operator == '=z') 	return ['int', 'int', 'wff'];
 	if (operator == '<=z') 	return ['int', 'int', 'wff'];
@@ -92,7 +93,6 @@ GH.operatorUtil.getSpecialOperatorTypes = function(operator) {
 	if (operator == '>=z') 	return ['int', 'int', 'wff'];
 	if (operator == '>z') 	return ['int', 'int', 'wff'];
 	if (operator == '+z') 	return ['int', 'int', 'int'];
-	if (operator == '-') 	return ['int', 'int', 'int'];
 	if (operator == '*z') 	return ['int', 'int', 'int'];
 	// if (operator == '-n') 	return ['int', 'int'];
 	if (operator == '-qn') 	return ['rat', 'rat'];
@@ -256,6 +256,7 @@ GH.operatorUtil.getThmName = function(operator, prefixed) {
 	} else if (operator == 'r.-') {		if (prefixed) { return 'r.minus';} else { return 'minus';}
 	} else if (operator == 'r.-n') {	if (prefixed) { return 'r.neg';} else { return 'neg';}
 	} else if (operator == 'r.*') {		if (prefixed) { return 'r.mul';} else { return 'mul';}
+	} else if (operator == 'r./') {		if (prefixed) { return 'r.div';} else { return 'div';}
 	} else if (operator == '-n') {		return 'neg';
 	} else if (operator == '-qn') {		return 'qneg';
 	} else if (operator == '-') {		return 'minus';
@@ -629,7 +630,6 @@ GH.notationGuide.guideData = [
 	{ symbols: ['odd'],  name: 'odd number', link: 'number-theory/odd'},
 	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/prime'},
 	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/prime'},
-	{ symbols: ['sqrt'], name: 'square root'},
 	{ symbols: ['fun'], name: 'is a function', link: 'function/fun'},
 	{ symbols: ['lincom'], name: 'linear combination'},
 	{ symbols: ['gcd'], name: 'greatest common denominator'},
@@ -650,4 +650,10 @@ GH.notationGuide.guideData = [
 	{ symbols: ['!'], name: 'factorial', link: 'arithmetic/factorial'},
 	{ symbols: ['nCr'], unicode: '<sup> A </sup> <sub> B </sub>', name: 'binomial coefficient'},
 	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent', link: 'arithmetic/exponent'},
+
+	{ symbols: ['sqrt'], unicode: '√', name: 'square root'},
+	{ symbols: ['abs'], unicode: '|x|', name: 'absolute value'},
+	{ symbols: ['upperbound'], name: 'upper bound'},
+	{ symbols: ['supremum'], name: 'supremum'},
+	{ symbols: ['sup'], name: 'supremum'},
 ];
