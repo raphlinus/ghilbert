@@ -113,7 +113,7 @@ GH.ButtonController.prototype.displayActiveExp = function(activeExp) {
 	var position = GH.Prover.findPosition(activeExp);
 
 	if (!root.isProven) {
-		this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow);
+		this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow, false);
 		return;
 	}
 
@@ -133,7 +133,7 @@ GH.ButtonController.prototype.displayActiveExp = function(activeExp) {
 	for (var i = 1; i < expressionToShow.length; i++) {
 		expressionToShow[i] = ['htmlSpan', 'selectable-child', expressionToShow[i]];
 	}
-	this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow);
+	this.activeExpDisplay.innerHTML = GH.sexptohtml(rootExpressionToShow, false);
 	GH.Prover.addClickHandlers(this.activeExpDisplay, {operand: 0, parent: 0});
 };
 
@@ -157,6 +157,6 @@ GH.ButtonController.highlightMatch = function(expression, match) {
 
 GH.ButtonController.prototype.setSecondaryDisplay = function(expression, match) {
 	GH.ButtonController.highlightMatch(expression, match);
-	this.secondaryExpDisplay.innerHTML = GH.sexptohtml(expression);
+	this.secondaryExpDisplay.innerHTML = GH.sexptohtml(expression, false);
 	this.setActive(1, true);
 };

@@ -118,7 +118,7 @@ class EditHandler(users.AuthenticatedHandler):
     }
 </style>
 <style type="text/css" media="screen">
-    #canvas { 
+    #canvas {
         position: relative;
         width: 600px;
         height: 400px;
@@ -126,7 +126,7 @@ class EditHandler(users.AuthenticatedHandler):
 """)
         o.write("""</style>
 </head>
-        
+
 
 <body class="stack-mode">
 """)
@@ -138,6 +138,9 @@ class EditHandler(users.AuthenticatedHandler):
         o.write('</div>')
         o.write('<span id="authetication">%s</span>' % auth);
         o.write("""
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 <script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/sandbox.js" type="text/javascript"></script>
 <script src="/js/inputlayer.js" type="text/javascript"></script>
@@ -268,15 +271,17 @@ v = new GH.VerifyCtx(uc, run);
         if url[-4:] != '.ghi':
             o.write("""
 v.set_suppress_errors(true);
-run(uc, '/proofs_upto/%s', v);
+context = run(uc, '/proofs_upto/%s', v);
 v.set_suppress_errors(false);
 
 """ % (urllib.quote(arg)))
+        else:
+            o.write("""context = '';""")
         if useAce:
             o.write('window.mainpanel = new GH.AceEdit(editor);\n')
         else:
             o.write("window.mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));\n")
-        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'), document.getElementById('suggest'));
+        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'), document.getElementById('suggest'), context);
 window.direct.vg = v;
 var number = document.getElementById('number');
 number.onchange = function() {

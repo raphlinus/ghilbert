@@ -70,6 +70,7 @@ GH.StyleScanner = function() {
 	this.color = '';
 	// Whether or not this is an axiom having no proof.
 	this.isAxiom = false;
+	this.context = '';
 };
 
 // Global variables are bad.
@@ -82,6 +83,7 @@ GH.StyleScanner.modeTypes = {
 	SUGGEST: 3,
 	SUGGEST_FUNC: 4,
 	SUMMARY: 5,
+	CONTEXT: 6
 };
 
 GH.StyleScanner.prototype.read_column_style = function(tok) {
@@ -151,6 +153,10 @@ GH.StyleScanner.prototype.addSuggestToken = function(tok) {
 
 };
 
+GH.StyleScanner.prototype.get_context = function() {
+	return this.context;
+};
+
 GH.StyleScanner.prototype.read_styling = function(line) {
 	var splitLine = line.split('##');
 	if (splitLine.length != 2) {
@@ -177,6 +183,11 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.styleMode = styleModeTypes.TITLE;
 		} else if (tok == '</title>') {
 			this.styleMode = styleModeTypes.NONE;
+		} else if (tok == '<context>') {
+			this.context = '';
+			this.styleMode = styleModeTypes.CONTEXT;
+		} else if (tok == '</context>') {
+			this.styleMode = styleModeTypes.NONE;
 		} else if (tok == '<summary>') {
 			this.summary = '';
 			this.styleMode = styleModeTypes.SUMMARY;
@@ -193,6 +204,8 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.read_column_style(tok);
 		} else if (this.styleMode == styleModeTypes.TITLE) {
 			this.title += tok + ' ';
+		} else if (this.styleMode == styleModeTypes.CONTEXT) {
+			this.context += tok + ' ';
 		} else if (this.styleMode == styleModeTypes.SUMMARY) {
 			this.summary += tok + ' ';
 		} else if ((this.styleMode == styleModeTypes.SUGGEST) ||
@@ -1241,8 +1254,8 @@ GH.VerifyCtx.prototype.match = function(templ, exp, env, alreadyExpanded) {
     function UnificationError(mesg, found, expected) {
         this.toString = function() {
             return "Unification error: " + mesg
-                + " expected " + GH.sexptohtml(expected)
-                + " got " + GH.sexptohtml(found)
+                + " expected " + GH.sexptohtml(expected, false)
+                + " got " + GH.sexptohtml(found, false)
                 + (found.beg ? "[" + found.beg + ":" + found.end + "]" : "");
         };
         if (found.beg) {

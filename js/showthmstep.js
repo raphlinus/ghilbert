@@ -18,7 +18,7 @@ GH.gotostep = function(num) {
     var html = [];
     for (var i = 0; i < stack.length; i++) {
         var scanner = new GH.Scanner([stack[i]]);
-        var typeset = GH.sexptohtml(GH.read_sexp(scanner));
+        var typeset = GH.sexptohtml(GH.read_sexp(scanner), false);
         html.push('<div>' + typeset + '</div>\n');
     }
     document.getElementById('stack').innerHTML = html.join('');

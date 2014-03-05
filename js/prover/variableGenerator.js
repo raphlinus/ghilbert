@@ -6,6 +6,7 @@ GH.Prover.variableGenerator = function() {
 GH.Prover.variableGenerator.VARIABLE_NAMES = {
 	wff: ['ph', 'ps', 'ch', 'th', 'ta', 'et', 'zi', 'si', 'ph\'', 'ps\'', 'ch\'', 'th\'', 'ta\''],
 	nat: ['A', 'B', 'C', 'D', 'A\'', 'B\'', 'C\'', 'D\'', 'A0', 'A1', 'A2', 'A3'], 
+	//nat: ['a', 'b', 'c', 'd', 'a\'', 'b\'', 'c\'', 'd\''], 
 	bind: ['x', 'y', 'z', 'v', 'w\'', 'x\'', 'y\'', 'z\'', 'v\'', 'w\''],
 	set: ['S', 'T', 'U', 'V', 'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']
 };

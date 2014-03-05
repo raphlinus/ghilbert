@@ -443,22 +443,24 @@ GH.ProofStep.nameToHtml = function(name, title, link, isPrimary) {
  * Returns the proof step displayed as a set of blocks.
  * This is the main entry point for displaying the proof steps.
  */
-GH.ProofStep.prototype.displayStack = function(stack, summary, header, segmentCount) {
-	if (summary !== null) {
-		var summaryElement = document.createElement("div");
-		stack.appendChild(summaryElement);
-		summaryElement.innerHTML = summary;
-		if (summary != '') {
-			summaryElement.setAttribute('class', 'summary');
-		} else {
-			summaryElement.setAttribute('class', 'no-summary');
+GH.ProofStep.prototype.displayStack = function(stack, summary, header, segmentCount, useLatex) {
+	if (header != '') {
+		if (summary !== null) {
+			var summaryElement = document.createElement("div");
+			stack.appendChild(summaryElement);
+			summaryElement.innerHTML = summary;
+			if (summary != '') {
+				summaryElement.setAttribute('class', 'summary');
+			} else {
+				summaryElement.setAttribute('class', 'no-summary');
+			}
 		}
+		var headerElement = document.createElement("div");
+		stack.appendChild(headerElement);
+		headerElement.innerHTML = header;
+		headerElement.setAttribute('class', 'thmHeader');
 	}
-	var headerElement = document.createElement("div");
-	stack.appendChild(headerElement);
-	headerElement.innerHTML = header;
-	headerElement.setAttribute('class', 'thmHeader');
-	return GH.ProofSegment.createSegments(this, stack, segmentCount);
+	return GH.ProofSegment.createSegments(this, stack, segmentCount, useLatex);
 };
 
 GH.ProofStep.createCloseColumn = function(inputArg) {
@@ -470,29 +472,38 @@ GH.ProofStep.createCloseColumn = function(inputArg) {
 };
 
 // Display the left over input arguments on the stack
-GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes) {
+GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes, useLatex) {
 	var rowCount = Math.max(inputArgs.length, expectedTypes.length && expectedTypes[0].length);
 	if (rowCount == 0) {
 		return;
 	}
+
+	var headerElement = document.createElement("div");
+	stack.appendChild(headerElement);
+	headerElement.innerHTML = 'Input Argument' + ((inputArgs.length > 1) ? 's' : '');
+	headerElement.setAttribute('class', 'thmHeader');
 		
 	var classes = 'proof-block input-args';
 	var newBlock = new GH.ProofSegment(GH.ProofSegment.State.LARGE, 0, null, false);
 	newBlock.hasCloseColumn = true;
 	newBlock.largeElement.className += ' input-args';
 	var tableElement = GH.ProofSegment.addTable(newBlock.largeElement);
-	var nameHtml = '<span class=proof-step-name>Input Argument' + ((inputArgs.length > 1) ? 's' : '') + '</span>';
+	// var nameHtml = '<span class=proof-step-name>Input Argument' + ((inputArgs.length > 1) ? 's' : '') + '</span>';
 	for (var i = 0; i < inputArgs.length; i++) {
 		var child = new GH.ProofSegment(GH.ProofSegment.State.SMALL, 0, null, false);
 		newBlock.children.push(child);
-		var iNameHtml = (i == 0) ? nameHtml : '';
-		var partialHtml = GH.sexptohtml(inputArgs[i][1]);
-		var fullHtml = GH.ProofStep.stepToHtml(partialHtml, iNameHtml);
+		// var iNameHtml = (i == 0) ? nameHtml : '';
+		var partialHtml = GH.sexptohtml(inputArgs[i][1], useLatex);
+		//var fullHtml = GH.ProofStep.stepToHtml(partialHtml, iNameHtml, useLatex);
+		var fullHtml = GH.ProofStep.stepToHtml(partialHtml, '', useLatex);
 		child.smallElement = fullHtml;
 		child.smallElement.appendChild(GH.ProofStep.createCloseColumn(inputArgs[i]));
 		tableElement.appendChild(child.smallElement);
 	}
-	stack.appendChild(newBlock.largeElement);
+	stack.appendChild(newBlock.largeWrapper);
+	if (useLatex) {
+		MathJax.Hub.Queue(["Typeset", MathJax.Hub, newBlock.largeElement]);
+	}
 
 	if (expectedTypes.length > 0) {
 		for (var i = 0; i < rowCount; i++) {
@@ -507,7 +518,7 @@ GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes) {
 			}
 			expectedElement.setAttribute('class', 'type-tag type-' + expectedTypes[0][i] + suffix);  // Expected types
 			expectedElement.innerHTML = expectedTypes[0][i];
-			expectedContainer.appendChild(expectedElement );
+			expectedContainer.appendChild(expectedElement);
 			
 			var actualContainer = document.createElement('td');
 			actualContainer.setAttribute('class', 'type-container');
@@ -531,14 +542,22 @@ GH.ProofStep.displayInputArguments = function(stack, inputArgs, expectedTypes) {
 				rowElement.insertBefore(  actualContainer, rowElement.children[1]);
 			}
 		}
+	}	
+	if (useLatex) {
+		var self = this;
+		MathJax.Hub.Queue(function() {
+			newBlock.resize();
+		});
+	} else {
+		newBlock.resize();
 	}
-	newBlock.resize();
 };
 
 // Display a proof step.
 //   text: The text inside the step.
 //   name: The name of the proofstep.
-GH.ProofStep.stepToHtml = function(text, name) {
+GH.ProofStep.stepToHtml = function(text, name, useLatex) {
+	useLatex = useLatex && GH.ENABLE_LATEX;
 	var row = document.createElement("tr");
 	row.setAttribute('class', 'proof-step-div ');
 
@@ -553,25 +572,30 @@ GH.ProofStep.stepToHtml = function(text, name) {
 	}
 	cellTexts.push(text);
 
+	var cell = document.createElement("td");
+	cell.setAttribute('class', 'first-column');
+	row.appendChild(cell);
+
 	// Add the table cells into a row of the table.
 	for (var i = 0; i < cellTexts.length; i++) {
-		var cell = document.createElement("td");
+		cell = document.createElement("td");
 		var cellText = cellTexts[i];
 		var classname = '';
-
-		// Add classes for the first and last column.
-		// Add the name of the step onto the last column.
-		if (i == 0) {
-			classname = 'first-column';
-		}
 		cell.setAttribute('class', classname);
-		cell.innerHTML = cellText;
+		if (useLatex) {
+			cell.innerHTML = '$$' + cellText + '$$';
+		} else {
+			cell.innerHTML = cellText;
+		}
 		row.appendChild(cell);
-	}		
-	var cell = document.createElement("td");
-	cell.setAttribute('class', 'last-column');
+	}
+	cell = document.createElement("td");
 	cell.innerHTML = name;
-	row.appendChild(cell);		
+	row.appendChild(cell);
+
+	cell = document.createElement("td");
+	cell.setAttribute('class', 'last-column');
+	row.appendChild(cell);
 
 	return row;
 };

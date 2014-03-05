@@ -289,7 +289,8 @@ GH.operatorUtil.getThmName = function(operator, prefixed) {
 	}
 };
 
-GH.operatorUtil.getUnicode = function(operator) {
+// TODO: Check if this function is being used anywhere.
+GH.operatorUtil.getlatex = function(operator) {
 	       if (operator == '-.') {		return '¬';
 	} else if (operator == '->') {		return '→';		
 	} else if (operator == '<->') {		return '↔';
@@ -402,30 +403,40 @@ GH.operatorUtil.reduce = function(sexp, value) {
 // A guide for getting help with the notation. Appears below the proof and 
 // provided links for more information on all of the symbols used in the
 // proof.
-GH.notationGuide = function(syms) {
-	this.titleElement = null;
-	this.bodyElement = null;
-	this.isOpen = false;
+GH.notationGuide = function(syms, context) {
+	this.titleElements = [];
+	this.bodyElements = [];
+	this.isOpen = [false, false];
 	this.steps = [];
 	this.variables = {};
 	this.operators = [];
 	this.precomputed = false;
 	this.syms = syms;
+	this.context = context;
 };
 
 GH.notationGuide.prototype.render = function() {
 	var guideContainer = document.createElement("div");
-	this.titleElement = document.createElement("div");
-	this.titleElement.setAttribute('class', 'notation-closed');
-	this.titleElement.setAttribute('onclick', 'window.direct.notationGuide.toggle()');
-	this.titleElement.innerHTML = 'Notation Help';
-
-	this.bodyElement = document.createElement("div");
-	this.bodyElement.setAttribute('class', 'notation-body');
-
 	stack.appendChild(guideContainer);
-	guideContainer.appendChild(this.titleElement);
-	guideContainer.appendChild(this.bodyElement);
+	for (var i = 0; i < 2; i++) {
+		this.titleElements.push(document.createElement("span"));
+		this.titleElements[i].setAttribute('class', 'notation-closed');
+		this.titleElements[i].setAttribute('onclick', 'window.direct.notationGuide.toggle(' + i + ')');
+		this.bodyElements.push(document.createElement("div"));
+		this.bodyElements[i].setAttribute('class', 'notation-body');
+		guideContainer.appendChild(this.titleElements[i]);
+	}
+	for (var i = 0; i < 2; i++) {
+		guideContainer.appendChild(this.bodyElements[i]);
+	}
+
+	this.titleElements[0].innerHTML = 'Notation Help';
+	this.titleElements[1].innerHTML = 'Context';
+	this.bodyElements[1].innerHTML = this.context;
+	this.close(1);
+	if (this.context == '') {
+		this.titleElements[1].setAttribute('style', 'display: none');
+	}
 };
 
 GH.notationGuide.prototype.clear = function() {
@@ -438,7 +449,7 @@ GH.notationGuide.prototype.addStep = function(step) {
 	this.steps.push(step);
 };
 
-GH.notationGuide.prototype.addGuideElement = function(guide, symbol) {
+GH.notationGuide.prototype.addGuideElement = function(guide, symbol, useLatex) {
 	var guideElement = document.createElement('span');
 	guideElement.setAttribute('class', 'notation-guide');
 	if (guide.hasOwnProperty('link')) {
@@ -446,15 +457,17 @@ GH.notationGuide.prototype.addGuideElement = function(guide, symbol) {
 	} else {
 		guideElement.innerHTML = symbol + ' ' + '<span class="guide-no-link">' + guide.name + '</span>';
 	}
-	this.bodyElement.appendChild(guideElement);
+	this.bodyElements[0].appendChild(guideElement);
+	MathJax.Hub.Queue(["Typeset", MathJax.Hub, guideElement]);
 };
 
-GH.notationGuide.prototype.toggle = function() {
-	this.isOpen = !this.isOpen;
-	if (this.isOpen) {
-		this.titleElement.setAttribute('class', 'notation-open');
-		this.bodyElement.setAttribute('style', '');
-		if (!this.precomputed) {
+GH.notationGuide.prototype.toggle = function(index) {
+	this.isOpen[index] = !this.isOpen[index];
+	this.close(1 - index);
+	if (this.isOpen[index]) {
+		this.titleElements[index].setAttribute('class', 'notation-open');
+		this.bodyElements[index].setAttribute('style', '');
+		if (!this.precomputed && (index == 0)) {
 			this.precomputed = true;
 			for (var i = 0; i < this.steps.length; i++) {
 				this.addSymbolsFromStep(this.steps[i]);
@@ -467,7 +480,7 @@ GH.notationGuide.prototype.toggle = function() {
 						kindVars[j] = GH.typesetVariables(kindVars[j]);
 					}
 					var symbol = kindVars.join(',');
-					this.addGuideElement(variableData, symbol);
+					this.addGuideElement(variableData, '\\(' + symbol + '\\)', true);
 				}
 			}
 			for (var i = 0; i < GH.notationGuide.guideData.length; i++) {
@@ -479,15 +492,21 @@ GH.notationGuide.prototype.toggle = function() {
 					}
 				}
 				if (match) {
-					var symbol = guide.hasOwnProperty('unicode') ? guide.unicode : guide.symbols[0];
-					this.addGuideElement(guide, symbol);
+					var useLatex = guide.hasOwnProperty('latex');
+					var symbol = useLatex ? guide.latex : guide.symbols[0];
+					this.addGuideElement(guide, symbol, useLatex);
 				}
 			}
 		}
 	} else {
-		this.titleElement.setAttribute('class', 'notation-closed');
-		this.bodyElement.setAttribute('style', 'display: none');
+		this.close(index);
 	}
+};
+
+GH.notationGuide.prototype.close = function(index) {
+	this.isOpen[index] = false;
+	this.titleElements[index].setAttribute('class', 'notation-closed');
+	this.bodyElements[index].setAttribute('style', 'display: none');
 };
 
 GH.notationGuide.prototype.addSymbolsFromStep = function(step) {
@@ -534,125 +553,125 @@ GH.notationGuide.variableData = [
 ];
 
 GH.notationGuide.guideData = [
-	{ symbols: ['-.'], unicode: '¬', name: 'not', link: 'logic/not'},
-	{ symbols: ['->'], unicode: '→', name: 'if', link: 'logic/if'},
-	{ symbols: ['<->'], unicode: '↔', name: 'if and only if', link: 'logic/iff'},
-	{ symbols: ['/\\'], unicode: '∧', name: 'and', link: 'logic/and'},
-	{ symbols: ['\\/'], unicode: '∨', name: 'and', link: 'logic/or'},
-	{ symbols: ['T'], unicode: 'T', name: 'true', link: 'logic/wff'},
-	{ symbols: ['F'], unicode: 'F', name: 'false', link: 'logic/wff'},
+	{ symbols: ['-.'],  latex: '\\( ¬ \\)', name: 'not', link: 'logic/not'},
+	{ symbols: ['->'],  latex: '\\( → \\)', name: 'implies', link: 'logic/if'},
+	{ symbols: ['<->'], latex: '\\( ↔ \\)', name: 'if and only if', link: 'logic/iff'},
+	{ symbols: ['/\\'], latex: '\\( ∧ \\)', name: 'and', link: 'logic/and'},
+	{ symbols: ['\\/'], latex: '\\( ∨ \\)', name: 'or', link: 'logic/or'},
+	{ symbols: ['T'], latex: '\\( \\top \\)', name: 'true', link: 'logic/wff'},
+	{ symbols: ['F'], latex: '\\( \\bot \\)', name: 'false', link: 'logic/wff'},
 	
-	{ symbols: ['A.'], unicode: '∀', name: 'for all', link: 'predicate/all'},
-	{ symbols: ['E.'], unicode: '∃', name: 'there exists', link: 'predicate/exists'},
-	{ symbols: ['E!'], unicode: '∃!', name: 'there exists one', link: 'predicate/unique'},
-	{ symbols: ['E*'], unicode: '∃*', name: 'at most one', link: 'predicate/most-one'},
-	{ symbols: ['[/]'], unicode: '[/]', name: 'substitution', link: 'predicate/substitution'},
+	{ symbols: ['A.'], latex: '\\( ∀ \\)', name: 'for all', link: 'predicate/all'},
+	{ symbols: ['E.'], latex: '\\( ∃ \\)', name: 'there exists', link: 'predicate/exists'},
+	{ symbols: ['E!'], latex: '\\( ∃! \\)', name: 'there exists one', link: 'predicate/unique'},
+	{ symbols: ['E*'], latex: '\\( ∃* \\)', name: 'at most one', link: 'predicate/most-one'},
+	{ symbols: ['[/]'], latex: '\\( [/] \\)', name: 'substitution', link: 'predicate/substitution'},
 	{ symbols: ['rwff'], name: 'relatively well-formed formula'},
 	
-	{ symbols: ['='],  unicode: '=', name: 'equals', link: 'arithmetic/equality'},
-	{ symbols: ['n.='],  unicode: '=', name: 'natural number equality', link: 'arithmetic/equality'},
-	{ symbols: ['=z'],  unicode: '=', name: 'integer equals', link: 'arithmetic/equality'},
-	{ symbols: ['=q'],  unicode: '=', name: 'rational equals', link: 'arithmetic/equality'},
-	{ symbols: ['<='], unicode: '≤', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['<'],  unicode: '<', name: 'less than', link: 'arithmetic/less-than'},
-	{ symbols: ['>='], unicode: '≥', name: 'greater than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['>'],  unicode: '>', name: 'greater than', link: 'arithmetic/less-than'},
-	{ symbols: ['<=z'], unicode: '≤', name: 'integer less than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['<z'],  unicode: '<', name: 'integer less than', link: 'arithmetic/less-than'},
-	{ symbols: ['>=z'], unicode: '≥', name: 'integer greater than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['>z'],  unicode: '>', name: 'integer greater than', link: 'arithmetic/less-than'},
-	{ symbols: ['<=q'], unicode: '≤', name: 'rational less than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['<q'],  unicode: '<', name: 'rational less than', link: 'arithmetic/less-than'},
-	{ symbols: ['>=q'], unicode: '≥', name: 'rational greater than or equal to', link: 'arithmetic/less-than-equal'},
-	{ symbols: ['>q'],  unicode: '>', name: 'rational greater than', link: 'arithmetic/less-than'},
-	{ symbols: ['=q'],  unicode: '=', name: 'rational equals', link: 'arithmetic/equality'},
+	{ symbols: ['='],   latex: '\\( = \\)', name: 'equals', link: 'arithmetic/equality'},
+	{ symbols: ['n.='], latex: '\\( = \\)', name: 'natural number equality', link: 'arithmetic/equality'},
+	{ symbols: ['=z'],  latex: '\\( = \\)', name: 'integer equals', link: 'arithmetic/equality'},
+	{ symbols: ['=q'],  latex: '\\( = \\)', name: 'rational equals', link: 'arithmetic/equality'},
+	{ symbols: ['<='],  latex: '\\( ≤ \\)', name: 'less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<'],   latex: '\\( < \\)', name: 'less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>='],  latex: '\\( ≥ \\)', name: 'greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>'],   latex: '\\( > \\)', name: 'greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['<=z'], latex: '\\( ≤ \\)', name: 'integer less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<z'],  latex: '\\( < \\)', name: 'integer less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>=z'], latex: '\\( ≥ \\)', name: 'integer greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>z'],  latex: '\\( > \\)', name: 'integer greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['<=q'], latex: '\\( ≤ \\)', name: 'rational less than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['<q'],  latex: '\\( < \\)', name: 'rational less than', link: 'arithmetic/less-than'},
+	{ symbols: ['>=q'], latex: '\\( ≥ \\)', name: 'rational greater than or equal to', link: 'arithmetic/less-than-equal'},
+	{ symbols: ['>q'],  latex: '\\( > \\)', name: 'rational greater than', link: 'arithmetic/less-than'},
+	{ symbols: ['=q'],  latex: '\\( = \\)', name: 'rational equals', link: 'arithmetic/equality'},
 	
-	{ symbols: ['S'],  unicode: 'x\'', name: 'successor', link: 'arithmetic/successor'},
-	{ symbols: ['+'],  unicode: '+', name: 'plus', link: 'arithmetic/add'},
-	{ symbols: ['+z'],  unicode: '+', name: 'integer plus', link: 'arithmetic/add'},
-	{ symbols: ['+q'],  unicode: '+', name: 'rational plus', link: 'arithmetic/add'},
-	{ symbols: ['*'],  unicode: '∙', name: 'times', link: 'arithmetic/multiply'},
-	{ symbols: ['*z'],  unicode: '∙', name: 'integer times', link: 'arithmetic/multiply'},
-	{ symbols: ['*q'],  unicode: '∙', name: 'rational times', link: 'arithmetic/multiply'},
-	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],  unicode: '0-10', name: 'numbers', link: 'arithmetic/numbers'},
-	{ symbols: ['0z', '1z', '2z', '3z', '4z', '5z', '6z', '7z', '8z', '9z', '10z'],  unicode: '0-10', name: 'integers', link: 'arithmetic/numbers'},
-	{ symbols: ['0q', '1q', '2q', '3q', '4q', '5q', '6q', '7q', '8q', '9q', '10q'],  unicode: '0-10', name: 'rationals', link: 'arithmetic/numbers'},
-	{ symbols: ['.1'],  unicode: '0.1', name: 'decimal notation'},
-	{ symbols: ['.-'],  unicode: '-', name: 'half minus', link: 'arithmetic/half-minus'},
-	{ symbols: ['-'],  unicode: '-', name: 'minus', link: 'arithmetic/minus'},
-	{ symbols: ['-q'],  unicode: '-', name: 'rational minus', link: 'arithmetic/minus'},
-	{ symbols: ['-n'],  unicode: '-', name: 'negative sign', link: 'arithmetic/negative-sign'},
-	{ symbols: ['-qn'],  unicode: '-', name: 'negative sign', link: 'arithmetic/negative-sign'},
-	{ symbols: ['ifn'], name: 'ternary conditional', link: 'arithmetic/ifn'},
-	{ symbols: ['fibonacci'], unicode: 'F<sub>A</sub>', name: 'Fibonacci number', link: 'arithmetic/fibonacci'},
-	{ symbols: ['tri'], unicode: 'T<sub>A</sub>', name: 'triangular number', link: 'arithmetic/triangle'},
+	{ symbols: ['S'],   latex: '\\( x\' \\)', name: 'successor', link: 'arithmetic/successor'},
+	{ symbols: ['+'],   latex: '\\( + \\)', name: 'plus', link: 'arithmetic/add'},
+	{ symbols: ['+z'],  latex: '\\( + \\)', name: 'integer plus', link: 'arithmetic/add'},
+	{ symbols: ['+q'],  latex: '\\( + \\)', name: 'rational plus', link: 'arithmetic/add'},
+	{ symbols: ['*'],   latex: '\\( \\cdot \\)', name: 'times', link: 'arithmetic/multiply'},
+	{ symbols: ['*z'],  latex: '\\( \\cdot \\)', name: 'integer times', link: 'arithmetic/multiply'},
+	{ symbols: ['*q'],  latex: '\\( \\cdot \\)', name: 'rational times', link: 'arithmetic/multiply'},
+	{ symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],             latex: '\\( 0-10 \\)', name: 'numbers', link: 'arithmetic/numbers'},
+	{ symbols: ['0z', '1z', '2z', '3z', '4z', '5z', '6z', '7z', '8z', '9z', '10z'],  latex: '\\( 0-10 \\)', name: 'integers', link: 'arithmetic/numbers'},
+	{ symbols: ['0q', '1q', '2q', '3q', '4q', '5q', '6q', '7q', '8q', '9q', '10q'],  latex: '\\( 0-10 \\)', name: 'rationals', link: 'arithmetic/numbers'},
+	{ symbols: ['.1'],  latex: '\\( 0.1 \\)', name: 'decimal notation'},
+	{ symbols: ['.-'],  latex: '\\( - \\)', name: 'half minus', link: 'arithmetic/half-minus'},
+	{ symbols: ['-'],   latex: '\\( - \\)', name: 'minus', link: 'arithmetic/minus'},
+	{ symbols: ['-q'],  latex: '\\( - \\)', name: 'rational minus', link: 'arithmetic/minus'},
+	{ symbols: ['-n'],  latex: '\\( - \\)', name: 'negative sign', link: 'arithmetic/negative-sign'},
+	{ symbols: ['-qn'], latex: '\\( - \\)', name: 'negative sign', link: 'arithmetic/negative-sign'},
+	{ symbols: ['ifn'], latex: '\\( \\left\\{ \\begin{array}{l} x \\\\ y \\end{array} \\right. \\)', name: 'ternary conditional', link: 'arithmetic/ifn'},
+	{ symbols: ['fibonacci'], latex: '\\( F_{x} \\)', name: 'Fibonacci number', link: 'arithmetic/fibonacci'},
+	{ symbols: ['tri'],       latex: '\\( F_{x} \\)', name: 'triangular number', link: 'arithmetic/triangle'},
 
-	{ symbols: ['int'], unicode: 'int', name: 'natural to integer'},
-	{ symbols: ['zn'], unicode: 'zn', name: 'integer to natural'},
-	{ symbols: ['zpos'], unicode: 'positive', name: 'positive integer', link: 'arithmetic/positive'},
-	{ symbols: ['zneg'], unicode: 'negative', name: 'negative integer', link: 'arithmetic/negative'},
-	{ symbols: ['qpos'], unicode: 'positive', name: 'positive rational', link: 'arithmetic/positive'},
-	{ symbols: ['qneg'], unicode: 'negative', name: 'negative rational', link: 'arithmetic/negative'},
+	{ symbols: ['int'], latex: 'int', name: 'natural to integer'},
+	{ symbols: ['zn'], latex: 'zn', name: 'integer to natural'},
+	{ symbols: ['zpos'], latex: 'positive', name: 'positive integer', link: 'arithmetic/positive'},
+	{ symbols: ['zneg'], latex: 'negative', name: 'negative integer', link: 'arithmetic/negative'},
+	{ symbols: ['qpos'], latex: 'positive', name: 'positive rational', link: 'arithmetic/positive'},
+	{ symbols: ['qneg'], latex: 'negative', name: 'negative rational', link: 'arithmetic/negative'},
 	
-	{ symbols: ['NaN'], unicode: 'NaN', name: 'not a number', link: 'arithmetic/rationals/NaN'},
-	{ symbols: ['rationals'], unicode: 'rationals', name: 'set of rationals', link: 'arithmetic/rationals/rationals-set'},
-	{ symbols: ['top'], unicode: 'A<sub>t</sub>', name: 'top (numerator)', link: 'arithmetic/rationals/top'},
-	{ symbols: ['bottom'], unicode: 'A<sub>b</sub>', name: 'bottom (denominator)', link: 'arithmetic/rationals/bottom'},
-	{ symbols: ['</>'], unicode: 'A / B', name: 'fraction', link: 'arithmetic/rationals/fraction'},
-	{ symbols: ['/'], unicode: 'A / B', name: 'division', link: 'arithmetic/divide'},
+	{ symbols: ['NaN'], latex: 'NaN', name: 'not a number', link: 'arithmetic/rationals/NaN'},
+	{ symbols: ['rationals'], latex: 'rationals', name: 'set of rationals', link: 'arithmetic/rationals/rationals-set'},
+	{ symbols: ['top'],    latex: '\\( x_{t} \\)', name: 'top (numerator)', link: 'arithmetic/rationals/top'},
+	{ symbols: ['bottom'], latex: '\\( x_{b} \\)', name: 'bottom (denominator)', link: 'arithmetic/rationals/bottom'},
+	{ symbols: ['</>'],    latex: '\\( \\frac{a} {b} \\)', name: 'fraction', link: 'arithmetic/rationals/fraction'},
+	{ symbols: ['/'],      latex: '\\( \\frac{a} {b} \\)', name: 'division', link: 'arithmetic/divide'},
 	
-	{ symbols: ['e.'],  unicode: '∈', name: 'element of', link: 'set/element-of'},
-	{ symbols: ['{|}'],  unicode: '{|}', name: 'set abstraction', link: 'set/abstraction'},
-	{ symbols: ['{/}'],  unicode: '∅', name: 'empty set', link: 'set/empty-set'},
+	{ symbols: ['e.'],   latex: '\\( ∈ \\)',  name: 'element of', link: 'set/element-of'},
+	{ symbols: ['{|}'],  latex: '\\( \\{|\\} \\)', name: 'set abstraction', link: 'set/abstraction'},
+	{ symbols: ['{/}'],  latex: '\\( \\emptyset \\)', name: 'empty set', link: 'set/empty-set'},
 	{ symbols: ['iota'],  name: 'iota', link: 'set/iota'},
-	{ symbols: ['=_'],  unicode: '=', name: 'set equality', link: 'set/equality'},
-	{ symbols: ['C_'],  unicode: '⊆', name: 'subset', link: 'set/subset'},
-	{ symbols: ['C.'],  unicode: '⊂', name: 'proper subset', link: 'set/proper-subset'},
-	{ symbols: ['u.'],  unicode: '∪', name: 'union', link: 'set/union', link: 'set/union'},
-	{ symbols: ['i^i'], unicode: '∩', name: 'intersection', link: 'set/intersection', link: 'set/intersection'},
+	{ symbols: ['=_'],  latex: '\\( = \\)', name: 'set equality', link: 'set/equality'},
+	{ symbols: ['C_'],  latex: '\\( ⊆ \\)', name: 'subset', link: 'set/subset'},
+	{ symbols: ['C.'],  latex: '\\( ⊂ \\)', name: 'proper subset', link: 'set/proper-subset'},
+	{ symbols: ['u.'],  latex: '\\( ∪ \\)', name: 'union', link: 'set/union', link: 'set/union'},
+	{ symbols: ['i^i'], latex: '\\( ∩ \\)', name: 'intersection', link: 'set/intersection', link: 'set/intersection'},
 	{ symbols: ['min'], name: 'set minimum', link: 'set/minimum'},
-	{ symbols: ['{...}'], unicode: '{A...B}', name: 'set interval', link: 'tuple/interval'},
+	{ symbols: ['{...}'], latex: '\\( \\{a \\ldots b} \\)', name: 'set interval', link: 'tuple/interval'},
 	
-	{ symbols: ['<,>'], unicode: '(A, B)', name: 'ordered pair', link: 'tuple/ordered-pair'},
-	{ symbols: ['head'], unicode: 'A<sub>h</sub>', name: 'head', link: 'tuple/head'},
-	{ symbols: ['tail'], unicode: 'A<sub>t</sub>', name: 'tail', link: 'tuple/tail'},
-	{ symbols: ['<+>'], unicode: 'A<sub>1</sub>+A<sub>2</sub>+...+A<sub>N</sub>', name: 'sum a finite sequence', link: 'tuple/add'},
-	{ symbols: ['<*>'], unicode: 'A<sub>1</sub>∙A<sub>2</sub>∙∙∙A<sub>N</sub>', name: 'multiply a finite sequence', link: 'tuple/multiply'},
-	{ symbols: ['<{}>'], unicode: '{A<sub>1</sub>, A<sub>2</sub>,...,A<sub>N</sub>}', name: 'a finite set', link: 'tuple/set'},
+	{ symbols: ['<,>'], latex: '\\( (x, y) \\)', name: 'ordered pair', link: 'tuple/ordered-pair'},
+	{ symbols: ['head'], latex: '\\( x_{h} \\)', name: 'head', link: 'tuple/head'},
+	{ symbols: ['tail'], latex: '\\( x_{t} \\)', name: 'tail', link: 'tuple/tail'},
+	{ symbols: ['<+>'],  latex: '\\(    x_1    +   x_2 + \\cdots + x_N \\)',    name: 'sum a finite sequence', link: 'tuple/add'},
+	{ symbols: ['<*>'],  latex: '\\(    x_1 \\cdot x_2   \\cdots   x_N \\)',    name: 'multiply a finite sequence', link: 'tuple/multiply'},
+	{ symbols: ['<{}>'], latex: '\\( \\{x_1    ,   x_2 , \\ldots , x_N \\}\\)', name: 'a finite set', link: 'tuple/set'},
 	// { symbols: ['length'], name: 'tuple length'}, // The length of the javascript array interferes with this.
-	{ symbols: ['_'], unicode: 'A <sub> B </sub>', name: 'tuple index', link: 'tuple/index'},
+	{ symbols: ['_'], latex: 'x_y', name: 'tuple index', link: 'tuple/index'},
 	{ symbols: ['push'], name: 'push onto tuple stack'},
 	{ symbols: ['pop'], name: 'pop off of tuple stack'},
-	{ symbols: ['<>'], unicode: '(A, B, C)', name: 'tuple', link: 'tuple/tuple'},
+	{ symbols: ['<>'], latex: '(a, b, c)', name: 'tuple', link: 'tuple/tuple'},
 
 	{ symbols: ['|'],  name: 'divides', link: 'number-theory/divides'},
 	{ symbols: ['even'],  name: 'even number', link: 'number-theory/even'},
 	{ symbols: ['odd'],  name: 'odd number', link: 'number-theory/odd'},
 	{ symbols: ['prime'],  name: 'prime', link: 'number-theory/prime'},
-	{ symbols: ['primeset'], unicode: 'Primes', name: 'the set of primes', link: 'number-theory/prime'},
+	{ symbols: ['primeset'], latex: 'Primes', name: 'the set of primes', link: 'number-theory/prime'},
 	{ symbols: ['fun'], name: 'is a function', link: 'function/fun'},
 	{ symbols: ['lincom'], name: 'linear combination'},
 	{ symbols: ['gcd'], name: 'greatest common denominator'},
 	{ symbols: ['mod'], name: 'modulo', link: 'arithmetic/mod'},
-	{ symbols: ['=mod'], unicode: '≡<sub>A</sub>', name: 'congruent modulo A', link: 'arithmetic/modcon'},
-	{ symbols: ['div'], unicode: '÷', name: 'whole number division', link: 'arithmetic/div'},
+	{ symbols: ['=mod'], latex: '\\( \\equiv_A \\)', name: 'congruent modulo A', link: 'arithmetic/modcon'},
+	{ symbols: ['div'], latex: '÷', name: 'whole number division', link: 'arithmetic/div'},
 	{ symbols: ['beta'], name: 'Godel\'s beta function'},
 	{ symbols: ['relprim'], name: 'relatively prime'},
-	{ symbols: ['lambda'], unicode: '↦', name: 'lambda function', link: 'function/lambda'},
-	{ symbols: ['apply'], unicode: 'S(A)', name: 'function application', link: 'function/apply'},
+	{ symbols: ['lambda'], latex: '\\( ↦ \\)', name: 'lambda function', link: 'function/lambda'},
+	{ symbols: ['apply'], latex: '\\( S(x) \\)', name: 'function application', link: 'function/apply'},
 	{ symbols: ['recursep'], name: 'recursive predicate'},
-	{ symbols: ['recurse'], unicode: 'S<sup> A </sup>(B)', name: 'recursive function', link: 'function/recurse'},
+	{ symbols: ['recurse'], latex: '\\( S^a(x) \\)', name: 'recursive function', link: 'function/recurse'},
 	{ symbols: ['sum-step'], name: 'summation construction step', link: 'arithmetic/sum'},
-	{ symbols: ['sum'], unicode: 'Σ', name: 'summation'},
-	{ symbols: ['{.|}'], unicode: '{S(x)|φ}', name: 'apply function to a set'},
+	{ symbols: ['sum'], latex: '\\( \\sum \\)', name: 'summation'},
+	{ symbols: ['{.|}'], latex: '\\(\\{S(x)|φ\\} \\)', name: 'apply function to a set'},
 	{ symbols: ['product-step'], name: 'product construction step'},
-	{ symbols: ['product'], unicode: 'Π', name: 'product', link: 'arithmetic/product'},
+	{ symbols: ['product'], latex: '\\( \\prod \\)', name: 'product', link: 'arithmetic/product'},
 	{ symbols: ['!'], name: 'factorial', link: 'arithmetic/factorial'},
-	{ symbols: ['nCr'], unicode: '<sup> A </sup> <sub> B </sub>', name: 'binomial coefficient'},
-	{ symbols: ['exp'], unicode: 'A <sup> B </sup>', name: 'exponent', link: 'arithmetic/exponent'},
+	{ symbols: ['nCr'], latex: '\\( \\binom{x}{y} \\)', name: 'binomial coefficient'},
+	{ symbols: ['exp'], latex: '\\( x^y \\)', name: 'exponent', link: 'arithmetic/exponent'},
 
-	{ symbols: ['sqrt'], unicode: '√', name: 'square root'},
-	{ symbols: ['abs'], unicode: '|x|', name: 'absolute value'},
+	{ symbols: ['sqrt'], latex: '\\(\\sqrt{x}\\)', name: 'square root'},
+	{ symbols: ['abs'], latex: '\\(|x|\\)', name: 'absolute value'},
 	{ symbols: ['upperbound'], name: 'upper bound'},
 	{ symbols: ['supremum'], name: 'supremum'},
 	{ symbols: ['sup'], name: 'supremum'},

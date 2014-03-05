@@ -25,7 +25,7 @@ function run(urlctx, url, ctx) {
 	while (true) {
 	    var cmd = GH.read_sexp(s);
 	    if (cmd == null) {
-			return true;
+			return s.styleScanner.get_context();
 	    }
 	    if (GH.typeOf(cmd) != 'string') {
 			throw 'Cmd must be atom';
@@ -42,5 +42,5 @@ function run(urlctx, url, ctx) {
 	//} catch (e) {
 	//log(url + ':' + s.lineno + ': ' + e);
 	//}
-    return false;
+    return null;
 }

@@ -12,6 +12,7 @@ GH.ProofSegment = function(state, type, step, hasPrevious) {
 	this.hasPrevious = hasPrevious;
 	this.attachChildrenData = null;  // Saved data to attach children when needed.
 	this.hasCloseColumn = false;
+	this.aligned = false; // If this expression should be aligned up next to the previous expression because they partially match.
 
 	this.smallElement = null;
 	// The large wrapper contains the arrow sidebar and the large element.
@@ -32,14 +33,14 @@ GH.ProofSegment.Type = {
 	 GRAY_INNER: 3,  // A block inside a gray block. It is gray when open, white when closed.
 };
 
-GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount) {
+GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount, useLatex) {
 	if (!conclusion.isError) {
 		var rootSegment = new GH.ProofSegment(GH.ProofSegment.State.LARGE, GH.ProofSegment.Type.WHITE_OUTER, conclusion, false);
 		rootSegment.siblingIndex = segmentCount;
 		stack.appendChild(rootSegment.largeWrapper);
 	
 		var stepsData = GH.ProofSegment.findImportantSteps(conclusion, null);
-		rootSegment.attachChildren(stepsData, true);
+		rootSegment.attachChildren(stepsData, true, useLatex);
 		rootSegment.addNames();
 		rootSegment.resize();
 	} else {
@@ -47,7 +48,7 @@ GH.ProofSegment.createSegments = function(conclusion, stack, segmentCount) {
 		errorBlock.className += ' error';
 		stack.appendChild(errorBlock);
 		var tableElement = GH.ProofSegment.addTable(errorBlock.children[1]);
-		var errorMsg = GH.ProofStep.stepToHtml(conclusion.conclusion, '');
+		var errorMsg = GH.ProofStep.stepToHtml(conclusion.conclusion, '', false);
 		tableElement.appendChild(errorMsg);
 	}
 	return rootSegment;
@@ -98,7 +99,7 @@ GH.ProofSegment.prototype.addNames = function() {
 };
 
 GH.ProofSegment.prototype.getNameColumn = function(rowElement) {
-	var nameIndex = this.hasCloseColumn ? rowElement.children.length - 2 : rowElement.children.length - 1;
+	var nameIndex = this.hasCloseColumn ? rowElement.children.length - 3 : rowElement.children.length - 2;
 	return rowElement.children[nameIndex];
 };
 
@@ -155,7 +156,7 @@ GH.ProofSegment.prototype.createCloseColumn = function(i, steps) {
 	return xElement;
 };
 
-GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion) {
+GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion, useLatex) {
 	var steps = stepsData.steps;
 	var tableElement = GH.ProofSegment.addTable(this.largeElement);
 	this.hasCloseColumn = (this.getPosition().length == 1);
@@ -183,23 +184,38 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion) {
 		if (stylized) {
 			var styleIndex = isConclusion ? i : this.step.hypotheses.indexOf(steps[i]);
 			var stylizedExpression = GH.ProofSegment.styleExpression(this.step.styling[styleIndex], steps[i].conclusion);
-			var partialHtml = GH.sexptohtml(stylizedExpression);
+			var partialHtml = GH.sexptohtml(stylizedExpression, useLatex);
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, steps[i].link, isConclusion);
-			var fullHtml = GH.ProofStep.stepToHtml(partialHtml, nameHtml);
+			var fullHtml = GH.ProofStep.stepToHtml(partialHtml, nameHtml, useLatex);
 			child.smallElement = fullHtml;
 			tableElement.appendChild(child.smallElement);
+			if (useLatex) {
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, child.smallElement]);
+			}
 		} else {
 			tableElement = GH.ProofSegment.addTable(this.largeElement);
 			var text;
-			if ((0 < i) && (i < steps.length - 1)) {
-				text = GH.ProofSegment.hideRepeatedParts(steps[i-1], steps[i]);
+			if ((i > 0) && (GH.ProofSegment.alignRepeatedParts(steps[i-1], steps[i]))) {
+				child.aligned = true;
+				if (i < steps.length - 1) {
+					// The last step is aligned, but not hidden.
+					var sexp = steps[i].conclusion.slice(0);
+					sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
+					text = GH.sexptohtml(sexp, useLatex);
+				} else {
+					text = GH.sexptohtml(steps[i].conclusion, useLatex);
+				}
 			} else {
-				text = GH.sexptohtml(steps[i].conclusion);
-			}			
+				child.aligned = false;
+				text = GH.sexptohtml(steps[i].conclusion, useLatex);
+			}	
 			var link = isSingleStep ? steps[i].link : '';
 			var nameHtml = GH.ProofStep.nameToHtml(steps[i].name_, steps[i].title, link, isSingleStep && isConclusion);
-			child.smallElement = GH.ProofStep.stepToHtml(text, nameHtml);
+			child.smallElement = GH.ProofStep.stepToHtml(text, nameHtml, useLatex);
 			tableElement.appendChild(child.smallElement);
+			if (useLatex) {
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, child.smallElement]);
+			}
 		}
 		if (this.hasCloseColumn) {
 			child.smallElement.appendChild(this.createCloseColumn(i, steps));
@@ -221,13 +237,19 @@ GH.ProofSegment.prototype.attachChildren = function(stepsData, recursion) {
 				// Calling child.attachChildren(newStepsData, !newIsSubset) here is slow if
 				// we're not displaying any of the children. We save all the information so that we can display
 				// the children when they are needed.
-				child.attachChildrenData = {stepsData: newStepsData, recursion: !newIsSubset};
+				child.attachChildrenData = {stepsData: newStepsData, recursion: !newIsSubset, useLatex: useLatex};
 			}
 		}
 	}
+	if (useLatex) {
+		var self = this;
+		MathJax.Hub.Queue(function() {
+			self.resizeTables();
+		});
+	}
 };
 
-GH.ProofSegment.hideRepeatedParts = function(prevStep, step) {
+GH.ProofSegment.alignRepeatedParts = function(prevStep, step) {
 	var isHidden = false;
 	var hideableOperators = ['->', '<', '<=', '>', '>='].concat(GH.operatorUtil.EQUIVALENCE_OPERATORS);
 	var sexp = step.conclusion;
@@ -244,14 +266,7 @@ GH.ProofSegment.hideRepeatedParts = function(prevStep, step) {
 			isHidden = left.equals(prevLeft)
 		}
 	}
-
-	if (isHidden) {
-		var sexp = step.conclusion.slice(0);
-		sexp[1] = ['htmlSpan', 'hidden', sexp[1]];   // Hide.
-		return GH.sexptohtml(sexp);
-	} else {
-	    return GH.sexptohtml(step.conclusion);
-	}
+	return isHidden;
 };
 
 /**
@@ -282,7 +297,7 @@ GH.ProofSegment.styleExpression = function(styling, expression) {
 GH.ProofSegment.prototype.delayedAttachChildren = function() {
 	var data = this.attachChildrenData;
 	if (data) {
-		this.attachChildren(data.stepsData, data.recursion);
+		this.attachChildren(data.stepsData, data.recursion, data.useLatex);
 		this.addNames();
 	}
 	this.attachChildrenData = null;
@@ -314,6 +329,7 @@ GH.ProofSegment.addTable = function(parent) {
 
 GH.ProofSegment.createLargeWrapper = function(type) {
 	var largeWrapper = document.createElement("div");
+	largeWrapper.setAttribute('class', 'large-wrapper');
 	var sidebar = document.createElement("div");
 	var largeElement = document.createElement("div");
 	if (type % 2 == 0) {
@@ -375,18 +391,54 @@ GH.ProofSegment.prototype.resize = function() {
 
 // Enlarge the last column of each table so that each row spans the width of the block.
 GH.ProofSegment.prototype.resizeTables = function(){
+	var alignedGroup = [];
 	for (var i = 0; i < this.children.length; i++) {
 		var row = this.children[i].smallElement;
+		var firstCell = row.children[1];
+		firstCell.setAttribute('style', 'padding-left: auto');
+		var lastCell = this.getNameColumn(row);
+		lastCell.setAttribute('style', 'padding-left: auto');
+		if (this.children[i].aligned && (i > 0)) {
+			alignedGroup.push(alignedGroup[i - 1]);
+		} else {
+			alignedGroup.push(i);
+		}
+	}
+	// Determine the maximum width for each aligned group.
+	var groupIndices = [];
+	var maxWidth = 0;
+	var alignedWidths = [];
+	for (var i = 0; i < this.children.length; i++) {
+		var firstCell = this.children[i].smallElement.children[1];
+		var width = parseInt(window.getComputedStyle(firstCell).width);
+		if (i == alignedGroup[i]) {
+			for (var j = 0; j < groupIndices.length; j++) {
+				alignedWidths.push(maxWidth);
+			}
+			groupIndices = [i];
+			maxWidth = width;
+		} else {
+			groupIndices.push(i);
+			maxWidth = Math.max(maxWidth, width);
+		}
+	}
+	for (var j = 0; j < groupIndices.length; j++) {
+		alignedWidths.push(maxWidth);
+	}	
+	for (var i = 0; i < this.children.length; i++) {
+		var row = this.children[i].smallElement;
+		var firstCell = row.children[1];
 		var lastCell = this.getNameColumn(row);
 		lastCell.setAttribute('style', 'width: auto');
-	}
-	for (var i = 0; i < this.children.length; i++) {
-		var row = this.children[i].smallElement;
-		var lastCell = this.getNameColumn(row);
-		var margin = (this.type % 2 == 0) ? 65 : 20;
-		// The width is equal to the current width plus the difference between the block and the table width.
-		var newWidth = this.largeWrapper.offsetWidth - row.offsetWidth + parseInt(window.getComputedStyle(lastCell).width) - margin;
-		lastCell.setAttribute('style', 'width: ' + newWidth);
+		var margin = (this.type % 2 == 0) ? 62 : 84;
+		var largeWrapper = (this.type % 2 == 0) ? this.largeWrapper : this.parent.largeWrapper;
+		var alignedWidth = alignedWidths[i];
+		var width = parseInt(window.getComputedStyle(firstCell).width);
+		var extraRight = alignedWidth - width;
+		
+		var padding = largeWrapper.offsetWidth - row.offsetWidth - margin;
+		firstCell.setAttribute('style', 'padding-left: ' + Math.floor((padding - extraRight) / 2));
+		lastCell.setAttribute ('style', 'padding-left: ' + Math.ceil( (padding + extraRight) / 2));
 	}
 };
 

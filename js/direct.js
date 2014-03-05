@@ -4,11 +4,12 @@
 
 // text is a CanvasEdit object, stack is a canvas for drawing the stack view
 // suggestArea is a place for suggesting proof steps.
-GH.Direct = function(text, stack, suggestArea) {
+GH.Direct = function(text, stack, suggestArea, context) {
     var self = this;
     this.text = text;
     this.text.clearImtrans();  // todo: hack
     this.stack = stack;
+	this.context = context;
     this.text.addListener(function() { self.update(true); });
     this.marker = null;
 	var buttonController = new GH.ButtonController(suggestArea);
@@ -22,6 +23,14 @@ GH.Direct = function(text, stack, suggestArea) {
 	this.rootSegments = [];
 	this.notationGuide = null;
 };
+
+/**
+ * The LaTex typesetting takes longer to render than the default typesetting
+ * It is slow enough that it becomes difficult to edit proofs when the LaTex typesetting
+ * is interrupts you as you type. Once you pause and make no editor commands for this
+ * wait time the LaTex typesetting will show up.
+ */
+GH.Direct.LATEX_WAIT_TIME_MS = 1000;
 
 /**
  * Split a string in a primary and secondary set of tokens. The secondary tokens
@@ -88,10 +97,28 @@ GH.Direct.replace_thmname = function (newname, styling) {
     name = newname; // replace global 'name'.
 };
 
-GH.Direct.counter = 0;
+var latexDisplayTimeout = null;
+GH.Direct.startLatexTimeout = function() {
+	if (!GH.ENABLE_LATEX || (!GH.REFRESH_LATEX && document.body.className=='editor-mode')) {
+		return;
+	}
+	latexDisplayTimeout = setTimeout(
+		function() {
+			window.direct.updateAll(true, true);
+		}, GH.Direct.LATEX_WAIT_TIME_MS);
+};
+
+GH.Direct.stopLatexTimeout = function() {
+	if (latexDisplayTimeout) {
+		clearTimeout(latexDisplayTimeout);
+	}
+};
 
 GH.Direct.prototype.update = function(refreshProofs) {
-	GH.Direct.counter++;
+	this.updateAll(refreshProofs, false);
+};
+
+GH.Direct.prototype.updateAll = function(refreshProofs, useLatex) {
 	this.session = this.text.getSession();  // for ACE editing
 	if (this.session) {
 		if (this.marker !== null) {
@@ -114,7 +141,11 @@ GH.Direct.prototype.update = function(refreshProofs) {
 	}
 	if (refreshProofs) {
 		this.thmctx.fillMissingArguments();
-		this.updateProofs(cursorPosition);
+		this.updateProofs(cursorPosition, useLatex);
+		if (!useLatex) {
+			GH.Direct.stopLatexTimeout();
+			GH.Direct.startLatexTimeout();
+		}
 	}
 };
 
@@ -188,7 +219,7 @@ GH.Direct.prototype.parseText = function(text) {
 };
 
 // Add theorem statement with hypotheses and conclusion.
-GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHistory) {
+GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHistory, useLatex) {
 	var hypSteps = [];
 	var tmpHierarchy = new GH.ProofHierarchy(null, 0, '');
 	var concl;
@@ -214,7 +245,7 @@ GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHisto
 	} else {
 		var name = this.thmctx.newSyms[shownIndex];
 		var sym = this.vg.syms[name];
-		var hyps = sym [2];
+		var hyps = sym[2];
 		concl = sym[3];
 		styling = sym[6];
 		GH.Direct.replace_thmname(name, styling);
@@ -231,11 +262,12 @@ GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHisto
 	var thmStatement = new GH.ProofStep('Conclusion', hypSteps, concl, concl.beg, concl.end, [], false, styling);
 	thmStatement.hierarchy = tmpHierarchy;
 	var header = (thmctx.thmType == GH.DirectThm.ThmType.AXIOM) ? 'Axiom' : 'Theorem';
-	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, header, 0));
+	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, header, 0, useLatex));
+	this.rootSegments[0].largeWrapper.className = 'large-wrapper first-wrapper';
 };
 
 // Display the proofs in the right panel.
-GH.Direct.prototype.updateProofs = function(cursorPosition) {
+GH.Direct.prototype.updateProofs = function(cursorPosition, useLatex) {
 	var thmctx = this.thmctx;
     if (thmctx.proofctx) {
     	pstack = thmctx.proofctx.mandstack;
@@ -249,12 +281,12 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 		}
 		var shownHistory = thmctx.history[shownIndex];
 		this.rootSegments = [];
-		this.notationGuide = new GH.notationGuide(this.vg.syms);
+		this.notationGuide = new GH.notationGuide(this.vg.syms, this.context);
 
-		// The definition 'proofs' are currently exactly the same as the theorem statement..
+		// The definition 'proofs' are currently exactly the same as the theorem statement.
 		if (thmctx.thmType != GH.DirectThm.ThmType.DEFINITION) {
 			// Add theorem statement with hypotheses and conclusion.
-			this.updateThmStatement(thmctx, shownIndex, shownHistory);
+			this.updateThmStatement(thmctx, shownIndex, shownHistory, useLatex);
 		}
 
 		// Add proof.
@@ -265,12 +297,12 @@ GH.Direct.prototype.updateProofs = function(cursorPosition) {
 				header = (thmctx.thmType == GH.DirectThm.ThmType.NORMAL) ? 'Proof' : 'Definition';
 				summary = (thmctx.thmType == GH.DirectThm.ThmType.NORMAL) ? null : thmctx.styleScanner.summary;
 			}
-			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, header, j + 1));
+			this.rootSegments.push(shownHistory[j].displayStack(this.stack, summary, header, j + 1, useLatex));
 			this.notationGuide.addStep(shownHistory[j]);
 		}
 		
 		var expectedTypes = this.thmctx.getExpectedTypes(pstack);
-		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes);
+		GH.ProofStep.displayInputArguments(this.stack, pstack, expectedTypes, useLatex);
 		
 		if (shownHistory.length > 0) {
 			this.notationGuide.render(this.stack);
@@ -601,7 +633,7 @@ GH.DirectThm.prototype.tok = function(tok) {
 				}
 				if (!GH.sexp_equals(pc.stack[0], this.concl)) {
 					var replacement = GH.sexp_to_string(pc.stack[0]).replace(/\\/g, "\\\\");
-					return this.createError('\nWanted:\n ' + GH.sexptohtml(this.concl, 0) +
+					return this.createError('\nWanted:\n ' + GH.sexptohtml(this.concl, false) +
 						' <a onclick="window.direct.replaceText(\'' + replacement + '\',' + this.concl.beg + ',' + this.concl.end + ')"><b>Fix</b></a>', tok);
 				}
 				this.proof.pop(); // Pop the end ')'.
