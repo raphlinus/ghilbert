@@ -1103,9 +1103,14 @@ stmt (df-minus () () (= (- A B) (+ A (-n B))))
 ## <title> Minus Definition Reversed </title>
 stmt (df-minusr () () (= (+ A (-n B)) (- A B)))
 
-## <title> Equivalence for - </title> ##
+## <title> Subtract a number from both sides </title>
 stmt (minuseq1 () () (-> (= A C) (= (- A B) (- C B))))
 
+## <title> Subtract a number from both sides </title>
+## <table>
+##  (=    A ]       ]      C ] )
+##  (= (- A ] <g> B ] ) (- C ] <g> B))
+## </table>
 stmt (minuseq1i () ((= A C)) (= (- A B) (- C B)))
 
 ## <title> Equivalence for - </title> ##
@@ -1146,6 +1151,9 @@ stmt (minuscan2 () () (= (+ (- A B) B) A))
 
 ## <title> Addition is the inverse of Subtraction </title>
 ## <suggest> right('Simplify','-') </suggest>
+## <table>
+##   (= (- (+ A <r> B) <r> B) A)
+## </table>
 stmt (addcanr () () (= (- (+ A B) B) A))
 
 ## <title> Negative and Subtraction Cancel </title>
@@ -1224,12 +1232,19 @@ stmt (negadd () () (= (- (-n A) B) (-n (+ A B))))
 ## <title> Subtraction Value from Addition </title>
 stmt (minusValue () () (-> (= (+ A B) C) (= A (- C B))))
 
-## <title> Subtraction Value from Addition </title>
+## <title> Subtract both sides </title>
 ## <table>
-##   (= (+ <c> A [ B ] ) <m> C)
-##   (= (- <m> C [ B ] ) <c> A)
+##   (= (+ A <c> B) C)
+##   (= A (- C <c> B ) )
 ## </table>
-stmt (minusValuei () ((= (+ A B) C)) (= (- C B) A))
+stmt (minusValuei () ((= (+ A B) C)) (= A (- C B)))
+
+## <title> Subtraction from both sides </title>
+## <table>
+##   (= (+ A <c>     B ) [ C)
+##   (= A (- <c> (-n B )  [ C) )
+## </table>
+stmt (minusValue2i () ((= (+ A B) C)) (= A (+ (-n B) C)))
 
 ## <title> Subtract from 0 </title>
 ## <suggest> right('Simplify', '-') </suggest>
@@ -1373,6 +1388,10 @@ stmt (reciprocalcani () ((-. (= A (0)))) (= (* A (/ (1) A)) (1)))
 stmt (divcan2 () () (-> (-. (= A (0))) (= (/ (* A B) A) B)))
 
 ## <title> Cancel with Division </title>
+## <table>
+##   (-. (= <r> A (0)))
+##   (= (/ (* <r> A B) <r> A) B)
+## </table>
 stmt (divcan2i () ((-. (= A (0)))) (= (/ (* A B) A) B))
 
 ## <title> Cancel with Division </title>
@@ -1466,10 +1485,10 @@ stmt (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C
 ## <title> 0 divided by anything is 0 </title>
 stmt (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0))))
 
-## <title> Multiply Two Denominators </title>
+## <title> Combine Two Divisions </title>
 stmt (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C)))))
 
-## <title> Multiply Two Denominators </title>
+## <title> Combine Two Divisions </title>
 stmt (doubledivi () ((-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C))))
 
 ## <title> A positive number has a positive reciprocal </title>

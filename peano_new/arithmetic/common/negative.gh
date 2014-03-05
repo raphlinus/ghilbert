@@ -7,6 +7,12 @@ tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
 
+## <context>
+##   This theorem is part of a series of proofs related to the introduction of 
+##   <a href="/wiki/peano/arithmetic/negative-sign">negative numbers</a>. These
+##   theorems apply to integers, rational numbers, and real numbers.
+## </context>
+
 thm (negeqi() (hyp (= A B)) (= (-n A) (-n B))
   hyp
   A B negeq
@@ -1678,17 +1684,32 @@ thm (minusValue () () (-> (= (+ A B) C) (= A (- C B)))
 
 ## <title> Subtraction Value from Addition </title>
 ## <table>
-##   (= (+ <c> A [ B ] ) <m> C)
-##   (= (- <m> C [ B ] ) <c> A)
+##   (= (+ A <c> B) C)
+##   (= A (- C <c> B ) )
 ## </table>
-thm (minusValuei () (hyp (= (+ A B) C)) (= (- C B) A)
+thm (minusValuei () (hyp (= (+ A B) C)) (= A (- C B))
   hyp
-  A B C minusValue   
-  ax-mp  
-  ## <d 'Symmetric Property '>
-    A (- C B) eqcom
-    mpbi
-  ## </d 'Symmetric Property '>
+  A B C minusValue
+  ax-mp
+)
+
+## <title> Subtraction from both sides </title>
+## <table>
+##   (= (+ A <c>     B ) [ C)
+##   (= A (- <c> (-n B )  [ C) )
+## </table>
+thm (minusValue2i () (hyp (= (+ A B) C)) (= A (+ (-n B) C))
+  hyp 
+  minusValuei  
+  ## <d 'Definition of Subtraction '>
+    C B df-minus
+    EqReplaceEq1
+  ## </d 'Definition of Subtraction '>
+  
+  ## <d 'Commutative Property '>
+    C (-n B) addcom
+    EqReplaceEq1
+  ## </d 'Commutative Property '>
 )
 
 ## <title> Substitution </title>
@@ -1866,8 +1887,6 @@ thm (negle () () (<-> (>= A (0)) (<= (-n A) (0)))
 )
 
 ## <title> Definition of Absolute Value </title>
-## <summary>
-## </summary>
 ## <suggest> right('Define', '|x|') left('Simplify', '|x|') </suggest>
 defthm (df-abs nat (abs A) () () (= (abs A) (ifn (>= A (0)) A (-n A)))
   (ifn (>= A (0)) A (-n A)) eqid

@@ -5,8 +5,15 @@ import (NEGATIVE negative.ghi (PROP PREDICATE NATURALS) "")
 import (DIVISION_MIN division_min.ghi (PROP PREDICATE NATURALS) "")
 
 tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
-tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
-var (nat v w x y z v' w' x' y' z')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k a b c d u v)
+var (nat w x y z v' w' x' y' z')
+
+## <context>
+##   This theorem is part of a series of proofs on the properties of
+##   <a href="/wiki/peano/arithmetic/divide">division</a>. These theorems
+##   apply to both rational and real numbers.
+## </context>
+
 
 ## <title> Divide a number on both sides of an equation </title>
 ## <table>
@@ -1540,6 +1547,312 @@ thm (posReciprocal2 () () (-> (-. (= A (0))) (<-> (> A (0)) (> (/ (1) A) (0))))
     mpbi
   ## </d 'Import-Export Theorem '>
   impbid
+)
+
+## <title> Divide Both Sides </title>
+## <table>
+##                        [ (= (* <c> a b) c)
+## (-> (-. (= <c> a (0))) [ (= b (/ c <c> a)))
+## </table>
+thm (moveBottom () (hyp (= (* a b) c)) (-> (-. (= a (0))) (= b (/ c a)))
+  a b divcan2  
+  ## <d 'Symmetric Property '>
+    (/ (* a b) a) b eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  hyp
+  a diveq1i  
+  EqReplaceImp1Eq1
+)
+
+## <title> Divide Both Sides </title>
+## <table>
+##  (-. (= <c> a   ] [ (0)))
+##  (= (* <c> a b) ] [ c)
+##  (= b           ] [ (/ c <c> a))
+## </table>
+thm (moveBottomi () (hyp (-. (= a (0))) hyp2 (= (* a b) c)) (= b (/ c a))
+  hyp
+  hyp2
+  moveBottom  
+  ax-mp
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (+  [ A ]   ]   ]  C) D)
+##   (=     [ A ]   [ B ] )
+##   (= (+  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Add0 () (
+     replacee (= (+ A C) D)
+     substitution (= A B)) 
+     (= (+ B C) D)
+  replacee substitution
+  C addeq1i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (+ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Add1 () (
+     replacee (= (+ A B) D)
+     substitution (= B C)) 
+     (= (+ A C) D)
+  replacee substitution
+  A addeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (*  [ A ]   ]   ]  C) D) A')
+##   (=        [ A ]   [ B ] )
+##   (= (+ (*  [   [   [ B ]  C) D) A')
+## </table>
+thm (EqReplaceEq0Add0Mul0 () (
+     replacee (= (+ (* A C) D) A')
+     substitution (= A B)) 
+     (= (+ (* B C) D) A')
+  replacee substitution
+  C muleq1i
+  EqReplaceEq0Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (- A  [ B ]   ]   ] ) D) A')
+##   (=          [ B ]   [ C ] )
+##   (= (+ (- A  [   [   [ C ] ) D) A')
+## </table>
+thm (EqReplaceEq0Add0Minus1 () (
+     replacee (= (+ (- A B) D) A')
+     substitution (= B C)) 
+     (= (+ (- A C) D) A')
+  replacee substitution
+  A minuseq2i
+  EqReplaceEq0Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (- A (*  [ B ]   ]   ]  D)) A') B')
+##   (=             [ B ]   [ C ] )
+##   (= (+ (- A (*  [   [   [ C ]  D)) A') B')
+## </table>
+thm (EqReplaceEq0Add0Minus1Mul0 () (
+     replacee (= (+ (- A (* B D)) A') B')
+     substitution (= B C)) 
+     (= (+ (- A (* C D)) A') B')
+  replacee substitution
+  D muleq1i
+  EqReplaceEq0Add0Minus1
+)
+
+## <title> Solve two linear equations </title>
+## <summary>
+##   Solves a system of two linearly independent equations for one of the
+##   two variables y. The theorem
+##   <a href="twoLinearEquations">twoLinearEquations</a> extends this result
+##   to both variables x and y. This proof starts with three hypotheses: the two
+##   equations and a statement expressing: ad-bc is not 0.
+## </summary>
+thm (twoLinearEquations1 () (equation1st (= (+ (* a x) (* b y)) u) equation2nd (= (+ (* c x) (* d y)) v) independent (-. (= (- (* a d) (* b c)) (0)))) (= y (/ (- (* a v) (* c u)) (- (* a d) (* b c))))
+  ## <d 'Solve for ax in first equation'>
+    independent
+    ## <d 'First Equation'>
+      equation1st
+    ## </d>
+    minusValuei
+  ## </d>
+
+  ## <d 'Substitute ax into second equation'>
+    c muleq2i
+    (* (* a d) y) addeq1i
+    eqcomi
+
+    equation2nd
+    a muleq2i
+    ## <d 'Distributive Property '>
+      ## <d 'Distributive Property '>
+        a (* c x) (* d y) distr
+        EqReplaceEq0
+      ## </d 'Distributive Property '>
+      ## <d 'Associative Property '>
+        a c x mulass eqcomi
+        EqReplaceEq0Add0
+      ## </d 'Associative Property '>
+      ## <d 'Associative Property '>
+        a d y mulass eqcomi
+        EqReplaceEq0Add1
+      ## </d 'Associative Property '>
+    ## </d 'Distributive Property '>
+    ## <d 'Commutative Property '>
+      ## <d 'Commutative Property '>
+        a c mulcom
+        EqReplaceEq0Add0Mul0
+      ## </d 'Commutative Property '>
+      ## <d 'Associative Property '>
+        c a x mulass
+        EqReplaceEq0Add0
+      ## </d 'Associative Property '>
+    ## </d 'Commutative Property '>
+    EqReplaceEq1
+  ## </d>
+
+  ## <d 'Distribute Multiplication'>
+  ## <d 'Distribute Multiplication'>
+    c u (* b y) minusdistr
+    EqReplaceEq0Add0
+  ## </d 'Distribute Multiplication'>
+  ## <d 'Associative Property '>
+    c b y mulass eqcomi
+    EqReplaceEq0Add0Minus1
+  ## </d 'Associative Property '>
+    ## <d 'Commutative Property '>
+    c b mulcom
+    EqReplaceEq0Add0Minus1Mul0
+  ## </d 'Commutative Property '>
+  ## </d 'Distribute Multiplication'>
+
+## <d 'Rearrange Terms'>
+  ## <d 'Commute & Associate'>
+  ## <d 'Definition of Subtraction '>
+    (* c u) (* (* b c) y) df-minus
+    EqReplaceEq0Add0
+  ## </d 'Definition of Subtraction '>
+  ## <d 'Associative Property '>
+    (* c u) (-n (* (* b c) y)) (* (* a d) y) addass
+    EqReplaceEq0
+  ## </d 'Associative Property '>
+  ## <d 'Commutative Property '>
+    (-n (* (* b c) y)) (* (* a d) y) addcom
+    EqReplaceEq0Add1
+  ## </d 'Commutative Property '>
+
+  ## <d 'Definition of Subtraction '>
+    (* (* a d) y) (* (* b c) y) df-minus eqcomi
+    EqReplaceEq0Add1
+  ## </d 'Definition of Subtraction '>
+  ## </d 'Associative Property '>
+
+  ## <d 'Commutative Property '>
+    (* c u) (- (* (* a d) y) (* (* b c) y)) addcom
+    EqReplaceEq0
+  ## </d 'Commutative Property '>
+  minusValuei
+## </d>
+  ## <d>
+    ## <d 'Distribute Multiplication over Subtraction '>
+      (* a d) (* b c) y minusdistl eqcomi
+      EqReplaceEq0
+    ## </d 'Distribute Multiplication over Subtraction '>
+    moveBottom
+    ax-mp
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (= A  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (-. (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceNot0Eq1 () (
+     replacee (-. (= A B))
+     substitution (= B C)) 
+     (-. (= A C))
+  replacee substitution
+  A eqeq2i
+  mtbi
+)
+
+## <title> Solve two linear equations </title>
+## <summary>
+##   Solves a system of two linearly independent equations involving two
+##   variables x and y. This proof starts with three hypotheses: the two
+##   equations and a statement expressing: ad-bc is not 0. This theorem
+##   uses the theorem <a href="twoLinearEquations1">twoLinearEquations1</a>
+##   which solves for one of the two variables. This theorem solves for
+##   x and y by using <a href="twoLinearEquations1">twoLinearEquations1</a>
+##   twice.
+## </summary>
+thm (twoLinearEquations () (equation1st (= (+ (* a x) (* b y)) u) equation2nd (= (+ (* c x) (* d y)) v) independent (-. (= (- (* a d) (* b c)) (0)))) (/\ (= x (/ (- (* d u) (* b v)) (- (* a d) (* b c)))) (= y (/ (- (* a v) (* c u)) (- (* a d) (* b c)))))
+  ## <d 'Solve for x'>
+  ## <d 'Linear Independence'>
+    ## <d 'Commuted First Equation'>
+      equation1st  
+      ## <d 'Commutative Property '>
+        (* a x) (* b y) addcom
+        EqReplaceEq0
+      ## </d 'Commutative Property '>
+    ## </d 'Commute First Equation'>
+    ## <d 'Commuted Second Equation'>
+    equation2nd  
+    ## <d 'Commutative Property '>
+      (* c x) (* d y) addcom
+      EqReplaceEq0
+    ## </d 'Commutative Property '>
+    ## </d 'Commuted Second Equation'>
+    independent
+   (- (* a d) (* b c)) (0) negeq2     
+    mtbi  
+    ## <d 'Negative of 0 is 0 '>
+      neg0
+      EqReplaceNot0Eq1
+    ## </d 'Negative of 0 is 0 '>  
+    ## <d 'Negative of Subtraction '>
+      (* b c) (* a d) negminus eqcomi
+      EqReplaceNot0Eq0
+    ## </d 'Negative of Subtraction '>
+  ## </d>
+  ## <d 'Solve for x'>
+    twoLinearEquations1
+  ## </d 'Solve for x'>
+
+  ## <d 'Take negative of top and bottom'>
+    ## <d>
+      independent
+     (- (* a d) (* b c)) (0) negeq2     
+      mtbi  
+      ## <d 'Negative of 0 is 0 '>
+        neg0
+        EqReplaceNot0Eq1
+      ## </d 'Negative of 0 is 0 '>  
+      ## <d 'Negative of Subtraction '>
+        (* b c) (* a d) negminus eqcomi
+        EqReplaceNot0Eq0
+      ## </d 'Negative of Subtraction '> 
+      (- (* b c) (* a d)) (- (* b v) (* d u)) doublenegfrac  
+      ax-mp
+      eqcomi  
+      EqReplaceEq1
+    ## </d>
+    ## <d 'Negative of Subtraction '>
+      (* a d) (* b c) negminus eqcomi
+      EqReplaceEq1Div1
+    ## </d 'Negative of Subtraction '>
+    ## <d 'Negative of Subtraction '>
+      (* d u) (* b v) negminus eqcomi
+      EqReplaceEq1Div0
+    ## </d 'Negative of Subtraction '>
+  ## </d>
+  ## </d>
+  ## <d 'Solve for y'>
+    ## <d 'Starting Assumptions'>
+      equation1st
+      equation2nd
+      independent
+    ## </d>
+    twoLinearEquations1
+  ## </d>
+  pm3.2i
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>

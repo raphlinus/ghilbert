@@ -1675,6 +1675,2099 @@ thm (muldivi () (hyp (> A (0))) (= (div (* A B) A) B)
   ax-mp
 )
 
+## <title> Even Number Definition </title>
+## <summary>
+##   An even number is divisible by 2.
+## </summary>
+## <suggest> right('Define', 'Ev') left('Simplify', 'Ev') </suggest>
+defthm  (df-even wff (even A) () () (<-> (even A) (| (2) A))
+  (| (2) A) biid
+)
+
+
+
+thm (eveneq () () (-> (= A B) (<-> (even A) (even B)))
+  A B (2) divideseq2  
+  ## <d 'Even Number Definition '>
+    A df-even bicomi
+    BiReplaceImp1Bi0
+  ## </d 'Even Number Definition '>  
+  ## <d 'Even Number Definition '>
+    B df-even bicomi
+    BiReplaceImp1Bi1
+  ## </d 'Even Number Definition '>
+)
+
+thm (eveneqi () (
+     hyp1 (= A B))
+     (<-> (even A) (even B))
+  hyp1
+  A B eveneq
+  ax-mp
+)
+
+thm (eveneqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (even A) (even B)))
+  hyp1
+  A B eveneq
+  syl
+)
+
+## <title> Odd Number Definition </title>
+## <summary>
+##   An odd number is not divisible by 2.
+## </summary>
+## <suggest> right('Define', 'Odd') left('Simplify', 'Odd') </suggest>
+defthm  (df-odd wff (odd A) () () (<-> (odd A) (-. (| (2) A)))
+  (-. (| (2) A)) biid
+)
+
+## <title> An Odd Number is Not Even </title>
+thm (oddNotEven () () (<-> (-. (even A)) (odd A))
+  A df-even  
+  ## <d 'Negate Both Sides '>
+    (even A) (| (2) A) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  ## <d 'Odd Number Definition '>
+    A df-odd bicomi
+    bitri
+  ## </d 'Odd Number Definition '>
+)
+
+## <title> An Odd Number is Not Even </title>
+thm (evenNotOdd () () (<-> (-. (odd A)) (even A))
+  A df-odd  
+  ## <d 'Negate Both Sides '>
+    (odd A) (-. (| (2) A)) notbi
+    mpbi
+    (| (2) A) notnotr
+    bitri
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Even Number Definition '>
+    A df-even bicomi
+    bitri
+  ## </d 'Even Number Definition '>
+)
+
+
+
+## <title> All nonzero natural numbers are positive </title>
+## <suggest> right('Equivalence', '<') </suggest>
+thm (0inequalities () () (<-> (-. (= (0) A)) (< (0) A))
+  A 0le    
+  ## <d '≤ means < OR = '>
+    (0) A leleo
+    mpbi
+  ## </d '≤ means < OR = '>      
+  ## <d 'Definition of OR '>
+    (< (0) A) (= (0) A) df-or
+    mpbi     
+  ## </d 'Definition of OR '>
+  ## <d 'Negate Both Sides '>
+    (-. (< (0) A)) (= (0) A) con34b
+    mpbi
+    (< (0) A) notnotr
+    sylib
+  ## </d 'Negate Both Sides '>          
+  ## <d 'Operator Conversion '>
+    (0) A ltneq
+  ## </d 'Operator Conversion '>
+  impbii
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->      [ ph ]   [ ps ] )
+##   (<-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Not0 () (
+     replacee (<-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  bitr3icom
+)
+
+
+## <title> All nonzero natural numbers are positive </title>
+## <suggest> right('Equivalence', '<') </suggest>
+thm (0inequalities2 () () (<-> (-. (= A (0))) (> A (0)))
+  A 0inequalities
+  ## <d 'Symmetric Property '>
+    (0) A eqcom
+    BiReplaceBi0Not0
+  ## </d 'Symmetric Property '>
+  ## <d 'Commute Inequality '>
+    (0) A ltcon
+    bitri
+  ## </d 'Commute Inequality '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=  [ A ]   ]   ]  C))
+##   (=           [ A ]   [ B ] )
+##   (<-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Le0 () (
+     replacee (<-> ph (<= A C))
+     substitution (= A B)) 
+     (<-> ph (<= B C))
+  replacee
+  substitution
+C leeq1i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (<  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Lt0 () (
+     replacee (<-> ph (< A C))
+     substitution (= A B)) 
+     (<-> ph (< B C))
+  replacee substitution
+  C lteq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (< A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Lt1 () (
+     replacee (<-> ph (< A B))
+     substitution (= B C)) 
+     (<-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (| A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (| A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Divs1 () (
+     replacee (-> ph (| A B))
+     substitution (= B C)) 
+     (-> ph (| A C))
+  replacee substitution
+  A divideseq2i
+  sylib
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<= (+ A  [ B ]   ]   ] ) D))
+##   (=                [ B ]   [ C ] )
+##   (<-> ph (<= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceBi1Le0Add1 () (
+     replacee (<-> ph (<= (+ A B) D))
+     substitution (= B C)) 
+     (<-> ph (<= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceBi1Le0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x exbii
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\  [ ps ]   ]    ]  th)))
+##   (<->              [ ps ]   [ ch ] )
+##   (-> ph (E. x (/\  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceImp1Ex1An0 () (
+     replacee (-> ph (E. x (/\ ps th)))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x (/\ ch th)))
+  replacee substitution
+  th anbi1i
+  BiReplaceImp1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\ (<=  [ A ]   ]   ]  C) ps)))
+##   (=                    [ A ]   [ B ] )
+##   (-> ph (E. x (/\ (<=  [   [   [ B ]  C) ps)))
+## </table>
+thm (EqReplaceImp1Ex1An0Le0 () (
+     replacee (-> ph (E. x (/\ (<= A C) ps)))
+     substitution (= A B)) 
+     (-> ph (E. x (/\ (<= B C) ps)))
+  replacee substitution
+  C leeq1i
+  BiReplaceImp1Ex1An0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (-> ph  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (E. x (-> ph  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceEx1Imp1 () (
+     replacee (E. x (-> ph ps))
+     substitution (<-> ps ch)) 
+     (E. x (-> ph ch))
+  replacee substitution
+  ph imbi2i
+  exbiii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\  [ ps ]   ]    ]  th))
+##   (->         [ ps ]   [ ch ] )
+##   (-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (ImpReplaceImp1An0 () (
+     replacee (-> ph (/\ ps th))
+     substitution (-> ps ch)) 
+     (-> ph (/\ ch th))
+  replacee substitution
+  th anim1i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (<  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Lt0 () (
+     replacee (-> ph (< A C))
+     substitution (= A B)) 
+     (-> ph (< B C))
+  replacee substitution
+  C lteq1i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (< A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (< A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Lt1 () (
+     replacee (-> ph (< A B))
+     substitution (= B C)) 
+     (-> ph (< A C))
+  replacee substitution
+  A lteq2i
+  sylib
+)
+
+thm (modlt () () (-> (< (0) B) (< (mod A B) B))
+  (1) B (1) halfminusaddcom
+  ## <d>
+    B (1) halfminuscan
+    EqReplaceImp1Eq1
+  ## </d>
+  A modeq2d
+  (1) B (1) halfminusaddcom
+  ## <d>
+    B (1) halfminuscan
+    EqReplaceImp1Eq1
+  ## </d>
+  (mod A (+ (.- B (1)) (1))) lteq2d
+  A (.- B (1)) modlt2
+  (< (mod A (+ (.- B (1)) (1))) B) biRemove1
+  (<= (1) B) imbi2i
+  mpbi
+  jca
+  (mod A (+ (.- B (1)) (1))) (mod A B) B lteq1  
+  ImpReplaceImp1An0
+  ## <d 'Commutative Property '>
+    (<-> (< (mod A (+ (.- B (1)) (1))) B) (< (mod A B) B)) (< (mod A (+ (.- B (1)) (1))) B) ancom
+    sylib
+  ## </d 'Commutative Property '>
+  ## <d>
+    (< (mod A (+ (.- B (1)) (1))) B) (< (mod A B) B) mpbi-inline
+    syl
+  ## </d>
+  (0) B ltle2
+  ## <d 'Additive Identity Axiom '>
+    (1) addidr
+    EqReplaceBi1Le0
+  ## </d 'Additive Identity Axiom '>
+
+  ## <d 'Commutative Property '>
+    (< (0) B) (<= (1) B) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+
+  sylbi2
+)
+
+## <title> A non-multiple occurs between two multiples </title>
+thm (notDivides2 ((B x) (A x)) () (-> (/\ (-. (| A B)) (> A (0))) (E. x (/\ (< (* A x) B) (< B (* A (+ x (1)))))))
+  x (div B A) tyex
+  (div B A) x A muleq2
+  B lteq1d
+  (div B A) x (1) addeq1
+  A muleq2d
+  B lteq2d
+  anbi12d
+  (/\ (-. (| A B)) (< (0) A)) imbi2d
+
+
+  A B dividesmod
+  ## <d 'Negate Both Sides '>
+    (| A B) (= (mod B A) (0)) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+
+  ## <d 'All nonzero natural numbers are positive '>
+    (mod B A) 0inequalities2
+    bitri
+  ## </d 'All nonzero natural numbers are positive '>
+  
+  ## <d 'Converse of < '>
+    (0) (mod B A) ltcon bicomi
+    bitri
+  ## </d 'Converse of < '>
+
+
+ (0) (mod B A) (* A (div B A))  ltadd2
+
+  ## <d 'Additive Identity Axiom '>
+    (* A (div B A)) addid
+    EqReplaceBi1Lt0
+  ## </d 'Additive Identity Axiom '>
+
+  bitri
+  A B div
+  EqReplaceBi1Lt1
+  ## <d 'Infer Left to Right '>
+    (-. (| A B)) (< (* A (div B A)) B) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+
+  A B modlt
+ (mod B A) A (* A (div B A))  ltadd2
+  sylib
+
+  A B div
+  EqReplaceImp1Lt0
+  A mulid
+  (* A (div B A)) addeq2i eqcomi
+  ## <d 'Distributive Property '>
+    A (div B A) (1) distr
+    ## <d 'Commutative Property'>
+      (* A (+ (div B A) (1))) (+ (* A (div B A)) (* A (1))) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq1
+  ## </d 'Distributive Property '>
+
+        EqReplaceImp1Lt1
+  pm3.2i
+  ## <d 'Praeclarum Theorema '>
+    (-. (| A B)) (< (* A (div B A)) B) (< (0) A) (< B (* A (+ (div B A) (1)))) prth
+    ax-mp
+  ## </d 'Praeclarum Theorema '>
+
+  (-> (/\ (-. (| A B)) (< (0) A)) (/\ (< (* A x) B) (< B (* A (+ x (1)))))) biRemove1
+  (= (div B A) x) imbi2i
+  mpbi
+
+  ## <d 'Symmetric Property '>
+    (div B A) x eqcom
+    sylbi2
+  ## </d 'Symmetric Property '>
+
+  ImpReplaceEx1
+
+  (/\ (-. (| A B)) (< (0) A)) x (/\ (< (* A x) B) (< B (* A (+ x (1)))))
+  imex bicomi
+  mpbi
+
+  ## <d 'Commute Inequality '>
+    (0) A ltcon
+    BiReplaceImp0An1
+  ## </d 'Commute Inequality '>
+)
+
+## <title> A non-multiple occurs between two multiples </title>
+thm (notDivides3 ((B x)(A x)) () (-> (> A (0)) (<-> (-. (| A B)) (E. x (/\ (< (* A x) B) (< B (* A (+ x (1))))))))
+  A B x notDivides2  
+  ## <d 'Commute Conjunction '>
+    (-. (| A B)) (> A (0)) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Import-Export Theorem '>
+    (> A (0)) (-. (| A B)) (E. x (/\ (< (* A x) B) (< B (* A (+ x (1)))))) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  A x B notDivides
+  x 19.22i  
+  ## <d 'Quantified Non-free Variable '>
+    x (-. (| A B)) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  (> A (0)) a1i
+  impbid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x  [ ps ]   ]    ] ))
+##   (<->           [ ps ]   [ ch ] )
+##   (<-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Ex1 () (
+     replacee (<-> ph (E. x ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (E. x ch))
+  replacee substitution
+  x exbii
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x (/\ ps  [ ch ]   ]    ] )))
+##   (<->                  [ ch ]   [ th ] )
+##   (<-> ph (E. x (/\ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Ex1An1 () (
+     replacee (<-> ph (E. x (/\ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (E. x (/\ ps th)))
+  replacee substitution
+  ps anbi2i
+  BiReplaceBi1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x (/\ ps (< A  [ B ]   ]   ] ))))
+##   (=                         [ B ]   [ C ] )
+##   (<-> ph (E. x (/\ ps (< A  [   [   [ C ] ))))
+## </table>
+thm (EqReplaceBi1Ex1An1Lt1 () (
+     replacee (<-> ph (E. x (/\ ps (< A B))))
+     substitution (= B C)) 
+     (<-> ph (E. x (/\ ps (< A C))))
+  replacee substitution
+  A lteq2i
+  BiReplaceBi1Ex1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x (/\  [ ps ]   ]    ]  th)))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (E. x (/\  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Ex1An0 () (
+     replacee (<-> ph (E. x (/\ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (E. x (/\ ch th)))
+  replacee substitution
+  th anbi1i
+  BiReplaceBi1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> A  [ B ]   ]   ] )
+##   (>    [ B ]   [ C ] )
+##   (> A  [   [   [ C ] )
+## </table>
+thm (GtReplaceGt1 () (
+     replacee (> A B)
+     substitution (> B C)) 
+     (> A C)
+  replacee substitution
+  A gtTrgt
+  ax-mp
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (2greater0 () () (> (2) (0))
+  ## <d 'Separate into smaller inequalities'>
+    2greater1
+    1greater0
+    GtReplaceGt1
+  ## </d 'Separate into smaller inequalities'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<= A  [ B ]   ]   ] ))
+##   (=             [ B ]   [ C ] )
+##   (<-> ph (<= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Le1 () (
+     replacee (<-> ph (<= A B))
+     substitution (= B C)) 
+     (<-> ph (<= A C))
+  replacee
+  substitution
+A leeq2i
+ph bibi2i
+mpbi
+)
+
+## <title> Alternative Odd Number Definition </title>
+thm (oddex ((A x)) () (<-> (odd A) (E. x (= (+ (* (2) x) (1)) A)))
+  ## <d 'Formula for 2 does not divide A'>
+  (2) A x notDivides3
+  ## <d '2 > 0'>
+    2greater0
+    ax-mpRemove
+  ## </d '2 > 0'>  
+  ## </d>  
+  ## <d 'Distributive Property '>
+    (2) x (1) distr
+    (2) mulid
+    EqReplaceEq1Add1
+    EqReplaceBi1Ex1An1Lt1
+  ## </d 'Distributive Property '>   
+  ## <d 'Convert between ≤ and < '> 
+  ## <d 'Convert between ≤ and < '>
+    (* (2) x) A ltle2  
+    BiReplaceBi1Ex1An0
+  ## </d 'Convert between ≤ and < '>
+  ## <d 'Convert between ≤ and < '>
+  A (+ (* (2) x) (2)) ltle2
+  1plus1 eqcomi
+  (* (2) x) addeq2i
+  (+ A (1)) leeq2i  
+  bitri
+  ## <d 'Associative Property '>
+    (* (2) x) (1) (1) addass eqcomi
+    EqReplaceBi1Le1
+  ## </d 'Associative Property '>  
+  ## <d 'Addition is Monotonic '>
+    A (+ (* (2) x) (1)) (1) leadd1 bicomi
+    bitri
+  ## </d 'Addition is Monotonic '> 
+  BiReplaceBi1Ex1An1
+  ## </d 'Convert between ≤ and < '>   
+  ## </d 'Convert between ≤ and < '>   
+  ## <d 'Same upper and lower bound implies equality '>
+    (+ (* (2) x) (1)) A lesym bicomi
+    BiReplaceBi1Ex1
+  ## </d 'Same upper and lower bound implies equality '>  
+  ## <d 'Odd Number Definition '>
+    A df-odd bicomi
+    bitr3icom
+  ## </d 'Odd Number Definition '>
+)
+
+## <title> Odd Numbers Are Above Even Numbers </title>
+thm (evensuccessor () () (<-> (even A) (odd (+ A (1))))
+  ## <d 'Even Number Definition '>
+    A df-even
+  ## </d 'Even Number Definition '>
+  ## <d 'Divides Definition '>
+    (2) A x df-divides
+    bitri
+  ## </d 'Divides Definition '>
+  ## <d 'Add 1 to both sides '>
+    (* (2) x) (1) A addcan bicomi  
+    BiReplaceBi1Ex1
+  ## </d 'Add 1 to both sides '>
+  ## <d 'Alternative Odd Number Definition'>
+  (+ A (1)) x oddex bicomi  
+  bitri
+  ## </d 'Alternative Odd Number Definition'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x (=  [ A ]   ]   ]  C)))
+##   (=                [ A ]   [ B ] )
+##   (<-> ph (E. x (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceBi1Ex1Eq0 () (
+     replacee (<-> ph (E. x (= A C)))
+     substitution (= A B)) 
+     (<-> ph (E. x (= B C)))
+  replacee
+  substitution
+C eqeq1i
+x exbii
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x (= (+ A  [ B ]   ]   ] ) D)))
+##   (=                     [ B ]   [ C ] )
+##   (<-> ph (E. x (= (+ A  [   [   [ C ] ) D)))
+## </table>
+thm (EqReplaceBi1Ex1Eq0Add1 () (
+     replacee (<-> ph (E. x (= (+ A B) D)))
+     substitution (= B C)) 
+     (<-> ph (E. x (= (+ A C) D)))
+  replacee substitution
+  A addeq2i
+  EqReplaceBi1Ex1Eq0
+)
+
+## <title> Even Numbers Are Above Odd Numbers </title>
+thm (oddsuccessor () () (<-> (odd A) (even (+ A (1))))
+  A evensuccessor  
+  ## <d 'Negate Both Sides '>
+    (even A) (odd (+ A (1))) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  A oddNotEven  
+  bitr3icom
+  (+ A (1)) evenNotOdd  
+  bitri
+)
+
+## <title> One of two consecutive numbers is even </title>
+## <summary>
+##   For two consecutive numbers, one of the numbers is even.
+##   <a href="consecutiveOdd">consecutiveOdd</a> shows that one
+##   of them is odd.
+## </summary>
+thm (consecutiveEven () () (\/ (even A) (even (+ A (1))))
+  ## <d 'Even Numbers are Not Odd '>
+    A evenNotOdd
+    ## <d 'Infer Left to Right '>
+      (-. (odd A)) (even A) bi1
+      ax-mp
+    ## </d 'Infer Left to Right '>
+  ## </d>
+  ## <d 'Even numbers are above odd numbers'>
+    A oddsuccessor
+    ## <d 'Infer Left to Right '>
+      (odd A) (even (+ A (1))) bi1
+      ax-mp
+    ## </d 'Infer Left to Right '>
+  ## </d 'Even numbers are above odd numbers'>
+  orim12i
+  ## <d 'Law of Excluded Middle'>
+    (odd A) exmid
+    ## <d 'Commutative Property of OR '>
+      (odd A) (-. (odd A)) orcom
+      mpbi
+    ## </d 'Commutative Property of OR '>
+  ## </d 'Law of Excluded Middle>
+  ax-mpRemove
+)
+
+
+## <title> One of two consecutive numbers is odd </title>
+## <summary>
+##   For two consecutive numbers, one of the numbers is odd.
+##   <a href="consecutiveEven">consecutiveEven</a> shows that one
+##   of them is even.
+## </summary>
+thm (consecutiveOdd () () (\/ (odd A) (odd (+ A (1))))
+  A evensuccessor  
+  ## <d 'Infer Left to Right '>
+    (even A) (odd (+ A (1))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## <d 'Odd Numbers are Not Even '>
+  A oddNotEven  
+  ## <d 'Infer Left to Right '>
+    (-. (even A)) (odd A) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## </d>
+  orim12i  
+  ## <d 'Law of Excluded Middle'>
+    (even A) exmid    
+    ax-mpRemove
+  ## </d 'Law of Excluded Middle>  
+  ## <d 'Commutative Property of OR '>
+    (odd (+ A (1))) (odd A) orcom
+    mpbi
+  ## </d 'Commutative Property of OR '>
+)
+
+## <title> Any multiple of an even number is even </title>
+thm (evenmul () () (-> (even A) (even (* A B)))
+  (2) A B dividesmul  
+  ## <d 'Even Number Definition '>
+    A df-even bicomi
+    sylbi2
+  ## </d 'Even Number Definition '>
+  ## <d 'Even Number Definition '>
+    (* A B) df-even bicomi
+    sylib
+  ## </d 'Even Number Definition '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (+  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Add0 () (
+     replacee (= A (+ B D))
+     substitution (= B C)) 
+     (= A (+ C D))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+ C  [ D ]   ]    ] )))
+##   (=              [ D ]   [ A' ] )
+##   (= A (+ B (+ C  [   [   [ A' ] )))
+## </table>
+thm (EqReplaceEq1Add1Add1 () (
+     replacee (= A (+ B (+ C D)))
+     substitution (= D A')) 
+     (= A (+ B (+ C A')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee
+  substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y  [ ps ]   ]    ] )))
+##   (->                 [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y  [    [   [ ch ] )))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y ps)))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y ch)))
+  replacee substitution
+  y 19.22i
+  ImpReplaceImp1Ex1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+ B  [ C ]   ]   ] ) A'))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ (+ B  [   [   [ D ] ) A'))
+## </table>
+thm (EqReplaceEq1Add0Add1 () (
+     replacee (= A (+ (+ B C) A'))
+     substitution (= C D)) 
+     (= A (+ (+ B D) A'))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+  [ C ]   ]   ]  A')))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ B (+  [   [   [ D ]  A')))
+## </table>
+thm (EqReplaceEq1Add1Add0 () (
+     replacee (= A (+ B (+ C A')))
+     substitution (= C D)) 
+     (= A (+ B (+ D A')))
+  replacee substitution
+  A' addeq1i
+  EqReplaceEq1Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y  [ ps ]   ]    ] )))
+##   (<->                [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceImp1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y ps)))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x (E. y ch)))
+  replacee substitution
+  y exbii
+  BiReplaceImp1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (=  [ A ]   ]   ]  C))))
+##   (=                     [ A ]   [ B ] )
+##   (-> ph (E. x (E. y (=  [   [   [ B ]  C))))
+## </table>
+thm (EqReplaceImp1Ex1Ex1Eq0 () (
+     replacee (-> ph (E. x (E. y (= A C))))
+     substitution (= A B)) 
+     (-> ph (E. x (E. y (= B C))))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Ex1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+  [ B ]   ]   ]  D) A'))
+##   (=          [ B ]   [ C ] )
+##   (= A (+ (+  [   [   [ C ]  D) A'))
+## </table>
+thm (EqReplaceEq1Add0Add0 () (
+     replacee (= A (+ (+ B D) A'))
+     substitution (= B C)) 
+     (= A (+ (+ C D) A'))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (E. z  [ ps ]   ]    ] ))))
+##   (->                       [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (E. z  [    [   [ ch ] ))))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y (E. z ps))))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y (E. z ch))))
+  replacee substitution
+  z 19.22i
+  ImpReplaceImp1Ex1Ex1
+)
+
+## <title> The product of odd numbers is odd </title>
+thm (oddmul () () (-> (/\ (odd A) (odd B)) (odd (* A B)))
+  A x oddex
+  B y oddex
+  anbi12i
+  ## <d 'Combine Existence Quantifiers '>
+    x (= (+ (* (2) x) (1)) A) y (= (+ (* (2) y) (1)) B) doubleex
+    ImpReplaceBi1
+  ## </d 'Combine Existence Quantifiers '>
+  (+ (* (2) x) (1)) A (+ (* (2) y) (1)) B muleq12    
+  ImpReplaceImp1Ex1Ex1
+
+  ## <d 'Distributive Property '>
+    ## <d 'Distributive Property '>
+      (* (2) x) (1) (* (2) y) (1) distrl
+      (* (2) y) mulidr
+      EqReplaceEq1Add0Add1
+      (* (2) x) mulid
+      EqReplaceEq1Add1Add0
+      (1) mulid
+      EqReplaceEq1Add1Add1
+      EqReplaceImp1Ex1Ex1Eq0
+    ## </d 'Distributive Property '>
+    ## <d 'Associative Property '>
+      (+ (* (* (2) x) (* (2) y)) (* (2) y)) (* (2) x) (1) addass eqcomi
+    ## </d 'Associative Property '>    
+    ## <d 'Distributive Property '>
+      (2) (+ (* x (* (2) y)) y) x distr
+    ## </d 'Distributive Property '>  
+    ## <d 'Distributive Property '>
+      (2) (* x (* (2) y)) y distr
+      EqReplaceEq1Add0
+    ## </d 'Distributive Property '>  
+    ## <d 'Associative Property '>
+      (2) x (* (2) y) mulass eqcomi
+      EqReplaceEq1Add0Add0
+    ## </d 'Associative Property '>
+    eqcomi  
+    EqReplaceEq1Add0
+    EqReplaceImp1Ex1Ex1Eq0
+  ## </d>
+  ## <d 'Replace (x ∙ (2 ∙ y) + y + x) with z'>
+  z (+ (+ (* x (* (2) y)) y) x) (2) muleq2
+  (1) addeq1d
+  (* A B) eqeq1d
+  ceqsex  bicomi
+  BiReplaceImp1Ex1Ex1
+  ## <d ''Remove Left Side of AND' '>
+    (= z (+ (+ (* x (* (2) y)) y) x)) (= (+ (* (2) z) (1)) (* A B)) pm3.27
+    ImpReplaceImp1Ex1Ex1Ex1
+  ## </d ''Remove Left Side of AND' '>  
+  ## <d 'Quantified Non-free Variable '>
+    y (E. z (= (+ (* (2) z) (1)) (* A B))) 19.9
+    BiReplaceImp1Ex1
+  ## </d 'Quantified Non-free Variable '>
+  ## <d 'Quantified Non-free Variable '>
+    x (E. z (= (+ (* (2) z) (1)) (* A B))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## </d 'Replace (x ∙ (2 ∙ y) + y + x) with z'>
+  ## <d 'Alternative Definition of Odd Number'>
+  (* A B) z oddex bicomi  
+  sylib
+  ## </d 'Alternative Definition of Odd Number'>
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (even  [ A ]   ]   ] ))
+##   (=            [ A ]   [ B ] )
+##   (-> ph (even  [   [   [ B ] ))
+## </table>
+thm (EqReplaceImp1Even0 () (
+     replacee (-> ph (even A))
+     substitution (= A B)) 
+     (-> ph (even B))
+  replacee substitution
+  eveneqi
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee
+  substitution
+th orbi1i
+ph imbi2i
+mpbi
+)
+
+## <title> Multiplication of Even Numbers </title>
+thm (evenmul2 () () (<-> (even (* A B)) (\/ (even A) (even B)))
+  ## <d 'An even product has an even factor'>
+  A B oddmul  
+  ## <d 'Contrapositive '>
+  ## <d 'Contrapositive '>
+    (/\ (odd A) (odd B)) (odd (* A B)) con34b
+    mpbi
+  ## </d 'Contrapositive '>  
+  ## <d 'DeMorgan's Law '>
+  ## <d 'DeMorgan's Law '>
+    (odd A) (odd B) anor
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (-. (odd A)) (-. (odd B))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+  ## </d 'DeMorgan's Law '>  
+  ## </d 'Contrapositive '> 
+  ## <d 'Even Numbers are Not Odd'>
+  (* A B) evenNotOdd  
+  sylbi2
+  A evenNotOdd    
+  BiReplaceImp1Or0
+  B evenNotOdd
+  BiReplaceImp1Or1
+  ## </d 'Even Numbers are Not Odd'>
+  ## </d 'Q'>
+
+  ## <d 'Even factors have even products'>
+  A B evenmul
+  B A evenmul  
+  ## <d 'Commutative Property '>
+    B A mulcom
+    EqReplaceImp1Even0
+  ## </d 'Commutative Property '>
+  jaoi
+  ## </d 'Even factors have even products'>
+  impbii
+)
+
+## <title> Product of consecutive numbers is even </title>
+thm (evenxxplus1 () () (even (* A (+ A (1))))
+  # Intentionally copied consecutiveEven.
+  ## <d 'One of two consecutive numbers is even'>
+    ## <d 'One of two consecutive numbers is even'>
+      ## <d 'Even Numbers are Not Odd '>
+        A evenNotOdd
+        ## <d 'Infer Left to Right '>
+          (-. (odd A)) (even A) bi1
+          ax-mp
+        ## </d 'Infer Left to Right '>
+      ## </d>
+      ## <d 'Even numbers are above odd numbers'>
+        A oddsuccessor
+        ## <d 'Infer Left to Right '>
+          (odd A) (even (+ A (1))) bi1
+          ax-mp
+        ## </d 'Infer Left to Right '>
+      ## </d 'Even numbers are above odd numbers'>
+      orim12i
+      ## <d 'Law of Excluded Middle'>
+        (odd A) exmid
+        ## <d 'Commutative Property of OR '>
+          (odd A) (-. (odd A)) orcom
+          mpbi
+        ## </d 'Commutative Property of OR '>
+      ## </d 'Law of Excluded Middle>
+      ax-mpRemove
+    ## </d 'Consecutive Numbers: One is Even'>
+
+    A (+ A (1)) evenmul
+    ## <d>
+      (+ A (1)) A evenmul  
+      ## <d 'Commutative Property '>
+        (+ A (1)) A mulcom
+        EqReplaceImp1Even0
+      ## </d 'Commutative Property '>
+    ## </d>
+    jaoi  
+  ## </d>
+  ax-mp
+)
+
+## <title> Product of consecutive numbers is even </title>
+thm (div2xxplus1 () () (| (2) (* A (+ A (1))))
+  A evenxxplus1  
+  ## <d 'Even Number Definition '>
+    (* A (+ A (1))) df-even
+    mpbi
+  ## </d 'Even Number Definition '>
+)
+
+## <title> Modulo Congruence Definition </title>
+## <summary>
+##   Two numbers A and B are congruent modulo C if there values
+##   mod C are equal.
+## </summary>
+defthm (df-modcon wff (=mod A B C) ()  ()  (<-> (=mod A B C) (= (mod A C) (mod B C)))
+   (= (mod A C) (mod B C)) biid
+)
+
+thm (modconeq1 () () (-> (= A D) (<-> (=mod A B C) (=mod D B C)))
+  A D C modeq1
+  (mod B C) eqeq1d
+  A B C df-modcon bicomi  
+  BiReplaceImp1Bi0
+  D B C df-modcon bicomi
+  BiReplaceImp1Bi1
+)
+
+thm (modconeq2 () () (-> (= A D) (<-> (=mod B A C) (=mod B D C)))
+  A D C modeq1
+  (mod B C) eqeq2d
+  B A C df-modcon bicomi
+  BiReplaceImp1Bi0
+  B D C df-modcon bicomi  
+  BiReplaceImp1Bi1
+)
+
+thm (modconeq3 () () (-> (= A B) (<-> (=mod C D A) (=mod C D B)))
+  A B C modeq2
+  A B D modeq2
+  eqeq12d
+  C D A df-modcon bicomi  
+  BiReplaceImp1Bi0
+  C D B df-modcon bicomi    
+  BiReplaceImp1Bi1
+)
+
+thm (modconeq1i () (
+     hyp1 (= A D))
+     (<-> (=mod A B C) (=mod D B C))
+  hyp1
+  A D B C modconeq1
+  ax-mp
+)
+
+thm (modconeq1d () (
+     hyp1 (-> ph (= A D)))
+     (-> ph (<-> (=mod A B C) (=mod D B C)))
+  hyp1
+  A D B C modconeq1
+  syl
+)
+
+thm (modconeq2i () (
+     hyp1 (= A D))
+     (<-> (=mod B A C) (=mod B D C))
+  hyp1
+  A D B C modconeq2
+  ax-mp
+)
+
+thm (modconeq2d () (
+     hyp1 (-> ph (= A D)))
+     (-> ph (<-> (=mod B A C) (=mod B D C)))
+  hyp1
+  A D B C modconeq2
+  syl
+)
+
+thm (modconeq3i () (
+     hyp1 (= A B))
+     (<-> (=mod C D A) (=mod C D B))
+  hyp1
+  A B C D modconeq3
+  ax-mp
+)
+
+## <title> Equivalence for =mod </title> ##
+thm (modconeq12 () () (-> (/\ (= A B) (= C D)) (<-> (=mod A C A') (=mod B D A')))
+  A B C A' modconeq1
+  C D B A' modconeq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (=mod A C A') (=mod B C A') (=mod B D A') bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+thm (modconeq13 () () (-> (/\ (= A A') (= C C')) (<-> (=mod A B C) (=mod A' B C')))
+  A A' B C modconeq1
+  C C' A' B modconeq3
+  anim12i  
+  ## <d 'Transitive Property '>
+    (=mod A B C) (=mod A' B C) (=mod A' B C') bitr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+thm (modconeq23 () () (-> (/\ (= A A') (= C C')) (<-> (=mod B A C) (=mod B A' C')))
+  A A' B C modconeq2
+  C C' B A' modconeq3
+  anim12i  
+  ## <d 'Transitive Property '>
+    (=mod B A C) (=mod B A' C) (=mod B A' C') bitr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+thm (modconeq3d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (=mod C D A) (=mod C D B)))
+  hyp1
+  A B C D modconeq3
+  syl
+)
+
+thm (modconeq12d () (
+     hyp1 (-> ph (= A B))
+     hyp2 (-> ph (= C D)))
+     (-> ph (<-> (=mod A C A') (=mod B D A')))
+  hyp1
+  hyp2
+  jca
+  A B C D A' modconeq12
+  syl
+)
+
+thm (modconeq13d () (
+     hyp1 (-> ph (= A B))
+     hyp2 (-> ph (= C D)))
+     (-> ph (<-> (=mod A A' C) (=mod B A' D)))
+  hyp1
+  hyp2
+  jca
+  A B C D A' modconeq13
+  syl
+)
+
+thm (modconeq23d () (
+     hyp1 (-> ph (= A B))
+     hyp2 (-> ph (= C D)))
+     (-> ph (<-> (=mod A' A C) (=mod A' B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D A' modconeq23
+  syl
+)
+
+
+## <title> Reflexive Property </title>
+thm (modconid () () (=mod A A C)
+  (mod A C) eqid
+  A A C df-modcon bicomi  
+  mpbi
+)
+
+## <title> Symmetric Property </title>
+## <suggest> right('Commute', '=') </suggest>
+thm (modconcom () () (<-> (=mod A B C) (=mod B A C))
+  (mod A C) (mod B C) eqcom
+  A B C df-modcon bicomi  
+  bitr3icom
+  B A C df-modcon bicomi    
+  bitri
+)
+
+## <title> Equality Implies Modular Congruence </title>
+thm (eqmodcon () () (-> (= B C) (=mod B C A))
+  B C A modeq1
+  B C A df-modcon bicomi  
+  sylib
+)
+
+## <title> Transitive Property </title>
+thm (modcontr () () (-> (/\ (=mod A B D) (=mod A C D)) (=mod B C D))
+  (mod A D) (mod B D) (mod C D) eqtr2
+  A B D df-modcon bicomi  
+  BiReplaceImp0An0
+  A C D df-modcon bicomi    
+  BiReplaceImp0An1
+  B C D df-modcon bicomi    
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Eq0 () (
+     replacee (<-> ph (= A C))
+     substitution (= A B)) 
+     (<-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= A B))
+     substitution (= B C)) 
+     (<-> ph (= A C))
+  replacee
+  substitution
+A eqeq2i
+ph bibi2i
+mpbi
+)
+
+thm (modcon0 () () (<-> (=mod A B (0)) (= A B))
+  A B (0) df-modcon
+  A mod0  
+  EqReplaceBi1Eq0
+  B mod0    
+  EqReplaceBi1Eq1
+)
+
+thm (modval2.5 ((C x)(B x)(A x)) () (-> (= C (mod B A)) (E. x (= (+ (* A x) C) B)))
+  C (mod B A) (* A x) addeq2
+  B eqeq1d
+  x exbid
+  x A B modex
+  (E. x (= (+ (* A x) C) B)) biRemove2
+  (= C (mod B A)) imbi2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+  [ A ]   ]   ]  C) D))
+##   (=            [ A ]   [ B ] )
+##   (-> ph (= (+  [   [   [ B ]  C) D))
+## </table>
+thm (EqReplaceImp1Eq0Add0 () (
+     replacee (-> ph (= (+ A C) D))
+     substitution (= A B)) 
+     (-> ph (= (+ B C) D))
+  replacee substitution
+  C addeq1i
+  EqReplaceImp1Eq0
+)
+
+thm (addmodcon.1 () () (-> (/\ (< A C) (= A (mod B C))) (= A (mod (+ B (* C D)) C)))
+  A B C x modval2.5
+  (+ (* C x) A) B (* C D) addeq1  
+  ## <d 'Commutative Property of Addition '>
+    (+ (* C x) A) (* C D) addcom
+    EqReplaceImp1Eq0
+  ## </d 'Commutative Property of Addition '>  
+  ## <d 'Associative Property '>
+    (* C D) (* C x) A addass eqcomi
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property of Addition '>
+    (* C D) (* C x) addcom
+    EqReplaceImp1Eq0Add0
+  ## </d 'Commutative Property of Addition '>  
+  ## <d 'Distributive Property '>
+    C x D distr eqcomi
+    EqReplaceImp1Eq0Add0
+  ## </d 'Distributive Property '>
+  ImpReplaceImp1Ex1 
+
+  y (+ x D) C muleq2
+  A addeq1d
+  (+ B (* C D)) eqeq1d
+  ceqsex bicomi  
+  BiReplaceImp1Ex1
+  
+  ## <d ''Remove Left Side of AND' '>
+    (= y (+ x D)) (= (+ (* C y) A) (+ B (* C D))) pm3.27
+    ImpReplaceImp1Ex1Ex1
+  ## </d ''Remove Left Side of AND' '>
+  ## <d 'Quantified Non-free Variable '>
+    x (E. y (= (+ (* C y) A) (+ B (* C D)))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  (< A C) anim2i
+  A C y (+ B (* C D)) modval  
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (->             [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps biim2i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee
+  substitution
+ps imim2i
+ph imim2i
+ax-mp
+)
+
+## <title> Add any multiple of the modulus </title>
+thm (addmodcon () () (-> (< (0) B) (=mod C (+ C (* B D)) B))
+  B C modlt
+  x (mod C B) B lteq1 
+  ## <d 'Infer Right to Left '>
+    (< x B) (< (mod C B) B) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  com12  
+  syl
+  (= x (mod C B)) anim1d  
+  ## <d 'Conjunction is Idempotent '>
+    (= x (mod C B)) anidm
+    BiReplaceImp1Imp0
+  ## </d 'Conjunction is Idempotent '>
+  x B C D addmodcon.1  
+  ImpReplaceImp1Imp1
+  (= x (mod C B)) (= x (mod (+ C (* B D)) B)) pm4.71  
+  sylib
+  ## <d 'Equality Transitive Axiom '>
+    x (mod C B) (mod (+ C (* B D)) B) eqtr2
+    ImpReplaceImp1Bi1
+  ## </d 'Equality Transitive Axiom '>
+  com12
+  vtocle
+  C (+ C (* B D)) B df-modcon bicomi    
+  sylib
+)
+
+## <title> Add any multiple of the modulus </title>
+thm (addmodcon1 () () (=mod C (+ C (* B D)) B)
+  B C modlt
+  x (mod C B) B lteq1
+  ## <d 'Infer Right to Left '>
+    (< x B) (< (mod C B) B) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  com12
+  syl
+  (= x (mod C B)) anim1d
+  ## <d 'Conjunction is Idempotent '>
+    (= x (mod C B)) anidm
+    BiReplaceImp1Imp0
+  ## </d 'Conjunction is Idempotent '>
+  x B C D addmodcon.1
+  ImpReplaceImp1Imp1
+  (= x (mod C B)) (= x (mod (+ C (* B D)) B)) pm4.71
+  sylib
+  ## <d 'Equality Transitive Axiom '>
+    x (mod C B) (mod (+ C (* B D)) B) eqtr2
+    ImpReplaceImp1Bi1
+  ## </d 'Equality Transitive Axiom '>
+  com12
+  vtocle
+  C (+ C (* B D)) B df-modcon bicomi  
+  sylib
+  
+  ## <d 'Converse of < '>
+    (0) B ltcon
+    sylbi2
+  ## </d 'Converse of < '>
+  B (0) D muleq1  
+  ## <d 'Multiply by 0 '>
+    D mul0r
+    EqReplaceImp1Eq1
+  ## </d 'Multiply by 0 '>
+  C addeq2d  
+  ## <d 'Peano Axiom 3: Additive Identity Axiom '>
+    C addid
+    EqReplaceImp1Eq1
+  ## </d 'Peano Axiom 3: Additive Identity Axiom '>
+  (= B (0)) id
+  C modconeq23d  
+  C C modcon0
+  C eqid  
+  mpbirRemove
+  
+  (=mod C (+ C (* B D)) B) biRemove2
+  (= B (0)) imbi2i
+  mpbi
+  jaoi  
+  ## <d '≥ means > OR = '>
+    B (0) gegeo bicomi
+    sylbi2
+  ## </d '≥ means > OR = '>
+  B ge0  
+  ax-mpRemove
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=mod A  [ B ]   ]   ]  D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (=mod A  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceImp1Modcon1 () (
+     replacee (-> ph (=mod A B D))
+     substitution (= B C)) 
+     (-> ph (=mod A C D))
+  replacee substitution
+  A D modconeq2i
+  sylib
+)
+
+thm (addmodcon2 () () (=mod A (+ (* B C) A) B)
+  A B C addmodcon1
+  ## <d 'Commutative Property of Addition '>
+    A (* B C) addcom
+    A B modconeq2i
+    mpbi
+  ## </d 'Commutative Property of Addition '>
+)
+
+thm (modconex.1 () () (-> (= (+ (* A x) B) (+ (* A y) C)) (=mod C B A))
+  (+ (* A x) B) (+ (* A y) C) A eqmodcon
+  (+ (* A x) B) (+ (* A y) C) A B modcontr
+  B A x addmodcon2 
+  ## <d 'Symmetric Property '>
+    B (+ (* A x) B) A modconcom
+    mpbi
+  ## </d 'Symmetric Property '>  
+  (=mod (+ (* A x) B) (+ (* A y) C) A) anRemove2
+  (=mod (+ (* A y) C) B A) imbi1i
+  mpbi
+  syl
+  (+ (* A y) C) C A B modcontr
+  C A y addmodcon2   
+  ## <d 'Symmetric Property '>
+    C (+ (* A y) C) A modconcom
+    mpbi
+  ## </d 'Symmetric Property '>  
+  (=mod (+ (* A y) C) B A) anRemove1
+  (=mod C B A) imbi1i
+  mpbi
+  syl
+)
+
+thm (modconex.2 ((A y)(B y)(C y)(A x)(B x)(C x)) () (-> (E. y (E. x (= (+ (* A x) B) (+ (* A y) C)))) (=mod C B A))
+  A x B y C modconex.1
+  x 19.22i
+  ## <d 'Quantified Non-free Variable '>
+    x (=mod C B A) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  y 19.22i  
+  ## <d 'Quantified Non-free Variable '>
+    y (=mod C B A) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (=  [ A ]   ]   ]  C)))
+##   (=               [ A ]   [ B ] )
+##   (-> ph (E. x (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceImp1Ex1Eq0 () (
+     replacee (-> ph (E. x (= A C)))
+     substitution (= A B)) 
+     (-> ph (E. x (= B C)))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x  [ ch ]   ]    ] )))
+##   (<->                 [ ch ]   [ th ] )
+##   (-> ph (-> ps (E. x  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Imp1Ex1 () (
+     replacee (-> ph (-> ps (E. x ch)))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (E. x th)))
+  replacee
+  substitution
+x exbii
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (= (+ A  [ B ]   ]   ] ) D)))
+##   (=                    [ B ]   [ C ] )
+##   (-> ph (E. x (= (+ A  [   [   [ C ] ) D)))
+## </table>
+thm (EqReplaceImp1Ex1Eq0Add1 () (
+     replacee (-> ph (E. x (= (+ A B) D)))
+     substitution (= B C)) 
+     (-> ph (E. x (= (+ A C) D)))
+  replacee substitution
+  A addeq2i
+  EqReplaceImp1Ex1Eq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (E. y  [ ch ]   ]    ] ))))
+##   (<->                       [ ch ]   [ th ] )
+##   (-> ph (-> ps (E. x (E. y  [    [   [ th ] ))))
+## </table>
+thm (BiReplaceImp1Imp1Ex1Ex1 () (
+     replacee (-> ph (-> ps (E. x (E. y ch))))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (E. x (E. y th))))
+  replacee substitution
+  y exbii
+  BiReplaceImp1Imp1Ex1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (E. y (= A  [ B ]   ]   ] )))))
+##   (=                              [ B ]   [ C ] )
+##   (-> ph (-> ps (E. x (E. y (= A  [   [   [ C ] )))))
+## </table>
+thm (EqReplaceImp1Imp1Ex1Ex1Eq1 () (
+     replacee (-> ph (-> ps (E. x (E. y (= A B)))))
+     substitution (= B C)) 
+     (-> ph (-> ps (E. x (E. y (= A C)))))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Imp1Ex1Ex1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (= A  [ B ]   ]   ] ))))
+##   (=                       [ B ]   [ C ] )
+##   (-> ph (E. x (E. y (= A  [   [   [ C ] ))))
+## </table>
+thm (EqReplaceImp1Ex1Ex1Eq1 () (
+     replacee (-> ph (E. x (E. y (= A B))))
+     substitution (= B C)) 
+     (-> ph (E. x (E. y (= A C))))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Ex1Ex1
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (E. x  [ ph ]   ]    ] ) ch)
+##   (<->        [ ph ]   [ ps ] )
+##   (<-> (E. x  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Ex1 () (
+     replacee (<-> (E. x ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (E. x ps) ch)
+  replacee substitution
+  x exbii
+  bitr3icom
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (E. x (E. y  [ ph ]   ]    ] )) ch)
+##   (<->              [ ph ]   [ ps ] )
+##   (<-> (E. x (E. y  [    [   [ ps ] )) ch)
+## </table>
+thm (BiReplaceBi0Ex1Ex1 () (
+     replacee (<-> (E. x (E. y ph)) ch)
+     substitution (<-> ph ps)) 
+     (<-> (E. x (E. y ps)) ch)
+  replacee substitution
+  y exbii
+  BiReplaceBi0Ex1
+)
+
+## <title> Modulus Congruence using Existence </title>
+thm (modconex ((A y)(B y)(C y)(A x)(B x)(C x)) () (<-> (E. x (E. y (= (+ (* A x) B) (+ (* A y) C)))) (=mod B C A))
+  x y A C B modconex.2
+
+  y A B modex
+  (+ (* A y) (mod B A)) B (* A x) addeq2
+  (+ C (* A y)) eqeq1d
+  x exbid
+  (= (mod B A) (mod C A)) imbi2d
+  ImpReplaceEx1
+
+  (mod B A) C A x modval2.5
+  (+ (* A x) (mod B A)) (* A y) C addcan bicomi
+  BiReplaceImp1Ex1
+  ## <d 'Associative Property '>
+    (* A x) (mod B A) (* A y) addass
+    EqReplaceImp1Ex1Eq0
+  ## </d 'Associative Property '>
+  ## <d 'Commutative Property of Addition '>
+    (mod B A) (* A y) addcom
+    EqReplaceImp1Ex1Eq0Add1
+  ## </d 'Commutative Property of Addition '>
+  (-> (= (mod B A) (mod C A)) (E. x (= (+ (* A x) B) (+ C (* A y))))) biRemove1
+  y exbii
+  mpbi
+  ## <d 'Quantifier Moved Around Non-free Variable '>
+    (= (mod B A) (mod C A)) y (E. x (= (+ (* A x) B) (+ C (* A y)))) imex bicomi
+    mpbi
+  ## </d 'Quantifier Moved Around Non-free Variable '>
+
+  B C A df-modcon bicomi
+  sylbi2
+  ## <d 'Commutative Property of Addition '>
+    C (* A y) addcom
+    EqReplaceImp1Ex1Ex1Eq1
+  ## </d 'Commutative Property of Addition '>
+  ## <d 'Symmetric Property '>
+    (+ (* A x) B) (+ (* A y) C) eqcom
+    BiReplaceImp1Ex1Ex1
+  ## </d 'Symmetric Property '>
+  ## <d 'Commutativity of existential quantifiers '>
+    y x (= (+ (* A y) C) (+ (* A x) B)) excom
+    sylib
+  ## </d 'Commutativity of existential quantifiers '>
+  impbii
+  
+  ## <d 'Symmetric Property '>
+    (+ (* A y) C) (+ (* A x) B) eqcom
+    BiReplaceBi0Ex1Ex1
+  ## </d 'Symmetric Property '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (E. z (E. v  [ ps ]   ]    ] )))))
+##   (->                             [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (E. z (E. v  [    [   [ ch ] )))))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y (E. z (E. v ps)))))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y (E. z (E. v ch)))))
+  replacee substitution
+  v 19.22i
+  ImpReplaceImp1Ex1Ex1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (E. z  [ ps ]   ]    ] ))))
+##   (<->                      [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (E. z  [    [   [ ch ] ))))
+## </table>
+thm (BiReplaceImp1Ex1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y (E. z ps))))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x (E. y (E. z ch))))
+  replacee substitution
+  z exbii
+  BiReplaceImp1Ex1Ex1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (E. z (E. v  [ ps ]   ]    ] )))))
+##   (<->                            [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (E. z (E. v  [    [   [ ch ] )))))
+## </table>
+thm (BiReplaceImp1Ex1Ex1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y (E. z (E. v ps)))))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x (E. y (E. z (E. v ch)))))
+  replacee substitution
+  v exbii
+  BiReplaceImp1Ex1Ex1Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (E. y (E. z (E. v (E. w'  [ ps ]   ]    ] ))))))
+##   (->                                    [ ps ]   [ ch ] )
+##   (-> ph (E. x (E. y (E. z (E. v (E. w'  [    [   [ ch ] ))))))
+## </table>
+thm (ImpReplaceImp1Ex1Ex1Ex1Ex1Ex1 () (
+     replacee (-> ph (E. x (E. y (E. z (E. v (E. w' ps))))))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (E. y (E. z (E. v (E. w' ch))))))
+  replacee substitution
+  w' 19.22i
+  ImpReplaceImp1Ex1Ex1Ex1Ex1
+)
+
+## <title> Add congruent numbers </title>
+thm (modaddeq12 () () (-> (/\ (=mod A B j) (=mod C D j)) (=mod (+ A C) (+ B D) j))
+  x y j A B modconex bicomi
+  z w j C D modconex bicomi
+ anbi12i
+  
+  ## <d 'Combine Existence Quantifiers '>
+    x (E. y (= (+ (* j x) A) (+ (* j y) B))) z (E. w (= (+ (* j z) C) (+ (* j w) D))) doubleex
+    ImpReplaceBi1
+  ## </d 'Combine Existence Quantifiers '>
+  ## <d 'Combine Existence Quantifiers '>
+    y (= (+ (* j x) A) (+ (* j y) B)) w (= (+ (* j z) C) (+ (* j w) D)) doubleex
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Combine Existence Quantifiers '>
+
+  ## <d 'Distributive Property '>
+  (+ (* j x) A) (+ (* j y) B) (+ (* j z) C) (+ (* j w) D) addeq12
+  ## <d 'Rearrange Addition Terms'>
+  (* j x) A (* j z) C add4  
+  EqReplaceImp1Eq0
+  (* j y) B (* j w) D add4
+  EqReplaceImp1Eq1
+  ## </d 'Rearrange Addition Terms'>  
+  ## <d 'Distributive Property '>
+  ## <d 'Distributive Property '>
+    j x z distr eqcomi
+    EqReplaceImp1Eq0Add0
+  ## </d 'Distributive Property '>
+  ## <d 'Distributive Property '>
+    j y w distr eqcomi
+    EqReplaceImp1Eq1Add0
+  ## </d 'Distributive Property '>  
+  ## </d 'Distributive Property '>  
+  ImpReplaceImp1Ex1Ex1Ex1Ex1
+  ## </d 'Distributive Property '>
+
+  ## <d 'Replace x + z with x"'>
+  x' (+ x z) j muleq2
+  (+ A C) addeq1d
+  (+ (* j (+ y w)) (+ B D)) eqeq1d
+  ceqsex bicomi  
+  BiReplaceImp1Ex1Ex1Ex1Ex1
+  ## <d ''Remove Left Side of AND' '>
+    (= x' (+ x z)) (= (+ (* j x') (+ A C)) (+ (* j (+ y w)) (+ B D))) pm3.27
+    ImpReplaceImp1Ex1Ex1Ex1Ex1Ex1
+  ## </d ''Remove Left Side of AND' '>
+  ## </d>
+  ## <d 'Quantified Non-free Variables'>
+  ## <d 'Quantified Non-free Variable '>
+    x (E. z (E. y (E. w (E. x' (= (+ (* j x') (+ A C)) (+ (* j (+ y w)) (+ B D))))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## <d 'Quantified Non-free Variable '>
+    z (E. y (E. w (E. x' (= (+ (* j x') (+ A C)) (+ (* j (+ y w)) (+ B D)))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## </d 'Quantified Non-free Variable'>
+
+  ## <d 'Replace y + w with y"'>
+  ## <d 'Replace y + w with y"'>
+  y' (+ y w) j muleq2
+  (+ B D) addeq1d
+  (+ (* j x') (+ A C)) eqeq2d
+  ceqsex bicomi  
+  BiReplaceImp1Ex1Ex1Ex1  
+  ## <d ''Remove Left Side of AND' '>
+    (= y' (+ y w)) (= (+ (* j x') (+ A C)) (+ (* j y') (+ B D))) pm3.27
+    ImpReplaceImp1Ex1Ex1Ex1Ex1
+  ## </d ''Remove Left Side of AND' '>  
+  ## <d 'Quantified Non-free Variable '>
+    w (E. x' (E. y' (= (+ (* j x') (+ A C)) (+ (* j y') (+ B D))))) 19.9
+    BiReplaceImp1Ex1
+  ## </d 'Quantified Non-free Variable '>  
+  ## <d 'Quantified Non-free Variable '>
+    y (E. x' (E. y' (= (+ (* j x') (+ A C)) (+ (* j y') (+ B D))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## </d 'Replace y + w with y"'>
+  ## </d 'Replace y + w with y"'>
+
+  x' y' j (+ A C) (+ B D) modconex  
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+ (*  [ C ]   ]   ]  A') B')))
+##   (=               [ C ]   [ D ] )
+##   (= A (+ B (+ (*  [   [   [ D ]  A') B')))
+## </table>
+thm (EqReplaceEq1Add1Add0Mul0 () (
+     replacee (= A (+ B (+ (* C A') B')))
+     substitution (= C D)) 
+     (= A (+ B (+ (* D A') B')))
+  replacee substitution
+  A' muleq1i
+  EqReplaceEq1Add1Add0
+)
+
+## <title> Multiply congruent numbers </title>
+thm (modmuleq12 () () (-> (/\ (=mod A B j) (=mod C D j)) (=mod (* A C) (* B D) j))
+  ## <d 'Modulus Congruence using Existence '>
+    x y j A B modconex bicomi
+    z w j C D modconex bicomi
+    anbi12i
+  ## </d>
+  
+  ## <d 'Combine Existence Quantifiers '>
+  ## <d 'Combine Existence Quantifiers '>
+    x (E. y (= (+ (* j x) A) (+ (* j y) B))) z (E. w (= (+ (* j z) C) (+ (* j w) D))) doubleex
+    ImpReplaceBi1
+  ## </d 'Combine Existence Quantifiers '>
+  ## <d 'Combine Existence Quantifiers '>
+    y (= (+ (* j x) A) (+ (* j y) B)) w (= (+ (* j z) C) (+ (* j w) D)) doubleex
+    ImpReplaceImp1Ex1Ex1
+  ## </d 'Combine Existence Quantifiers '>
+  ## </d 'Combine Existence Quantifiers '>
+
+  ## <d 'Distributive Property '>
+    (+ (* j x) A) (+ (* j y) B) (+ (* j z) C) (+ (* j w) D) muleq12   
+  
+    ## <d 'Distributive Property '>
+      (* j y) B (+ (* j w) D) distl
+    ## </d 'Distributive Property '>
+    ## <d 'Distributive Property '>
+      B (* j w) D distr
+      EqReplaceEq1Add1
+    ## </d 'Distributive Property '>
+    ## <d 'Associative Property '>
+      B j w mulass eqcomi
+      EqReplaceEq1Add1Add0
+    ## </d 'Associative Property '>
+    ## <d 'Commutative Property '>
+      B j mulcom
+      EqReplaceEq1Add1Add0Mul0
+    ## </d 'Commutative Property '>
+  
+    ## <d 'Associative Property '>
+      (* (* j y) (+ (* j w) D)) (* (* j B) w) (* B D) addass eqcomi
+      EqReplaceEq1
+    ## </d 'Associative Property '>
+    ## <d 'Associative Property '>
+      j y (+ (* j w) D) mulass
+      EqReplaceEq1Add0Add0
+    ## </d 'Associative Property '>
+    ## <d 'Associative Property '>
+      j B w mulass
+      EqReplaceEq1Add0Add1
+    ## </d 'Associative Property '>
+    ## <d 'Distributive Property '>
+      j (* y (+ (* j w) D)) (* B w) distr eqcomi
+      EqReplaceEq1Add0
+    ## </d 'Distributive Property '>
+  
+    EqReplaceImp1Eq1   
+  
+  ## <d 'Distributive Property '>
+    ## <d 'Distributive Property '>
+      (* j x) A (+ (* j z) C) distl
+    ## </d 'Distributive Property '>
+    ## <d 'Associative Property '>
+      j x (+ (* j z) C) mulass
+      EqReplaceEq1Add0
+    ## </d 'Associative Property '>
+    ## <d 'Distributive Property '>
+      A (* j z) C distr
+      EqReplaceEq1Add1
+    ## </d 'Distributive Property '>
+    ## <d 'Associative Property '>
+      A j z mulass eqcomi
+      EqReplaceEq1Add1Add0
+    ## </d 'Associative Property '>
+    ## <d 'Commutative Property '>
+      A j mulcom
+      EqReplaceEq1Add1Add0Mul0
+    ## </d 'Commutative Property '>
+    ## <d 'Associative Property '>
+      j A z mulass
+      EqReplaceEq1Add1Add0
+    ## </d 'Associative Property '>
+    ## <d 'Associative Property '>
+      (* j (* x (+ (* j z) C))) (* j (* A z)) (* A C) addass eqcomi
+      EqReplaceEq1
+    ## </d 'Associative Property '>  
+    ## <d 'Distributive Property '>
+      j (* x (+ (* j z) C)) (* A z) distr eqcomi
+      EqReplaceEq1Add0
+    ## </d 'Distributive Property '>
+    EqReplaceImp1Eq0
+    ImpReplaceImp1Ex1Ex1Ex1Ex1
+  ## </d 'Distributive Property '>
+  ## </d 'Distributive Property '>
+  ## <d 'Replace x and z expression with x" '>
+  x' (+ (* x (+ (* j z) C)) (* A z)) j muleq2
+  (* A C) addeq1d
+  (+ (* j (+ (* y (+ (* j w) D)) (* B w))) (* B D)) eqeq1d
+  ceqsex bicomi  
+  BiReplaceImp1Ex1Ex1Ex1Ex1
+  
+  ## <d 'Remove Left Side of AND '>
+    (= x' (+ (* x (+ (* j z) C)) (* A z))) (= (+ (* j x') (* A C)) (+ (* j (+ (* y (+ (* j w) D)) (* B w))) (* B D))) pm3.27
+    ImpReplaceImp1Ex1Ex1Ex1Ex1Ex1
+  ## </d 'Remove Left Side of AND '>  
+  ## <d 'Quantified Non-free Variable '>
+    x (E. z (E. y (E. w (E. x' (= (+ (* j x') (* A C)) (+ (* j (+ (* y (+ (* j w) D)) (* B w))) (* B D))))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>  
+  ## <d 'Quantified Non-free Variable '>
+    z (E. y (E. w (E. x' (= (+ (* j x') (* A C)) (+ (* j (+ (* y (+ (* j w) D)) (* B w))) (* B D)))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## </d 'Replace x and z expression with x" '>
+
+  ## <d 'Replace y and w expression with y" '>
+  y' (+ (* y (+ (* j w) D)) (* B w)) j muleq2
+  (* B D) addeq1d
+  (+ (* j x') (* A C)) eqeq2d
+  ceqsex bicomi    
+  BiReplaceImp1Ex1Ex1Ex1
+  
+  ## <d 'Remove Left Side of AND '>
+    (= y' (+ (* y (+ (* j w) D)) (* B w))) (= (+ (* j x') (* A C)) (+ (* j y') (* B D))) pm3.27
+    ImpReplaceImp1Ex1Ex1Ex1Ex1
+  ## </d 'Remove Left Side of AND '>  
+  ## <d 'Quantified Non-free Variable '>
+    w (E. x' (E. y' (= (+ (* j x') (* A C)) (+ (* j y') (* B D))))) 19.9
+    BiReplaceImp1Ex1
+  ## </d 'Quantified Non-free Variable '>  
+  ## <d 'Quantified Non-free Variable '>
+    y (E. x' (E. y' (= (+ (* j x') (* A C)) (+ (* j y') (* B D))))) 19.9
+    sylib
+  ## </d 'Quantified Non-free Variable '>
+  ## </d 'Replace y and w expression with y" '>
+  
+  x' y' j (* A C) (* B D) modconex  
+  sylib
+)
+
 ## <summary> This is used just for convenience to get an empty theorem. </summary>
 thm (emptyThm () () (T)
  tru

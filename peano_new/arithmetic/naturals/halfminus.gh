@@ -253,6 +253,101 @@ thm (halfminuszero () () (= (.- A (0)) A)
   eqtri
 )
 
+## <title> Half minus cancellation </title>
+## <suggest> right('Simplify', '-') </suggest>
+## <table>
+##   (= (.- (+ A <r> B) <r> B) A)
+## </table>
+thm (halfminuscan() () (= (.- (+ A B) B) A)
+  A 0le
+  B leadd1i  
+  ## <d 'Additive Identity Axiom '>
+    B addidr
+    EqReplaceLe0
+  ## </d 'Additive Identity Axiom '>
+  B (+ A B) halfminus  
+  ax-mp
+  (.- (+ A B) B) B A addcan  
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (+ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Add1 () (
+     replacee (= (+ A B) D)
+     substitution (= B C)) 
+     (= (+ A C) D)
+  replacee substitution
+  A addeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+ A  [ B ]   ]   ] ) D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceImp1Eq0Add1 () (
+     replacee (-> ph (= (+ A B) D))
+     substitution (= B C)) 
+     (-> ph (= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceImp1Eq0
+)
+
+## <title> Commute Half Minus </title>
+## <table>
+##   (-> (<= <r> B <g> A) (= (+ (.- <g> A <r> B) <b> C) (.- (+ <g> A <b> C) <r> B)))
+## </table>
+thm (halfminusaddcom () () (-> (<= B A) (= (+ (.- A B) C) (.- (+ A C) B)))
+  B A halfminus
+  C addeq1d  
+  ## <d 'Associative Property '>
+    (.- A B) B C addass
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commutative Property '>
+    B C addcom
+    EqReplaceImp1Eq0Add1
+  ## </d 'Commutative Property '>
+  
+  ## <d 'Associative Property '>
+    (.- A B) C B addass
+    ## <d 'Commutative Property'>
+      (+ (+ (.- A B) C) B) (+ (.- A B) (+ C B)) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>
+  B halfminuseq1d  
+  ## <d>
+    (+ (.- A B) C) B halfminuscan
+    EqReplaceImp1Eq0
+  ## </d>
+)
+
 ## <summary> This is used just for convenience to get an empty theorem. </summary>
 thm (emptyThm () () (T)
  tru

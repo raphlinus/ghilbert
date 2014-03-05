@@ -13,7 +13,7 @@ import (EQUALITY ../../predicate/equality.ghi (PROP PREDICATE_MIN PREDICATE EQUA
 tvar (wff ph ps ch th ta)
 tvar (nat A B C D A' B' C' D')
 tvar (n.nat a b c d a' b' c' d')
-var (nat v w x y z)              
+var (nat w x y z)              
 var (n.nat X Y Z)    # It is confusing that the lowercase and uppercases are switched. However, the javascript verifier complains when we export PREDICATE_ALL with x as a n.nat.
 
 export (PREDICATE_ALL ../../predicate/all.ghi (PROP) "")
@@ -26,8 +26,13 @@ import (INEQUALITY_INT inequality_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATU
 
 import (SET_MIN ../../set_min.ghi (PROP PREDICATE_ALL) "")
 import (SET ../../set.ghi (PROP PREDICATE_ALL SET_MIN) "")
+import (MIN ../naturals/min_mod_div.ghi (PROP PREDICATE_ALL NATURALS SET_MIN) "")
+import (N_SET_MIN ../../set_min.ghi (PROP N_PREDICATE) "n.")
+import (N_SET ../../set.ghi (PROP N_PREDICATE N_SET_MIN) "n.")
+import (N_MIN ../naturals/min_mod_div.ghi (PROP N_PREDICATE N_NATURALS N_SET_MIN) "n.")
 
 tvar (set S T U V)
+tvar (n.set s t u v)
 
 ## <title> Def. Naturals as a Subset of the Integers </title>
 defthm (df-naturals set (N) () () (=_ (N) ({|} y (<= (0) y)))
@@ -247,8 +252,6 @@ thm (natpos2 () () (<-> (e. A (N)) (n.<= (tail A) (head A)))
   A ge0  
   bitri
 )
-
-
 
 thm (neq () () (-> (/\ (e. A (N)) (/\ (e. B (N)) (= A B))) (n.= (n A) (n B)))
   (tail A) (head A) n.halfminus
@@ -758,6 +761,401 @@ thm (n1 () () (n.= (n (1)) (n.1))
   NeqReplaceNeq1
   (n.1) n.halfminuszero  
   NeqReplaceNeq1
+)
+
+thm (neq2 () () (-> (/\ (= A B) (e. A (N))) (n.= (n A) (n B)))
+  A B (N) ax-eleq1
+  ## <d 'Infer Left to Right '>
+    (e. A (N)) (e. B (N)) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  ## <d 'Import-Export Theorem '>
+    (= A B) (e. A (N)) (e. B (N)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  ancli
+  ## <d 'Commute and Associate '>
+  ## <d 'Associative Property '>
+    (= A B) (e. A (N)) (e. B (N)) anass
+    sylib
+  ## </d 'Associative Property '>
+  ## <d 'Commute Conjunction '>
+    (= A B) (/\ (e. A (N)) (e. B (N))) ancom
+    sylib
+  ## </d 'Commute Conjunction '>
+  ## <d 'Associative Property '>
+    (e. A (N)) (e. B (N)) (= A B) anass
+    sylib
+  ## </d 'Associative Property '>
+  ## </d 'Associative Property '>
+  A B neq
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+thm (neq3 () () (-> (= A B) (<-> (/\ (e. A (N)) (n.= (n A) a)) (/\ (e. B (N)) (n.= (n B) a))))
+  A B neq2    
+  (n A) (n B) a n.eqeq1 syl  
+  ## <d 'Import-Export Theorem '>
+    (= A B) (e. A (N)) (<-> (n.= (n A) a) (n.= (n B) a)) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  (e. A (N)) (n.= (n A) a) (n.= (n B) a)  pm5.74    
+  sylib
+  (e. A (N)) anbi2d  
+  ## <d 'Introduce conjunct as antecedent '>
+    (e. A (N)) (n.= (n A) a) abai bicomi
+    BiReplaceImp1Bi0
+  ## </d 'Introduce conjunct as antecedent '>
+  ## <d 'Introduce conjunct as antecedent '>
+    (e. A (N)) (n.= (n B) a) abai bicomi
+    BiReplaceImp1Bi1
+  ## </d 'Introduce conjunct as antecedent '>
+  A B (N) ax-eleq1
+  (n.= (n B) a) anbi1d
+  jca  
+  ## <d 'Transitive Property '>
+    (/\ (e. A (N)) (n.= (n A) a)) (/\ (e. A (N)) (n.= (n B) a)) (/\ (e. B (N)) (n.= (n B) a)) bitr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Def. Integer to Natural Set Conversion </title>
+defthm (df-ns n.set (ns S) ((S y) (S Y)) () (n.=_ (ns S) (n.{|} Y (E. y (/\ (e. y S) (/\ (e. y (N)) (n.= (n y) Y))))))  X Y (n x) n.eqeq2
+  (e. x (N)) anbi2d
+  (e. x S) anbi2d
+  x exbid
+
+  x y S ax-eleq1
+  x y Y neq3
+  anbi12d
+  exalpha  
+  BiReplaceImp1Bi1
+  n.abeq
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (E. x  [ ph ]   ]    ] ) ch)
+##   (<->        [ ph ]   [ ps ] )
+##   (<-> (E. x  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Ex1 () (
+     replacee (<-> (E. x ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (E. x ps) ch)
+  replacee substitution
+  x exbii
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1An0 () (
+     replacee (<-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ ch th))
+  replacee substitution
+  th anbi1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (->             [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (-> ch th)) 
+     (-> ph (/\ ps th))
+  replacee substitution
+  ps anim2i
+  ImpReplaceBi1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps (/\ ch  [ th ]   ]    ] )))
+##   (->                    [ th ]   [ ta ] )
+##   (<-> ph (/\ ps (/\ ch  [    [   [ ta ] )))
+## </table>
+thm (ImpReplaceBi1An1An1 () (
+     replacee (<-> ph (/\ ps (/\ ch th)))
+     substitution (-> th ta)) 
+     (-> ph (/\ ps (/\ ch ta)))
+  replacee substitution
+  ch anim2i
+  ImpReplaceBi1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps (/\ ch  [ th ]   ]    ] )))
+##   (<->                   [ th ]   [ ta ] )
+##   (<-> ph (/\ ps (/\ ch  [    [   [ ta ] )))
+## </table>
+thm (BiReplaceBi1An1An1 () (
+     replacee (<-> ph (/\ ps (/\ ch th)))
+     substitution (<-> th ta)) 
+     (<-> ph (/\ ps (/\ ch ta)))
+  replacee substitution
+  ch anbi2i
+  BiReplaceBi1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (E. x  [ ch ]   ]    ] )))
+##   (<->                  [ ch ]   [ th ] )
+##   (-> ph (<-> ps (E. x  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Bi1Ex1 () (
+     replacee (-> ph (<-> ps (E. x ch)))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps (E. x th)))
+  replacee substitution
+  x exbii
+  BiReplaceImp1Bi1
+)
+
+
+thm (elHomomorph.1 ((S x)(A x)) () (-> (/\ (e. A (N)) (C_ S (N))) (<-> (e. A S) (E. x (/\ (e. x (N)) (/\ (e. x S) (n.= (n x) (n A)))))))
+  S (N) x dfss2  
+  ## <d 'Axiom 4: Specialization '>
+    x (-> (e. x S) (e. x (N))) ax-4
+    ImpReplaceBi1
+  ## </d 'Axiom 4: Specialization '>
+  (e. x S) (e. x (N)) pm4.71  
+  sylib
+  (= x A) anbi1d  
+  ## <d 'Associative Property '>
+    (e. x S) (e. x (N)) (= x A) anass
+    BiReplaceImp1Bi1
+  ## </d 'Associative Property '>
+  x exbid
+
+  x A S ax-eleq1
+  ceqsex  
+  ## <d 'Commute Conjunction '>
+    (= x A) (e. x S) ancom
+    BiReplaceBi0Ex1
+  ## </d 'Commute Conjunction '>  
+  BiReplaceImp1Bi0
+  (e. A (N)) anbi2d
+  
+  ## <d 'Quantifiers Moved Around Non-free Variable '>
+    x (e. A (N)) (/\ (e. x S) (/\ (e. x (N)) (= x A))) 19.41l bicomi
+    BiReplaceImp1Bi1
+  ## </d 'Quantifiers Moved Around Non-free Variable '>
+   
+  
+  ## <d 'Associative Property '>
+    (e. A (N)) (e. x S) (/\ (e. x (N)) (= x A)) anass bicomi
+  ## </d 'Associative Property '>
+  (e. A (N)) (e. x S) (e. x (N)) (= x A) an4
+  bitri
+  
+  ## <d 'Commute Conjunction '>
+    (e. x S) (= x A) ancom
+    BiReplaceBi1An1
+  ## </d 'Commute Conjunction '>
+  
+  ## <d 'Associative Property '>
+    (/\ (e. A (N)) (e. x (N))) (= x A) (e. x S) anass bicomi
+    bitri
+  ## </d 'Associative Property '>
+
+  x A eqHomomorph
+  ## <d 'Commute Conjunction '>
+    (e. x (N)) (e. A (N)) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>
+  (/\ (e. A (N)) (e. x (N))) (<-> (= x A) (n.= (n x) (n A))) pm4.71  
+  mpbi  
+  (= x A) anbi1i
+  
+  ## <d 'Associative Property '>
+    (/\ (e. A (N)) (e. x (N))) (<-> (= x A) (n.= (n x) (n A))) (= x A) anass
+    bitri
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commute Conjunction '>
+    (<-> (= x A) (n.= (n x) (n A))) (= x A) ancom
+    BiReplaceBi1An1
+  ## </d 'Commute Conjunction '>  
+  ## <d>
+    (= x A) (n.= (n x) (n A)) pm5.36
+    BiReplaceBi1An1
+  ## </d>
+  
+  ## <d 'Commute Conjunction '>
+    (n.= (n x) (n A)) (<-> (= x A) (n.= (n x) (n A))) ancom
+    BiReplaceBi1An1
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Associative Property '>
+    (/\ (e. A (N)) (e. x (N))) (<-> (= x A) (n.= (n x) (n A))) (n.= (n x) (n A)) anass bicomi
+    bitri
+  ## </d 'Associative Property '>
+  x A eqHomomorph
+  ## <d 'Commute Conjunction '>
+    (e. x (N)) (e. A (N)) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>
+  (/\ (e. A (N)) (e. x (N))) (<-> (= x A) (n.= (n x) (n A))) pm4.71  
+  mpbi  bicomi  
+  BiReplaceBi1An0
+  BiReplaceBi1An0
+    
+  ## <d 'Associative Property '>
+    (/\ (e. A (N)) (e. x (N))) (n.= (n x) (n A)) (e. x S) anass
+    bitri
+  ## </d 'Associative Property '>  
+  ## <d 'Associative Property '>
+    (e. A (N)) (e. x (N)) (/\ (n.= (n x) (n A)) (e. x S)) anass
+    bitri
+  ## </d 'Associative Property '>  
+  ## <d 'Commute Conjunction '>
+    (n.= (n x) (n A)) (e. x S) ancom
+    BiReplaceBi1An1An1
+  ## </d 'Commute Conjunction '>
+  
+  BiReplaceImp1Bi1Ex1
+  
+  ## <d 'Quantifiers Moved Around Non-free Variable '>
+    x (e. A (N)) (/\ (e. x (N)) (/\ (e. x S) (n.= (n x) (n A)))) 19.41l
+    BiReplaceImp1Bi1
+  ## </d 'Quantifiers Moved Around Non-free Variable '>
+  (e. A (N)) (e. A S) (E. x (/\ (e. x (N)) (/\ (e. x S) (n.= (n x) (n A))))) pm5.32 bicomi  
+  sylib
+  com12  
+  ## <d 'Import-Export Theorem '>
+    (e. A (N)) (C_ S (N)) (<-> (e. A S) (E. x (/\ (e. x (N)) (/\ (e. x S) (n.= (n x) (n A)))))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+)
+
+thm (elHomomorph () () (-> (/\ (e. A (N)) (C_ S (N))) (<-> (e. A S) (n.e. (n A) (ns S))))
+  A S x elHomomorph.1
+
+  S Y x df-ns
+  (n A) n.elseq2i
+  ## <d>
+    (n A) Y (E. x (/\ (e. x S) (/\ (e. x (N)) (n.= (n x) Y)))) n.ax-elab
+    bitri
+  ## </d>
+
+  (n.= Y (n A)) id
+  (n x) n.eqeq2d
+  (e. x (N)) anbi2d
+  (e. x S) anbi2d
+  x exbid
+  n.sbcie
+  bitri
+  bicomi
+   
+  ## <d 'Commute'>
+  ## <d 'Associative Property '>
+    (e. x S) (e. x (N)) (n.= (n x) (n A)) anass bicomi
+  ## </d 'Associative Property '>  
+  ## <d 'Commute Conjunction '>
+    (e. x S) (e. x (N)) ancom
+    BiReplaceBi1An0
+  ## </d 'Commute Conjunction '>  
+  ## <d 'Associative Property '>
+    (e. x (N)) (e. x S) (n.= (n x) (n A)) anass
+    bitri
+  ## </d 'Associative Property '>  
+  BiReplaceBi0Ex1
+  ## </d 'Commute'>  
+  BiReplaceImp1Bi1
+)
+
+## <title> Def. Natural to Integer Conversion </title>
+defthm (df-n-1 nat (n-1 a) () () (= (n-1 a) (<,> a (n.0)))
+  (<,> a (n.0)) eqid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (= A  [ B ]   ]   ] ) ph)
+##   (=         [ B ]   [ C ] )
+##   (<-> (= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceBi0Eq1 () (
+     replacee (<-> (= A B) ph)
+     substitution (= B C)) 
+     (<-> (= A C) ph)
+  replacee substitution
+  A eqeq2i
+  bitr3icom
+)
+
+thm (ninv.1() () (-> (= A (n-1 a)) (n.= (n A) a))
+  (head A) (tail A) a (n.0) opzeq  
+  ## <d 'Additive Identity '>
+    (head A) n.addid
+    NeqReplaceBi1Neq0
+  ## </d 'Additive Identity '>
+  
+  ## <d 'Expand Ordered Pair '>
+    A opexpand eqcomi
+    EqReplaceBi0Eq0
+  ## </d 'Expand Ordered Pair '>
+  a df-n-1 eqcomi  
+  EqReplaceBi0Eq1
+  ## <d>
+    (head A) (n.+ a (tail A)) (tail A) n.halfminuseq1
+    ## <d 'Half minus cancellation '>
+      a (tail A) n.halfminuscan
+      NeqReplaceImp1Neq1
+    ## </d 'Half minus cancellation '>
+    A df-n n.eqcomi  
+    NeqReplaceImp1Neq0
+    ImpReplaceBi1
+  ## </d>
+)
+
+## <title> Natural conversion has an inverse </title>
+thm (ninv () () (n.= (n (n-1 a)) a)  
+  (n-1 a) eqid
+  (n-1 a) a ninv.1  
+  ax-mp
 )
 
 ## <summary> This is used just for convenience to get an empty theorem. </summary>

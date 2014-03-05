@@ -63,6 +63,11 @@ stmt (df-minusr () () (= (+ A (-n B)) (- A B)))
 ## <title> Equivalence for - </title> ##
 stmt (minuseq1 () () (-> (= A C) (= (- A B) (- C B))))
 
+## <title> Subtract a number from both sides </title>
+## <table>
+##  (=    A ]       ]      C ] )
+##  (= (- A ] <g> B ] ) (- C ] <g> B))
+## </table>
 stmt (minuseq1i () ((= A C)) (= (- A B) (- C B)))
 
 ## <title> Equivalence for - </title> ##
@@ -103,6 +108,9 @@ stmt (minuscan2 () () (= (+ (- A B) B) A))
 
 ## <title> Addition is the inverse of Subtraction </title>
 ## <suggest> right('Simplify','-') </suggest>
+## <table>
+##   (= (- (+ A <r> B) <r> B) A)
+## </table>
 stmt (addcanr () () (= (- (+ A B) B) A))
 
 ## <title> Negative and Subtraction Cancel </title>
@@ -181,12 +189,19 @@ stmt (negadd () () (= (- (-n A) B) (-n (+ A B))))
 ## <title> Subtraction Value from Addition </title>
 stmt (minusValue () () (-> (= (+ A B) C) (= A (- C B))))
 
-## <title> Subtraction Value from Addition </title>
+## <title> Subtract both sides </title>
 ## <table>
-##   (= (+ <c> A [ B ] ) <m> C)
-##   (= (- <m> C [ B ] ) <c> A)
+##   (= (+ A <c> B) C)
+##   (= A (- C <c> B ) )
 ## </table>
-stmt (minusValuei () ((= (+ A B) C)) (= (- C B) A))
+stmt (minusValuei () ((= (+ A B) C)) (= A (- C B)))
+
+## <title> Subtraction from both sides </title>
+## <table>
+##   (= (+ A <c>     B ) [ C)
+##   (= A (- <c> (-n B )  [ C) )
+## </table>
+stmt (minusValue2i () ((= (+ A B) C)) (= A (+ (-n B) C)))
 
 ## <title> Subtract from 0 </title>
 ## <suggest> right('Simplify', '-') </suggest>

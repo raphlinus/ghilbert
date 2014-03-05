@@ -13,6 +13,10 @@ var (nat v w x y z)
 
 term (nat (.- A B))
 
+stmt (halfminuseq1 () () (-> (= A C) (= (.- A B) (.- C B))))
+
+stmt (halfminuseq2 () () (-> (= B C) (= (.- A B) (.- A C))))
+
 stmt (halfminuseq1i () (
      (= A B))
      (= (.- A C) (.- B C)))
@@ -33,3 +37,16 @@ stmt (halfminuszero () () (= (.- A (0)) A))
 ##   (= (.- <r> A <r> A) (0))
 ## </table>
 stmt (halfminusid () () (= (.- A A) (0)))
+
+## <title> Commute Half Minus </title>
+## <table>
+##   (-> (<= <r> B <g> A) (= (+ (.- <g> A <r> B) <b> C) (.- (+ <g> A <b> C) <r> B)))
+## </table>
+stmt (halfminusaddcom () () (-> (<= B A) (= (+ (.- A B) C) (.- (+ A C) B))))
+
+## <title> Half minus cancellation </title>
+## <suggest> right('Simplify', '-') </suggest>
+## <table>
+##   (= (.- (+ A <r> B) <r> B) A)
+## </table>
+stmt (halfminuscan() () (= (.- (+ A B) B) A))
