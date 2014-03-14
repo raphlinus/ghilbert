@@ -7,6 +7,13 @@ import (PEANO_MIN peano_min.ghi (PROP) "")
 # import (PROP /peano/prop.ghi () "")
 # import (PEANO_MIN /peano/peano_min.ghi (PROP) "")
 
+## <context>
+##   We are in the process of reorganizing the theorems and grouping them into
+##   smaller files that concern one specific topic. This particular file contains
+##   contains theorems in so many unrelated topics. Some, but not all of these
+##   theorems have been moved into the peano_new directory.
+## </context>
+
 tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
 tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
 var (nat v w x y z v' w' x' y' z')
@@ -11740,6 +11747,159 @@ thm (EqReplaceBi1Lt1 () (
   bitri
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (= A  [ B ]   ]   ] ) ps))
+##   (=                [ B ]   [ C ] )
+##   (-> ph (<-> (= A  [   [   [ C ] ) ps))
+## </table>
+thm (EqReplaceImp1Bi0Eq1 () (
+     replacee (-> ph (<-> (= A B) ps))
+     substitution (= B C)) 
+     (-> ph (<-> (= A C) ps))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Bi0
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+thm (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0))))
+  A B (0) mulcant
+  ## <d 'Evaluate'>
+    A pa_ax5r
+    EqReplaceImp1Bi0Eq1
+  ## </d 'Evaluate'>
+  A 0inequalities bicomi
+  sylbi2
+  ## <d 'Symmetric Property '>
+    (0) A eqcom
+    BiReplaceImp0Not0
+  ## </d 'Symmetric Property '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-.  [ ch ]   ]    ] )))
+##   (<->               [ ch ]   [ th ] )
+##   (-> ph (-> ps (-.  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Imp1Not0 () (
+     replacee (-> ph (-> ps (-. ch)))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (-. th)))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Imp1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-. (=  [ A ]   ]   ]  C))))
+##   (=                    [ A ]   [ B ] )
+##   (-> ph (-> ps (-. (=  [   [   [ B ]  C))))
+## </table>
+thm (EqReplaceImp1Imp1Not0Eq0 () (
+     replacee (-> ph (-> ps (-. (= A C))))
+     substitution (= A B)) 
+     (-> ph (-> ps (-. (= B C))))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Imp1Not0
+)
+
+## <title> Zero Product Property </title>
+thm (zeroProductz () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0))))
+  A B mulcan0
+  ## <d 'Infer Left to Right '>
+    (= (* B A) (0)) (= B (0)) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  ## <d 'Contrapositive '>
+    (= (* B A) (0)) (= B (0)) con34b
+    sylib
+  ## </d 'Contrapositive '>
+  ## <d 'Commutative Property of Multiplication '>
+    B A mulcom
+    EqReplaceImp1Imp1Not0Eq0
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Import-Export Theorem '>
+    (-. (= A (0))) (-. (= B (0))) (-. (= (* A B) (0))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+)
+
+thm (df-composite-just ((A x) (A y)) ()
+    (<-> (E. x (/\ (| x A) (/\ (-. (= x (1))) (-. (= x A))))) (E. y (/\ (| y A) (/\ (-. (= y (1))) (-. (= y A))))))
+    x y A divideseq1
+    x y (1) eqeq1 notbid
+    x y A eqeq1 notbid anbi12d
+  anbi12d
+  exalpha
+)
+
+## <title> Definition of a composite number </title>
+defthm (df-composite wff (composite A) ((A x)) () (<-> (composite A) (E. x (/\ (| x A) (/\ (-. (= x (1))) (-. (= x A))))))
+  y A x df-composite-just)
+
+## <title> Equivalence for composite </title> ##
+thm (compositeeq () () (-> (= A B) (<-> (composite A) (composite B)))
+  (= A B) id
+  x divideseq2d
+  (= A B) id
+  x eqeq2d
+  notbid
+  (-. (= x (1))) anbi2d
+  anbi12d
+  x exbid
+  A x df-composite
+  ## <d 'Commutative Property'>
+    (composite A) (E. x (/\ (| x A) (/\ (-. (= x (1))) (-. (= x A))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  B x df-composite
+  ## <d 'Commutative Property'>
+    (composite B) (E. x (/\ (| x B) (/\ (-. (= x (1))) (-. (= x B))))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (compositeeqi () (
+     hyp1 (= A B))
+     (<-> (composite A) (composite B))
+  hyp1
+  A B compositeeq
+  ax-mp
+)
+
+thm (compositeeqd () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (composite A) (composite B)))
+  hyp1
+  A B compositeeq
+  syl
+)
+
+
 # number 39.0
 thm (df-prime-just ((A x) (A y)) ()
     (<-> (/\ (> A (1)) (A. x (-> (| x A) (\/ (= x (1)) (= x A))))) 
@@ -11788,6 +11948,12 @@ thm (primeeqd () (
   hyp1
   A B primeeq
   syl
+)
+
+## <title> Def. Set of Composite Numbers </title>
+## <suggest> right('Define', 'Cmp') left('Simplify', 'Cmp') </suggest>
+defthm (df-compositeset set (compositeset) () () (=_ (compositeset) ({|} y (composite y)))
+  x y compositeeq abeq
 )
 
 ## <title> Def. Set of Prime Numbers </title>
@@ -13161,21 +13327,6 @@ thm (BiReplaceBi1Imp1 () (
   replacee substitution
   ps imbi2i
   bitri
-)
-
-## <title> Substitution </title>
-## <table>
-##   (-> (-.  [ ph ]   ]    ] ) ch)
-##   (<->     [ ph ]   [ ps ] )
-##   (-> (-.  [    [   [ ps ] ) ch)
-## </table>
-thm (BiReplaceImp0Not0 () (
-     replacee (-> (-. ph) ch)
-     substitution (<-> ph ps)) 
-     (-> (-. ps) ch)
-  replacee substitution
-  con4biir
-  sylbi2
 )
 
 ## <title> Substitution </title>
@@ -24879,7 +25030,7 @@ thm (factorial1 () () (= (! (1)) (1))
   EqReplaceEq1
 )
 
-thm (factorialpred () () (-> (< (1) A) (= (! A) (* (! (.- A (1))) A)))
+thm (factorialpred.1 () () (-> (< (1) A) (= (! A) (* (! (.- A (1))) A)))
   (1) A (lambda x x) productdetach  
   
   ## <d>
@@ -24904,6 +25055,74 @@ thm (factorialpred () () (-> (< (1) A) (= (! A) (* (! (.- A (1))) A)))
   (= x A) id
   applylambda  
   EqReplaceImp1Eq1Mul1
+)
+
+
+thm (factorialpred () () (-> (>= A (1)) (= (! A) (* (! (.- A (1))) A)))  
+  A (1) factorialeq
+  A (1) (1) halfminuseq1
+  factorialeqd
+  (= A (1)) id
+  muleq12d
+  eqeq12d  
+  (1) eqid
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      factorial1
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (! (1)) (1) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq0
+  ## </d 'Evaluate'>
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'Evaluate'>
+        ## <d 'Evaluate'>
+          (1) eqid
+          ## <d 'Convert to ≤'>
+            (1) (1) eqle
+            ax-mp
+          ## </d 'Convert to ≤'>
+          halfminus-negi
+          factorialeqi
+        ## </d 'Evaluate'>
+        ## <d 'Evaluate'>
+          factorial0
+          EqReplaceEq1
+        ## </d 'Evaluate'>
+        (1) muleq1i
+      ## </d 'Evaluate'>
+      ## <d 'Evaluate'>
+        (1) mulidr
+        EqReplaceEq1
+      ## </d 'Evaluate'>
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (* (! (.- (1) (1))) (1)) (1) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq1
+  ## </d 'Evaluate'>  
+  (= (! A) (* (! (.- A (1))) A)) biRemove2
+  (= A (1)) imbi2i
+  mpbi
+
+  A factorialpred.1  
+  ## <d 'Converse of < '>
+    (1) A ltcon
+    sylbi2
+  ## </d 'Converse of < '>
+  jaoi  
+  ## <d 'Commutative Property of OR '>
+    (= A (1)) (> A (1)) orcom
+    sylbi2
+  ## </d 'Commutative Property of OR '>
+  ## <d '≥ means > OR = '>
+    A (1) gegeo bicomi
+    sylbi2
+  ## </d '≥ means > OR = '>
 )
 
 ## <title> Substitution </title>
@@ -27756,6 +27975,465 @@ thm (euclidthm () () (-. (=_ (<{}> x) (primeset)))
   ## </d>
 )
 
+## <title> All numbers are divisible by 1 </title>
+thm (1divides () () (| (1) A)
+  A mulidr
+  proveDivides
+)
+
+thm (proveDivides2 () () (-> (= (* A B) C) (| A C))
+  x B A muleq2
+  C eqeq1d  
+  ## <d>
+    ceqsex
+    ## <d 'Remove Left Side of AND '>
+      (= x B) (= (* A x) C) pm3.27
+      ImpReplaceBi0Ex1
+    ## </d 'Remove Left Side of AND '>  
+  ## </d>
+  ## <d>
+    A C x df-divides bicomi  
+    sylib
+  ## </d>
+)
+
+## <title> Divisibility for Factorials </title>
+thm (dividesFactorial1 () () (-> (>= A (1)) (| A (! A)))
+  A factorialpred eqcomd  
+  ## <d 'Commutative Property '>
+    (! (.- A (1))) A mulcom
+    EqReplaceImp1Eq0
+  ## </d 'Commutative Property '>
+  A (! (.- A (1))) (! A) proveDivides2  
+  syl
+)
+
+thm (dividesFactorial2 () () (| (! A) (! (+ A (1))))
+  A factorialrecurse
+  (! A) (+ A (1)) (! (+ A (1))) proveDivides2    
+  ## <d 'Symmetric Property '>
+    (* (! A) (+ A (1))) (! (+ A (1))) eqcom
+    sylbi2
+  ## </d 'Symmetric Property '>  
+  ax-mp
+)
+
+thm (sbc-dividesFactorial ((A x)(B x)) () (<-> ([/] A x (-> (/\ (<= (1) B) (<= B x)) (| B (! x)))) (-> (/\ (<= (1) B) (<= B A)) (| B (! A))))
+  (= x A) id
+  B leeq2d
+  (<= (1) B) anbi2d
+  (= x A) id
+  factorialeqd
+  B divideseq2d
+  imbi12d
+  sbcie
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> (/\ ps  [ ch ]   ]    ] ) ta))
+##   (<->               [ ch ]   [ th ] )
+##   (-> ph (-> (/\ ps  [    [   [ th ] ) ta))
+## </table>
+thm (BiReplaceImp1Imp0An1 () (
+     replacee (-> ph (-> (/\ ps ch) ta))
+     substitution (<-> ch th)) 
+     (-> ph (-> (/\ ps th) ta))
+  replacee substitution
+  ps anbi2i
+  BiReplaceImp1Imp0
+)
+
+thm (dividesFactorial () () (-> (/\ (<= (1) A) (<= A B)) (| A (! B)))
+  (0) x A sbc-dividesFactorial
+  ## <d 'Transitive Property '>
+    (1) A (0) letr
+  ## </d 'Transitive Property '>  
+  1greater0
+  ## <d 'Convert to ¬≤'>
+    (1) (0) gtnle
+    ax-mp
+  ## </d 'Convert to ¬≤'>  
+  mtoRemove
+  (| A (! (0))) pm2.21i  
+  mpbirRemove
+
+  A (! y) (! (+ y (1))) dividestr
+  y dividesFactorial2  
+  (| A (! y)) anRemove2
+  (| A (! (+ y (1)))) imbi1i
+  mpbi
+  (/\ (<= (1) A) (<= A y)) imim2i  
+  ## <d 'Convert between ≤ and < '>
+    A y lePlus1 bicomi
+    BiReplaceImp1Imp0An1
+  ## </d 'Convert between ≤ and < '>  
+
+  (<= (1) A) (= A (+ y (1))) pm3.27
+  A (+ y (1)) (! (+ y (1))) divideseq1
+  (+ y (1)) dividesFactorial1
+  (1) y addge02t leconi  
+  ax-mpRemove  
+  (| A (! (+ y (1)))) biRemove2
+  (= A (+ y (1))) imbi2i
+  mpbi
+  syl
+  (-> (/\ (<= (1) A) (<= A y)) (| A (! y))) a1i
+  jca
+    
+  ## <d 'Distributive Property '>
+    (/\ (<= (1) A) (< A (+ y (1)))) (/\ (<= (1) A) (= A (+ y (1)))) (| A (! (+ y (1)))) jaob bicomi
+    sylib
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Distributive Property '>
+    (<= (1) A) (< A (+ y (1))) (= A (+ y (1))) andi bicomi
+    BiReplaceImp1Imp0
+  ## </d 'Distributive Property '>
+  
+  ## <d '≤ means < OR = '>
+    A (+ y (1)) leleo bicomi
+    BiReplaceImp1Imp0An1
+  ## </d '≤ means < OR = '>
+
+  y x A sbc-dividesFactorial bicomi  
+  sylbi2
+  (+ y (1)) x A sbc-dividesFactorial bicomi  
+  sylib
+  B induction
+  B x A sbc-dividesFactorial  
+  mpbi
+)
+
+thm (dividesFactorial3 () () (-> (/\ (<= (1) A) (<= A B)) (| A (+ (! B) A)))
+  A B dividesFactorial
+  A dividessym
+  (/\ (<= (1) A) (<= A B)) a1i
+  jca    
+  ## <d>
+    A (! B) A dividesadd12
+    syl
+  ## </d>
+)
+
+thm (sbc-factorialNot0 ((A x)) () (<-> ([/] A x (-. (= (! x) (0)))) (-. (= (! A) (0))))
+  (= x A) id
+  factorialeqd
+  (0) eqeq1d
+  notbid
+  sbcie
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-. (=  [ A ]   ]   ]  C))
+##   (=      [ A ]   [ B ] )
+##   (-. (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceNot0Eq0 () (
+     replacee (-. (= A C))
+     substitution (= A B)) 
+     (-. (= B C))
+  replacee substitution
+  C eqeq1i
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (< A  [ B ]   ]   ] )
+##   (<=   [ B ]   [ C ] )
+##   (< A  [   [   [ C ] )
+## </table>
+thm (LeReplaceLt1 () (
+     replacee (< A B)
+     substitution (<= B C)) 
+     (< A C)
+  replacee substitution
+  A leTrlt
+  ax-mp
+)
+
+## <title> All factorials are positive </title>
+thm (factorialPos () () (> (! A) (0))
+  (0) x sbc-factorialNot0  
+  1notEqual0
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      factorial0
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (! (0)) (1) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceNot0Eq0
+  ## </d 'Evaluate'>  
+  mpbirRemove
+
+  (! y) (+ y (1)) zeroProductz
+  y factorialrecurse eqcomi  
+  EqReplaceImp1Not0Eq0
+
+  ## <d>
+  0less1
+  (1) y addge02t  
+  LeReplaceLt1  
+  ## <d 'Converse of < '>
+    (0) (+ y (1)) ltcon
+    mpbi
+  ## </d 'Converse of < '>  
+  ## <d 'Inequality Conversion '>
+    (+ y (1)) (0) gtneq
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  
+  (-. (= (! y) (0))) anRemove2
+  (-. (= (! (+ y (1))) (0))) imbi1i
+  mpbi
+
+  ## </d>
+
+  y x sbc-factorialNot0  bicomi  
+  sylbi2
+  (+ y (1)) x sbc-factorialNot0  bicomi  
+  sylib
+  A induction
+  A x sbc-factorialNot0  
+  mpbi  
+  ## <d 'All nonzero natural numbers are positive '>
+    (! A) 0inequalities2
+    mpbi
+  ## </d 'All nonzero natural numbers are positive '>
+)
+
+thm (compositeAddFact () () (-> (/\ (< (1) A) (<= A B)) (composite (+ (! B) A)))
+  (1) A ltle
+  (<= A B) anim1i
+  A B dividesFactorial3  
+  syl
+  ## <d>
+  ancri  
+  ## <d 'Remove Right Side of AND '>
+    (< (1) A) (<= A B) pm3.26
+    ImpReplaceImp1An1
+  ## </d 'Remove Right Side of AND '>  
+  ## <d 'Operator Conversion '>
+    (1) A ltneq
+    ImpReplaceImp1An1
+  ## </d 'Operator Conversion '>  
+  ## <d 'Symmetric Property '>
+    (1) A eqcom
+    BiReplaceImp1An1Not0
+  ## </d 'Symmetric Property '>
+
+  B factorialPos
+  ## <d>
+    A gtadd1i  
+    ## <d 'Additive Identity '>
+      A pa_ax3r
+      EqReplaceGt1
+    ## </d 'Additive Identity '>  
+  ## </d>
+  ## <d 'Converse of < '>
+    A (+ (! B) A) ltcon bicomi
+    mpbi
+  ## </d 'Converse of < '>  
+  ## <d 'Operator Conversion '>
+    A (+ (! B) A) ltneq
+    ax-mp
+  ## </d 'Operator Conversion '>
+  ## </d>
+
+  (/\ (< (1) A) (<= A B)) a1i
+  jca  
+  ## <d 'Associative Property '>
+    (| A (+ (! B) A)) (-. (= A (1))) (-. (= A (+ (! B) A))) anass
+    sylib
+  ## </d 'Associative Property '>
+  ## <d>
+  x A (+ (! B) A) divideseq1
+  x A (1) eqeq1 notbid
+  x A (+ (! B) A) eqeq1 notbid
+  anbi12d
+  anbi12d
+  ceqsex  
+  ## <d 'Remove Left Side of AND '>
+    (= x A) (/\ (| x (+ (! B) A)) (/\ (-. (= x (1))) (-. (= x (+ (! B) A))))) pm3.27
+    ImpReplaceBi0Ex1
+  ## </d 'Remove Left Side of AND '>  
+  syl
+  ## </d>
+  ## <d>
+    (+ (! B) A) x df-composite bicomi  
+    sylib
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ (<=  [ A ]   ]   ]  C) ph) ps)
+##   (=           [ A ]   [ B ] )
+##   (-> (/\ (<=  [   [   [ B ]  C) ph) ps)
+## </table>
+thm (EqReplaceImp0An0Le0 () (
+     replacee (-> (/\ (<= A C) ph) ps)
+     substitution (= A B)) 
+     (-> (/\ (<= B C) ph) ps)
+  replacee substitution
+  C leeq1i
+  BiReplaceImp0An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (C_  [ S ]   ]   ]  U)
+##   (=_  [ S ]   [ T ] )
+##   (C_  [   [   [ T ]  U)
+## </table>
+thm (SeqReplaceSs0 () (
+     replacee (C_ S U)
+     substitution (=_ S T)) 
+     (C_ T U)
+  replacee substitution
+  U sseq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (C_ S  [ T ]   ]   ] )
+##   (=_    [ T ]   [ U ] )
+##   (C_ S  [   [   [ U ] )
+## </table>
+thm (SeqReplaceSs1 () (
+     replacee (C_ S T)
+     substitution (=_ T U)) 
+     (C_ S U)
+  replacee substitution
+  S sseq2i
+  mpbi
+)
+
+
+## <title> Arbitrarily Long Sequences of Composites </title>
+## <summary>
+##   For every positive number k, there exist k consecutive composite numbers.
+## </summary>
+thm (consecutiveComposites () () (C_ ({...} (+ (! A) (2)) (+ (! A) A)) (compositeset))    
+  y (.- x (! A)) (! A) addeq1
+  (! A) x halfminus
+  anim12i  
+  ## <d 'Transitive Property '>
+    (+ y (! A)) (+ (.- x (! A)) (! A)) x eqtr1
+    syl
+  ## </d 'Transitive Property '>
+  
+  y A compositeAddFact  
+  ## <d>
+    ## <d 'Convert between ≤ and < '>
+      (1) y ltle2
+      BiReplaceImp0An0
+    ## </d 'Convert between ≤ and < '>  
+    ## <d 'Evaluate'>
+      1plus1
+      EqReplaceImp0An0Le0
+    ## </d 'Evaluate'>
+  ## </d>
+  ## <d>
+    (2) y (! A) leadd2
+    y A (! A) leadd2
+    anbi12i  
+    sylbi2
+  ## </d>  
+  (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) biRemove2
+  (= x (+ (! A) y)) imbi2i
+  x (+ (! A) y) (+ (! A) (2)) leeq2
+  x (+ (! A) y) (+ (! A) A) leeq1
+  anbi12d
+  x (+ (! A) y) compositeeq
+  imbi12d
+  
+  mpbiRemove
+  
+  ## <d 'Symmetric Property '>
+    x (+ (! A) y) eqcom
+    sylbi2
+  ## </d 'Symmetric Property '>  
+  ## <d 'Commutative Property of Addition '>
+    (! A) y addcom
+    EqReplaceImp0Eq0
+  ## </d 'Commutative Property of Addition '>  
+  syl  
+
+  (! A) (2) addge01t
+   x leTreti
+
+  ## <d 'Contrapositive '>
+    (<= (+ (! A) (2)) x) (<= (! A) x) con34b
+    mpbi
+  ## </d 'Contrapositive '>
+
+  (composite x) pm2.21d
+  ## <d>
+  (<= x (+ (! A) A)) a1d  
+  ## <d 'Import-Export Theorem '>
+    (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) (composite x) impexp bicomi
+    sylib
+  ## </d 'Import-Export Theorem '>  
+  ## <d 'Commute Conjunction '>
+    (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) ancom
+    BiReplaceImp1Imp0
+  ## </d 'Commute Conjunction '>
+  ## </d>
+  ## <d>
+  (= y (.- x (! A))) a1i  
+  ## <d 'Import-Export Theorem '>
+    (= y (.- x (! A))) (-. (<= (! A) x)) (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  ## </d>
+  jaoi  
+  ## <d 'Distributive Property '>
+    (= y (.- x (! A))) (<= (! A) x) (-. (<= (! A) x)) andi
+    ## <d 'Commutative Property'>
+      (/\ (= y (.- x (! A))) (\/ (<= (! A) x) (-. (<= (! A) x)))) (\/ (/\ (= y (.- x (! A))) (<= (! A) x)) (/\ (= y (.- x (! A))) (-. (<= (! A) x)))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    sylbi2
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Excluded Middle'>
+    (<= (! A) x) exmid    
+    (= y (.- x (! A))) anRemove2
+    (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) imbi1i
+    mpbi
+  ## </d 'Excluded Middle'>
+  vtocle
+  x gen
+
+  x y (+ (! A) (2)) leeq2
+  x y (+ (! A) A) leeq1 anbi12d rwffi
+  x y compositeeq rwffi
+  ssImplies bicomi  
+  mpbi
+  
+  ## <d 'Natural Number Interval Definition '>
+    (+ (! A) (2)) (+ (! A) A) x df-interval seqcomi
+    SeqReplaceSs0
+  ## </d 'Natural Number Interval Definition '>
+  
+  ## <d 'Def. Set of Composite Numbers '>
+    x df-compositeset seqcomi
+    SeqReplaceSs1
+  ## </d 'Def. Set of Composite Numbers '>
+)
+
 # number 0.95
 thm (divideslincom () () (-> (/\ (| (S A) B) (| (S A) C)) (-> (lincom B C D) (| (S A) D)))
 B  C  D  w  x  y  z  df-lincom
@@ -27993,6 +28671,7 @@ thm (df-primes-just ((A x y) (B x y)) () (<->
 defthm (df-primes wff (primes A B) ((A x) (B x)) ()
     (<-> (primes A B)    (A. x (-> (< x A) (prime (beta B x)))))
   y  A  B  x  df-primes-just)
+
 # number 10.0
 # nondecr(A B) shall mean that the first A elements of the list represented by
 # the beta-numeral B are nondecreasing.

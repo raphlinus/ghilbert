@@ -1,24 +1,23 @@
 == Divisibility | ==
 
-A | B means that A divides B with no remainder. For example,
+#(| a b)# means that #a# divides #b# with no remainder. For example,
 
-* 3 divides 6, [/edit/peano/arithmetic.gh/3divides6 | 3 | 6],
-* 3 does not divide 7, [/edit/peano/arithmetic.gh/3notdivides7 | 3 ∤ 7].
+* #(3)# divides #(6)#, #(| (3) (6)) /edit/peano/arithmetic.gh/3divides6#
+* #(3)# does not divide #(7)#, #(-. (| (3) (7))) /edit/peano/arithmetic.gh/3notdivides7#
 
 === Definition ===
 
-[/edit/peano/peano_thms.gh/df-divides | A | B ↔ (∃x A ∙ x = B)]
+#(<-> (| A B) (E. x (= (* A x) B))) /edit/peano/peano_thms.gh/df-divides#
 
 === Properties ===
 
-* Reflexive: [/edit/peano/peano_thms.gh/dividessym | A | A]
-* Transitive: [/edit/peano/peano_thms.gh/dividestr | A | B ∧ B | C → A | C ]
-* Modulo Equivalence: [/edit/peano/peano_thms.gh/dividesmod | A | B ↔ B  mod  A = 0	]
-* Addition: [/edit/peano/peano_thms.gh/dividesadd12 | A | B ∧ A | C → A | B + C	]
-* Subtraction: [/edit/peano/peano_thms.gh/divideshalfminus12 | A | B ∧ A | C → A | B - C	]
-* [/edit/peano/peano_thms.gh/dividessymmul | A | A ∙ B ]
-* [/edit/peano/peano_thms.gh/dividesmul | A | B → A | B ∙ C	]
-* [/edit/peano/peano_thms.gh/notDivides3 | A ∤ B ↔ ∃x A∙x < B < A∙(x+1)]
+* Reflexive: #(| a a) /edit/peano/peano_thms.gh/dividessym#
+* Transitive: #(-> (/\ (| a b) (| b c)) (| a c)) /edit/peano/peano_thms.gh/dividestr#
+* Modulo Equivalence: #(<-> (| a b) (= (mod b a) (0))) /edit/peano/peano_thms.gh/dividesmod#
+* Addition: #(-> (/\ (| a b) (| a c)) (| a (+ b c))) /edit/peano/peano_thms.gh/dividesadd12#
+* Subtraction: #(-> (/\ (| a b) (| a c)) (| a (.- b c))) /edit/peano/peano_thms.gh/divideshalfminus12#
+* #(| a (* a b)) /edit/peano/peano_thms.gh/dividessymmul#
+* #(-> (| a b) (| a (* b c))) /edit/peano/peano_thms.gh/dividesmul#
 
 Divisiblity is used to define [/wiki/peano/number-theory/prime | prime numbers].
 

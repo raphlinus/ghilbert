@@ -1,8 +1,3 @@
-# This file contains theorems related to natural number arithmetic. However, it does not
-# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
-# theorems that are valid for natural numbers, integers, rational numbers, and real
-# numbers.
-
 import (PROP ../../prop.ghi () "")
 import (PREDICATE ../../predicate/all.ghi (PROP) "")
 import (NATURALS common.ghi (PROP PREDICATE) "")
@@ -66,7 +61,14 @@ x 19.22i
 ax-mp
 )
 
-# == Division, primality ==
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of divisibility. It is assumed that every number in this theorem is a natural
+##   number.
+## </context>
+
+# == Divisibility ==
 
 # number 36.5
 thm (df-divides-just ((A x) (B x) (A y) (B y)) ()
@@ -651,6 +653,13 @@ thm (dividestr () () (-> (/\ (| A B) (| B C)) (| A C))
     A  C  z  df-divides    sylibr
 )
 
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of the minimum number in a set of natural numbers. It is assumed that every
+##   number in this theorem is a natural number.
+## </context>
+
 # number 87.0
 thm (df-min-just ((S x) (S y) (S x') (S y')) ()
   (= (iota ({|} x (/\ (e. x S) (A. y (-> (e. y S) (<= x y))))))
@@ -867,6 +876,12 @@ thm (minseqd () (h (-> ph (=_ S T)))
   h S T minseq syl
 )
 
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of the modulo operation. It is assumed that every
+##   number in this theorem is a natural number.
+## </context>
+
 # number 89.0
 thm (df-mod-just ((A x y x' y') (B x y x' y')) ()
   (= (min ({|} x (E. y (= (+ (* B y) x) A))))
@@ -962,6 +977,12 @@ thm (EqReplaceImp1Eq1Add0 () (
   EqReplaceImp1Eq1
 )
 
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of the minimum number in a set of natural numbers. It is assumed that every
+##   number in this theorem is a natural number.
+## </context>
+
 ## <title> A nonempty set minimum is in the set </title>
 thm (mincl ((S x)) ()
   (-> (E. x (e. x S)) (e. (min S) S))
@@ -1014,6 +1035,12 @@ thm (EqReplaceLt0 () (
   C lteq1i
   mpbi
 )
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of the modulo operation. It is assumed that every
+##   number in this theorem is a natural number.
+## </context>
 
 thm (mod0 () () (= (mod A (0)) A)
   A (0) x y df-mod
@@ -1152,6 +1179,12 @@ thm (modval.3 () ()
 
   pm2.61i
 )
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of the minimum number in a set of natural numbers. It is assumed that every
+##   number in this theorem is a natural number.
+## </context>
 
 ## <summary> Another way of specifying the value of minimum </summary>
 thm (minval ((ps x) (A x))
@@ -1412,6 +1445,13 @@ thm (modid () ()
   A B x A modval mpan2 eqcomd
 )
 
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of whole number division. It is assumed that every number in this theorem
+##   is a natural number. Whole number division gives the result of normal division
+##   without the remainder.
+## </context>
+
 # Definition of division using set minimum instead of iota
 thm (df-div-just ((A x y) (B x y)) ()
   (= (min ({|} x (= (+ (* B x) (mod A B)) A)))
@@ -1498,6 +1538,12 @@ thm (diveq2d () (
   A B C diveq2
   syl
 )
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of set minumum, modulo, and whole number division. It is assumed that every number in this theorem
+##   is a natural number.
+## </context>
 
 # number 108.0
 thm (modex ((A y) (B y)) () (E. y (= (+ (* B y) (mod A B)) A))
@@ -1675,6 +1721,13 @@ thm (muldivi () (hyp (> A (0))) (= (div (* A B) A) B)
   ax-mp
 )
 
+
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of even and odd numbers.
+## </context>
+
 ## <title> Even Number Definition </title>
 ## <summary>
 ##   An even number is divisible by 2.
@@ -1752,6 +1805,12 @@ thm (evenNotOdd () () (<-> (-. (odd A)) (even A))
 )
 
 
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of set minumum, modulo, and whole number division. It is assumed that every number in this theorem
+##   is a natural number.
+## </context>
 
 ## <title> All nonzero natural numbers are positive </title>
 ## <suggest> right('Equivalence', '<') </suggest>
@@ -2247,6 +2306,12 @@ A leeq2i
 ph bibi2i
 mpbi
 )
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of even and odd numbers. It is assumed that every number in this theorem
+##   is a natural number.
+## </context>
 
 ## <title> Alternative Odd Number Definition </title>
 thm (oddex ((A x)) () (<-> (odd A) (E. x (= (+ (* (2) x) (1)) A)))
@@ -2812,6 +2877,12 @@ thm (div2xxplus1 () () (| (2) (* A (+ A (1))))
     mpbi
   ## </d 'Even Number Definition '>
 )
+
+## <context>
+##   This theorem is part of a series of theorems that describe the properties
+##   of modulo congruence. It is assumed that every number in this theorem
+##   is a natural number.
+## </context>
 
 ## <title> Modulo Congruence Definition </title>
 ## <summary>

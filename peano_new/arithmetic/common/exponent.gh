@@ -180,6 +180,54 @@ thm (exp3 () () (= (exp A (3)) (* (* A A) A))
   ## </d 'Associative Property '>
 )
 
+
+
+## <title> One-digit Addition </title>
+thm (3plus1 () () (= (+ (3) (1)) (4))
+  df-4
+  ## <d 'Commutative Property'>
+    (4) (+ (3) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (*  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (*  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= A (* B D))
+     substitution (= B C)) 
+     (= A (* C D))
+  replacee substitution
+  D muleq1i
+  EqReplaceEq1
+)
+
+## <title> Fourth Power </title>
+thm (exp4 () () (= (exp A (4)) (* (* (* A A) A) A))
+  A (3) expplus1  
+  ## <d 'Evaluate'>
+    3plus1
+    EqReplaceEq0Exp1
+  ## </d 'Evaluate'>
+  A exp3  
+  EqReplaceEq1Mul1
+  ## <d>
+  ## <d 'Associative Property '>
+    A (* A A) A mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  
+  ## <d 'Associative Property '>
+    A A A mulass eqcomi
+    EqReplaceEq1Mul0
+  ## </d 'Associative Property '>
+  ## </d>
+)
+
 ## <title> Substitution </title>
 ## <table>
 ##   (= A (+  [ B ]   ]   ]  D))

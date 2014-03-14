@@ -1,17 +1,17 @@
-== Recursive Functions S^A(x) ==
+== Recursive Functions ==
 
-S^A(x) applies the function S a total of A times. The output from one iteration becaomes the input
-on the next iteration starting with an initial input of x.
+#(recurse S n x)# applies the function #S# a total of #n# times. The output from one iteration becomes the input
+on the next iteration starting with an initial input of #x#.
 
-Recursive functions are [/edit/peano/peano_thms.gh/df-recurse | defined] using 
-[/edit/peano/peano_thms.gh/df-recursep | recursive predicates] which are defined using the
-[/edit/peano/peano_thms.gh/df-beta | Godel beta function].
+Recursive functions are [/edit/peano_new/arithmetic/naturals/recursion_min.gh/df-recurse | defined] using 
+[/edit/peano_new/arithmetic/naturals/recursion_min.gh/df-recursep | recursive predicates] which are defined using the
+[/edit/peano_new/arithmetic/naturals/recursion_min.gh/df-beta | Godel beta function].
 
 === Theorems ===
 
-* [/edit/peano/peano_thms.gh/recurse0 | S^0(A) = A]
-* [/edit/peano/peano_thms.gh/recurse1 | S^1(A) = S(A)]
-* [/edit/peano/peano_thms.gh/recursesuc | S^(A+1)(B) = S(S^A(B))]
-* [/edit/peano/peano_thms.gh/recurseadd | S^A(S^B(C)) = S^(A+B)(C)]
+* #(= (recurse S (0) A) A) /edit/peano_new/arithmetic/naturals/recursion_min.gh/recurse0#
+* #(= (recurse S (1) A) (apply S A)) /edit/peano_new/arithmetic/naturals/recursion.gh/recurse1#
+* #(= (recurse S (+ A (1)) B) (apply S (recurse S A B))) /edit/peano_new/arithmetic/naturals/recursion_min.gh/recursesuc#
+* #(= (recurse S A (recurse S B C)) (recurse S (+ A B) C)) /edit/peano_new/arithmetic/naturals/recursion.gh/recurseadd#
 
 [/wiki/peano/function | Functions Overview]

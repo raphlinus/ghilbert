@@ -1,8 +1,3 @@
-# This file contains theorems related to natural number arithmetic. However, it does not
-# assume all numbers are natural numbers like peano_min.ghi and peano.gh. This proves
-# theorems that are valid for natural numbers, integers, rational numbers, and real
-# numbers.
-
 import (PROP ../../prop.ghi () "")
 import (PREDICATE ../../predicate/all.ghi (PROP) "")
 import (NATURALS common.ghi (PROP PREDICATE) "")
@@ -24,9 +19,17 @@ export (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
 import (ADD_MULTIPLY_NAT add_multiply_nat.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
 
 
+## <context>
+##   This theorem is part of a series of theorems that construct recursive function where
+##   one function is repeated a specified number of times. This is developed using
+##   <a href="http://en.wikipedia.org/wiki/Kurt_G%C3%B6del">Godel's</a> Beta function.
+##   It is assumed that all numbers in this theorem are natural.
+## </context>
+
+
 # == Godel's Beta Function ==
 
-## <summary> A development of Godel's Beta Function, following Shoenfield(1967).  </summary> 
+## <summary> A development of <a href="http://en.wikipedia.org/wiki/Kurt_G%C3%B6del">Godel's</a> Beta Function, following Shoenfield(1967).  </summary> 
 thm (df-beta-just ((A x x') (B x x')) ()
 (=  (min ({|} x (| (+ (* (+ (<,> B x) (1)) (tail A)) (1)) (head A))))
     (min ({|} x' (| (+ (* (+ (<,> B x') (1)) (tail A)) (1)) (head A)))))
@@ -37,6 +40,7 @@ thm (df-beta-just ((A x x') (B x x')) ()
   ({|} x (| (+ (* (+ (<,> B x) (1)) (tail A)) (1)) (head A)))  ({|} x' (| (+ (* (+ (<,> B x') (1)) (tail A)) (1)) (head A)))   minseq  ax-mp
 )
 
+## <summary> A development of <a href="http://en.wikipedia.org/wiki/Kurt_G%C3%B6del">Godel's</a> Beta Function, following Shoenfield(1967).  </summary> 
 defthm  (df-beta nat (beta A B) ((A x ) (B x )) ()
         (= (beta A B) (min ({|} x (| (+ (* (+ (<,> B x) (1)) (tail A)) (1)) (head A)))))
           x' B A x df-beta-just)

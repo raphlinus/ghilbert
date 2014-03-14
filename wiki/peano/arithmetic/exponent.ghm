@@ -1,23 +1,24 @@
 == Exponent ==
 
-Exponentiation is defined using [/edit/peano/peano_thms.gh/df-exponent | repeated multiplication ].
+Exponentiation is defined using repeated multiplication: #(= (exp A B) (product (1) B (lambda y A))) /edit/peano/peano_thms.gh/df-exp#.
 
 === Properties ===
 
-* Power of 0: [/edit/peano/peano_thms.gh/exp0 | A^0 = 1]
-* Identity: [/edit/peano/peano_thms.gh/expid | A^1 = A]
-* Addition: [/edit/peano/peano_thms.gh/expadd | A^(B+C) = A^B ∙ A^C	]
-* Multiplication: [/edit/peano/peano_thms.gh/expmul | (A∙B)^C = A^C ∙ B^C	]
-* Exponent: [/edit/peano/peano_thms.gh/expexp | (A^B)^C = A^(B∙C)	]
+* Power of 0: #(= (exp a (0)) (1)) /edit/peano/peano_thms.gh/exp0#
+* Identity: #(= (exp a (1)) a) /edit/peano/peano_thms.gh/expid#
+* Addition: #(= (exp a (+ b c)) (* (exp a b) (exp a c))) /edit/peano/peano_thms.gh/expadd#
+* Multiplication: #(= (exp (* a b) c) (* (exp a c) (exp b c))) /edit/peano/peano_thms.gh/expmul#
+* Exponent: #(= (exp (exp A B) C) (exp A (* B C))) /edit/peano/peano_thms.gh/expexp#
 
 === Examples ===
 
-* Powers of 2: [/edit/peano/arithmetic.gh/2power2 |  4], [/edit/peano/arithmetic.gh/2power3 |   8], [/edit/peano/arithmetic.gh/2power4 |  16], [/edit/peano/arithmetic.gh/2power5 |  32], 
-               [/edit/peano/arithmetic.gh/2power6 | 64], [/edit/peano/arithmetic.gh/2power7 | 128], [/edit/peano/arithmetic.gh/2power8 | 256], [/edit/peano/arithmetic.gh/2power9 | 512], 
-	             [/edit/peano/arithmetic.gh/2power10 | 1024]
+* Powers of 2: #(4) /edit/peano/arithmetic.gh/2power2#, #(8) /edit/peano/arithmetic.gh/2power3#, #(+ (10) (6)) /edit/peano/arithmetic.gh/2power4#, #(+ (* (3) (10)) (2)) /edit/peano/arithmetic.gh/2power5#, 
+               #(+ (* (6) (10)) (4)) /edit/peano/arithmetic.gh/2power6#, #(+ (* (10) (10)) (+ (* (2) (10)) (8))) /edit/peano/arithmetic.gh/2power7#,
+							 #(+ (* (2) (* (10) (10))) (+ (* (5) (10)) (6))) /edit/peano/arithmetic.gh/2power8#, #(+ (* (5) (* (10) (10))) (+ (10) (2))) /edit/peano/arithmetic.gh/2power9#,
+	             #(+ (* (10) (* (10) (10))) (+ (* (2) (10)) (4))) /edit/peano/arithmetic.gh/2power10#
 
-* Squares: [/edit/peano/arithmetic.gh/2power2 |  4], [/edit/peano/arithmetic.gh/3power2 |   9], [/edit/peano/arithmetic.gh/4power2 |  16], [/edit/peano/arithmetic.gh/5power2 |  25], 
-  [/edit/peano/arithmetic.gh/6power2 | 26], [/edit/peano/arithmetic.gh/7power2 | 49], [/edit/peano/arithmetic.gh/8power2 | 64], [/edit/peano/arithmetic.gh/9power2 | 81], 
-	[/edit/peano/arithmetic.gh/10power2 | 100]
+* Squares: #(4) /edit/peano/arithmetic.gh/2power2#, #(9) /edit/peano/arithmetic.gh/3power2#, #(+ (10) (6)) /edit/peano/arithmetic.gh/4power2#, #(+ (* (2) (10)) (5)) /edit/peano/arithmetic.gh/5power2#,
+  #(+ (* (3) (10)) (6)) /edit/peano/arithmetic.gh/6power2#, #(+ (* (4) (10)) (9)) /edit/peano/arithmetic.gh/7power2#, #(+ (* (6) (10)) (4)) /edit/peano/arithmetic.gh/8power2#, #(+ (* (8) (10)) (1)) /edit/peano/arithmetic.gh/9power2#,
+	#(* (10) (10)) /edit/peano/arithmetic.gh/10power2#
 
 [/wiki/peano/arithmetic | Arithmetic Overview]
