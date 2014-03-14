@@ -423,9 +423,6 @@ GH.archiveSearcher.prototype.addSuggestions = function(sexp) {
 };
 
 GH.archiveSuggestion = function(name, suggest, title, freeness, variables, theorem, hyps) {
-	if (name == 'df-le') {
-		window.console.log('a');
-	}
 	this.name = name;					// The name of the theorem in Ghilbert code.
 	this.type = suggest[0];				// Full theorem, replace left, or replace right.
 	this.categoryName = suggest[1];		// The category of suggestion.

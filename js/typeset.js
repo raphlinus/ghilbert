@@ -17,6 +17,14 @@
 GH.ENABLE_LATEX = true;
 GH.REFRESH_LATEX = true;
 
+GH.min = function(x, y) {
+    return x < y ? x : y;
+};
+
+GH.max = function(x, y) {
+    return x > y ? x : y;
+};
+
 // Conversion to either a simple HTML unicode string or a LaTex expression. This is useful
 // both as a simple display method and also for cut-and-paste interoperation.
 GH.sexptohtml = function(sexp, useLatex) {
@@ -28,6 +36,13 @@ GH.escapeHtml = function(s) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+};
+
+GH.unescapeHtml = function(s) {
+    return s
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g,  '<')
+      .replace(/&gt;/g,  '>');
 };
 
 GH.min = function(x, y) {
@@ -142,7 +157,8 @@ GH.typesetMultiply = function (term, prec, useLatex) {
 GH.typesetAnd = function (term, prec, useLatex) {
 	if ((((term[1][0] == '<') || (term[1][0] == '<=')) &&
 	     ((term[2][0] == '<') || (term[2][0] == '<='))) || 
-		 ((term[1][0] == '=') && (term[2][0] == '='))) {
+		 ((term[1][0] == '=') && (term[2][0] == '=')) || 
+		 ((term[1][0] == '=_') && (term[2][0] == '=_'))) {
 			 
 		// This doesn't work for compound expressions like A < B + C < D.	
 		if (term[1][2].toString() == term[2][1].toString()) {
@@ -154,6 +170,8 @@ GH.typesetAnd = function (term, prec, useLatex) {
 				} else if (term[i][0] == '<') {
 					operator = '&lt;';
 				} else if (term[i][0] == '=') {
+					operator = '=';
+				} else if (term[i][0] == '=_') {
 					operator = '=';
 				}
 				var space = GH.spaceslug(3, useLatex);
@@ -301,7 +319,7 @@ GH.getSetElements = function(set, result) {
 };
 
 GH.typesetSet = function(term, useLatex) {
-	var slugs = [GH.stringslug('{', useLatex)];
+	var slugs = useLatex ? [GH.stringslug('\\left\\{', useLatex)] : [GH.stringslug('{', useLatex)];
 	var elements = GH.getSetElements(term, []);
 	for (var i = 0; i < elements.length; i++) {
 		slugs.push(GH.typeset(elements[i], useLatex));
@@ -309,7 +327,11 @@ GH.typesetSet = function(term, useLatex) {
 		    slugs.push(GH.stringslug(',', useLatex));
 		}
 	}
-    slugs.push(GH.stringslug('}', useLatex));
+	if (useLatex) {
+	    slugs.push(GH.stringslug('\\right\\}', useLatex));
+	} else {
+	    slugs.push(GH.stringslug('}', useLatex));
+	}
     return GH.combineslugs(slugs, GH.typeset.maxPrec(useLatex));
 };
 
@@ -403,7 +425,7 @@ GH.typeset = function(sexp, useLatex) {
 	var str;
 	var decimal = GH.numUtil.decimalNumber(sexp);
 	var operations = useLatex ? GH.typeset.LATEX_OPERATIONS : GH.typeset.OPERATIONS;
-    if (GH.typeOf(sexp) == 'string') {
+    if (GH.typeset.typeOf(sexp) == 'string') {
 		var symbol = GH.typesetVariables(sexp);
         return GH.stringslug(symbol, useLatex);
     } else if (!isNaN(decimal)) {
@@ -441,6 +463,81 @@ GH.typeset = function(sexp, useLatex) {
 	}
 };
 
+/**
+ * Like the regular typeof, but returns 'string' for Objects which are
+ * instanceof String.  This allows us to extend String objects with
+ * more properties, since JS does not allow you to set properties on
+ * strings.
+ * Same as GH.typeOf, but the wiki doesn't include verify.js.
+ */
+GH.typeset.typeOf = function(obj) {
+    if (obj instanceof String) {
+        return 'string';
+    }
+    return typeof obj;
+};
+
+GH.typeset.formatWiki = function() {
+	var sexps = window.document.getElementsByClassName('sexp');
+	for (var i = 0; i < sexps.length; i++) {	
+		var formatted = GH.typeset.parseString(GH.unescapeHtml(sexps[i].innerHTML));
+		if (formatted.length > 0) {
+			var mathElement;
+			if (formatted.length == 1) {
+				mathElement = sexps[i];
+			} else {
+				sexps[i].innerHTML = '';
+				mathElement = document.createElement("a");
+				mathElement.setAttribute('href', formatted[1]);
+				sexps[i].appendChild(mathElement);
+			}
+			mathElement.innerHTML = '\\(' + formatted[0] + '\\)';
+			MathJax.Hub.Queue(["Typeset", MathJax.Hub, mathElement]);
+		} else {
+			sexps[i].innerHTML = 'error';
+		}
+	}
+};
+
+// An ultra-simplified version of the parser to display individual mathematical expressions in the wiki.
+// The full versions are in verify and GH.DirectThm.tok.
+GH.typeset.parseString = function(text) {
+	var toks = text.replace(/\(|\)/g, ' $& ').split(' ');
+	var sexpstack = [];
+	var result = [];
+	var link = null;
+	for (var i = 0; i < toks.length; i++) {
+		var tok = toks[i];
+		if (tok == '(') {
+			sexpstack.push([]);
+		} else if (tok == ')') {
+			if (sexpstack.length == 1) {
+				// When the last s-expression is popped convert to html.
+				result.push(GH.sexptohtml(sexpstack.pop(), true));
+			} else {
+				// Otherwise, attach the last s-expression as a child of the one before it.
+				var last = sexpstack.pop();
+				if (sexpstack.length == 0) {
+					return result;
+				}
+				sexpstack[sexpstack.length - 1].push(last);
+			}
+		} else if (tok != '') {
+			if (result.length == 0) {
+				if (sexpstack.length == 0) {
+					result = [tok];
+				} else {
+					sexpstack[sexpstack.length - 1].push(tok);
+				}
+			} else {
+				// The link if one exists, is the second entry in the result.
+				result.push(tok);
+			}
+		}
+	}
+	return result;
+};
+
 // Returns the maximum precedence.
 GH.typeset.maxPrec = function(useLatex) {
 	if (useLatex) {
@@ -466,7 +563,7 @@ GH.typeset.LATEX_OPERATIONS = [
 	[['A.', '∀'],  'generic', ['∀', 1, ' \\enspace ', 2]],
     [['E.', 'n.E.', 'z.E.', '∃'],  'generic', ['∃', 1, ' \\enspace ', 2]],
     [['E!', '∃!'], 'generic', ['∃!', 1, ' \\enspace ', 2]],
-    [['E*', '∃*'], 'generic', ['∃*', 1, ' \\enspace ', 2]],
+    [['E*', '∃*'], 'generic', ['∃^{*}', 1, ' \\enspace ', 2]],
 ],
 [ // 40
     [['[/]', 'n.[/]'], 'generic', ['[', 1, '/', 2, '] \\enspace ', 3]],
@@ -482,12 +579,13 @@ GH.typeset.LATEX_OPERATIONS = [
 ],
 [
 	[['prime'], 'generic', ['', 1, '\\> \\textrm{ is prime}']],
+	[['composite'], 'generic', ['', 1, '\\> \\textrm{ is composite}']],
 	[['even'],  'generic', ['', 1, '\\> \\textrm{ is even}']],
 	[['odd'],   'generic', ['', 1, '\\> \\textrm{ is odd}']],
 	[['zpos', 'qpos', 'pos'], 'generic', ['', 1, '\\> \\textrm{ is positive}']], 
 	[['zneg', 'qneg', 'neg'], 'generic', ['', 1, '\\> \\textrm{ is negative}']],
-	[['upperbound'],  'generic', ['', 1, '\\> \\textrm{ is an upper bound of }']], 
-	[['supremum'],    'generic', ['', 1, '\\> \\textrm{ is the supremum of }']],
+	[['upperbound'],  'generic', ['', 1, '\\> \\textrm{ is an upper bound of }', 2]], 
+	[['supremum'],    'generic', ['', 1, '\\> \\textrm{ is the supremum of }', 2]],
 ],
 [ // 1050
 	[['=', 'n.=', '=n', 'z.=', 'q.=', 'r.=','=z', '=q', '=_'],    'infix', 'n', '='],
@@ -528,7 +626,7 @@ GH.typeset.LATEX_OPERATIONS = [
 ],
 [ // 2500
 	[['exp'], 'generic', ['', 1, '^{', 2, '}']],
-	[['mod'], 'infix', 'n', ' mod '],
+	[['mod'], 'infix', 'n', '\\enspace \\textrm{mod} \\enspace'],
 	[['!'],   'generic', ['', 1, '!']],
     [['nCr'], 'no-parentheses', ['\\binom{', 1, '}{', 2, '}'], 'no-parentheses', ['( ', 1, ') ']],
     [['recursep'], 'no-parentheses', ['', 1, '^{', 2, '} (', 3, ') = ', 4]],
@@ -565,6 +663,7 @@ GH.typeset.LATEX_OPERATIONS = [
 	[['T'], 'generic', ['\\top']],
 	[['F'], 'generic', ['\\bot']],
 	[['N'], 'string', 'ℕ'],
+	[['i'], 'string', '{i}'],
 	[['n.0'], 'string', '0_{N}'],
 	[['n.1'], 'string', '1_{N}'],
 	[['z.0'], 'string', '0_{Z}'],
@@ -573,16 +672,17 @@ GH.typeset.LATEX_OPERATIONS = [
 	[['r.1'], 'string', '1_{R}'],
 	[['S'], 'generic', ['', 1, '′']],
 	[['primeset'], 'string', '\\textrm{Primes}'],
+	[['compositeset'], 'string', '\\textrm{Composites}'],
     [['{|}'], 'no-parentheses', ['\\{', 1, '|', 2, '\\}']],
     [['n.{|}'], 'no-parentheses', ['\\{', 1, '|', 2, '\\}_\\mathbb{N}']],
-    [['{...}'], 'generic', ['\\{', 1, '\\ldots ', 2, '\\}']],
+    [['{...}'], 'no-parentheses', ['\\{', 1, '\\ldots ', 2, '\\}']],
     [['{}'], 'generic', ['\\{', 1, '\\}']],
 	[['{/}'], 'string', '\\emptyset'],
 	[['<,>', 'n.<,>'], 'tuple'],
 	[['<>'], 'tuple'],
     [['<{}>'], 'generic', ['\\{', 1, '_{1},      ', 1, '_{2}, \\ldots, ', 1, '_N\\}']],
-    [['<+>'],  'generic', ['\\{', 1, '_{1} +     ', 1, '_{2}+ \\cdots +', 1, '_N\\}']],
-    [['<*>'],  'generic', ['\\{', 1, '_{1}\\cdot ', 1, '_{2}  \\cdots  ', 1, '_N\\}']],
+    [['<+>'],  'generic', ['', 1, '_{1} +     ', 1, '_{2}+ \\cdots +', 1, '_N']],
+    [['<*>'],  'generic', ['', 1, '_{1}\\cdot ', 1, '_{2}  \\cdots  ', 1, '_N']],
 	[['{.|}'], 'applyset'],
 	[['apply'], 'apply'],
 	[['sum'], 'sum'],
@@ -624,6 +724,7 @@ GH.typeset.OPERATIONS = [
 ],
 [
 	[['prime'], 'generic', ['', 1, ' is prime']],
+	[['composite'], 'generic', ['', 1, ' is composite']],
 	[['even'],  'generic', ['', 1, ' is even']],
 	[['odd'],   'generic', ['', 1, ' is odd']],
 	[['zpos', 'pos'],  'generic', ['', 1, ' is positive']],
@@ -695,6 +796,7 @@ GH.typeset.OPERATIONS = [
 	[['T'], 'string', 'T'],
 	[['F'], 'string', 'F'],
 	[['N'], 'string', 'ℕ'],
+	[['i'], 'string', 'i'],
 	[['n.0'], 'string', '0<sub>N</sub>'],
 	[['n.1'], 'string', '1<sub>N</sub>'],
 	[['z.0'], 'string', '0<sub>Z</sub>'],
@@ -703,8 +805,9 @@ GH.typeset.OPERATIONS = [
 	[['r.1'], 'string', '1<sub>R</sub>'],
 	[['S'], 'generic', ['', 1, '′']],
 	[['primeset'], 'string', 'Primes'],
+	[['compositeset'], 'string', 'Composites'],
     [['{|}'], 'no-parentheses', ['{', 1, '|', 2, '}']],
-    [['{...}'], 'generic', ['{', 1, '…', 2, '}']],
+    [['{...}'], 'no-parentheses', ['{', 1, '…', 2, '}']],
     [['{}'], 'generic', ['{', 1, '}']],
 	[['{/}'], 'string', '∅'],
 	[['<,>', 'n.<,>'], 'tuple'],

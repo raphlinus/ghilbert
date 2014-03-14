@@ -397,7 +397,10 @@ GH.ProofSegment.prototype.resizeTables = function(){
 		var firstCell = row.children[1];
 		firstCell.setAttribute('style', 'padding-left: auto');
 		var lastCell = this.getNameColumn(row);
-		lastCell.setAttribute('style', 'padding-left: auto');
+		if (lastCell) {
+			// I don't know why this isn't always true.
+			lastCell.setAttribute('style', 'padding-left: auto');
+		}
 		if (this.children[i].aligned && (i > 0)) {
 			alignedGroup.push(alignedGroup[i - 1]);
 		} else {
@@ -429,7 +432,10 @@ GH.ProofSegment.prototype.resizeTables = function(){
 		var row = this.children[i].smallElement;
 		var firstCell = row.children[1];
 		var lastCell = this.getNameColumn(row);
-		lastCell.setAttribute('style', 'width: auto');
+		if (lastCell) {
+			// I don't know why this isn't always true.
+			lastCell.setAttribute('style', 'width: auto');
+		}
 		var margin = (this.type % 2 == 0) ? 62 : 84;
 		var largeWrapper = (this.type % 2 == 0) ? this.largeWrapper : this.parent.largeWrapper;
 		var alignedWidth = alignedWidths[i];
@@ -438,7 +444,10 @@ GH.ProofSegment.prototype.resizeTables = function(){
 		
 		var padding = largeWrapper.offsetWidth - row.offsetWidth - margin;
 		firstCell.setAttribute('style', 'padding-left: ' + Math.floor((padding - extraRight) / 2));
-		lastCell.setAttribute ('style', 'padding-left: ' + Math.ceil( (padding + extraRight) / 2));
+		if (lastCell) {
+			// I don't know why this isn't always true.
+			lastCell.setAttribute ('style', 'padding-left: ' + Math.ceil( (padding + extraRight) / 2));
+		}
 	}
 };
 

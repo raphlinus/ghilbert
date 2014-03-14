@@ -107,12 +107,12 @@ def wikilink(str, path='', exists = None, ispreblock = False, ctx = None):
     if re.match(r'Image:', link):
         splitUrl = re.split('Image:', urlquote(url))
         src = ''.join(splitUrl)
-        
+
         imageHtml = '<img class="center" src="' + src + '">'
         if body != None:
             imageHtml += '<div class="image-caption">' + htmlquote(body) + '</div>'
         return imageHtml
-    langtext = ''        
+    langtext = ''
     if body == None:
         if re.match('wiki/', linktext):
             body = linktext[5:]
@@ -202,7 +202,7 @@ def process_ghmarkup(str, path):
     emphs = {'_': 'em', '*' : 'strong', '//': 'em', '**': 'strong'}
     def my_wikilink(str, ispreblock = False):
         return wikilink(str, path, ispreblock = False)
-    embeds = {'[': (r'\]', my_wikilink), '[[': (r'\]\]', my_wikilink), 
+    embeds = {'[': (r'\]', my_wikilink), '[[': (r'\]\]', my_wikilink),
               '#': (r'#', wikigh),
               '{{{': (r'\}\}\}(?!\})', wikipre)}
     for open, (close, embedfn) in embeds.items():

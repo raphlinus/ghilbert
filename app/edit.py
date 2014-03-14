@@ -149,6 +149,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/proofstep.js" type="text/javascript"></script>
 <script src="/js/proofsegment.js" type="text/javascript"></script>
 <script src="/js/prover/prover.js" type="text/javascript"></script>
+<script src="/js/sexpression.js" type="text/javascript"></script>
 <script src="/js/prover/archiveSearcher.js" type="text/javascript"></script>
 <script src="/js/prover/buttonController.js" type="text/javascript"></script>
 <script src="/js/prover/equalizer.js" type="text/javascript"></script>

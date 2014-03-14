@@ -41,6 +41,15 @@ class Handler(users.AuthenticatedHandler):
         if obj is not None:
             contents = babygit.babygit.obj_contents(obj)
             common.header(o, "")
+            o.write('<script type="text/javascript">GH={};</script>')
+            o.write('<script src="/js/typeset.js" type="text/javascript"></script>')
+            o.write('<script src="/js/sexpression.js" type="text/javascript"></script>')
+            o.write('<script src="/js/prover/numUtil.js" type="text/javascript"></script>')
+            o.write('<script src="/js/prover/setUtil.js" type="text/javascript"></script>')
+            o.write('<script src="/js/prover/tupleUtil.js" type="text/javascript"></script>')
+            o.write('<script type="text/javascript"')
+            o.write('  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">')
+            o.write('</script>')
             o.write('<div id="text-body">')
             # o.write("Ghilbert wiki: " + arg)
             o.write(ghmarkup.process_ghmarkup(contents, '/'))
@@ -48,6 +57,7 @@ class Handler(users.AuthenticatedHandler):
                 o.write('<div><a href="%s">Edit</a></div>\n' % urllib.quote(editurl))
             else:
                 o.write('<div><a href="/account/Login">Login to edit</a></div>\n')
+            o.write('<script type="text/javascript">GH.typeset.formatWiki()</script>')
         else:
             o.write('<p>No page yet for ' + cgi.escape(arg) + ', but you can <a href="' + editurl + '">create</a> one.</p>')
 

@@ -1,17 +1,5 @@
 // <license>
 
-GH.min = function(x, y) {
-    return x < y ? x : y;
-};
-
-GH.max = function(x, y) {
-    return x > y ? x : y;
-};
-
-GH.abs = function(x) {
-    return x >= 0 ? x : -x;
-};
-
 GH.cursormin = function(c1, c2) {
     if (c1[0] === c2[0]) {
         return c1[1] < c2[1] ? c1 : c2;

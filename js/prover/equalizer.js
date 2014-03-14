@@ -181,7 +181,7 @@ GH.ProofGenerator.equalizer.prototype.canAddTheorem = function(sexp) {
 
 GH.ProofGenerator.equalizer.prototype.addTheorem = function(sexp, unused, indices) {
 	var variables = this.getVariables(sexp.parent, indices);
-	this.prover.println('## <title> Equivalence for ' + GH.operatorUtil.getUnicode(sexp.parent.operator) + ' </title> ##');
+	this.prover.println('## <title> Equivalence for ' + sexp.parent.operator + ' </title> ##');
 	this.prover.println('thm (' + this.action(sexp, indices).name + ' () () ' + this.findConclusion(sexp, indices, variables));
 	this.prover.depth++;
 	if (indices.length == 1) {
