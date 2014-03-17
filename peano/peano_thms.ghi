@@ -1,4 +1,6 @@
-# Building up theorems of peano aristmtetic.
+# Building up theorems of peano arithmetic.
+
+## <justification> redirect peano_thms.gh </justification>
 
 param (PROP /peano/prop.ghi () "")
 param (PEANO_MIN /peano/peano_min.ghi (PROP) "")
@@ -766,6 +768,11 @@ stmt(eqeq2d () ((-> ph (= A B))) (-> ph (<-> (= C A) (= C B))))
 
 stmt (eqeq12 () () (-> (/\ (= A B) (= C D)) (<-> (= A C) (= B D))))
 
+stmt (eqeq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (<-> (= A C) (= B D))))
+
 ## <title> Equivalence over Inequality </title>
 ## <table>
 ##   (=      A ]   ]      [ B ]   )
@@ -779,6 +786,16 @@ stmt (lteq1i () ((= A B)) (<-> (< A C) (< B C)))
 ##   (<-> (< C [ A ] ) (< [ C [ B ] ))
 ## </table>
 stmt (lteq2i () ((= A B)) (<-> (< C A) (< C B)))
+
+stmt (lteq1d () (
+     (-> ph (= A C)))
+     (-> ph (<-> (< A B) (< C B))))
+
+stmt (lteq2d () (
+     (-> ph (= B C)))
+     (-> ph (<-> (< A B) (< A C))))
+
+stmt (lteq12d () ((-> ph (= A B)) (-> ph (= C D))) (-> ph (<-> (< A C) (< B D))))
 
 ## <title> Equality over Succession </title>
 ## <table>
@@ -1841,3 +1858,9 @@ stmt (ifneq3d () (
 ##   mod C are equal.
 ## </summary>
 stmt (df-modcon () () (<-> (=mod A B C) (= (mod A C) (mod B C))))
+
+## <title> Additive Identity </title>
+stmt (addid () () (= (+ A (0)) A))
+
+## <title> Additive Identity </title>
+stmt (addidr () () (= (+ (0) A) A))

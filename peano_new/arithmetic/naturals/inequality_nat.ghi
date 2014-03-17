@@ -11,11 +11,13 @@ tvar (wff ph ps ch th ta)
 tvar (nat A B C D)
 var (nat v w x y z)
 
-## <title> No Natural Numbers Below Zero </title>
-stmt (0le () () (<= (0) A))
+
+## <justification>
+##   redirect inequality_min.gh
+## </justification>
 
 ## <title> No Natural Numbers Below Zero </title>
-stmt (ge0 () () (>= A (0)))
+stmt (0le () () (<= (0) A))
 
 ## <title> Definition of Less Than or Equal to </title>
 ## <suggest> right('Define', '≤') left('Simplify', '≤') </suggest>
@@ -25,6 +27,20 @@ stmt (df-le ((A x) (B x)) () (<-> (<= A B) (E. x (= (+ A x) B))))
 stmt (lemul5 () () (<-> (<= (* A (+ C (1))) (* B (+ C (1)))) (<= A B)))
 
 stmt (lefoo ((A z)) () (\/ (= A (0)) (E. z (= (+ (1) z) A))))
+
+## <title> Strong Induction </title>
+stmt (sind ((A x) (ta x) (ph y))              # ph(x) is some term in x; ph(A) is to be proved
+  ((-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   (-> (= x (+ y (1))) (<-> ph th))           # th is ph(y')
+   (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   ps
+   (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds
+  ta)
+
+	
+## <justification>
+##   redirect inequality_nat.gh
+## </justification>
 
 stmt (addge01t () () (<= A (+ A B)))
 
@@ -52,14 +68,8 @@ stmt (axlttri () () (<-> (< A B) (-. (\/ (= A B) (< B A)))))
 ## <title> Natural Numbers are Whole Numbers </title>
 stmt (natWhole () () (-. (/\ (< A B) (< B (+ A (1))))))
 
-## <title> Strong Induction </title>
-stmt (sind ((A x) (ta x) (ph y))              # ph(x) is some term in x; ph(A) is to be proved
-  ((-> (= x (0))   (<-> ph ps))               # ps is ph(0)
-   (-> (= x (+ y (1))) (<-> ph th))           # th is ph(y')
-   (-> (= x A)     (<-> ph ta))               # ta is ph(A)
-   ps
-   (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds
-  ta)
+## <title> No Natural Numbers Below Zero </title>
+stmt (ge0 () () (>= A (0)))
 
 stmt (eq0le0 () () (<-> (= A (0)) (<= A (0))))
 

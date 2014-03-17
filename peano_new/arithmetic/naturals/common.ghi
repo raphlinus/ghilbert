@@ -27,8 +27,9 @@ term (nat (8))
 term (nat (9))
 term (nat (10))
 
-
-## Copied from add_multiply_min.ghi
+## <justification>
+##   redirect ../common/add_multiply_min.ghi
+## </justification>
 
 term (nat (+ A B))
 term (nat (* A B))
@@ -96,11 +97,61 @@ stmt (muleq12 () () (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
 ## <suggest> right('Cancel', '+') </suggest>
 stmt (addcan () () (<-> (= (+ B A) (+ C A)) (= B C)))
 
+
+
+## <justification>
+##   redirect mulcan_min.ghi
+## </justification>
+
 ## <title> Cancel Multiplication </title>
 stmt (mulcan () () (-> (-. (= C (0))) (<-> (= (* A C) (* B C)) (= A B))))
 
 
-## Copied from inequality_min.ghi
+## <justification>
+##   redirect ../common/mulcan.ghi
+## </justification>
+
+stmt (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0)))))
+
+## <title> Cancel Multiplication </title>
+stmt (mulcan2 () () (-> (-. (= A (0))) (<-> (= (* A B) (* A C)) (= B C))))
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (= A ] (0))) ] ]
+##   (= (* B ] <r> A) ] (* [ C <r> A))
+##   (=    B ]        ]    [ C)
+## </table>
+stmt (mulcani () ((-. (= A (0))) (= (* B A) (* C A))) (= B C))
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (= A    ] ] (0)))  ]
+##   (= (* <r> A [ B ) ] (* <r> A [ C ))
+##   (=          [ B   ]          [ C)
+## </table>
+stmt (mulcan2i () ((-. (= A (0))) (= (* A B) (* A C))) (= B C))
+
+## <title> Zero Product Property </title>
+stmt (zeroProductz () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0)))))
+
+## <title> Zero Product Property </title>
+stmt (zeroFactors () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct () () (-> (-. (= A (0))) (<-> (= B (0)) (= (* A B) (0)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct2 () () (<-> (-. (= (* A B) (0))) (/\ (-. (= A (0))) (-. (= B (0))))))
+
+## <title> Multiply Nonequal Numbers </title>
+stmt (neqmul () () (-> (/\ (-. (= A B)) (-. (= C (0)))) (-. (= (* A C) (* B C)))))
+
+
+
+## <justification>
+##   redirect ../common/inequality_min.ghi
+## </justification>
 
 term (wff (<= A B))
 
@@ -145,6 +196,11 @@ stmt (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B))))
 stmt (exle ((A x)(B x)) () (<-> (<= A B) (E. x (/\ (<= (0) x) (= (+ A x) B)))))
 
 
+
+
+## <justification>
+##   redirect ../common/add_multiply.ghi
+## </justification>
 
 ## <title> Additive Identity </title>
 ## <suggest> auto-right('Simplify', '0') </suggest>
@@ -196,8 +252,21 @@ stmt (axgrtri () () (<-> (> A B) (/\ (-. (= A B)) (>= A B))))
 ## </table>
 stmt (addneq2i () ((-. (= A B))) (-. (= (+ C A) (+ C B))))
 
+stmt (dist_ax6 () () (= (* A (+ B (1))) (+ (* A B) A)))    
+
+stmt (dist_ax6r () () (= (* (+ A (1)) B) (+ (* A B) B)))
+
+## <title> Adding twice mean Multiply by 2 </title>
+## <suggest> right('Simplify', '2') </suggest>
+stmt (add2mul () () (= (+ A A) (* (2) A)))
 
 
+
+
+
+## <justification>
+##   redirect ../common/inequality.ghi
+## </justification>
 
 ## <title> Addition is Monotonic </title>
 ## <summary> Addition is strictly monotonic in the second addend </summary>
@@ -739,6 +808,12 @@ stmt (ltnge () () (-> (< A B) (-. (>= A B))))
 ## <suggest> right('Infer', '¬>') </suggest>
 stmt (eqngt () () (-> (= A B) (-. (> A B))))
 
+
+
+## <justification>
+##   redirect ../common/add_multiply.ghi
+## </justification>
+
 ## <title> Add a number to both sides of an equation </title>
 ## <table>
 ##   (-> (= <g> A <b> B) (= (+ <g> A <r> C) (+ <b> B <r> C)))
@@ -832,6 +907,11 @@ stmt (mul42() () (= (* (* A B) (* C D)) (* (* A D) (* C B))))
 ## <title> Commutative Property </title>
 stmt (mulcom12 () () (= (* A (* B C)) (* B (* A C))))
 
+
+## <justification>
+##   redirect ../common/inequality.ghi
+## </justification>
+
 ## <title> Equivalence over Inequality </title>
 ## <summary> Equality inference for less than or equal relation </summary>
 ## <table>
@@ -870,27 +950,6 @@ stmt (leeq2d () ((-> ph (= A B))) (-> ph (<-> (<= C A) (<= C B))))
 
 ## <title> Inequality relation for two equal sums </title>
 stmt (leadd12 () () (-> (= (+ A B) (+ C D)) (<-> (<= A C) (<= D B))))
-
-stmt (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0)))))
-
-## <title> Cancel Multiplication </title>
-stmt (mulcan2 () () (-> (-. (= A (0))) (<-> (= (* A B) (* A C)) (= B C))))
-
-## <title> Cancel Multiplication </title>
-## <table>
-##   (-. (= A ] (0))) ] ]
-##   (= (* B ] <r> A) ] (* [ C <r> A))
-##   (=    B ]        ]    [ C)
-## </table>
-stmt (mulcani () ((-. (= A (0))) (= (* B A) (* C A))) (= B C))
-
-## <title> Cancel Multiplication </title>
-## <table>
-##   (-. (= A    ] ] (0)))  ]
-##   (= (* <r> A [ B ) ] (* <r> A [ C ))
-##   (=          [ B   ]          [ C)
-## </table>
-stmt (mulcan2i () ((-. (= A (0))) (= (* A B) (* A C))) (= B C))
 
 ## <title> Cancel Addition </title>
 ## <table>
@@ -950,6 +1009,11 @@ stmt (gtmul0() () (-> (/\ (> A (0)) (> B (0))) (> (* A B) (0))))
 ## <title> Multiply Both Sides </title>
 ## <summary> Multiplication is monotonic in its second argument </summary>
 stmt (lemul2 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* C A) (* C B))))
+
+
+## <justification>
+##   redirect ../common/ifn.ghi
+## </justification>
 	
 ## <title> First branch of ternary expression </title>
 stmt (ifn1 () () (-> ph (= (ifn ph A B) A)))
@@ -1001,6 +1065,11 @@ stmt (ifnbi123d () (
       (-> ph (= C D)))
       (-> ph (= (ifn ps A C) (ifn ch B D))))
 
+
+## <justification>
+##   redirect ../common/inequality.ghi
+## </justification>
+
 ## <title> Addition is Monotonic </title>
 ## <summary> Addition is strictly monotonic in the first addend </summary>
 ## <suggest> left('Cancel', '+') </suggest>
@@ -1020,26 +1089,3 @@ stmt (gtmul2 () () (-> (/\ (> A B) (> C (0))) (> (* C A) (* C B))))
 
 ## <title> Less Than or Equal from Positive Difference </title>
 stmt (exlt ((A x)(B x)) () (-> (< A B) (E. x (/\ (< (0) x) (= (+ A x) B)))))
-
-## <title> Zero Product Property </title>
-stmt (zeroProductz () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0)))))
-
-## <title> Zero Product Property </title>
-stmt (zeroFactors () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0)))))
-
-## <title> Zero Product Property </title>
-stmt (nonzeroProduct () () (-> (-. (= A (0))) (<-> (= B (0)) (= (* A B) (0)))))
-
-## <title> Zero Product Property </title>
-stmt (nonzeroProduct2 () () (<-> (-. (= (* A B) (0))) (/\ (-. (= A (0))) (-. (= B (0))))))
-
-## <title> Multiply Nonequal Numbers </title>
-stmt (neqmul () () (-> (/\ (-. (= A B)) (-. (= C (0)))) (-. (= (* A C) (* B C)))))
-
-stmt (dist_ax6 () () (= (* A (+ B (1))) (+ (* A B) A)))    
-
-stmt (dist_ax6r () () (= (* (+ A (1)) B) (+ (* A B) B)))
-
-## <title> Adding twice mean Multiply by 2 </title>
-## <suggest> right('Simplify', '2') </suggest>
-stmt (add2mul () () (= (+ A A) (* (2) A)))

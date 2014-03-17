@@ -1,6 +1,8 @@
 # Adapted mechanically from set.mm
 # todo: proper attribution
 
+## <justification> redirect prop_min.ghi </justification>
+
 kind (wff)
 tvar (wff ph)
 tvar (wff ps)
@@ -60,7 +62,6 @@ term (wff (-> ph ps))
 ## <table>
 ##  (-> <g> ph (-> ps <g> ph))
 ## </table>
-## <axiom>
 stmt (ax-1 () () (-> ph (-> ps ph)))
 
 ## <title> Second Logic Axiom: Frege </title>
@@ -75,7 +76,6 @@ stmt (ax-1 () () (-> ph (-> ps ph)))
 ## <table>
 ##   (-> (-> <b> ph (-> ps ch)) (-> (-> <b> ph ps) (-> <b> ph ch)))
 ## </table>
-## <axiom>
 stmt (ax-2 () () (-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
 
 ## <title> Third Logic Axiom: Contraposition </title>
@@ -92,7 +92,6 @@ stmt (ax-2 () () (-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
 ## <table>
 ##   (-> (-> (-. <b> ph) (-. <g> ps)) (-> <g> ps <b> ph))
 ## </table>
-## <axiom>
 stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 
 ## <title> Modus Ponens Axiom </title>
@@ -107,8 +106,21 @@ stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
 ##  (-> ph ] [ ps)
 ##         [ [ ps
 ## </table>
-## <axiom>
 stmt (ax-mp () (ph (-> ph ps)) ps)
+
+
+term (wff (T))
+term (wff (F))
+
+## <title> Axiom of Truth </title>
+## <summary>
+##   T represents a true statement. In theory, we could define T as (ph -> ph) <-> T
+##   except Ghilbert does not accept binding wffs as variables.
+## </summary>
+stmt (tru () () (T))
+
+
+## <justification> redirect prop.gh </justification>
 
 #  Inference derived from axiom [[ax-1]].  See [[a1d]] for an explanation of
 #        our informal use of the terms "inference" and "deduction."  See also
@@ -4174,16 +4186,6 @@ stmt (nic-luk2 () () (-> (-> (-. ph) ph) ph))
 stmt (nic-luk3 () () (-> ph (-> (-. ph) ps)))
 
 
-term (wff (T))
-term (wff (F))
-
-## <title> Axiom of Truth </title>
-## <summary>
-##   T represents a true statement. In theory, we could define T as (ph -> ph) <-> T
-##   except Ghilbert does not accept binding wffs as variables.
-## </summary>
-## <axiom>
-stmt (tru () () (T))
 
 stmt (biim1i () ((-> ph ps)) (-> (<-> ph ch) (-> ch ps)))
 stmt (biim2i () ((-> ph ps)) (-> (<-> ch ph) (-> ch ps)))
