@@ -10,6 +10,11 @@ if (typeof GH == 'undefined') {
   var GH = {};
 }
 
+GH.getThmName = function() {
+	var pathname = window.location.pathname.split('/')
+	return pathname.pop();
+};
+
 /**
  * Like the regular typeof, but returns 'string' for Objects which are
  * instanceof String.  This allows us to extend String objects with
@@ -32,12 +37,11 @@ GH.Scanner = function (lines) {
 	this.styleScanner = new GH.StyleScanner();
 };
 
-GH.styling = function(table, title, suggest, filename, thmNumber, isAxiom) {
+GH.styling = function(table, title, suggest, filename, thmNumber) {
 	this.table = table;
 	this.title = title;
 	this.filename = filename;
 	this.thmNumber = thmNumber;
-	this.isAxiom = isAxiom;
 	// Remove the quotation marks from the suggestion names.
 	if (suggest) {
 		for (var i = 0; i < suggest.length; i++) {
@@ -68,9 +72,8 @@ GH.StyleScanner = function() {
 	this.suggest = null;
 	this.leftColumns = 0;
 	this.color = '';
-	// Whether or not this is an axiom having no proof.
-	this.isAxiom = false;
 	this.context = '';
+	this.justification = []; // Used in ghi interface files to link to the actual proofs.
 };
 
 // Global variables are bad.
@@ -83,7 +86,8 @@ GH.StyleScanner.modeTypes = {
 	SUGGEST: 3,
 	SUGGEST_FUNC: 4,
 	SUMMARY: 5,
-	CONTEXT: 6
+	CONTEXT: 6,
+	JUSTIFICATION: 7
 };
 
 GH.StyleScanner.prototype.read_column_style = function(tok) {
@@ -127,14 +131,13 @@ GH.StyleScanner.prototype.get_styling = function(filename) {
 		tableStyle.splice(0, 1);
 	}
 	return new GH.styling(
-		tableStyle, this.title, this.suggest, filename, GH.StyleScanner.thmCounter, this.isAxiom);
+		tableStyle, this.title, this.suggest, filename, GH.StyleScanner.thmCounter);
 };
 
 GH.StyleScanner.prototype.clear = function() {
 	this.table = null;
 	this.title = '';
 	this.suggest = null;
-	this.isAxiom = false;
 	GH.StyleScanner.thmCounter++;
 }
 
@@ -151,6 +154,10 @@ GH.StyleScanner.prototype.addSuggestToken = function(tok) {
 		this.suggest[this.suggest.length - 1].push(tok);
 	}
 
+};
+
+GH.StyleScanner.prototype.get_justification = function() {
+	return this.justification;
 };
 
 GH.StyleScanner.prototype.get_context = function() {
@@ -188,6 +195,11 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.styleMode = styleModeTypes.CONTEXT;
 		} else if (tok == '</context>') {
 			this.styleMode = styleModeTypes.NONE;
+		} else if (tok == '<justification>') {
+			this.justification = [];
+			this.styleMode = styleModeTypes.JUSTIFICATION;
+		} else if (tok == '</justification>') {
+			this.styleMode = styleModeTypes.NONE;
 		} else if (tok == '<summary>') {
 			this.summary = '';
 			this.styleMode = styleModeTypes.SUMMARY;
@@ -198,14 +210,16 @@ GH.StyleScanner.prototype.read_styling = function(line) {
 			this.styleMode = styleModeTypes.SUGGEST;
 		} else if (tok == '</suggest>') {
 			this.styleMode = styleModeTypes.NONE;
-		} else if (tok == '<axiom>') {
-			this.isAxiom = true;
 		} else if (this.styleMode == styleModeTypes.TABLE) {
 			this.read_column_style(tok);
 		} else if (this.styleMode == styleModeTypes.TITLE) {
 			this.title += tok + ' ';
 		} else if (this.styleMode == styleModeTypes.CONTEXT) {
 			this.context += tok + ' ';
+		} else if (this.styleMode == styleModeTypes.JUSTIFICATION) {
+			if (tok != '') {
+				this.justification.push(tok);
+			}
 		} else if (this.styleMode == styleModeTypes.SUMMARY) {
 			this.summary += tok + ' ';
 		} else if ((this.styleMode == styleModeTypes.SUGGEST) ||
@@ -1120,7 +1134,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
         }
 		var hyp = hypmap[step];
 		proofctx.stack.push(hyp);
-		var styling = tagName ? new GH.styling(null, tagName, '', '', 0, false) : null;
+		var styling = tagName ? new GH.styling(null, tagName, '', '', 0) : null;
 		var proofStep = new GH.ProofStep(step, [], hyp, step.beg, step.end, proofctx.mandstack, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;
@@ -1147,7 +1161,7 @@ GH.VerifyCtx.prototype.check_proof_step = function(hypmap, step, proofctx, tagNa
 		proofctx.stack.push(result);
 
 		var removed = proofctx.stackHistory.splice(sp);
-		var styling = v[6] ? v[6] : new GH.styling(null, null, '', '', 0, false);
+		var styling = v[6] ? v[6] : new GH.styling(null, null, '', '', 0);
 		var proofStep = new GH.ProofStep(step, removed, result, step.beg, step.end, proofctx.mandstack, false, styling);
 		proofctx.stackHistory.push(proofStep);
 		var hierarchy = proofctx.hierarchy;		

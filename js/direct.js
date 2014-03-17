@@ -4,12 +4,13 @@
 
 // text is a CanvasEdit object, stack is a canvas for drawing the stack view
 // suggestArea is a place for suggesting proof steps.
-GH.Direct = function(text, stack, suggestArea, context) {
+GH.Direct = function(text, stack, suggestArea, inputArgs) {
     var self = this;
     this.text = text;
     this.text.clearImtrans();  // todo: hack
     this.stack = stack;
-	this.context = context;
+	this.context = inputArgs.context;
+	this.justification = inputArgs.justification;
     this.text.addListener(function() { self.update(true); });
     this.marker = null;
 	var buttonController = new GH.ButtonController(suggestArea);
@@ -262,8 +263,26 @@ GH.Direct.prototype.updateThmStatement = function(thmctx, shownIndex, shownHisto
 	var thmStatement = new GH.ProofStep('Conclusion', hypSteps, concl, concl.beg, concl.end, [], false, styling);
 	thmStatement.hierarchy = tmpHierarchy;
 	var header = (thmctx.thmType == GH.DirectThm.ThmType.AXIOM) ? 'Axiom' : 'Theorem';
+	if (thmctx.thmType == GH.DirectThm.ThmType.AXIOM) {
+		summary += this.addJustificationLinks();
+	}
 	this.rootSegments.push(thmStatement.displayStack(this.stack, summary, header, 0, useLatex));
 	this.rootSegments[0].largeWrapper.className = 'large-wrapper first-wrapper';
+};
+
+GH.Direct.prototype.addJustificationLinks = function() {
+	var result = '';
+	if ((this.justification.length != 0) && (this.justification.length % 2 == 0)) {
+		result = 'This statement has been proven multiple times. <br> Each time for a different class of numbers:';
+		for (var i = 0; i < this.justification.length / 2; i++) {
+			if (this.justification[2 * i + 1] == 'axiom') {
+				result += '&nbsp ' + this.justification[2 * i] + ' (axiom)';
+			} else {
+				result += '&nbsp <a href="../' + this.justification[2 * i + 1] + '/' + GH.getThmName() + '">' + this.justification[2 * i] + '</a>';
+			}
+		}
+	}
+	return result;
 };
 
 // Display the proofs in the right panel.

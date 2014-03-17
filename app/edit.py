@@ -272,17 +272,19 @@ v = new GH.VerifyCtx(uc, run);
         if url[-4:] != '.ghi':
             o.write("""
 v.set_suppress_errors(true);
-context = run(uc, '/proofs_upto/%s', v);
+inputArgs = run(uc, '/proofs_upto/%s', v);
 v.set_suppress_errors(false);
 
 """ % (urllib.quote(arg)))
         else:
-            o.write("""context = '';""")
+            o.write("""
+inputArgs = interfaceRun(uc, '%s', v);
+""" % (url))
         if useAce:
             o.write('window.mainpanel = new GH.AceEdit(editor);\n')
         else:
             o.write("window.mainpanel = new GH.TextareaEdit(document.getElementById('canvas'));\n")
-        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'), document.getElementById('suggest'), context);
+        o.write("""window.direct = new GH.Direct(window.mainpanel, document.getElementById('stack'), document.getElementById('suggest'), inputArgs);
 window.direct.vg = v;
 var number = document.getElementById('number');
 number.onchange = function() {

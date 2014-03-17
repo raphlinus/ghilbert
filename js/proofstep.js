@@ -105,7 +105,7 @@ GH.ProofStep = function(name, hypotheses, conclusion, begin, end, sExpressions, 
 	this.begin = begin;
 	this.end = end;
 	this.isError = isError;
-	this.link = styling ? GH.ProofStep.computeLink(styling.filename, styling.isAxiom, name) : null;
+	this.link = styling ? GH.ProofStep.computeLink(styling.filename, name) : null;
 	this.substitution = null;
 	this.thmNumber = styling ? styling.thmNumber : 0;
 	this.styling = styling ? styling.table : null;
@@ -125,18 +125,18 @@ GH.ProofStep.prototype.print = function() {
 	return GH.sExpression.printRaw(this.conclusion);
 };
 
-GH.ProofStep.computeLink = function(filename, isAxiom, stepName) {
+GH.ProofStep.computeLink = function(filename, stepName) {
 	if (filename == '') {
 		return null;
 	}
 	filename = filename.replace(new RegExp('/git'), '');
 	if (filename.match(new RegExp('/proofs_upto'))) {
+		var index = filename.match(new RegExp('/proofs_upto')).index;
+		filename = filename.substring(index);
 		var splitUp = filename.split('/');
-		splitUp.splice(0, 4);
+		splitUp.splice(0, 2);
 		splitUp.pop();
 		filename = '/' + splitUp.join('/');
-	} else if (!isAxiom) {
-		filename = filename.replace(new RegExp('.ghi'), '.gh');
 	}
 	return filename + '/' + stepName;
 };
