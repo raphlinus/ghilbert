@@ -6646,7 +6646,7 @@ thm (eleq1d ()
   (-> ph (<-> (e. A S) (e. B S))) 
   h A B S ax-eleq1 syl
 )
-thm (eleq2 () ()
+thm (elseq2 () ()
   (-> (=_ S T) (<-> (e. A S) (e. A T)))
   S T x df-seq
     x A S ax-eleq1 x A T ax-eleq1 bibi12d
@@ -6658,15 +6658,15 @@ thm (eleq2 () ()
 ##   (=_        [ S  ] [       [ T )
 ##   (<-> (e. A [ S) ] [ (e. A [ T ))
 ## </table>
-thm (eleq2i ()
+thm (elseq2i ()
   (hyp (=_ S T))
   (<-> (e. A S) (e. A T))
-  hyp S T A eleq2 ax-mp
+  hyp S T A elseq2 ax-mp
 )
-thm (eleq2d ()
+thm (elseq2d ()
   (h (-> ph (=_ S T)))
   (-> ph (<-> (e. A S) (e. A T)))
-  h S T A eleq2 syl
+  h S T A elseq2 syl
 )
 ## <title> Substitution </title>
 ## <table>
@@ -6784,7 +6784,7 @@ thm (elab2 ((A x) (ps x))
   (hyp1 (-> (= x A) (<-> ph ps))
    hyp2 (=_ S ({|} x ph)))
   (<-> (e. A S) ps)
-  hyp2 A eleq2i hyp1 elab bitri
+  hyp2 A elseq2i hyp1 elab bitri
 )
 
 ## <title> Remove Set Abstraction </title>
@@ -6981,6 +6981,86 @@ thm (abbi2i () (h (<-> ph ps))
   (=_ ({|} x ph) ({|} x ps))
   h x gen x ph ps abbi2 ax-mp
 )
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq1 () () (-> (=_ S U) (<-> (=_ S T) (=_ U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) bibi1d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ U T) (A. x (<-> (e. x U) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq2 () () (-> (=_ T U) (<-> (=_ S T) (=_ S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) bibi2d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S U) (A. x (<-> (e. x S) (e. x U))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+thm (seqseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (=_ S T) (=_ U T)))
+  hyp1
+  S U T seqseq1
+  syl
+)
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (=_ S U) (=_ T V)))
+  S T U seqseq1
+  U V T seqseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (=_ S U) (=_ T U) (=_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (seqseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (=_ S T) (=_ S U)))
+  hyp1
+  T U S seqseq2
+  syl
+)
+
+thm (seqseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (=_ S U) (=_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V seqseq12
+  syl
+)
+
 
 thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
   S U x df-seq
@@ -7238,7 +7318,7 @@ thm (SeqReplacerSeq0Ab1Or0El0 () (
      (=_ U ({|} x (\/ (e. A T) ph)))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi1i
 x abbi2i
 U seqseq2i
@@ -7271,23 +7351,101 @@ thm (abNotRemove2 () (hyp (-. ph)) (=_ ({|} x ph) ({/}))
   ## </d 'Definition of Empty Set '>
 )
 
-## <title> Equivalence over Union </title>
-## <table>
-##   (=_     S ]    ] [     T ] )
-##   (=_ (u. S ] U) ] [ (u. T ] U))
-## </table>
-thm (uneq1i () (hyp (=_ S T)) (=_ (u. S U) (u. T U))
-  S U x df-un
-  hyp
-  SeqReplacerSeq0Ab1Or0El0
- 
-  T U x df-un
 
-  ## <d>
-    (u. T U) ({|} x (\/ (e. x T) (e. x U))) seqcom
-  ## </d>
-  mpbi
-  SeqReplaceSeq1
+
+## <title> Equivalence for u. </title> ##
+thm (unseq1 () () (-> (=_ S U) (=_ (u. S T) (u. U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) orbi1d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  U T x df-un
+  ## <d 'Commutative Property'>
+    (u. U T) ({|} x (\/ (e. x U) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+thm (unseq1i () (
+     hyp1 (=_ S U))
+     (=_ (u. S T) (u. U T))
+  hyp1
+  S U T unseq1
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq2 () () (-> (=_ T U) (=_ (u. S T) (u. S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) orbi2d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  S U x df-un
+  ## <d 'Commutative Property'>
+    (u. S U) ({|} x (\/ (e. x S) (e. x U))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+
+
+thm (unseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (=_ (u. S T) (u. U T)))
+  hyp1
+  S U T unseq1
+  syl
+)
+
+thm (unseq2i () (
+     hyp1 (=_ T U))
+     (=_ (u. S T) (u. S U))
+  hyp1
+  T U S unseq2
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq12 () () (-> (/\ (=_ S T) (=_ U V)) (=_ (u. S U) (u. T V)))
+  S T U unseq1
+  U V T unseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (u. S U) (u. T U) (u. T V) seqtr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (unseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (=_ (u. S T) (u. S U)))
+  hyp1
+  T U S unseq2
+  syl
+)
+
+thm (unseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (=_ (u. S U) (u. T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V unseq12
+  syl
 )
 
 ## <title> Substitution </title>
@@ -7302,7 +7460,7 @@ thm (SeqReplaceSeq0Ab1Or1El0 () (
      (=_ U ({|} x (\/ ph (e. A T))))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi2i
 x abbi2i
 U seqseq2i
@@ -7339,7 +7497,7 @@ thm (SeqReplaceSeq0Ab1An0El0 () (
      (=_ U ({|} x (/\ (e. A T) ph)))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph anbi1i
 x abbi2i
 U seqseq2i
@@ -7348,7 +7506,7 @@ mpbi
 
 ## <title> Equivalence over Intersection </title>
 thm (inseq1 () () (-> (=_ S T) (=_ (i^i S U) (i^i T U)))
-  S T x eleq2
+  S T x elseq2
   (e. x U) anbi1d
   x gen
   x (=_ S T) (<-> (/\ (e. x S) (e. x U)) (/\ (e. x T) (e. x U))) 19.21  
@@ -7372,7 +7530,7 @@ thm (inseq1i () (hyp1 (=_ S T)) (=_ (i^i S U) (i^i T U))
 
 ## <title> Equivalence for ∩ </title> ##
 thm (inseq2 () () (-> (=_ T U) (=_ (i^i S T) (i^i S U)))
-  T U x eleq2
+  T U x elseq2
   (e. x S) anbi2d
   x abbi2d
   S T x df-in
@@ -7426,7 +7584,7 @@ thm (SeqReplaceSeq0Ab1An1El0 () (
      (=_ U ({|} x (/\ ph (e. A T))))
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph anbi2i
 x abbi2i
 U seqseq2i
@@ -7466,6 +7624,98 @@ thm (SeqReplaceBi0Seq1 () (
 S seqseq2i
 ph bibi1i
 mpbi
+)## <title> Equivalence for C_ </title> ##
+thm (ssseq1 () () (-> (=_ S U) (<-> (C_ S T) (C_ U T)))
+  (=_ S U) id
+  T inseq1d
+  (=_ S U) id
+  seqseq12d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T df-ss
+  ## <d 'Commutative Property'>
+    (C_ U T) (=_ (i^i U T) U) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (ssseq1i () (
+     hyp1 (=_ S U))
+     (<-> (C_ S T) (C_ U T))
+  hyp1
+  S U T ssseq1
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq2 () () (-> (=_ T U) (<-> (C_ S T) (C_ S U)))
+  (=_ T U) id
+  S inseq2d
+  S seqseq1d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U df-ss
+  ## <d 'Commutative Property'>
+    (C_ S U) (=_ (i^i S U) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+
+thm (ssseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (C_ S T) (C_ U T)))
+  hyp1
+  S U T ssseq1
+  syl
+)
+
+thm (ssseq2i () (
+     hyp1 (=_ T U))
+     (<-> (C_ S T) (C_ S U))
+  hyp1
+  T U S ssseq2
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (C_ S U) (C_ T V)))
+  S T U ssseq1
+  U V T ssseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (C_ S U) (C_ T U) (C_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (ssseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (C_ S T) (C_ S U)))
+  hyp1
+  T U S ssseq2
+  syl
+)
+
+thm (ssseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (C_ S U) (C_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V ssseq12
+  syl
 )
 
 ## <title> Equivalence over Subset </title>
@@ -7897,7 +8147,7 @@ thm (SeqReplaceBi1Seq0Un0 () (
      substitution (=_ S T)) 
      (<-> ph (=_ (u. T U) V))
   replacee substitution
-  U uneq1i
+  U unseq1i
   SeqReplaceBi1Seq0
 )
 
@@ -8353,6 +8603,16 @@ thm (intervaleq2i () (hyp (= B C)) (=_ ({...} A B) ({...} A C))
   ax-mp
 )
 
+thm (intervaleq12 () () (-> (/\ (= A B) (= C D)) (=_ ({...} A C) ({...} B D)))
+  A B C intervaleq1
+  C D B intervaleq2
+  anim12i
+  ## <d 'Transitive Property '>
+    ({...} A C) ({...} B C) ({...} B D) seqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
 ## <title> Substitution </title>
 ## <table>
 ##   (<-> ph (/\ (\/  [ ps ]   ]    ]  th) ta))
@@ -8695,7 +8955,7 @@ thm (SeqReplaceSeq0Ab1Or0El1 () (
      (=_ ({|} x (\/ (e. A T) ph)) U)
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi1i
 x abbi2i
 U seqseq1i
@@ -8732,7 +8992,7 @@ thm (SeqReplaceSeq0Ab1Or1El1 () (
      (=_ ({|} x (\/ ph (e. A T))) U)
   replacee
   substitution
-A eleq2i
+A elseq2i
 ph orbi2i
 x abbi2i
 U seqseq1i
@@ -10362,7 +10622,7 @@ thm (iotacl ((S x)) ()
 
   S ({} y) ax-iotaeq y ax-iota  syl6eq
   (iota S) y elsnc  sylibr
-  S ({} y) (iota S) eleq2
+  S ({} y) (iota S) elseq2
 
   biimprd mpd y 19.22i
   syl
@@ -11978,7 +12238,7 @@ defthm (df-primeset set (primeset) () () (=_ (primeset) ({|} y (prime y)))
 ## <suggest> right('Equivalence', '∈') left('Equivalence', '∈') </suggest>
 thm (elprimeset () () (<-> (e. A (primeset)) (prime A))
   x df-primeset
-  A eleq2i
+  A elseq2i
   ## <d>
     A x (prime x) ax-elab
     bitri
@@ -20346,7 +20606,7 @@ defthm  (df-lambda set (lambda y A) ((A x)) ()
 thm (funlambda ((A y) (B x)) (h1 (-> (= x y) (= A B))) (fun (lambda x A))
 #(A. y (E! v (e. (<,> y v) (lambda x A))))
 v  B  tyeu  z eqid
- x  A  w  df-lambda    (<,> y v)  eleq2i
+ x  A  w  df-lambda    (<,> y v)  elseq2i
  w  (<,> y v)  (<,> x A)  eqeq1    x  exbid  elab   bitri
  y  v  x  A  opth  x  exbii  bitri
   h1  eqcoms eqcomd v  eqeq2d  biimprd  imp  x  19.22i  x  (= v B)  ex-nf  syl
@@ -20358,7 +20618,7 @@ mpbir
 v  x  y  opeq2  (<,> y v)  (<,> y x)  (lambda x A)  ax-eleq1  syl  eualpha  mpbi
 y gen
 
-    x  A  y  df-lambda    y  eleq2i
+    x  A  y  df-lambda    y  elseq2i
     y  y'  (<,> x A) eqeq1  x  exbid  rwffi  abid  bitri  biimpi
     w  A  tyex    w  A  x  opeq2  y  eqeq2d   biimprd  w  19.22i  ax-mp  x  gen  jctil
     x  (E. w (-> (= y (<,> x A)) (= y (<,> x w))))  (= y (<,> x A))  19.29   syl
@@ -20454,7 +20714,7 @@ defthm  (df-apply nat (apply S A) ( (A z) (S z)) ()
 
 ## <title> Equivalence for apply </title> ##
 thm (applyseq1 () () (-> (=_ S T) (= (apply S A) (apply T A)))
-  S T (<,> A z) eleq2
+  S T (<,> A z) elseq2
   z abbi2d
   iotaseqd
   S A z df-apply  
@@ -20526,9 +20786,9 @@ thm (applyeq2d () (
 
 # Equality identity for fun
 thm (funseq () () (-> (=_ S T) (<-> (fun S) (fun T)))
-  S  T  (<,> x y)  eleq2  y eubid
+  S  T  (<,> x y)  elseq2  y eubid
   x  19.21ai  x  (E! y (e. (<,> x y) S))  (E! y (e. (<,> x y) T)) 19.15  syl
-    S  T  x  eleq2  (E. y (E. z (= x (<,> y z))))  imbi1d
+    S  T  x  elseq2  (E. y (E. z (= x (<,> y z))))  imbi1d
     x  19.21ai  x  (-> (e. x S) (E. y (E. z (= x (<,> y z)))))  (-> (e. x T) (E. y (E. z (= x (<,> y z)))))  19.15  syl
   anbi12d
   S  x  y  z  df-fun  syl5bb
@@ -20553,11 +20813,11 @@ thm (funseqd () (
 ## <summary> Asserts that membership in functional set of a lambda works the way you'd expect. </summary>
 thm (ellambda ((A y) (B y) (C x)) (h1 (-> (= x y) (= B C)))
      (<-> (e. (<,> x A) (lambda x B)) (= A B))
-  x  B  z  df-lambda  (<,> x A) eleq2i
+  x  B  z  df-lambda  (<,> x A) elseq2i
     h1  B  C  x  opeq2  syl  z  eqeq2d
     x  y  C  opeq1  z  eqeq2d  bitrd  exalpha
     z  gen  z  (E. x (= z (<,> x B)))  (E. y (= z (<,> y C)))  abbi2  ax-mp
-  (<,> x A)  eleq2i  bitri
+  (<,> x A)  elseq2i  bitri
   z  (<,> x A)  (<,> y C)  eqeq1  y  exbid  elab  bitri
     x  A  y  C  opth  y  exbii bitri
       h1  (= A C)  anim1i
@@ -21345,7 +21605,7 @@ syl
 
 # First equality identity of recursep.
 thm (recursepeq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
-    S  T  (<,> (beta x y) (beta x (S y)))  eleq2
+    S  T  (<,> (beta x y) (beta x (S y)))  elseq2
     (< y A)  imbi2d
     y  19.21ai
     19.15d
@@ -21462,7 +21722,7 @@ thm (recurseeq2 () () (-> (= A B) (= (recurse S A C) (recurse S B C)))
 
 ## <title> Equivalence for recursep </title> ##
 thm (recursepseq1 () () (-> (=_ S T) (<-> (recursep S A B C) (recursep T A B C)))
-  S T (<,> (beta z y) (beta z (S y))) eleq2
+  S T (<,> (beta z y) (beta z (S y))) elseq2
   (< y A) imbi2d
   y albi2d
   (= (beta z A) C) anbi2d
@@ -22835,7 +23095,7 @@ thm (applysetseq1d () (
 
 ## <title> Equivalence for {.|} </title> ##
 thm (applysetseq2 () () (-> (=_ T U) (=_ ({.|} S T) ({.|} S U)))
-  T U z eleq2
+  T U z elseq2
   (= y (apply S z)) anbi2d
   z exbid
   y abbi2d
@@ -22895,13 +23155,13 @@ thm (SeqReplaceEl1 () (
      substitution (=_ S T)) 
      (e. A T)
   replacee substitution
-  A eleq2i
+  A elseq2i
   mpbi
 )
 
 thm (elapplyset ((S y) (T y) (A y)) () (<-> (e. A ({.|} S T)) (E. y (/\ (= A (apply S y)) (e. y T))))
   S T x y df-applyset
-  A eleq2i  
+  A elseq2i  
   ## <d>
     A x (E. y (/\ (= x (apply S y)) (e. y T))) ax-elab
     bitri
@@ -26362,7 +26622,7 @@ defthm (df-tupleset set (<{}> A) ((A y)) () (=_ (<{}> A) ({.|} (lambda y (_ A y)
 
 thm (elementDivides.1 ((B y) (A y) (S y)) () (-> (e. B ({.|} S ({|} y (/\ (<= (1) y) (<= y (length A)))))) (| B (product (1) (length A) S)))
   S ({|} y (/\ (<= (1) y) (<= y (length A)))) x y df-applyset
-  B eleq2i 
+  B elseq2i 
   ## <d>
     B x (E. y (/\ (= x (apply S y)) (e. y ({|} y (/\ (<= (1) y) (<= y (length A))))))) ax-elab
     bitri
@@ -26420,7 +26680,7 @@ thm (SeqReplaceImp0El1 () (
      substitution (=_ S T)) 
      (-> (e. A T) ph)
   replacee substitution
-  A eleq2i
+  A elseq2i
   sylbi2
 )
 
@@ -26514,7 +26774,7 @@ thm (SeqReplaceImp0Not0El1 () (
      substitution (=_ S T)) 
      (-> (-. (e. A T)) ph)
   replacee substitution
-  A eleq2i
+  A elseq2i
   BiReplaceImp0Not0
 )
 
@@ -28222,6 +28482,7 @@ thm (factorialPos () () (> (! A) (0))
   ## </d 'All nonzero natural numbers are positive '>
 )
 
+## <title> Factorial divisible by consecutive numbers </title>
 thm (compositeAddFact () () (-> (/\ (< (1) A) (<= A B)) (composite (+ (! B) A)))
   (1) A ltle
   (<= A B) anim1i
@@ -28332,26 +28593,25 @@ thm (SeqReplaceSs1 () (
   mpbi
 )
 
+## <title> Arbitrarily Long Composite Sequence </title>
+thm (consecutiveComposites.1 () () (C_ ({...} (+ (! A) (2)) (+ (! A) A)) (compositeset))
+  ## <d>
+    y (.- x (! A)) (! A) addeq1
+    (! A) x halfminus
+    anim12i
+    ## <d 'Transitive Property '>
+      (+ y (! A)) (+ (.- x (! A)) (! A)) x eqtr1
+      syl
+    ## </d 'Transitive Property '>
 
-## <title> Arbitrarily Long Sequences of Composites </title>
-## <summary>
-##   For every positive number k, there exist k consecutive composite numbers.
-## </summary>
-thm (consecutiveComposites () () (C_ ({...} (+ (! A) (2)) (+ (! A) A)) (compositeset))    
-  y (.- x (! A)) (! A) addeq1
-  (! A) x halfminus
-  anim12i  
-  ## <d 'Transitive Property '>
-    (+ y (! A)) (+ (.- x (! A)) (! A)) x eqtr1
-    syl
-  ## </d 'Transitive Property '>
-  
-  y A compositeAddFact  
+    y A compositeAddFact
+  ## </d>
+  ## <d 'Let x = A! + y'>
   ## <d>
     ## <d 'Convert between ≤ and < '>
       (1) y ltle2
       BiReplaceImp0An0
-    ## </d 'Convert between ≤ and < '>  
+    ## </d 'Convert between ≤ and < '>
     ## <d 'Evaluate'>
       1plus1
       EqReplaceImp0An0Le0
@@ -28360,9 +28620,9 @@ thm (consecutiveComposites () () (C_ ({...} (+ (! A) (2)) (+ (! A) A)) (composit
   ## <d>
     (2) y (! A) leadd2
     y A (! A) leadd2
-    anbi12i  
+    anbi12i
     sylbi2
-  ## </d>  
+  ## </d>
   (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) biRemove2
   (= x (+ (! A) y)) imbi2i
   x (+ (! A) y) (+ (! A) (2)) leeq2
@@ -28370,80 +28630,148 @@ thm (consecutiveComposites () () (C_ ({...} (+ (! A) (2)) (+ (! A) A)) (composit
   anbi12d
   x (+ (! A) y) compositeeq
   imbi12d
-  
+
   mpbiRemove
-  
-  ## <d 'Symmetric Property '>
-    x (+ (! A) y) eqcom
-    sylbi2
-  ## </d 'Symmetric Property '>  
-  ## <d 'Commutative Property of Addition '>
-    (! A) y addcom
-    EqReplaceImp0Eq0
-  ## </d 'Commutative Property of Addition '>  
-  syl  
-
-  (! A) (2) addge01t
-   x leTreti
-
-  ## <d 'Contrapositive '>
-    (<= (+ (! A) (2)) x) (<= (! A) x) con34b
-    mpbi
-  ## </d 'Contrapositive '>
-
-  (composite x) pm2.21d
-  ## <d>
-  (<= x (+ (! A) A)) a1d  
-  ## <d 'Import-Export Theorem '>
-    (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) (composite x) impexp bicomi
-    sylib
-  ## </d 'Import-Export Theorem '>  
-  ## <d 'Commute Conjunction '>
-    (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) ancom
-    BiReplaceImp1Imp0
-  ## </d 'Commute Conjunction '>
   ## </d>
+
+  ## <d 'Add the A! > x case'>
   ## <d>
-  (= y (.- x (! A))) a1i  
-  ## <d 'Import-Export Theorem '>
-    (= y (.- x (! A))) (-. (<= (! A) x)) (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) impexp bicomi
-    mpbi
-  ## </d 'Import-Export Theorem '>
+    ## <d 'Symmetric Property '>
+      x (+ (! A) y) eqcom
+      sylbi2
+    ## </d 'Symmetric Property '>
+    ## <d 'Commutative Property of Addition '>
+      (! A) y addcom
+      EqReplaceImp0Eq0
+    ## </d 'Commutative Property of Addition '>
+    syl
   ## </d>
-  jaoi  
-  ## <d 'Distributive Property '>
-    (= y (.- x (! A))) (<= (! A) x) (-. (<= (! A) x)) andi
-    ## <d 'Commutative Property'>
-      (/\ (= y (.- x (! A))) (\/ (<= (! A) x) (-. (<= (! A) x)))) (\/ (/\ (= y (.- x (! A))) (<= (! A) x)) (/\ (= y (.- x (! A))) (-. (<= (! A) x)))) bicom
+
+  ## <d 'Add the A! > x case'>
+    ## <d 'Add the A! > x case'>
+    (! A) (2) addge01t
+     x leTreti
+    ## <d 'Contrapositive '>
+      (<= (+ (! A) (2)) x) (<= (! A) x) con34b
       mpbi
-    ## </d 'Commutative Property'>
-    sylbi2
-  ## </d 'Distributive Property '>
-  
-  ## <d 'Excluded Middle'>
-    (<= (! A) x) exmid    
-    (= y (.- x (! A))) anRemove2
-    (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) imbi1i
-    mpbi
-  ## </d 'Excluded Middle'>
-  vtocle
-  x gen
+    ## </d 'Contrapositive '>
+    (composite x) pm2.21d
+    ## <d>
+    (<= x (+ (! A) A)) a1d
+    ## <d 'Import-Export Theorem '>
+      (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) (composite x) impexp bicomi
+      sylib
+    ## </d 'Import-Export Theorem '>
+    ## <d 'Commute Conjunction '>
+      (<= x (+ (! A) A)) (<= (+ (! A) (2)) x) ancom
+      BiReplaceImp1Imp0
+    ## </d 'Commute Conjunction '>
+    ## </d>
+      (= y (.- x (! A))) a1i
+      ## <d 'Import-Export Theorem '>
+        (= y (.- x (! A))) (-. (<= (! A) x)) (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) impexp bicomi
+        mpbi
+      ## </d 'Import-Export Theorem '>
+      jaoi
+    ## </d>
 
-  x y (+ (! A) (2)) leeq2
-  x y (+ (! A) A) leeq1 anbi12d rwffi
-  x y compositeeq rwffi
-  ssImplies bicomi  
-  mpbi
-  
-  ## <d 'Natural Number Interval Definition '>
-    (+ (! A) (2)) (+ (! A) A) x df-interval seqcomi
-    SeqReplaceSs0
-  ## </d 'Natural Number Interval Definition '>
-  
-  ## <d 'Def. Set of Composite Numbers '>
-    x df-compositeset seqcomi
-    SeqReplaceSs1
-  ## </d 'Def. Set of Composite Numbers '>
+    ## <d 'Excluded Middle'>
+      ## <d 'Distributive Property '>
+        (= y (.- x (! A))) (<= (! A) x) (-. (<= (! A) x)) andi bicomi
+        sylbi2
+      ## </d 'Distributive Property '>
+      ## <d 'Excluded Middle'>
+        (<= (! A) x) exmid
+        (= y (.- x (! A))) anRemove2
+        (-> (/\ (<= (+ (! A) (2)) x) (<= x (+ (! A) A))) (composite x)) imbi1i
+        mpbi
+      ## </d 'Excluded Middle'>
+      vtocle
+      x gen
+    ## </d>
+  ## </d>
+  ## </d>
+
+  ## <d 'Subset from a conditional'>
+    x y (+ (! A) (2)) leeq2
+    x y (+ (! A) A) leeq1 anbi12d rwffi
+    x y compositeeq rwffi
+    ssImplies bicomi
+    mpbi
+  ## </d>
+  ## <d>
+    ## <d 'Natural Number Interval Definition '>
+      (+ (! A) (2)) (+ (! A) A) x df-interval seqcomi
+      SeqReplaceSs0
+    ## </d 'Natural Number Interval Definition '>
+    ## <d 'Def. Set of Composite Numbers '>
+      x df-compositeset seqcomi
+      SeqReplaceSs1
+    ## </d 'Def. Set of Composite Numbers '>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (C_ ({...} A  [ B ]   ]   ] ) S)
+##   (=            [ B ]   [ C ] )
+##   (C_ ({...} A  [   [   [ C ] ) S)
+## </table>
+thm (EqReplaceSs0Intv1 () (
+     replacee (C_ ({...} A B) S)
+     substitution (= B C)) 
+     (C_ ({...} A C) S)
+  replacee substitution
+  A intervaleq2i
+  SeqReplaceSs0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (C_ ({...} A (+ B  [ C ]   ]   ] )) S)
+##   (=                 [ C ]   [ D ] )
+##   (C_ ({...} A (+ B  [   [   [ D ] )) S)
+## </table>
+thm (EqReplaceSs0Intv1Add1 () (
+     replacee (C_ ({...} A (+ B C)) S)
+     substitution (= C D)) 
+     (C_ ({...} A (+ B D)) S)
+  replacee substitution
+  B addeq2i
+  EqReplaceSs0Intv1
+)
+
+
+## <title> Arbitrarily Long Composite Sequence </title>
+## <summary>
+##   For every natural number A, there exist a set of A consecutive composite numbers.
+## </summary>
+thm (consecutiveComposites ((A x)) () (E. x (C_ ({...} x (+ x A)) (compositeset)))
+  (+ A (2)) consecutiveComposites.1  
+  ## <d 'Commutative Property'>
+    ## <d 'Commutative Property of Addition '>
+      A (2) addcom
+      EqReplaceSs0Intv1Add1
+    ## </d 'Commutative Property of Addition '>  
+    ## <d 'Associative Property '>
+      (! (+ A (2))) (2) A addass eqcomi
+      EqReplaceSs0Intv1
+    ## </d 'Associative Property '>
+  ## </d>
+  ## <d 'x can be (A+2)!+2'>
+    x (+ (! (+ A (2))) (2)) A addeq1
+    ancli
+    x (+ (! (+ A (2))) (2)) (+ x A) (+ (+ (! (+ A (2))) (2)) A)  intervaleq12  
+    syl
+    (compositeset) ssseq1d
+    ceqsex  
+    ## <d 'Remove Left Side of AND '>
+      (= x (+ (! (+ A (2))) (2))) (C_ ({...} x (+ x A)) (compositeset)) pm3.27
+      ImpReplaceBi0Ex1
+    ## </d 'Remove Left Side of AND '>  
+    ax-mp
+  ## </d>
 )
 
 # number 0.95

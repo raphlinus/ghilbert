@@ -146,11 +146,13 @@ thm (elseq2i ()
   (<-> (e. A S) (e. A T))
   hyp S T A elseq2 ax-mp
 )
+
 thm (elseq2d ()
   (h (-> ph (=_ S T)))
   (-> ph (<-> (e. A S) (e. A T)))
   h S T A elseq2 syl
 )
+
 ## <title> Substitution </title>
 ## <table>
 ##   (-> ph (-> ps (E. x (/\ ch (/\  [ th ]   ]    ]  et)))))
@@ -460,6 +462,37 @@ thm (abbi2 () () (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
     y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
 )
 
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
 ## <title> Equivalence over set abstraction </title>
 ## <table>
 ##   (<->       [ ph  ] [        [ ps )
@@ -467,7 +500,85 @@ thm (abbi2 () () (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
 ## </table>
 thm (abbi2i () (h (<-> ph ps)) (=_ ({|} x ph) ({|} x ps))
   h x gen x ph ps abbi2 ax-mp
+)## <title> Equivalence for =_ </title> ##
+thm (seqseq1 () () (-> (=_ S U) (<-> (=_ S T) (=_ U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) bibi1d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ U T) (A. x (<-> (e. x U) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
 )
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq2 () () (-> (=_ T U) (<-> (=_ S T) (=_ S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) bibi2d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S U) (A. x (<-> (e. x S) (e. x U))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+thm (seqseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (=_ S T) (=_ U T)))
+  hyp1
+  S U T seqseq1
+  syl
+)
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (=_ S U) (=_ T V)))
+  S T U seqseq1
+  U V T seqseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (=_ S U) (=_ T U) (=_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (seqseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (=_ S T) (=_ S U)))
+  hyp1
+  T U S seqseq2
+  syl
+)
+
+thm (seqseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (=_ S U) (=_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V seqseq12
+  syl
+)
+
 
 thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
   S U x df-seq
@@ -801,62 +912,99 @@ thm (abNotRemove2 () (hyp (-. ph)) (=_ ({|} x ph) ({/}))
     ## </d 'Commutative Property'>
     SeqReplaceSeq1
   ## </d 'Definition of Empty Set '>
-)
-
-## <title> Equivalence over Union </title>
-## <table>
-##   (=_     S ]    ] [     T ] )
-##   (=_ (u. S ] U) ] [ (u. T ] U))
-## </table>
-thm (uneq1i () (hyp (=_ S T)) (=_ (u. S U) (u. T U))
-  S U x df-un
-  hyp
-  SeqReplacerSeq0Ab1Or0El0
- 
-  T U x df-un
-
-  ## <d>
-    (u. T U) ({|} x (\/ (e. x T) (e. x U))) seqcom
-  ## </d>
-  mpbi
-  SeqReplaceSeq1
-)
-
-## <title> Substitution </title>
-## <table>
-##   (=_ U ({|} x (\/ ph (e. A  [ S ]   ]   ] ))))
-##   (=_                        [ S ]   [ T ] )
-##   (=_ U ({|} x (\/ ph (e. A  [   [   [ T ] ))))
-## </table>
-thm (SeqReplaceSeq0Ab1Or1El0 () (
-     replacee (=_ U ({|} x (\/ ph (e. A S))))
-     substitution (=_ S T)) 
-     (=_ U ({|} x (\/ ph (e. A T))))
-  replacee
-  substitution
-A elseq2i
-ph orbi2i
-x abbi2i
-U seqseq2i
-mpbi
-)
-
-## <title> Equivalence over Union </title>
-## <table>
-##   (=_       [ S  ] [       [ T)
-##   (=_ (u. U [ S) ] [ (u. U [ T))
-## </table>
-thm (uneq2i () (hyp (=_ S T)) (=_ (u. U S) (u. U T))
-  U S x df-un
-  hyp  
-  SeqReplaceSeq0Ab1Or1El0
+)## <title> Equivalence for u. </title> ##
+thm (unseq1 () () (-> (=_ S U) (=_ (u. S T) (u. U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) orbi1d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
   U T x df-un
-  
-  ## <d>
+  ## <d 'Commutative Property'>
     (u. U T) ({|} x (\/ (e. x U) (e. x T))) seqcom
-  ## </d>
-  mpbi
-  SeqReplaceSeq1
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+thm (unseq1i () (
+     hyp1 (=_ S U))
+     (=_ (u. S T) (u. U T))
+  hyp1
+  S U T unseq1
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq2 () () (-> (=_ T U) (=_ (u. S T) (u. S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) orbi2d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  S U x df-un
+  ## <d 'Commutative Property'>
+    (u. S U) ({|} x (\/ (e. x S) (e. x U))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+
+
+thm (unseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (=_ (u. S T) (u. U T)))
+  hyp1
+  S U T unseq1
+  syl
+)
+
+thm (unseq2i () (
+     hyp1 (=_ T U))
+     (=_ (u. S T) (u. S U))
+  hyp1
+  T U S unseq2
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq12 () () (-> (/\ (=_ S T) (=_ U V)) (=_ (u. S U) (u. T V)))
+  S T U unseq1
+  U V T unseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (u. S U) (u. T U) (u. T V) seqtr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (unseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (=_ (u. S T) (u. S U)))
+  hyp1
+  T U S unseq2
+  syl
+)
+
+thm (unseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (=_ (u. S U) (u. T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V unseq12
+  syl
 )
 
 ## <title> Substitution </title>
@@ -1000,36 +1148,98 @@ ph bibi1i
 mpbi
 )
 
-## <title> Equivalence over Subset </title>
-## <table>
-##   (=_     S ]    ] [     T ] )
-##   (=_ (C_ S ] U) ] [ (C_ T ] U))
-## </table>
-thm (sseq1i () (hyp (=_ S T)) (<-> (C_ S U) (C_ T U))
-  S U df-ss  
-  ## <d>
+## <title> Equivalence for C_ </title> ##
+thm (ssseq1 () () (-> (=_ S U) (<-> (C_ S T) (C_ U T)))
+  (=_ S U) id
+  T inseq1d
+  (=_ S U) id
+  seqseq12d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T df-ss
+  ## <d 'Commutative Property'>
+    (C_ U T) (=_ (i^i U T) U) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (ssseq1i () (
+     hyp1 (=_ S U))
+     (<-> (C_ S T) (C_ U T))
+  hyp1
+  S U T ssseq1
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq2 () () (-> (=_ T U) (<-> (C_ S T) (C_ S U)))
+  (=_ T U) id
+  S inseq2d
+  S seqseq1d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U df-ss
+  ## <d 'Commutative Property'>
     (C_ S U) (=_ (i^i S U) S) bicom
-  ## </d>
-  mpbi
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
 
-  hyp  
-  SeqReplaceBi0Seq0In0
-  hyp
-  
-  SeqReplaceBi0Seq1
-  T U df-ss
 
-  ## <d>
-    (C_ T U) (=_ (i^i T U) T) bicom
-  ## </d>
-  mpbi
-  
-  bitr3icom
-  
-  ## <d>
-    (C_ T U) (C_ S U) bicom
-  ## </d>
-  mpbi
+thm (ssseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (C_ S T) (C_ U T)))
+  hyp1
+  S U T ssseq1
+  syl
+)
+
+thm (ssseq2i () (
+     hyp1 (=_ T U))
+     (<-> (C_ S T) (C_ S U))
+  hyp1
+  T U S ssseq2
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (C_ S U) (C_ T V)))
+  S T U ssseq1
+  U V T ssseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (C_ S U) (C_ T U) (C_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (ssseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (C_ S T) (C_ S U)))
+  hyp1
+  T U S ssseq2
+  syl
+)
+
+thm (ssseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (C_ S U) (C_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V ssseq12
+  syl
 )
 
 ## <title> Substitution </title>
@@ -1049,32 +1259,6 @@ V seqseq1i
 ph bibi1i
 mpbi
 )
-
-thm (sseq2i () (hyp (=_ S T)) (<-> (C_ U S) (C_ U T))
-  U S df-ss  
-  ## <d>
-    (C_ U S) (=_ (i^i U S) U) bicom
-  ## </d>
-  mpbi
-  hyp  
-  
-  SeqReplaceBi0Seq0In1
-
-  U T df-ss
-  
-  ## <d>
-    (C_ U T) (=_ (i^i U T) U) bicom
-  ## </d>
-  mpbi
-  
-  bitr3icom
-  
-  ## <d>
-    (C_ U T) (C_ U S) bicom
-  ## </d>
-  mpbi
-)
-
 
 
 ## <title> Commutative Property of Union </title>
@@ -1476,7 +1660,7 @@ thm (SeqReplaceBi1Seq0Un0 () (
      substitution (=_ S T)) 
      (<-> ph (=_ (u. T U) V))
   replacee substitution
-  U uneq1i
+  U unseq1i
   SeqReplaceBi1Seq0
 )
 
@@ -1491,7 +1675,7 @@ thm (SeqReplaceBi0Ss0 () (
      substitution (=_ S T)) 
      (<-> (C_ T U) ph)
   replacee substitution
-  U sseq1i
+  U ssseq1i
   bitr3icom
 )
 
@@ -1506,7 +1690,7 @@ thm (SeqReplaceBi1Seq0Un1 () (
      substitution (=_ T U)) 
      (<-> ph (=_ (u. S U) V))
   replacee substitution
-  S uneq2i
+  S unseq2i
   SeqReplaceBi1Seq0
 )
 
