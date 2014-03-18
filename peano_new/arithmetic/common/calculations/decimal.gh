@@ -1,0 +1,126 @@
+import (PROP ../../../prop.ghi () "")
+import (PREDICATE ../../../predicate/all.ghi (PROP) "")
+import (NATURALS ../../naturals/common.ghi (PROP PREDICATE) "")
+import (NEGATIVE ../negative.ghi (PROP PREDICATE NATURALS) "")
+import (DIVISION ../division.ghi (PROP PREDICATE NATURALS NEGATIVE) "")
+import (CALCULATIONS naturals.ghi (PROP PREDICATE NATURALS) "")
+
+## <context>
+##   This theorem is part of a series of theorems demonstrating simple
+##   arithmetic operations involving negative numbers.
+## </context>
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3)
+var (nat v w x y z v' w' x' y' z')
+
+## <title> Definition of One-Tenth </title>
+defthm (df-.1 nat (.1) () () (= (.1) (/ (1) (10)))
+  (/ (1) (10)) eqid
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (* B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (* B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Mul1 () (
+     replacee (= A (* B C))
+     substitution (= C D)) 
+     (= A (* B D))
+  replacee substitution
+  B muleq2i
+  EqReplaceEq1
+)
+
+## <title> Convert Fraction to Decimal </title>
+thm (fracToDecimal () () (= (/ A (10)) (* A (.1)))
+  10notEqual0
+  A expandFraci
+  df-.1 eqcomi  
+  EqReplaceEq1Mul1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (/  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= A (/ B D))
+     substitution (= B C)) 
+     (= A (/ C D))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (/ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Div1 () (
+     replacee (= A (/ B C))
+     substitution (= C D)) 
+     (= A (/ B D))
+  replacee substitution
+  B diveq2i
+  EqReplaceEq1
+)
+
+## <title> One-Half in Decimal Form </title>
+thm (halfDecimal () () (= (/ (1) (2)) (* (5) (.1)))
+  ## <d 'Multiply top and bottom by 5'>
+    2notEqual0
+    5notEqual0
+    (1) fracFactorsi eqcomi  
+  ## </d>
+  ## <d 'Multiply Integers'>
+    ## <d 'Multiplicative Identity '>
+      (5) mulidr
+      EqReplaceEq1Div0
+    ## </d 'Multiplicative Identity '> 
+    ## <d 'Evaluate'>
+      2times5
+      EqReplaceEq1Div1
+    ## </d 'Evaluate'>
+  ## </d>
+  ## <d>
+    (5) fracToDecimal  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <title> One-Fifth in Decimal Form </title>
+thm (oneFifthDecimal () () (= (/ (1) (5)) (* (2) (.1)))
+  ## <d 'Multiply top and bottom by 2'>
+    5notEqual0
+    2notEqual0
+    (1) fracFactorsi eqcomi  
+  ## </d>
+  ## <d 'Multiply Integers'>
+    ## <d 'Multiplicative Identity '>
+      (2) mulidr
+      EqReplaceEq1Div0
+    ## </d 'Multiplicative Identity '> 
+    ## <d 'Evaluate'>
+      5times2
+      EqReplaceEq1Div1
+    ## </d 'Evaluate'>
+  ## </d>
+  ## <d>
+    (2) fracToDecimal  
+    EqReplaceEq1
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
