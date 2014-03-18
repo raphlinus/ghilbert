@@ -73,7 +73,7 @@ class handler(app.users.AuthenticatedHandler):
         response.append('0000')
         mimetype = 'application/x-' + service + '-advertisement'
         self.response.headers['Content-Type'] = str(mimetype)
-        self.response.out.write(''.join(response))
+        self.response.out.write(str(''.join(response)))
 
     def get(self, arg):
         if arg == 'HEAD':
