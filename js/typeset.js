@@ -644,8 +644,8 @@ GH.typeset.LATEX_OPERATIONS = [
 	[['_'], 'generic', ['', 1, '_{', 2, '}']],
 ],
 [ // 3000
-	[['fibonacci'], 'generic', ['F_{', 1, '}']],
-	[['tri'], 'generic', ['T_{', 1, '}']],
+	[['fibonacci'], 'no-parentheses', ['F_{', 1, '}']],
+	[['tri'], 'no-parentheses', ['T_{', 1, '}']],
 	[['head', 'n.head'], 'generic', ['', 1, '_{h}']],
 	[['tail', 'n.tail'], 'generic', ['', 1, '_{t}']],
 	[['top'], 'generic', ['', 1, '_{t}']],
@@ -778,8 +778,8 @@ GH.typeset.OPERATIONS = [
 	[['_'], 'generic', ['', 1, '<sub>', 2, '</sub>']],
 ],
 [ // 3000
-	[['fibonacci'], 'generic', ['F <sub>', 1, '<sub>']],
-	[['tri'], 'generic', ['T <sub>', 1, '<sub>']],
+	[['fibonacci'], 'no-parentheses', ['F <sub>', 1, '</sub>']],
+	[['tri'], 'no-parentheses', ['T <sub>', 1, '</sub>']],
 	[['head', 'n.head'], 'generic', ['', 1, '<sub>h</sub>']],
 	[['tail', 'n.tail'], 'generic', ['', 1, '<sub>t</sub>']],
 	[['top'], 'generic', ['', 1, '<sub>t</sub>']],

@@ -42,19 +42,26 @@ class ProofFormatter:
         self.style = style
         self.url = url
         self.out_buf = []
-        self.space_indent = 8  # in px units; em is not consistent across fonts
+        self.space_indent = 16  # in px units; em is not consistent across fonts
 
     def header(self, thmname):
         o = self.out
         self.thmname = thmname
-        common.header(o, "Proof of " + thmname,
+        common.header(o, '',
             '<link rel=stylesheet href="/static/showthm.css" type="text/css">\n')
+        o.write('<div class="title-container">')
+        o.write('  <span class="title">' + cgi.escape(thmname) + '</span>\n')
+        url = urllib.quote('/edit' + self.url + '/' + self.thmname)
+        o.write('  <input id="show-code" type="checkbox">Show Code</input>')
+        o.write('  <a class="edit-entry" href="%s"">edit</a>' % (url))
+        o.write('</div>')
+        o.write('<div id="proof-body">')
     def write_header(self, header):
         self.out.write('<h2>' + cgi.escape(header) + '</h2>\n')
     def write_proof_line(self, line):
         line = line.rstrip()
         sline = line.lstrip()
-        indent_px = (len(line) - len(sline)) * self.space_indent
+        indent_px = 40 + (len(line) - len(sline)) * self.space_indent
         self.out.write('<div style="margin-left: %gpx" class="code">' % indent_px + sline + '</div>\n')
     def write_proof_tokens(self, tokens):
         self.out_buf.append(cgi.escape(''.join(tokens)))
@@ -70,16 +77,21 @@ class ProofFormatter:
             self.out_buf.append(step_html)
     def write_intermediate_line(self, line, indent):
         line = line.rstrip()
-        indent_px = self.space_indent * 2 * indent
+        indent_px = 40 + self.space_indent * 2 * indent
         self.out.write('<div style="margin-left: %gpx" class="intermediate"><span class="sexp">' % indent_px + cgi.escape(line) + '</span></div>\n')
     def done(self):
         line = ''.join(self.out_buf)
         if len(line):
             self.write_proof_line(line)
         self.out.write(
-'''<script src="/js/verify.js" type="text/javascript"></script>
+'''</div>
+<script src="/js/verify.js" type="text/javascript"></script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 <script src="/js/showthm.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
+<script src="/js/sexpression.js" type="text/javascript"></script>
 <script src="/js/prover/numUtil.js" type="text/javascript"></script>
 <script src="/js/typeset.js" type="text/javascript"></script>
 <script type="text/javascript">
@@ -87,7 +99,7 @@ GH.typeset_intermediates()
 </script>
 ''')
         url = urllib.quote('/edit' + self.url + '/' + self.thmname)
-        self.out.write('<a href="%s">edit</a>' % (url))
+        self.out.write('<a href="%s" class="end-edit">edit</a>' % (url))
     def write_trace(self, trace):
         o = self.out
         o.write('<script type="text/javascript">\n')
@@ -105,7 +117,7 @@ def display_404(response, thmname):
 <h1>Not found</h1>
 <p>The theorem %s was not found, sorry.</p>
 ''' % cgi.escape(thmname))
-    
+
 class ShowThmScanner:
     def __init__(self, instream):
         self.instream = instream
@@ -393,7 +405,7 @@ class DevNull():
 
 class ShowThmPage(webapp2.RequestHandler):
     def get(self, arg):
-        style = self.request.get('style', 'interleaved') 
+        style = self.request.get('style', 'interleaved')
         self.response.headers.add_header('content-type', 'text/html')
         asplit = arg.rsplit('/', 1)
         if len(asplit) < 2:

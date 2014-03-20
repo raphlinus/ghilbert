@@ -265,7 +265,7 @@ GH.operatorUtil.getThmName = function(operator, prefixed) {
 	} else if (operator == '.-') {		return 'halfminus';
 	} else if (operator == 'e.') {		return 'el';
 	} else if (operator == '=_') {		return 'seq';
-	} else if (operator == 'C_') {		return 'Ss';
+	} else if (operator == 'C_') {		return 'ss';
 	} else if (operator == 'C.') {		return 'pss';
 	} else if (operator == '{|}') {		return 'ab';
 	} else if (operator == '[/]') {		return 'sbc';
@@ -418,6 +418,17 @@ GH.notationGuide = function(syms, context) {
 GH.notationGuide.prototype.render = function() {
 	var guideContainer = document.createElement("div");
 	stack.appendChild(guideContainer);
+
+	var showAllLink = document.createElement("a");
+	showAllLink.setAttribute('class', 'all-steps');
+	allStepsUrl = window.location.pathname.split('/');
+	allStepsUrl.shift();
+	allStepsUrl.shift();
+	allStepsUrl = allStepsUrl.join('/');
+	showAllLink.setAttribute('href', '/' + allStepsUrl);
+	showAllLink.innerHTML = 'View All Steps';
+	guideContainer.appendChild(showAllLink);
+	
 	for (var i = 0; i < 2; i++) {
 		this.titleElements.push(document.createElement("span"));
 		this.titleElements[i].setAttribute('class', 'notation-closed');
@@ -426,16 +437,17 @@ GH.notationGuide.prototype.render = function() {
 		this.bodyElements[i].setAttribute('class', 'notation-body');
 		guideContainer.appendChild(this.titleElements[i]);
 	}
+
 	for (var i = 0; i < 2; i++) {
 		guideContainer.appendChild(this.bodyElements[i]);
 	}
 
-	this.titleElements[0].innerHTML = 'Notation Help';
-	this.titleElements[1].innerHTML = 'Context';
-	this.bodyElements[1].innerHTML = this.context;
-	this.close(1);
+	this.titleElements[0].innerHTML = 'Context';
+	this.titleElements[1].innerHTML = 'Notation Help';
+	this.bodyElements[0].innerHTML = this.context;
+	this.close(0);
 	if (this.context == '') {
-		this.titleElements[1].setAttribute('style', 'display: none');
+		this.titleElements[0].setAttribute('style', 'display: none');
 	}
 };
 
@@ -457,7 +469,7 @@ GH.notationGuide.prototype.addGuideElement = function(guide, symbol, useLatex) {
 	} else {
 		guideElement.innerHTML = symbol + ' ' + '<span class="guide-no-link">' + guide.name + '</span>';
 	}
-	this.bodyElements[0].appendChild(guideElement);
+	this.bodyElements[1].appendChild(guideElement);
 	MathJax.Hub.Queue(["Typeset", MathJax.Hub, guideElement]);
 };
 

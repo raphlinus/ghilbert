@@ -23,7 +23,8 @@ def header(o, name, stylesheet = None):
     o.write('<link rel=stylesheet href="/static/common.css" type="text/css">\n')
     o.write('<body>\n')
     navbar(o)
-    o.write('<h1>' + cgi.escape(name) + '</h1>\n')
+    if name:
+        o.write('<h1>' + cgi.escape(name) + '</h1>\n')
 
 def navbar(o):
     o.write('<div class="header">')
