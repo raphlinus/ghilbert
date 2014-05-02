@@ -1763,6 +1763,11 @@ thm (eqeq2d ()
   hyp A B C eqeq2 syl)
 
 ## <title> Equivalence over Equality </title>
+## <table>
+##        (= A ]    ]   ]      [ B ] )
+##             [ (= [ C ]      [   [ D)
+##   (<-> (= A ]    [ C ] ) (= [ B [ D))
+## </table>
 thm (eqeq12i ()
   (hyp1 (= A B)
    hyp2 (= C D))
@@ -25696,6 +25701,7 @@ thm (EqReplaceEq0exp1 () (
   EqReplaceEq0
 )
 
+## <title> Formula for Increasing Exponent by 1 </title>
 thm (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B)))
   ## <d 'B > 0 case'>
   B (lambda x A) productdetach1
@@ -25841,7 +25847,7 @@ x  B  C  addeq1
 eqeq12d
 )
 
-# Adding of exponents
+## <title> Adding of exponents </title>
 thm (expadd () () (= (exp A (+ B C)) (* (exp A B) (exp A C)))
 
 x  (0)  A  C  expadd.1
@@ -25870,6 +25876,136 @@ syl6eqr
 finds
 )
 
+## <title> Perform a Substitution </title>
+thm (sbc-expexp ((C x)(A x)(B x)) () (<-> ([/] C x (= (exp (exp A B) x) (exp A (* B x)))) (= (exp (exp A B) C) (exp A (* B C))))
+  (= x C) id
+  (exp A B) expeq2d
+  (= x C) id
+  B muleq2d
+  A expeq2d
+  eqeq12d
+  sbcie
+)
+
+## <title> Distributive Property </title>
+thm (dist_ax6 () () (= (* A (+ B (1))) (+ (* A B) A))      
+  ## <d 'Distributive Property '>
+    A B (1) distr
+    A mulid
+    EqReplaceEq1Add1
+  ## </d 'Distributive Property '>
+)
+
+## <title> Substitution </title>
+thm (EqReplaceImp1Eq1Exp1 () (
+     replacee (-> ph (= A (exp B C)))
+     substitution (= C D)) 
+     (-> ph (= A (exp B D)))
+  replacee substitution
+  B expeq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Exponentiation over exponentiation yields multiplication </title>
+thm (expexp () () (= (exp (exp A B) C) (exp A (* B C)))
+  ## <d>
+    ## <d 'Basis Case'>
+      (exp A B)  exp0
+        B  pa_ax5    (* B (0))  (0)  A  expeq2    ax-mp
+        A  exp0    eqtr
+      eqtr4
+
+      ## <d 'Substitute x = 0'>
+        (0) x A B sbc-expexp bicomi
+        mpbi
+      ## </d 'Substitute x = 0'>
+    ## </d 'Basis Case'>
+    ## <d 'Multiply both sides by A <sup> B </sup'>
+      (exp (exp A B) y)  (exp A (* B y))  (exp A B)  muleq2
+    ## </d>
+  ## </d>
+  ## <d>
+    (exp A B)  y  expplus1 eqcomi
+    EqReplaceImp1Eq0
+  ## </d>
+  ## <d>
+    ## <d>
+      A  B (* B y) expadd eqcomi
+      EqReplaceImp1Eq1
+    ## </d>
+    ## <d 'Commutative Property of Addition '>
+      B (* B y) addcom
+      EqReplaceImp1Eq1Exp1
+    ## </d 'Commutative Property of Addition '>
+    ## <d>
+      B y dist_ax6 eqcomi
+      EqReplaceImp1Eq1Exp1
+    ## </d>
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Substitute x'>
+      ## <d 'Substitute x in for x = y'>
+        y x A B sbc-expexp bicomi
+        sylbi2
+      ## </d 'Substitute x in for x = y'>
+      ## <d 'Substitute x in for x = y+1'>
+        (+ y (1)) x A B sbc-expexp bicomi
+        sylib
+      ## </d 'Substitute x in for x = y+1'>
+    ## </d 'Substitute x in for x = y and x = y+1'>
+    C induction
+    ## <d 'Substitute C in for x'>
+      C x A B sbc-expexp
+      mpbi
+    ## </d 'Substitute C in for x'>
+  ## </d>
+)
+
+## <title> Exponentiation over exponentiation yields multiplication </title>
+## <summary> An alternative proof to <a href="expexp">expexp</a>. </summary>
+thm (expexp2 () () (= (exp (exp A B) C) (exp A (* B C)))
+  ## <d>
+    ## <d 'Basis Case'>
+      (exp A B)  exp0
+        B  pa_ax5    (* B (0))  (0)  A  expeq2    ax-mp
+        A  exp0    eqtr
+      eqtr4
+
+      ## <d 'Substitute x = 0'>
+        (0) x A B sbc-expexp bicomi
+        mpbi
+      ## </d 'Substitute x = 0'>
+    ## </d 'Basis Case'>
+  ## </d>
+
+  ## <d 'Inductive Step'>
+    (exp (exp A B) y)  (exp A (* B y))  (exp A B)  muleq2
+      (exp A B)  y  expplus1
+        B  y  dist_ax6  A expeq2i
+        A  (* B y)  B  expadd    eqtr
+        (exp A (* B y))  (exp A B)  mulcom   eqtr
+      eqeq12i
+    sylibr
+  ## </d>
+  ## <d 'Induction'>
+    ## <d 'Inductive Step'>
+      ## <d 'Substitute x in for x = y'>
+        y x A B sbc-expexp bicomi
+        sylbi2
+      ## </d 'Substitute x in for x = y'>
+      ## <d 'Substitute x in for x = y+1'>
+        (+ y (1)) x A B sbc-expexp bicomi
+        sylib
+      ## </d 'Substitute x in for x = y+1'>
+    ## </d 'Substitute x in for x = y and x = y+1'>
+    C induction
+  ## </d>
+  ## <d 'Apply substitution C = x'>
+    C x A B sbc-expexp
+    mpbi
+  ## </d 'Induction'>
+)
+
 thm (expexp.1 () () (-> (= x C) (<->
  (= (exp (exp A B) x) (exp A (* B x)))
  (= (exp (exp A B) C) (exp A (* B C)))))
@@ -25881,7 +26017,7 @@ eqeq12d
 )
 
 # Exponentiation over exponentiation yields multiplication.
-thm (expexp () () (= (exp (exp A B) C) (exp A (* B C)))
+thm (expexpOld () () (= (exp (exp A B) C) (exp A (* B C)))
 
 x  (0)    A  B  expexp.1
 x  y      A  B  expexp.1
