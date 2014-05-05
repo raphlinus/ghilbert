@@ -25876,6 +25876,84 @@ syl6eqr
 finds
 )
 
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\ ps (=  [ A ]   ]   ]  C)))
+##   (=                [ A ]   [ B ] )
+##   (-> ph (/\ ps (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceImp1An1Eq0 () (
+     replacee (-> ph (/\ ps (= A C)))
+     substitution (= A B)) 
+     (-> ph (/\ ps (= B C)))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1An1
+)
+
+## <title> Dijkstra's Calculational Proof Example 0 </title>
+## <summary>
+##   This corresponds to EWD1300's Proof 0.
+## </summary>
+thm (calculational0 () () (-> (/\ (= (* x y) y) (= (* y z) z)) (= (* x z) z))
+  ## <d 'Conjunction is Idempotent'>
+    (= (* y z) z) anidm bicomi
+    (= (* x y) y) anbi2i
+    (= (* x y) y) (= (* y z) z) (= (* y z) z) an12
+    bitri
+  ## </d 'Conjunction is Idempotent'>  
+  ## <d 'Infer Left to Right '>
+    (/\ (= (* x y) y) (= (* y z) z)) (/\ (= (* y z) z) (/\ (= (* x y) y) (= (* y z) z))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## <d 'Leibniz Principle'>
+    (* x y) y z muleq1
+    (= (* y z) z) anim1i
+    (= (* y z) z) anim2i    
+    syl
+    ## <d 'Transitive Property '>
+      (* (* x y) z) (* y z) z eqtr1
+      ImpReplaceImp1An1
+    ## </d 'Transitive Property '>
+  ## </d>
+  ## <d 'Associative Property '>
+    x y z mulass
+    EqReplaceImp1An1Eq0
+  ## </d 'Associative Property '>
+  ## <d 'Leibniz Principle'>
+    (* y z) z x muleq2
+    (= (* x (* y z)) z) anim1i  
+    syl
+    ## <d 'Equality Transitive Axiom '>
+      (* x (* y z)) (* x z) z ax-eqtr
+      syl
+    ## </d 'Equality Transitive Axiom '>
+  ## </d>
+)
+
+## <title> Dijkstra's Calculational Proof Example 1 </title>
+## <summary>
+##   This corresponds to EWD1300's Proof 1.
+## </summary>
+thm (calculational1 () (hyp1 (= (* x y) y) hyp2 (= (* y z) z)) (= (* x z) z)
+  ## <d 'Hypothesis 2'>
+    hyp2 eqcomi
+    x muleq2i
+  ## </d>
+  ## <d 'Associative Property '>
+    x y z mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## <d 'Hypothesis 1'>
+    hyp1  
+    EqReplaceEq1Mul0
+  ## </d 'Hypothesis 1'>
+  ## <d 'Hypothesis 2'>
+    hyp2  
+    EqReplaceEq1
+  ## </d 'Hypothesis 2'>
+)
+
 ## <title> Perform a Substitution </title>
 thm (sbc-expexp ((C x)(A x)(B x)) () (<-> ([/] C x (= (exp (exp A B) x) (exp A (* B x)))) (= (exp (exp A B) C) (exp A (* B C))))
   (= x C) id
