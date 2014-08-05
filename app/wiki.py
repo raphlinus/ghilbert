@@ -48,7 +48,7 @@ class Handler(users.AuthenticatedHandler):
             o.write('<script src="/js/prover/setUtil.js" type="text/javascript"></script>')
             o.write('<script src="/js/prover/tupleUtil.js" type="text/javascript"></script>')
             o.write('<script type="text/javascript"')
-            o.write('  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">')
+            o.write('  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">')
             o.write('</script>')
             o.write('<div id="text-body">')
             # o.write("Ghilbert wiki: " + arg)

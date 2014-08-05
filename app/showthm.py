@@ -87,7 +87,7 @@ class ProofFormatter:
 '''</div>
 <script src="/js/verify.js" type="text/javascript"></script>
 <script type="text/javascript"
-  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 <script src="/js/showthm.js" type="text/javascript"></script>
 <script src="/js/proofstep.js" type="text/javascript"></script>
