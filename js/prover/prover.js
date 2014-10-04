@@ -635,6 +635,11 @@ GH.Prover.prototype.getTerm = function(name) {
 	}
 };
 
+// Prove that a number does or does not equal 0.
+GH.Prover.prototype.equals0 = function(num) {
+	return this.evaluate(this.operatorUtil.create('=', [num, 0]));
+};
+
 GH.Prover.prototype.create = function(operator, operands) {
 	return this.operatorUtil.create(operator, operands);
 };

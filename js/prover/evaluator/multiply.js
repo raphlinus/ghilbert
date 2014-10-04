@@ -35,11 +35,15 @@ GH.ProofGenerator.evaluatorMultiply.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
+	if ((sexp.left().operator == '/') || (sexp.right().operator == '/')) {
+		return this.handleFractions(sexp);
+	}
+	
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
-    var leftNeg = (sexp.left().operator == '-n');
-    var rightNeg = (sexp.right().operator == '-n');
+	var leftNeg = (sexp.left().operator == '-n');
+	var rightNeg = (sexp.right().operator == '-n');
 	if (leftNeg && rightNeg) {
 		sexp = this.prover.openExp(sexp, 'Negative Multiplication');
 		this.prover.print([sexp.left().child(), sexp.right().child()], 'doublenegmul');
@@ -74,7 +78,38 @@ GH.ProofGenerator.evaluatorMultiply.prototype.inline = function(sexp) {
 	return true;
 };
 
+GH.ProofGenerator.evaluatorMultiply.prototype.handleFractions = function(sexp) {
+	if ((sexp.left().operator == '/') && (sexp.right().operator == '/')) {
+		sexp = this.prover.openExp(sexp, 'Combine Fractions');
+		this.prover.equals0(sexp.left().right());
+		this.prover.equals0(sexp.right().right());
+		this.prover.print([sexp.left().left(), sexp.right().left()], 'fracmuli');
+		sexp = this.prover.closeExp();
+		// sexp = this.prover.openExp(sexp, 'Multiply Numerator & Denominator');
+		sexp = this.prover.evaluate(sexp.left(), 'Multiply Numerator').parent;
+		sexp = this.prover.evaluate(sexp.right(), 'Multiply Denominator').parent;
+		// sexp = this.prover.closeExp();
+	} else if (sexp.right().operator == '/') {
+		sexp = this.prover.openExp(sexp, 'Move to numerator');
+		this.prover.equals0(sexp.right().right());
+		this.prover.print([sexp.left(), sexp.right().left()], 'divmulassi');
+		sexp = this.prover.closeExp();
+		sexp = this.prover.evaluate(sexp.left(), 'Multiply Numerator').parent;
+	} else {
+		sexp = this.prover.openExp(sexp, 'Move to numerator');
+		this.prover.equals0(sexp.left().right());
+		this.prover.print([sexp.left().left(), sexp.right()], 'divmulass2i');
+		sexp = this.prover.closeExp();
+		sexp = this.prover.evaluate(sexp.left(), 'Multiply Numerator').parent;
+	}
+	sexp = this.prover.evaluate(sexp, 'Reduce Fraction');
+	return true;
+};
+
 GH.ProofGenerator.evaluatorMultiply.prototype.canAddTheorem = function(sexp) {
+	if ((sexp.left().operator == '/') || (sexp.right().operator == '/')) {
+		return false;
+	}
 	var leftNum  = GH.numUtil.decimalNumberSexp(sexp.left());
 	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
 	return ((leftNum > 0) && (leftNum < 10) && (rightNum > 0) && (rightNum < 10));

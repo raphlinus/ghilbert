@@ -204,6 +204,32 @@ GH.numUtil.decimalNumberSexp = function(sexp) {
 	return NaN;
 };
 
+GH.numUtil.gcd = function(a, b) {
+	if (!b) {
+		return a;
+	}
+	return GH.numUtil.gcd(b, a % b);
+};
+
+GH.numUtil.lcm = function(a, b) { 
+	return (a / GH.numUtil.gcd(a, b)) * b; 
+}
+
+GH.numUtil.isReducedFraction = function(sexp) {
+	if (sexp.operator != '/') {
+		return false;
+	}
+	var leftNum = GH.numUtil.decimalNumberSexp(sexp.left());
+	var rightNum = GH.numUtil.decimalNumberSexp(sexp.right());
+	if (isNaN(leftNum) || isNaN(rightNum)) {
+		return false;
+	}
+	if (rightNum == 1) {
+		return false;
+	}
+	return (GH.numUtil.gcd(leftNum, rightNum) == 1);
+};
+
 GH.numUtil.isReduced = function(sexp) {
-	return !isNaN(GH.numUtil.decimalNumberSexp(sexp));
+	return !isNaN(GH.numUtil.decimalNumberSexp(sexp)) || (GH.numUtil.isReducedFraction(sexp));
 };

@@ -160,6 +160,7 @@ class EditHandler(users.AuthenticatedHandler):
 <script src="/js/prover/evaluator/constant.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/div.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/divides.js" type="text/javascript"></script>
+<script src="/js/prover/evaluator/divide.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/elementOf.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/equality.js" type="text/javascript"></script>
 <script src="/js/prover/evaluator/exponent.js" type="text/javascript"></script>

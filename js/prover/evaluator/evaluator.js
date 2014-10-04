@@ -14,6 +14,7 @@ GH.ProofGenerator.evaluator = function(prover) {
   this.generators.push(new GH.ProofGenerator.evaluatorGreaterThanEqual(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorSuccessor(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDivides(prover));
+  this.generators.push(new GH.ProofGenerator.evaluatorDivide(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorPrime(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorDiv(prover));
   this.generators.push(new GH.ProofGenerator.evaluatorElementOf(prover));

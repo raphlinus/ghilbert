@@ -188,3 +188,4 @@ GH.ProofGenerator.evaluatorGreaterThan.prototype.calculate = function(sexp) {
 	var rightNum = this.prover.calculate(sexp.right());
 	return leftNum > rightNum;
 };
+

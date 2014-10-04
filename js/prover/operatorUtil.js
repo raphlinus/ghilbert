@@ -479,7 +479,7 @@ GH.notationGuide.prototype.toggle = function(index) {
 	if (this.isOpen[index]) {
 		this.titleElements[index].setAttribute('class', 'notation-open');
 		this.bodyElements[index].setAttribute('style', '');
-		if (!this.precomputed && (index == 0)) {
+		if (!this.precomputed && (index == 1)) {
 			this.precomputed = true;
 			for (var i = 0; i < this.steps.length; i++) {
 				this.addSymbolsFromStep(this.steps[i]);

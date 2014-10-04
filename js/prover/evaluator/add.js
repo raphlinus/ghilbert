@@ -31,6 +31,9 @@ GH.ProofGenerator.evaluatorAdd.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.canAddTheorem = function(sexp) {
+	if ((sexp.left().operator == '/') || (sexp.right().operator == '/')) {
+		return false;
+	}
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 	return ((1 <= rightNum) && (rightNum <= 10) && (1 <= leftNum) && (leftNum <= 10));
@@ -48,6 +51,10 @@ GH.ProofGenerator.evaluatorAdd.sameDigits = function(leftNum, rightNum) {
 };
 
 GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
+	if ((sexp.left().operator == '/') || (sexp.right().operator == '/')) {
+		return GH.ProofGenerator.evaluatorAdd.handleFractions(this.prover, sexp, true);
+	}
+
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
 
@@ -75,6 +82,59 @@ GH.ProofGenerator.evaluatorAdd.prototype.inline = function(sexp) {
 		return this.addNumbers_(sexp)
 	}
 	return false;
+};
+
+GH.ProofGenerator.evaluatorAdd.handleFractions = function(prover, sexp, isAdd) {
+	var numeratorRight;
+	var numeratorLeft;
+	var denominatorRight;
+	var denominatorLeft;
+	if ((sexp.left().operator == '/') && (sexp.right().operator == '/')) {
+		numeratorRight = prover.calculate(sexp.right().left());
+		denominatorRight = prover.calculate(sexp.right().right());
+		numeratorLeft = prover.calculate(sexp.left().left());
+		denominatorLeft = prover.calculate(sexp.left().right());
+	} else if (sexp.right().operator == '/') {
+		numeratorRight = prover.calculate(sexp.right().left());
+		denominatorRight = prover.calculate(sexp.right().right());
+		numeratorLeft = prover.calculate(sexp.left());
+		denominatorLeft = 1;
+	} else {
+		numeratorRight = prover.calculate(sexp.right());
+		denominatorRight = 1;
+		numeratorLeft = prover.calculate(sexp.left().left());
+		denominatorLeft = prover.calculate(sexp.left().right());
+	}
+	var lcm = GH.numUtil.lcm(denominatorRight, denominatorLeft);
+	var multipleRight = lcm / denominatorRight;
+	var multipleLeft  = lcm / denominatorLeft;
+	var unreducedFrac;
+	var evaluated = false;
+	if (multipleLeft != 1) {
+		unreducedFrac = prover.create('/', [multipleLeft * numeratorLeft, multipleLeft * denominatorLeft]);
+		sexp = prover.unevaluate(unreducedFrac, sexp.left(), 'Multiply to Reach Common Denominator');
+		evaluated = true;
+	}
+	if (multipleRight != 1) {
+		unreducedFrac = prover.create('/', [multipleRight * numeratorRight, multipleRight * denominatorRight]);
+		sexp = prover.unevaluate(unreducedFrac, sexp.right(), 'Multiply to Reach Common Denominator');
+		if (evaluated) {
+			sexp = sexp.parent;
+		}
+	}
+	prover.equals0(lcm);
+  var newNumeratorLeft  = GH.numUtil.createNum(multipleLeft  * numeratorLeft);
+	var newNumeratorRight = GH.numUtil.createNum(multipleRight * numeratorRight);
+	if (isAdd) {
+		prover.print([newNumeratorLeft, newNumeratorRight], 'divdistri');
+	} else {
+		prover.print([newNumeratorLeft, newNumeratorRight], 'divminusdistri');
+	}
+	sexp = prover.replace(sexp);
+	sexp = prover.evaluate(sexp.left(), 'Simplify Numerator').parent;
+	sexp = prover.evaluate(sexp, 'Reduce Fraction');
+
+	return true;
 };
 
 // Replace a single-digit number on the left with its successor.

@@ -14,6 +14,10 @@ GH.ProofGenerator.evaluatorMinus.prototype.isApplicable = function(sexp) {
 };
 
 GH.ProofGenerator.evaluatorMinus.prototype.inline = function(sexp) {
+	if ((sexp.left().operator == '/') || (sexp.right().operator == '/')) {
+		return GH.ProofGenerator.evaluatorAdd.handleFractions(this.prover, sexp, false);
+	}
+
 	var difference = this.calculate(sexp);
 	var leftNum  = this.prover.calculate(sexp.left());
 	var rightNum = this.prover.calculate(sexp.right());
@@ -27,7 +31,7 @@ GH.ProofGenerator.evaluatorMinus.prototype.inline = function(sexp) {
 		this.prover.evaluate(result.right());
 	} else if (difference >= 0) {
 		this.prover.evaluate(this.prover.create('+', [difference, rightNum]));
-		this.prover.print([], 'minusValuei');
+		this.prover.print([], 'minusValue3i');
 	} else {
 		this.prover.print([sexp.left(), sexp.right()], 'negminus');
 		var result = this.prover.getLast();
