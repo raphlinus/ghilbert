@@ -337,6 +337,16 @@ thm (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0)))
   ## </d 'Multiply by 0 '>
 )
 
+## <title> 0 divided by anything is 0 </title>
+thm (0divi () (Anot0 (-. (= A (0)))) (= (/ (0) A) (0))
+  Anot0
+  (0) expandFraci  
+  ## <d 'Multiply by 0 '>
+    (/ (1) A) mul0r
+    EqReplaceEq1
+  ## </d 'Multiply by 0 '>
+)
+
 ## <title> Cancel using Division </title>
 thm (frac1 () () (-> (-. (= A (0))) (= (/ A A) (1)))
   A A expandFrac
@@ -381,6 +391,36 @@ thm (divmulassi () (Cnot0 (-. (= C (0)))) (= (* A (/ B C)) (/ (* A B) C))
     EqReplaceEq1
   ## </d>
 )
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (/  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= A (/ B D))
+     substitution (= B C)) 
+     (= A (/ C D))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1
+)
+
+## <title> Division & Multiplication Ass. </title>
+thm (divmulass2i () (Cnot0 (-. (= C (0)))) (= (* (/ B C) A) (/ (* B A) C))
+  Cnot0
+  A B divmulassi  
+  ## <d 'Commutative Property '>
+    A (/ B C) mulcom
+    EqReplaceEq0
+  ## </d 'Commutative Property '>
+  ## <d 'Commutative Property '>
+    A B mulcom
+    EqReplaceEq1Div0
+  ## </d 'Commutative Property '>
+)
+
 
 ## <title> Zero Product Property </title>
 ## <table>
@@ -528,6 +568,11 @@ thm (fracFactors () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* B
 
 ## <title> Fraction with common factor </title>
 ## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+## <table>
+##   (-. (= B (0))
+##   (-. (= C (0))) 
+##   (= (/ (* A <r> C) (* B <r> C)) (/ A B))
+## </table>
 thm (fracFactorsi () (Bnot0 (-. (= B (0))) Cnot0 (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B))
   (/ A B) mulid eqcomi
   ## <d>
@@ -587,21 +632,6 @@ thm (EqReplaceEq1Div1 () (
      (= A (/ B D))
   replacee substitution
   B diveq2i
-  EqReplaceEq1
-)
-
-## <title> Substitution </title>
-## <table>
-##   (= A (/  [ B ]   ]   ]  D))
-##   (=       [ B ]   [ C ] )
-##   (= A (/  [   [   [ C ]  D))
-## </table>
-thm (EqReplaceEq1Div0 () (
-     replacee (= A (/ B D))
-     substitution (= B C)) 
-     (= A (/ C D))
-  replacee substitution
-  D diveq1i
   EqReplaceEq1
 )
 
@@ -1266,6 +1296,25 @@ thm (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C)
     EqReplaceImp1Eq1Div0
   ## </d 'Definition of Subtraction '>
 )
+
+## <title> Distribute Division Over Subtraction </title>
+thm (divminusdistri () (Cnot0 (-. (= C (0)))) (= (- (/ A C) (/ B C)) (/ (- A B) C))
+  Cnot0
+  B negNumeratori eqcomi
+  (/ A C) addeq2i
+  Cnot0
+  A (-n B) divdistri  
+  EqReplaceEq1
+  ## <d 'Definition of Subtraction '>
+    (/ A C) (/ B C) df-minus eqcomi
+    EqReplaceEq0
+  ## </d 'Definition of Subtraction '>  
+  ## <d 'Definition of Subtraction '>
+    A B df-minus eqcomi
+    EqReplaceEq1Div0
+  ## </d 'Definition of Subtraction '>
+)
+
 
 ## <title> Multiply Two Denominators </title>
 thm (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C))))

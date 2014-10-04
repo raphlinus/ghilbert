@@ -1263,6 +1263,13 @@ stmt (minusValuei () ((= (+ A B) C)) (= A (- C B)))
 ## </table>
 stmt (minusValue2i () ((= (+ A B) C)) (= A (+ (-n B) C)))
 
+## <title> Subtraction Value from Addition </title>
+## <table>
+##   (= (+ A B) C)
+##   (= (- C B ) A )
+## </table>
+stmt (minusValue3i () ((= (+ A B) C)) (= (- C B) A))
+
 ## <title> Subtract from 0 </title>
 ## <suggest> right('Simplify', '-') </suggest>
 stmt (0minus () () (= (- (0) A) (-n A)))
@@ -1435,6 +1442,9 @@ stmt (divmulass () () (-> (-. (= C (0))) (= (* A (/ B C)) (/ (* A B) C))))
 ## <title> Division & Multiplication Ass. </title>
 stmt (divmulassi () ((-. (= C (0)))) (= (* A (/ B C)) (/ (* A B) C)))
 
+## <title> Division & Multiplication Ass. </title>
+stmt (divmulass2i () ((-. (= C (0)))) (= (* (/ B C) A) (/ (* B A) C)))
+
 ## <title> Zero Product Property </title>
 ## <table>
 ##   (-. (=    A ] ]    ]   (0)))
@@ -1499,8 +1509,14 @@ stmt (divcom () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ (/
 ## <title> Distribute Division Over Subtraction </title>
 stmt (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C))))
 
+## <title> Distribute Division Over Subtraction </title>
+stmt (divminusdistri () ((-. (= C (0)))) (= (- (/ A C) (/ B C)) (/ (- A B) C)))
+
 ## <title> 0 divided by anything is 0 </title>
 stmt (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0))))
+
+## <title> 0 divided by anything is 0 </title>
+stmt (0divi () ((-. (= A (0)))) (= (/ (0) A) (0)))
 
 ## <title> Combine Two Divisions </title>
 stmt (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C)))))

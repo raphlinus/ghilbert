@@ -97,6 +97,9 @@ stmt (divcan3 () () (-> (-. (= A (0))) (= (/ (* B A) A) B)))
 ## <title> 0 divided by anything is 0 </title>
 stmt (0div () () (-> (-. (= A (0))) (= (/ (0) A) (0))))
 
+## <title> 0 divided by anything is 0 </title>
+stmt (0divi () ((-. (= A (0)))) (= (/ (0) A) (0)))
+
 ## <title> Divide by 1 </title>
 stmt (divid () () (= (/ A (1)) A))
 
@@ -118,6 +121,9 @@ stmt (divmulass () () (-> (-. (= C (0))) (= (* A (/ B C)) (/ (* A B) C))))
 ## <title> Division & Multiplication Ass. </title>
 stmt (divmulassi () ((-. (= C (0)))) (= (* A (/ B C)) (/ (* A B) C)))
 
+## <title> Division & Multiplication Ass. </title>
+stmt (divmulass2i () ((-. (= C (0)))) (= (* (/ B C) A) (/ (* B A) C)))
+
 ## <title> Zero Product Property </title>
 ## <table>
 ##   (-. (=    A ] ]    ]   (0)))
@@ -138,6 +144,11 @@ stmt (fracFactors () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* 
 
 ## <title> Fraction with common factor </title>
 ## <summary> Numerators and Denominators with common factors can be simplified. </summary>
+## <table>
+##   (-. (= B (0))
+##   (-. (= C (0))) 
+##   (= (/ (* A <r> C) (* B <r> C)) (/ A B))
+## </table>
 stmt (fracFactorsi () ((-. (= B (0))) (-. (= C (0)))) (= (/ (* A C) (* B C)) (/ A B)))
 
 ## <title> Distribute Division over Addition </title>
@@ -181,6 +192,9 @@ stmt (divcom () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ (/
 
 ## <title> Distribute Division Over Subtraction </title>
 stmt (divminusdistr () () (-> (-. (= C (0))) (= (- (/ A C) (/ B C)) (/ (- A B) C))))
+
+## <title> Distribute Division Over Subtraction </title>
+stmt (divminusdistri () ((-. (= C (0)))) (= (- (/ A C) (/ B C)) (/ (- A B) C)))
 
 ## <title> Multiply Two Denominators </title>
 stmt (doublediv () () (-> (/\ (-. (= B (0))) (-. (= C (0)))) (= (/ (/ A B) C) (/ A (* B C)))))
