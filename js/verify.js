@@ -1219,6 +1219,13 @@ GH.VerifyCtx.prototype.match_inference = function(v, proofctx, mandstack) {
         for (i = 0; i < hyps.length; i++) {
             el = proofctx.stack[sp + i];
             this.match(hyps[i], el, env);
+            var hypKind = this.kind_of(hyps[i], proofctx.varlist,
+                                       proofctx.varmap, false, syms);
+            var expKind = this.kind_of(el, proofctx.varlist,
+                                       proofctx.varmap, false, this.syms);
+            if (hypKind != expKind) {
+                throw new Error("Kind mismatch: hyp " + i);
+            }
         }
         for (i = 0; i < fv.length; i++) {
             var tvar = fv[i][0];
