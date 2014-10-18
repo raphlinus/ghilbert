@@ -1601,7 +1601,7 @@ GH.ExportCtx.prototype = new GH.InterfaceCtx();
 // Return true on success, or false on failure.
 // Note that this applies both syntactical and proof checks.
 // Failures on some syntactic checks throw immediately.
-GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
+GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap, vsyms) {
     if (GH.typeOf(exp) == 'string') {
         if (GH.typeOf(vexp) != 'string') {
             return false;
@@ -1613,7 +1613,7 @@ GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
             throw 'Unknown variable' + exp;
         }
         var v = this.vars[exp];
-        var vv = this.verify.syms[vexp];
+        var vv = vsyms[vexp];
         if (v[0] != vv[0] || v[1] != vv[1]) {
             log ('sort or kind mismatch for ' + exp);
             return false;
@@ -1646,7 +1646,7 @@ GH.ExportCtx.prototype.export_match = function(exp, vexp, varmap, invmap) {
         return false;
     }
     for (var i = 1; i < exp.length; i++) {
-        if (!this.export_match(exp[i], vexp[i], varmap, invmap)) {
+        if (!this.export_match(exp[i], vexp[i], varmap, invmap, vsyms)) {
             return false;
         }
     }
@@ -1689,7 +1689,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg, styling) {
         var vhyps = vstmt[2];
         var vconcl = vstmt[3];
         // var vmand = vstmt[4];
-        // var vsyms = vstmt[5]
+        var vsyms = vstmt[5]
         
         if (local_hyps.length != vhyps.length) {
             throw ("The exported assertion '" + local_label + 
@@ -1700,7 +1700,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg, styling) {
         var varmap = {};
         var invmap = {};
         for (i = 0; i < vhyps.length; i++) {
-            if (!this.export_match(local_hyps[i], vhyps[i], varmap, invmap)) {
+            if (!this.export_match(local_hyps[i], vhyps[i], varmap, invmap, vsyms)) {
                 throw ('Hypothesis mismatch for stmt ' + local_label + 
                        ':\nExport context:\n   ' + 
                        GH.sexp_to_string(local_hyps[i]) +
@@ -1708,7 +1708,7 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg, styling) {
                        GH.sexp_to_string(vhyps[i]) + '\n');
             }
         }
-        if (!this.export_match(local_concl, vconcl, varmap, invmap)) {
+        if (!this.export_match(local_concl, vconcl, varmap, invmap, vsyms)) {
             throw ('Conclusion mismatch for stmt ' + local_label + 
                    ':\nExport context:\n   ' + 
                    GH.sexp_to_string(local_concl) +
