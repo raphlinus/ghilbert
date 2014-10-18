@@ -17,6 +17,7 @@ if (typeof(load) === "undefined" && typeof(require)==="function") {
   }
 }
 
+load(["js/sexpression.js"]);
 load(["js/verify.js"]);
 load(["js/proofstep.js"]);
 
@@ -136,7 +137,7 @@ GhilbertTest.run = function(test_source) {
           try {
             GhilbertTest.run_verifier(url_context, file, verify_context);
           } catch (exception) {
-            error = '' + exception;
+            error = exception;
           }
           if (error === null && command == '!reject') {
             failures += 1
@@ -146,9 +147,16 @@ GhilbertTest.run = function(test_source) {
           else if (error !== null && command == '!accept') {
             failures += 1
             print('' + lineno + ': FAIL, got unexpected ' + error);
+            if (GhilbertTest.throwErrors) {
+              console.log(JSON.stringify(url_context.files));
+              throw error;
+            }
           }
         }
-
+        if (failures > 0 && GhilbertTest.throwErrors) {
+          console.log(JSON.stringify(url_context.files));
+          throw new Error("Failures found.");
+        }
         url_context.revert();
       }
       else {
@@ -166,18 +174,20 @@ GhilbertTest.run = function(test_source) {
   return [tests, failures];
 }
 
-if (arguments.length != 1) {
+if (arguments.length == 2) {
+  GhilbertTest.throwErrors = true;
+} else if (arguments.length != 1) {
   print();
-  print('Usage: rhino js/verify_test.js testsuite');
+  print('Usage: rhino js/verify_test.js testsuite [throw]');
 }
-else {
-  var results = GhilbertTest.run(readFile(arguments[0]));
-  tests = results[0];
-  failures = results[1];
-  print(tests, 'tests run,', failures, 'failures');
-  if (failures > 0) {
-    // what is a better way to exit with unsuccessful exit status?
-    throw("there were test failures");
-  }
+
+var results = GhilbertTest.run(readFile(arguments[0]));
+tests = results[0];
+failures = results[1];
+print(tests, 'tests run,', failures, 'failures');
+if (failures > 0) {
+  // what is a better way to exit with unsuccessful exit status?
+  throw("there were test failures");
 }
+
 
