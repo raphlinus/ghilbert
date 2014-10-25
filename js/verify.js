@@ -1871,3 +1871,8 @@ GH.ExportCtx.prototype.do_cmd = function(cmd, arg, styling) {
     }
     throw 'Unknown interface command ' + cmd;
 };
+
+// Allow other scripts to inject a context constructor.
+if (typeof GH.DefaultCtx == 'undefined') {
+    GH.DefaultCtx = GH.VerifyCtx;
+}

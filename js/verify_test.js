@@ -2,7 +2,9 @@
 
 // rhino->node shim
 if (typeof(load) === "undefined" && typeof(require)==="function") {
-  GH = global.GH = {};
+  if (typeof(GH) == "undefined") {
+    GH = global.GH = {};
+  }
   load = function(arr) {
     arr.forEach(
       function(path) {
@@ -132,7 +134,7 @@ GhilbertTest.run = function(test_source) {
         }
         else {
           file = tokens[1]
-          var verify_context = new GH.VerifyCtx(url_context, GhilbertTest.run_verifier);
+          var verify_context = new GH.DefaultCtx(url_context, GhilbertTest.run_verifier);
           var error = null;
           try {
             GhilbertTest.run_verifier(url_context, file, verify_context);
