@@ -406,11 +406,18 @@ class VerifyCtx:
                                proofctx.num_nondummies, self.syms)
             return
         if cmd in ('var', 'tvar'):
+            if type(arg) != type([]) or len(arg) < 1:
+                raise VerifyError("Expected: %s (KIND VAR...)" % cmd)
             kind = self.get_kind(arg[0])
             for v in arg[1:]:
+                if type(v) != type("string"):
+                    raise VerifyError("variable name must be an identifier.")
                 self.add_sym(v, (cmd, kind, v))
             return
         if cmd == 'kindbind':
+            if type(arg) != type([]) or len(arg) != 2 or \
+               type(arg[0]) != type("") or type(arg[1]) != type(""):
+                raise VerifyError("Expected 'kindbind (OLDKIND NEWKIND)'")
             self.add_kind(arg[1], self.get_kind(arg[0]))
             return
         if cmd in ('import', 'export'):
@@ -436,6 +443,8 @@ class VerifyCtx:
             inverse = {}
             params = []
             for pn in paramnames:
+                if (type(pn) != type('string')):
+                    raise VerifyError("%s parameter must be an interface name." % cmd)
                 if pn in inverse:
                     raise VerifyError("Interface %s passed more than once to import context." % pn)
                 inverse[pn] = 0
@@ -530,7 +539,7 @@ class VerifyCtx:
             if not isinstance(hyps[i], basestring):
                 raise VerifyError('hyp label must be string')
             if hyps[i] in hypmap:
-                raise VerifyError('Repeated hypothesis label ' + hyps[1])
+                raise VerifyError('Repeated hypothesis label %s' % hyps[1])
             hypmap[hyps[i]] = hyps[i + 1]
             self.kind_of(hyps[i + 1], vall, varmap, self.syms)
         num_hypvars = len(vall)
@@ -1409,10 +1418,10 @@ class ExportCtx(InterfaceCtx):
                 try:
                     d = nonfrees[vvar]
                 except KeyError:
-                    raise VerifyError('Export context free variable constraint context in stmt %d is too weak' % local_label)
+                    raise VerifyError('Export context free variable constraint context in stmt %s is too weak' % local_label)
                 for v in d_orig:
                     if not v in d:
-                        raise VerifyError('Export context free variable constraint context in stmt %d is too weak' % local_label)
+                        raise VerifyError('Export context free variable constraint context in stmt %s is too weak' % local_label)
 
             # Remember we've used a stmt with name local_label
             self.assertions[local_label] = 0

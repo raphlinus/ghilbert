@@ -43,6 +43,10 @@ kind (bar baz)
 (kind wff)
 !reject test.gh List-valued command in interface
 
+!append test.ghi
+kind ((wff))
+!reject test.gh Kind must be string
+
 !unshare
 
 !shared
@@ -215,11 +219,67 @@ thm (ax-7_2 () () (-> (A. x (A. x ph)) (A. x (A. x ph))) x x ph ax-7)
 
 !unshare
 
+# Test malformed term cmd in export context
+!shared
+!append out.ghi
+kind (wff)
+kind (nat)
+var (wff ph)
+var (nat x y z)
+tvar (nat A B)
+stmt (foo () (ph) ph)
+!append in.ghi
+kind (wff)
+kind (nat)
+tvar (nat A B)
+var (nat x y z)
+term (wff (foo A))
+term (wff (bar A B x) (x A))
+!append test.gh
+import (IN in.ghi () "")
+var (wff ph)
+var (nat x)
+thm  (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!end
+!accept test.gh
+
+!append out.ghi
+term BAD
+!reject test.gh Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'
+!append out.ghi
+term (BAD)
+!reject test.gh Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'
+!append out.ghi
+term (wff (unk))
+!reject test.gh No term of name unk exists in verify context.
+!append out.ghi
+term (nat (foo))
+!reject test.gh Result kind mismatch with verify context for foo
+!append out.ghi
+term (wff (foo ph))
+!reject test.gh Term signature mismatch with verify context for foo
+!append out.ghi
+term (wff (foo x))
+!reject test.gh binding/non-binding mismatch for term foo argument 0
+!append out.ghi
+term (wff (bar A B x))
+!reject test.gh freemap mismatch for term bar
+!append out.ghi
+term (wff (bar A B x) (x B))
+!reject test.gh freemap mismatch for term bar
+!append out.ghi
+term (wff (bar A B x) (x A))
+!accept test.gh correctly export term with freemap
+
+!unshare 
+
 !shared
 !append test.ghi
 kind (wff)
+kind (wff2)
 kind (nat)
-tvar (wff ph ps)
+tvar (wff ph ps ch)
 tvar (nat A B)
 var (nat x y z)
 term (wff (= A B))
@@ -232,6 +292,7 @@ stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))
 
 term (nat (+ A B))
 stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
+stmt (syl () ((-> ph ps) (-> ps ch)) (-> ph ch))
 term (wff (-. ph))
 term (wff (<-> ph ps))
 stmt (id () () (-> ph ph))
@@ -240,11 +301,265 @@ stmt (preandi () (ph ps) (-. (-> ph (-. ps))))
 !append test.gh
 import (TEST test.ghi () "")
 
+var (wff bph bps)
 tvar (wff ph ps)
 var (nat x y z)
 tvar (nat A B)
+
+!append out.ghi
+kind (wff)
+kind (wff2)
+kind (nat)
+var (nat x y z)
+tvar (nat A B C)
+tvar (wff ph ps)
+tvar (wff2 ph2 ps2)
+term (wff (-> ph ps))
+term (wff (<-> ph ps))
+term (wff (A. x ph))
+term (wff (-. ph))
 !end
 !accept test.gh
+
+# test bad export
+!append out.ghi
+stmt (foo () (ph) ph)
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Conclusion mismatch for stmt foo:  ph vs (-> ph ph)
+!append out.ghi
+stmt (foo () (ph) BAD)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Unknown variableBAD
+
+!append out.ghi
+stmt (foo () (ph2) ph2)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh sort or kind mismatch for ph2
+
+!append out.ghi
+stmt (foo () ((-> ph ps)) (-> ph ps))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Non one-to-one variable mapping
+
+!append out.ghi
+stmt (foo () ((-> ph ph)) (-> ph ph))
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Hypothesis mismatch for stmt foo: (-> ph ph) vs ph
+
+!append out.ghi
+stmt (foo () (()) ())
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh The empty list () is not a valid term expression.
+
+!append out.ghi
+stmt (foo () ((())) (()))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh A term expression must start with a term symbol.
+
+!append out.ghi
+stmt (foo () ((BAD)) (BAD))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Unknown term BAD
+
+!append out.ghi
+stmt (foo () ((->)) (->))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Hypothesis mismatch for stmt foo: (->) vs (-> ph ph)
+
+!append out.ghi
+stmt (foo () ((<-> ph ph)) (<-> ph ph))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Hypothesis mismatch for stmt foo: (<-> ph ph) vs (-> ph ph)
+
+!append out.ghi
+stmt (foo () ((-> ph (-> ph ph))) (-> ph (-> ph ph)))
+!append test.gh
+thm (foo () (h (-> ph ph)) (-> ph ph) h)
+export (OUT out.ghi () "")
+!reject test.gh Hypothesis mismatch for stmt foo: (-> ph (-> ph ph)) vs (-> ph ph)
+
+# Test for malformed export stmt commands
+!append out.ghi
+stmt bad
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+
+!append out.ghi
+stmt (bad)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+
+!append out.ghi
+stmt ((bad) () (ph) ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+
+!append out.ghi
+stmt (foo bad (ph) ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+
+!append out.ghi
+stmt (foo () bad ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+
+!append out.ghi
+stmt (foobar () (ph) ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh An assertion 'foobar' does not exist in verify context.
+
+!append out.ghi
+stmt (foo () (ph) ph)
+!append test.gh
+thm (foo () (h ph) (-> ph ph) ph id)
+export (OUT out.ghi () "")
+!reject test.gh Conclusion mismatch for stmt foo: ph vs (-> ph ph)
+
+!append out.ghi
+stmt (foo () (ph) ph)
+!append test.gh
+var (wff foo)
+export (OUT out.ghi () "")
+!reject test.gh The symbol 'foo' is not an assertion in verify context.
+
+!append out.ghi
+stmt (foo () (ph) ph)
+stmt (foo () (ph) ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh An assertion 'foo' has already been exported.
+
+!append out.ghi
+stmt (foo () (ph ph) ph)
+!append test.gh
+thm (foo () (h ph) ph h)
+export (OUT out.ghi () "")
+!reject test.gh The exported assertion 'foo' has ph,ph hypotheses, while its original has 1
+
+!append out.ghi
+stmt (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!accept test.gh Correctly export fvlist
+
+!append out.ghi
+stmt (foo (BAD (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Each free variable constraint context clause must be a list of at least two variables.
+
+!append out.ghi
+stmt (foo ((BAD) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Each free variable constraint context clause must be a list of at least two variables.
+
+!append out.ghi
+stmt (foo (((BAD) x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Free variable constraint clause list elements must be variables
+
+!append out.ghi
+stmt (foo ((BAD x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Unknown variable BAD
+
+!append out.ghi
+stmt (foo ((A x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh The variable A does not occur in the statement hypotheses or conclusions
+
+!append out.ghi
+stmt (foo ((x ph) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh The first variable in a free variable constraint clause must be a term variable, and the remaining variables must be binding variables.
+
+!append out.ghi
+stmt (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps ps)))))
+!append test.gh
+thm  (foo ((ph x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps ps))))
+     ph  x  alnfi
+        ps  id
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Export context free variable constraint (ps x) is unnecessary.
+
+!append out.ghi
+stmt (foo ((ph x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps))))))
+!append test.gh
+thm  (foo ((ph x) (ps x)) () (-. (-> (-> ph (A. x ph)) (-. (-> ps (A. x ps)))))
+     ph  x  alnfi
+        ps  x  alnfi
+     preandi)
+export (OUT out.ghi () "")
+!reject test.gh Missing free variable constraint (ps x)
+
 
 !append test.gh
 thm (bleep () () (-> ph ph) ph id
@@ -311,6 +626,7 @@ term (wff (term x ph) (x ph ph))
 !reject test.gh Free variable map clause contains ph more than once.
 
 
+# Tests of defthm
 !append test.ghi
 stmt (df-term-just ((ph y z)) ()
       (<-> (A. x (A. y ph)) (A. x (A. z ph))))
@@ -340,15 +656,260 @@ defthm (df-term wff (term x ph) ((ph y)) ()
 !reject test.gh Definition dummy variable z occurs free in (-> (= z z) (A. x (A. z ph)))
 
 !append test.ghi
-stmt (df-term-just ((ph y z)) ()
-      (<-> (-> (= x x) (A. x (A. y ph)))
-           (-> (= x x) (A. x (A. z ph)))))
+kind (nat2)
+var (nat2 x2 y2 z2)
+term (wff (A.2 x2 ph))
+stmt (df-term-just ((ph y2 y2)) ()
+      (<-> (-> ps (-> (= x x) (A. x (A.2 y2 ph))))
+           (-> ps (-> (= x x) (A. x (A.2 y2 ph))))))
 !append test.gh
-defthm (df-term wff (term x ph) ((ph y)) ()
-         (<-> (term x ph) (-> (= x x) (A. x (A. y ph))))
-         x z ph y df-term-just)
+var (nat2 x2 y2 z2)
+defthm (df-term wff (term ps x y2 ph) ((ph y2)) ()
+         (<-> (term ps x y2 ph) (-> ps (-> (= x x) (A. x (A.2 y2 ph)))))
+         ps x y2 ph df-term-just)
 !accept test.gh Defthm dummy freeness from distinct binding vars
 
+!append test.gh
+defthm (df-term wff (term x) () ()
+         (<-> (term x) (= x x)))
+!reject test.gh Expected at least 7 args to thm
+
+!append test.gh
+defthm (df-term wff (term x) () ()
+         (-> (= x x) (= x x))
+  (= x x) id
+)
+!reject test.gh Term being defined does not occur in conclusion.
+
+!append test.gh
+defthm (df-term1 wff (term x) () (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x x))
+  hyp
+)
+!accept test.gh Test defthm with hypothesis
+!append test.gh
+defthm (df-term2 wff (term x) () (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x y))
+  hyp
+)
+!reject test.gh defthm conclusion mismatch: y versus: x
+!append test.gh
+defthm (df-term3 wff (term ph) () (hyp (-> ph ph))
+         (-> (term ph) ph)
+  hyp
+)
+!reject test.gh defthm conclusion mismatch: expected term, found
+!append test.gh
+defthm (df-term wff (term x) () (hyp (-> (= x x) (A. x ph)))
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh defthm conclusion mismatch: expected (= x x) but found (A. x ph)
+!append test.gh
+defthm (df-term wff (term x) () (hyp (-> (= x x) (= x x)))
+         (-> (term y) (= x x))
+  hyp
+)
+!reject test.gh All uses of the term being defined in the defthm conclusion must exactly match the definition term signature
+!append test.gh
+defthm (df-term wff (term A B) () (hyp (-> (= A B) (= B A)))
+         (-> (term A B) (term A B))
+  hyp
+)
+!reject test.gh All remnant subexpressions matching the definition term in the defthm conclusion must be identical.
+!append test.gh
+defthm (df-term wff (term A B) () (hyp (-> (= A A) (= A A)))
+         (-> (term A B) (= A A))
+  hyp
+)
+!reject test.gh Not all formal definition arguments occurred in definiens.
+!append test.gh
+defthm ((bad) wff (term x) () (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+defthm (df-term wff (term x) "bad" (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+defthm (df-term wff (term x) () bad
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+defthm (df-term (bad) (term x) () (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+defthm (df-term wff bad () (hyp (-> (= x x) (= x x)))
+         (-> (term x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'defthm (LABEL KIND (TNAME VAR ...) ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+
+# Tests of bad/malformed proofs
+
+!append test.gh
+thm ((bad) () (hyp (-> (= x x) (= x x)))
+         (-> (= x x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'thm (LABEL ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+thm (theorem bad (hyp (-> (= x x) (= x x)))
+         (-> (= x x) (= x x))
+  hyp
+)
+!reject test.gh Expected 'thm (LABEL ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+thm (theorem () bad
+         (-> (= x x) (= x x))
+  (= x x) id
+)
+!reject test.gh Expected 'thm (LABEL ((TVAR BVAR BVAR ...)) ({HYPNAME HYP} ...) CONCL STEP STEP ...)'
+!append test.gh
+thm (theorem () (odd)
+         (-> (= x x) (= x x))
+  (= x x) id
+)
+!reject test.gh hypothesis list must be of even length
+!append test.gh
+thm (theorem () ((odd) (= A A))
+         (-> (= x x) (= x x))
+  (= x x) id
+)
+!reject test.gh Hyp label must be string
+!append test.gh
+thm (theorem () (hyp (= A A) hyp (= A A))
+         (-> (= x x) (= x x))
+  (= x x) id
+)
+!reject test.gh Repeated hypothesis label hyp
+!append test.gh
+thm (theorem ((A x)) ()
+         (-> (= A x) (= A x))
+  (= A x) id
+)
+!reject test.gh Extra free variable constraint context pairs:  (A x)
+!append test.gh
+thm (theorem () ()
+         (-> (= A x) (A. x (= A x)))
+  (= A x)  x  alnfi
+)
+!reject test.gh Expected x not free in (= A x)
+
+!append test.gh
+thm (theorem () (hyp (-> (= A A) (= A A)))
+         (-> (= x x) (= x x))
+  x hyp
+)
+!reject test.gh Hyp expected no mand hyps, got 1
+!append test.gh
+thm (thm1 () ()
+         (-> ph ph)
+  ph id
+)
+thm (thm2 () ()
+         (-> ph ph)
+  ph thm1
+)
+!accept test.gh One theorem depends on another
+!append test.gh
+thm (thm1 () (h ph)
+         (-> (-> ps ph) (-> ps ph))
+  (-> ps ph) id
+)
+thm (thm2 () ()
+         (-> ph ph)
+  x thm1
+)
+!reject test.gh Kind mismatch for ps: expected wff but found x which is a nat
+
+!append test.gh
+thm (thm1 () (h bph)
+         (-> bph bph)
+  bph id
+)
+thm (thm2 () (h (-> ph ph))
+         (-> (A. x ph) (A. x ph))
+  (A. x ph) id
+)
+thm (thm3 () ()
+         (-> (-> (A. x ph) (A. x ph))
+             (-> (A. x ph) (A. x ph)))
+  ph id
+  x thm2
+  thm1
+)
+!reject test.gh  Expected binding variable for bph
+
+!append test.gh
+thm (thm1 () (h bph)
+         (-> ph ph)
+  ph id
+)
+thm (thm3 () (h ph)
+         (-> ph ph)
+  h
+  ph  thm1
+)
+!reject test.gh Expected binding variable for bph; ph is term variable
+
+!append test.gh
+thm (thm1 () (h1 bph  h2 bps)
+         (-> ph ph)
+  ph id
+)
+thm (thm3 () (h bps)
+         (-> ph ph)
+  h
+  h
+  ph  thm1
+)
+!reject test.gh Binding variables bph and bps both map to bps
+
+!append test.gh
+thm (thm1 () (h1 (-> ph ph))
+         (-> ph ph)
+  h1
+)
+thm (thm3 () (h (-> ph ps))
+         (-> ph ph)
+  h
+  thm1
+)
+!reject test.gh Unification error: 1 expected φ got ψ
+
+!append test.gh
+thm (thm1 () (h1 (-> ph ph))
+         (-> ph ph)
+  h1
+)
+thm (thm3 () (h (-> ph ps))
+         (-> ph ph)
+  h
+  thm1
+)
+!reject test.gh Unification error: 1 expected φ got ψ
+
+!append test.gh
+thm (thm1 () (h1 (-> ph ph))
+         (-> ph ph)
+  h1
+)
+thm (thm3 () (h (-> ph ph))
+         (-> ph ph)
+  h
+  thm1
+)
+!accept test.gh Unification with repeated match
 
 
 !append test.gh
@@ -409,6 +970,271 @@ tvar (formula p q)
 export (OUT out.ghi () "")
 !accept test.gh
 
+
+# Tests of bad/malformed import
+!append test.gh
+import in.ghi
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import (IN in.ghi ())
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import ((IN) in.ghi () "")
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import (IN (in.ghi) () "")
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import (IN in.ghi "" "")
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import (IN in.ghi () ())
+!reject test.gh Expected 'import (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.gh
+import (IN in.ghi () a)
+!reject test.gh prefix must be enclosed in quotes
+!append test.gh
+import (IN in.ghi () a")
+!reject test.gh prefix must be enclosed in quotes
+!append test.gh
+import (IN in.ghi () "a)
+!reject test.gh prefix must be enclosed in quotes
+!append in.ghi
+kind (formula)
+!append test.gh
+import (IN in.ghi () "")
+import (IN test.ghi () "")
+!reject test.gh An interface of name 'IN' already exists.
+
+
+# Tests of importing with params
+!shared 
+!append in.ghi
+param (TEST test.ghi () "")
+kind (formula)
+tvar (nat A B)
+term (formula (= A B))
+!append test.ghi
+kind (nat)
+!end
+!append test.gh
+import (TEST test.ghi () "")
+import (IN in.ghi (TEST) "")
+!accept test.gh
+!append test.gh
+import (TEST test.ghi () "")
+import (IN in.ghi ((BAD)) "")
+!reject test.gh import parameter must be an interface name
+!append test.gh
+import (TEST test.ghi () "")
+import (IN in.ghi (BAD) "")
+!reject test.gh Unknown interface BAD
+!append test.gh
+import (TEST test.ghi () "")
+import (IN in.ghi (TEST TEST) "")
+!reject test.gh Interface parameter TEST was repeated.
+
+!append test2.ghi
+kind (nat2)
+!append test.gh
+import (TEST test.ghi () "")
+import (TEST2 test2.ghi () "")
+import (IN in.ghi (TEST TEST2) "")
+!reject test.gh Not all parameters passed to import interface IN were used.
+
+!unshare
+
+# Test malformed var commands
+!append test.gh
+var bad
+!reject test.gh Expected 'var (KIND VAR ...)'
+!append test.gh
+var ()
+!reject test.gh Expected 'var (KIND VAR ...)'
+!append test.ghi
+kind (wff)
+!append test.gh
+import (TEST test.ghi () "")
+var (wff (bad))
+!reject test.gh variable name must be an identifier.
+
+# Test malformed var commands in interface
+!shared
+!append test.gh
+import (TEST test.ghi () "")
+!end
+!append test.ghi
+var bad
+!reject test.gh Expected 'var (KIND VAR ...)'
+!append test.ghi
+var ()
+!reject test.gh Expected 'var (KIND VAR ...)'
+!append test.ghi
+kind (wff)
+var (wff (bad))
+!reject test.gh variable name must be atom.
+!append test.ghi
+kind (wff)
+var (wff repeat)
+var (wff repeat)
+!reject test.gh Variable repeat already defined
+
+# Test bad/malformed param commands
+!append test.ghi
+param bad
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param ()
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param ((PARAM) param.ghi () "")
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param (PARAM (param.ghi) () "")
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param (PARAM param.ghi "" "")
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param (PARAM param.ghi () ())
+!reject test.gh Expected 'param (IFNAME URL (IFNAME ...) "PREFIX")'
+!append test.ghi
+param (PARAM param.ghi () a)
+!reject test.gh param prefix must be enclosed in quotes
+!append test.ghi
+param (PARAM param.ghi () a")
+!reject test.gh param prefix must be enclosed in quotes
+!append test.ghi
+param (PARAM param.ghi () "a)
+!reject test.gh param prefix must be enclosed in quotes
+!append test.ghi
+param (PARAM param.ghi () "")
+!append test.gh
+import (TEST test.ghi () "")
+!reject test.gh More param commands than provided parameter interfaces
+
+!append test.ghi
+kind (wff)
+!append test.gh
+export (OUT out.ghi (TEST) "")
+!append out.ghi
+param (IN test.ghi () "")
+!accept test.gh correctly export with param
+!unshare
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi () "")  # bad
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONE TWO) "")
+!reject test.gh param interface 'TWO' requires 0 parameters.
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (ONE two.ghi (ONE) "")  # bad
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONE TWO) "")
+!reject test.gh The interface 'ONE' has already been used.
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi (BAD) "")  # bad
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONE TWO) "")
+!reject test.gh Unknown interface name BAD
+
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi ((ONE)) "")  # bad
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONE TWO) "")
+!reject test.gh Parameters to param must be interface names.
+
+!append one.ghi
+kind (foo)
+!append one-alt.ghi
+kind (bar)
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi (ONE) "")
+!append test.gh
+import (ONE one.ghi () "")
+import (ONEALT one-alt.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONEALT TWO) "")
+!reject test.gh Inconsistent parametrization of interface TWO
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+kind (foo)
+param (ONE one.ghi () "")
+!append test.gh
+import (ONE one.ghi () "one")
+import (TWO two.ghi (ONE) "two")
+!reject test.gh A kind foo already exists in import context.
+
+!append one.ghi
+kind (foo)
+!append two.ghi
+param (ONE one.ghi () "")
+term (foo (mkfoo))
+!append twoalt.ghi
+param (ONE one.ghi () "")
+term (foo (mkfoo))
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi (ONE) "")
+param (TWOALT twoalt.ghi (ONE) "")
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (TWOALT twoalt.ghi (ONE) "alt")
+import (THREE three.ghi (ONE TWO TWOALT) "")
+!reject test.gh A term symbol mkfoo already exists in import context.
+
+!append one.ghi
+kind (foo)
+term (foo (mkfoo))
+!append two.ghi
+param (ONE one.ghi () "")
+!append three.ghi
+param (ONE one.ghi () "")
+param (TWO two.ghi (ONE) "")
+!append test.gh
+import (ONE one.ghi () "")
+import (TWO two.ghi (ONE) "")
+import (THREE three.ghi (ONE TWO) "")
+!accept test.gh Correct nesting of parameters
+
+
 # Tests of name prefixing on import
 !shared
 !append in.ghi
@@ -431,6 +1257,11 @@ import (IN in.ghi () "foo.")
 tvar (foo.formula p q)
 thm (foo () () (→ p (foo.→ q p)) p q foo.AntecedentIntroduction)
 !reject test.gh term → not known
+!append test.gh
+import (IN in.ghi () "foo.")
+tvar (foo.formula p q)
+thm (foo () () (p p (foo.→ q p)) p q foo.AntecedentIntroduction)
+!reject test.gh p is a variable not a operator. Operators always come before variables.
 !append test.gh
 import (IN in.ghi () "foo.")
 tvar (foo.formula p q)
@@ -461,6 +1292,31 @@ kindbind (foobar wff)
 !append test.gh
 kindbind (formula natural)
 !reject test.gh Kind nat already defined
+
+!append test.gh
+kindbind bad
+!reject test.gh Expected 'kindbind (OLDKIND NEWKIND)'
+!append test.gh
+kindbind (formula)
+!reject test.gh Expected 'kindbind (OLDKIND NEWKIND)'
+!append test.gh
+kindbind ((formula) natural)
+!reject test.gh Expected 'kindbind (OLDKIND NEWKIND)'
+!append test.gh
+kindbind (formula (natural))
+!reject test.gh Expected 'kindbind (OLDKIND NEWKIND)'
+
+!append test.gh
+term (formula (foo))
+!reject test.gh Interface file command encountered in proof file.
+!append test.gh
+kind (formula)
+!reject test.gh Interface file command encountered in proof file.
+!append test.gh
+param (TEST test.ghi () "")
+!reject test.gh Interface file command encountered in proof file.
+
+
 
 # can use a variable where one of another (bound) kind is expected
 !append test.gh
@@ -805,6 +1661,30 @@ import (IN in.ghi () "")
 !accept test.gh
 
 !append in.ghi
+stmt (bad () () (= (separate x BAD φ) (separate x φ φ)))
+!reject test.gh Unknown variable BAD
+
+!append in.ghi
+stmt (bad () () ())
+!reject test.gh () is not a valid term expression.
+
+!append in.ghi
+stmt (bad () () (()))
+!reject test.gh Bad term symbol()
+
+!append in.ghi
+stmt (bad () () (BAD))
+!reject test.gh Unknown term BAD
+
+!append in.ghi
+stmt (bad () () (= (= x x) (= x x)))
+!reject test.gh Expected term of kind object, but found (= x x)
+
+!append in.ghi
+stmt (bad () () (= x))
+!reject test.gh Expected 2 arguments for term =, but found (= x)
+
+!append in.ghi
 stmt (KindMismatchInInterface () () (= (separate x φ φ) (separate x φ φ)))
 !reject test.gh kind mismatch: (separate x φ φ) wanted object found formula
 
@@ -815,6 +1695,50 @@ stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
 !append in.ghi
 stmt (ExpectedBindingGotTerm () () (= (separate A A φ) (separate A A φ)))
 !reject test.gh Expected a binding variable, found term variable A
+
+# Tests for bad/malformed stmt command
+!append in.ghi
+stmt bad
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+!append in.ghi
+stmt (bad)
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+!append in.ghi
+stmt ((bad) () () (= x x))
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+!append in.ghi
+stmt (good bad () (= x x))
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+!append in.ghi
+stmt (good () bad (= x x))
+!reject test.gh Expected 'stmt (LABEL ((TVAR BVAR ...) ...) (HYP ...) CONCL)'
+!append in.ghi
+stmt (good (bad) () (= x x))
+!reject test.gh  Each free variable constraint context clause must be a list of at least two variables.
+!append in.ghi
+stmt (good ((bad)) () (= x x))
+!reject test.gh Each free variable constraint context clause must be a list of at least two variables.
+!append in.ghi
+stmt (good (((bad) x)) () (= x x))
+!reject test.gh Free variable constraint clause list elements must be variables
+!append in.ghi
+stmt (good ((bad x)) () (= x x))
+!reject test.gh Unknown variable bad
+!append in.ghi
+stmt (good ((x ph)) () (= x x))
+!reject test.gh The first variable in a free variable constraint clause must be a term variable, and the remaining variables must be binding variables.
+!append in.ghi
+stmt (good ((A x)) () (= x x))
+!reject test.gh The variable A does not occur in the statement hypotheses or conclusions
+
+# test malformed term comand
+!append in.ghi
+term bad
+!reject test.gh Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'
+!append in.ghi
+term (bad)
+!reject test.gh Expected 'term (KIND (NAME ARGVAR ...) (BARGVAR TARGVAR ...) ...'
+
 !unshare
 
 # Attempt to apply a theorem which violates a freeness constraint
@@ -838,3 +1762,4 @@ thm (bad () () (↔ (∃ z (= z (1))) (= z (1)))
  z (= z (1)) ThereExistsAddRemove
 )
 !reject test.gh Free variable constraint violation: Variable z occurs explicitly free in ['=', 'z', ['1']] [ThereExistsAddRemove]
+

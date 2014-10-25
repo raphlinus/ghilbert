@@ -187,6 +187,8 @@ var results = GhilbertTest.run(readFile(arguments[0]));
 tests = results[0];
 failures = results[1];
 print(tests, 'tests run,', failures, 'failures');
+
+
 if (failures > 0) {
   // what is a better way to exit with unsuccessful exit status?
   throw("there were test failures");

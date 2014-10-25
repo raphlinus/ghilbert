@@ -852,8 +852,7 @@ GH.VerifyCtx.prototype.do_cmd = function(cmd, arg, styling) {
         return;
     }
     if (cmd == 'term' || cmd == 'param' || cmd == 'kind') {
-		return;
-        throw 'Interface file command encountered in proof file.';
+		throw 'Interface file command encountered in proof file.';
     }
     throw 'Unrecognized command ' + cmd;
 };
@@ -1418,7 +1417,7 @@ GH.InterfaceCtx.prototype.param_cmd = function(arg) {
     for (v in iface.myterms) {
       if (iface.myterms.hasOwnProperty(v)) {
         var tpref = prefix + v;
-        if (this.kinds.hasOwnProperty(tpref)) {
+         if (this.terms.hasOwnProperty(tpref)) {
             throw ('A term symbol ' + tpref +
                    ' already exists in import context.');
         }
