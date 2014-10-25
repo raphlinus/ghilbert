@@ -221,7 +221,7 @@ kind (wff)
 kind (nat)
 tvar (wff ph ps)
 tvar (nat A B)
-var (nat x y)
+var (nat x y z)
 term (wff (= A B))
 term (wff (-> ph ps))
 term (wff (A. x ph))
@@ -241,10 +241,115 @@ stmt (preandi () (ph ps) (-. (-> ph (-. ps))))
 import (TEST test.ghi () "")
 
 tvar (wff ph ps)
-var (nat x y)
+var (nat x y z)
 tvar (nat A B)
 !end
 !accept test.gh
+
+!append test.gh
+thm (bleep () () (-> ph ph) ph id
+!reject test.gh eof inside sexp
+
+!append test.ghi
+term (badKind (bad ph))
+!reject test.gh Term result kind must be a known kind
+
+!append test.ghi
+term (wff badSig)
+!reject test.gh Term signature must be a list starting with term symbol
+
+!append test.ghi
+term (wff (-. ph))
+!reject test.gh A term of name -. already exists.
+
+!append test.ghi
+term (wff (term badvar))
+!reject test.gh Term formal argument badvar is not a known variable
+
+!append test.ghi
+term (wff (term ph ph))
+!reject test.gh Repeated term formal argument ph
+
+!append test.ghi
+term (wff (term x ph) freespec)
+!reject test.gh Each free variable map clause must be a list of at least two term argument variables
+
+!append test.ghi
+term (wff (term x ph) (x ph) freespec)
+!reject test.gh Each free variable map clause must be a list of at least two term argument variables
+
+!append test.ghi
+term (wff (term x ph) ())
+!reject test.gh Each free variable map clause must be a list of at least two term argument variables
+
+!append test.ghi
+term (wff (term x ph) (freespec))
+!reject test.gh Each free variable map clause must be a list of at least two term argument variables
+
+!append test.ghi
+term (wff (term x ph) (() ph))
+!reject test.gh Each free variable map clause must be a list of at least two term argument variables
+
+!append test.ghi
+term (wff (term x ph) (badvar ph))
+!reject test.gh The first variable in a term free variable map clause must be a binding variable argument of the term
+
+!append test.ghi
+term (wff (term x ph) (ph x))
+!reject test.gh The first variable in a term free variable map clause must be a binding variable argument of the term
+
+!append test.ghi
+term (wff (term x ph) (x ph) (x ph))
+!reject test.gh More than one free variable map clause for binding variable x
+
+!append test.ghi
+term (wff (term x ph) (x badvar))
+!reject test.gh Free variable map clause element is not a term formal argument: badvar
+
+!append test.ghi
+term (wff (term x ph) (x ph ph))
+!reject test.gh Free variable map clause contains ph more than once.
+
+
+!append test.ghi
+stmt (df-term-just ((ph y z)) ()
+      (<-> (A. x (A. y ph)) (A. x (A. z ph))))
+!append test.gh
+defthm (df-term wff (term x ph) ((ph y)) ()
+         (<-> (term x ph) (A. x (A. y ph)))
+         x z ph y df-term-just)
+!accept test.gh Test defthm with definition dummy var
+
+!append test.ghi
+stmt (df-term-just ((ph y z)) ()
+      (<-> (A. x (A. y ph)) (A. x (A. z ph))))
+!append test.gh
+defthm (df-term wff (term x ph) ((ph y) (ph z)) ()
+         (<-> (term x ph) (A. x (A. y (-> (= z z) ph))))
+         x z ph y df-term-just)
+!reject test.gh Definition dummy variable z is not a proof dummy variable
+
+!append test.ghi
+stmt (df-term-just ((ph y z)) ()
+      (<-> (-> (= y y) (A. x (A. y ph)))
+           (-> (= z z) (A. x (A. z ph)))))
+!append test.gh
+defthm (df-term wff (term x ph) ((ph y)) ()
+         (<-> (term x ph) (-> (= y y) (A. x (A. y ph))))
+         z x ph y df-term-just)
+!reject test.gh Definition dummy variable z occurs free in (-> (= z z) (A. x (A. z ph)))
+
+!append test.ghi
+stmt (df-term-just ((ph y z)) ()
+      (<-> (-> (= x x) (A. x (A. y ph)))
+           (-> (= x x) (A. x (A. z ph)))))
+!append test.gh
+defthm (df-term wff (term x ph) ((ph y)) ()
+         (<-> (term x ph) (-> (= x x) (A. x (A. y ph))))
+         x z ph y df-term-just)
+!accept test.gh Defthm dummy freeness from distinct binding vars
+
+
 
 !append test.gh
 thm (bleep () () (-> (A. x (A. (+ x y) ph)) (A. (+ x y) ph))
@@ -733,4 +838,3 @@ thm (bad () () (↔ (∃ z (= z (1))) (= z (1)))
  z (= z (1)) ThereExistsAddRemove
 )
 !reject test.gh Free variable constraint violation: Variable z occurs explicitly free in ['=', 'z', ['1']] [ThereExistsAddRemove]
-
