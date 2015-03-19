@@ -855,14 +855,14 @@ thm (ZeroSmallest () () (≤ (0) a)
         (0) a a LessEqualObject
         applyModusPonens
  )
-thm (Predecessor-sub ( (sub m)) () (
-  → (= n sub) (
-    ↔ (→ (¬ (= n (0))) (∃ m (= (succ m) n))) 
+thm (Predecessor-sub ( (sub m) (a m)) () (
+  → (= a sub) (
+    ↔ (→ (¬ (= a (0))) (∃ m (= (succ m) a)))
     (→ (¬ (= sub (0))) (∃ m (= (succ m) sub)))
   ))
-        n sub (0) EqualityBuilderRR
+        a sub (0) EqualityBuilderRR
         addNegationInConsequent
-        n sub (succ m) EqualityBuilderLL
+        a sub (succ m) EqualityBuilderLL
         m buildThereExistsInConsequent
         buildImplicationInConsequent
  )
@@ -1203,19 +1203,19 @@ thm (TotalityLemmaKLessEqualA () () (→ (≤ k a) (∨ (≤ a (succ k)) (≤ (s
         applySyllogism
  )
 var (object an na)
-thm (Totality-sub ( (sub an)  (sub na)) () (
-  → (= n sub) (
-    ↔ (∨ (∃ an (= (+ a an) n)) (∃ na (= (+ n na) a))) 
+thm (Totality-sub ( (sub an)  (sub na) (b an na)) () (
+  → (= b sub) (
+    ↔ (∨ (∃ an (= (+ a an) b)) (∃ na (= (+ b na) a)))
     (∨ (∃ an (= (+ a an) sub)) (∃ na (= (+ sub na) a)))
   ))
  # Without the need to expand ≤, this would be:
- #        (value n) sub a LessEqualBuilderLL
- #        (value n) sub a LessEqualBuilderRR
+ #        (value b) sub a LessEqualBuilderLL
+ #        (value b) sub a LessEqualBuilderRR
  #        buildDisjunctionInConsequent
-        n sub (+ a an) EqualityBuilderLL
+        b sub (+ a an) EqualityBuilderLL
         an buildThereExistsInConsequent
 
-        n sub na AdditionBuilderRR
+        b sub na AdditionBuilderRR
         a buildEqualityRRInConsequent
         na buildThereExistsInConsequent
 
