@@ -1,0 +1,2538 @@
+import (PROP      /peano_new/prop.ghi () "")
+import (PREDICATE /peano_new/predicate/all.ghi (PROP) "")
+import (SET_MIN   /peano_new/set_min.ghi (PROP PREDICATE) "")
+
+## <context>
+##   This theorem is part of a series of proofs about 
+##   <a href="/wiki/peano/set">set theory</a>. The sets here are assumed
+##   to be sets of numbers. Sets of sets are not included yet. These theorems
+##   apply to any class of numbers: natural numbers, integers, real number, etc.
+## </context>
+
+tvar (wff ph ps ch th ta et)
+tvar (nat A B C D)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V)
+tvar (wff zi si)
+
+thm (eqri ((S x) (T x))
+  (hyp (<-> (e. x S) (e. x T)))
+  (=_ S T)
+  hyp x gen S T x df-seq mpbir
+)
+
+# Set equality is reflexive
+## <title> Reflexive Property </title>
+thm (seqid () () (=_ S S)
+  (e. x S)  biid  x gen
+  S  S  x  df-seq  biimpri  ax-mp
+)
+
+## <title> Commutative Property of Set Equality </title>
+## <table>
+##   (<-> (=_ <r> S <g> T) (=_ <g> T <r> S))
+## </table>
+## <suggest> right('Commute', '=') </suggest>
+thm (seqcom () () (<-> (=_ S T) (=_ T S))
+  S  T  x  df-seq
+    (e. x T)  (e. x S)  bicom
+    x albii
+  bitr4i
+  T  S  x  df-seq
+  bitr4i
+)
+
+## <title> Commutative Property of Set Equality </title>
+## <table>
+##   (=_ <r> S <g> T)
+##   (=_ <g> T <r> S)
+## </table>
+thm (seqcomi () (hyp (=_ S T)) (=_ T S)
+  hyp
+  S T seqcom
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee
+  substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x  [ ps ]   ]    ] ))
+##   (->            [ ps ]   [ ch ] )
+##   (<-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceBi1Al1 () (
+     replacee (<-> ph (A. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x 19.20i
+  ImpReplaceBi1
+)
+
+## <title> Transitive Property </title>
+## <suggest> right('Transitive', '=') </suggest>
+thm (seqtr () () (-> (/\ (=_ S T) (=_ T U)) (=_ S U))
+  S T x df-seq
+  T U x df-seq
+  pm3.2i  
+  ## <d>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) (=_ T U) (A. x (<-> (e. x T) (e. x U))) pm4.38
+    ax-mp
+  ## </d>
+  
+  ## <d 'Distributive Property '>
+    x (<-> (e. x S) (e. x T)) (<-> (e. x T) (e. x U)) 19.26
+    ## <d 'Commutative Property'>
+      (A. x (/\ (<-> (e. x S) (e. x T)) (<-> (e. x T) (e. x U)))) (/\ (A. x (<-> (e. x S) (e. x T))) (A. x (<-> (e. x T) (e. x U)))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    bitri
+  ## </d 'Distributive Property '>
+  
+  ## <d 'Transitive Property '>
+    (e. x S) (e. x T) (e. x U) bitr
+    ImpReplaceBi1Al1
+  ## </d 'Transitive Property '>
+
+  S U x df-seq bicomi  
+  sylib
+)
+
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=       A ]    ] [     B ] )
+##   (<-> (e. A ] S) ] [ (e. B ] S))
+## </table>
+thm (eleq1i () (hyp (= A B)) (<-> (e. A S) (e. B S))
+  hyp
+  A B S ax-eleq1
+  ax-mp
+)
+thm (eleq1d ()
+  (h (-> ph (= A B)))
+  (-> ph (<-> (e. A S) (e. B S))) 
+  h A B S ax-eleq1 syl
+)
+
+thm (elseq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T)))
+  S T x df-seq
+    x A S ax-eleq1 x A T ax-eleq1 bibi12d
+  cla4g sylbi
+)
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=_        [ S  ] [       [ T )
+##   (<-> (e. A [ S) ] [ (e. A [ T ))
+## </table>
+thm (elseq2i ()
+  (hyp (=_ S T))
+  (<-> (e. A S) (e. A T))
+  hyp S T A elseq2 ax-mp
+)
+
+thm (elseq2d ()
+  (h (-> ph (=_ S T)))
+  (-> ph (<-> (e. A S) (e. A T)))
+  h S T A elseq2 syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (/\ ch (/\  [ th ]   ]    ]  et)))))
+##   (<->                            [ th ]   [ ta ] )
+##   (-> ph (-> ps (E. x (/\ ch (/\  [    [   [ ta ]  et)))))
+## </table>
+thm (BiReplaceImp1Imp1Ex1An1An0 () (
+     replacee (-> ph (-> ps (E. x (/\ ch (/\ th et)))))
+     substitution (<-> th ta)) 
+     (-> ph (-> ps (E. x (/\ ch (/\ ta et)))))
+  replacee
+  substitution
+et anbi1i
+ch anbi2i
+x exbii
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (/\  [ ch ]   ]    ]  ta))))
+##   (<->                     [ ch ]   [ th ] )
+##   (-> ph (-> ps (E. x (/\  [    [   [ th ]  ta))))
+## </table>
+thm (BiReplaceImp1Imp1Ex1An0 () (
+     replacee (-> ph (-> ps (E. x (/\ ch ta))))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (E. x (/\ th ta))))
+  replacee
+  substitution
+ta anbi1i
+x exbii
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (/\ ch (/\ (-.  [ th ]   ]    ] ) et)))))
+##   (<->                                [ th ]   [ ta ] )
+##   (-> ph (-> ps (E. x (/\ ch (/\ (-.  [    [   [ ta ] ) et)))))
+## </table>
+thm (BiReplaceImp1Imp1Ex1An1An0Not0 () (
+     replacee (-> ph (-> ps (E. x (/\ ch (/\ (-. th) et)))))
+     substitution (<-> th ta)) 
+     (-> ph (-> ps (E. x (/\ ch (/\ (-. ta) et)))))
+  replacee
+  substitution
+con4biir
+et anbi1i
+ch anbi2i
+x exbii
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (E. x (/\ ch (/\ th  [ ta ]   ]    ] )))))
+##   (<->                               [ ta ]   [ et ] )
+##   (-> ph (-> ps (E. x (/\ ch (/\ th  [    [   [ et ] )))))
+## </table>
+thm (BiReplaceImp1Imp1Ex1An1An1 () (
+     replacee (-> ph (-> ps (E. x (/\ ch (/\ th ta)))))
+     substitution (<-> ta et)) 
+     (-> ph (-> ps (E. x (/\ ch (/\ th et)))))
+  replacee
+  substitution
+th anbi2i
+ch anbi2i
+x exbii
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x  [ ps ]   ]    ] ))
+##   (->            [ ps ]   [ ch ] )
+##   (<-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceBi1Ex1 () (
+     replacee (<-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee
+  substitution
+x 19.22i
+ph biim2i
+ax-mp
+)
+
+thm (abid ()
+  (hyp (rwff x ph))
+  (<-> (e. x ({|} x ph)) ph)
+  x x ph ax-elab
+    hyp x ph df-rwff mpbi a4i
+  bitr4i
+)
+
+thm (elab ((A x) (ps x)) (hyp (-> (= x A) (<-> ph ps))) (<-> (e. A ({|} x ph)) ps)
+  A x ph ax-elab
+  hyp sbcie bitri
+)
+
+thm (elab2 ((A x) (ps x))
+  (hyp1 (-> (= x A) (<-> ph ps))
+   hyp2 (=_ S ({|} x ph)))
+  (<-> (e. A S) ps)
+  hyp2 A elseq2i hyp1 elab bitri
+)
+
+## <title> Remove Set Abstraction </title>
+## <suggest> left('Simplify', '{|}') </suggest>
+thm (elabid ((S x)) () (<-> (e. x ({|} x (e. x S))) (e. x S))
+  x y S ax-eleq1
+  rwffi
+  abid
+)
+
+## <suggest> right('Simplify', '{|}') </suggest>
+thm (removeab ((S x)) () (=_ ({|} x (e. x S)) S)
+  x S elabid
+  x gen  
+  ## <d 'Definition of Set Equality '>
+    ({|} x (e. x S)) S x df-seq bicomi
+    mpbi
+  ## </d 'Definition of Set Equality '>
+)
+
+## <title> Element in intersection is in both sets </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (elin () () (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T)))
+  x A S ax-eleq1 x A T ax-eleq1 anbi12d
+    S T x df-in
+  elab2
+)
+
+## <title> An element of a union is in one of the sets </title>
+## <suggest> right('Distribute, 'R') left('Distribute', '-R') </suggest>
+thm (elun () () (<-> (e. A (u. S T)) (\/ (e. A S) (e. A T)))
+  x A S ax-eleq1 x A T ax-eleq1 orbi12d
+    S T x df-un
+  elab2
+)
+
+thm (unc () () (-> (e. A S) (e. A (u. S T)))
+  (e. A S) (e. A T) orc
+  A S T elun  
+  ## <d 'Infer Right to Left '>
+    (e. A (u. S T)) (\/ (e. A S) (e. A T)) bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->           [ ps ]   [ ch ] )
+##   (<-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Al1 () (
+     replacee (<-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x ch))
+  replacee substitution
+  x albii
+  bitri
+)
+
+# Problem: this theorem verified, but is not true, without
+# constraints (S x) (T x). Consider S = {x + 1}, T = {x + 2}.
+# The problem was that df-seq lacked these constraints, but needs them.
+# Fixed.
+thm (dfss2 ((S x) (T x)) () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T))))
+  S T df-ss
+    (e. x S) (e. x T) pm4.71 (e. x S) (/\ (e. x S) (e. x T)) bicom bitri
+
+      x S T elin
+      (e. x S) bibi1i
+    bitr4i x albii
+    (i^i S T) S x df-seq bitr4i
+
+  bitr4i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (->  [ ps ]   ]    ]  th)))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (A. x (->  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Al1Imp0 () (
+     replacee (<-> ph (A. x (-> ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x (-> ch th)))
+  replacee substitution
+  th imbi1i
+    BiReplaceBi1Al1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (-> ps  [ ch ]   ]    ] )))
+##   (<->                  [ ch ]   [ th ] )
+##   (<-> ph (A. x (-> ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Al1Imp1 () (
+     replacee (<-> ph (A. x (-> ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (A. x (-> ps th)))
+  replacee substitution
+  ps imbi2i
+  BiReplaceBi1Al1
+)
+
+thm (ssImplies () (hyp (rwff x ph) hyp2 (rwff x ps))  (<-> (C_ ({|} x ph) ({|} x ps)) (A. x (-> ph ps)))
+  ({|} x ph) ({|} x ps) x dfss2
+  hyp abid BiReplaceBi1Al1Imp0
+  hyp2 abid   
+  BiReplaceBi1Al1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (<-> ps  [ ch ]   ]    ] )))
+##   (<->                   [ ch ]   [ th ] )
+##   (<-> ph (A. x (<-> ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Al1Bi1 () (
+     replacee (<-> ph (A. x (<-> ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (A. x (<-> ps th)))
+  replacee
+  substitution
+  ps bibi2i
+  x albii
+  ph bibi2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (<->  [ ps ]   ]    ]  th)))
+##   (<->                [ ps ]   [ ch ] )
+##   (<-> ph (A. x (<->  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Al1Bi0 () (
+     replacee (<-> ph (A. x (<-> ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x (<-> ch th)))
+  replacee
+  substitution
+th bibi1i
+x albii
+ph bibi2i
+mpbi
+)
+
+## <title> Alpha conversion for set abstraction </title> 
+thm (abeq ((ph y) (ps x))
+  (h1 (-> (= x y) (<-> ph ps)))
+  (=_ ({|} x ph) ({|} y ps))
+  z  x  ph  ax-elab
+  z  x  ph  y' df-subst    bitri
+      z  y  ps  ax-elab
+      z  y  ps  y' df-subst    bitri
+          x  y  y'  eqtr2    ex
+          y  x  y'  eqtr2    ex    eqcoms  impbid
+          h1    anbi12d
+          exalpha
+          (= y' z)  anbi2i
+          y'  exbii
+      bitr4i
+  bitr4i
+  eqri
+)
+
+## <title> Equality theorem for set abstraction </title>
+## <suggest> right('Infer', '{|}') </suggest>
+thm (abbi2 () () (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps)))
+    x  (<-> ph ps)  ax-4
+    y  x  sbcbid
+    y  x  ph  ax-elab    syl5bb
+    y  x  ps  ax-elab    syl6bbr
+    y  19.21ai   ({|} x ph)  ({|} x ps)  y  df-seq    biimpri    syl
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Equivalence over set abstraction </title>
+## <table>
+##   (<->       [ ph  ] [        [ ps )
+##   (=_ ({|} x [ ph) ] [ ({|} x [ ps ))
+## </table>
+thm (abbi2i () (h (<-> ph ps)) (=_ ({|} x ph) ({|} x ps))
+  h x gen x ph ps abbi2 ax-mp
+)## <title> Equivalence for =_ </title> ##
+thm (seqseq1 () () (-> (=_ S U) (<-> (=_ S T) (=_ U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) bibi1d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ U T) (A. x (<-> (e. x U) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq2 () () (-> (=_ T U) (<-> (=_ S T) (=_ S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) bibi2d
+  x albi2d
+  S T x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U x df-seq
+  ## <d 'Commutative Property'>
+    (=_ S U) (A. x (<-> (e. x S) (e. x U))) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+thm (seqseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (=_ S T) (=_ U T)))
+  hyp1
+  S U T seqseq1
+  syl
+)
+
+## <title> Equivalence for =_ </title> ##
+thm (seqseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (=_ S U) (=_ T V)))
+  S T U seqseq1
+  U V T seqseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (=_ S U) (=_ T U) (=_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (seqseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (=_ S T) (=_ S U)))
+  hyp1
+  T U S seqseq2
+  syl
+)
+
+thm (seqseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (=_ S U) (=_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V seqseq12
+  syl
+)
+
+
+thm (seqseq1i () (hyp (=_ S T)) (<-> (=_ S U) (=_ T U))
+  S U x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi0
+  T U x df-seq
+
+  ## <d>
+    bicomi
+  ## </d>
+
+  bitri
+)
+
+thm (seqseq2i () (hyp (=_ S T)) (<-> (=_ U S) (=_ U T))
+  U S x df-seq
+  hyp
+  S T x df-seq
+  mpbi
+  x (<-> (e. x S) (e. x T)) ax-4
+  ax-mp
+  BiReplaceBi1Al1Bi1
+  U T x df-seq
+  ## <d>
+    bicomi
+  ## </d>
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ S ({|} x  [ ph ]   ]    ] ))
+##   (<->          [ ph ]   [ ps ] )
+##   (=_ S ({|} x  [    [   [ ps ] ))
+## </table>
+thm (BiReplaceSeq1Ab1 () (
+     replacee (=_ S ({|} x ph))
+     substitution (<-> ph ps)) 
+     (=_ S ({|} x ps))
+  replacee
+  substitution
+x abbi2i
+S seqseq2i
+mpbi
+)
+
+## <title> Definition of Empty Set </suggest>
+## <suggest> left('Simplify', '∅') right('Define', '∅') </suggest>
+thm (df-emptysetF () () (=_ ({/}) ({|} x (F)))
+  x df-emptyset
+  x eqid
+  biTrue  
+  ## <d 'Negate Both Sides '>
+    (= x x) (T) notbi
+    mpbi
+    df-fal
+    ## <d 'Commutative Property'>
+      (F) (-. (T)) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    bitri
+  ## </d 'Negate Both Sides '>  
+  BiReplaceSeq1Ab1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+## <title> Empty Set Contains No Elements </title>
+thm (noel () ()
+  (-. (e. A ({/})))
+
+  A eqid
+    (= x A) id (= x A) id eqeq12d notbid
+      x df-emptyset
+    elab2
+  con2bii mpbi
+)
+
+## <title> A set with an element is not empty </title>
+thm (notEmpty () () (-> (e. A S) (-. (=_ S ({/}))))
+  ## <d>
+    x A tyex
+    x A S ax-eleq1  
+    x 19.22i
+    ax-mp
+    ## <d 'Infer Right to Left '>
+      (e. x S) (e. A S) bi2
+      x 19.22i
+      ax-mp
+    ## </d 'Infer Right to Left '>  
+    ## <d 'Quantifier Moved Around Non-free Variable '>
+      (e. A S) x (e. x S) imex bicomi
+      mpbi
+    ## </d 'Quantifier Moved Around Non-free Variable '>
+  ## </d>
+  ## <d 'Definition of ∃ '>
+    x (e. x S) df-ex
+    sylib
+  ## </d 'Definition of ∃ '>
+  ## <d>
+    S ({/}) x df-seq
+    x noel
+    (e. x S) biNotRemove2
+    x albii
+    bitri
+    bicomi
+    BiReplaceImp1Not0
+  ## </d>
+)
+
+## <title> Singleton has One Element </title>
+## <suggest> right('Simplify', '=') </suggest>
+thm (elsnc () () (<-> (e. A ({} B)) (= A B))
+  x A B eqeq1
+    B x df-sn
+  elab2
+)
+
+## <title> Singleton has One Element </title>
+thm (snid () () (e. A ({} A))
+  A eqid
+  A A elsnc
+  mpbir
+)
+
+## <title> Subset and Element Of Equivalence <title>
+## <suggest> left('Simplify', '∈') right('Infer', '⊆') </suggest>
+thm (elSubset () () (<-> (e. A S) (C_ ({} A) S))
+  x A S ax-eleq1  
+  ## <d 'Infer Right to Left '>
+    (e. x S) (e. A S) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  com12
+  x gen
+  x (e. A S) (-> (= x A) (e. x S)) 19.21  
+  mpbi
+  ({} A) S x dfss2 
+  ## <d 'Singleton has One Element '>
+    x A elsnc
+    BiReplaceBi1Al1Imp0
+  ## </d 'Singleton has One Element '>  
+  ## <d 'Commutative Property '>
+    (C_ ({} A) S) (A. x (-> (= x A) (e. x S))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  sylib
+
+  ({} A) S x dfss2 
+  x A ({} A) ax-eleq1
+  x A S ax-eleq1
+  imbi12d
+  cla4g
+  ImpReplaceBi1
+  
+  A snid
+  
+  (e. A S) impRemove1
+  (C_ ({} A) S) imbi2i
+  mpbi
+  impbii
+)
+
+## <title> Subset and Element Of Equivalence <title>
+thm (elSubseti () (hyp (e. A S)) (C_ ({} A) S)
+  hyp
+  A S elSubset   
+  mpbi
+)
+
+## <title> Equality deduction for set abstraction </title>
+thm (abbi2d ((ph x)) (h (-> ph (<-> ps ch))) (-> ph (=_ ({|} x ps) ({|} x ch)))
+  h x 19.21ai x ps ch abbi2 syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_  [ S ]   ]   ]  U)
+##   (=_  [ S ]   [ T ] )
+##   (=_  [   [   [ T ]  U)
+## </table>
+thm (SeqReplaceSeq0 () (
+     replacee (=_ S U)
+     substitution (=_ S T)) 
+     (=_ T U)
+  replacee
+  substitution
+U seqseq1i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=_  [ S ]   ]   ]  U))
+##   (=_         [ S ]   [ T ] )
+##   (-> ph (=_  [   [   [ T ]  U))
+## </table>
+thm (SeqReplaceImp1Seq0 () (
+     replacee (-> ph (=_ S U))
+     substitution (=_ S T)) 
+     (-> ph (=_ T U))
+  replacee
+  substitution
+U seqseq1i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=_ S  [ T ]   ]   ] ))
+##   (=_           [ T ]   [ U ] )
+##   (-> ph (=_ S  [   [   [ U ] ))
+## </table>
+thm (SeqReplaceImp1Seq1 () (
+     replacee (-> ph (=_ S T))
+     substitution (=_ T U)) 
+     (-> ph (=_ S U))
+  replacee
+  substitution
+S seqseq2i
+ph imbi2i
+mpbi
+)
+
+thm (sneq () () (-> (= A B) (=_ ({} A) ({} B))) 
+  (= A B) x alnfi
+  A B x eqeq2
+  x 19.20i  
+  syl
+  x (= x A) (= x B) abbi2     
+  syl  
+  ## <d>
+    A x df-sn
+    ## <d 'Commutative Property'>
+      ({} A) ({|} x (= x A)) seqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    SeqReplaceImp1Seq0
+  ## </d>
+  ## <d>
+    B x df-sn
+    ## <d 'Commutative Property'>
+      ({} B) ({|} x (= x B)) seqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    SeqReplaceImp1Seq1
+  ## </d>
+)
+
+thm (sneqi () (hyp (= A B)) (=_ ({} A) ({} B))
+  hyp
+  A B sneq
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ S  [ T ]   ]   ] )
+##   (=_    [ T ]   [ U ] )
+##   (=_ S  [   [   [ U ] )
+## </table>
+thm (SeqReplaceSeq1 () (
+     replacee (=_ S T)
+     substitution (=_ T U)) 
+     (=_ S U)
+  replacee
+  substitution
+S seqseq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (\/ (e. A  [ S ]   ]   ] ) ph)))
+##   (=_                     [ S ]   [ T ] )
+##   (=_ U ({|} x (\/ (e. A  [   [   [ T ] ) ph)))
+## </table>
+thm (SeqReplacerSeq0Ab1Or0El0 () (
+     replacee (=_ U ({|} x (\/ (e. A S) ph)))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (\/ (e. A T) ph)))
+  replacee
+  substitution
+A elseq2i
+ph orbi1i
+x abbi2i
+U seqseq2i
+mpbi
+)
+
+thm (abNotRemove2 () (hyp (-. ph)) (=_ ({|} x ph) ({/}))
+  hyp
+  biTrue  
+  ## <d 'Negate Both Sides '>
+    (-. ph) (T) notbi
+    mpbi
+    ph notnotr
+    bitr3icom
+    df-fal
+    ## <d 'Commutative Property'>
+      (F) (-. (T)) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    bitri
+  ## </d 'Negate Both Sides '>
+  x abbi2i  
+  ## <d 'Definition of Empty Set '>
+    x df-emptysetF
+    ## <d 'Commutative Property'>
+      ({/}) ({|} x (F)) seqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    SeqReplaceSeq1
+  ## </d 'Definition of Empty Set '>
+)## <title> Equivalence for u. </title> ##
+thm (unseq1 () () (-> (=_ S U) (=_ (u. S T) (u. U T)))
+  (=_ S U) id
+  x elseq2d
+  (e. x T) orbi1d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  U T x df-un
+  ## <d 'Commutative Property'>
+    (u. U T) ({|} x (\/ (e. x U) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+thm (unseq1i () (
+     hyp1 (=_ S U))
+     (=_ (u. S T) (u. U T))
+  hyp1
+  S U T unseq1
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq2 () () (-> (=_ T U) (=_ (u. S T) (u. S U)))
+  (=_ T U) id
+  x elseq2d
+  (e. x S) orbi2d
+  x abbi2d
+  S T x df-un
+  ## <d 'Commutative Property'>
+    (u. S T) ({|} x (\/ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  S U x df-un
+  ## <d 'Commutative Property'>
+    (u. S U) ({|} x (\/ (e. x S) (e. x U))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+
+
+thm (unseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (=_ (u. S T) (u. U T)))
+  hyp1
+  S U T unseq1
+  syl
+)
+
+thm (unseq2i () (
+     hyp1 (=_ T U))
+     (=_ (u. S T) (u. S U))
+  hyp1
+  T U S unseq2
+  ax-mp
+)
+
+## <title> Equivalence for u. </title> ##
+thm (unseq12 () () (-> (/\ (=_ S T) (=_ U V)) (=_ (u. S U) (u. T V)))
+  S T U unseq1
+  U V T unseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (u. S U) (u. T U) (u. T V) seqtr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (unseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (=_ (u. S T) (u. S U)))
+  hyp1
+  T U S unseq2
+  syl
+)
+
+thm (unseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (=_ (u. S U) (u. T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V unseq12
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (/\ (e. A  [ S ]   ]   ] ) ph)))
+##   (=_                   [ S ]   [ T ] )
+##   (=_ U ({|} x (/\ (e. A  [   [   [ T ] ) ph)))
+## </table>
+thm (SeqReplaceSeq0Ab1An0El0 () (
+     replacee (=_ U ({|} x (/\ (e. A S) ph)))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (/\ (e. A T) ph)))
+  replacee
+  substitution
+A elseq2i
+ph anbi1i
+x abbi2i
+U seqseq2i
+mpbi
+)
+
+## <title> Equivalence over Intersection </title>
+thm (inseq1 () () (-> (=_ S T) (=_ (i^i S U) (i^i T U)))
+  S T x elseq2
+  (e. x U) anbi1d
+  x gen
+  x (=_ S T) (<-> (/\ (e. x S) (e. x U)) (/\ (e. x T) (e. x U))) 19.21  
+  mpbi
+  
+  ## <d 'Equality theorem for set abstraction '>
+    x (/\ (e. x S) (e. x U)) (/\ (e. x T) (e. x U)) abbi2
+    syl
+  ## </d 'Equality theorem for set abstraction '>
+  T U x df-in seqcomi  
+  SeqReplaceImp1Seq1
+  S U x df-in seqcomi  
+  SeqReplaceImp1Seq0
+)
+
+thm (inseq1i () (hyp1 (=_ S T)) (=_ (i^i S U) (i^i T U))
+  hyp1
+  S T U inseq1
+  ax-mp
+)
+
+## <title> Equivalence for ∩ </title> ##
+thm (inseq2 () () (-> (=_ T U) (=_ (i^i S T) (i^i S U)))
+  T U x elseq2
+  (e. x S) anbi2d
+  x abbi2d
+  S T x df-in
+  ## <d 'Commutative Property'>
+    (i^i S T) ({|} x (/\ (e. x S) (e. x T))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq0
+  S U x df-in
+  ## <d 'Commutative Property'>
+    (i^i S U) ({|} x (/\ (e. x S) (e. x U))) seqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  SeqReplaceImp1Seq1
+)
+
+
+thm (inseq1d () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (=_ (i^i S U) (i^i T U)))
+  hyp1
+  S T U inseq1
+  syl
+)
+
+thm (inseq2i () (
+     hyp1 (=_ T U))
+     (=_ (i^i S T) (i^i S U))
+  hyp1
+  T U S inseq2
+  ax-mp
+)
+
+thm (inseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (=_ (i^i S T) (i^i S U)))
+  hyp1
+  T U S inseq2
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=_ U ({|} x (/\ ph (e. A  [ S ]   ]   ] ))))
+##   (=_                        [ S ]   [ T ] )
+##   (=_ U ({|} x (/\ ph (e. A  [   [   [ T ] ))))
+## </table>
+thm (SeqReplaceSeq0Ab1An1El0 () (
+     replacee (=_ U ({|} x (/\ ph (e. A S))))
+     substitution (=_ S T)) 
+     (=_ U ({|} x (/\ ph (e. A T))))
+  replacee
+  substitution
+A elseq2i
+ph anbi2i
+x abbi2i
+U seqseq2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (=_ (i^i  [ S ]   ]   ]  U) V) ph)
+##   (=_            [ S ]   [ T ] )
+##   (<-> (=_ (i^i  [   [   [ T ]  U) V) ph)
+## </table>
+thm (SeqReplaceBi0Seq0In0 () (
+     replacee (<-> (=_ (i^i S U) V) ph)
+     substitution (=_ S T)) 
+     (<-> (=_ (i^i T U) V) ph)
+  replacee
+  substitution
+U inseq1i
+V seqseq1i
+ph bibi1i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (=_ S  [ T ]   ]   ] ) ph)
+##   (=_         [ T ]   [ U ] )
+##   (<-> (=_ S  [   [   [ U ] ) ph)
+## </table>
+thm (SeqReplaceBi0Seq1 () (
+     replacee (<-> (=_ S T) ph)
+     substitution (=_ T U)) 
+     (<-> (=_ S U) ph)
+  replacee
+  substitution
+S seqseq2i
+ph bibi1i
+mpbi
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq1 () () (-> (=_ S U) (<-> (C_ S T) (C_ U T)))
+  (=_ S U) id
+  T inseq1d
+  (=_ S U) id
+  seqseq12d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  U T df-ss
+  ## <d 'Commutative Property'>
+    (C_ U T) (=_ (i^i U T) U) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+thm (ssseq1i () (
+     hyp1 (=_ S U))
+     (<-> (C_ S T) (C_ U T))
+  hyp1
+  S U T ssseq1
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq2 () () (-> (=_ T U) (<-> (C_ S T) (C_ S U)))
+  (=_ T U) id
+  S inseq2d
+  S seqseq1d
+  S T df-ss
+  ## <d 'Commutative Property'>
+    (C_ S T) (=_ (i^i S T) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi0
+  S U df-ss
+  ## <d 'Commutative Property'>
+    (C_ S U) (=_ (i^i S U) S) bicom
+    mpbi
+  ## </d 'Commutative Property'>
+  BiReplaceImp1Bi1
+)
+
+
+thm (ssseq1d () (
+     hyp1 (-> ph (=_ S U)))
+     (-> ph (<-> (C_ S T) (C_ U T)))
+  hyp1
+  S U T ssseq1
+  syl
+)
+
+thm (ssseq2i () (
+     hyp1 (=_ T U))
+     (<-> (C_ S T) (C_ S U))
+  hyp1
+  T U S ssseq2
+  ax-mp
+)
+
+## <title> Equivalence for C_ </title> ##
+thm (ssseq12 () () (-> (/\ (=_ S T) (=_ U V)) (<-> (C_ S U) (C_ T V)))
+  S T U ssseq1
+  U V T ssseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (C_ S U) (C_ T U) (C_ T V) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+
+thm (ssseq2d () (
+     hyp1 (-> ph (=_ T U)))
+     (-> ph (<-> (C_ S T) (C_ S U)))
+  hyp1
+  T U S ssseq2
+  syl
+)
+
+thm (ssseq12d () (
+     hyp1 (-> ph (=_ S T))
+     hyp2 (-> ph (=_ U V)))
+     (-> ph (<-> (C_ S U) (C_ T V)))
+  hyp1
+  hyp2
+  jca
+  S T U V ssseq12
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (=_ (i^i S  [ T ]   ]   ] ) V) ph)
+##   (=_              [ T ]   [ U ] )
+##   (<-> (=_ (i^i S  [   [   [ U ] ) V) ph)
+## </table>
+thm (SeqReplaceBi0Seq0In1 () (
+     replacee (<-> (=_ (i^i S T) V) ph)
+     substitution (=_ T U)) 
+     (<-> (=_ (i^i S U) V) ph)
+  replacee
+  substitution
+S inseq2i
+V seqseq1i
+ph bibi1i
+mpbi
+)
+
+
+## <title> Commutative Property of Union </title>
+## <suggest> right('Commute', '∪') </suggest>
+thm (uncom () () (=_ (u. S T) (u. T S))
+  ## <d>
+    S T x df-un
+  ## </d>
+  ## <d 'Commutative Property of OR'>
+    (e. x S) (e. x T) orcom
+    BiReplaceSeq1Ab1
+  ## </d>
+  ## <d 'Definition of Union'>
+    ## <d 'Definition of Union'>
+      T S x df-un
+      seqcomi
+    ## </d 'Definition of Union'>
+    SeqReplaceSeq1
+  ## </d 'Definition of Union'>
+)
+
+## <title> Commutative Property of Intersection </title>
+## <suggest> right('Commute', '∩') </suggest>
+thm (incom () () (=_ (i^i S T) (i^i T S))
+  ## <d>
+    S T x df-in
+  ## </d>
+  ## <d 'Commutative Property of AND'>
+    (e. x S) (e. x T) ancom
+    BiReplaceSeq1Ab1
+  ## </d>
+  ## <d 'Definition of Intersection'>
+    ## <d 'Definition of Intersection'>
+      T S x df-in
+      seqcomi
+    ## </d 'Definition of Intersection'>
+    SeqReplaceSeq1
+  ## </d 'Definition of Intersection'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1An0 () (
+     replacee (<-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ ch th))
+  replacee substitution
+  th anbi1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Or0 () (
+     replacee (<-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1Or1 () (
+     replacee (<-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  bitri
+)
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+thm (inass () () (=_ (i^i (i^i S T) U) (i^i S (i^i T U)))
+  x S (i^i T U) elin
+  x T U elin
+  BiReplaceBi1An1  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) anass
+    ## <d>
+      (/\ (/\ (e. x S) (e. x T)) (e. x U)) (/\ (e. x S) (/\ (e. x T) (e. x U))) bicom
+    ## </d>
+    mpbi
+  ## </d>
+  bitri
+  x (i^i S T) U elin
+  x S T elin
+  
+    BiReplaceBi1An0
+  
+  ## <d>
+    (e. x (i^i (i^i S T) U)) (/\ (/\ (e. x S) (e. x T)) (e. x U)) bicom
+  ## </d>
+  mpbi
+  
+  bitri
+  x gen
+  (i^i S (i^i T U)) (i^i (i^i S T) U)  x df-seq  
+  
+  ## <d>
+    (=_ (i^i S (i^i T U)) (i^i (i^i S T) U)) (A. x (<-> (e. x (i^i S (i^i T U))) (e. x (i^i (i^i S T) U)))) bicom
+  ## </d>
+  mpbi
+  mpbi
+
+  ## <d>
+    (i^i S (i^i T U)) (i^i (i^i S T) U) seqcom
+  ## </d>
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (<->     [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (BiReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (<-> ps ch)) 
+     (<-> ph ch)
+  replacee
+  substitution
+ph bibi2i
+mpbi
+)
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+thm (unass () () (=_ (u. (u. S T) U) (u. S (u. T U)))
+  x S (u. T U) elun
+  x T U elun
+  BiReplaceBi1Or1
+
+## <d>
+  (e. x S) (e. x T) (e. x U) orass
+  ## <d>
+    bicomi
+  ## </d>
+## </d>
+  BiReplaceBi1
+  x (u. S T) U elun
+  x S T elun
+  BiReplaceBi1Or0
+
+## <d>
+  bicomi
+## </d>
+
+BiReplaceBi1
+x gen
+
+  (u. S (u. T U)) (u. (u. S T) U)  x df-seq
+
+## <d>
+  bicomi
+## </d>
+
+mpbi
+  
+  ## <d>
+    (u. S (u. T U)) (u. (u. S T) U) seqcom
+  ## </d>
+  mpbi
+)
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+thm (undi () () (=_ (u. S (i^i T U)) (i^i (u. S T) (u. S U))) 
+  x S (i^i T U) elun
+  x T U elin  
+  BiReplaceBi1Or1
+  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) ordi
+  ## </d>
+  bitri
+  x S T elun    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An0
+  x S U elun
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceBi1An1
+
+  x (u. S T) (u. S U) elin    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  bitri
+  x gen  
+
+  (u. S (i^i T U)) (i^i (u. S T) (u. S U)) x df-seq
+  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+ )
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+ thm (undir () () (=_ (u. (i^i T U) S) (i^i (u. T S) (u. U S))) 
+  x (i^i T U) S elun
+  x T U elin  
+  BiReplaceBi1Or0
+  
+  ## <d>
+    (e. x T) (e. x U) (e. x S) ordir
+  ## </d>
+  bitri
+  x T S elun  
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An0
+  x U S elun  
+    
+  ## <d>
+    bicomi
+  ## </d>
+  
+  BiReplaceBi1An1
+  x (u. T S) (u. U S) elin  
+  ## <d>
+    bicomi
+  ## </d> 
+  bitri
+
+  x gen 
+  (u. (i^i T U) S) (i^i (u. T S) (u. U S)) x df-seq  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+thm (indir () () (=_ (i^i (u. T U) S) (u. (i^i T S) (i^i U S))) 
+  x (u. T U) S elin
+  x T U elun
+  
+  BiReplaceBi1An0
+  
+  ## <d>
+    (e. x T) (e. x U) (e. x S) andir
+  ## </d>
+  bitri
+  x T S elin  
+  ## <d>
+    bicomi
+  ## </d>
+  BiReplaceBi1Or0
+  x U S elin  
+  ## <d>
+    bicomi
+  ## </d>  
+  BiReplaceBi1Or1
+  x (i^i T S) (i^i U S) elun  
+  ## <d>
+    bicomi
+  ## </d>
+  
+  bitri
+  x gen  
+  (i^i (u. T U) S) (u. (i^i T S) (i^i U S)) x df-seq
+  
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+thm (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U)))
+  x S (u. T U) elin
+  x T U elun   
+  BiReplaceBi1An1
+  
+  ## <d>
+    (e. x S) (e. x T) (e. x U) andi
+  ## </d>
+  bitri
+  
+  ## <d>
+    x S T elin
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  BiReplaceBi1Or0
+  
+  ## <d>
+    x S U elin
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  BiReplaceBi1Or1
+  
+  ## <d>
+    x (i^i S T) (i^i S U) elun
+    ## <d>
+      bicomi
+    ## </d>
+  ## </d>
+  bitri
+
+  x gen
+  (i^i S (u. T U)) (u. (i^i S T) (i^i S U)) x df-seq    
+  ## <d>
+    bicomi
+  ## </d>
+  mpbi
+)
+
+
+## <summary> If an element is in a set, it is also in the set unioned with anything. </summary>
+## <table>
+##   (e. A     [ S ]      )
+##   (e. A (u. [ S ] <g> U))
+## </table>
+thm (unionAttach1 () (hyp (e. A S)) (e. A (u. S U))
+  tru
+  A S U elun
+  hyp
+   
+  (e. A U) orRemove1
+  (e. A (u. S U)) bibi2i
+  mpbi
+  mpbir
+)
+
+## <summary> If an element is in a set, it is also in the set unioned with anything. </summary>
+## <table>
+##   (e. A ]           [ S)
+##   (e. A ] (u. <g> U [ S))
+## </table>
+thm (unionAttach2 () (hyp (e. A S)) (e. A (u. U S))
+  tru
+  A U S elun
+  hyp
+   
+  (e. A U) orRemove2
+  (e. A (u. U S)) bibi2i
+  mpbi
+  mpbir
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=_  [ S ]   ]   ]  U))
+##   (=_          [ S ]   [ T ] )
+##   (<-> ph (=_  [   [   [ T ]  U))
+## </table>
+thm (SeqReplaceBi1Seq0 () (
+     replacee (<-> ph (=_ S U))
+     substitution (=_ S T)) 
+     (<-> ph (=_ T U))
+  replacee
+  substitution
+U seqseq1i
+ph bibi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=_ (u.  [ S ]   ]   ]  U) V))
+##   (=_              [ S ]   [ T ] )
+##   (<-> ph (=_ (u.  [   [   [ T ]  U) V))
+## </table>
+thm (SeqReplaceBi1Seq0Un0 () (
+     replacee (<-> ph (=_ (u. S U) V))
+     substitution (=_ S T)) 
+     (<-> ph (=_ (u. T U) V))
+  replacee substitution
+  U unseq1i
+  SeqReplaceBi1Seq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (C_  [ S ]   ]   ]  U) ph)
+##   (=_       [ S ]   [ T ] )
+##   (<-> (C_  [   [   [ T ]  U) ph)
+## </table>
+thm (SeqReplaceBi0Ss0 () (
+     replacee (<-> (C_ S U) ph)
+     substitution (=_ S T)) 
+     (<-> (C_ T U) ph)
+  replacee substitution
+  U ssseq1i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=_ (u. S  [ T ]   ]   ] ) V))
+##   (=_                [ T ]   [ U ] )
+##   (<-> ph (=_ (u. S  [   [   [ U ] ) V))
+## </table>
+thm (SeqReplaceBi1Seq0Un1 () (
+     replacee (<-> ph (=_ (u. S T) V))
+     substitution (=_ T U)) 
+     (<-> ph (=_ (u. S U) V))
+  replacee substitution
+  S unseq2i
+  SeqReplaceBi1Seq0
+)
+
+## <summary> If a set is a subset of two sets, it is a subset of their union. </summary>
+thm (unSubset () (hyp (C_ S U) hyp2 (C_ T U)) (C_ (u. S T) U)
+  (u. S T) U df-ss
+  ## <d 'Distributive Property '>
+    S T U indir
+    SeqReplaceBi1Seq0
+  ## </d 'Distributive Property '>
+  hyp  
+  ## <d 'Definition of Subset '>
+    S U df-ss
+    mpbi
+  ## </d 'Definition of Subset '>
+  
+    SeqReplaceBi1Seq0Un0
+  hyp2  
+  ## <d 'Definition of Subset '>
+    T U df-ss
+    mpbi
+  ## </d 'Definition of Subset '>
+    
+    SeqReplaceBi1Seq0Un1
+  
+  (u. S T) seqid
+  
+  mpbirRemove
+)
+
+## <summary> If an element is not in two sets, it is not in the union of the sets. </summary>
+thm (notInUnion () (hyp (-. (e. A S)) hyp2 (-. (e. A T))) (-. (e. A (u. S T)))
+  A S T elun
+  hyp 
+  (e. A T) orNotRemove1
+  (e. A (u. S T)) bibi2i
+  mpbi
+  hyp2  
+  mtbirRemove
+  # TODO: Apply the two hypotheses together.
+)
+
+## <summary> Proof that an element is not in a singleton. </summary>
+thm (notInSingleton () (hyp (-. (= A B)))  (-. (e. A ({} B)))
+  A B elsnc
+  hyp  
+  mtbirRemove
+)
+
+## <summary> Proof that an element is not in the union of singleton and another set. </summary>
+thm (notInSingletonUnion () (hyp (-. (= A B)) hyp2 (-. (e. A S))) (-. (e. A (u. ({} B) S)))
+  hyp  
+  notInSingleton
+  hyp2
+  notInUnion
+)
+
+## <summary> Proof that an element is not in the union of singleton and another set. </summary>
+thm (notInSingletonUnion2 () (hyp (-. (e. A S)) hyp2 (-. (= A B)) ) (-. (e. A (u. S ({} B))))
+  hyp
+  hyp2
+  notInSingleton
+  notInUnion
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-. (-.  [ ph ]   ]    ] )) ch)
+##   (<->         [ ph ]   [ ps ] )
+##   (-> (-. (-.  [    [   [ ps ] )) ch)
+## </table>
+thm (BiReplaceImp0Not0Not0 () (
+     replacee (-> (-. (-. ph)) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. (-. ps)) ch)
+  replacee
+  substitution
+con4biir
+con4biir
+ch imbi1i
+mpbi
+)
+
+## <title> Empty Set Intersection </title>
+## <suggest> auto-right('Simplify', '∅') </suggest>
+thm (emptyIn1 () () (=_ (i^i ({/}) S) ({/}))
+  ## <d 'Definition of Intersection '>
+    ({/}) S x df-in
+  ## </d 'Definition of Intersection '>
+  x noel
+  (e. x S) anNotRemove1
+  BiReplaceSeq1Ab1
+  
+  ## <d 'Definition of Empty Set '>
+    x df-emptysetF
+    ## <d 'Commutative Property'>
+      ({/}) ({|} x (F)) seqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    SeqReplaceSeq1
+  ## </d 'Definition of Empty Set '>
+)
+
+thm (emptyIn2 () () (=_ (i^i S ({/})) ({/}))
+  S emptyIn1  
+  ## <d 'Commutative Property '>
+    ({/}) S incom
+    SeqReplaceSeq0
+  ## </d 'Commutative Property '>
+)
+
+## <title> Empty Set is a Subset </title>
+## <suggest> full('Simplify', 'T') </suggest>
+thm (emptyss () () (C_ ({/}) S)
+  ## <d 'Definition of Subset '>
+    ({/}) S df-ss
+  ## </d 'Definition of Subset '>  
+  ## <d 'Empty Set Intersection '>
+    S emptyIn1
+    SeqReplaceBi1Seq0
+  ## </d 'Empty Set Intersection '> 
+  ({/}) seqid
+  mpbirRemove
+)
+
+thm (emptySnIn1 () (hyp (-. (e. A S))) (=_ (i^i ({} A) S) ({/}))
+  (i^i ({} A) S) ({/}) x df-seq
+
+  x noel    
+  (e. x (i^i ({} A) S)) biNotRemove2
+  x albii
+  (=_ (i^i ({} A) S) ({/})) bibi2i
+  mpbi
+
+  x ({} A) S elin
+  x A elsnc  
+  BiReplaceBi1An0
+  x A S ax-eleq1
+  hyp  
+  (e. x S) biNotRemove2
+  (= x A) imbi2i
+  mpbi
+  con2i
+  (= x A) anim2i
+  sylbi
+  (= x A) pm3.24  
+  mtoRemove
+  
+  x gen  
+  mpbirRemove
+)
+
+thm (emptySnIn2 () (hyp (-. (e. A S))) (=_ (i^i S ({} A)) ({/}))
+  hyp
+  emptySnIn1  
+  ## <d>
+    ({} A) S incom
+  ## </d>
+    SeqReplaceSeq0
+)
+
+## <title> Intersection is Idempotent </title>
+## <suggest> right('Simplify', '∩') </suggest>
+thm (inidm() () (=_ (i^i S S) S)
+  (i^i S S) S x df-seq
+  x S S elin
+  (e. x S) anidm  
+  bitri
+  x gen  
+  mpbirRemove
+)
+
+## <title> Union is Idempotent </title>
+## <suggest> right('Simplify', '∪') </suggest>
+thm (unidm() () (=_ (u. S S) S)
+  ## <d>
+    (u. S S) S x df-seq
+    ## <d 'An element of a union is in one of the sets'>
+      x S S elun
+    ## </d 'An element of a union is in one of the sets'>
+  ## </d>
+  ## <d 'Disjunction is idempotent'>
+    (e. x S) oridm
+    bitri
+  ## </d 'Disjunction is idempotent'>
+  ## <d 'Definition of Set Equality'>
+    x gen
+    ## <d 'Definition of Set Equality'>
+      mpbirRemove
+    ## </d>
+  ## </d 'Definition of Set Equality'>
+)
+
+thm (inEmpty1() () (=_ (i^i S ({/})) ({/}))
+  (i^i S ({/})) ({/}) x df-seq
+  x S ({/}) elin
+  x noel
+  
+  (e. x S) anNotRemove2
+  (e. x (i^i S ({/}))) bibi2i
+  mpbi
+  notfal  
+  mtbirRemove
+
+  (e. x ({/})) biNotRemove1
+  x albii
+  (=_ (i^i S ({/})) ({/})) bibi2i
+  mpbi
+
+  x noel
+  x gen
+    
+  mpbirRemove
+)
+
+thm (inEmpty2() () (=_ (i^i ({/}) S) ({/}))
+  S inEmpty1  
+  ## <d>
+    S ({/}) incom
+  ## </d>
+  SeqReplaceSeq0
+)
+
+## <title> Union Identity </title>
+thm (unid() () (=_ (u. S ({/})) S)
+  (u. S ({/})) S x df-seq
+  x S ({/}) elun
+  x noel
+  (e. x S) orNotRemove2
+  (e. x (u. S ({/}))) bibi2i
+  mpbi
+  x gen
+  mpbirRemove
+)
+
+## <title> Union Identity </title>
+thm (unidr() () (=_ (u. ({/}) S) S)
+  (u. ({/}) S) S x df-seq
+  x ({/}) S elun
+  x noel
+  (e. x S) orNotRemove1
+  (e. x (u. ({/}) S)) bibi2i
+  mpbi
+  x gen
+  mpbirRemove
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x exbii
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x  [ ph ]   ]    ] )
+##   (->    [ ph ]   [ ps ] )
+##   (E. x  [    [   [ ps ] )
+## </table>
+thm (ImpReplaceEx1 () (
+     replacee (E. x ph)
+     substitution (-> ph ps)) 
+     (E. x ps)
+  replacee
+  substitution
+x 19.22i
+ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/ ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (\/ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Or1 () (
+     replacee (<-> ph (-. (\/ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (\/ ps th)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Imp0 () (
+     replacee (<-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  bitri
+)
+
+thm (notSeqLem ((S x) (T x)) ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (=_ S T)))
+ (e. x S) (e. x T) xorImp2
+ x 19.22i  
+ x (-. (<-> (e. x S) (e. x T))) df-ex  
+  sylib  
+  (<-> (e. x S) (e. x T)) notnotr
+  x albii  
+  BiReplaceImp1Not0
+  S T x df-seq  
+  ## <d>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+  ## </d>
+  mpbi
+  
+  BiReplaceImp1Not0
+)
+
+thm (sbc-elnotseq ((A x) (S x) (T x)) () (<-> ([/] A x (/\ (e. x S) (-. (e. x T)))) (/\ (e. A S) (-. (e. A T))))
+  x A S ax-eleq1
+  x A T ax-eleq1
+  notbid
+  anbi12d
+  sbcie
+)
+
+## <title> Sets are not equal </title>
+## <suggest> right('Infer', '≠') </suggest>
+thm (elnotseq () () (-> (/\ (e. A S) (-. (e. A T))) (-. (=_ S T)))
+  A y (/\ (e. y S) (-. (e. y T))) x sbcex
+  A y S T sbc-elnotseq     
+  sylbi2
+  x y S T sbc-elnotseq       
+  BiReplaceImp1Ex1
+  x S T notSeqLem  
+  syl
+)
+
+## <title> Sets are not equal </title>
+thm (elnotseqcom () () (-> (/\ (e. A S) (-. (e. A T))) (-. (=_ T S)))
+  A S T elnotseq  
+  ## <d 'Commutative Property '>
+    S T seqcom
+    BiReplaceImp1Not0
+  ## </d 'Commutative Property '>
+)
+
+thm (exInAndOut ((A x)) (hyp (e. A S) hyp2 (-. (e. A T)))  (E. x (/\ (e. x S) (-. (e. x T))))
+  x A tyex
+  x A S ax-eleq1
+  (e. x S) (e. A S) (-. (e. A T)) anbi1
+  syl
+  ## <d>
+    (/\ (e. x S) (-. (e. A T))) (/\ (e. A S) (-. (e. A T))) bicom
+  ## </d>
+  sylib
+
+  x A T ax-eleq1
+  (e. x T) (e. A T) notbi
+  sylib
+  (-. (e. x T)) (-. (e. A T)) (e. x S) anbi2
+  syl
+  ## <d>
+    (/\ (e. x S) (-. (e. x T))) (/\ (e. x S) (-. (e. A T))) bicom
+  ## </d>
+  sylib
+  bitrd
+  ImpReplaceEx1
+  hyp
+  hyp2
+  pm3.2i
+
+  (/\ (e. x S) (-. (e. x T))) biRemove1
+  x exbii
+  mpbi
+)
+
+## <title> Sets are not equal </title>
+thm (notSeq () (hyp (e. A S) hyp2 (-. (e. A T))) (-. (=_ S T))
+  hyp
+  hyp2
+  x exInAndOut 
+  x S T notSeqLem
+  ax-mp
+)
+
+thm (notSeq2Lem ((S x) (T x)) () (-> (E. x (/\ (e. x T) (-. (e. x S)))) (-. (=_ S T)))
+ (e. x T) (e. x S) xorImp1
+ x 19.22i
+
+ x (-. (<-> (e. x S) (e. x T))) df-ex  
+  sylib  
+  (<-> (e. x S) (e. x T)) notnotr
+  x albii  
+  BiReplaceImp1Not0
+  S T x df-seq  
+  ## <d>
+    (=_ S T) (A. x (<-> (e. x S) (e. x T))) bicom
+  ## </d>
+  mpbi
+  
+  BiReplaceImp1Not0
+)
+
+## <title> Sets are not equal </title>
+thm (notSeq2 () (hyp (-. (e. A S)) hyp2 (e. A T)) (-. (=_ S T))
+  hyp2
+  hyp
+  notSeq
+  ## <d>
+    T S seqcom
+  ## </d>
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (A. x  [ ps ]   ]    ] )))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (-. (A. x  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceBi1Not0Al1 () (
+     replacee (<-> ph (-. (A. x ps)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (A. x ch)))
+  replacee
+  substitution
+x albii
+con4biir
+ph bibi2i
+mpbi
+)
+
+thm (notSsLem ((S x) (T x)) ()  (-> (E. x (/\ (e. x S) (-. (e. x T)))) (-. (C_ S T)))
+  (e. x S) (e. x T) pm4.61
+  bicomi
+  biimpi
+  x 19.22i
+  x (-. (-> (e. x S) (e. x T))) df-ex
+  (-> (e. x S) (e. x T))  notnotr
+  BiReplaceBi1Not0Al1
+
+  S T x dfss2
+  ## <d>
+    (C_ S T) (A. x (-> (e. x S) (e. x T))) bicom
+  ## </d>
+  mpbi
+  
+  BiReplaceBi1Not0
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x albii
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x (-.  [ ps ]   ]    ] )))
+##   (<->              [ ps ]   [ ch ] )
+##   (-> ph (A. x (-.  [    [   [ ch ] )))
+## </table>
+thm (BiReplaceImp1Al1Not0 () (
+     replacee (-> ph (A. x (-. ps)))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x (-. ch)))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Al1
+)
+
+## <title> Subsets cannot have additional elements </title>
+thm (subsetnoextra () () (-> (/\ (C_ S T) (-. (e. A T))) (-. (e. A S)))
+  x S T notSsLem
+  ## <d 'Negate Both Sides '>
+    (E. x (/\ (e. x S) (-. (e. x T)))) (-. (C_ S T)) con34b
+    mpbi
+    (C_ S T) notnotr
+    sylbi2
+  ## </d 'Negate Both Sides '>
+
+  ## <d 'Definition of ∃ '>
+    x (/\ (e. x S) (-. (e. x T))) df-ex
+    BiReplaceImp1Not0
+  ## </d 'Definition of ∃ '>
+
+  ## <d 'Double Negative '>
+    (A. x (-. (/\ (e. x S) (-. (e. x T))))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+
+
+  ## <d 'DeMorgan's Law '>
+    (e. x S) (-. (e. x T)) anor
+    (e. x T) notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceImp1Al1Not0
+  ## </d 'DeMorgan's Law '>
+
+
+  ## <d 'Double Negative '>
+    (\/ (-. (e. x S)) (e. x T)) notnotr
+    BiReplaceImp1Al1
+  ## </d 'Double Negative '>
+
+  ## <d 'Definition of OR '>
+    (-. (e. x S)) (e. x T) df-or
+    (e. x S) notnotr
+    BiReplaceBi1Imp0
+    BiReplaceImp1Al1
+  ## </d 'Definition of OR '>
+
+  ## <d 'Negate Both Sides '>
+    (e. x S) (e. x T) con34b
+    BiReplaceImp1Al1
+  ## </d 'Negate Both Sides '>
+  x A T ax-eleq1
+  notbid
+  x A S ax-eleq1
+  notbid
+  imbi12d
+  cla4g
+  syl
+  
+  ## <d 'Import-Export Theorem '>
+    (C_ S T) (-. (e. A T)) (-. (e. A S)) impexp
+    ## <d 'Commutative Property'>
+      (-> (/\ (C_ S T) (-. (e. A T))) (-. (e. A S))) (-> (C_ S T) (-> (-. (e. A T)) (-. (e. A S)))) bicom
+      mpbi
+    ## </d 'Commutative Property'>
+    mpbi
+  ## </d 'Import-Export Theorem '>
+)
+
+thm (ssid () () (C_ S S)
+  ## <d>
+  S inidm
+  ## </d>
+  S S df-ss
+  ## <d>
+    (C_ S S) (=_ (i^i S S) S) bicom
+  mpbi
+  mpbi
+)
+
+thm (setpm4.45 () () (=_ (i^i S (u. S T)) S)
+  x S (u. S T) elin
+  x S T elun  
+  BiReplaceBi1An1
+  (e. x S) (e. x T) pm4.45
+  ## <d>
+    (e. x S) (/\ (e. x S) (\/ (e. x S) (e. x T))) bicom
+  ## </d>
+  mpbi
+  bitri
+  x gen
+  (i^i S (u. S T)) S  x df-seq
+  ## <d>
+    (=_ (i^i S (u. S T)) S) (A. x (<-> (e. x (i^i S (u. S T))) (e. x S))) bicom
+  ## </d>
+  mpbi
+  mpbi
+)
+
+## <title> Subset of a Union </title>
+thm (ssUnion () () (C_ S (u. S T))
+  S seqid
+  S (u. S T) df-ss
+  S T setpm4.45  
+  SeqReplaceBi1Seq0
+  ## <d>
+    (C_ S (u. S T)) (=_ S S) bicom
+  ## </d>
+  mpbi 
+  mpbi
+)
+
+## <title> Not a Subset </title>
+thm (notSs () (hyp (e. A S) hyp2 (-. (e. A T))) (-. (C_ S T))
+  hyp
+  hyp2
+  x exInAndOut 
+  x S T notSsLem
+  ax-mp
+)
+
+## <title> Combine Set Inclusions </title>
+thm (dfpssi () (hyp (C_ S T) hyp2 (-. (=_ S T))) (C. S T)
+  hyp
+  hyp2
+  pm3.2i
+  S T df-pss
+  ## <d>
+    (C. S T) (/\ (C_ S T) (-. (=_ S T))) bicom
+  ## </d>
+  mpbi 
+  mpbi
+)
+
+## <title> Proper Subset Implies Subset </title>
+## <suggest> right('Infer', '⊆') </suggest>
+thm (pssSs () ()  (-> (C. S T) (C_ S T))
+  (C_ S T) (-. (=_ S T)) pm3.26
+  S T df-pss
+  bicomi
+  sylbi2
+)
+
+## <title> Proper Subset Implies Inequality </title>
+## <suggest> right('Infer', '≠') </suggest>
+thm (pssNeq () () (-> (C. S T) (-. (=_ S T)))
+  (C_ S T) (-. (=_ S T)) pm3.27
+  S T df-pss
+  bicomi
+  sylbi2
+)
+
+## <title> Not Subset Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
+thm (nssNpss () () (-> (-. (C_ S T)) (-. (C. S T)))
+ (C_ S T) (-. (=_ S T)) pm3.26
+ con3i
+ S T df-pss
+   
+  ## <d>
+    (C. S T) (/\ (C_ S T) (-. (=_ S T))) bicom
+  ## </d>
+  mpbi
+  BiReplaceImp1Not0
+)
+
+## <title> Equality Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
+thm (seqNpss () () (-> (=_ S T) (-. (C. S T)))
+ (C_ S T) (-. (=_ S T)) pm3.27
+ con3i
+ S T df-pss
+   
+  ## <d>
+    (C. S T) (/\ (C_ S T) (-. (=_ S T))) bicom
+  ## </d>
+  mpbi
+  BiReplaceImp1Not0
+  (=_ S T) notnotr  
+  sylbi2
+)
+
+## <title> Two equal set are also subsets </title>
+thm (seqss () () (-> (=_ S T) (C_ S T))
+  S T S inseq2  
+  ## <d 'Intersection is Idempotent '>
+    S inidm
+    SeqReplaceImp1Seq0
+  ## </d 'Intersection is Idempotent '>
+    
+  ## <d 'Definition of Subset '>
+    S T df-ss
+  ## </d 'Definition of Subset '>
+  
+  ## <d 'Commutative Property '>
+    (i^i S T) S seqcom
+    bitri
+  ## </d 'Commutative Property '>
+  bicomi  
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee
+  substitution
+A eqeq2i
+mpbi
+)
+
+# == Iota ==
+
+thm (iotaseqi () (hyp (=_ S T)) (= (iota S) (iota T))
+  hyp
+  S T ax-iotaeq
+  ax-mp
+)
+
+thm (iotaseqd () (hyp (-> ph (=_ S T))) (-> ph (= (iota S) (iota T)))
+  hyp
+  S T ax-iotaeq
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (iota  [ S ]   ]   ] ))
+##   (=_         [ S ]   [ T ] )
+##   (= A (iota  [   [   [ T ] ))
+## </table>
+thm (SeqReplaceEq1Iota0 () (
+     replacee (= A (iota S))
+     substitution (=_ S T)) 
+     (= A (iota T))
+  replacee substitution
+  iotaseqi
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (iota ({|} x  [ ph ]   ]    ] )))
+##   (<->               [ ph ]   [ ps ] )
+##   (= A (iota ({|} x  [    [   [ ps ] )))
+## </table>
+thm (BiReplaceEq1Iota0Ab1 () (
+     replacee (= A (iota ({|} x ph)))
+     substitution (<-> ph ps)) 
+     (= A (iota ({|} x ps)))
+  replacee substitution
+  x abbi2i
+  SeqReplaceEq1Iota0
+)
+
+## <summary> Existential uniqueness implies iota is a member </summary>
+thm (iotacl ((S x)) () (-> (E! x (e. x S)) (e. (iota S) S))
+  x (e. x S) y df-eu biimpi
+
+
+    x y elsnc (e. x S)  bibi2i x gen 19.15i biimpri
+    S ({} y) x  df-seq biimpri
+  syl
+  y 19.22i syl
+
+  S ({} y) ax-iotaeq y ax-iota  syl6eq
+  (iota S) y elsnc  sylibr
+  S ({} y) (iota S) elseq2
+
+  biimprd mpd y 19.22i
+  syl
+    y (e. (iota S) S) ex-nf
+  syl
+)
+
+## <summary> Another iota utility theorem.  Asserts that if exactly one x has the property ph, then that x can be found using iota. </summary>
+thm (iotacl2 () ()
+   (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph)))
+x  ph  y  df-eu   biimpi
+  x  ph  (= x y)  abbi2
+    ({|} x ph)  ({|} x (= x y))  ax-iotaeq
+      y  x  df-sn    ({} y)  ({|} x (= x y))  ax-iotaeq  ax-mp
+  y  ax-iota       eqtr3     (iota ({|} x ph))  eqeq2i  biimpi    syl  syl
+   (iota ({|} x ph))  y  x  ph  dfsbcq   biimprd  syl
+   (iota ({|} x ph))  x  ph  ax-elab   syl6ibr
+    ph  (= x y)  bi2  x  19.20i
+    x  (-> (= x y) ph)  y  a4sbc    syl
+
+    y  x  (-> (= x y) ph)  z  df-subst   sylib
+    x  (= z y)  (/\ (= x z) (-> (= x y) ph))  19.41l   biimpri  z  19.22i    #syl
+      # ugh.
+      (= z y)  (= x z)  (-> (= x y) ph)  anass
+        (= z y)  (= x z)  (-> (= x y) ph)  anass
+          (= z y)  (= x z)  (-> (= x y) ph)  anass
+          z  y  x  eqtr2   z  x  eqcom        sylan2br   (-> (= x y) ph)  anim1i     sylbir
+          y  x  eqcom    biimpi    (-> (= x y) ph)  anim1i  syl
+         (= x y)  ph  pm3.35    syl
+        sylbi  (/\ (= z y) (= x z))  (-> (= x y) ph)  ph  pm5.3      mpbi
+       sylbir
+      (= z y)  (= x z)  ph  anass  sylib
+     x  19.22i  z  19.22i  syl
+    x  (= z y)  (/\ (= x z)  ph)  19.41l  biimpi  z  19.22i  syl
+   syl
+   y  x  ph  z  df-subst    sylibr
+ jca
+ ([/] y x ph)  (e. (iota ({|} x ph)) ({|} x ph))  pm3.35  ancoms  syl
+ y  19.22i  syl
+ y  (e. (iota ({|} x ph)) ({|} x ph))  ex-nf  syl
+)
+
+## <title> Basic identity for iota </title>
+thm (iotaeq () ()
+  (= (iota ({|} x (= x A))) A)
+  A x df-sn
+  ({} A) ({|} x (= x A)) ax-iotaeq ax-mp eqcomi
+  A ax-iota eqtri
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm() () (T)
+ tru
+)
+
+export (set set.ghi (PROP PREDICATE SET_MIN) "")

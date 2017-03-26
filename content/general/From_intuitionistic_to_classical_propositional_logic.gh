@@ -1,0 +1,422 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (INTUITIONISTIC /general/Basic_intuitionistic_propositional_logic.ghi () "")
+
+kindbind (formula wff)
+import (EXCLUDED_MIDDLE /general/Law_of_the_excluded_middle.ghi (INTUITIONISTIC) "")
+tvar (formula p q r s)
+thm (DoubleNegationElimination () () (→ (¬ (¬ p)) p)
+        p TertiumNonDatur
+        swapDisjunction
+
+        (¬ p) p DisjunctionImplicationForward
+        applyModusPonens
+ )
+
+thm (eliminateDoubleNegation () (H (¬ (¬ p))) p
+        H
+        p DoubleNegationElimination
+        applyModusPonens
+ )
+
+thm (DoubleNegation () () (↔ p (¬ (¬ p)))
+        p DoubleNegationIntroduction
+        p DoubleNegationElimination
+        introduceBiconditionalFromImplications
+ )
+thm (TranspositionElimination () () (→ (→ (¬ q) (¬ p)) (→ p q))
+        (¬ q) (¬ p) TranspositionIntroduction
+
+        p DoubleNegation
+        q DoubleNegation
+        buildImplication
+        eliminateBiconditionalForward
+
+        applySyllogism
+ )
+
+thm (eliminateTransposition () (H (→ (¬ q) (¬ p))) (→ p q)
+        H
+        q p TranspositionElimination
+        applyModusPonens
+ )
+
+thm (Transposition () () (↔ (→ p q) (→ (¬ q) (¬ p)))
+        p q TranspositionIntroduction
+        q p TranspositionElimination
+        introduceBiconditionalFromImplications
+ )
+
+thm (TranspositionWithNegatedAntecedent () () (↔ (→ (¬ p) q) (→ (¬ q) p))
+        (¬ p) q Transposition
+
+        (¬ q) BiconditionalReflexivity
+        p DoubleNegation
+        buildImplication
+        swapBiconditional
+
+        applyBiconditionalTransitivity
+ )
+
+thm (transposeWithNegatedAntecedent () (H (→ (¬ p) q)) (→ (¬ q) p)
+        H
+        p q TranspositionWithNegatedAntecedent
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (TranspositionWithNegatedConsequent () () (↔ (→ p (¬ q)) (→ q (¬ p)))
+        p DoubleNegation
+        (¬ q) BiconditionalReflexivity
+        buildImplication
+
+        q (¬ p) Transposition
+        swapBiconditional
+
+        applyBiconditionalTransitivity
+ )
+
+thm (transposeWithNegatedConsequent () (H (→ p (¬ q))) (→ q (¬ p))
+        H
+        p q TranspositionWithNegatedConsequent
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (NegationFunction () () (↔ (↔ p q) (↔ (¬ p) (¬ q)))
+        p q BiconditionalImplication
+
+        p q Transposition
+        q p Transposition
+        buildConjunction
+        applyBiconditionalTransitivity
+
+        (→ (¬ q) (¬ p)) (→ (¬ p) (¬ q)) ConjunctionCommutativity
+        applyBiconditionalTransitivity
+
+        (¬ p) (¬ q) BiconditionalImplication
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (removeNegation () (H (↔ (¬ p) (¬ q))) (↔ p q)
+        H
+        p q NegationFunction
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (BiconditionalTranspositionWithNegatedRight () () (↔ (↔ p (¬ q)) (↔ q (¬ p)))
+        p (¬ q) BiconditionalImplication
+
+        p q TranspositionWithNegatedConsequent
+        q p TranspositionWithNegatedAntecedent
+        buildConjunction
+        applyBiconditionalTransitivity
+
+        q (¬ p) BiconditionalImplication
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (transposeBiconditionalWithNegatedRight () (H (↔ p (¬ q))) (↔ q (¬ p))
+        H
+        p q BiconditionalTranspositionWithNegatedRight
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (BiconditionalTranspositionWithNegatedLeft () () (↔ (↔ (¬ p) q) (↔ (¬ q) p))
+        (¬ p) q BiconditionalSymmetry
+
+        q p BiconditionalTranspositionWithNegatedRight
+        applyBiconditionalTransitivity
+
+        p (¬ q) BiconditionalSymmetry
+        applyBiconditionalTransitivity
+ )
+
+thm (transposeBiconditionalWithNegatedLeft () (H (↔ (¬ p) q)) (↔ (¬ q) p)
+        H
+        p q BiconditionalTranspositionWithNegatedLeft
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (DeMorganPDP () () (↔ (¬ (∨ p q)) (∧ (¬ p) (¬ q)))
+        p q NegationCollectionNCNDistributionPDP
+        swapBiconditional
+ )
+thm (DeMorganPDN () () (↔ (¬ (∨ p (¬ q))) (∧ (¬ p) q))
+        p (¬ q) DeMorganPDP
+
+        (¬ p) BiconditionalReflexivity
+        q DoubleNegation swapBiconditional
+        buildConjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (DeMorganNDP () () (↔ (¬ (∨ (¬ p) q)) (∧ p (¬ q)))
+        (¬ p) q DeMorganPDP
+
+        p DoubleNegation swapBiconditional
+        (¬ q) BiconditionalReflexivity
+        buildConjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (DeMorganNDN () () (↔ (¬ (∨ (¬ p) (¬ q))) (∧ p q))
+        (¬ p) (¬ q) DeMorganPDP
+
+        p DoubleNegation
+        q DoubleNegation
+        buildConjunction
+        swapBiconditional
+
+        applyBiconditionalTransitivity
+ )
+thm (DeMorganPCP () () (↔ (¬ (∧ p q)) (∨ (¬ p) (¬ q)))
+        p q DeMorganNDN
+        transposeBiconditionalWithNegatedLeft
+ )
+
+thm (DeMorganPCN () () (↔ (¬ (∧ p (¬ q))) (∨ (¬ p) q))
+        p q DeMorganNDP
+        transposeBiconditionalWithNegatedLeft
+ )
+
+thm (DeMorganNCP () () (↔ (¬ (∧ (¬ p) q)) (∨ p (¬ q)))
+        p q DeMorganPDN
+        transposeBiconditionalWithNegatedLeft
+ )
+
+thm (DeMorganNCN () () (↔ (¬ (∧ (¬ p) (¬ q))) (∨ p q))
+        p q DeMorganPDP
+        transposeBiconditionalWithNegatedLeft
+ )
+thm (distributeNegationPDN () (H (¬ (∨ p (¬ q)))) (∧ (¬ p) q)
+        H
+        p q DeMorganPDN eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationNDP () (H (¬ (∨ (¬ p) q))) (∧ p (¬ q))
+        H
+        p q DeMorganNDP eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationNDN () (H (¬ (∨ (¬ p) (¬ q)))) (∧ p q)
+        H
+        p q DeMorganNDN eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationPCP () (H (¬ (∧ p q))) (∨ (¬ p) (¬ q))
+        H
+        p q DeMorganPCP eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationPCN () (H (¬ (∧ p (¬ q)))) (∨ (¬ p) q)
+        H
+        p q DeMorganPCN eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationNCP () (H (¬ (∧ (¬ p) q))) (∨ p (¬ q))
+        H
+        p q DeMorganNCP eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationNCN () (H (¬ (∧ (¬ p) (¬ q)))) (∨ p q)
+        H
+        p q DeMorganNCN eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (collectNegationPDN () (H (∨ p (¬ q))) (¬ (∧ (¬ p) q))
+        H
+        p q DeMorganNCP eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (collectNegationNDP () (H (∨ (¬ p) q)) (¬ (∧ p (¬ q)))
+        H
+        p q DeMorganPCN eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (collectNegationPCN () (H (∧ p (¬ q))) (¬ (∨ (¬ p) q))
+        H
+        p q DeMorganNDP eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (collectNegationNCP () (H (∧ (¬ p) q)) (¬ (∨ p (¬ q)))
+        H
+        p q DeMorganPDN eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (Tautology () () (↔ (∨ p (¬ p)) (⊤))
+        True (∨ p (¬ p)) introduceAntecedent
+        p TertiumNonDatur (⊤) introduceAntecedent
+        introduceBiconditionalFromImplications
+ )
+thm (DisjunctionImplication () () (↔ (∨ p q) (→ (¬ p) q))
+        p q NotDisjunctionImplication
+        removeNegation
+ )
+thm (ImplicationDisjunction () () (↔ (→ p q) (∨ (¬ p) q))
+        (¬ p) q DisjunctionImplication
+
+        p DoubleNegation swapBiconditional
+        q BiconditionalReflexivity
+        buildImplication
+
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+ )
+
+thm (convertFromImplicationToDisjunction () (H (→ p q)) (∨ (¬ p) q)
+        H
+        p q ImplicationDisjunction
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (convertToDisjunctionFromImplication () (H (→ (¬ p) q)) (∨ p q)
+        H
+        p q DisjunctionImplication
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (BiconditionalConjunction () () (↔ (↔ p q) (∧ (∨ (¬ p) q) (∨ p (¬ q))))
+        p q BiconditionalImplication
+
+        p q ImplicationDisjunction
+
+        q p ImplicationDisjunction
+        (¬ q) p DisjunctionCommutativity
+        applyBiconditionalTransitivity
+
+        buildConjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (BiconditionalDisjunctionLeftElimination () () (→ (↔ p q) (∨ p (¬ q)))
+        p q BiconditionalConjunction
+        eliminateBiconditionalReverse
+
+        (∨ (¬ p) q) (∨ p (¬ q)) ConjunctionLeftElimination
+
+        applySyllogism
+ )
+
+thm (BiconditionalDisjunctionRightElimination () () (→ (↔ p q) (∨ (¬ p) q))
+        p q BiconditionalConjunction
+        eliminateBiconditionalReverse
+
+        (∨ (¬ p) q) (∨ p (¬ q)) ConjunctionRightElimination
+
+        applySyllogism
+ )
+
+thm (convertFromBiconditionalToConjunction () (H (↔ p q)) (∧ (∨ (¬ p) q) (∨ p (¬ q)))
+        H
+        p q BiconditionalConjunction
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (eliminateLeftBiconditionalDisjunction () (H (↔ p q)) (∨ p (¬ q))
+        H
+        p q BiconditionalDisjunctionLeftElimination
+        applyModusPonens
+ )
+
+thm (eliminateRightBiconditionalDisjunction () (H (↔ p q)) (∨ (¬ p) q)
+        H
+        p q BiconditionalDisjunctionRightElimination
+        applyModusPonens
+ )
+
+thm (BiconditionalDisjunction-1 () () (↔ (∨ (¬ p) q) (∧ (∨ p (¬ p)) (∨ q (¬ p))))
+        (¬ p) q DisjunctionCommutativity
+
+        p TertiumNonDatur
+        (∨ q (¬ p)) introduceAntecedent
+        (∨ q (¬ p)) ImplicationReflexivity
+        composeConjunction
+
+        (∨ p (¬ p)) (∨ q (¬ p)) ConjunctionLeftElimination
+
+        introduceBiconditionalFromImplications
+
+        applyBiconditionalTransitivity
+ )
+thm (BiconditionalDisjunction-2 () () (↔ (∨ p (¬ q)) (∧ (∨ p (¬ q)) (∨ q (¬ q))))
+        (∨ p (¬ q)) ImplicationReflexivity
+        q TertiumNonDatur
+        (∨ p (¬ q)) introduceAntecedent
+        composeConjunction
+
+        (∨ p (¬ q)) (∨ q (¬ q)) ConjunctionRightElimination
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (BiconditionalDisjunction () () (↔ (↔ p q) (∨ (∧ p q) (∧ (¬ p) (¬ q))))
+        p q BiconditionalConjunction
+
+        p q BiconditionalDisjunction-1
+        p q BiconditionalDisjunction-2
+        buildConjunction
+        applyBiconditionalTransitivity
+# At this point we have <code>((p ∨ ¬ p) ∧ (q ∨ ¬ p)) ∧ ((p ∨ ¬ q) ∧ (q ∨ ¬ q))</code>. We apply the distributive law to both halves to get <code>((p ∧ q) ∨ ¬ p) ∧ ((p ∧ q) ∨ ¬ q)</code>.
+        p q (¬ p) DisjunctionRightDistribution swapBiconditional
+        p q (¬ q) DisjunctionRightDistribution swapBiconditional
+        buildConjunction
+        applyBiconditionalTransitivity
+# One more application of the distributive law gives us <code>(p ∧ q) ∨ (¬ p ∧ ¬ q)</code>.
+        (∧ p q) (¬ p) (¬ q) DisjunctionLeftDistribution swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (convertFromBiconditionalToDisjunction () (H (↔ p q)) (∨ (∧ p q) (∧ (¬ p) (¬ q)))
+        H
+        p q BiconditionalDisjunction
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (convertToBiconditionalFromDisjunction () (H (∨ (∧ p q) (∧ (¬ p) (¬ q)))) (↔ p q)
+        H
+        p q BiconditionalDisjunction
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (CaseElimination () () (→ (∧ (→ p q) (→ (¬ p) q)) q)
+        p q ImplicationDisjunction eliminateBiconditionalReverse
+        p q DisjunctionImplication eliminateBiconditionalForward
+        conjoin
+
+        (∨ (¬ p) q) (∨ p q) ConjunctionCommutativity eliminateBiconditionalReverse
+        applySyllogism
+
+        p q DisjunctiveCaseElimination
+        applySyllogism
+ )
+
+thm (eliminateCases () (HP (→ p q) HNOTP (→ (¬ p) q)) q
+        HP
+        HNOTP
+        introduceConjunction
+
+        p q CaseElimination
+
+        applyModusPonens
+ )
+export (CLASSICAL Principia_Mathematica_propositional_logic_theorems.ghi () "")

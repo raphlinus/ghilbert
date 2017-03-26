@@ -1,0 +1,750 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL /general/Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER /general/First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (START /general/Triangle_congruence.ghi (CLASSICAL FIRSTORDER) "")
+
+tvar (formula φ)
+tvar (object x y z w u v A B C D E P Q A′ B′ C′ D′ B″ C″)
+tvar (object x′ y′ z′ w′ u′)
+tvar (object x0 x1 x2 x3 y0 y1 y2 y3)
+var (object a b b′ c c′ d′ b″ c″)
+defthm (Collinear formula (collinear x y z) () () (↔ (collinear x y z) (∨ (∨ (between x y z) (between y z x)) (between z x y)))
+        (∨ (∨ (between x y z) (between y z x)) (between z x y)) BiconditionalReflexivity
+)
+
+thm (BetweennessCollinearity () () (→ (between x y z) (collinear x y z))
+        (between x y z) (between y z x) DisjunctionRightIntroduction
+        (∨ (between x y z) (between y z x))
+          (between z x y)
+          DisjunctionRightIntroduction
+        applySyllogism
+
+        x y z Collinear
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (CollinearityRotation () () (↔ (collinear x y z) (collinear y z x))
+        x y z Collinear
+
+        (between x y z) (between y z x) (between z x y) DisjunctionAssociativity
+        applyBiconditionalTransitivity
+
+        (between x y z) (∨ (between y z x) (between z x y)) DisjunctionCommutativity
+        applyBiconditionalTransitivity
+
+        y z x Collinear
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (Collinearity23 () () (↔ (collinear x y z) (collinear x z y))
+        x y z Collinear
+
+# The proof starts with <code>between x y z ↔ between z y x</code> and <code>between y z x ↔ between x z y</code>.
+        x y z BetweennessSymmetry
+        y z x BetweennessSymmetry
+# We combine those and switch the order to get <code>between x y z ∨ between y z x ↔ between x z y ∨ between z y x</code>.
+        buildDisjunction
+
+        (between z y x) (between x z y) DisjunctionCommutativity
+        applyBiconditionalTransitivity
+# Combining that with <code>between z x y ↔ between y x z</code> finishes the task.
+        z x y BetweennessSymmetry
+        buildDisjunction
+        applyBiconditionalTransitivity
+
+        x z y Collinear
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (Collinearity12 () () (↔ (collinear x y z) (collinear y x z))
+        x y z CollinearityRotation
+        y z x Collinearity23
+        applyBiconditionalTransitivity
+ )
+thm (Collinearity13 () () (↔ (collinear x y z) (collinear z y x))
+        x y z CollinearityRotation
+        y z x Collinearity12
+        applyBiconditionalTransitivity
+ )
+thm (CollinearityAAB () () (collinear A A B)
+        B A BetweenABB
+        (∨ (between A A B) (between A B A)) introduceLeftDisjunction
+
+        A A B Collinear
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (CollinearityABB () () (collinear A B B)
+        B A CollinearityAAB
+
+        B B A Collinearity13
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (CollinearityABA () () (collinear A B A)
+        A B CollinearityAAB
+
+        A A B Collinearity23
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (CollinearityDegenerateTriangle () ()
+  (→ (∧ (collinear A B C) (≅ A B C A′ B′ C′)) (collinear A′ B′ C′))
+# The proof just consists of expanding <code>collinear A B C</code> into a disjunction of three betweenness formulas, and applying <code>BetweennessDegenerateTriangle</code> three times.
+        A B C Collinear
+        eliminateBiconditionalReverse
+        (≅ A B C A′ B′ C′) conjoinRR
+#
+# We start with <code>between A B C → (A B C ≅ A′ B′ C′ → collinear A′ B′ C′)<code>.
+        A B C A′ B′ C′ BetweennessDegenerateTriangle
+
+        A′ B′ C′ BetweennessCollinearity
+        applySyllogism
+
+        export
+# Next is <code>between B C A → (A B C ≅ A′ B′ C′ → collinear A′ B′ C′)<code>. The proof is similar, but involves some additional rotation of both the congruence and the collinearity.
+        A B C A′ B′ C′ CongruenceRotation
+        eliminateBiconditionalReverse
+        (between B C A) conjoinLL
+
+        B C A B′ C′ A′ BetweennessDegenerateTriangle
+        applySyllogism
+
+        B′ C′ A′ BetweennessCollinearity
+        applySyllogism
+
+        A′ B′ C′ CollinearityRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        export
+# We combine the <code>between A B C</code> and <code>between B C A</code> cases.
+        composeDisjunction
+# The proof of the <code>between C A B</code> case, <code>between C A B → (A B C ≅ A′ B′ C′ → collinear A′ B′ C′)<code>, is similar.
+        C A B C′ A′ B′ CongruenceRotation
+        eliminateBiconditionalForward
+        (between C A B) conjoinLL
+
+        C A B C′ A′ B′ BetweennessDegenerateTriangle
+        applySyllogism
+
+        C′ A′ B′ BetweennessCollinearity
+        applySyllogism
+
+        C′ A′ B′ CollinearityRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        export
+
+        composeDisjunction
+        import
+        applySyllogism
+ )
+thm (CollinearityBuilder () () (
+  →
+  (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (↔ (collinear x0 x1 x2) (collinear y0 y1 y2)))
+        # between x0 x1 x2 ↔ between y0 y1 y2
+        x0 y0 x1 y1 x2 y2 BetweennessBuilder
+
+        # between x1 x2 x0 ↔ between y1 y2 y0 
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionLeftElimination
+        composeConjunction
+
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        x1 y1 x2 y2 x0 y0 BetweennessBuilder
+        applySyllogism
+
+        buildDisjunctionInConsequent
+
+        # between x2 x0 x1 ↔ between y2 y0 y1 
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionLeftElimination
+
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        composeConjunction
+
+        (∧ (= x0 y0) (= x1 y1)) (= x2 y2) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        x2 y2 x0 y0 x1 y1 BetweennessBuilder
+        applySyllogism
+
+        buildDisjunctionInConsequent
+
+        x0 x1 x2 Collinear
+        y0 y1 y2 Collinear
+        buildBiconditional
+
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (CollinearityConstructDegenerateTriangle-1
+  ((x c′) (y c′) (z c′) (A c′) (B c′) (A′ c′) (B′ c′))
+  (H (∃ c′ φ))
+  (→ (∧ (between x y z) (≡ A B A′ B′)) (∃ c′ (∧ (between x y z) (∧ (≡ A B A′ B′) φ))))
+        (≡ A B A′ B′) ImplicationReflexivity
+        H
+        (≡ A B A′ B′) introduceAntecedent
+        composeConjunction
+
+        c′ (≡ A B A′ B′) φ ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+# That gives us <code>A B ≡ A′ B′ → ∃ c′ (A B ≡ A′ B′ ∧ φ)</code>. We now need to apply a similar process to <code>between x y z</code>
+        (between x y z) conjoinLL
+
+        c′ (between x y z) (∧ (≡ A B A′ B′) φ)ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (CollinearityConstructDegenerateTriangle-abc-bc () ()
+  (→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≡ B C B′ C′))
+        (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C))) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+ )
+
+thm (CollinearityConstructDegenerateTriangle-abc-ac () ()
+  (→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≡ A C A′ C′))
+# The proof is an application of <code>OuterThreeSegment</code>. First we need <code>between A B C</code>.
+        (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C))) ConjunctionRightElimination
+# Next, <code>between A′ B′ C′</code>.
+        (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C))) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# We need two congruences. The first is <code>A B ≡ A′ B′</code>.
+        (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C))) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# The other is <code>B C ≡ B′ C′</code>.
+        A B C A′ B′ C′ CollinearityConstructDegenerateTriangle-abc-bc
+
+        composeConjunction
+# We can now apply outer three segment.
+        A B C A′ B′ C′ OuterThreeSegment
+        applySyllogism
+ )
+
+thm (CollinearityConstructDegenerateTriangle-abc-core () ()
+  (→ (∧ (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C)))) (≅ A B C A′ B′ C′))
+        (between A B C) (∧ (≡ A B A′ B′) (∧ (between A′ B′ C′) (≡ B′ C′ B C))) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        A B C A′ B′ C′ CollinearityConstructDegenerateTriangle-abc-ac
+        composeConjunction
+
+        A B C A′ B′ C′ CollinearityConstructDegenerateTriangle-abc-bc
+        composeConjunction
+
+        A B C A′ B′ C′ TriangleCongruence
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (CollinearityConstructDegenerateTriangle-abc
+  ((A c′) (B c′) (C c′) (A′ c′) (B′ c′)) ()
+  (→ (between A B C) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))
+        c′ A′ B′ B C SegmentConstruction
+        A B C A B A′ B′ CollinearityConstructDegenerateTriangle-1
+
+        A B C A′ B′ c′ CollinearityConstructDegenerateTriangle-abc-core
+        c′ addThereExists
+        applySyllogism
+
+        export
+ )
+
+thm (CollinearityConstructDegenerateTriangle-cab-ac () ()
+  (→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≡ A C A′ C′))
+        (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C))) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        swapCongruenceInConsequent
+ )
+
+thm (CollinearityConstructDegenerateTriangle-cab-bc () ()
+  (→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≡ B C B′ C′))
+# The proof is an application of <code>OuterThreeSegment</code>. First we need <code>between C A B</code>.
+        (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C))) ConjunctionRightElimination
+# Next, <code>between C′ A′ B′</code>.
+        (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C))) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        swapBetweennessInConsequent
+
+        composeConjunction
+# We need two congruences. The first is <code>C A ≡ C′ A′</code>.
+        C A B A′ B′ C′ CollinearityConstructDegenerateTriangle-cab-ac
+
+        commuteCongruenceInConsequent
+
+        composeConjunction
+# The other is <code>A B ≡ A′ B′</code>.
+        (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C))) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+# We can now apply outer three segment.
+        C A B C′ A′ B′ OuterThreeSegment
+        applySyllogism
+
+        commuteCongruenceInConsequent
+ )
+
+thm (CollinearityConstructDegenerateTriangle-cab-core () ()
+  (→ (∧ (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C)))) (≅ A B C A′ B′ C′))
+        (between C A B) (∧ (≡ A B A′ B′) (∧ (between B′ A′ C′) (≡ A′ C′ A C))) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+
+        C A B A′ B′ C′ CollinearityConstructDegenerateTriangle-cab-ac
+        composeConjunction
+
+        C A B A′ B′ C′ CollinearityConstructDegenerateTriangle-cab-bc
+        composeConjunction
+
+        A B C A′ B′ C′ TriangleCongruence
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (CollinearityConstructDegenerateTriangle-cab
+  ((A c′) (B c′) (C c′) (A′ c′) (B′ c′)) ()
+  (→ (between C A B) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))
+        c′ B′ A′ A C SegmentConstruction
+        C A B A B A′ B′ CollinearityConstructDegenerateTriangle-1
+
+        C A B A′ B′ c′ CollinearityConstructDegenerateTriangle-cab-core
+        c′ addThereExists
+        applySyllogism
+
+        export
+ )
+thm (CollinearityConstructDegenerateTriangle-bca
+  ((A c′) (B c′) (C c′) (A′ c′) (B′ c′)) ()
+  (→ (between B C A) (→ (≡ A B A′ B′) (∃ c′ (≅ A B C A′ B′ c′))))
+        A B A′ B′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        (between B C A) conjoinLL
+
+        B C A B′ A′ c′ InnerDegenerateTriangle
+        applySyllogism
+
+        (between B′ c′ A′) (≅ B C A B′ c′ A′) ConjunctionLeftElimination
+        c′ addThereExists
+        applySyllogism
+
+        A B C A′ B′ c′ CongruenceRotation
+        eliminateBiconditionalForward
+        c′ addThereExists
+        applySyllogism
+
+        export
+ )
+
+thm (CollinearityConstructDegenerateTriangle ((A c′) (B c′) (C c′) (A′ c′) (B′ c′)) () (→ (∧ (collinear A B C) (≡ A B A′ B′)) (∃ c′ (≅ A B C A′ B′ c′)))
+        A B C Collinear
+        eliminateBiconditionalReverse
+
+        A B C A′ B′ c′ CollinearityConstructDegenerateTriangle-abc
+        B C A A′ B′ c′ CollinearityConstructDegenerateTriangle-bca
+        composeDisjunction
+
+        C A B A′ B′ c′ CollinearityConstructDegenerateTriangle-cab
+        composeDisjunction
+
+        applySyllogism
+
+        import
+ )
+tvar (formula p q r s t)
+thm (FiveSegment-anotb () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (¬ (= A B)))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+ )
+
+thm (FiveSegment-ab () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ A B A′ B′))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B C A′ B′ C′
+        Congruence12
+        applySyllogism
+ )
+
+thm (FiveSegment-bc () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ B C B′ C′))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B C A′ B′ C′
+        Congruence23
+        applySyllogism
+ )
+
+thm (FiveSegment-ad () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ A D A′ D′))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+ )
+
+thm (FiveSegment-bd () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ B D B′ D′))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+ )
+
+thm (FiveSegment-abcabc () () (→ (∧ (between A B C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between A′ B′ C′))
+        (between A B C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+
+        (between A B C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        A B C A′ B′ C′ BetweennessDegenerateTriangle
+        applySyllogism
+ )
+
+thm (FiveSegment-abc () () (→ (between A B C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))
+        (between A B C) A B C A′ B′ C′ D D′ FiveSegment-anotb
+
+        (between A B C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+        composeConjunction
+
+        A B C A′ B′ C′ D D′ FiveSegment-abcabc
+        composeConjunction
+
+        (between A B C) A B C A′ B′ C′ D D′ FiveSegment-ab
+        composeConjunction
+
+        (between A B C) A B C A′ B′ C′ D D′ FiveSegment-bc
+        composeConjunction
+
+        (between A B C) A B C A′ B′ C′ D D′ FiveSegment-ad
+        composeConjunction
+
+        (between A B C) A B C A′ B′ C′ D D′ FiveSegment-bd
+        composeConjunction
+
+        A B C A′ B′ C′ D D′ OuterFiveSegment
+        applySyllogism
+
+        export
+ )
+
+thm (FiveSegment-bcabca () () (→ (∧ (between B C A) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between B′ C′ A′))
+        (between B C A) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+
+        (between B C A) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B C A′ B′ C′ CongruenceRotation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+
+        B C A B′ C′ A′ BetweennessDegenerateTriangle
+        applySyllogism
+ )
+
+thm (FiveSegment-ca () () (→ (∧ p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (≡ C A C′ A′))
+        p (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        A B C A′ B′ C′
+        Congruence13
+        applySyllogism
+
+        A C A′ C′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (FiveSegment-bca () () (→ (between B C A) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))
+        (between B C A) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+
+        B C A A′ B′ C′ D D′ FiveSegment-bcabca
+        composeConjunction
+
+        (between B C A) A B C A′ B′ C′ D D′ FiveSegment-ab
+        A B A′ B′ CongruenceCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+        composeConjunction
+
+        (between B C A) A B C A′ B′ C′ D D′ FiveSegment-ca
+        composeConjunction
+
+        (between B C A) A B C A′ B′ C′ D D′ FiveSegment-bd
+        composeConjunction
+
+        (between B C A) A B C A′ B′ C′ D D′ FiveSegment-ad
+        composeConjunction
+
+        B C A B′ C′ A′ D D′ InnerFiveSegment
+        applySyllogism
+
+        export
+ )
+thm (FiveSegment-bacbac () () (→ (∧ (between B A C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′))) (between B′ A′ C′))
+        (between B A C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+        B A C BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (between B A C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        C A B C′ A′ B′ CongruenceRotation
+        eliminateBiconditionalForward
+        applySyllogism
+
+        composeConjunction
+
+        C A B C′ A′ B′ BetweennessDegenerateTriangle
+        applySyllogism
+
+        C′ A′ B′ BetweennessSymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (FiveSegment-bac () () (→ (between B A C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))
+        (between B A C) A B C A′ B′ C′ D D′ FiveSegment-anotb
+        A B EqualitySymmetry
+        addNegation
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        (between B A C) (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) ConjunctionRightElimination
+        composeConjunction
+
+        B A C A′ B′ C′ D D′ FiveSegment-bacbac
+        composeConjunction
+
+        (between B A C) A B C A′ B′ C′ D D′ FiveSegment-ab
+        commuteCongruenceInConsequent
+        composeConjunction
+
+        (between B A C) A B C A′ B′ C′ D D′ FiveSegment-ca
+        commuteCongruenceInConsequent
+        composeConjunction
+
+        (between B A C) A B C A′ B′ C′ D D′ FiveSegment-bd
+        composeConjunction
+
+        (between B A C) A B C A′ B′ C′ D D′ FiveSegment-ad
+        composeConjunction
+
+        B A C B′ A′ C′ D D′ OuterFiveSegment
+        applySyllogism
+
+        export
+ )
+
+thm (FiveSegment-cab () () (→ (between C A B) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))
+        C A B BetweennessSymmetry
+        eliminateBiconditionalReverse
+
+        B A C A′ B′ C′ D D′ FiveSegment-bac
+
+        applySyllogism
+ )
+
+thm (FiveSegment-core () () (→ (collinear A B C) (→ (∧ (∧ (∧ (¬ (= A B)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′)))
+        A B C Collinear
+        eliminateBiconditionalReverse
+
+        A B C A′ B′ C′ D D′ FiveSegment-abc
+
+        B C A A′ B′ C′ D D′ FiveSegment-bca
+        composeDisjunction
+
+        C A B A′ B′ C′ D D′ FiveSegment-cab
+        composeDisjunction
+
+        applySyllogism
+ )
+thm (FiveSegment-conjuncts () () 
+  (→ (∧ (∧ (∧ (∧ p q) r) s) t) (∧ q (∧ (∧ (∧ p r) s) t)))
+        p q ConjunctionCommutativity
+        r buildConjunctionRR
+        s buildConjunctionRR
+        t buildConjunctionRR
+
+        q p r ConjunctionAssociativity
+        s buildConjunctionRR
+        t buildConjunctionRR
+        applyBiconditionalTransitivity
+
+        q (∧ p r) s ConjunctionAssociativity
+        t buildConjunctionRR
+        applyBiconditionalTransitivity
+
+        q (∧ (∧ p r) s) t ConjunctionAssociativity
+        applyBiconditionalTransitivity
+
+        eliminateBiconditionalReverse
+ )
+
+thm (FiveSegment () () (→ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≅ A B C A′ B′ C′)) (≡ A D A′ D′)) (≡ B D B′ D′)) (≡ C D C′ D′))
+        (¬ (= A B)) (collinear A B C) (≅ A B C A′ B′ C′) (≡ A D A′ D′) (≡ B D B′ D′) FiveSegment-conjuncts
+
+        A B C A′ B′ C′ D D′ FiveSegment-core
+        import
+
+        applySyllogism
+ )
+thm (EquidistantLine () ()
+  (→ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q)) (≡ C P C Q))
+# <code>A ≠ B</code>:
+        (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+# <code>collinear A B C</code>:
+        (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q) ConjunctionRightElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>A B C ≅ A B C</code>:
+        A B C TriangleCongruenceReflexivity
+        (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q)) introduceAntecedent
+        composeConjunction
+# <code>A P ≡ A Q</code>:
+        (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q) ConjunctionRightElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# <code>B P ≡ B Q</code>:
+        (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A P A Q)) (≡ B P B Q) ConjunctionLeftElimination
+
+        composeConjunction
+# Applying five segment is all we need.
+        A B C A B C P Q FiveSegment
+        applySyllogism
+ )
+thm (CollinearTwoDistanceUniqueness () ()
+  (→ (∧ (∧ (∧ (¬ (= A B)) (collinear A B C)) (≡ A C A C′)) (≡ B C B C′)) (= C C′))
+        A B C C C′ EquidistantLine
+
+        C C C′ CongruenceIdentityLeft
+        applySyllogism
+ )
+thm (BetweennessTwoDistanceUniqueness-ac () () (→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= A C)))
+        (= A B) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionRightElimination
+
+        (= A B) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        composeConjunction
+
+        A B C IndivisibilityFromEquality
+        applySyllogism
+
+        export
+ )
+
+thm (BetweennessTwoDistanceUniqueness-acprime () () (→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= A C′)))
+        A B C C′ BetweennessTwoDistanceUniqueness-ac
+        import
+        
+        (= A B) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+        composeConjunction
+
+        A C A C′ CongruenceIdentityFromEquality
+        import
+        applySyllogism
+
+        export
+ )
+
+thm (BetweennessTwoDistanceUniqueness-eq () () (→ (= A B) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′)))
+        A B C C′ BetweennessTwoDistanceUniqueness-ac
+        import
+
+        A C EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        A B C C′ BetweennessTwoDistanceUniqueness-acprime
+        import
+
+        composeConjunction
+
+        C A C′ EqualityTransitivity
+        applySyllogism
+        export
+ )
+thm (BetweennessTwoDistanceUniqueness-ne () () (→ (¬ (= A B)) (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′)))
+# First, <code>A ≠ B</code>.
+        (¬ (= A B)) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionRightElimination
+# Next, <code>collinear A B C</code>
+        (¬ (= A B)) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateRightConjunctInConsequent
+
+        A C B BetweennessCollinearity
+        applySyllogism
+
+        A C B Collinearity23
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        composeConjunction
+# Next, <code>A C ≡ A C′</code>
+        (¬ (= A B)) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionLeftElimination
+        eliminateRightConjunctInConsequent
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+# Lastly, <code>B C ≡ B C′</code>
+        (¬ (= A B)) (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) ConjunctionLeftElimination
+        eliminateLeftConjunctInConsequent
+
+        composeConjunction
+
+# We apply the collinearity two distance uniqueness theorem and export.
+        A B C C′ CollinearTwoDistanceUniqueness
+        applySyllogism
+
+        export
+ )
+thm (BetweennessTwoDistanceUniqueness () () (→ (∧ (∧ (between A C B) (≡ A C A C′)) (≡ B C B C′)) (= C C′))
+        A B C C′ BetweennessTwoDistanceUniqueness-eq
+        A B C C′ BetweennessTwoDistanceUniqueness-ne
+        eliminateCases
+ )
+export (RESULTS Collinearity.ghi (CLASSICAL FIRSTORDER) "")

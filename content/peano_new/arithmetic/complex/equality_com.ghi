@@ -1,0 +1,44 @@
+## <justification> redirect equality_min.gh </justification>
+
+param (PROP prop.ghi () "")
+param (R_PREDICATE ../../predicate/all.ghi (PROP) "r.")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (r.nat a b c d)
+var (nat x y z)
+
+term (r.nat (head A))
+term (r.nat (tail A))
+term (nat (<,> a b))
+
+## <title> Definition of Integer Equality </title>
+stmt (dfeq () () (<-> (= A B) (/\ (r.= (head A) (head B)) (r.= (tail A) (tail B)))))
+
+## <title> Expand Ordered Pair </title>
+## <suggest> left('Simplify', '<,>') </suggest>
+stmt (opexpand () () (= A (<,> (head A) (tail A))))
+
+stmt (opeq1d () (
+     (-> ph (r.= a c)))
+     (-> ph (= (<,> a b) (<,> c b))))
+
+stmt (opeq2d () (
+     (-> ph (r.= b c)))
+     (-> ph (= (<,> a b) (<,> a c))))
+
+stmt (opeq1i () ((r.= a b)) (= (<,> a c) (<,> b c)))
+
+stmt (opeq2i () ((r.= a b)) (= (<,> c a) (<,> c b)))
+
+stmt (opeq12 () () (-> (/\ (r.= a b) (r.= c d)) (= (<,> a c) (<,> b d))))
+
+stmt (opeq12d () (
+     (-> ph (r.= a b))
+     (-> ph (r.= c d)))
+     (-> ph (= (<,> a c) (<,> b d))))
+
+stmt (headop () () (r.= (head (<,> a b)) a))
+
+stmt (tailop () () (r.= (tail (<,> a b)) b))

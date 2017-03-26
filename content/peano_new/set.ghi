@@ -1,0 +1,249 @@
+## <justification> redirect set.gh </justification>
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (SET_MIN set_min.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+tvar (set S T U V)
+
+stmt (emptySnIn1 () ((-. (e. A S))) (=_ (i^i ({} A) S) ({/})))
+
+stmt (emptySnIn2 () ((-. (e. A S))) (=_ (i^i S ({} A)) ({/})))
+
+stmt (dfss2 ((S x) (T x)) () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+
+## <title> Combine Set Inclusions </title>
+stmt (dfpssi () ((C_ S T) (-. (=_ S T))) (C. S T))
+
+## <title> Sets are not equal </title>
+stmt (notSeq () ((e. A S) (-. (e. A T))) (-. (=_ S T)))
+
+## <title> Sets are not equal </title>
+stmt (notSeq2 () ((-. (e. A S)) (e. A T)) (-. (=_ S T)))
+
+## <title> Not a Subset </title>
+stmt (notSs () ((e. A S) (-. (e. A T))) (-. (C_ S T)))
+
+## <title> Subset of a Union </title>
+stmt (ssUnion () () (C_ S (u. S T)))
+
+## <table>
+##   (e. A     [ S ]      )
+##   (e. A (u. [ S ] <g> U))
+## </table>
+stmt (unionAttach1 () ((e. A S)) (e. A (u. S U)))
+
+## <table>
+##   (e. A ]           [ S)
+##   (e. A ] (u. <g> U [ S))
+## </table>
+stmt (unionAttach2 () ((e. A S)) (e. A (u. U S)))
+
+stmt (notInSingleton () ((-. (= A B)))  (-. (e. A ({} B))))
+
+stmt (notInSingletonUnion () ((-. (= A B)) (-. (e. A S))) (-. (e. A (u. ({} B) S))))
+
+stmt (notInSingletonUnion2 () ((-. (e. A S)) (-. (= A B)) ) (-. (e. A (u. S ({} B)))))
+
+## <title> Union is Idempotent </title>
+stmt (unidm() () (=_ (u. S S) S))
+
+## <title> Union Identity </title>
+stmt (unid() () (=_ (u. S ({/})) S))
+
+## <title> Union Identity </title>
+stmt (unidr() () (=_ (u. ({/}) S) S))
+
+## <title> Intersection is Idempotent </title>
+stmt (inidm() () (=_ (i^i S S) S))
+
+## <title> Reflexive Property </title>
+stmt (seqid () () (=_ S S))
+
+stmt (snid () () (e. A ({} A)))
+
+## <title> Empty Set Contains Nothing </title>
+stmt (noel () () (-. (e. A ({/}))))
+
+## <title> A set with an element is not empty </title>
+stmt (notEmpty () () (-> (e. A S) (-. (=_ S ({/})))))
+
+## <title> Proper Subset Implies Inequality </title>
+## <suggest> right('Infer', '≠') </suggest>
+stmt (pssNeq () () (-> (C. S T) (-. (=_ S T))))
+
+## <title> Proper Subset Implies Subset </title>
+## <suggest> right('Infer', '⊆') </suggest>
+stmt (pssSs () ()  (-> (C. S T) (C_ S T)))
+
+## <title> Not Subset Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
+stmt (nssNpss () () (-> (-. (C_ S T)) (-. (C. S T))))
+
+## <title> Equality Implies Not Proper Subset </title>
+## <suggest> right('Infer', '⊄') </suggest>
+stmt (seqNpss () () (-> (=_ S T) (-. (C. S T))))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (undi () () (=_ (u. S (i^i T U)) (i^i (u. S T) (u. S U))))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (undir () () (=_ (u. (i^i T U) S) (i^i (u. T S) (u. U S))))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (indi () () (=_ (i^i S (u. T U)) (u. (i^i S T) (i^i S U))))
+
+## <title> Distributive Property </title>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (indir () () (=_ (i^i (u. T U) S) (u. (i^i T S) (i^i U S))))
+
+## <title> Element in intersection is in both sets </title>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (elin () () (<-> (e. A (i^i S T)) (/\ (e. A S) (e. A T))))
+
+stmt (seqseq1i () ((=_ S T)) (<-> (=_ S U) (=_ T U)))
+
+stmt (seqseq2i () ((=_ S T)) (<-> (=_ U S) (=_ U T)))
+
+## <title> Equivalence over Subset </title>
+## <table>
+##   (=_     S ]    ] [     T ] )
+##   (=_ (C_ S ] U) ] [ (C_ T ] U))
+## </table>
+stmt (ssseq1i () ((=_ S T)) (<-> (C_ S U) (C_ T U)))
+
+stmt (ssseq2i () ((=_ S T)) (<-> (C_ U S) (C_ U T)))
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_     S ]    ] [     T ] )
+##   (=_ (u. S ] U) ] [ (u. T ] U))
+## </table>
+stmt (unseq1i () ((=_ S T)) (=_ (u. S U) (u. T U)))
+
+## <title> Equivalence over Union </title>
+## <table>
+##   (=_       [ S  ] [       [ T)
+##   (=_ (u. U [ S) ] [ (u. U [ T))
+## </table>
+stmt (unseq2i () ((=_ S T)) (=_ (u. U S) (u. U T)))
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_      S ]    ] [      T ] )
+##   (=_ (i^i S ] U) ] [ (i^i T ] U))
+## </table>
+stmt (inseq1i () ((=_ S T)) (=_ (i^i S U) (i^i T U)))
+
+## <title> Equivalence over Intersection </title>
+## <table>
+##   (=_        [ S  ] [        [ T)
+##   (=_ (i^i U [ S) ] [ (i^i U [ T))
+## </table>
+stmt (inseq2i () ((=_ S T)) (=_ (i^i U S) (i^i U T)))
+
+## <title> Commutative Property </title>
+## <suggest> right('Commute', '=') </suggest>
+stmt (seqcom () () (<-> (=_ S T) (=_ T S)))
+
+## <title> Commutative Property of Set Equality </title>
+## <table>
+##   (=_ <r> S <g> T)
+##   (=_ <g> T <r> S)
+## </table>
+stmt (seqcomi () ((=_ S T)) (=_ T S))
+
+## <title> Commutative Property </title>
+## <suggest> right('Commute', '∪') </suggest>
+stmt (uncom () () (=_ (u. S T) (u. T S)))
+
+## <title> Commutative Property </title>
+## <suggest> right('Commute', '∩') </suggest>
+stmt (incom () () (=_ (i^i S T) (i^i T S)))
+
+stmt (unSubset () ((C_ S U) (C_ T U)) (C_ (u. S T) U))
+
+## <title> Subset and Element Of Equivalence <title>
+## <suggest> left('Simplify', '∈') right('Infer', '⊆') </suggest>
+stmt (elSubset () () (<-> (e. A S) (C_ ({} A) S)))
+
+stmt (sneqi () ((= A B)) (=_ ({} A) ({} B)))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (unass () () (=_ (u. (u. S T) U) (u. S (u. T U))))
+
+## <title> Associative Property </title>
+## <suggest> right('Associate', 'R') left('Associate', 'L') </suggest>
+stmt (inass () () (=_ (i^i (i^i S T) U) (i^i S (i^i T U))))
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=       A ]    ] [     B ] )
+##   (<-> (e. A ] S) ] [ (e. B ] S))
+## </table>
+stmt (eleq1i () ((= A B)) (<-> (e. A S) (e. B S)))
+
+stmt (eleq1d () ((-> ph (= A B))) (-> ph (<-> (e. A S) (e. B S))))
+
+stmt (elseq2 () () (-> (=_ S T) (<-> (e. A S) (e. A T))))
+
+## <title> Equivalence over Element Of </title>
+## <table>
+##   (=_        [ S  ] [       [ T )
+##   (<-> (e. A [ S) ] [ (e. A [ T ))
+## </table>
+stmt (elseq2i () ((=_ S T)) (<-> (e. A S) (e. A T)))
+
+stmt (elseq2d () ((-> ph (=_ S T))) (-> ph (<-> (e. A S) (e. A T))))
+
+stmt (elab ((A x) (ps x)) ((-> (= x A) (<-> ph ps))) (<-> (e. A ({|} x ph)) ps))
+
+## <title> Subset and Element Of Equivalence <title>
+stmt (elSubseti () ((e. A S)) (C_ ({} A) S))
+
+## <title> Alpha conversion for set abstraction </title> 
+stmt (abeq ((ph y) (ps x))
+  ((-> (= x y) (<-> ph ps)))
+  (=_ ({|} x ph) ({|} y ps)))
+		
+## <title> Equality theorem for set abstraction </title>
+## <suggest> right('Infer', '{|}') </suggest>
+stmt (abbi2 () () (-> (A. x (<-> ph ps)) (=_ ({|} x ph) ({|} x ps))))
+
+stmt (abid () ((rwff x ph)) (<-> (e. x ({|} x ph)) ph))
+
+## <title> Equality deduction for set abstraction </title>
+stmt (abbi2d ((ph x)) ((-> ph (<-> ps ch))) (-> ph (=_ ({|} x ps) ({|} x ch))))
+
+stmt (iotaseqd () ((-> ph (=_ S T))) (-> ph (= (iota S) (iota T))))
+
+stmt (iotaseqi () ((=_ S T)) (= (iota S) (iota T)))
+
+## <title> Singleton has One Element </title>
+## <suggest> right('Simplify', '=') </suggest>
+stmt (elsnc () () (<-> (e. A ({} B)) (= A B)))
+
+stmt (iotacl ((S x)) () (-> (E! x (e. x S)) (e. (iota S) S)))
+
+stmt (iotacl2 () () (-> (E! x ph) (e. (iota ({|} x ph)) ({|} x ph))))
+
+stmt (unc () () (-> (e. A S) (e. A (u. S T))))
+
+## <title> An element of a union is in one of the sets </title>
+## <suggest> right('Distribute, 'R') left('Distribute', '-R') </suggest>
+stmt (elun () () (<-> (e. A (u. S T)) (\/ (e. A S) (e. A T))))
+
+## <suggest> right('Simplify', '{|}') </suggest>
+stmt (removeab ((S x)) () (=_ ({|} x (e. x S)) S))
+
+stmt (elab2 ((A x) (ps x))
+  ((-> (= x A) (<-> ph ps))
+   (=_ S ({|} x ph)))
+  (<-> (e. A S) ps))

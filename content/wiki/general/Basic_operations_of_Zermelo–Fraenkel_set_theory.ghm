@@ -1,0 +1,148 @@
+{{header
+ | title    = Basic operations of Zermelo–Fraenkel set theory
+ | subtitle = 
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = Here we start with [[Interface:First steps in set theory]] and prove additional theorems involving singletons, unordered pairs, unions, subsets, and the like. }}
+{{interfaces
+| imports = [[Interface:First steps in set theory]]
+| exports = [[Interface:Basic operations of Zermelo–Fraenkel set theory]]
+}}
+
+We first import [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]].
+
+We also import [[Interface:First steps in set theory]], which defines operations for singletons, unordered pairs, and the like, but contains few theorems expanding on those concepts.
+
+As usual, capital letters starting from {{{A}}} are set expressions (that is, objects or "classes") and lowercase letters starting with {{{x}}} are set variables.
+
+== Singletons ==
+
+=== A set is an element of its singleton ===
+Here we show {{{A ∈ {A}}}}.<ref>[http://us.metamath.org/mpeuni/snid.html snid], metamath's set.mm, accessed August 5, 2010</ref>
+* #(∈ A (singleton A))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SingletonMembership | SingletonMembership])
+
+== Unordered pairs ==
+
+=== An unordered pair contains its first member ===
+Here we show that {{{A ∈ {A, B}}}}.<ref>[http://us.metamath.org/mpeuni/prid1.html prid1], metamath's set.mm, accessed August 4, 2010.</ref>
+* #(∈ A (unorderedPair A B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairLeftMembership | UnorderedPairLeftMembership])
+
+A similar result holds, of course, for the second member.<ref>[http://us.metamath.org/mpeuni/prid2.html prid2], metamath's set.mm, accessed February 2, 2011.</ref>
+
+* #(∈ B (unorderedPair A B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairRightMembership | UnorderedPairRightMembership])
+
+=== Unordered pair commutativity ===
+Unordered pairs are unordered: {{{{A, B} = {B, A}}}}.
+* #(= (unorderedPair A B) (unorderedPair B A))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairCommutativity | UnorderedPairCommutativity])
+
+=== Unordered pair equality can imply equality of members ===
+Here we prove {{{{A, C} = {B, C} → A = B}}}.<ref>[http://us.metamath.org/mpeuni/preqr1.html preqr1], metamath's set.mm, accessed August 4, 2010</ref>
+
+First we prove a lemma, {{{{A, C} = {B, C} → A = B ∨ A = C}}}
+* #(→ (= (unorderedPair A C) (unorderedPair B C)) (∨ (= A B) (= A C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairFirstMembersEqual-1 | UnorderedPairFirstMembersEqual-1])
+* #(→ (= (unorderedPair A C) (unorderedPair B C)) (= A B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairFirstMembersEqual | UnorderedPairFirstMembersEqual])
+
+Here is a commuted version: {{{{C, A} = {C, B} → A = B}}}.<ref>[http://us.metamath.org/mpeuni/preqr2.html preqr2], metamath's set.mm, accessed August 4, 2010</ref>
+* #(→ (= (unorderedPair C A) (unorderedPair C B)) (= A B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairSecondMembersEqual | UnorderedPairSecondMembersEqual])
+
+=== A singleton as an unordered pair ===
+A singleton is equal to an unordered pair where the two elements are the same. That is, {{{{ A } = { A, A }}}}.<ref>[http://us.metamath.org/mpeuni/dfsn2.html dfsn2] in metamath's set.mm, accessed February 14, 2011</ref>
+* #(= (singleton A) (unorderedPair A A))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SingletonUnorderedPair | SingletonUnorderedPair])
+
+== Separation ==
+
+=== Builder ===
+
+Here we provide a builder for separation.
+
+* #(→ (∧ (= A B) (∀ x (↔ φ ψ))) (= (separate x A φ) (separate x B ψ)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SeparationBuilder | SeparationBuilder])
+
+=== A rule ===
+Here's a rule form for one case of the above separation builder: from {{{φ ↔ ψ}}} we can deduce {{{{ x ∈ A | φ } = { x ∈ A | ψ }}}}.
+* #(↔ φ ψ)# ⊢ #(= (separate x A φ) (separate x A ψ))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/buildSeparation | buildSeparation])
+
+=== A formula which defines a set ===
+Although, in general, we cannot specify a set by a formula ("the set of all x for which φ holds") and expect it to exist, such a definition does specify a set in the case in which the formula φ implies that x is part of some set which is known to exist. There might be a few ways to formalize this notion; the one here is particularly aimed at helping us make a definition of the form {{{{z ∈ A | φ}}}} and then prove a statement about membership in that defined set. In symbols, given {{{φ → z ∈ A}}} we conclude {{{B ∈ {z ∈ A | φ} ↔ [B / z]φ}}}.
+* #(→ φ (∈ z A))# ⊢ #(↔ (∧ (∈ B A) (subst B z φ)) (subst B z φ))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/FormulaBoundLemma | FormulaBoundLemma])
+* #(→ φ (∈ z A))# ⊢ #(↔ (∈ B (separate z A φ)) (subst B z φ))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/FormulaBound | FormulaBound])
+
+=== Change variable ===
+As with a quantifier, we can make an equivalent formula by changing the variable which is bound by {{{separate}}} and making an according change to that variable in the formula inside {{{separate}}}. That is, given {{{x = y → (φx ↔ φy)}}}, we can conclude {{{{ x ∈ A | φx } = { y ∈ A | φy }}}}.<ref>[http://us.metamath.org/mpeuni/cbvrabv.html cbvrabv], metamath's set.mm, accessed February 26, 2011</ref>
+
+We first prove {{{C ∈ { x ∈ A | φx } ↔ C ∈ { y ∈ A | φy }}}} as a lemma.
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∈ C (separate x A φx)) (∈ C (separate y A φy)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/ChangeVariableSeparation-1 | ChangeVariableSeparation-1])
+* #(→ (= x y) (↔ φx φy))# ⊢ #(= (separate x A φx) (separate y A φy))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/ChangeVariableSeparation | ChangeVariableSeparation])
+
+== Unions ==
+The union of two sets is just a special case of the union of a set: {{{A ∪ B}}} is defined to be {{{⋃ {A, B}}}}.
+
+=== A lemma involving substitution ===
+Here we prove {{{A ∈ B ↔ ∃ x (A ∈ x ∧ x = B)}}}. This only holds because of the [[Interface:Axiom of quantifiability]]; a treatment of set theory which does not have that axiom (for example, because it allows proper classes) will handle things differently.
+* #(↔ (∈ A B) (∃ x (∧ (∈ A x) (= x B))))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/IsElementThereExists | IsElementThereExists])
+
+=== Membership in a union related to membership in one of the two sets ===
+The next theorem, {{{A ∈ B ∪ C ↔ A ∈ B ∨ A ∈ C}}}, is another way of stating what the union of two sets means.<ref>[http://us.metamath.org/mpeuni/elun.html elun] in metamath's set.mm, accessed January 22, 2011</ref>
+* #(↔ (∈ A (∪ B C)) (∨ (∈ A B) (∈ A C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/BinaryUnion | BinaryUnion])
+
+An easy corollary is that membership in one of the two sets of a union implies membership in the union.<ref>MembershipUnionRightIntroduction is [http://us.metamath.org/mpeuni/elun1.html elun1] and MembershipUnionLeftIntroduction is [http://us.metamath.org/mpeuni/elun2.html elun2], metamath's set.mm, accessed 2009</ref>
+* #(→ (∈ A B) (∈ A (∪ B C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/MembershipUnionRightIntroduction | MembershipUnionRightIntroduction])
+* #(→ (∈ A C) (∈ A (∪ B C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/MembershipUnionLeftIntroduction | MembershipUnionLeftIntroduction])
+
+=== Unordered pair as the union of two singletons ===
+An unordered pair equals the union of singletons for each of its elements. That is, {{{{A, B} = {A} ∪ {B}}}}.<ref>[http://us.metamath.org/mpeuni/df-pr.html df-pr], metamath's set.mm, accessed January 29, 2011</ref>
+* #(= (unorderedPair A B) (∪ (singleton A) (singleton B)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairSingleton | UnorderedPairSingleton])
+
+=== Union builder ===
+Equals can be substituted for equals, in the context of the union of a set.<ref>[http://us.metamath.org/mpeuni/unieq.html unieq], metamath's set.mm, accessed February 14, 2011</ref>
+* #(→ (= A B) (= (⋃ A) (⋃ B)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnionBuilder | UnionBuilder])
+* #(= A B)# ⊢ #(= (⋃ A) (⋃ B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/buildUnion | buildUnion])
+
+=== Union idempotence ===
+The binary union operation is idempotent: {{{A ∪ A = A}}}.<ref>[http://us.metamath.org/mpeuni/unidm.html unidm], metamath's set.mm, accessed February 14, 2011</ref>
+* #(= (∪ A A) A)# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnionIdempotence | UnionIdempotence])
+
+=== Union of a singleton ===
+We don't directly have a notation for the (unique) set for which a formula holds. However, we have the machinery to define it. First we form the set of all x for which the formula holds, which will be a singleton. Then we can apply the next theorem, which is {{{⋃ { A } = A}}}.<ref>[http://us.metamath.org/mpeuni/unisn.html unisn], metamath's set.mm, accessed 2011</ref>
+
+The proof is {{{⋃ { A } = ⋃ { A, A } = A ∪ A = A}}}.
+* #(= (⋃ (singleton A)) A)# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnionSingleton | UnionSingleton])
+
+== Subset ==
+
+=== Singleton and subset ===
+Here we prove {{{A ∈ B ↔ { A } ⊆ B}}}.<ref>[http://us.metamath.org/mpeuni/snss.html snss], metamath's set.mm, accessed January 29, 2011</ref>
+
+* #(↔ (∈ A B) (⊆ (singleton A) B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SingletonSubset | SingletonSubset])
+
+=== Subset and membership ===
+If one set is a subset of another, then being an element of the subset implies being an element of the containing set. That is, {{{A ⊆ B → (C ∈ A → C ∈ B)}}}. This resembles {{{Subset}}}, but it is not biconditional because it does not make a statement about all potential elements, but just about one particular one.<ref>[http://us.metamath.org/mpeuni/ssel.html ssel], metamath's set.mm, accessed February 1, 2011</ref>
+* #(→ (⊆ A B) (→ (∈ C A) (∈ C B)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SubsetMembership | SubsetMembership])
+
+=== Elements and subsets of unions ===
+The first theorem in this section is {{{A ⊆ B ∧ B ∈ C → A ⊆ ⋃C}}}. To sketch out the proof, we first expand the subsets and union so that the antecedent reads {{{∀ x (x ∈ A → x ∈ B) ∧ B ∈ C}}}, and the consequent would follow from {{{∀ x (x ∈ A → ∃ y (x ∈ y ∧ y ∈ C))}}}. So we need a choice for {{{y}}} in the consequent, and it turns out that {{{B}}} does the trick (with that substitution made, there is only minor rearrangment to derive the consequent from the antecedent).<ref>[http://us.metamath.org/mpeuni/ssuni.html ssuni], metamath's set.mm, accessed February, 2011</ref>
+* #(→ (∧ (⊆ A B) (∈ B C)) (⊆ A (⋃ C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SubsetUnion | SubsetUnion])
+
+An easy corollary is {{{A ∈ B → A ⊆ ⋃ B}}}.
+* #(→ (∈ A B) (⊆ A (⋃ B)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/MembershipSubsetUnion | MembershipSubsetUnion])
+
+=== Binary union and subset ===
+The left side of a union is a subset of the union.<ref>[http://us.metamath.org/mpeuni/snun1.html snun1], metamath's set.mm, accessed January 30, 2011</ref>
+* #(⊆ A (∪ A B))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SubsetUnionLeft | SubsetUnionLeft])
+
+Being a subset of a set implies being a subset of the union of set and any other.<ref>[http://us.metamath.org/mpeuni/ssun3.html ssun3], metamath's set.mm, accessed February 3, 2011</ref>
+* #(→ (⊆ A B) (⊆ A (∪ B C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/SubsetUnionRightIntroduction | SubsetUnionRightIntroduction])
+
+=== Unordered pair and subset ===
+Analogous to the result we already proved which relates a singleton being a subset to the singleton's element being an element, here is a similar result for unordered pairs: {{{A ∈ C ∧ B ∈ C ↔ { A, B } ⊆ C}}}.<ref>[http://us.metamath.org/mpeuni/prss.html prss], metamath's set.mm, accessed February 1, 2011</ref>
+* #(→ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairSubsetForward | UnorderedPairSubsetForward])
+* #(→ (⊆ (unorderedPair A B) C) (∧ (∈ A C) (∈ B C)))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairSubsetReverse | UnorderedPairSubsetReverse])
+* #(↔ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C))# ([/general/Basic_operations_of_Zermelo–Fraenkel_set_theory.gh/UnorderedPairSubset | UnorderedPairSubset])
+
+== Export ==
+We export to [[Interface:Basic operations of Zermelo–Fraenkel set theory]].
+
+== References ==
+<references/>
+
+[[Category:Other classical set theory]]

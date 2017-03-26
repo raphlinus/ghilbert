@@ -1,0 +1,39 @@
+## <justification>
+##   redirect natural_specific.gh
+## </justification>
+
+param (PROP         /peano_new/prop.ghi () "")
+param (PREDICATE    /peano_new/predicate_eq.ghi (PROP) "")
+param (NATURALS     /peano_new/arithmetic/common/naturals.ghi (PROP PREDICATE) "")
+param (SET_MIN      /peano_new/set_min.ghi (PROP PREDICATE) "")
+
+# This file contains theorems that are involve natural numbers. These theorems are safe
+# to apply to other categories of numbers since the natural number requirements are included
+# in the theorem. The theorems in import.ghi are what allow these theorems to be exported
+# into other contexts, so those theorems should be proved for each context in which these are
+# used.
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (set (N))
+
+stmt (0le () () (-> (e. A (N)) (<= (0) A)))
+
+stmt (addge01t () () (-> (/\ (e. A (N)) (e. B (N))) (<= A (+ A B))))
+
+stmt (addge02t () () (-> (/\ (e. A (N)) (e. B (N))) (<= A (+ B A))))
+
+stmt (provele () () (-> (/\ (e. A (N)) (/\ (e. B (N)) (e. C (N)))) (-> (= (+ A B) C) (<= A C))))
+
+stmt (lefoo3 () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B)))))
+
+## <title> 0 is a Natural Number </title>
+stmt (0nat () () (e. (0) (N)))
+
+## <title> 1 is a Natural Number </title>
+stmt (1nat () () (e. (1) (N)))
+
+stmt (addClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (+ A B) (N))))
+stmt (mulClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (* A B) (N))))

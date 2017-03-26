@@ -1,0 +1,83 @@
+param (PROP ../../prop.ghi () "")
+param (PREDICATE_EQ ../../predicate_eq.ghi (PROP) "")
+param (NATURALS common.ghi (PROP PREDICATE_EQ) "")
+
+# This file contains inequality theorems specific to natural numbers.
+# Numbers are assumed to be natural within the naturals directory. So it is safe to import this
+# file into any file in the naturals directory. However, outside this directory the prefix 'n.'
+# should be used to specify that this is for natural numbers only.
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+
+## <justification>
+##   redirect inequality_min.gh
+## </justification>
+
+## <title> No Natural Numbers Below Zero </title>
+stmt (0le () () (<= (0) A))
+
+## <title> Definition of Less Than or Equal to </title>
+## <suggest> right('Define', '≤') left('Simplify', '≤') </suggest>
+stmt (df-le ((A x) (B x)) () (<-> (<= A B) (E. x (= (+ A x) B))))
+
+# This is also true for non-natural numbers.
+stmt (lemul5 () () (<-> (<= (* A (+ C (1))) (* B (+ C (1)))) (<= A B)))
+
+stmt (lefoo ((A z)) () (\/ (= A (0)) (E. z (= (+ (1) z) A))))
+
+## <title> Strong Induction </title>
+stmt (sind ((A x) (ta x) (ph y))              # ph(x) is some term in x; ph(A) is to be proved
+  ((-> (= x (0))   (<-> ph ps))               # ps is ph(0)
+   (-> (= x (+ y (1))) (<-> ph th))           # th is ph(y')
+   (-> (= x A)     (<-> ph ta))               # ta is ph(A)
+   ps
+   (-> (A. x (-> (<= x y) ph)) th))           # ph(x) holds for all x<=y  -->  ph(y') holds
+  ta)
+
+	
+## <justification>
+##   redirect inequality_nat.gh
+## </justification>
+
+stmt (addge01t () () (<= A (+ A B)))
+
+stmt (addge02t () () (<= A (+ B A)))
+
+## <title> Addition implies ≤ </title>
+stmt (provele () () (-> (= (+ A B) C) (<= A C)))
+
+stmt (lefoo3 () ()
+  (<-> (<= A B) (\/ (= A B) (<= (+ A (1)) B))))
+
+stmt (gt1add () ()  (> (+ A (1)) A))
+
+stmt (nnltp1let () ()  (<-> (< A B) (<= (+ A (1)) B)))
+
+## <title> Convert between ≤ and < </title>
+## <summary> This proves that natural numbers are whole numbers. </summary>
+## <suggest> right('Equivalence', '≤-1') left('Equivalence', '<') </suggest>
+stmt (lePlus1 () () (<-> (< A (+ B (1))) (<= A B)))
+
+## <title> Inequality Conversion </title>
+## <suggest> left('Simplify', '<') </suggest>
+stmt (axlttri () () (<-> (< A B) (-. (\/ (= A B) (< B A)))))
+
+## <title> Natural Numbers are Whole Numbers </title>
+stmt (natWhole () () (-. (/\ (< A B) (< B (+ A (1))))))
+
+## <title> No Natural Numbers Below Zero </title>
+stmt (ge0 () () (>= A (0)))
+
+stmt (eq0le0 () () (<-> (= A (0)) (<= A (0))))
+
+## <title> Natural Number </title>
+stmt (0orpos () () (\/ (= A (0)) (<= (1) A)))
+
+stmt (lemul2nat () () (-> (<= A B) (<= (* C A) (* C B))))
+
+## <title> Convert between ≤ and < </title>
+## <suggest> right('Equivalence', '≤+1') left('Equivalence', '<-1') </suggest>
+stmt (ltle2 () () (<-> (< A B) (<= (+ A (1)) B)))

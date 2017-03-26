@@ -1,0 +1,369 @@
+# This file define the supremum. It does not prove much about it yet.
+
+import (PROP          /peano_new/prop.ghi () "")
+import (PREDICATE     /peano_new/predicate/all.ghi (PROP) "")
+import (REALS         /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+import (SET_MIN       /peano_new/set_min.ghi (PROP PREDICATE) "")
+import (SET           /peano_new/set.ghi (PROP PREDICATE SET_MIN) "")
+import (SUPREMUM-DEF  /peano_new/arithmetic/reals/supremum-def.ghi (PROP PREDICATE REALS SET_MIN) "")
+import (SUPREMUM-AX   /peano_new/arithmetic/reals/supremum-ax.ghi  (PROP PREDICATE REALS SET_MIN SUPREMUM-DEF) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D' ep)
+var (nat v w x y z)
+tvar (set S T U V)
+
+export (NATURALS      /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+import (NAT_SPECIFIC  /peano_new/arithmetic/naturals/natural_specific.ghi  (PROP PREDICATE NATURALS SET_MIN) "")
+
+## <context>
+##   This theorem is part of a series of proofs about the properties of the supremum
+##   given the <a href="/edit/peano_new/arithmetic/reals/supremum-ax.ghi/ax-sup"> completeness axiom</a>.
+##   for real numbers. All numbers are assumed to be real.
+## </context>
+
+## <title> Existence of a unique supremum </title>
+thm (supremumeu ((S x)(S y)) () (-> (/\ (-. (=_ S ({/}))) (E. x (upperbound x S))) (E! y (supremum y S)))
+  S x y ax-sup 
+  y S supremummo
+  ## <d>
+    (/\ (-. (=_ S ({/}))) (E. x (upperbound x S))) a1i
+    jca
+    y x S supremumeq1
+    rwffi
+    eu5 bicomi  
+    sylib
+  ## </d>
+)
+
+## <title> Def. Supremum of a Set </title>
+## <summary>
+##   Define the supremum of a set. This is different from 
+##   <a href="../supremum-def.gh/df-supremum">df-supremum </a> which is a boolean expression
+##   stating whether or not a number is the supremum of a set. This takes a set and gives you
+##   the supremum if it exists.
+## </summary>
+defthm (df-sup nat (sup S) ((S x)) () (= (sup S) (iota ({|} x (supremum x S))))
+  y x S supremumeq1
+  abeq
+  iotaseqi
+)
+
+thm (supremumeq1i () (
+     hyp1 (= A B))
+     (<-> (supremum A S) (supremum B S))
+  hyp1
+  A B S supremumeq1
+  ax-mp
+)
+
+thm (supremumeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (supremum A S) (supremum B S)))
+  hyp1
+  A B S supremumeq1
+  syl
+)
+
+thm (supremumseq2i () (
+     hyp1 (=_ S T))
+     (<-> (supremum A S) (supremum A T))
+  hyp1
+  S T A supremumseq2
+  ax-mp
+)
+
+thm (supremumseq2d () (
+     hyp1 (-> ph (=_ S T)))
+     (-> ph (<-> (supremum A S) (supremum A T)))
+  hyp1
+  S T A supremumseq2
+  syl
+)
+
+## <title> Equivalence for supremum </title>
+thm (supremumeq12 () () (-> (/\ (= A B) (=_ S T)) (<-> (supremum A S) (supremum B T)))
+  A B S supremumeq1
+  S T B supremumseq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (supremum A S) (supremum B S) (supremum B T) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+thm (supremumeq12d () (
+     hyp1 (-> ph (= A B))
+     hyp2 (-> ph (=_ S T)))
+     (-> ph (<-> (supremum A S) (supremum B T)))
+  hyp1
+  hyp2
+  jca
+  A B S T supremumeq12
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (e.  [ A ]   ]   ]  S))
+##   (=          [ A ]   [ B ] )
+##   (-> ph (e.  [   [   [ B ]  S))
+## </table>
+thm (EqReplaceImp1El0 () (
+     replacee (-> ph (e. A S))
+     substitution (= A B)) 
+     (-> ph (e. B S))
+  replacee substitution
+  S eleq1i
+  sylib
+)
+
+## <title> sup is the supremum when one exists </title>
+## <summary>
+##   The definition df-sup works as expected when the supremum exists.
+## </summary>
+thm (supsupremum ((S y)) () (-> (/\ (-. (=_ S ({/}))) (E. y (upperbound y S))) (supremum (sup S) S))
+  S y x supremumeu
+  ## <d>
+    x (supremum x S) iotacl2
+    S x df-sup eqcomi  
+    EqReplaceImp1El0  
+  ## </d>
+  ## <d>
+    (sup S) x (supremum x S) ax-elab
+    sylib
+  ## </d>
+  ## <d>
+    x (sup S) S supremumeq1
+    sbcie
+    sylib
+  ## </d>
+  syl
+)
+
+
+## <title> Numbers in set below the supremum </title>
+## <summary>
+##   If the supremum exists, there is a number in the set that is below the supremum
+## </summary>
+thm (belowSup ((S x)(S y)(ep y)) () (-> (/\ (> ep (0)) (/\ (-. (=_ S ({/}))) (E. x (upperbound x S)))) (E. y (/\ (e. y S) (> y (- (sup S) ep)))))
+  S x supsupremum
+  (> ep (0)) anim2i
+  ep (sup S) S y belowSupremum  
+  syl
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->           [ ps ]   [ ch ] )
+##   (<-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Al1 () (
+     replacee (<-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x ch))
+  replacee substitution
+  x albii
+  bitri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (A. x (->  [ ps ]   ]    ]  th)))
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> ph (A. x (->  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Al1Imp0 () (
+     replacee (<-> ph (A. x (-> ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (A. x (-> ch th)))
+  replacee substitution
+  th imbi1i
+  BiReplaceBi1Al1
+)
+
+## <title> Upper Bound for Numbers Below a Value </title>
+## <summary>
+##   A is an upper bound to the set of numbers less than or equal to A.
+## </summary>
+thm (upperboundlt ((A x)) () (upperbound A ({|} x (<= x A)))
+  A ({|} x (<= x A)) y df-upperbound
+  ## <d 'Determine when y is in the set'>
+    ## <d>
+      y x (<= x A) ax-elab
+    ## </d>  
+    (= x y) id
+    A leeq1d
+    sbcie
+    bitri  
+    BiReplaceBi1Al1Imp0
+  ## </d>
+  ## <d 'Identity'>
+    (<= y A) id  
+    y gen  
+    mpbirRemove
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x 19.20i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (A. x  [ ps ]   ]    ] ))
+##   (<->          [ ps ]   [ ch ] )
+##   (-> ph (A. x  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Al1 () (
+     replacee (-> ph (A. x ps))
+     substitution (<-> ps ch)) 
+     (-> ph (A. x ch))
+  replacee substitution
+  x albii
+  sylib
+)
+
+## <title> Upperbound of a subset </title>
+thm (upperboundss () () (-> (/\ (C_ S T) (upperbound A T)) (upperbound A S))
+  S T x dfss2  
+  ## <d 'Infer Left to Right '>
+    (C_ S T) (A. x (-> (e. x S) (e. x T))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  A T x df-upperbound biimpi
+  anim12i  
+  ## <d 'Distributive Property '>
+    x (-> (e. x S) (e. x T)) (-> (e. x T) (<= x A)) 19.26 bicomi
+    sylib
+  ## </d 'Distributive Property '>  
+  (e. x S) (e. x T) (<= x A) pm3.33  
+  ImpReplaceImp1Al1
+  ## <d>
+    A S x df-upperbound bicomi  
+    sylib
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x (/\  [ ps ]   ]    ]  th)))
+##   (->               [ ps ]   [ ch ] )
+##   (-> ph (E. x (/\  [    [   [ ch ]  th)))
+## </table>
+thm (ImpReplaceImp1Ex1An0 () (
+     replacee (-> ph (E. x (/\ ps th)))
+     substitution (-> ps ch)) 
+     (-> ph (E. x (/\ ch th)))
+  replacee substitution
+  th anim1i
+  ImpReplaceImp1Ex1
+)
+
+## <title> Archimedean Property </title>
+## <summary> An unfinished proof of the Arichmedean property </title>
+thm (archimedean ((A y)(A x)(A z)) () (-> (/\ (>= A (0)) (E. y (upperbound y ({|} x (/\ (e. x (N)) (<= x A)))))) (E. z (/\ (<= z A) (> z (- (sup ({|} x (/\ (e. x (N)) (<= x A)))) (1))))))
+  x (0) (N) ax-eleq1
+  x (0) A leeq1
+  anbi12d
+  sbcie    
+  ## <d>
+    (0) x (/\ (e. x (N)) (<= x A)) ax-elab bicomi
+    bitr3icom
+  ## </d>
+  0nat  
+  (<= (0) A) anRemove1
+  (e. (0) ({|} x (/\ (e. x (N)) (<= x A)))) bibi2i
+  mpbi  
+  ## <d 'Converse of ≤ '>
+    (0) A lecon
+    bitri
+  ## </d 'Converse of ≤ '>
+  bicomi
+  (0) ({|} x (/\ (e. x (N)) (<= x A))) notEmpty  
+  ImpReplaceBi1
+  (E. y (upperbound y ({|} x (/\ (e. x (N)) (<= x A))))) anim1i
+
+  (1) ({|} x (/\ (e. x (N)) (<= x A))) y z belowSup
+   
+  ## <d>
+  ## <d>
+    z x (/\ (e. x (N)) (<= x A)) ax-elab
+  ## </d>  
+  (= x z) id
+  (N) eleq1d
+  (= x z) id
+  A leeq1d
+  anbi12d
+  sbcie  
+  bitri
+  
+  ## <d 'Remove Left Side of AND '>
+    (e. z (N)) (<= z A) pm3.27
+    ImpReplaceBi1
+  ## </d 'Remove Left Side of AND '>
+  ImpReplaceImp1Ex1An0
+  ## </d>
+  ## <d>
+    1greater0  
+    (/\ (-. (=_ ({|} x (/\ (e. x (N)) (<= x A))) ({/}))) (E. y (upperbound y ({|} x (/\ (e. x (N)) (<= x A)))))) anRemove1
+    (E. z (/\ (<= z A) (> z (- (sup ({|} x (/\ (e. x (N)) (<= x A)))) (1))))) imbi1i
+    mpbi
+  ## </d>  
+  syl
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+  tru
+)
+
+export (SUPREMUM /peano_new/arithmetic/reals/supremum.ghi (PROP PREDICATE REALS SET_MIN) "")

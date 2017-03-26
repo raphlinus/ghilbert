@@ -1,0 +1,21 @@
+## <justification> redirect inequality_min.gh </justification>
+
+param (PROP prop.ghi () "")
+param (PREDICATE ../../predicate/predicate_all.ghi (PROP) "")
+param (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+param (N_NATURALS ../common/collections/naturals.ghi (PROP N_PREDICATE) "n.")
+param (EQUALITY_INT equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE) "")
+param (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
+param (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (n.nat a b c d)
+var (nat x y z)
+
+# This file contains inequality theorems specific to integers.
+
+stmt (ge0 () () (<-> (<= (0) A) (n.<= (tail A) (head A))))
+
+## <title> Apply ≤ to ordered pair </title>
+stmt (leop () () (<-> (<= (<,> a b) (<,> c d)) (n.<= (n.+ a d) (n.+ c b))))

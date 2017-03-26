@@ -1,0 +1,341 @@
+import (PROP         /peano_new/prop.ghi () "")
+import (PREDICATE    /peano_new/predicate/all.ghi (PROP) "")
+import (NATURALS     /peano_new/arithmetic/naturals/common.ghi (PROP PREDICATE) "")
+import (EXPONENT_MIN /peano_new/arithmetic/common/exponent_min.ghi (PROP PREDICATE NATURALS) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+## <context>
+##   This theorem is part of a series of proofs on the properties of
+##   <a href="/wiki/peano/arithmetic/exponent">exponents</a>. These theorems
+##   apply generally to natural numbers, integers, rational, real and
+##   complex numbers.
+## </context>
+
+
+thm (expeq1i () (
+     hyp1 (= A B))
+     (= (exp A C) (exp B C))
+  hyp1
+  A B C expeq1
+  ax-mp
+)
+
+thm (expeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (exp A C) (exp B C)))
+  hyp1
+  A B C expeq1
+  syl
+)
+
+thm (expeq2i () (
+     hyp1 (= A B))
+     (= (exp C A) (exp C B))
+  hyp1
+  A B C expeq2
+  ax-mp
+)
+
+
+thm (expeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (exp C A) (exp C B)))
+  hyp1
+  A B C expeq2
+  syl
+)
+
+## <title> Equivalence for exp </title>
+thm (expeq12 () () (-> (/\ (= A B) (= C D)) (/\ (= (exp A C) (exp B C)) (= (exp B C) (exp B D))))
+  A B C expeq1
+  C D B expeq2
+  anim12i
+)
+
+thm (expeq12d () (
+     hyp1 (-> ph (= A B))
+     hyp2 (-> ph (= C D)))
+     (-> ph (/\ (= (exp A C) (exp B C)) (= (exp B C) (exp B D))))
+  hyp1
+  hyp2
+  jca
+  A B C D expeq12
+  syl
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (* B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (* B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Mul1 () (
+     replacee (= A (* B C))
+     substitution (= C D)) 
+     (= A (* B D))
+  replacee substitution
+  B muleq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (exp A  [ B ]   ]   ] ) D)
+##   (=         [ B ]   [ C ] )
+##   (= (exp A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Exp1 () (
+     replacee (= (exp A B) D)
+     substitution (= B C)) 
+     (= (exp A C) D)
+  replacee substitution
+  A expeq2i
+  EqReplaceEq0
+)
+
+## <title> Raise to the power of 1 </title>
+## <suggest> right('Simplify', '1') </suggest>
+thm (exp1 () () (= (exp A (1)) A)
+  A (0) expplus1  
+  ## <d 'Additive Identity '>
+    (1) addidr
+    EqReplaceEq0Exp1
+  ## </d 'Additive Identity '>  
+  ## <d '0th power of a number is 1 '>
+    A exp0
+    EqReplaceEq1Mul1
+  ## </d '0th power of a number is 1 '>  
+  ## <d 'Evaluate'>
+    A mulid
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+)
+
+## <title> One-digit Addition </title>
+thm (1plus1 () () (= (+ (1) (1)) (2))
+  df-2
+  ## <d 'Commutative Property'>
+    (2) (+ (1) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Squared means multiply twice </title>
+thm (exp2 () () (= (exp A (2)) (* A A))
+  A (1) expplus1  
+  ## <d 'Evaluate'>
+    1plus1
+    EqReplaceEq0Exp1
+  ## </d 'Evaluate'>  
+  ## <d 'Raise to the power of 1 '>
+    A exp1
+    EqReplaceEq1Mul1
+  ## </d 'Raise to the power of 1 '>
+)
+
+## <title> One-digit Addition </title>
+thm (2plus1 () () (= (+ (2) (1)) (3))
+  df-3
+  ## <d 'Commutative Property'>
+    (3) (+ (2) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Cubed means multiply thrice </title>
+thm (exp3 () () (= (exp A (3)) (* (* A A) A))
+  A (2) expplus1
+  ## <d 'Evaluate'>
+    2plus1
+    EqReplaceEq0Exp1
+  ## </d 'Evaluate'>
+  ## <d>
+    A exp2  
+    EqReplaceEq1Mul1
+  ## </d>  
+  ## <d 'Associative Property '>
+    A A A mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+)
+
+
+
+## <title> One-digit Addition </title>
+thm (3plus1 () () (= (+ (3) (1)) (4))
+  df-4
+  ## <d 'Commutative Property'>
+    (4) (+ (3) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (*  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (*  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= A (* B D))
+     substitution (= B C)) 
+     (= A (* C D))
+  replacee substitution
+  D muleq1i
+  EqReplaceEq1
+)
+
+## <title> Fourth Power </title>
+thm (exp4 () () (= (exp A (4)) (* (* (* A A) A) A))
+  A (3) expplus1  
+  ## <d 'Evaluate'>
+    3plus1
+    EqReplaceEq0Exp1
+  ## </d 'Evaluate'>
+  A exp3  
+  EqReplaceEq1Mul1
+  ## <d>
+  ## <d 'Associative Property '>
+    A (* A A) A mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  
+  ## <d 'Associative Property '>
+    A A A mulass eqcomi
+    EqReplaceEq1Mul0
+  ## </d 'Associative Property '>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (+  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Add0 () (
+     replacee (= A (+ B D))
+     substitution (= B C)) 
+     (= A (+ C D))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+ B  [ C ]   ]   ] ) A'))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ (+ B  [   [   [ D ] ) A'))
+## </table>
+thm (EqReplaceEq1Add0Add1 () (
+     replacee (= A (+ (+ B C) A'))
+     substitution (= C D)) 
+     (= A (+ (+ B D) A'))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+  [ B ]   ]   ]  D) A'))
+##   (=          [ B ]   [ C ] )
+##   (= A (+ (+  [   [   [ C ]  D) A'))
+## </table>
+thm (EqReplaceEq1Add0Add0 () (
+     replacee (= A (+ (+ B D) A'))
+     substitution (= B C)) 
+     (= A (+ (+ C D) A'))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (+ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= A (+ B C))
+     substitution (= C D)) 
+     (= A (+ B D))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1
+)
+
+## <title> Square an Addition </title>
+## <suggest> left('Simplify', '2') right('Equivalence', '+') </suggest>
+thm (sqadd () () (= (exp (+ A B) (2)) (+ (+ (exp A (2)) (* (* (2) A) B)) (exp B (2))))
+  ## <d 'Squared means multiply twice '>
+    (+ A B) exp2
+  ## </d 'Squared means multiply twice '>
+  ## <d 'Distributive Property '>
+    A B A B distrl
+    EqReplaceEq1
+  ## </d 'Distributive Property '>
+  ## <d 'Rearrange Terms'>
+  ## <d 'Commutative Property '>
+    B A mulcom
+    EqReplaceEq1Add0Add1
+  ## </d 'Commutative Property '>
+  ## <d 'Associative Property '>
+    (+ (* A A) (* A B)) (* A B) (* B B) addass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  ## <d 'Associative Property '>
+    (* A A) (* A B) (* A B) addass
+    EqReplaceEq1Add0
+  ## </d 'Associative Property '>
+  ## <d 'Adding twice means Multiply by 2 '>
+    (* A B) add2mul
+    EqReplaceEq1Add0Add1
+  ## </d 'Adding twice means Multiply by 2 '>
+  ## <d 'Associative Property '>
+    (2) A B mulass eqcomi
+    EqReplaceEq1Add0Add1
+  ## </d 'Associative Property '>
+  ## </d 'Rearrange Terms'>
+  ## <d>
+    ## <d>
+      A exp2 eqcomi
+      EqReplaceEq1Add0Add0
+    ## </d>
+    ## <d>
+      B exp2 eqcomi
+      EqReplaceEq1Add1
+    ## </d>
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (EXPONENT exponent.ghi (PROP PREDICATE NATURALS) "")

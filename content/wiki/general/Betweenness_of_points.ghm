@@ -1,0 +1,133 @@
+{{interfaces
+| imports = [[Interface:Line segment congruence]]
+| exports = [[Interface:Betweenness of points]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Line segment congruence|geometry results so far]] and define some variables:
+
+== Betweenness ==
+We start with a degenerate case of betweenness. It illustrates that we follow Tarski's definition of betweenness, in which the points need not be distinct, rather than Hilbert's, in which they do need to be.<ref>Discussion at Bet in Narboux</ref>
+
+The proof extends the line segment {{{A B}}} beyond {{{B}}} to a point {{{a}}} such that {{{B a ≡ B B}}}. But {{{B a ≡ B B}}} implies {{{B = a}}}, so we have in fact shown {{{between A B B}}}.<ref>beetween_trivial in Narboux</ref>
+* #(between A B B)# ([/general/Betweenness_of_points.gh/BetweenABB | BetweenABB])
+
+=== Betweenness symmetry ===
+Exchanging the endpoints of a betweenness formula has no effect. In other words, B is between A and C implies B is between C and A.<ref>between_symmetry in Narboux</ref><ref>Symmetry Axiom for Betweenness in Givant and Tarski (1999)</ref>
+
+We move much of the proof into a lemma because it will be useful in other similar proofs.
+* #(→ (∃ a (∧ (between B a B) (between C a A))) (between C B A))# ([/general/Betweenness_of_points.gh/BetweenSubstitution | BetweenSubstitution])
+* #(→ (between A B C) (between C B A))# ([/general/Betweenness_of_points.gh/BetweennessSymmetryImplication | BetweennessSymmetryImplication])
+* #(↔ (between A B C) (between C B A))# ([/general/Betweenness_of_points.gh/BetweennessSymmetry | BetweennessSymmetry])
+* #(→ antecedent (between A B C))# ⊢ #(→ antecedent (between C B A))# ([/general/Betweenness_of_points.gh/swapBetweennessInConsequent | swapBetweennessInConsequent])
+
+Symmetry lets us easily prove the other degenerate case.<ref>beetween_trivial2 in Narboux</ref>
+* #(between A A B)# ([/general/Betweenness_of_points.gh/BetweenAAB | BetweenAAB])
+
+=== Equality ===
+If {{{B}}} is between {{{A}}} and {{{C}}}, and {{{A}}} is between {{{B}}} and {{{C}}}, then {{{A}}} and {{{B}}} must be equal.<ref>between_egality in Narboux</ref>
+
+This property is analogous to antisymmetry for an [[w:Partial_order|order relation]].
+* #(→ (∧ (between A B C) (between B A C)) (= A B))# ([/general/Betweenness_of_points.gh/BetweennessEquality | BetweennessEquality])
+
+=== Transitivity ===
+In this section we prove six similar theorems which involve four points on a line. Given two betweenness relationships, we conclude a third. Three of the six are just versions of the other three which are flipped left-to-right.
+
+==== Inner transitivity, regular and flipped ====
+The first one is known as inner transitivity.<ref>Inner Transitivity Axiom for Betweenness in Givant and Tarski, 1999</ref><ref>between_inner_transitivity in Narboux</ref>
+* #(→ (∧ (between A B D) (between B C D)) (between A B C))# ([/general/Betweenness_of_points.gh/BetweennessInnerTransitivity | BetweennessInnerTransitivity])
+
+Reflecting this left-to-right gives our next theorem.<ref>between_exchange3 in Narboux</ref>
+* #(→ (∧ (between A B C) (between A C D)) (between B C D))# ([/general/Betweenness_of_points.gh/BetweennessInnerTransitivityFlipped | BetweennessInnerTransitivityFlipped])
+
+==== Outer transitivity, flipped ====
+For outer transitivity, we prove the "flipped" version first (where we consider the "non-flipped" one to be the one in Givant and Tarski (1999)).
+
+To be specific, the flipped outer transitivity is {{{between A B C ∧ between B C D ∧ B ≠ C → between A C D}}}. First we extend {{{A C}}} beyond {{{C}}} to a point {{{a}}} such that {{{C a ≡ C D}}}. Then {{{between A B C}}} and {{{between A C a}}} give us {{{between B C a}}} by {{{BetweennessInnerTransitivityFlipped}}}. That's part of what we need to apply uniqueness of segment construction, which gives us {{{a = D}}}. Then we can substitute {{{between A C a}}} to get {{{between A C D}}}, which is what we want.<ref>outer_transitivity_between2 in Narboux</ref>
+
+The first two lemmas get as far as {{{between B C a}}} in the proof sketch above.
+* #(→ (∧ (∧ (between A C x) (≡ C x C D)) (between A B C)) (∧ (∧ (between A C x) (≡ C x C D)) (between B C x)))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-1 | BetweennessOuterTransitivityFlipped-1])
+* #(→
+   (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (∃ a (∧ (∧ (between A C a) (≡ C a C D)) (between B C a))))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-bca | BetweennessOuterTransitivityFlipped-bca])
+The next lemma is just a way of getting everything inside the quantifier.
+* #(→
+   (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (∃ a (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C)))))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-2 | BetweennessOuterTransitivityFlipped-2])
+The following lemma is where we show that {{{a = D}}}.
+* #(→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C))) (= a D))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-ad | BetweennessOuterTransitivityFlipped-ad])
+Here we combine the {{{a = D}}} result with picking {{{between A C a}}} out of the antecedent.
+* #(→ (∧ (∧ (∧ (∧ (between A C a) (≡ C a C D)) (between B C a)) (between B C D)) (¬ (= B C))) (∧ (= a D) (between A C a)))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-aca-ad | BetweennessOuterTransitivityFlipped-aca-ad])
+Now our substitution.
+* #(→ (∧ (= a D) (between A C a)) (between A C D))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped-sub | BetweennessOuterTransitivityFlipped-sub])
+We're ready to combine the various pieces.
+* #(→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A C D))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivityFlipped | BetweennessOuterTransitivityFlipped])
+
+==== Middle transitivity ====
+The next result is {{{between A B D ∧ between B C D → between A C D}}}. The proof has two cases. If {{{B = C}}}, then we can substitute {{{between A B D}}} into {{{between A C D}}} and we are done. If {{{B ≠ C}}}, then we first apply inner transitivity to get {{{between A B C}}}, and then apply outer transitivity (flipped) to get {{{between A C D}}}.<ref>between_exchange2 in Narboux</ref>
+* #(→ (= B C) (→ (∧ (between A B D) (between B C D)) (between A C D)))# ([/general/Betweenness_of_points.gh/BetweennessMiddleTransitivityBEqualsC | BetweennessMiddleTransitivityBEqualsC])
+* #(→ (¬ (= B C)) (→ (∧ (between A B D) (between B C D)) (between A C D)))# ([/general/Betweenness_of_points.gh/BetweennessMiddleTransitivityBNotEqualC | BetweennessMiddleTransitivityBNotEqualC])
+* #(→ (∧ (between A B D) (between B C D)) (between A C D))# ([/general/Betweenness_of_points.gh/BetweennessMiddleTransitivity | BetweennessMiddleTransitivity])
+
+==== Outer transitivity, non-flipped ====
+The non-flipped outer transitivity is {{{between A B C ∧ between B C D ∧ B ≠ C → between A B D}}}.<ref>outer_transitivity_between in Narboux</ref><ref>Axiom 16 in Givant and Tarski, 1999</ref> Our proof just takes {{{BetweennessOuterTransitivityFlipped}}} and flips it, whereas Narboux's proof also invokes {{{BetweennessMiddleTransitivity}}}.
+
+* #(→ (∧ (∧ (between A B C) (between B C D)) (¬ (= B C))) (between A B D))# ([/general/Betweenness_of_points.gh/BetweennessOuterTransitivity | BetweennessOuterTransitivity])
+
+==== Middle transitivity, flipped ====
+Here we prove {{{between A B C ∧ between A C D → between A B D}}}.<ref>between_exchange4 in Narboux</ref>
+* #(→ (∧ (between A B C) (between A C D)) (between A B D))# ([/general/Betweenness_of_points.gh/BetweennessMiddleTransitivityFlipped | BetweennessMiddleTransitivityFlipped])
+
+=== Betweenness of more than three points ===
+Narboux defines the concept of a betweenness relationship between four points, but we omit it here as Narboux does not use it anywhere.<ref>Bet_4 and l_3_9_4 in Narboux</ref>
+
+== Twoness ==
+There exist two distinct points. In symbols, {{{∃ a ∃ b a ≠ b}}}.<ref>two_distinct_points in Narboux</ref> The proof is based on the {{{LowerDimension}}} axiom. There are two cases. If {{{a ≠ b}}}, we are done. If {{{a = b}}}, then we can take {{{¬ between b c a}}} from the axiom and turn it into {{{¬ between b c b}}} which in turn implies {{{b ≠ c}}}.
+
+Formalizing this proof has two parts. The first one follows the informal proof above and gets us as far as showing {{{a ≠ b}}} or {{{b ≠ c}}}. The second part does the predicate logic needed to switch variables and combine the two inequalities.
+
+The first thing is a lemma biconditionalizing {{{Indivisibility}}}.
+* #(↔ (between x y x) (= x y))# ([/general/Betweenness_of_points.gh/IndivisibilityBiconditional | IndivisibilityBiconditional])
+* #(↔ (between x y x) (= x y))# ([/general/Betweenness_of_points.gh/IndivisibilityBidirectional | IndivisibilityBidirectional])
+* #(∃ a (∃ b (∃ c (∨ (¬ (= a b)) (¬ (= b c))))))# ([/general/Betweenness_of_points.gh/TwonessLemma | TwonessLemma])
+That's the first part of the proof. Now for the predicate logic. First is a lemma which expresses the variable change which is at the heart of all this rearrangement.
+* #(↔ (∃ a (∃ b (¬ (= a b)))) (∃ b (∃ c (¬ (= b c)))))# ([/general/Betweenness_of_points.gh/TwonessLemma2 | TwonessLemma2])
+* #(∃ a (∃ b (¬ (= a b))))# ([/general/Betweenness_of_points.gh/Twoness | Twoness])
+
+=== Extending a line segment to a distinct point ===
+Any line segment {{{A B}}} can be extended beyond {{{B}}} to a point {{{c}}} which does not equal {{{B}}}.<ref>point_construction_different in Narboux</ref>
+
+First we prove a lemma which just rearranges {{{CongruenceIdentityFromEquality}}}.
+* #(→ (∧ (= A B) (≡ A B C D)) (= C D))# ([/general/Betweenness_of_points.gh/CongruenceIdentityFromEqualityImported | CongruenceIdentityFromEqualityImported])
+* #(→ (∧ (¬ (= A B)) (≡ A B C D)) (¬ (= C D)))# ([/general/Betweenness_of_points.gh/NegatedCongruenceIdentityFromEquality | NegatedCongruenceIdentityFromEquality])
+The next lemma is just rearranging conjuncts and applying {{{NegatedCongruenceIdentityFromEquality}}}.
+* #(→ (∧ (∧ (between A B C) (≡ B C x y)) (¬ (= x y))) (∧ (between A B C) (¬ (= B C))))# ([/general/Betweenness_of_points.gh/PointConstructionDifferentLemma2 | PointConstructionDifferentLemma2])
+* #(∃ c (∧ (between A B c) (¬ (= B c))))# ([/general/Betweenness_of_points.gh/PointConstructionDifferent | PointConstructionDifferent])
+
+=== A point distinct from a given point exists ===
+Given a point {{{A}}}, there exists a point {{{b}}} distinct from it.<ref>another_point in Narboux</ref> Here's the sketch of Narboux's proof: apply {{{Twoness}}} to get {{{x}}} and {{{y}}} such that {{{x ≠ y}}}. If {{{A ≠ x}}}, we are done ({{{x}}} is the desired point). If {{{A = x}}}, then subsituting into {{{x ≠ y}}} gives us {{{A ≠ y}}}, and {{{y}}} is the desired point. It would be possible (although somewhat cumbersome) to formalize this argument here, but it will be easier just to prove this theorem as a special case of {{{PointConstructionDifferent}}}.
+* #(∃ b (¬ (= A b)))# ([/general/Betweenness_of_points.gh/AnotherPoint | AnotherPoint])
+
+== Lemma l3_17 (Pasch variant) ==
+[[File:Lemma l3_17 from Narboux.svg|thumb|right|Top: statement of the lemma; Middle: construction of {{{q′}}}; Bottom: construction of {{{q}}}]]
+This lemma is a variant of Pasch's axiom.  The lemma is {{{between A B C ∧ between A′ B′ C ∧ between A P A′ → ∃ q (between P q C ∧ between B q B′)}}}. The proof consists of two applications of Pasch's axiom. The first one uses the triangle {{{A A′ C}}} (with points {{{P}}} and {{{B′}}}) to construct a point {{{q′}}}. The second uses the triangle {{{A C B′}}} (with points {{{B}}} and {{{q′}}}) to construct the point {{{q}}}.
+* #(→ (∧ (∧ (between A B C) (between A′ B′ C)) (between A P A′)) (∃ q (∧ (between P q C) (between B q B′))))# ([/general/Betweenness_of_points.gh/PaschLine | PaschLine])
+
+== BetweenBuilder is deprecated ==
+{{deprecated|renaming BetweenBuilder to BetweennessBuilder everywhere. During the transition it is probably best to ensure that both are defined (at least where they are still both used)}}
+
+We are in the process of renaming {{{BetweenBuilder}}} to {{{BetweennessBuilder}}}. Until it is renamed everywhere, just prove one in terms of the other (they are identical except the name).
+* #(
+  →
+  (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (↔ (between x0 x1 x2) (between y0 y1 y2))
+)# ([/general/Betweenness_of_points.gh/BetweennessBuilder | BetweennessBuilder])
+
+== Export ==
+We now export to [[Interface:Betweenness of points]].
+
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

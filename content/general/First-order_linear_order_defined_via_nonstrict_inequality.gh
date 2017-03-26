@@ -1,0 +1,281 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (PROPOSITIONAL /general/Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER /general/First-order_logic_with_quantifiability.ghi (PROPOSITIONAL) "")
+import (DEFINED /general/First-order_linear_order_defined_via_nonstrict_inequality.ghi
+  (PROPOSITIONAL FIRSTORDER) "")
+tvar (object a b c a0 b0 a1 b1)
+thm (LessEqualReflexivity () () (≤ a a)
+        a a LessEqualTotality
+        conflateDisjunction
+ )
+thm (LessEqualBuilderLL () () (→ (= b0 b1) (↔ (≤ a b0) (≤ a b1)))
+        a EqualityReflexivity
+        a a b0 b1 LessEqualBuilder
+        detach1of2
+ )
+
+thm (LessEqualBuilderRR () () (→ (= a0 a1) (↔ (≤ a0 b) (≤ a1 b)))
+        b EqualityReflexivity
+        a0 a1 b b LessEqualBuilder
+        detach2of2
+ )
+thm (buildLessEqual () (HA (= a0 a1) HB (= b0 b1)) (↔ (≤ a0 b0) (≤ a1 b1))
+        HA
+        HB
+        introduceConjunction
+        a0 a1 b0 b1 LessEqualBuilder
+        applyModusPonens
+ )
+
+thm (buildLessEqualRR () (H (= a0 a1)) (↔ (≤ a0 b) (≤ a1 b))
+        H
+        a0 a1 b LessEqualBuilderRR
+        applyModusPonens
+ )
+
+thm (buildLessEqualLL () (H (= b0 b1)) (↔ (≤ a b0) (≤ a b1))
+        H
+        b0 b1 a LessEqualBuilderLL
+        applyModusPonens
+ )
+thm (EqualityLessEqual () () (→ (= a b) (≤ a b))
+        a LessEqualReflexivity
+
+        a b a LessEqualBuilderLL
+# The builder gives us <code>a = b → (a ≤ a ↔ a ≤ b)</code>.  But <code>a ≤ a</code> is a theorem, so we are done.
+        detachImplicationBiconditional
+ )
+defthm (LessThanLessEqual formula (< a b) () () (↔ (< a b) (∧ (≤ a b) (¬ (= a b))))
+        (∧ (≤ a b) (¬ (= a b))) BiconditionalReflexivity
+)
+defthm (GreaterThan formula (> b a) () () (↔ (> b a) (< a b))
+        (< a b) BiconditionalReflexivity
+)
+defthm (GreaterEqual formula (≥ b a) () () (↔ (≥ b a) (≤ a b))
+        (≤ a b) BiconditionalReflexivity
+)
+thm (LessEqualLessThanLemma () () (↔ (≤ a b) (∧ (∨ (≤ a b) (= a b)) (∨ (¬ (= a b)) (= a b))))
+# We start with the forward implication. The first half is <code>a ≤ b → a ≤ b ∨ a = b</code>
+        (≤ a b) (= a b) DisjunctionRightIntroduction
+# The second half is <code>a ≤ b → a ≠ b ∨ a = b</code>
+        (= a b) TertiumNonDatur swapDisjunction
+        (≤ a b) introduceAntecedent
+# Combining these gives us the forward implication.
+        composeConjunction
+# Moving on to the reverse implication, we start with <code>(a ≤ b ∨ a = b) ∧ (a ≠ b ∨ a = b) → a ≤ b ∨ a = b</code>
+        (∨ (≤ a b) (= a b)) (∨ (¬ (= a b)) (= a b)) ConjunctionRightElimination
+# Then we show <code>a ≤ b ∨ a = b → a ≤ b</code>.
+        (≤ a b) ImplicationReflexivity
+        a b EqualityLessEqual
+        composeDisjunction
+# Combining these gives the reverse implication,
+        applySyllogism
+# and combining forward and reverse implications completes the proof.
+        introduceBiconditionalFromImplications
+ )
+
+thm (LessEqualLessThan () () (↔ (≤ a b) (∨ (< a b) (= a b)))
+        a b LessEqualLessThanLemma
+
+        (≤ a b) (¬ (= a b)) (= a b) DisjunctionRightDistribution
+        swapBiconditional
+        applyBiconditionalTransitivity
+# That gives us <code>a ≤ b ↔ (a ≤ b ∧ a ≠ b) ∨ a = b</code>.  But <code>a ≤ b ∧ a ≠ b</code> is just the definition of <code><</code>, so this is enough.
+        a b LessThanLessEqual
+        (= a b) buildDisjunctionRR
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
+thm (LessThanBuilder () () (→ (∧ (= a0 a1) (= b0 b1)) (↔ (< a0 b0) (< a1 b1)))
+        a0 a1 b0 b1 LessEqualBuilder
+
+        a0 a1 b0 b1 EqualityBuilder
+        addNegationInConsequent
+
+        buildConjunctionInConsequent
+
+        a0 b0 LessThanLessEqual
+        a1 b1 LessThanLessEqual
+        buildBiconditional
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (LessThanBuilderLL () () (→ (= b0 b1) (↔ (< a b0) (< a b1)))
+        a EqualityReflexivity
+        a a b0 b1 LessThanBuilder
+        detach1of2
+ )
+
+thm (LessThanBuilderRR () () (→ (= a0 a1) (↔ (< a0 b) (< a1 b)))
+        b EqualityReflexivity
+        a0 a1 b b LessThanBuilder
+        detach2of2
+ )
+
+thm (buildLessThan () (HA (= a0 a1) HB (= b0 b1)) (↔ (< a0 b0) (< a1 b1))
+        HA
+        HB
+        introduceConjunction
+        a0 a1 b0 b1 LessThanBuilder
+        applyModusPonens
+ )
+
+thm (buildLessThanLL () (HB (= b0 b1)) (↔ (< a b0) (< a b1))
+        HB
+        b0 b1 a LessThanBuilderLL
+        applyModusPonens
+ )
+
+thm (buildLessThanRR () (HA (= a0 a1)) (↔ (< a0 b) (< a1 b))
+        HA
+        a0 a1 b LessThanBuilderRR
+        applyModusPonens
+ )
+thm (LessEqualLessThanTransitivity-1 () () (→ (∧ (≤ a b) (< b c)) (≤ a c))
+        b c LessThanLessEqual
+        eliminateBiconditionalReverse
+        (≤ a b) conjoinLL
+
+        (≤ b c) (¬ (= b c)) ConjunctionRightElimination
+        (≤ a b) conjoinLL
+        applySyllogism
+
+        a b c LessEqualTransitivity
+        applySyllogism
+)
+
+thm (LessEqualLessThanTransitivity-2 () () (→ (∧ (≤ a b) (< b c)) (¬ (= a c)))
+# We start with a substitution, <code>a = c → (a ≤ b ∧ b < a ↔ a ≤ b ∧ b < c)</code>
+        a c b LessThanBuilderLL
+        (≤ a b) buildConjunctionLLInConsequent
+# Taking the reverse direction of the biconditional, expanding the definition of <code>b < a</code> and associating the conjunctions gives <code>a = c → (a ≤ b ∧ b < c → (a ≤ b ∧ b ≤ a) ∧ b ≠ a)</code>
+        eliminateBiconditionalForwardInConsequent
+
+        (≤ a b) (≤ b a) (¬ (= b a)) ConjunctionAssociativity
+        b a LessThanLessEqual
+        (≤ a b) buildConjunctionLL
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+
+        transformImplicationImplicationConsequent
+# But <code>a ≤ b ∧ b ≤ a</code> implies <code>b = a</code>,
+        a b LessEqualAntisymmetry
+
+        a b EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+# so <code>(a ≤ b ∧ b ≤ a) ∧ b ≠ a</code> implies <code>⊥</code> (false).
+        (¬ (= b a)) conjoinRR
+
+        (= b a) Contradiction
+        eliminateBiconditionalReverse
+        applySyllogism
+# The next step is <code>(a ≤ b ∧ b < c → (a ≤ b ∧ b ≤ a) ∧ b ≠ a) → ¬ (a ≤ b ∧ b < c)</code>.
+        (∧ (≤ a b) (< b c)) addCommonAntecedent
+
+        (∧ (≤ a b) (< b c)) NegationImplication
+        eliminateBiconditionalForward
+        applySyllogism
+# Combining that with the previous result gives <code>a = c → ¬ (a ≤ b ∧ b < c)</code>.
+        applySyllogism
+# And a transposition finishes the job.
+        transposeWithNegatedConsequent
+)
+
+thm (LessEqualLessThanTransitivity () () (→ (∧ (≤ a b) (< b c)) (< a c))
+        a b c  LessEqualLessThanTransitivity-1
+        a b c  LessEqualLessThanTransitivity-2
+        composeConjunction
+
+        a c LessThanLessEqual
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (LessThanLessEqualImplication () () (→ (< a b) (≤ a b))
+        a b LessThanLessEqual
+        eliminateBiconditionalReverse
+
+        (≤ a b) (¬ (= a b)) ConjunctionRightElimination
+        applySyllogism
+)
+
+thm (LessThanTransitivity () () (→ (∧ (< a b) (< b c)) (< a c))
+        a b LessThanLessEqualImplication
+
+        (< b c) conjoinRR
+
+        a b c LessEqualLessThanTransitivity
+        applySyllogism
+ )
+thm (LessThanTotality () () (∨ (∨ (< a b) (= a b)) (< b a))
+# The meat of the proof is <code>(a < b ∨ a = b) ∨ (b < a ∨ b = a)</code>.
+        a b LessEqualTotality
+
+        a b LessEqualLessThan
+        b a LessEqualLessThan
+        buildDisjunction
+
+        eliminateBiconditionalReverse
+        applyModusPonens
+# We just need to do some rearranging to finish.
+        swap23ofDisjunction4
+
+        b a EqualitySymmetry
+        (= a b) buildDisjunctionLL
+
+        (= a b) DisjunctionIdempotence
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        transformDisjunctionRight
+
+        swap23ofDisjunction3
+)
+
+thm (LessThanEquality () () (→ (< a b) (¬ (= a b)))
+        a b LessThanLessEqual
+        eliminateBiconditionalReverse
+
+        (≤ a b) (¬ (= a b)) ConjunctionLeftElimination
+
+        applySyllogism
+ )
+
+thm (LessThanGreaterThan () () (→ (< a b) (¬ (> a b)))
+        a EqualityReflexivity
+
+# We start with <code>a < b ∧ b < a → a < a</code>.
+        a b a LessThanTransitivity
+# Using the previous theorem we turn this into <code>a < b ∧ b < a → a ≠ a</code>.
+        a a LessThanEquality
+        applySyllogism
+
+# Since <code>a = a</code> is a theorem, this gives us <code>¬ (a < b ∧ b < a)</code>
+        transposeWithNegatedConsequent
+        applyModusPonens
+# A bit of propositional logic turns this into what we need.
+        distributeNegationPCP
+        convertToImplicationFromDisjunction
+
+        a b GreaterThan
+        addNegation
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (EqualityLessThan () () (→ (= a b) (¬ (< a b)))
+        a b LessThanEquality
+        transposeWithNegatedConsequent
+ )
+thm (LessThanIrreflexivity () () (¬ (< a a))
+        a EqualityReflexivity
+        a a EqualityLessThan
+        applyModusPonens
+ )
+export (COMPLETE First-order_linear_order.ghi (PROPOSITIONAL FIRSTORDER) "")
+export (ADDITIONAL First-order_linear_order_from_nonstrict_inequality.ghi (PROPOSITIONAL FIRSTORDER DEFINED) "")

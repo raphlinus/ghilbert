@@ -1,0 +1,79 @@
+## <justification>
+##   redirect min_mod_div.gh
+## </justification>
+
+
+param (PROP ../../prop.ghi () "")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+param (NATURALS common.ghi (PROP PREDICATE) "")
+param (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+tvar (set S T U V)
+
+term (nat (min S))
+term (nat (mod A B))
+term (nat (div A B))
+term (wff (| A B))
+
+
+## <table>
+##   (-> (=_ <r> S <g> T) (= (min <r> S) (min <g> T)))
+## </table>
+stmt (minseq () () (-> (=_ S T) (= (min S) (min T))))
+
+## <title> The minimum of a nonempty set exists </title>
+stmt (minex () ()     (-> (e. A S) (/\ (e. (min S) S)
+                                (<= (min S) A))))
+
+## <title> Divides Definition </title>
+## <suggest> left('Simplify', '|') right('Define', '|') </suggest>
+stmt (df-divides ((A x) (B x)) () (<-> (| A B) (E. x (= (* A x) B))))
+
+## <title> Equivalence for | </title>
+stmt (divideseq1 () () (-> (= A C) (<-> (| A B) (| C B))))
+
+# Equality inference for the divides relation.
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=      A ]   ]      [ B ]   )
+##   (<-> (| A ] C ] ) (| [ B ] C))
+## </table>
+stmt (divideseq1i () ((= A B)) (<-> (| A C) (| B C)))
+
+## <title> Equivalence for | </title>
+stmt (divideseq2 () () (-> (= B C) (<-> (| A B) (| A C))))
+
+## <title> Equivalence over Divides </title>
+## <table>
+##   (=        [ A ]      [   [ B ] )
+##   (<-> (| C [ A ] ) (| [ C [ B ] ))
+## </table>
+stmt (divideseq2i () ((= A B)) (<-> (| C A) (| C B)))
+
+stmt (divideseq1d () (
+      (-> ph (= A B)))
+     (-> ph (<-> (| A C) (| B C))))
+
+stmt (divideseq2d () (
+      (-> ph (= A B)))
+     (-> ph (<-> (| C A) (| C B))))
+
+stmt (divides1 () () (-. (| (+ A (2)) (1))))
+
+stmt (dividesadd.1 () () (-> (| (+ A (1)) (+ (* (+ A (1)) B) C)) (| (+ A (1)) C)))
+
+## <title> A number divides itself </title>
+## <suggest> full('Simplify', 'T') </suggest>
+stmt (dividessym () () (| A A))
+
+stmt (dividesmul () () (-> (| A B) (| A (* B C))))
+
+stmt (dividesmul12 () () (-> (| A B) (| (* A C) (* B C))))
+
+## <title> Divides relation is transitive </title>
+stmt (dividestr () () (-> (/\ (| A B) (| B C)) (| A C)))
+
+stmt (proveDivides () ((= (* A B) C)) (| A C))

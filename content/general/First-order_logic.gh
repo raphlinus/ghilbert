@@ -1,0 +1,1138 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL /general/Classical_propositional_calculus.ghi () "")
+import (AXIOMS /general/Axioms_of_first-order_logic.ghi (CLASSICAL) "")
+tvar (formula φ ψ χ θ)
+tvar (object s t u s0 s1 t0 t1)
+var (object x y z x0 x1 y0 y1)
+tvar (formula φx φy ψy)
+thm (ForAllImplication () () (→ (∀ x (→ φ ψ)) (→ (∀ x φ) (∀ x ψ)))
+        x φ ψ QuantifiedImplication
+ )
+thm (addForAll () (H (→ φ ψ)) (→ (∀ x φ) (∀ x ψ))
+        H
+        x generalize
+
+        x φ ψ ForAllImplication
+
+        applyModusPonens
+ )
+thm (buildForAll () (H (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ))
+        H eliminateBiconditionalReverse x addForAll
+        H eliminateBiconditionalForward x addForAll
+        introduceBiconditionalFromImplications
+ )
+
+thm (VariableEqualityReflexivity () () (= x x)
+        x EqualityReflexivity
+)
+
+thm (VariableEqualitySymmetry () ()
+  (↔ (= x y) (= y x))
+        x y EqualitySymmetry
+)
+
+thm (swapEquality () (H (= s t))
+  (= t s)
+        H
+
+        s t EqualitySymmetry
+        eliminateBiconditionalReverse
+
+        applyModusPonens
+ )
+thm (VariableEqualityTransitivity () ()
+  (→ (∧ (= x y) (= y z)) (= x z))
+        x y z EqualityTransitivity
+ )
+
+thm (applyEqualityTransitivity ()
+  (H1 (= s t) H2 (= t u))
+  (= s u)
+        H1
+        H2
+        introduceConjunction
+        s t u EqualityTransitivity
+        applyModusPonens
+ )
+thm (Specialization-18 () ()
+  (→ (= y x) (→ (¬ φ) (∀ x (→ (= x y) (¬ φ)))))
+        y x VariableEqualitySymmetry eliminateBiconditionalReverse
+        x y (¬ φ) VariableSubstitution
+        applySyllogism
+ )
+
+thm (Specialization-22 () () 
+  (→ (∀ x (→ (= x y) (¬ φ))) (∀ x (→ φ (¬ (= x y)))))
+        (= x y) φ TranspositionWithNegatedConsequent
+        eliminateBiconditionalReverse
+
+        x addForAll
+ )
+
+thm (Specialization-a () () (→ (∀ x (→ φ (¬ (= x y)))) (¬ (∀ x φ)))
+        x φ (¬ (= x y)) ForAllImplication
+
+        x y Existence
+        (∀ x φ) (∀ x (¬ (= x y))) Transposition eliminateBiconditionalReverse
+        detachImplicationImplication
+
+        applySyllogism
+ )
+
+thm (Specialization-30 () () (→ (¬ (→ (∀ x φ) φ)) (¬ (= y x)))
+        y x φ Specialization-18
+        import
+
+        x y φ Specialization-22
+        applySyllogism
+
+        x φ y Specialization-a
+        applySyllogism
+        export
+
+        (∀ x φ) φ Transposition eliminateBiconditionalForward
+        applySyllogism
+
+        introduceTransposition
+ )
+
+thm (Specialization-33 () () 
+  (→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= y x))))
+        x φ y Specialization-30
+        y addForAll
+ )
+thm (Specialization () () (→ (∀ x φ) φ)
+        y x Existence
+
+        (¬ (→ (∀ x φ) φ)) y Generalization
+        y x φ Specialization-33
+        applySyllogism
+
+        applyModusTollens
+
+        eliminateDoubleNegation
+ )
+
+thm (specialize () (H (∀ x φ)) φ
+        H
+        x φ Specialization
+        applyModusPonens
+ )
+thm (ForAllDoubling-negation-lemma () () 
+  (→ (∀ x (¬ (∀ x (¬ (∀ x φ))))) (∀ x (∀ x φ)))
+        x φ QuantifiedNegation
+        transposeWithNegatedAntecedent
+
+        x addForAll
+ )
+
+thm (ForAllDoubling () () (→ (∀ x φ) (∀ x (∀ x φ)))
+        x (¬ (∀ x φ)) Specialization
+        transposeWithNegatedConsequent
+
+        x (¬ (∀ x φ)) QuantifiedNegation
+        applySyllogism
+
+        x φ ForAllDoubling-negation-lemma
+        applySyllogism
+ )
+thm (a5i () (H (→ (∀ x φ) ψ)) (→ (∀ x φ) (∀ x ψ))
+        x φ ForAllDoubling
+
+        H
+        x addForAll
+
+        applySyllogism
+ )
+defthm (ThereExists formula (∃ x φ) () () (↔ (∃ x φ) (¬ (∀ x (¬ φ))))
+        (¬ (∀ x (¬ φ))) BiconditionalReflexivity
+)
+thm (NotThereExists () () (↔ (¬ (∃ x φ)) (∀ x (¬ φ)))
+        x φ ThereExists
+        addNegation
+
+        (∀ x (¬ φ)) DoubleNegation swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (NotForAll () () (↔ (¬ (∀ x φ)) (∃ x (¬ φ)))
+        φ DoubleNegation
+        x buildForAll
+        addNegation
+
+        x (¬ φ) ThereExists swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (addThereExists () (H (→ φ ψ)) (→ (∃ x φ) (∃ x ψ))
+        x φ ThereExists
+        eliminateBiconditionalReverse
+
+        H
+        introduceTransposition
+        x addForAll
+        introduceTransposition
+        applySyllogism
+
+        x ψ ThereExists
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (buildThereExists () (H (↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ))
+        x φ ThereExists
+
+        H
+        addNegation
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+
+        x ψ ThereExists swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (ThereExistsIntroduction () () (→ φ (∃ x φ))
+        x (¬ φ) Specialization
+        transposeWithNegatedConsequent
+
+        x φ ThereExists
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (ForAllImplicationThereExists () () (→ (∀ x (→ φ ψ)) (→ (∃ x φ) (∃ x ψ)))
+        φ ψ Transposition
+        x buildForAll
+
+        eliminateBiconditionalReverse
+        x (¬ ψ) (¬ φ) ForAllImplication
+        applySyllogism
+
+        (∀ x (¬ ψ)) (∀ x (¬ φ)) Transposition
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        x φ ThereExists
+        x ψ ThereExists
+        buildImplication
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (ForAllCommutation () () (↔ (∀ x (∀ y φ)) (∀ y (∀ x φ)))
+        x y φ QuantifierCommutation
+        y x φ QuantifierCommutation
+        introduceBiconditionalFromImplications
+ )
+thm (ThereExistsCommutation () () (↔ (∃ x (∃ y φ)) (∃ y (∃ x φ)))
+        x (∃ y φ) ThereExists
+
+        y φ ThereExists
+        addNegation
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+
+        (∀ y (¬ φ)) DoubleNegation swapBiconditional
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+
+        x y (¬ φ) ForAllCommutation
+        addNegation
+        applyBiconditionalTransitivity
+
+        x φ NotThereExists
+        y buildForAll
+        addNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        y (∃ x φ) NotThereExists
+        addNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        (∃ y (∃ x φ)) DoubleNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (ForAllConjunctionSplitting () () (→ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)))
+        φ ψ ConjunctionRightElimination
+        x addForAll
+
+        φ ψ ConjunctionLeftElimination
+        x addForAll
+
+        composeConjunction
+ )
+
+thm (ForAllConjunctionCombining () () (→ (∧ (∀ x φ) (∀ x ψ)) (∀ x (∧ φ ψ)))
+        φ ψ ConjunctionRightIntroduction
+        x addForAll
+
+        x ψ (∧ φ ψ) ForAllImplication
+        applySyllogism
+
+        import
+ )
+
+thm (ForAllConjunction () () (↔ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)))
+        x φ ψ ForAllConjunctionSplitting
+        x φ ψ ForAllConjunctionCombining
+        introduceBiconditionalFromImplications
+ )
+thm (ThereExistsDisjunction () () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) (∃ x ψ)))
+        x (∨ φ ψ) ThereExists
+
+        φ ψ DeMorganPDP
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+
+        x (¬ φ) (¬ ψ) ForAllConjunction
+        addNegation
+        applyBiconditionalTransitivity
+
+        (∀ x (¬ φ)) (∀ x (¬ ψ)) DeMorganNDN swapBiconditional
+        addNegation
+        applyBiconditionalTransitivity
+
+        (∨ (¬ (∀ x (¬ φ))) (¬ (∀ x (¬ ψ)))) DoubleNegation swapBiconditional
+        applyBiconditionalTransitivity
+
+        x φ ThereExists swapBiconditional
+        x ψ ThereExists swapBiconditional
+        buildDisjunction
+        applyBiconditionalTransitivity
+)
+
+thm (ThereExistsConjunction () () (→ (∃ x (∧ φ ψ)) (∧ (∃ x φ) (∃ x ψ)))
+        φ ψ ConjunctionRightElimination
+        x addThereExists
+
+        φ ψ ConjunctionLeftElimination
+        x addThereExists
+
+        composeConjunction
+ )
+thm (ForAllBiconditional () () (→ (∀ x (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ)))
+        φ ψ BiconditionalImplication eliminateBiconditionalReverse
+        x addForAll
+
+        x (→ φ ψ) (→ ψ φ) ForAllConjunction eliminateBiconditionalReverse
+        applySyllogism
+
+        x φ ψ ForAllImplication
+        x ψ φ ForAllImplication
+        conjoin
+        applySyllogism
+
+        (∀ x φ) (∀ x ψ) BiconditionalImplication eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (ThereExistsImplication () () (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) (∃ x ψ)))
+        x (→ φ ψ) ThereExists
+
+        φ ψ ImplicationDisjunction
+        addNegation
+        φ ψ DeMorganNDP
+        applyBiconditionalTransitivity
+# So far, we have transformed <code>¬ (φ → ψ)</code> into <code>φ ∧ (¬ ψ)</code> which is now ripe for applying <code>ForAllConjunction</code>
+        x buildForAll
+
+        x φ (¬ ψ) ForAllConjunction
+        applyBiconditionalTransitivity
+
+        addNegation
+# We're almost there.  The left hand side has been gradually built up into <code>(∃ x (φ → ψ))</code>. The right hand side is <code>(¬ ((∀ x φ) ∧ (∀ x (¬ ψ))))</code>, which just needs DeMorgan's law and transformation from disjunction to implication to become <code>((∀ x φ) → (∃ x ψ))</code>
+        (∀ x φ) (∀ x (¬ ψ)) DeMorganPCP
+        applyBiconditionalTransitivity
+
+        (∀ x φ) (¬ (∀ x (¬ ψ))) ImplicationDisjunction swapBiconditional
+        applyBiconditionalTransitivity
+# Applying ThereExists we are done.
+        applyBiconditionalTransitivity
+
+        x ψ ThereExists
+        (∀ x φ) buildImplicationAntecedent
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
+thm (ThereExistsConjunctionCombining () () (→ (∧ (∀ x φ) (∃ x ψ)) (∃ x (∧ φ ψ)))
+        x φ (¬ ψ) ForAllImplication
+# That gives us <code>∀ x (φ → ¬ ψ) → (∀ x φ → ∀ x ¬ ψ)</code>. We first transform <code>∀ x ¬ ψ</code> into <code>¬ ∃ x ψ</code>.
+        x ψ NotThereExists eliminateBiconditionalForward
+        (∀ x φ) addCommonAntecedent
+        (∀ x (→ φ (¬ ψ))) addCommonAntecedent
+        applyModusPonens
+# Transposing this gives us <code>¬ (∀ x φ → ¬ ∃ x ψ) → ¬ ∀ x (φ → ¬ ψ)</code>.
+        introduceTransposition
+# We are going to transform both sides of this with <code>ConjunctionImplication</code>.  First, the left side directly converts to <code>∀ x φ ∧ ∃ x ψ</code>.
+        (∀ x φ) (∃ x ψ) ConjunctionImplication swapBiconditional
+        transformAntecedent
+# The right side, <code>¬ ∀ x (φ → ¬ ψ)</code>, is only slightly more complicated.
+        x (→ φ (¬ ψ)) NotForAll
+
+        φ ψ ConjunctionImplication swapBiconditional
+        x buildThereExists
+        applyBiconditionalTransitivity
+
+        eliminateBiconditionalReverse applySyllogism
+ )
+thm (ThereExistsConjunctionRightCombining () ()
+  (→ (∧ (∃ x φ) (∀ x ψ)) (∃ x (∧ φ ψ)))
+        (∃ x φ) (∀ x ψ) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+
+        x ψ φ ThereExistsConjunctionCombining
+        applySyllogism
+
+        ψ φ ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        x addThereExists
+        applySyllogism
+ )
+thm (combineThereExistsForAll () (HEXIST (∃ x φ) HALL (∀ x ψ)) (∃ x (∧ φ ψ))
+        HEXIST
+        HALL
+        introduceConjunction
+        x φ ψ ThereExistsConjunctionRightCombining
+        applyModusPonens
+ )
+thm (ax6o () () (→ (¬ (∀ x (¬ (∀ x φ)))) φ)
+        x φ QuantifiedNegation
+        transposeWithNegatedAntecedent
+
+        x φ Specialization
+
+        applySyllogism
+ )
+defthm (df-is-not-free-in formula (is-not-free-in x φ) () () (↔ (is-not-free-in x φ) (→ φ (∀ x φ)))
+        (→ φ (∀ x φ)) BiconditionalReflexivity
+)
+
+thm (TheoremNotFree () (H φ) (is-not-free-in x φ)
+        H
+        x generalize
+        φ introduceAntecedent
+
+        x φ df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (DistinctNotFree ((φ x)) () (is-not-free-in x φ)
+        φ x Generalization
+
+        x φ df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (BoundForAllNotFree () () (is-not-free-in x (∀ x φ))
+        x φ ForAllDoubling
+
+        x (∀ x φ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (addForAllNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (∀ y φ))
+        H
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        y addForAll
+
+        y x φ ForAllCommutation eliminateBiconditionalReverse
+        applySyllogism
+
+        x (∀ y φ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (NegationNotFree () () (→ (∀ x (is-not-free-in x φ)) (is-not-free-in x (¬ φ)))
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        x addForAll
+
+        φ (∀ x φ) Transposition eliminateBiconditionalReverse
+        x addForAll
+        applySyllogism
+
+        x (¬ (∀ x φ)) (¬ φ) ForAllImplication
+        applySyllogism
+
+# At this point we have <code>∀ x (φ → ∀ x φ) → (∀ x ¬ ∀ x φ → ∀ x ¬ φ)</code>. Together with <code>¬ φ → ∀ x ¬ ∀ x φ</code> (which is the transposition of <code>ax6o</code>), we will get our desired result of <code>∀ x (φ → ∀ x φ) → (¬ φ → ∀ x ¬ φ)</code>.
+        x φ ax6o
+        transposeWithNegatedAntecedent
+
+        (∀ x (¬ φ)) addCommonConsequent
+
+        applySyllogism
+
+        x (¬ φ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (negateNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (¬ φ))
+        H
+        x generalize
+
+        x φ NegationNotFree
+
+        applyModusPonens
+ )
+
+thm (buildNotFree () (H (↔ φ ψ)) (↔ (is-not-free-in x φ) (is-not-free-in x ψ))
+        x φ df-is-not-free-in
+
+        H
+        H x buildForAll
+        buildImplication
+        applyBiconditionalTransitivity
+
+        x ψ df-is-not-free-in
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
+thm (BoundThereExistsNotFree () () (is-not-free-in x (∃ x φ))
+        x (¬ φ) BoundForAllNotFree
+        negateNotFree
+
+        x φ ThereExists
+        x buildNotFree
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
+thm (addThereExistsNotFree () (H (is-not-free-in x φ)) (is-not-free-in x (∃ y φ))
+        H
+        negateNotFree
+        y addForAllNotFree
+        negateNotFree
+
+        y φ ThereExists
+        x buildNotFree
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
+thm (addForAllToConsequentNotFree () (HFREE (is-not-free-in x φ) HIMP (→ φ ψ)) (→ φ (∀ x ψ))
+        HFREE
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        HIMP
+        x addForAll
+
+        applySyllogism
+ )
+
+thm (addForAllToConsequent ((φ x))
+  (H (→ φ ψ))
+  (→ φ (∀ x ψ))
+        x φ DistinctNotFree
+        H
+        addForAllToConsequentNotFree
+ )
+thm (principia*2.21 () () (→ (¬ φ) (→ φ ψ))
+        (¬ φ) ψ DisjunctionRightIntroduction
+        φ ψ ImplicationDisjunction eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (implicationNotFree () 
+  (HPHI (is-not-free-in x φ) HPSI (is-not-free-in x ψ))
+  (is-not-free-in x (→ φ ψ))
+# Implication to disjunction we'll need at the end of the proof:
+        φ ψ ImplicationDisjunction eliminateBiconditionalReverse
+# The first part of the proof is to derive <code>¬ φ → ∀ x (φ → ψ)</code>:
+        HPHI
+        negateNotFree
+
+        φ ψ principia*2.21
+
+        addForAllToConsequentNotFree
+# The second part of the proof is to derive <code>ψ → ∀ x (φ → ψ)</code>:
+        HPSI
+
+        ψ φ AntecedentIntroduction
+        addForAllToConsequentNotFree
+# Now we combine the two parts:
+        composeDisjunction
+        applySyllogism
+
+        x (→ φ ψ) df-is-not-free-in
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
+thm (disjunctionNotFree () 
+  (HPHI (is-not-free-in x φ) HPSI (is-not-free-in x ψ))
+  (is-not-free-in x (∨ φ ψ))
+        HPHI negateNotFree
+        HPSI
+        implicationNotFree
+# We've shown <code>x is-not-free-in (¬ φ → ψ)</code>. Now we just need to convert the implication to the equivalent disjunction
+
+        φ ψ DisjunctionImplication
+        x buildNotFree
+
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (conjunctionNotFree ()
+  (HPHI (is-not-free-in x φ) HPSI (is-not-free-in x ψ))
+  (is-not-free-in x (∧ φ ψ))
+        HPHI negateNotFree
+        HPSI negateNotFree
+        disjunctionNotFree
+        negateNotFree
+
+        φ ψ DeMorganNDN
+        x buildNotFree
+
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (biconditionalNotFree ()
+  (HPHI (is-not-free-in x φ) HPSI (is-not-free-in x ψ))
+  (is-not-free-in x (↔ φ ψ))
+        HPHI HPSI implicationNotFree
+        HPSI HPHI implicationNotFree
+        conjunctionNotFree
+
+        φ ψ BiconditionalImplication
+        x buildNotFree
+
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (ForAllAddRemove ((φ x)) () (↔ (∀ x φ) φ)
+        x φ Specialization
+        φ x Generalization
+        introduceBiconditionalFromImplications
+)
+
+thm (ThereExistsAddRemove ((φ x)) () (↔ (∃ x φ) φ)
+        x φ ThereExists
+
+        x (¬ φ) ForAllAddRemove
+        addNegation
+        applyBiconditionalTransitivity
+
+        φ DoubleNegation
+        swapBiconditional
+        applyBiconditionalTransitivity
+)
+
+thm (ThereExistsAddRemoveNotFree () (H (is-not-free-in x φ)) (↔ (∃ x φ) φ)
+# Forward direction
+        x φ ThereExists
+        eliminateBiconditionalReverse
+
+        H
+        negateNotFree
+
+        x (¬ φ) df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        transposeWithNegatedAntecedent
+
+        applySyllogism
+
+# Reverse direction
+        φ x ThereExistsIntroduction
+
+# Combine them.
+        introduceBiconditionalFromImplications
+ )
+
+thm (NullThereExists ((φ x)) () (↔ (∃ x φ) φ)
+        x φ DistinctNotFree
+        ThereExistsAddRemoveNotFree
+ )
+
+thm (removeThereExists ((φ x)) (H (∃ x φ)) φ
+        H
+        x φ NullThereExists eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+tvar (formula antecedent)
+thm (removeThereExistsInConsequent ((φ x)) (H (→ antecedent (∃ x φ))) (→ antecedent φ)
+        H
+        x φ NullThereExists eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (ForAllAddRemoveNotFree () (H (is-not-free-in x φ)) (↔ (∀ x φ) φ)
+        x φ Specialization
+
+        H
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (ForAllImplicationAntecedentMovement () (H (is-not-free-in x φ)) (↔ (∀ x (→ φ ψ)) (→ φ (∀ x ψ)))
+        x φ ψ ForAllImplication
+
+        H
+        x φ df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+        (∀ x ψ) addCommonConsequent
+
+        applySyllogism
+
+# The reverse direction is slightly more novel.
+        H
+        x ψ BoundForAllNotFree
+        implicationNotFree
+
+        x (→ φ (∀ x ψ)) df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+# That gives us <code>x is-not-free-in (φ → ∀ x ψ)</code>
+        x ψ Specialization
+        φ addCommonAntecedent
+        x addForAll
+
+        applySyllogism
+
+        introduceBiconditionalFromImplications
+)
+
+thm (moveAntecedentOutOfForAll () (H (∀ x (→ φ ψ)) HFREE (is-not-free-in x φ)) (→ φ (∀ x ψ))
+        H
+
+        HFREE
+        ψ ForAllImplicationAntecedentMovement
+        eliminateBiconditionalReverse
+
+        applyModusPonens
+ )
+
+thm (moveAntecedentIntoForAll () 
+  (H (→ φ (∀ x ψ)) HFREE (is-not-free-in x φ)) 
+  (∀ x (→ φ ψ))
+        H
+
+        HFREE
+        ψ ForAllImplicationAntecedentMovement
+        eliminateBiconditionalForward
+
+        applyModusPonens
+ )
+thm (ThereExistsAntecedentMovementNotFree () (H (is-not-free-in x φ)) (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))
+        x φ ψ ThereExistsImplication
+
+        H ForAllAddRemoveNotFree
+        (∃ x ψ) BiconditionalReflexivity
+        buildImplication
+
+        applyBiconditionalTransitivity
+ )
+
+# This is just here until we can convert everything over to ForAllImplicationConsequentMovement.
+thm (ForAllImplicationConsequentMovementNotFree () (H (is-not-free-in x ψ)) (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))
+# For the forward direction we first distribute to <code>∃ x φ → ∃ x ψ</code> and then remove the quantifier on <code>ψ</code>.
+        x φ ψ ForAllImplicationThereExists
+        H ThereExistsAddRemoveNotFree eliminateBiconditionalReverse
+        (∃ x φ) addCommonAntecedent
+        applySyllogism
+# The reverse direction is somewhat more complicated.  We start by proving <code>x is-not-free-in (∃ x φ → ψ)</code>:
+        x φ BoundThereExistsNotFree
+        H
+        implicationNotFree
+# Then we show that <code>(∃ x φ → ψ) → (φ → ψ)</code>
+        φ x ThereExistsIntroduction
+        ψ addCommonConsequent
+
+# Because x is not free in the antecedent, we can conclude <code>(∃ x φ → ψ) → ∀ x (φ → ψ)</code>:
+        addForAllToConsequentNotFree
+
+# Now we just need to combine the forward and reverse implications:
+        introduceBiconditionalFromImplications
+)
+
+thm (ForAllImplicationConsequentMovement ((ψ x)) () (↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))
+# For the forward direction we first distribute to <code>∃ x φ → ∃ x ψ</code> and then remove the quantifier on <code>ψ</code>.
+        x φ ψ ForAllImplicationThereExists
+        x ψ ThereExistsAddRemove eliminateBiconditionalReverse
+        (∃ x φ) addCommonAntecedent
+        applySyllogism
+# The reverse direction is somewhat more complicated.
+# We show that <code>(∃ x φ → ψ) → (φ → ψ)</code>
+        φ x ThereExistsIntroduction
+        ψ addCommonConsequent
+
+# Because x is not free in the antecedent, we can conclude <code>(∃ x φ → ψ) → ∀ x (φ → ψ)</code>:
+        x addForAllToConsequent
+
+# Now we just need to combine the forward and reverse implications:
+        introduceBiconditionalFromImplications
+ )
+thm (ThereExistsImplicationConsequentMovement () (H (is-not-free-in x ψ)) (↔ (∃ x (→ φ ψ)) (→ (∀ x φ) ψ))
+        x φ ψ ThereExistsImplication
+
+        (∀ x φ) BiconditionalReflexivity
+        H ThereExistsAddRemoveNotFree
+        buildImplication
+
+        applyBiconditionalTransitivity
+ )
+thm (ForAllDisjunctionMovement () (H (is-not-free-in x φ)) (↔ (∀ x (∨ φ ψ)) (∨ φ (∀ x ψ)))
+        φ ψ DisjunctionImplication x buildForAll
+
+        H negateNotFree
+        ψ ForAllImplicationAntecedentMovement applyBiconditionalTransitivity
+
+        φ (∀ x ψ) DisjunctionImplication swapBiconditional applyBiconditionalTransitivity
+ )
+thm (ThereExistsDisjunctionMovementNotFree () (H (is-not-free-in x φ)) (↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ)))
+        φ ψ DisjunctionImplication x buildThereExists
+
+        H negateNotFree
+        ψ ThereExistsAntecedentMovementNotFree applyBiconditionalTransitivity
+
+        φ (∃ x ψ) DisjunctionImplication swapBiconditional applyBiconditionalTransitivity
+ )
+
+thm (ThereExistsDisjunctionMovement ((φ x)) () (↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ)))
+        x φ DistinctNotFree
+        ψ ThereExistsDisjunctionMovementNotFree
+ )
+
+thm (ThereExistsDisjunctionRightMovement ((ψ x)) () (↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) ψ))
+        φ ψ DisjunctionCommutativity
+        x buildThereExists
+
+        x ψ φ ThereExistsDisjunctionMovement
+        applyBiconditionalTransitivity
+
+        ψ (∃ x φ) DisjunctionCommutativity
+        applyBiconditionalTransitivity
+ )
+thm (ForAllConjunctionMovement () (H (is-not-free-in x φ)) (↔ (∀ x (∧ φ ψ)) (∧ φ (∀ x ψ)))
+        x φ ψ ForAllConjunction
+
+        H
+        ForAllAddRemoveNotFree
+        (∀ x ψ) BiconditionalReflexivity
+        buildConjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (ThereExistsConjunctionMovementNotFree () (H (is-not-free-in x φ)) (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))
+# We first note that the definition of ∃ makes <code>∃ x (φ ∧ ψ)</code> equivalent to <code>¬ ∀ x ¬ (φ ∧ ψ)</code> and apply DeMorgan's law to make it <code>¬ ∀ x (¬ φ ∨ ¬ ψ)</code>
+        x (∧ φ ψ) ThereExists
+
+        φ ψ DeMorganPCP
+        x buildForAll
+        addNegation
+        applyBiconditionalTransitivity
+# Now we can move <code>¬ φ</code> out of the scope of the quantifier, to get <code>¬ (¬ φ ∨ ∀ x ¬ ψ)</code>:
+        H negateNotFree
+        (¬ ψ) ForAllDisjunctionMovement
+        addNegation
+        applyBiconditionalTransitivity
+# We now turn <code>∀ x ¬ ψ</code> into <code>¬ ∃ x ψ</code>:
+        x ψ NotThereExists swapBiconditional
+        (¬ φ) buildDisjunctionLL
+        addNegation
+        applyBiconditionalTransitivity
+# Applying DeMorgan's law again, to get back to a conjunction, finishes our proof:
+        φ (∃ x ψ) DeMorganNDN
+        applyBiconditionalTransitivity
+ )
+thm (ThereExistsConjunctionMovement ((φ x)) () (↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))
+        x φ DistinctNotFree
+        ψ ThereExistsConjunctionMovementNotFree
+ )
+
+thm (ThereExistsConjunctionRightMovement ((ψ x)) () (↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ))
+        φ ψ ConjunctionCommutativity
+        x buildThereExists
+
+        x ψ φ ThereExistsConjunctionMovement
+        applyBiconditionalTransitivity
+
+        ψ (∃ x φ) ConjunctionCommutativity
+        applyBiconditionalTransitivity
+ )
+
+thm (ThereExistsAntecedentMovement ((φ x)) () (↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))
+        x φ DistinctNotFree
+        ψ ThereExistsAntecedentMovementNotFree
+ )
+thm (moveLeftConjunctIntoThereExistsInConsequent ((φ x))
+  (H (→ antecedent (∧ φ (∃ x ψ))))
+  (→ antecedent (∃ x (∧ φ ψ)))
+        H
+
+        x φ ψ ThereExistsConjunctionMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (moveRightConjunctIntoThereExistsInConsequent ((ψ x))
+  (H (→ antecedent (∧ (∃ x φ) ψ)))
+  (→ antecedent (∃ x (∧ φ ψ)))
+        H
+
+        x φ ψ ThereExistsConjunctionRightMovement
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (repeatAntecedentThereExists ((antecedent x))
+  (H (→ antecedent (∃ x ψ)))
+  (→ antecedent (∃ x (∧ antecedent ψ)))
+        antecedent ImplicationReflexivity
+        H
+        composeConjunction
+        moveLeftConjunctIntoThereExistsInConsequent
+ )
+thm (addThereExistsToAntecedent ((ψ x))
+  (H (→ φ ψ))
+  (→ (∃ x φ) ψ)
+        H x generalize
+
+        x φ ψ ForAllImplicationConsequentMovement
+        eliminateBiconditionalReverse
+
+        applyModusPonens
+ )
+thm (ThereExistsScattering ((φx y) (ψy x)) ()
+  (↔ (∃ x (∃ y (∧ φx ψy))) (∧ (∃ x φx) (∃ y ψy)))
+# We first show <code>(∃ x φx ∧ ∃ y ψy) ↔ ∃ x (φx ∧ ∃ y ψy)</code>:
+        (∃ x φx) (∃ y ψy) ConjunctionCommutativity
+
+        x ψy DistinctNotFree
+        y addThereExistsNotFree
+        φx ThereExistsConjunctionMovementNotFree
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        (∃ y ψy) φx ConjunctionCommutativity
+        x buildThereExists
+        applyBiconditionalTransitivity
+# Then we pull much the same trick with <code>y</code> (but it is easier as there is no commuting to do):
+        y φx ψy ThereExistsConjunctionMovement
+        swapBiconditional
+        x buildThereExists
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+ )
+thm (gatherThereExistsInConsequent ((φx y) (ψy x)) (H (→ antecedent (∧ (∃ x φx) (∃ y ψy))))
+  (→ antecedent (∃ x (∃ y (∧ φx ψy))))
+        H
+        x y φx ψy ThereExistsScattering
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (ThereExistsForAllCommutation () () (→ (∃ x (∀ y φ)) (∀ y (∃ x φ)))
+        y φ BoundForAllNotFree
+        x addThereExistsNotFree
+
+        y (∃ x (∀ y φ)) df-is-not-free-in
+        eliminateBiconditionalReverse
+        applyModusPonens
+# At this point we have <code>∃ x ∀ y φ → ∀ y ∃ x ∀ y φ</code>.  We just need to get rid of the inner ∀ on the right hand side:
+        y φ Specialization
+        x addThereExists
+        y addForAll
+
+        applySyllogism
+ )
+thm (ExistenceThereExists () () (∃ x (= x y))
+        x y Existence
+        x (= x y) ThereExists
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
+thm (ax9o () () (→ (∀ x (→ (= x y) (∀ x φ))) φ)
+        x y ExistenceThereExists
+
+        x (= x y) (∀ x φ) ForAllImplicationThereExists
+# This gives us <code>∀ x (x = y → ∀ x φ) → (∃ x x = y → ∃ x ∀ x φ)</code>, which can be simplified to our desired result.  The first step is to note that <code>∃ x x = y</code> is just the <code>Existence</code> axiom, and can therefore be removed:
+        detachImplicationImplication
+# Now we need to reduce <code>∃ x ∀ x φ</code> to <code>φ</code>:
+        x (∀ x φ) ThereExists
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        x φ ax6o
+        applySyllogism
+)
+
+thm (alinexa () () (↔ (∀ x (→ φ (¬ ψ))) (¬ (∃ x (∧ φ ψ))))
+        φ (¬ ψ) ImplicationDisjunction
+        φ ψ DeMorganPCP swapBiconditional
+        applyBiconditionalTransitivity
+
+        x buildForAll
+# That gives us <code>∀ x (φ → ¬ ψ) ↔ ∀ x ¬ (φ ∧ ψ)</code>.  Now we just need to apply <code>NotThereExists</code> to the right hand side:
+        x (∧ φ ψ) NotThereExists swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (equs3 () () 
+  (↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ)))))
+        x (= x s) φ alinexa
+        transposeBiconditionalWithNegatedRight
+ )
+thm (ChangeVariableThereExistsReverseNotFree
+  ()
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
+  (→ (∃ y φy) (∃ x φx))
+        HFREEX
+
+        H
+        eliminateBiconditionalForwardInConsequent
+        applyComm
+# That gives us <code>φy → (x = y → φx)</code>. Adding ∀ to the consequent gives <code>φy → ∀ x (x = y → φx)</code>.
+        addForAllToConsequentNotFree
+# The next part of the proof derives <code>∀ x (x = y → φx) → ∃ x φx</code>. The first step is to go from <code>∃ x x = y</code> (by the <code>Existence</code> axiom) to <code>∃ x ((x = y → φx) → φx)</code>.
+        x y ExistenceThereExists
+
+        (= x y) φx ModusPonens
+        export
+        x addThereExists
+
+        applyModusPonens
+# Now we just distribute the quantification to get <code>∀ x (x = y → φx) → ∃ x φx</code>.
+        x (→ (= x y) φx) φx ThereExistsImplication
+        eliminateBiconditionalReverse
+        applyModusPonens
+# Combining this with the previous result gives <code>φy → ∃ x φx</code>
+        applySyllogism
+# Adding ∃ to the antecedent finishes the proof.
+        y generalize
+
+        HFREEY
+        x addThereExistsNotFree
+        φy ForAllImplicationConsequentMovementNotFree
+        eliminateBiconditionalReverse
+
+        applyModusPonens
+ )
+thm (ChangeVariableThereExistsForwardNotFree ()
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
+  (→ (∃ x φx) (∃ y φy))
+        HFREEY HFREEX
+
+        H
+
+        x y VariableEqualitySymmetry
+        φx φy BiconditionalSymmetry
+        buildImplication
+
+        eliminateBiconditionalReverse
+        applyModusPonens
+
+        ChangeVariableThereExistsReverseNotFree
+ )
+
+thm (ChangeVariableThereExistsNotFree
+  ()
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
+  (↔ (∃ x φx) (∃ y φy))
+        HFREEX HFREEY H
+        ChangeVariableThereExistsForwardNotFree
+
+        HFREEX HFREEY H
+        ChangeVariableThereExistsReverseNotFree
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (ChangeVariableThereExists
+  ((φx y) (φy x))
+  (H (→ (= x y) (↔ φx φy)))
+  (↔ (∃ x φx) (∃ y φy))
+        x φy DistinctNotFree
+        y φx DistinctNotFree
+        H
+        ChangeVariableThereExistsNotFree
+ )
+thm (ChangeVariableForAllNotFree ()
+  (HFREEX (is-not-free-in x φy) HFREEY (is-not-free-in y φx) H (→ (= x y) (↔ φx φy)))
+  (↔ (∀ x φx) (∀ y φy))
+        HFREEX
+        negateNotFree
+
+        HFREEY
+        negateNotFree
+
+        H
+
+        φx φy NegationFunction
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        ChangeVariableThereExistsNotFree
+
+        y φy NotForAll
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+        x φx NotForAll
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        removeNegation
+
+        swapBiconditional
+ )
+
+thm (ChangeVariableForAll ((φx y) (φy x))
+  (H (→ (= x y) (↔ φx φy)))
+  (↔ (∀ x φx) (∀ y φy))
+        x φy DistinctNotFree
+        y φx DistinctNotFree
+        H
+        ChangeVariableForAllNotFree
+ )
+
+thm (ForAllBiconditionalThereExists () ()
+  (→ (∀ x (↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ)))
+        φ ψ BiconditionalReverseElimination x addForAll
+        x φ ψ ForAllImplicationThereExists applySyllogism
+
+        φ ψ BiconditionalForwardElimination x addForAll
+        x ψ φ ForAllImplicationThereExists applySyllogism
+
+        composeConjunction
+        (∃ x φ) (∃ x ψ) BiconditionalImplication
+        eliminateBiconditionalForward applySyllogism
+ )
+thm (buildThereExistsInConsequent ((φ x))
+  (H (→ φ (↔ ψ χ)))
+  (→ φ (↔ (∃ x ψ) (∃ x χ)))
+        H
+        x addForAllToConsequent
+
+        x ψ χ ForAllBiconditionalThereExists
+        applySyllogism
+ )
+
+thm (buildForAllInConsequent ((φ x))
+  (H (→ φ (↔ ψ χ)))
+  (→ φ (↔ (∀ x ψ) (∀ x χ)))
+        H
+        x addForAllToConsequent
+
+        x ψ χ ForAllBiconditional
+        applySyllogism
+ )
+export (FIRSTORDER First-order_logic.ghi (CLASSICAL) "")

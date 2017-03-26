@@ -1,0 +1,773 @@
+import (PROP             /peano_new/prop.ghi () "")
+import (R_PREDICATE      /peano_new/predicate/all.ghi (PROP) "r.")
+import (ORDERED_PAIR     /peano_new/arithmetic/common/ordered-pair.ghi (PROP R_PREDICATE) "r.")
+import (R_REALS          /peano_new/arithmetic/reals/common.ghi (PROP R_PREDICATE) "r.")
+import (PREDICATE_ALL    /peano_new/predicate/all.ghi (PROP) "")
+import (EQUALITY_COM     /peano_new/arithmetic/complex/equality_com.ghi (PROP R_PREDICATE PREDICATE_ALL) "")
+import (ADD_MULTIPLY_MIN /peano_new/arithmetic/common/add_multiply_min.ghi (PROP PREDICATE_ALL) "")
+import (ADD_MULTIPLY_COM /peano_new/arithmetic/complex/add_multiply_com.ghi (PROP PREDICATE_ALL R_PREDICATE R_REALS EQUALITY_COM ADD_MULTIPLY_MIN) "")
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (r.nat a b c d a' b' c' d')
+var (r.nat v w x y z)
+
+
+## <context>
+##   This theorem is part of a series of theorems constructing division
+##   for complex numbers. A complex number is constructed as a pair of real numbers which
+##   represents the real and the imaginary part of the complex number. These theorems demonstrate
+##   that this newly constructed version of complex division has the essential properties of a
+##   division operation.
+## </context>
+
+## <title> Definition of Complex Division </title>
+defthm (df-div nat (/ A B) () () (= (/ A B) 
+  (<,> (r./ (r.+ (r.* (head A) (head B)) (r.* (tail A) (tail B)))
+            (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B))))
+       (r./ (r.- (r.* (tail A) (head B)) (r.* (head A) (tail B)))
+            (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B))))))
+
+  (<,> (r./ (r.+ (r.* (head A) (head B)) (r.* (tail A) (tail B)))
+            (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B))))
+       (r./ (r.- (r.* (tail A) (head B)) (r.* (head A) (tail B)))
+            (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B))))) eqid
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (diveq1 () () (-> (= A B) (= (/ A C) (/ B C)))
+  (head A) (head B) (head C) r.muleq1
+  (tail A) (tail B) (tail C) r.muleq1
+  anim12i
+  (r.* (head A) (head C)) (r.* (head B) (head C))
+  (r.* (tail A) (tail C)) (r.* (tail B) (tail C)) r.addeq12
+  syl
+  (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C))) r.diveq1d
+
+  (tail A) (tail B) (head C) r.muleq1
+  (head A) (head B) (tail C) r.muleq1  
+  anim12i  
+  (r.* (tail A) (head C)) (r.* (tail B) (head C))
+  (r.* (head A) (tail C)) (r.* (head B) (tail C)) r.minuseq12  
+  syl
+  (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C))) r.diveq1d    
+  ## <d 'Commute Conjunction '>
+    (r.= (tail A) (tail B)) (r.= (head A) (head B)) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>
+  jca
+  (r./ (r.+ (r.* (head A) (head C)) (r.* (tail A) (tail C))) (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C))))
+  (r./ (r.+ (r.* (head B) (head C)) (r.* (tail B) (tail C))) (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C))))
+  (r./ (r.- (r.* (tail A) (head C)) (r.* (head A) (tail C))) (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C))))
+  (r./ (r.- (r.* (tail B) (head C)) (r.* (head B) (tail C))) (r.+ (r.* (head C) (head C)) (r.* (tail C) (tail C)))) opeq12  
+  syl
+
+  ## <d>
+  A C df-div eqcomi  
+  EqReplaceImp1Eq0
+  B C df-div eqcomi    
+  EqReplaceImp1Eq1
+  ## </d>
+  ## <d>
+    A B dfeq bicomi  
+    sylbi2
+  ## </d>
+)
+
+## <title> Equality in the Denominator </title>
+thm (diveq2bottom () () (-> (/\ (r.= (head A) (head B)) (r.= (tail A) (tail B))) (r.= (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))) (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B)))))
+  (head A) (head B) (head A) (head B) r.muleq12
+  ## <d 'Conjunction is Idempotent '>
+    (r.= (head A) (head B)) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  (tail A) (tail B) (tail A) (tail B) r.muleq12  
+  ## <d 'Conjunction is Idempotent '>
+    (r.= (tail A) (tail B)) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  anim12i
+  (r.* (head A) (head A)) (r.* (head B) (head B))
+  (r.* (tail A) (tail A)) (r.* (tail B) (tail B)) r.addeq12
+  syl
+)
+
+thm (diveq2 () () (-> (= A B) (= (/ C A) (/ C B)))
+  (head A) (head B) (head C) r.muleq2
+  (tail A) (tail B) (tail C) r.muleq2
+  anim12i
+  (r.* (head C) (head A)) (r.* (head C) (head B))
+  (r.* (tail C) (tail A)) (r.* (tail C) (tail B)) r.addeq12  
+  syl
+
+  A B diveq2bottom
+  r.diveq12d
+
+  (head A) (head B) (tail C) r.muleq2
+  (tail A) (tail B) (head C) r.muleq2
+  anim12i
+  (r.* (tail C) (head A)) (r.* (tail C) (head B))
+  (r.* (head C) (tail A)) (r.* (head C) (tail B)) r.minuseq12    
+  syl
+  A B diveq2bottom
+  r.diveq12d
+  jca
+
+  (r./ (r.+ (r.* (head C) (head A)) (r.* (tail C) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))))
+  (r./ (r.+ (r.* (head C) (head B)) (r.* (tail C) (tail B))) (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B))))
+  (r./ (r.- (r.* (tail C) (head A)) (r.* (head C) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))))
+  (r./ (r.- (r.* (tail C) (head B)) (r.* (head C) (tail B))) (r.+ (r.* (head B) (head B)) (r.* (tail B) (tail B)))) opeq12  
+  syl
+
+  ## <d>
+    C A df-div eqcomi
+    EqReplaceImp1Eq0
+    C B df-div eqcomi  
+    EqReplaceImp1Eq1
+  ## </d>
+  ## <d>
+    A B dfeq bicomi  
+    sylbi2
+  ## </d>
+)
+
+## <title> Equivalence for / </title> ##
+thm (diveq12 () () (-> (/\ (= A B) (= C D)) (= (/ A C) (/ B D)))
+  A B C diveq1
+  C D B diveq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (/ A C) (/ B C) (/ B D) eqtr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee substitution
+  A eqeq2i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-. (r.= a  [ b ]   ]   ] )))
+##   (r.=               [ b ]   [ c ] )
+##   (-> ph (-. (r.= a  [   [   [ c ] )))
+## </table>
+thm (ReqReplaceImp1Not0Req1 () (
+     replacee (-> ph (-. (r.= a b)))
+     substitution (r.= b c)) 
+     (-> ph (-. (r.= a c)))
+  replacee substitution
+  a r.eqeq2i
+  BiReplaceImp1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-. (r.=  [ a ]   ]   ]  c)))
+##   (r.=             [ a ]   [ b ] )
+##   (-> ph (-. (r.=  [   [   [ b ]  c)))
+## </table>
+thm (ReqReplaceImp1Not0Req0 () (
+     replacee (-> ph (-. (r.= a c)))
+     substitution (r.= a b)) 
+     (-> ph (-. (r.= b c)))
+  replacee substitution
+  c r.eqeq1i
+  BiReplaceImp1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1An0 () (
+     replacee (<-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (/\ ch th))
+  replacee substitution
+  th anbi1i
+  bitri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ (r.= a  [ b ]   ]   ] ) ps))
+##   (r.=                [ b ]   [ c ] )
+##   (<-> ph (/\ (r.= a  [   [   [ c ] ) ps))
+## </table>
+thm (ReqReplaceBi1An0Req1 () (
+     replacee (<-> ph (/\ (r.= a b) ps))
+     substitution (r.= b c)) 
+     (<-> ph (/\ (r.= a c) ps))
+  replacee substitution
+  a r.eqeq2i
+  BiReplaceBi1An0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (<-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceBi1An1 () (
+     replacee (<-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (<-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  bitri
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (/\ ps (r.= a  [ b ]   ]   ] )))
+##   (r.=                   [ b ]   [ c ] )
+##   (<-> ph (/\ ps (r.= a  [   [   [ c ] )))
+## </table>
+thm (ReqReplaceBi1An1Req1 () (
+     replacee (<-> ph (/\ ps (r.= a b)))
+     substitution (r.= b c)) 
+     (<-> ph (/\ ps (r.= a c)))
+  replacee substitution
+  a r.eqeq2i
+  BiReplaceBi1An1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (= A  [ B ]   ]   ] ) ph)
+##   (=         [ B ]   [ C ] )
+##   (<-> (= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceBi0Eq1 () (
+     replacee (<-> (= A B) ph)
+     substitution (= B C)) 
+     (<-> (= A C) ph)
+  replacee substitution
+  A eqeq2i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+## <title> Absolute value is only 0 for 0 </title>
+thm (absNot0 () () (-> (-. (= A (0))) (-. (r.= (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))) (r.0))))
+  (head A) r.posSquares
+  ## <d>
+    (r.* (head A) (head A)) r.df-pos  
+    sylib
+  ## </d>
+  ## <d>
+    (r.* (tail A) (tail A)) (r.0) (r.* (head A) (head A)) (r.0) r.gegttradd
+    (tail A) r.squareNotNeg  
+    (r.> (r.* (head A) (head A)) (r.0)) anRemove1
+    (r.> (r.+ (r.* (tail A) (tail A)) (r.* (head A) (head A))) (r.+ (r.0) (r.0))) imbi1i
+    mpbi  
+    syl
+  ## </d>
+  ## <d 'Inequality Conversion '>
+    (r.+ (r.* (tail A) (tail A)) (r.* (head A) (head A))) (r.+ (r.0) (r.0)) r.gtneq
+    (r.0) r.addid
+    ReqReplaceImp1Not0Req1
+    syl
+    ## <d 'Commutative Property '>
+      (r.* (tail A) (tail A)) (r.* (head A) (head A)) r.addcom
+      ReqReplaceImp1Not0Req0
+    ## </d 'Commutative Property '>
+  ## </d 'Inequality Conversion '>
+
+  (tail A) r.posSquares
+  ## <d>
+    (r.* (tail A) (tail A)) r.df-pos  
+    sylib
+  ## </d>
+  ## <d>
+    (r.* (head A) (head A)) (r.0) (r.* (tail A) (tail A)) (r.0) r.gegttradd
+    (head A) r.squareNotNeg  
+    (r.> (r.* (tail A) (tail A)) (r.0)) anRemove1
+    (r.> (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))) (r.+ (r.0) (r.0))) imbi1i
+    mpbi  
+    syl
+  ## </d>  
+  ## <d 'Inequality Conversion '>
+    (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A))) (r.+ (r.0) (r.0)) r.gtneq
+    (r.0) r.addid
+    ReqReplaceImp1Not0Req1
+    syl
+  ## </d 'Inequality Conversion '>
+  jaoi
+
+  ## <d>
+  ## <d 'Def. Equality & 0'>
+    A (<,> (r.0) (r.0)) dfeq
+    (r.0) (r.0) headop    
+    ReqReplaceBi1An0Req1
+    (r.0) (r.0) tailop  
+    ReqReplaceBi1An1Req1
+    df-0 eqcomi
+    EqReplaceBi0Eq1
+  ## </d>  
+  ## <d 'Negate Both Sides '>
+    (= A (0)) (/\ (r.= (head A) (r.0)) (r.= (tail A) (r.0))) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'DeMorgan's Law '>
+    (r.= (head A) (r.0)) (r.= (tail A) (r.0)) anor
+    BiReplaceBi1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (-. (r.= (head A) (r.0))) (-. (r.= (tail A) (r.0)))) notnotr
+    bitri
+  ## </d 'Double Negative '>
+  bicomi  
+  sylbi2
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a  [ b ]   ]   ] )
+##   (r.=    [ b ]   [ c ] )
+##   (r.= a  [   [   [ c ] )
+## </table>
+thm (ReqReplaceReq1 () (
+     replacee (r.= a b)
+     substitution (r.= b c)) 
+     (r.= a c)
+  replacee substitution
+  a r.eqeq2i
+  mpbi
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+  [ b ]   ]   ]  d))
+##   (r.=         [ b ]   [ c ] )
+##   (r.= a (r.+  [   [   [ c ]  d))
+## </table>
+thm (ReqReplaceReq1Radd0 () (
+     replacee (r.= a (r.+ b d))
+     substitution (r.= b c)) 
+     (r.= a (r.+ c d))
+  replacee substitution
+  d r.addeq1i
+  ReqReplaceReq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ b  [ c ]   ]   ] ))
+##   (r.=           [ c ]   [ d ] )
+##   (r.= a (r.+ b  [   [   [ d ] ))
+## </table>
+thm (ReqReplaceReq1Radd1 () (
+     replacee (r.= a (r.+ b c))
+     substitution (r.= c d)) 
+     (r.= a (r.+ b d))
+  replacee substitution
+  b r.addeq2i
+  ReqReplaceReq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ b (r.-n  [ c ]   ]   ] )))
+##   (r.=                 [ c ]   [ d ] )
+##   (r.= a (r.+ b (r.-n  [   [   [ d ] )))
+## </table>
+thm (ReqReplaceReq1Radd1Rneg0 () (
+     replacee (r.= a (r.+ b (r.-n c)))
+     substitution (r.= c d)) 
+     (r.= a (r.+ b (r.-n d)))
+  replacee substitution
+  r.negeqi
+  ReqReplaceReq1Radd1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ (r.+  [ b ]   ]   ]  d) a'))
+##   (r.=              [ b ]   [ c ] )
+##   (r.= a (r.+ (r.+  [   [   [ c ]  d) a'))
+## </table>
+thm (ReqReplaceReq1Radd0Radd0 () (
+     replacee (r.= a (r.+ (r.+ b d) a'))
+     substitution (r.= b c)) 
+     (r.= a (r.+ (r.+ c d) a'))
+  replacee substitution
+  d r.addeq1i
+  ReqReplaceReq1Radd0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ (r.+ b  [ c ]   ]   ] ) a'))
+##   (r.=                [ c ]   [ d ] )
+##   (r.= a (r.+ (r.+ b  [   [   [ d ] ) a'))
+## </table>
+thm (ReqReplaceReq1Radd0Radd1 () (
+     replacee (r.= a (r.+ (r.+ b c) a'))
+     substitution (r.= c d)) 
+     (r.= a (r.+ (r.+ b d) a'))
+  replacee substitution
+  b r.addeq2i
+  ReqReplaceReq1Radd0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ (r.+ b (r.* c  [ d ]   ]    ] )) b'))
+##   (r.=                       [ d ]   [ a' ] )
+##   (r.= a (r.+ (r.+ b (r.* c  [   [   [ a' ] )) b'))
+## </table>
+thm (ReqReplaceReq1Radd0Radd1Rmul1 () (
+     replacee (r.= a (r.+ (r.+ b (r.* c d)) b'))
+     substitution (r.= d a')) 
+     (r.= a (r.+ (r.+ b (r.* c a')) b'))
+  replacee substitution
+  c r.muleq2i
+  ReqReplaceReq1Radd0Radd1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ b (r.-  [ c ]   ]   ]  a')))
+##   (r.=                [ c ]   [ d ] )
+##   (r.= a (r.+ b (r.-  [   [   [ d ]  a')))
+## </table>
+thm (ReqReplaceReq1Radd1Rsub0 () (
+     replacee (r.= a (r.+ b (r.- c a')))
+     substitution (r.= c d)) 
+     (r.= a (r.+ b (r.- d a')))
+  replacee substitution
+  a' r.minuseq1i
+  ReqReplaceReq1Radd1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ b (r.- c  [ d ]   ]    ] )))
+##   (r.=                  [ d ]   [ a' ] )
+##   (r.= a (r.+ b (r.- c  [   [   [ a' ] )))
+## </table>
+thm (ReqReplaceReq1Radd1Rsub1 () (
+     replacee (r.= a (r.+ b (r.- c d)))
+     substitution (r.= d a')) 
+     (r.= a (r.+ b (r.- c a')))
+  replacee substitution
+  c r.minuseq2i
+  ReqReplaceReq1Radd1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ b (r.- c (r.* d  [ a' ]   ]    ] ))))
+##   (r.=                         [ a' ]   [ b' ] )
+##   (r.= a (r.+ b (r.- c (r.* d  [    [   [ b' ] ))))
+## </table>
+thm (ReqReplaceReq1Radd1Rsub1Rmul1 () (
+     replacee (r.= a (r.+ b (r.- c (r.* d a'))))
+     substitution (r.= a' b')) 
+     (r.= a (r.+ b (r.- c (r.* d b'))))
+  replacee substitution
+  d r.muleq2i
+  ReqReplaceReq1Radd1Rsub1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= a (r.+ (r.+ (r.* b  [ c ]   ]   ] ) a') b'))
+##   (r.=                     [ c ]   [ d ] )
+##   (r.= a (r.+ (r.+ (r.* b  [   [   [ d ] ) a') b'))
+## </table>
+thm (ReqReplaceReq1Radd0Radd0Rmul1 () (
+     replacee (r.= a (r.+ (r.+ (r.* b c) a') b'))
+     substitution (r.= c d)) 
+     (r.= a (r.+ (r.+ (r.* b d) a') b'))
+  replacee substitution
+  b r.muleq2i
+  ReqReplaceReq1Radd0Radd0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (r.= a  [ b ]   ]   ] ))
+##   (r.=           [ b ]   [ c ] )
+##   (-> ph (r.= a  [   [   [ c ] ))
+## </table>
+thm (ReqReplaceImp1Req1 () (
+     replacee (-> ph (r.= a b))
+     substitution (r.= b c)) 
+     (-> ph (r.= a c))
+  replacee substitution
+  a r.eqeq2i
+  sylib
+)
+
+thm (divcan.1 () () (r.= (r.- (r.* a (r.+ (r.* c a) (r.* d b))) (r.* b (r.- (r.* d a) (r.* c b)))) (r.* c (r.+ (r.* a a) (r.* b b))))
+  ## <d 'Definition of Subtraction '>
+    (r.* a (r.+ (r.* c a) (r.* d b))) (r.* b (r.- (r.* d a) (r.* c b))) r.df-minus
+  ## </d 'Definition of Subtraction '>  
+
+  ## <d 'Distributive Property '>
+  ## <d 'Distributive Property '>
+    a (r.* c a) (r.* d b) r.distr
+    ReqReplaceReq1Radd0
+  ## </d 'Distributive Property '>  
+  ## <d 'Distribute Multiplication over Subtraction '>
+    b (r.* d a) (r.* c b) r.minusdistr
+    ReqReplaceReq1Radd1Rneg0
+  ## </d 'Distribute Multiplication over Subtraction '>  
+  ## <d 'Negative of Subtraction '>
+    (r.* b (r.* c b)) (r.* b (r.* d a)) r.negminus r.eqcomi
+    ReqReplaceReq1Radd1
+  ## </d 'Negative of Subtraction '>
+  ## </d 'Negative of Subtraction '>
+
+  ## <d>
+  a c a r.mulcom12  
+  ReqReplaceReq1Radd0Radd0  
+  ## <d 'Commutative Property '>
+    d b r.mulcom
+    ReqReplaceReq1Radd0Radd1Rmul1
+  ## </d 'Commutative Property '>
+  b c b r.mulcom12    
+  ReqReplaceReq1Radd1Rsub0  
+  ## <d 'Commutative Property '>
+    d a r.mulcom
+    ReqReplaceReq1Radd1Rsub1Rmul1
+  ## </d 'Commutative Property '>
+  b a d r.mulcom12  
+  ReqReplaceReq1Radd1Rsub1
+  ## </d>
+  ## <d 'Cancel abd terms'>
+  ## <d 'Definition of Subtraction '>
+    (r.* c (r.* b b)) (r.* a (r.* b d)) r.df-minus
+    ReqReplaceReq1Radd1
+  ## </d 'Definition of Subtraction '>
+  (r.* c (r.* a a)) (r.* a (r.* b d))
+  (r.* c (r.* b b)) (r.-n (r.* a (r.* b d))) r.add4  
+  ReqReplaceReq1    
+  ## <d 'Cancel using subtraction '>
+    (r.* a (r.* b d)) r.negcan
+    ReqReplaceReq1Radd1
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    (r.+ (r.* c (r.* a a)) (r.* c (r.* b b))) r.addid
+    ReqReplaceReq1
+  ## </d 'Additive Identity '>
+  ## </d>
+  ## <d 'Distributive Property '>
+    c (r.* a a) (r.* b b) r.distr r.eqcomi
+    ReqReplaceReq1
+  ## </d 'Distributive Property '>
+)
+
+thm (divcan.2 () () (-> (-. (r.= (r.+ (r.* a a) (r.* b b)) (r.0))) (r.= (r.- (r.* a (r./ (r.+ (r.* c a) (r.* d b)) (r.+ (r.* a a) (r.* b b)))) (r.* b (r./ (r.- (r.* d a) (r.* c b)) (r.+ (r.* a a) (r.* b b))))) c))
+  (r.+ (r.* a a) (r.* b b)) a (r.+ (r.* c a) (r.* d b)) r.divmulass 
+  (r.+ (r.* a a) (r.* b b)) b (r.- (r.* d a) (r.* c b)) r.divmulass
+  r.minuseq12d
+  ## <d>
+    (r.+ (r.* a a) (r.* b b)) 
+    (r.* a (r.+ (r.* c a) (r.* d b))) 
+    (r.* b (r.- (r.* d a) (r.* c b))) 
+    r.divminusdistr
+    r.eqtrd
+  ## </d>
+  ## <d>
+    a c d b divcan.1  
+    (r.+ (r.* a a) (r.* b b)) r.diveq1i  
+    ReqReplaceImp1Req1
+  ## </d>
+  ## <d>
+    (r.+ (r.* a a) (r.* b b)) c r.divcan3
+    r.eqtrd
+  ## </d>
+)
+
+thm (divcan.3 () () (r.= (r.+ (r.* b (r.+ (r.* c a) (r.* d b))) (r.* a (r.- (r.* d a) (r.* c b)))) (r.* d (r.+ (r.* a a) (r.* b b)))) 
+  ## <d 'Distributive Property '>
+    b (r.* c a) (r.* d b) r.distr
+  ## </d 'Distributive Property '>   
+  ## <d 'Distribute Multiplication over Subtraction '>
+    a (r.* d a) (r.* c b) r.minusdistr
+  ## </d 'Distribute Multiplication over Subtraction '>
+  r.addeq12i
+
+  ## <d 'Commutative Property '>
+  ## <d 'Commutative Property '>
+    c a r.mulcom
+    ReqReplaceReq1Radd0Radd0Rmul1
+  ## </d 'Commutative Property '>
+  b a c r.mulcom12  
+  ReqReplaceReq1Radd0Radd0
+  b d b r.mulcom12
+  ReqReplaceReq1Radd0Radd1
+  a d a r.mulcom12  
+  ReqReplaceReq1Radd1Rsub0  
+  ## <d 'Commutative Property '>
+    c b r.mulcom
+    ReqReplaceReq1Radd1Rsub1Rmul1
+  ## </d 'Commutative Property '>
+  ## </d 'Commutative Property '>
+
+  ## <d 'Definition of Subtraction '>
+    (r.* d (r.* a a)) (r.* a (r.* b c)) r.df-minus
+    ReqReplaceReq1Radd1
+  ## </d 'Definition of Subtraction '>
+  
+  (r.* a (r.* b c)) (r.* d (r.* b b))
+  (r.* d (r.* a a)) (r.-n (r.* a (r.* b c))) r.add24  
+  ReqReplaceReq1
+  
+  ## <d 'Cancel using subtraction '>
+  ## <d 'Cancel using subtraction '>
+    (r.* a (r.* b c)) r.negcan
+    ReqReplaceReq1Radd0
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Additive Identity '>
+    (r.+ (r.* d (r.* a a)) (r.* d (r.* b b))) r.addidr
+    ReqReplaceReq1
+  ## </d 'Additive Identity '>
+  ## </d 'Cancel using subtraction '>    
+  ## <d 'Distributive Property '>
+    d (r.* a a) (r.* b b) r.distr r.eqcomi
+    ReqReplaceReq1
+  ## </d 'Distributive Property '>
+)
+
+thm (divcan.4 () () (-> (-. (r.= (r.+ (r.* a a) (r.* b b)) (r.0))) (r.= (r.+ (r.* b (r./ (r.+ (r.* c a) (r.* d b)) (r.+ (r.* a a) (r.* b b)))) (r.* a (r./ (r.- (r.* d a) (r.* c b)) (r.+ (r.* a a) (r.* b b))))) d))
+#  a b c r.divmulass 
+  (r.+ (r.* a a) (r.* b b)) b (r.+ (r.* c a) (r.* d b)) r.divmulass
+  (r.+ (r.* a a) (r.* b b)) a (r.- (r.* d a) (r.* c b)) r.divmulass
+  r.addeq12d
+  ## <d>
+    (r.+ (r.* a a) (r.* b b))
+    (r.* b (r.+ (r.* c a) (r.* d b)))
+    (r.* a (r.- (r.* d a) (r.* c b))) r.divdistr
+    r.eqtrd
+  ## </d>
+  ## <d>
+    b c a d divcan.3
+    (r.+ (r.* a a) (r.* b b))r.diveq1i  
+    ReqReplaceImp1Req1
+  ## </d>
+  (r.+ (r.* a a) (r.* b b)) d r.divcan3 r.eqtrd
+)
+
+thm (divcan () () (-> (-. (= A (0))) (= (* A (/ B A)) B))
+  A opexpand
+  B A df-div
+  pm3.2i 
+  A (<,> (head A) (tail A)) (/ B A)
+  (<,> (r./ (r.+ (r.* (head B) (head A)) (r.* (tail B) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A)))) (r./ (r.- (r.* (tail B) (head A)) (r.* (head B) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A)))))  muleq12    
+  ax-mp  
+  ## <d 'Multiplication on Ordered Pairs '>
+    (head A) (tail A) (r./ (r.+ (r.* (head B) (head A)) (r.* (tail B) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A)))) (r./ (r.- (r.* (tail B) (head A)) (r.* (head B) (tail A))) (r.+ (r.* (head A) (head A)) (r.* (tail A) (tail A)))) mulop 
+    EqReplaceEq1
+  ## </d 'Multiplication on Ordered Pairs '>
+  ## <d>
+  (-. (= A (0))) a1i
+
+  A absNot0
+  (head A) (tail A) (head B) (tail B) divcan.2
+  (head A) (tail A) (head B) (tail B) divcan.4
+  opeq12d
+  syl
+  eqtrd  
+  ## <d 'Expand Ordered Pair '>
+    B opexpand eqcomi
+    EqReplaceImp1Eq1
+  ## </d 'Expand Ordered Pair '>
+)
+
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (DIVISION_MIN ../common/division_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")

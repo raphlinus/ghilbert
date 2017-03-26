@@ -1,0 +1,731 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL /general/Classical_propositional_calculus.ghi () "")
+import (FIRSTORDER /general/First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+import (BASIC /general/Basic_operations_of_Zermelo-Fraenkel_set_theory.ghi (CLASSICAL FIRSTORDER) "")
+tvar (object A B C D A0 A1 B0 B1 α β Z)
+var (object a b x y z w a′ b′ x′ y′ z′)
+tvar (formula φ ψ antecedent)
+defthm (OrderedPair object (orderedPair A B) () () (= (orderedPair A B) (unorderedPair (singleton A) (unorderedPair A B)))
+        (unorderedPair (singleton A) (unorderedPair A B)) EqualityReflexivity
+)
+thm (OrderedPairBuilder () () (→ (∧ (= A0 A1) (= B0 B1)) (= (orderedPair A0 B0) (orderedPair A1 B1)))
+        (= A0 A1) (= B0 B1) ConjunctionRightElimination
+        A0 A1 SingletonBuilder
+        applySyllogism
+
+        A0 A1 B0 B1 UnorderedPairBuilder
+
+        composeConjunction
+
+        (singleton A0) (singleton A1) (unorderedPair A0 B0) (unorderedPair A1 B1) UnorderedPairBuilder
+        applySyllogism
+
+        A0 B0 OrderedPair
+        A1 B1 OrderedPair
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (OrderedPairBuilderLL () () (→ (= B0 B1) (= (orderedPair A B0) (orderedPair A B1)))
+        A EqualityReflexivity
+        A A B0 B1 OrderedPairBuilder
+        export
+        applyModusPonens
+ )
+
+thm (buildOrderedPairLLInConsequent ()
+  (H (→ antecedent (= B0 B1)))
+  (→ antecedent (= (orderedPair A B0) (orderedPair A B1)))
+        H
+        B0 B1 A OrderedPairBuilderLL
+        applySyllogism
+ )
+
+thm (OrderedPairBuilderRR () () (→ (= A0 A1) (= (orderedPair A0 B) (orderedPair A1 B)))
+        B EqualityReflexivity
+        A0 A1 B B OrderedPairBuilder
+        export
+        applyComm
+        applyModusPonens
+ )
+
+thm (buildOrderedPairRRInConsequent ()
+  (H (→ antecedent (= A0 A1)))
+  (→ antecedent (= (orderedPair A0 B) (orderedPair A1 B)))
+        H
+        A0 A1 B OrderedPairBuilderRR
+        applySyllogism
+ )
+
+thm (OrderedPairTheoremForwardFirst-1 () () (∈ (singleton A) (orderedPair A B))
+        (singleton A) (unorderedPair A B) UnorderedPairLeftMembership
+
+        A B OrderedPair
+        (singleton A) buildMembershipLL
+        eliminateBiconditionalForward
+        applyModusPonens
+)
+
+thm (OrderedPairTheoremForwardFirst-2 () () (↔ (∈ A (orderedPair B C)) (∨ (= A (singleton B)) (= A (unorderedPair B C))))
+        B C OrderedPair
+        A buildMembershipLL
+
+        A (singleton B) (unorderedPair B C) UnorderedPair
+        applyBiconditionalTransitivity
+)
+
+thm (OrderedPairTheoremForwardFirst () () (→ (= (orderedPair A B) (orderedPair C D)) (= A C))
+# The first step is <code>〈A, B〉=〈C, D〉 → ({C} ∈ 〈A, B〉 ↔ {C} ∈ 〈C, D〉)</code>, from our builder for <code>∈</code>.
+#
+# But <code>{C} ∈ 〈C, D〉</code> is true unconditionally, so this formula reduces to <code>〈A, B〉=〈C, D〉 → {C} ∈ 〈A, B〉</code>.
+
+## <d>
+  C D OrderedPairTheoremForwardFirst-1
+  ## <d>
+    (orderedPair A B) (orderedPair C D) (singleton C) MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+
+  # We now apply our other lemma to turn <code>{C} ∈ 〈A, B〉</code> into <code>{C} = {A} ∨ {C} = {A, B}</code>.
+  ## <d>
+    (singleton C) A B OrderedPairTheoremForwardFirst-2
+    eliminateBiconditionalReverse
+  ## </d>
+  applySyllogism
+## </d>
+
+  # We'll show that each half of <code>{C} = {A} ∨ {C} = {A, B}</code> implies <code>A ∈ {C}</code>.  The left half follows from <code>{C} = {A} → (A ∈ {C} ↔ A ∈ {A})</code> once we detach the theorem <code>A ∈ {A}</code>.
+  A SingletonMembership
+  ## <d>
+    (singleton C) (singleton A) A MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+  # The right half is similar: the builder gives us <code>{C} = {A, B} → (A ∈ {C} ↔ A ∈ {A, B})</code> and we can detach <code>A ∈ {A, B}</code>.
+  A B UnorderedPairLeftMembership
+  ## <d>
+    (singleton C) (unorderedPair A B) A MembershipBuilderLL
+  ## </d>
+  detachImplicationBiconditionalRight
+
+  # We now compose the two and combine with our earlier result to get <code>〈A, B〉=〈C, D〉 → A ∈ {C}</code>
+  composeDisjunction
+  applySyllogism
+
+  # Transforming <code>A ∈ {C}</code> to <code>A = C</code> finishes the proof.
+  ## <d>
+    A C Singleton
+    eliminateBiconditionalReverse
+  ## </d>
+  applySyllogism
+ )
+
+thm (OrderedPairTheoremForwardSecond-1 () () (→ (= (orderedPair C D) (orderedPair C B)) (= D B))
+# The definition of ordered pair gives us <code>{{C}, {C, D}} = {{C}, {C, B}}</code>,
+        C D OrderedPair
+        C B OrderedPair
+        buildEquality
+        eliminateBiconditionalReverse
+
+# and two applications of <code>UnorderedPairSecondMembersEqual</code> give us <code>D = B</code>.
+        (singleton C) (unorderedPair C D) (unorderedPair C B) UnorderedPairSecondMembersEqual
+        applySyllogism
+
+        C D B UnorderedPairSecondMembersEqual
+        applySyllogism
+)
+
+thm (OrderedPairTheoremForwardSecond-2 () () (→ (= (orderedPair A B) (orderedPair C D)) (→ (= A C) (= D B)))
+# We start with <code>〈A, B〉=〈C, D〉→ (〈A, B〉=〈C, B〉 ↔ 〈C, D〉=〈C, B〉)</code>.
+        (orderedPair A B) (orderedPair C D) (orderedPair C B) EqualityBuilderRR
+# The ordered pair builder and a bit of rearrangment turns that into <code>〈A, B〉=〈C, D〉→ (A = C → 〈C, D〉=〈C, B〉)</code>.
+        (= (orderedPair A B) (orderedPair C B)) (= (orderedPair C D) (orderedPair C B)) BiconditionalReverseElimination
+        applySyllogism
+
+        A C B OrderedPairBuilderRR
+        (= (orderedPair C D) (orderedPair C B)) addCommonConsequent
+        applySyllogism
+# Applying the lemma <code>OrderedPairTheoremForwardSecond-1</code> turns this into <code>〈A, B〉=〈C, D〉→ (A = C → D = B)</code>, our desired result.
+        C D B OrderedPairTheoremForwardSecond-1
+        (= A C) addCommonAntecedent
+        applySyllogism
+ )
+thm (OrderedPairTheoremForwardSecond () () (→ (= (orderedPair A B) (orderedPair C D)) (= B D))
+        A B C D OrderedPairTheoremForwardFirst
+        A B C D OrderedPairTheoremForwardSecond-2
+        applyModusPonensInConsequent
+
+        D B EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (OrderedPairTheoremForward () () (→ (= (orderedPair A0 B0) (orderedPair A1 B1)) (∧ (= A0 A1) (= B0 B1)))
+        A0 B0 A1 B1 OrderedPairTheoremForwardFirst
+        A0 B0 A1 B1 OrderedPairTheoremForwardSecond
+        composeConjunction
+ )
+thm (OrderedPairTheorem () () (↔ (= (orderedPair A0 B0) (orderedPair A1 B1)) (∧ (= A0 A1) (= B0 B1)))
+        A0 B0 A1 B1 OrderedPairTheoremForward
+        A0 A1 B0 B1 OrderedPairBuilder
+        introduceBiconditionalFromImplications
+ )
+tvar (object R S T U)
+defthm (Relation formula (relation A) ((A z)) ()
+  (↔ (relation A) (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))))))
+# We need to prove that the truth of the formula doesn't depend on the choice of variables for <code>x</code>, <code>y</code>, and <code>z</code>. In other words, <code>∀ z′ (z′ ∈ A → ∃ x′ ∃ y′ z′ = 〈x′, y′〉) ↔ ∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉)</code>
+# 
+# We'll first worry about the explicit substitutions and getting them in the right place relative to the quantifiers. We work from the outside in, so the first step is <code>∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉) ↔ ∀ z′ [z′ / z] (z ∈ A → ∃ x ∃ y z = 〈x, y〉)</code>
+        z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y))))) z′ ChangeVariableExplicitForAll
+# We now move the substitution inside all quantifiers.
+        z′ z (∈ z A) (∃ x (∃ y (= z (orderedPair x y)))) SubstImplication
+        z′ buildForAll
+        applyBiconditionalTransitivity
+
+        z′ z x (∃ y (= z (orderedPair x y))) SubstThereExists
+        (subst z′ z (∈ z A)) buildImplicationAntecedent
+        z′ buildForAll
+        applyBiconditionalTransitivity
+
+        z′ z y (= z (orderedPair x y)) SubstThereExists
+        x buildThereExists
+        (subst z′ z (∈ z A)) buildImplicationAntecedent
+        z′ buildForAll
+        applyBiconditionalTransitivity
+# That gives us <code>∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉) ↔ ∀ z′ ([z′ / z] z ∈ A → ∃ x ∃ y [z′ / z] z = 〈x, y〉)</code>. The next step is to add the substitution for <code>x′</code>.
+        x (∃ y (subst z′ z (= z (orderedPair x y)))) x′ ChangeVariableExplicitThereExists
+        (subst z′ z (∈ z A)) buildImplicationAntecedent
+        z′ buildForAll
+        applyBiconditionalTransitivity
+
+        x′ x y (subst z′ z (= z (orderedPair x y))) SubstThereExists
+        x′ buildThereExists
+        (subst z′ z (∈ z A)) buildImplicationAntecedent
+        z′ buildForAll
+        applyBiconditionalTransitivity
+# That gives us <code>∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉) ↔ ∀ z′ ([z′ / z] z ∈ A → ∃ x′ ∃ y [x′ / x] [z′ / z] z = 〈x, y〉)</code>. The next step is to add the substitution for <code>y′</code>.
+        y (subst x′ x (subst z′ z (= z (orderedPair x y)))) y′ ChangeVariableExplicitThereExists
+        x′ buildThereExists
+        (subst z′ z (∈ z A)) buildImplicationAntecedent
+        z′ buildForAll
+        applyBiconditionalTransitivity
+# Now we perform the substitutions. The first one is <code>[z′ / z] z ∈ A ↔ z′ ∈ A</code>.
+        z z′ A MembershipBuilderRR
+        makeSubstExplicit
+# The next is <code>[z′ / z] z = 〈x, y〉 ↔ z′ = 〈x, y〉</code>.
+        z z′ (orderedPair x y) EqualityBuilderRR
+        makeSubstExplicit
+
+        x′ x buildSubst
+# The next is <code>[x′ / x] z′ = 〈x, y〉 ↔ z′ = 〈x′, y〉</code>.
+        x x′ y OrderedPairBuilderRR
+        z′ buildEqualityLLInConsequent
+        makeSubstExplicit
+        applyBiconditionalTransitivity
+
+        y′ y buildSubst
+# The next is <code>[y′ / y] z′ = 〈x′, y〉 ↔ z′ = 〈x′, y′〉</code>.
+        y y′ x′ OrderedPairBuilderLL
+        z′ buildEqualityLLInConsequent
+        makeSubstExplicit
+        applyBiconditionalTransitivity
+# We combine with the <code>z ∈ A</code> substitution.
+        y′ buildThereExists
+        x′ buildThereExists
+
+        buildImplication
+        z′ buildForAll
+        applyBiconditionalTransitivity
+# We have proved <code>∀ z (z ∈ A → ∃ x ∃ y z = 〈x, y〉) ↔ ∀ z′ (z′ ∈ A → ∃ x′ ∃ y′ z′ = 〈x′, y′〉)</code>. JHilbert will unify the one with the primes with <code>(relation A)</code>, if we just put it on the left hand side.
+        swapBiconditional
+ )
+defthm (Relates formula (relates A R B) () () (↔ (relates A R B) (∈ (orderedPair A B) R))
+        (∈ (orderedPair A B) R) BiconditionalReflexivity
+)
+
+defthm (Domain-def object (domain R) ((R x) (R y)) ()
+  (= (domain R) (separate x (⋃ (⋃ R)) (∃ y (∈ (orderedPair x y) R))))
+# We start by changing <code>x′</code> to <code>x</code>, that is <code>{ x′ ∈ ⋃ ⋃ R | ∃ y′ 〈 x′, y′ 〉 ∈ R } = { x ∈ ⋃ ⋃ R | ∃ y′ 〈 x, y′ 〉 ∈ R }</code>.
+        x′ x y′ OrderedPairBuilderRR
+        R buildMembershipRRInConsequent
+        y′ buildThereExistsInConsequent
+        (⋃ (⋃ R)) ChangeVariableSeparation
+# Then we show <code>∃ y′ 〈 x, y′ 〉 ∈ R ↔ ∃ y 〈 x, y 〉 ∈ R</code>,
+        y′ y x OrderedPairBuilderLL
+        R buildMembershipRRInConsequent
+        ChangeVariableThereExists
+# and combine the two parts.
+        x (⋃ (⋃ R)) buildSeparation
+        applyEqualityTransitivity
+ )
+
+thm (Domain-1 () ()
+  (→ (∈ (orderedPair A B) R) (∈ (unorderedPair A B) (⋃ R)))
+# We will prove <code>{ A, B } ∈ ⋃ R</code> by <code>Union</code>. That is, we need <code>∃ z ({ A, B } ∈ z ∧ z ∈ ⋃ R</code>. We prove this by presenting such a <code>z</code>, which is just <code>〈 A, B 〉</code> (matters will be clearer if we write it with the definition of ordered pair expanded: <code>{ { A }, { A, B } }</code>.
+        A B OrderedPair
+        R buildMembershipRR
+        eliminateBiconditionalReverse
+
+# The first step is <code>{ { A }, { A, B } } ∈ R → { A, B } ∈ { { A }, { A, B } } ∧ { { A }, { A, B } } ∈ R</code>.
+        (∈ (unorderedPair (singleton A) (unorderedPair A B)) R) ImplicationReflexivity
+        (unorderedPair A B) (singleton A) UnorderedPairRightMembership
+        introduceLeftConjunctToConsequent
+        applySyllogism
+# Now we need to replace <code>{ { A }, { A, B } }</code> with a variable <code>z</code>.
+        z
+          (unorderedPair (singleton A) (unorderedPair A B))
+          (unorderedPair A B)
+          MembershipBuilderLL
+
+        z
+          (unorderedPair (singleton A) (unorderedPair A B))
+          R
+          MembershipBuilderRR
+
+        buildConjunctionInConsequent
+
+        makeSubstExplicit
+        eliminateBiconditionalForward
+        applySyllogism
+# Turning the substitution into ∃ gives us <code>〈 A, B 〉 ∈ R → ∃ z ({ A, B } ∈ z ∧ z ∈ R)</code>, and applying <code>Union</code> we are done.
+        (unorderedPair (singleton A) (unorderedPair A B))
+          z
+          (∧ (∈ (unorderedPair A B) z) (∈ z R))
+          ThereExistsIntroductionFromObject
+        applySyllogism
+
+        (unorderedPair A B) R z Union
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (Domain-2 ((A y) (R y)) ()
+  (→ (∃ y (∈ (orderedPair A y) R)) (∈ A (⋃ (⋃ R))))
+# First we put <code>A ∈ { A, y }</code> on the proof stack for later use.
+        A y UnorderedPairLeftMembership
+# Leaving that aside for the moment, we start with the previous lemma, which is <code>〈 A, y 〉 ∈ R → { A, y } ∈ ⋃ R</code>, and turn the consequent into <code>{ A, y } ⊆ ⋃ ⋃ R</code>.
+        A y R Domain-1
+
+        (unorderedPair A y) (⋃ R) MembershipSubsetUnion
+        applySyllogism
+# Now we turn <code>{ A, y } ⊆ ⋃ ⋃ R</code> into <code>A ∈ { A, y } → A ∈ ⋃ ⋃ R</code>,
+        (unorderedPair A y) (⋃ (⋃ R)) A SubsetMembership
+        applySyllogism
+# and then detach <code>A ∈ { A, y }</code>. That gives us <code>〈 A, y 〉 ∈ R → A ∈ ⋃ ⋃ R</code> so adding <code>∃ y</code> to the antecedent we are done.
+        detachImplicationImplication
+        y addThereExistsToAntecedent
+ )
+
+thm (Domain ((B y) (R y)) ()
+  (↔ (∈ B (domain R)) (∃ y (∈ (orderedPair B y) R)))
+# We expand <code>domain R</code> so that we can specify the variables involved.
+        R x y Domain-def
+        B buildMembershipLL
+# We first apply <code>FormulaBound</code> to get <code>B ∈ { x ∈ ⋃ ⋃ R | ∃ y 〈 x, y 〉 ∈ R } ↔ [ B / x ] ∃ y 〈 x, y 〉 ∈ R</code>.
+        y x R Domain-2
+        B FormulaBound
+        applyBiconditionalTransitivity
+# The left side of that is just <code>B ∈ domain R</code>; the right side is a subsitution away from being what we need.
+        x B y OrderedPairBuilderRR
+        R buildMembershipRRInConsequent
+        y buildThereExistsInConsequent
+        makeSubstExplicit
+        applyBiconditionalTransitivity
+ )
+
+thm (DomainBuilder () () (→ (= R S) (= (domain R) (domain S)))
+# We prove the builder based on the definition <code>{ x ∈ ⋃ ⋃ R | ∃ y 〈x, y〉 ∈ R }</code>. The first step is <code>R = S → ⋃ ⋃ R = ⋃ ⋃ S</code>.
+        R S UnionBuilder
+        (⋃ R) (⋃ S) UnionBuilder
+        applySyllogism
+# Next is <code>R = S → ∀ x (∃ y 〈x, y〉 ∈ R ↔ ∃ y 〈x, y〉 ∈ S)</code>
+        R S (orderedPair x y) MembershipBuilderLL
+        y buildThereExistsInConsequent
+        x addForAllToConsequent
+# Now we can apply the separation builder,
+        composeConjunction
+        (⋃ (⋃ R))
+          (⋃ (⋃ S))
+          x
+          (∃ y (∈ (orderedPair x y) R))
+          (∃ y (∈ (orderedPair x y) S))
+          SeparationBuilder
+        applySyllogism
+# and the definition of domain.
+        R x y Domain-def
+        S x y Domain-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (DomainSingletonRelationLemma ((B y) (C y) (A y)) ()
+  (↔ (∃ y (∈ (orderedPair C y) (singleton (orderedPair A B)))) (= C A))
+        (orderedPair C y) (orderedPair A B) Singleton
+        C y A B OrderedPairTheorem
+        applyBiconditionalTransitivity
+# So far that gives us <code>〈C, y〉 ∈ { 〈A, B〉 } ↔ C = A ∧ y = B</code>. Now we add <code>∃ y</code> to both sides, and then move <code>C = A</code> outside the quantifier.
+        y buildThereExists
+
+        y (= C A) (= y B) ThereExistsConjunctionMovement
+        applyBiconditionalTransitivity
+# We have <code>∃ y 〈C, y〉 ∈ { 〈A, B〉 } ↔ C = A ∧ ∃ y y = B</code> and the <code>∃ y y = B</code> part is a theorem (<code>Quantifiability</code>).
+        y B Quantifiability
+        (∃ y (= y B)) (= C A) BiconditionalConjunct
+        applyModusPonens
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (DomainSingletonRelation () ()
+  (= (domain (singleton (orderedPair A B))) (singleton A))
+# We start with <code>x ∈ domain { 〈A, B〉 } ↔ ∃ y 〈x, y〉 ∈ { 〈A, B〉 }</code>
+        x (singleton (orderedPair A B)) y Domain
+# The right hand side is equivalent to <code>x = A</code> by our lemma,
+        y x A B DomainSingletonRelationLemma
+        applyBiconditionalTransitivity
+# and to <code>x ∈ { A }</code>, which is all we need to apply extensionality.
+        x A Singleton
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+
+defthm (Range-def object (range R) ((R x) (R y)) ()
+  (= (range R) (separate y (⋃ (⋃ R)) (∃ x (∈ (orderedPair x y) R))))
+# We start by changing <code>y′</code> to <code>y</code>, that is <code>{ y′ ∈ ⋃ ⋃ R | ∃ x′ 〈 x′, y′ 〉 ∈ R } = { y ∈ ⋃ ⋃ R | ∃ x′ 〈 x′, y 〉 ∈ R }</code>.
+        y′ y x′ OrderedPairBuilderLL
+        R buildMembershipRRInConsequent
+        x′ buildThereExistsInConsequent
+        (⋃ (⋃ R)) ChangeVariableSeparation
+# Then we show <code>∃ x′ 〈 x′, y 〉 ∈ R ↔ ∃ x 〈 x, y 〉 ∈ R</code>,
+        x′ x y OrderedPairBuilderRR
+        R buildMembershipRRInConsequent
+        ChangeVariableThereExists
+# and combine the two parts.
+        y (⋃ (⋃ R)) buildSeparation
+        applyEqualityTransitivity
+ )
+thm (Range-2 ((A x) (R x)) ()
+  (→ (∃ x (∈ (orderedPair x A) R)) (∈ A (⋃ (⋃ R))))
+# First we put <code>A ∈ { x, A }</code> on the proof stack for later use.
+        A x UnorderedPairRightMembership
+# Leaving that aside for the moment, we start with <code>Domain-1</code>, which is <code>〈 x, A 〉 ∈ R → { x, A } ∈ ⋃ R</code>, and turn the consequent into <code>{ x, A } ⊆ ⋃ ⋃ R</code>.
+        x A R Domain-1
+
+        (unorderedPair x A) (⋃ R) MembershipSubsetUnion
+        applySyllogism
+# Now we turn <code>{ x, A } ⊆ ⋃ ⋃ R</code> into <code>A ∈ { x, A } → A ∈ ⋃ ⋃ R</code>,
+        (unorderedPair x A) (⋃ (⋃ R)) A SubsetMembership
+        applySyllogism
+# and then detach <code>A ∈ { x, A }</code>. That gives us <code>〈 x, A 〉 ∈ R → A ∈ ⋃ ⋃ R</code> so adding <code>∃ x</code> to the antecedent we are done.
+        detachImplicationImplication
+        x addThereExistsToAntecedent
+ )
+thm (Range ((B x) (R x)    ) ()
+  (↔ (∈ B (range R)) (∃ x (∈ (orderedPair x B) R)))
+# We expand <code>range R</code> so that we can specify the variables involved.
+        R y x Range-def
+        B buildMembershipLL
+# We first apply <code>FormulaBound</code> to get <code>B ∈ { y ∈ ⋃ ⋃ R | ∃ x 〈 x, y 〉 ∈ R } ↔ [ B / y ] ∃ x 〈 x, y 〉 ∈ R</code>.
+        x y R Range-2
+        B FormulaBound
+        applyBiconditionalTransitivity
+# The left side of that is just <code>B ∈ range R</code>; the right side is a subsitution away from being what we need.
+        y B x OrderedPairBuilderLL
+        R buildMembershipRRInConsequent
+        x buildThereExistsInConsequent
+        makeSubstExplicit
+        applyBiconditionalTransitivity
+ )
+thm (RangeBuilder () () (→ (= R S) (= (range R) (range S)))
+# We prove the builder based on the definition <code>{ y ∈ ⋃ ⋃ R | ∃ x 〈x, y〉 ∈ R }</code>. The first step is <code>R = S → ⋃ ⋃ R = ⋃ ⋃ S</code>.
+        R S UnionBuilder
+        (⋃ R) (⋃ S) UnionBuilder
+        applySyllogism
+# Next is <code>R = S → ∀ y (∃ x 〈x, y〉 ∈ R ↔ ∃ x 〈x, y〉 ∈ S)</code>
+        R S (orderedPair x y) MembershipBuilderLL
+        x buildThereExistsInConsequent
+        y addForAllToConsequent
+# Now we can apply the separation builder,
+        composeConjunction
+        (⋃ (⋃ R))
+          (⋃ (⋃ S))
+          y
+          (∃ x (∈ (orderedPair x y) R))
+          (∃ x (∈ (orderedPair x y) S))
+          SeparationBuilder
+        applySyllogism
+# and the definition of range
+        R y x Range-def
+        S y x Range-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (RangeSingletonRelationLemma ((A x) (C x) (B x)) ()
+  (↔ (∃ x (∈ (orderedPair x C) (singleton (orderedPair A B)))) (= C B))
+        (orderedPair x C) (orderedPair A B) Singleton
+        x C A B OrderedPairTheorem
+        applyBiconditionalTransitivity
+# So far that gives us <code>〈x, C〉 ∈ { 〈A, B〉 } ↔ x = A ∧ C = B</code>. Now we add <code>∃ x</code> to both sides, and then move <code>C = B</code> outside the quantifier.
+        x buildThereExists
+
+        x (= x A) (= C B) ThereExistsConjunctionRightMovement
+        applyBiconditionalTransitivity
+# We have <code>∃ x 〈x, C〉 ∈ { 〈A, B〉 } ↔ ∃ x x = A ∧ C = B</code> and the <code>∃ x x = A</code> part is a theorem (<code>Quantifiability</code>).
+        x A Quantifiability
+        (∃ x (= x A)) (= C B) BiconditionalConjunct
+        applyModusPonens
+
+        (= C B) (∃ x (= x A)) ConjunctionCommutativity
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (RangeSingletonRelation () ()
+  (= (range (singleton (orderedPair A B))) (singleton B))
+# We start with <code>y ∈ range { 〈A, B〉 } ↔ ∃ x 〈x, y〉 ∈ { 〈A, B〉 }</code>
+        y (singleton (orderedPair A B)) x Range
+# The right hand side is equivalent to <code>y = B</code> by our lemma,
+        x y A B RangeSingletonRelationLemma
+        applyBiconditionalTransitivity
+# and to <code>y ∈ { B }</code>, which is all we need to apply extensionality.
+        y B Singleton
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        applyExtensionality
+ )
+defthm (First-def object (1st C) () () (= (1st C) (⋃ (domain (singleton C))))
+        (⋃ (domain (singleton C))) EqualityReflexivity
+)
+thm (FirstBuilder () () (→ (= A B) (= (1st A) (1st B)))
+        A B SingletonBuilder
+
+        (singleton A) (singleton B) DomainBuilder
+        applySyllogism
+
+        (domain (singleton A)) (domain (singleton B)) UnionBuilder
+        applySyllogism
+
+        A First-def
+        B First-def
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (First () () (= (1st (orderedPair A B)) A)
+        (orderedPair A B) First-def
+
+        A B DomainSingletonRelation
+        buildUnion
+        applyEqualityTransitivity
+
+        A UnionSingleton
+        applyEqualityTransitivity
+)
+
+defthm (SecondInTermsOfRange object (2nd C) () () (= (2nd C) (⋃ (range (singleton C))))
+        (⋃ (range (singleton C))) EqualityReflexivity
+)
+
+thm (SecondBuilder () () (→ (= A B) (= (2nd A) (2nd B)))
+        A B SingletonBuilder
+
+        (singleton A) (singleton B) RangeBuilder
+        applySyllogism
+
+        (range (singleton A)) (range (singleton B)) UnionBuilder
+        applySyllogism
+
+        A SecondInTermsOfRange
+        B SecondInTermsOfRange
+        buildEquality
+        eliminateBiconditionalForward
+        applySyllogism
+)
+
+thm (Second () () (= (2nd (orderedPair A B)) B)
+        (orderedPair A B) SecondInTermsOfRange
+
+        A B RangeSingletonRelation
+        buildUnion
+        applyEqualityTransitivity
+
+        B UnionSingleton
+        applyEqualityTransitivity
+)
+
+defthm (CartesianProductAsSeparation object (× A B) ((A a) (B a) (A z) (B z) (A b) (B b)) () 
+  (= (× A B) (separate z (power (power (∪ A B)))
+    (∃ a (∃ b (∧ (= z (orderedPair a b))
+      (∧ (∈ a A) (∈ b B)))))))
+# We need to show { z′ ∈ (power (power A ∪ B)) | ∃ a′ ∃ b′ (z′ = 〈a′, b′〉 ∧ a′ ∈ A ∧ b′ ∈ B) } is equivalent to a similar expression with a′, b′, and z′ replaced by a, b, and z.
+# First step is z′ and z.
+        z′ z (orderedPair a′ b′) EqualityBuilderRR
+        (∧ (∈ a′ A) (∈ b′ B)) buildConjunctionRRInConsequent
+        b′ buildThereExistsInConsequent
+        a′ buildThereExistsInConsequent
+
+        (power (power (∪ A B))) ChangeVariableSeparation
+
+# Next we show <code>∃ a′ ∃ b′ (z = 〈 a′, b′ 〉 ∧ (a′ ∈ A ∧ b′ ∈ B)) ↔ ∃ a ∃ b′ (z = 〈 a, b′ 〉 ∧ (a ∈ A ∧ b′ ∈ B))</code>.
+        a′ a b′ OrderedPairBuilderRR
+        z buildEqualityLLInConsequent
+
+        a′ a A MembershipBuilderRR
+        (∈ b′ B) buildConjunctionRRInConsequent
+
+        buildConjunctionInConsequent
+        b′ buildThereExistsInConsequent
+
+        ChangeVariableThereExists
+# The change of the inner quantifier starts with <code>b′ = b → (z = 〈 a, b′ 〉 ∧ (a ∈ A ∧ b′ ∈ B) ↔ z = 〈 a, b 〉 ∧ (a ∈ A ∧ b ∈ B))</code>, which then leads to <code>∃ b′ (z = 〈 a, b′ 〉 ∧ (a ∈ A ∧ b′ ∈ B)) ↔ ∃ b (z = 〈 a, b 〉 ∧ (a ∈ A ∧ b ∈ B))</code>
+        b′ b a OrderedPairBuilderLL
+        z buildEqualityLLInConsequent
+
+        b′ b B MembershipBuilderRR
+        (∈ a A) buildConjunctionLLInConsequent
+
+        buildConjunctionInConsequent
+
+        ChangeVariableThereExists
+# Combining the two variable changes gives us everything except the separation, which we then add.
+        a buildThereExists
+        applyBiconditionalTransitivity
+
+        z (power (power (∪ A B))) buildSeparation
+        applyEqualityTransitivity
+)
+
+thm (MembershipCartesianProductLemma () ()
+  (→ (∧ (∈ α A) (∈ β B)) (∈ (orderedPair α β) (power (power (∪ A B)))))
+# The ordered pair <code>〈α, β〉</code> has two elements, <code>{ α }</code> and <code>{ α , β }</code>. We start with the former, and the first step is <code>α ∈ A ∧ β ∈ B → { α } ⊆ A</code>
+        (∈ α A) (∈ β B) ConjunctionRightElimination
+
+        α A SingletonSubset
+        eliminateBiconditionalReverse
+        applySyllogism
+# The consequent in turn implies <code>{ a } ⊆ A ∪ B</code>,
+        (singleton α) A B SubsetUnionRightIntroduction
+        applySyllogism
+# which then becomes <code>{ α } ∈ power (A ∪ B)</code>.
+        (singleton α) (∪ A B) PowerSet
+        eliminateBiconditionalForward
+        applySyllogism
+# Turning our attention to <code>{ α, β }</code>, we start with <code>α ∈ A ∧ β ∈ B → α ∈ A ∪ B ∧ β ∈ A ∪ B</code>.
+        α A B MembershipUnionRightIntroduction
+        β B A MembershipUnionLeftIntroduction
+        conjoin
+# The consequent implies <code>{ α, β } ⊆ A ∪ B</code>,
+        α (∪ A B) β UnorderedPairSubset
+        eliminateBiconditionalReverse
+        applySyllogism
+# which in turn implies <code>{ α, β } ∈ power (A ∪ B)</code>.
+        (unorderedPair α β) (∪ A B) PowerSet
+        eliminateBiconditionalForward
+        applySyllogism
+# Combining <code>{ α } ∈ power (A ∪ B)</code> and <code>{ α, β } ∈ power (A ∪ B)</code> gives <code>{ { α }, { α, β } } ⊆ power (A ∪ B)</code>.
+        composeConjunction
+        (singleton α)
+          (power (∪ A B))
+          (unorderedPair α β)
+          UnorderedPairSubset
+        eliminateBiconditionalReverse
+        applySyllogism
+# That in turn is just <code>〈 α, β 〉 ∈ power power (A ∪ B)</code>, which is what we are seeking to prove.
+        α β OrderedPair
+        (power (∪ A B)) buildSubsetRR
+        eliminateBiconditionalForward
+        applySyllogism
+
+        (orderedPair α β) (power (∪ A B)) PowerSet
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (MembershipCartesianProduct-2 ((Z a) (Z b) (A a) (A b) (B a) (B b)) ()
+  (→ (∃ a (∃ b (∧ (= Z (orderedPair a b)) (∧ (∈ a A) (∈ b B))))) (∈ Z (power (power (∪ A B)))))
+# We start with <code>a ∈ A ∧ b ∈ B → 〈a, b〉 ∈ power power (A ∪ B)</code> (which was the previous lemma), and then conjoin <code>Z = 〈 a, b 〉</code> to both antecedent and consequent.
+        a A b B MembershipCartesianProductLemma
+        (= Z (orderedPair a b)) conjoinLL
+# Next we take the substitution <code>Z = 〈 a, b 〉 → (Z ∈ power power (A ∪ B) ↔ 〈 a, b 〉 ∈ power power (A ∪ B))</code> and rearrange it into <code>Z = 〈 a, b 〉 ∧ 〈 a, b 〉 ∈ power power (A ∪ B)) → Z ∈ power power (A ∪ B)</code>
+        Z
+          (orderedPair a b)
+          (power (power (∪ A B)))
+          MembershipBuilderRR
+        eliminateBiconditionalForwardInConsequent
+        import
+# That's almost it. Combining those implications gives <code>Z = 〈 a, b 〉 ∧ (a ∈ A ∧ b ∈ B) → Z ∈ power power (A ∪ B)</code>, and then we just add the quantifiers.
+        applySyllogism
+
+        b addThereExistsToAntecedent
+        a addThereExistsToAntecedent
+ )
+thm (MembershipCartesianProduct
+  ((A b a) (B b a) (C b a)) ()
+  (↔ (∈ C (× A B))
+    (∃ a (∃ b (∧
+      (= C (orderedPair a b)) (∧ (∈ a A) (∈ b B))))))
+# We start by expanding the definition of <code>A × B</code>.
+        A B z a b CartesianProductAsSeparation
+        C buildMembershipLL
+# We now proceed to <code>MembershipCartesianProduct-2</code>.
+        a b z A B MembershipCartesianProduct-2
+        C FormulaBound
+        applyBiconditionalTransitivity
+# We now have <code>C ∈ A × B ↔ [C / z] ∃ a ∃ b (z = 〈a, b〉 ∧ (a ∈ A ∧ b ∈ B))</code>. We now just perform the substitution, starting with <code>z = C → (∃ a ∃ b (z = 〈 a, b 〉 ∧ a ∈ A ∧ b ∈ B) ↔ ∃ a ∃ b (C = 〈 a, b 〉 ∧ a ∈ A ∧ b ∈ B)</code>
+        z C (orderedPair a b) EqualityBuilderRR
+        (∧ (∈ a A) (∈ b B)) buildConjunctionRRInConsequent
+        b buildThereExistsInConsequent
+        a buildThereExistsInConsequent
+        makeSubstExplicit
+
+        applyBiconditionalTransitivity
+ )
+thm (OrderedPairCartesianProduct () ()
+  (↔ (∈ (orderedPair A0 B0) (× A B)) (∧ (∈ A0 A) (∈ B0 B)))
+# The first step is invoking <code>MembershipCartesianProduct</code> with the ordered pair as the element. That is, <code>〈 A0, B0 〉 ∈ A × B ↔ ∃ a ∃ b (〈 A0, B0 〉 = 〈 a, b 〉 ∧ (a ∈ A ∧ b ∈ B))</code>
+        (orderedPair A0 B0) A B a b MembershipCartesianProduct
+# Applying the ordered pair theorem and rearranging the conjunctions turns this into <code>∃ a ∃ b ((A0 = a ∧ a ∈ A) ∧ (B0 = b ∧ b ∈ B))</code>.
+        A0 B0 a b OrderedPairTheorem
+        (∧ (∈ a A) (∈ b B)) buildConjunctionRR
+        b buildThereExists
+        a buildThereExists
+        applyBiconditionalTransitivity
+
+        (= A0 a) (= B0 b) (∈ a A) (∈ b B) Conjunction4
+        b buildThereExists
+        a buildThereExists
+        applyBiconditionalTransitivity
+# We now scatter the quantifiers to give <code>∃ a (A0 = a ∧ a ∈ A) ∧ ∃ b (B0 = b ∧ b ∈ B)</code>.
+        a
+          b
+          (∧ (= A0 a) (∈ a A))
+          (∧ (= B0 b) (∈ b B))
+          ThereExistsScattering
+        applyBiconditionalTransitivity
+# Each half of that is equivalent to a membership formula (that is, <code>∃ a (A0 = a ∧ a ∈ A) ↔ A0 ∈ A)</code> and likewise for the other half).
+        A0 a EqualitySymmetry
+        (∈ a A) buildConjunctionRR
+        a buildThereExists
+
+        A0 A a MembershipThereExists
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        B0 b EqualitySymmetry
+        (∈ b B) buildConjunctionRR
+        b buildThereExists
+
+        B0 B b MembershipThereExists
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        buildConjunction
+        applyBiconditionalTransitivity
+ )
+export (RESULT Relations_1.ghi (CLASSICAL FIRSTORDER) "")

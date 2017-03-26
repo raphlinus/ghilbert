@@ -1,0 +1,45 @@
+## <justification> redirect mulcan.gh </justification>
+
+param (PROP ../../prop.ghi () "")
+param (PREDICATE_EQ ../../predicate_eq.ghi (PROP) "")
+param (ADD_MULTIPLY_MIN add_multiply_min.ghi (PROP PREDICATE_EQ) "")
+param (MULCAN_MIN mulcan_min.ghi (PROP PREDICATE_EQ ADD_MULTIPLY_MIN) "")
+
+tvar (nat A B C D)
+
+
+stmt (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0)))))
+
+## <title> Cancel Multiplication </title>
+stmt (mulcan2 () () (-> (-. (= A (0))) (<-> (= (* A B) (* A C)) (= B C))))
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (= A ] (0))) ] ]
+##   (= (* B ] <r> A) ] (* [ C <r> A))
+##   (=    B ]        ]    [ C)
+## </table>
+stmt (mulcani () ((-. (= A (0))) (= (* B A) (* C A))) (= B C))
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (= A    ] ] (0)))  ]
+##   (= (* <r> A [ B ) ] (* <r> A [ C ))
+##   (=          [ B   ]          [ C)
+## </table>
+stmt (mulcan2i () ((-. (= A (0))) (= (* A B) (* A C))) (= B C))
+
+## <title> Zero Product Property </title>
+stmt (zeroProductz () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0)))))
+
+## <title> Zero Product Property </title>
+stmt (zeroFactors () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct () () (-> (-. (= A (0))) (<-> (= B (0)) (= (* A B) (0)))))
+
+## <title> Zero Product Property </title>
+stmt (nonzeroProduct2 () () (<-> (-. (= (* A B) (0))) (/\ (-. (= A (0))) (-. (= B (0))))))
+
+## <title> Multiply Nonequal Numbers </title>
+stmt (neqmul () () (-> (/\ (-. (= A B)) (-. (= C (0)))) (-. (= (* A C) (* B C)))))

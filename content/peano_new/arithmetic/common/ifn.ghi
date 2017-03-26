@@ -1,0 +1,60 @@
+## <justification> redirect ifn.gh </justification>
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (ifn ph A B))
+
+## <title> First branch of ternary expression </title>
+stmt (ifn1 () () (-> ph (= (ifn ph A B) A)))
+
+## <title> Second branch of ternary expression </title>
+stmt (ifn2 () () (-> (-. ph) (= (ifn ph A B) B)))
+	
+## <title> Equivalence of predicate in ifn </title>
+stmt (ifnbi1 () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B))))
+
+stmt (ifnbi1i () (
+     (<-> ph ps))
+     (= (ifn ph A B) (ifn ps A B)))
+		 
+stmt (ifnbi1d () (
+     (-> ch (<-> ph ps)))
+     (-> ch (= (ifn ph A B) (ifn ps A B))))
+		 
+## <title> Equality of first term for ifn </title>
+stmt (ifneq2 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C))))
+
+stmt (ifneq2i () (
+     (= A B))
+     (= (ifn ph A C) (ifn ph B C)))
+		 
+stmt (ifneq2d () (
+     (-> ps (= A B)))
+     (-> ps (= (ifn ph A C) (ifn ph B C))))
+
+## <title> Equality of second term for ifn </title>
+stmt (ifneq3 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B))))
+
+stmt (ifneq3i () (
+     (= A B))
+     (= (ifn ph C A) (ifn ph C B)))
+
+stmt (ifneq3d () (
+     (-> ps (= A B)))
+     (-> ps (= (ifn ph C A) (ifn ph C B))))
+
+stmt (ifneq13 () () (-> (/\ (<-> ph ps) (= A B)) (= (ifn ph C A) (ifn ps C B))))
+
+## <title> Equivalence for ifn </title>
+stmt (ifnbi123 () () (-> (/\ (<-> ph ps) (/\ (= A C) (= B D))) (= (ifn ph A B) (ifn ps C D))))
+
+stmt (ifnbi123d () (
+      (-> ph (<-> ps ch))
+      (-> ph (= A B))
+      (-> ph (= C D)))
+      (-> ph (= (ifn ps A C) (ifn ch B D))))

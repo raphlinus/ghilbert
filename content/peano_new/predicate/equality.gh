@@ -1,0 +1,946 @@
+import (PROP ../prop.ghi () "")
+import (PREDICATE_MIN predicate_min.ghi (PROP) "")
+import (PREDICATE predicate.ghi (PROP PREDICATE_MIN) "")
+import (EQUALITY_MIN equality_min.ghi (PROP PREDICATE_MIN PREDICATE) "")
+
+tvar (wff ph ps ch th ta et ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+## <context>
+##   This theorem is part of a series of proofs related to 
+##   <a href="/wiki/peano/predicate">predicate calculus</a> with
+##   <a href="/wiki/peano/arithmetic/equality">equality</a>.
+## </context>
+
+# == Predicate calculus with equality ==
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (E. x  [ ps ]   ]    ] ))
+##   (->           [ ps ]   [ ch ] )
+##   (-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceImp1Ex1 () (
+     replacee (-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> A number exists that proves the antecedent </title>
+## <table>
+##   (-> <r> (= x A) [ ph)
+##                   [ ph
+## </table>
+thm (vtocle ((A x) (ph x)) (hyp (-> (= x A) ph)) ph
+  x A tyex
+  ## <d 'Given'>
+    hyp
+  ## </d>
+  x 19.23ai ax-mp
+)
+
+## <title> Symmetric Property </title>
+## <table>
+##   (= <r> A <g> B)
+##   (= <g> B <r> A)
+## </table>
+thm (eqcomi ()
+  (hyp (= A B))
+  (= B A)
+  hyp A B eqcom mpbi)
+
+## <title> Symmetric Property </title>
+## <table>
+##   (-> ph (= <r> A <g> B))
+##   (-> ph (= <g> B <r> A))
+## </table>
+thm (eqcomd ()
+  (hyp (-> ph (= A B)))
+  (-> ph (= B A))
+  hyp A B eqcom sylib)
+
+## <title> Symmetric Property </title>
+thm (eqcoms () (hyp (-> (= A B) ph)) (-> (= B A) ph)
+  B A eqcom hyp sylbi
+)
+
+## <title> Equivalence over Equality </title>
+thm (eqeq1 () () (-> (= A B) (<-> (= A C) (= B C)))
+  B A C eqtr ex eqcoms
+  A B C eqtr ex
+  impbid
+)
+
+## <title> Equivalence over Equality </title>
+thm (eqeq2 () ()
+  (-> (= A B) (<-> (= C A) (= C B)))
+  A B C eqeq1
+    A C eqcom B C eqcom bibi12i
+  sylib
+)
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=      A ]    ] [    B ] )
+##   (<-> (= A ] C) ] [ (= B ] C))
+## </table>
+thm (eqeq1i ()
+  (hyp (= A B))
+  (<-> (= A C) (= B C))
+  hyp A B C eqeq1 ax-mp)
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (-> ph (=      A ]    ] [    B ] ))
+##   (-> ph (<-> (= A ] C) ] [ (= B ] C)))
+## </table>
+thm (eqeq1d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (= A C) (= B C)))
+  hyp A B C eqeq1 syl)
+	
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=        [ A  ] [      [ B)
+##   (<-> (= C [ A) ] [ (= C [ B))
+## </table>
+thm (eqeq2i ()
+  (hyp (= A B))
+  (<-> (= C A) (= C B))
+  hyp A B C eqeq2 ax-mp)
+	
+## <title> Equivalence over Equality </title>
+## <table>
+##   (-> ph (=        [ A  ] [      [ B))
+##   (-> ph (<-> (= C [ A) ] [ (= C [ B)))
+## </table>
+thm (eqeq2d ()
+  (hyp (-> ph (= A B)))
+  (-> ph (<-> (= C A) (= C B)))
+  hyp A B C eqeq2 syl)
+
+## <title> Equivalence over Equality </title>
+thm (eqeq12i ()
+  (hyp1 (= A B)
+   hyp2 (= C D))
+  (<-> (= A C) (= B D))
+  hyp1 A B C eqeq1 ax-mp hyp2 C D B eqeq2 ax-mp bitri
+)
+
+## <title> Transitive Property </title>
+thm (eqeq12d ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= C D)))
+  (-> ph (<-> (= A C) (= B D)))
+  hyp1 C eqeq1d
+  hyp2 B eqeq2d bitrd
+)
+
+## <title> Transitive Property </title>
+thm (eqeq12 () () (-> (/\ (= A B) (= C D)) (<-> (= A C) (= B D)))
+  (= A B) (= C D) pm3.26
+  (= A B) (= C D) pm3.27
+  eqeq12d
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A  [ B ]   ]   ] )
+##   (=    [ B ]   [ C ] )
+##   (= A  [   [   [ C ] )
+## </table>
+thm (EqReplaceEq1 () (
+     replacee (= A B)
+     substitution (= B C)) 
+     (= A C)
+  replacee
+  substitution
+  A eqeq2i
+  mpbi
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A  [    B ] ] )
+##         [ (= B ] [ C)
+##   (= A  [      [ [ C)
+## </table>
+thm (eqtri () (hyp1 (= A B) hyp2 (= B C))
+  (= A C)
+  hyp1 hyp2 A B C eqtr mp2an
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee substitution
+  ch anbi1i
+  sylbi2
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##   (= A [    C ] ]  )
+##        [ (= C ] [B )
+## </table>
+thm (eqtr2 () () (-> (/\ (= A B) (= A C)) (= B C))
+  B A C eqtr  
+  ## <d 'Symmetric Property '>
+    B A eqcom
+    BiReplaceImp0An0
+  ## </d 'Symmetric Property '>
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [ B    ] ]  )
+##   (= A [      [ [ C)
+##        [ (= B ] [ C)
+## </table>
+thm (eqtr3 () (hyp1 (= A B) hyp2 (= A C)) (= B C)
+  hyp1 eqcomi hyp2 B A C eqtr mp2an
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A    [   [ B)
+##        (= [ C [ B )
+##   (= A    [ C ]   )
+## </table>
+thm (eqtr4 ()
+  (hyp1 (= A B)
+   hyp2 (= C B))
+  (= A C)
+  hyp1 hyp2 eqcomi eqtri
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (= A [      [ [ B)
+##   (= A [    C ] ]  )
+##        [ (= C ] [B )
+## </table>
+thm (eqtr5 ()
+  (hyp1 (= A B)
+   hyp2 (= A C))
+  (= C B)
+  hyp2 eqcomi hyp1 C A B eqtr mp2an
+)
+
+## <title> Transitive Property </title>
+## <table>
+##   (-> ph (= A  [    B ] ] ))
+##   (-> ph       [ (= B ] [ C))
+##   (-> ph (= A  [      [ [ C))
+## </table>
+thm (eqtrd ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ph (= B C)))
+  (-> ph (= A C))
+  hyp1 hyp2 A eqeq2d mpbid
+)
+
+## <title> Syllogism </title>
+thm (syl5eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C A))
+  (-> ph (= C B))
+  hyp2 ph a1i hyp1 eqtrd
+)
+
+## <title> Syllogism </title>
+thm (syl5eqr ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= A C))
+  (-> ph (= C B))
+  hyp2 eqcomi ph a1i hyp1 eqtrd
+)
+
+## <title> Syllogism </title>
+## <table>
+##   (-> ph (= A [    B ] ]  ))
+##               [ (= B ] [ C)
+##   (-> ph (= A [      [ [ C))
+## </table>
+thm (syl6eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= B C))
+  (-> ph (= A C))
+  hyp1 hyp2 ph a1i eqtrd
+)
+
+## <title> Syllogism </title>
+thm (syl6eqr ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C B))
+  (-> ph (= A C))
+  hyp1 hyp2 eqcomi ph a1i eqtrd
+)
+
+## <title> Syllogism </title>
+thm (sylan9eq ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (-> ps (= B C)))
+  (-> (/\ ph ps) (= A C))
+  hyp1 ps adantr
+    hyp2 ph adantl
+  eqtrd
+)
+
+## <title> Transitive Property </title>
+thm (3eqtr4g ()
+  (hyp1 (-> ph (= A B))
+   hyp2 (= C A)
+   hyp3 (= D B))
+  (-> ph (= C D))
+  hyp1 hyp2 syl5eq hyp3 syl6eqr
+)
+
+thm (vtocl ((A x) (ps x))
+  (hyp1 (-> (= x A) (<-> ph ps))
+   hyp2 ph)
+  ps
+
+  hyp2 hyp1 mpbii vtocle
+)
+
+## <title> Make Implicit Substitution Explicit </title>
+## <summary>
+##   A representation of explicit substitution, inferred from an implicit substitution hypothesis.
+## </summary>
+thm (ceqsal ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (A. x (-> (= x A) ph)) ps)
+
+  hyp pm5.74i x albii
+  x (= x A) ps 19.23 bitri
+  x A tyex ps a1bi bitr4i
+)
+
+## <title> Make Implicit Substitution Explicit </title>
+## <summary>
+##   A representation of explicit substitution, inferred from an implicit substitution hypothesis.
+## </summary>
+thm (ceqsex ((ps x) (A x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> (E. x (/\ (= x A) ph)) ps)
+
+  hyp pm5.32i x exbii
+  x (= x A) ps 19.41 bitri
+  x A tyex mpbiran
+)
+
+## <title> Make Implicit Substitution Explicit </title>
+## <summary>
+##   A representation of explicit substitution, inferred from an implicit substitution hypothesis.
+## </summary>
+thm (ceqsexim ((ps x) (A x)) (hyp (-> (= x A) (<-> ph ps))) (-> ps (E. x ph))
+  hyp
+  ceqsex  
+  ## <d 'Infer Right to Left '>
+    (E. x (/\ (= x A) ph)) ps bi2
+    ax-mp
+  ## </d 'Infer Right to Left '>  
+  ## <d ''Remove Left Side of AND' '>
+    (= x A) ph pm3.27
+    ImpReplaceImp1Ex1
+  ## </d ''Remove Left Side of AND' '>
+)
+
+thm (substex ((ph x y) (ps y) (ch x) (A y))
+  (hyp (-> (/\ ph (/\ (= y A) ps)) ch))
+  (-> (/\ ph (E. x ps)) (E. y ch))
+
+  hyp ex y 19.21ai
+    y (/\ (= y A) ps) ch 19.22
+  y (= y A) ps 19.41 y A tyex mpbiran syl5ibr syl
+  x 19.21ai
+  x ps (E. y ch) 19.23 sylib imp
+)
+
+# Version of ax-11 using E.
+#thm (ex11 () () (-> (= x y) (-> (E. x (/\ (= x y) ph)) (E. y ph)))
+#     x y (-. ph) ax-11
+#       y ph alnex biimpri
+#     syl5
+#       x (-> (= x y) (-. ph)) alex biimpi
+#     syl6 con4d
+#       (= x y) ph df-an x exbii biimpi
+#     syl5)
+
+thm (sbaxex () () (-> (A. x (-> (= x y) ph)) (E. x (/\ (= x y) ph)))
+     x y tyex
+       x (= x y) ph mpexaxp
+     ax-mp)
+
+thm (sbaxexd () (1 (-> ph (A. x (-> (= x y) ps))))
+        (-> ph (E. x (/\ (= x y) ps)))
+     1 x y ps sbaxex syl)
+
+## <title> Add Equality to Existential Statement </title>
+thm (exlem1 ((ph x)) () (-> (E. x ph) (E. x (/\ (= x y) ph)))
+     ph x alnfi
+       ph (= x y) ax-1 x 19.20i
+     syl x 19.22i exax1d sbaxexd)
+
+## <title> Quantifier variable exchange </title>
+thm (exalpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))
+     (-> (E. x ph) (E. y ps))
+     1 eqcoms com12 y 19.21ai
+       y x tyex
+         y (= y x) ps mpexax
+       ax-mp
+     syl x 19.23ai)
+     
+## <title> Quantifier variable exchange </title>
+thm (exalpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps)))
+     (<-> (E. x ph) (E. y ps))
+    1 biimpd exalpha1
+    y x eqcom 1 sylbi biimprd exalpha1
+    impbii)
+    
+## <title> Quantifier Variable Exchange </title>
+thm (alpha1 ((ph y) (ps x)) (1 (-> (= x y) (-> ph ps)))
+     (-> (A. x ph) (A. y ps))
+  1 eqcoms con3d exalpha1 con3i
+    x ph alex y ps alex
+  3imtr4i
+)
+
+## <title> Quantifier Variable Exchange </title>
+thm (alpha ((ph y) (ps x)) (1 (-> (= x y) (<-> ph ps))) (<-> (A. x ph) (A. y ps))
+    1  biimpd alpha1
+    1  eqcoms biimprd alpha1
+  impbii
+)
+
+# == Substitution thms ==
+
+## <title> Def. Proper Substitution Justification </title>
+thm (df-subst-just ((A z y) (ph z y)) ()
+      (<-> (E. y (/\ (= y A) (E. x (/\ (= x y) ph))))
+          (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
+     y z A eqeq1
+       y z x eqeq2 ph anbi1d x exbid
+     anbi12d exalpha
+     )
+
+## <title> Definition of Proper Substitution </title>
+defthm (df-subst wff ([/] A x ph) ((A z) (ph z)) ()
+         (<-> ([/] A x ph) (E. z (/\ (= z A) (E. x (/\ (= x z) ph)))))
+         y A x ph z df-subst-just)
+         
+## <title> Relatively Well-Formed Formula Definition </title>
+defthm (df-rwff wff (rwff x ph) () ()
+        (<-> (rwff x ph) (A. x (<-> ph ([/] x x ph))))
+      (A. x (<-> ph ([/] x x ph))) biid)
+
+## <title> Equality over substitution </title>
+## <summary>
+##   If A = B, then substituting A into an expression is the same as
+##   substituting B.
+## </summary>
+thm (dfsbcq () ()
+  (-> (= A B) (<-> ([/] A x ph) ([/] B x ph)))
+  A B y eqeq2 (E. x (/\ (= x y) ph)) anbi1d y exbid
+  A x ph y df-subst B x ph y df-subst bibi12i sylibr
+)
+
+## <title> Substitute any number into a universal statement </title>
+thm (a4sbc () ()
+  (-> (A. x ph) ([/] A x ph))
+
+  x y tyex x ph (= x y) 19.29 mpan2
+  ph (= x y) ancom x exbii sylib
+  y 19.21ai
+    y A tyex (A. x ph) a1i
+  jca
+  y (E. x (/\ (= x y) ph)) (= y A) 19.29 syl
+  (E. x (/\ (= x y) ph)) (= y A) ancom y exbii sylib
+  A x ph y df-subst sylibr
+)
+
+## <title> Substitution as Existence </title>
+## <suggest> right('Equivalence', '∃') left('Equivalence', '[/]') </suggest>
+thm (sbc5 ((A x)) () (<-> ([/] A x ph) (E. x (/\ (= x A) ph)))
+
+  A x ph y df-subst
+    y A x eqeq2 ph anbi1d
+    x exbid
+    ceqsex
+  bitri
+)
+
+## <title> Double Substitution </title>
+thm (sbcco ((ph y) (A y)) ()
+  (<-> ([/] A y ([/] y x ph)) ([/] A x ph))
+
+  A y ([/] y x ph) sbc5
+    y x ph sbc5
+      (= y A) anbi2i y exbii
+    bitri
+  A x ph y df-subst bitr4i
+)
+
+## <title> Make an implicit substitution explicit </title>
+thm (sbcie ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (<-> ([/] A x ph) ps)
+
+  A x ph sbc5
+  hyp ceqsex bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<->  [ ph ]   ]    ]  ch)
+##   (->   [ ph ]   [ ps ] )
+##   (<->  [    [   [ ps ]  ch)
+## </table>
+thm (ImpReplaceBi0 () (
+     replacee (<-> ph ch)
+     substitution (-> ph ps)) 
+     (-> ch ps)
+  replacee substitution
+  ch biim1i
+  ax-mp
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (->          [ ps ]   [ ch ] )
+##   (<-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (ImpReplaceBi0An1 () (
+     replacee (<-> (/\ ph ps) th)
+     substitution (-> ps ch)) 
+     (-> th (/\ ph ch))
+  replacee substitution
+  ph anim2i
+    ImpReplaceBi0
+)
+
+## <title> Convert Arbitrary Substitution into Universal Quantifier </title>
+thm (cla4g ((A x) (ps x))
+  (hyp (-> (= x A) (<-> ph ps)))
+  (-> (A. x ph) ps)
+  x ph A a4sbc hyp sbcie sylib
+)
+
+## <title> Add Substitutions to both sides </title>
+thm (sbcbid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> ([/] A x ps) ([/] A x ch)))
+
+  hyp (= x y) anbi2d x exbid
+  (= y A) anbi2d y exbid
+    A x ps y df-subst
+      A x ch y df-subst
+  3bitr4g
+)
+
+## <title> Add Substitutions to both sides </title>
+thm (sbcbii () (hyp (<-> ph ps)) (<-> ([/] A x ph) ([/] A x ps))
+  tru
+  hyp (T) a1i A x sbcbid
+  ax-mp
+)
+
+thm (sbceq12 () (h (rwff x ph))
+  (-> (= x A) (<-> ph ([/] A x ph)))
+  x A x ph dfsbcq
+    h x ph df-rwff mpbi a4i
+  syl5bb
+)
+
+## <title> Proposition is true if its true for every possible substitution </title>
+thm (sb6rf ((ph y)) (h (rwff x ph))
+  (<-> ph (A. y (-> (= y x) ([/] y x ph))))
+  h x ph df-rwff mpbi a4i
+    y x x ph dfsbcq
+    ceqsal
+  bitr4i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x  [ ph ]   ]    ] )
+##   (->    [ ph ]   [ ps ] )
+##   (E. x  [    [   [ ps ] )
+## </table>
+thm (ImpReplaceEx1 () (
+     replacee (E. x ph)
+     substitution (-> ph ps)) 
+     (E. x ps)
+  replacee
+  substitution
+x 19.22i
+ax-mp
+)
+
+## <title> Existence when number is used in substitution </title>
+thm (sbcex ((A x) (ph x)) () (-> ([/] A y ph) (E. x ([/] x y ph)))
+  ([/] A y ph) x alnfi
+  x A tyex
+  x A y ph dfsbcq    
+  ImpReplaceEx1
+  ## <d 'Infer Right to Left '>
+    ([/] x y ph) ([/] A y ph) bi2
+    ImpReplaceEx1
+  ## </d 'Infer Right to Left '>
+  x ([/] A y ph) ([/] x y ph) eximp1      
+  ax-mp  
+  syl
+)
+
+## <title> Relatively Well-Formed Formula Infernece </title>
+thm (rwffi ((ps x) (ph y))
+  (hyp (-> (= x y) (<-> ph ps)))
+  (rwff x ph)
+  hyp sbcie x y sbcbii
+  hyp x y eqcom ph ps bicom imbi12i mpbi sbcie bitri
+
+  x y x ph sbcco
+  bitr3i x gen
+  x ph df-rwff mpbir
+)
+
+## <title> Equivalence of Relatively Well-Formed-ness </title>
+thm (rwffbii () (hyp (<-> ph ps)) (<-> (rwff x ph) (rwff x ps))
+  hyp
+  hyp
+  x x sbcbii
+  bibi12i
+  x albii
+
+  x ph df-rwff  
+    
+  ## <d 'Commutative Property '>
+    (rwff x ph) (A. x (<-> ph ([/] x x ph))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  bitr3icom
+  x ps df-rwff    
+  ## <d 'Commutative Property '>
+    (rwff x ps) (A. x (<-> ps ([/] x x ps))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  bitri
+)
+
+## <title> Substitute a variable into itself </title>
+thm (sbcid () (hyp (rwff x ph)) (<-> ph ([/] x x ph))
+  hyp
+  x ph df-rwff
+  mpbi
+  a4i
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->          [ ps ]   [ ch ] )
+##   (<-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceBi1Bi0 () (
+     replacee (<-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (<-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  bitri
+)
+
+## <title> Negation Preserves Relatively Well-Formed-ness </title>
+thm (not-rwff.1 () (hyp (rwff x (-. ph)))  (rwff x ph)
+  hyp
+  y sbceq12      
+  ## <d 'Negate Both Sides '>
+    (-. ph) ([/] y x (-. ph)) notbi
+    ph notnotr
+    BiReplaceBi1Bi0
+    sylib
+  ## </d 'Negate Both Sides '>
+  rwffi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (rwff x  [ ph ]   ]    ] )
+##   (<->     [ ph ]   [ ps ] )
+##   (rwff x  [    [   [ ps ] )
+## </table>
+thm (BiReplaceRwff1 () (
+     replacee (rwff x ph)
+     substitution (<-> ph ps)) 
+     (rwff x ps)
+  replacee substitution
+  x rwffbii
+  mpbi
+)
+
+## <title> Negation Preserves Relatively Well-Formed-ness </title>
+thm (not-rwff () (hyp (rwff x ph)) (rwff x (-. ph))
+  hyp
+  ph notnot
+  BiReplaceRwff1
+  not-rwff.1
+)
+
+# == Existential uniqueness ==
+
+## <title> Definition of existential uniqueness </title>
+defthm (df-eu wff (E! x ph) ((ph y)) ()
+          (<-> (E! x ph) (E. y (A. x (<-> ph (= x y)))))
+       z y x eqeq2 ph bibi2d x 19.21ai 19.15d exalpha)
+
+thm (eubid ((ph x))
+  (hyp (-> ph (<-> ps ch)))
+  (-> ph (<-> (E! x ps) (E! x ch)))
+  hyp   (= x z)  bibi1d
+  x  19.21ai       19.15d     z  exbid
+  x  ps  z  df-eu   syl5bb
+  x  ch  z  df-eu      syl6bbr
+)
+
+thm (eubii () (h (<-> ph ps)) (<-> (E! x ph) (E! x ps))
+  y eqid
+    h  (= y y)  a1i   x  eubid
+  ax-mp
+)
+
+## <title> Quantifier variable exchange </title>
+thm (eualpha ((ph y) (ps x)) (h1 (-> (= x y) (<-> ph ps))) (<-> (E! x ph) (E! y ps))
+    h1
+      x  y  z  eqeq1
+    bibi12d    alpha
+    z  exbii
+        x  ph  z  df-eu
+          y  ps  z  df-eu
+        bibi12i    biimpri
+    ax-mp
+)
+
+## <title> Unique Existence Implies Existence </title>
+## <suggest> right('Infer', '∃') </suggest>
+thm (euex () () (-> (E! x ph) (E. x ph))
+  x  ph  z  df-eu  biimpi
+
+    x  z  tyex  z  gen    jctil  z  (E. x (= x z))  (A. x (<-> ph (= x z)))  19.29  syl
+    x  (<-> ph (= x z))  (= x z)  19.29  ancoms  z  19.22i  syl
+      ph  (= x z)  bi2    (= x z)  anim1i
+  (= x z)  ph  pm3.35  ancoms  syl  x  19.22i  z  19.22i  syl
+  z  (E. x ph)  19.9  sylib
+)
+
+thm (eumo0 ((ph y)) ()
+  (-> (E! x ph) (E. y (A. x (-> ph (= x y)))))
+  x ph y df-eu biimpi
+    ph (= x y) bi1 x 19.20i y 19.22i
+  syl
+)
+
+thm (sb8eu ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (E! y ([/] y x ph)))
+  h x ph df-rwff mpbi a4i x eubii
+  x y x ph dfsbcq eualpha bitri
+)
+
+thm (mo ((ph y)) (h (rwff x ph))
+  (<-> (E. y (A. x (-> ph (= x y)))) (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y)))))
+  z y x eqeq2
+  ph imbi2d
+  x 19.21ai 19.15d # albidv
+  exalpha
+    h y sbceq12 biimprd
+      x y z eqeq1 biimpd
+    imim12d alpha1
+    ancli
+      x y (-> ph (= x z)) (-> ([/] y x ph) (= y z)) aaan
+    sylibr
+      ph (= x z) ([/] y x ph) (= y z) prth
+        y z x eqeq2 biimprd impcom
+      syl6
+      y 19.20i x 19.20i
+    syl z 19.23ai
+  sylbir
+
+    y x (-> ([/] y x ph) (-> ph (= x y))) 19.5
+    x ([/] y x ph) (-> ph (= x y)) ax-alim y 19.20i sylbir  # having a7s would shorten slightly
+    y (A. x ([/] y x ph)) (A. x (-> ph (= x y))) 19.22 syl
+      ([/] y x ph) x alnfi y 19.22i
+    syl5com
+      ph ([/] y x ph) (= x y) impexp
+      ph ([/] y x ph) (= x y) bi2.04 bitri
+      y albii x albii
+    syl5ib
+      y ([/] y x ph) alnex
+        h y sbceq12 biimpd eqcoms con3d alpha1
+        ph (= x y) pm2.21 x 19.20i syl
+        (A. x (-> ph (= x y))) y 19.8a syl
+      sylbir
+      (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y)))) a1d
+    pm2.61i
+  impbii
+)
+
+thm (eu1 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (E. x (/\ ph (A. y (-> ([/] y x ph) (= x y))))))
+  h y sb8eu
+  y ([/] y x ph) x df-eu bitri
+    x y eqcom ([/] y x ph) imbi2i y albii
+      h y sb6rf
+    anbi12i
+      ph (A. y (-> ([/] y x ph) (= x y))) ancom
+        y ([/] y x ph) (= y x) albiim
+    3bitr4i x exbii
+  bitr4i
+)
+
+thm (eu2 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ([/] y x ph)) (= x y))))))
+  x ph euex
+    x ph y eumo0
+    h y mo sylib
+  jca
+    x ph (A. y (-> (/\ ph ([/] y x ph)) (= x y))) 19.29r
+      ph ([/] y x ph) (= x y) impexp y albii
+      y ph (-> ([/] y x ph) (= x y)) 19.21 bitri ph anbi2i
+      ph (A. y (-> ([/] y x ph) (= x y))) abai bitr4i x exbii
+    sylib
+    h y eu1 sylibr
+  impbii
+)
+
+thm (eu3 ((ph y)) (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (E. y (A. x (-> ph (= x y))))))
+  h y eu2 h y mo (E. x ph) anbi2i bitr4i
+)
+
+## <summary> There is exactly one number equal to a given number. </summary>
+thm (tyeu ((A x)) () (E! x (= x A))
+  y  A  tyex
+    y  A  x  eqeq2  bicomd  x  19.21ai  y  19.22i  ax-mp
+    x  (= x A)  y  df-eu  mpbir
+)
+
+# Exists at most one
+
+defthm (df-mo wff (E* x ph) () ()
+  (<-> (E* x ph) (-> (E. x ph) (E! x ph)))
+  (-> (E. x ph) (E! x ph)) biid
+)
+
+## <title> Quantifier variable exchange </title>
+thm (moalpha ((ph y) (ps x)) (hyp (-> (= x y) (<-> ph ps))) (<-> (E* x ph) (E* y ps))
+  ## <d 'Quantifier Variable Exchange'>
+    hyp exalpha
+    hyp eualpha
+    imbi12i
+  ## </d>
+  ## <d 'Definition At Most One'>
+    x ph df-mo bicomi  
+    bitr3icom
+  ## </d 'Definition At Most One'>
+  ## <d 'Definition At Most One'>
+    y ps df-mo bicomi    
+    bitri
+  ## </d 'Definition At Most One'>
+)
+
+thm (mobid ((ph x)) (hyp (-> ph (<-> ps ch))) (-> ph (<-> (E* x ps) (E* x ch)))
+  hyp
+  x exbid
+  hyp
+  x eubid
+  imbi12d
+  ## <d 'Definition of At Most One'>
+    x ps df-mo bicomi  
+    BiReplaceImp1Bi0
+  ## </d 'Definition of At Most One'>
+  ## <d 'Definition of At Most One'>
+    x ch df-mo bicomi    
+    BiReplaceImp1Bi1
+  ## </d 'Definition of At Most One'>
+)
+
+thm (mo2 ((ph y)) (h (rwff x ph))
+  (<-> (E* x ph) (E. y (A. x (-> ph (= x y)))))
+  x ph df-mo
+    x ph alnex
+      ph (= x y) pm2.21 x 19.20i
+      (A. x (-> ph (= x y))) y 19.8a syl
+    sylbir
+    x ph y eumo0 ja
+      h y eu3 biimpri expcom
+    impbii
+  bitri
+)
+
+thm (mo4 ((ph y) (ps x))  (h (-> (= x y) (<-> ph ps)))
+  (<-> (E* x ph) (A. x (A. y (-> (/\ ph ps) (= x y)))))
+  h rwffi y mo2 h rwffi y mo bitri  # same as mo3, but shouldn't need it as a separate thm
+    h sbcie ph anbi2i (= x y) imbi1i y albii x albii
+  bitri
+)
+
+thm (eu5 () (h (rwff x ph))
+  (<-> (E! x ph) (/\ (E. x ph) (E* x ph)))
+  h y eu3
+  h y mo2 (E. x ph) anbi2i bitr4i
+)
+
+thm (eu4 ((ph y) (ps x))
+  (h (-> (= x y) (<-> ph ps)))
+  (<-> (E! x ph) (/\ (E. x ph) (A. x (A. y (-> (/\ ph ps) (= x y))))))
+  h rwffi eu5 h mo4 (E. x ph) anbi2i bitri
+)
+
+export (EQUALITY equality.ghi (PROP PREDICATE_MIN PREDICATE EQUALITY_MIN) "")
+export (PREDICATE_ALL all.ghi (PROP) "")

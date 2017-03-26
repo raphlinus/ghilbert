@@ -1,0 +1,1717 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (AXIOMS /general/Axioms_of_intuitionistic_propositional_logic.ghi () "")
+tvar (formula p q r s)
+thm (distributeAntecedent () (H (→ p (→ q r))) (→ (→ p q) (→ p r))
+        H
+        p q r Frege
+        applyModusPonens
+ )
+thm (applySyllogism () (H1 (→ p q) H2 (→ q r)) (→ p r)
+        H1
+
+# First we turn <code>q → r</code> into <code>p → (q → r)</code>:
+        H2
+        (→ q r) p Simp
+        applyModusPonens
+
+# Then we turn that into <code>(p → q) → (p → r)</code>:
+        distributeAntecedent
+
+# Now we can apply modus ponens to get our desired result:
+        applyModusPonens
+ )
+thm (Id () () (→ p p)
+        p p Simp
+
+        p (→ p p) Simp
+        p (→ p p) p Frege
+        applyModusPonens
+
+        applyModusPonens
+ )
+
+# Alternate name for the same theorem:
+thm (ImplicationReflexivity () () (→ p p)
+        p Id
+ )
+thm (applyComm () (H (→ p (→ q r))) (→ q (→ p r))
+        q p Simp
+
+        H
+        distributeAntecedent
+
+        applySyllogism
+ )
+thm (CommonAntecedentAddition () () (→ (→ p q) (→ (→ r p) (→ r q)))
+        (→ p q) r Simp
+        r p q Frege
+        applySyllogism
+ )
+
+thm (addCommonAntecedent () (H (→ p q)) (→ (→ r p) (→ r q))
+        H
+        (→ p q) r Simp
+        applyModusPonens
+
+        distributeAntecedent
+ )
+thm (CommonConsequentAddition () () 
+  (→ (→ p q) (→ (→ q r) (→ p r)))
+        q r p CommonAntecedentAddition
+        applyComm
+ )
+
+thm (addCommonConsequent () (H (→ p q)) (→ (→ q r) (→ p r))
+        H
+
+        p q r CommonConsequentAddition
+
+        applyModusPonens
+ )
+thm (Comm () () (→ (→ p (→ q r)) (→ q (→ p r)))
+        p q r Frege
+
+        q p Simp
+        (→ p r) addCommonConsequent
+
+        applySyllogism
+ )
+thm (RedundantAntecedentAbsorption () ()
+  (→ (→ p (→ p q)) (→ p q))
+        p Id
+
+        p p q Frege
+        applyComm
+
+        applyModusPonens
+ )
+
+thm (absorbRedundantAntecedent () (H (→ p (→ p q))) (→ p q)
+        p Id
+
+        H
+        distributeAntecedent
+
+        applyModusPonens
+ )
+thm (AntecedentIntroduction () () (→ p (→ q p))
+        p q Simp
+ )
+
+thm (introduceAntecedent () (H p) (→ q p)
+        H
+        p q AntecedentIntroduction
+        applyModusPonens
+ )
+thm (FregeConverse () () (→ (→ (→ p q) (→ p r)) (→ p (→ q r)))
+# We start with <code>q → (p → q)</code>:
+        q p Simp
+# Adding a common consequent gets us most of the way, to <code>((p → q) → (p → r)) → (q → (p → r))</code>:
+        (→ p r) addCommonConsequent
+# Now we just switch <code>p</code> and <code>q</code> in <code>q → (p → r)</code> and we're done:
+        q p r Comm
+        applySyllogism
+ )
+
+thm (collectAntecedent () (H (→ (→ p q) (→ p r))) (→ p (→ q r))
+        H
+        p q r FregeConverse
+        applyModusPonens
+ )
+thm (SyllogismInConsequent () () (→ (→ p (→ q r)) (→ (→ p (→ r s)) (→ p (→ q s))))
+        q r s CommonConsequentAddition
+        p addCommonAntecedent
+
+        p (→ r s) (→ q s) Frege
+        applySyllogism
+ )
+
+thm (applySyllogismInConsequent () (H1 (→ p (→ q r)) H2 (→ p (→ r s))) (→ p (→ q s))
+        H2
+        H1
+        p q r s SyllogismInConsequent
+        applyModusPonens
+        applyModusPonens
+ )
+thm (introduceConjunction ()
+  (HLEFT p HRIGHT q)
+  (∧ p q)
+        HRIGHT
+        HLEFT
+        p q ConjunctionRightIntroduction
+        applyModusPonens
+        applyModusPonens
+ )
+thm (eliminateLeftConjunct () (H (∧ p q)) q
+        H
+        p q ConjunctionLeftElimination
+        applyModusPonens
+ )
+
+thm (eliminateRightConjunct () (H (∧ p q)) p
+        H
+        p q ConjunctionRightElimination
+        applyModusPonens
+ )
+thm (ConjunctionLeftIntroduction () () (→ p (→ q (∧ q p)))
+        q p ConjunctionRightIntroduction
+        applyComm
+ )
+thm (ConjunctionComposition1 () () (→ (→ p q) (→ (→ p r) (→ p (∧ q r))))
+# The proof starts with <code>q → (r → (q ∧ r))</code>:
+        q r ConjunctionRightIntroduction
+# and then adds <code>p</code> as an antecedent to each of <code>q</code>, <code>r</code>, and <code>q ∧ r</code>:
+        p addCommonAntecedent
+
+        p r (∧ q r) Frege
+        applySyllogism
+ )
+
+thm (composeConjunction () (HQ (→ p q) HR (→ p r)) (→ p (∧ q r))
+        HR
+        HQ
+        p q r ConjunctionComposition1
+        applyModusPonens
+        applyModusPonens
+ )
+thm (ConjunctionCompositionReverse () () (→ (→ p (∧ q r)) (∧ (→ p q) (→ p r)))
+# We start with <code>(p → (q ∧ r)) → (p → q)</code>:
+        q r ConjunctionRightElimination
+        p addCommonAntecedent
+# And the analogue for <code>r</code>, <code>(p → (q ∧ r)) → (p → r)</code>:
+        q r ConjunctionLeftElimination
+        p addCommonAntecedent
+# Combining the two gives us our result:
+        composeConjunction
+ )
+
+thm (extractLeftConjunction () (H (→ p (∧ q r))) (→ p q)
+        H
+        q r ConjunctionRightElimination
+        applySyllogism
+ )
+
+thm (extractRightConjunction () (H (→ p (∧ q r))) (→ p r)
+        H
+        q r ConjunctionLeftElimination
+        applySyllogism
+ )
+tvar (formula common)
+thm (CommonConsequentAdditionToNestedImplication () ()
+  (→ (→ p (→ q r)) (→ (→ r common) (→ p (→ q common))))
+        r common q CommonAntecedentAddition
+        (→ q r) (→ q common) p CommonAntecedentAddition
+        applySyllogism
+
+        applyComm
+ )
+
+thm (Exportation () () (→ (→ (∧ p q) r) (→ p (→ q r)))
+        p q ConjunctionRightIntroduction
+        p q (∧ p q) r CommonConsequentAdditionToNestedImplication
+        applyModusPonens
+ )
+
+thm (export () (H (→ (∧ p q) r)) (→ p (→ q r))
+        H
+        p q r Exportation
+        applyModusPonens
+ )
+tvar (formula P Q R)
+thm (ImportLemma () 
+  (H1 (→ P (→ Q R)) H2 (→ R (→ Q r)))
+  (→ P (→ Q r))
+        H1
+
+        H2
+        Q addCommonAntecedent
+
+        applySyllogism
+# Now we have <code>P → (Q → (Q → r))</code>, and just need to remove the extra <code>Q</code>:
+        Q r RedundantAntecedentAbsorption
+        applySyllogism
+ )
+
+thm (Importation () () (→ (→ p (→ q r)) (→ (∧ p q) r))
+        p q ConjunctionRightElimination
+        (→ q r) addCommonConsequent
+
+        p q ConjunctionLeftElimination
+        r addCommonConsequent
+
+        ImportLemma
+ )
+
+thm (import () (H (→ p (→ q r))) (→ (∧ p q) r)
+        H
+        p q r Importation
+        applyModusPonens
+ )
+thm (ImplicationTransitivity () () 
+  (→ (∧ (→ p q) (→ q r)) (→ p r))
+        p q r CommonConsequentAddition
+        import
+ )
+thm (ConjunctionCompositionForward () () (→ (∧ (→ p q) (→ p r)) (→ p (∧ q r)))
+        p q r ConjunctionComposition1
+        import
+ )
+thm (ConjunctionCommutativityImplication () () (→ (∧ p q) (∧ q p))
+        p q ConjunctionLeftElimination
+        p q ConjunctionRightElimination
+        composeConjunction
+ )
+
+thm (swapConjunction () (H (∧ p q)) (∧ q p)
+        H
+        p q ConjunctionCommutativityImplication
+        applyModusPonens
+ )
+thm (ConjunctionMultiplicationRX-q () () (→ (→ p q) (→ (∧ p common) q))
+        p common ConjunctionRightElimination
+        q addCommonConsequent
+ )
+
+thm (ConjunctionMultiplicationRX-common () () (→ (→ p q) (→ (∧ p common) common))
+        p common ConjunctionLeftElimination
+        (→ p q) introduceAntecedent
+ )
+
+thm (ConjunctionMultiplicationRR () () (→ (→ p q) (→ (∧ p common) (∧ q common)))
+        p q common ConjunctionMultiplicationRX-q
+        p q common ConjunctionMultiplicationRX-common
+        composeConjunction
+
+        (∧ p common) q common ConjunctionCompositionForward
+        applySyllogism
+ )
+
+thm (conjoinRR () (H (→ p q)) (→ (∧ p r) (∧ q r))
+        H
+        p q r ConjunctionMultiplicationRR
+        applyModusPonens
+ )
+thm (ConjunctionMultiplication () () (→ (∧ (→ p r) (→ q s)) (→ (∧ p q) (∧ r s)))
+        (→ p r) (→ q s) ConjunctionRightElimination
+        p r q ConjunctionMultiplicationRR
+        applySyllogism
+        r q ConjunctionCommutativityImplication
+        (∧ p q) introduceAntecedent distributeAntecedent
+        applySyllogism
+
+        (→ p r) (→ q s) ConjunctionLeftElimination
+        q s r ConjunctionMultiplicationRR
+        applySyllogism
+        s r ConjunctionCommutativityImplication
+        (∧ q r) introduceAntecedent distributeAntecedent
+        applySyllogism
+        applySyllogismInConsequent
+ )
+
+thm (conjoin () (H1 (→ p r) H2 (→ q s)) (→ (∧ p q) (∧ r s))
+        H1 H2 introduceConjunction
+        p r q s ConjunctionMultiplication
+        applyModusPonens
+ )
+
+thm (ConjunctionMultiplicationLL () () (→ (→ p q) (→ (∧ r p) (∧ r q)))
+        r ImplicationReflexivity
+
+        r r p q ConjunctionMultiplication
+        export
+
+        applyModusPonens
+ )
+
+thm (ConjunctionMultiplicationLR () () (→ (→ p q) (→ (∧ r p) (∧ q r)))
+        p q r ConjunctionMultiplicationLL
+
+        r q ConjunctionCommutativityImplication
+        (→ p q) introduceAntecedent
+
+        applySyllogismInConsequent
+ )
+
+thm (ConjunctionMultiplicationRL () () (→ (→ p q) (→ (∧ p r) (∧ r q)))
+        p q r ConjunctionMultiplicationRR
+
+        q r ConjunctionCommutativityImplication
+        (→ p q) introduceAntecedent
+
+        applySyllogismInConsequent
+ )
+
+thm (conjoinLL () (H (→ p q)) (→ (∧ r p) (∧ r q))
+        H
+        p q r ConjunctionMultiplicationLL
+        applyModusPonens
+ )
+
+thm (conjoinLR () (H (→ p q)) (→ (∧ r p) (∧ q r))
+        H
+        p q r ConjunctionMultiplicationLR
+        applyModusPonens
+ )
+
+thm (conjoinRL () (H (→ p q)) (→ (∧ p r) (∧ r q))
+        H
+        p q r ConjunctionMultiplicationRL
+        applyModusPonens
+ )
+thm (DisjunctionCompositionReverse () () (→ (→ (∨ p q) r) (∧ (→ p r) (→ q r)))
+        p q DisjunctionRightIntroduction
+        r addCommonConsequent
+
+        q p DisjunctionLeftIntroduction
+        r addCommonConsequent
+
+        composeConjunction
+ )
+
+thm (composeDisjunction () (HP (→ p r) HQ (→ q r)) (→ (∨ p q) r)
+        HQ
+        HP
+        p r q DisjunctionCompositionAxiom
+        applyModusPonens
+        applyModusPonens
+ )
+thm (introduceLeftDisjunction () (H p) (∨ q p)
+        H
+        p q DisjunctionLeftIntroduction
+        applyModusPonens
+ )
+
+thm (introduceRightDisjunction () (H p) (∨ p q)
+        H
+        p q DisjunctionRightIntroduction
+        applyModusPonens
+ )
+
+thm (extractLeftDisjunction () (H (→ (∨ p q) r)) (→ p r)
+        p q DisjunctionRightIntroduction
+        H
+        applySyllogism
+ )
+
+thm (extractRightDisjunction () (H (→ (∨ p q) r)) (→ q r)
+        q p DisjunctionLeftIntroduction
+        H
+        applySyllogism
+ )
+thm (DisjunctionCommutativityImplication () () (→ (∨ p q) (∨ q p))
+        q p DisjunctionRightIntroduction
+        p q DisjunctionLeftIntroduction
+        p (∨ q p) q DisjunctionCompositionAxiom
+        applyModusPonens
+        applyModusPonens
+ )
+
+thm (swapDisjunction () (H (∨ p q)) (∨ q p)
+        H
+        p q DisjunctionCommutativityImplication
+        applyModusPonens
+ )
+thm (DisjunctionSummationXL-p () () (→ (→ p q) (→ p (∨ common q)))
+        q common DisjunctionLeftIntroduction
+        p addCommonAntecedent
+ )
+
+thm (DisjunctionSummationXL-common () () (→ (→ p q) (→ common (∨ common q)))
+        common q DisjunctionRightIntroduction
+        (→ p q) introduceAntecedent
+ )
+
+thm (DisjunctionSummationRL () () (→ (→ p q) (→ (∨ p common) (∨ common q)))
+        p q common DisjunctionSummationXL-p
+        p q common DisjunctionSummationXL-common
+        composeConjunction
+
+        p (∨ common q) common DisjunctionCompositionAxiom
+        import
+        applySyllogism
+ )
+
+thm (disjoinRL () (H (→ p q)) (→ (∨ p r) (∨ r q))
+        H
+        p q r DisjunctionSummationRL
+        applyModusPonens
+ )
+thm (DisjunctionSummation () () (→ (∧ (→ p r) (→ q s)) (→ (∨ p q) (∨ r s)))
+        (→ p r) (→ q s) ConjunctionRightElimination
+        p r q DisjunctionSummationRL
+        applySyllogism
+        (→ p r) (→ q s) ConjunctionLeftElimination
+        q s r DisjunctionSummationRL
+        applySyllogism
+        applySyllogismInConsequent
+ )
+
+thm (disjoin () (H1 (→ p r) H2 (→ q s)) (→ (∨ p q) (∨ r s))
+        H1 H2 introduceConjunction
+        p r q s DisjunctionSummation
+        applyModusPonens
+ )
+thm (DisjunctionSummationLL () () (→ (→ p q) (→ (∨ r p) (∨ r q)))
+        r ImplicationReflexivity
+
+        r r p q DisjunctionSummation
+        export
+
+        applyModusPonens
+ )
+
+thm (DisjunctionSummationLR () () (→ (→ p q) (→ (∨ r p) (∨ q r)))
+        p q r DisjunctionSummationLL
+
+        r q DisjunctionCommutativityImplication
+        (→ p q) introduceAntecedent
+
+        applySyllogismInConsequent
+ )
+
+thm (DisjunctionSummationRR () () (→ (→ p q) (→ (∨ p r) (∨ q r)))
+        r ImplicationReflexivity
+
+        p q r r DisjunctionSummation
+        export
+        applyComm
+
+        applyModusPonens
+ )
+
+thm (disjoinLL () (H (→ p q)) (→ (∨ r p) (∨ r q))
+        H
+        p q r DisjunctionSummationLL
+        applyModusPonens
+ )
+
+thm (disjoinLR () (H (→ p q)) (→ (∨ r p) (∨ q r))
+        H
+        p q r DisjunctionSummationLR
+        applyModusPonens
+ )
+
+thm (disjoinRR () (H (→ p q)) (→ (∨ p r) (∨ q r))
+        H
+        p q r DisjunctionSummationRR
+        applyModusPonens
+ )
+
+# Justification for the definition of biconditional.
+thm (BiconditionalJust () ()
+        (∧ (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (∧ (→ p q) (→ q p))))
+        (∧ (→ p q) (→ q p)) ImplicationReflexivity
+        (∧ (→ p q) (→ q p)) ImplicationReflexivity
+        introduceConjunction
+)
+
+# The biconditional p ↔ q is defined as (p → q) ∧ (q → p). If we already had biconditional,
+# it would be fairly straightforward to define it using [BiconditionalReflexivity]. But
+# since we don't, what we'll prove instead is the expanded form of that defintion.
+# The defthm mechanism will then match the p ↔ q term against its expansion. This is
+# quite similar to dfbi in metamath's set.mm, [http://us.metamath.org/mpeuni/dfbi.html]
+defthm (Biconditional formula (↔ p q) () ()
+        (∧ (→ (↔ p q) (∧ (→ p q) (→ q p))) (→ (∧ (→ p q) (→ q p)) (↔ p q)))
+        p q BiconditionalJust
+)
+
+thm (introduceBiconditionalFromImplications () 
+  (HFORWARD (→ p q) HREVERSE (→ q p)) 
+  (↔ p q)
+        HFORWARD
+        HREVERSE
+        introduceConjunction
+
+        p q Biconditional
+        eliminateLeftConjunct
+
+        applyModusPonens
+ )
+thm (BiconditionalForwardElimination () () (→ (↔ p q) (→ q p))
+        p q Biconditional
+        eliminateRightConjunct
+
+        (→ p q) (→ q p) ConjunctionLeftElimination
+        applySyllogism
+ )
+
+thm (BiconditionalReverseElimination () () (→ (↔ p q) (→ p q))
+        p q Biconditional
+        eliminateRightConjunct
+
+        (→ p q) (→ q p) ConjunctionRightElimination
+        applySyllogism
+ )
+
+thm (eliminateBiconditionalForward () (H (↔ p q)) (→ q p)
+        H
+        p q BiconditionalForwardElimination
+        applyModusPonens
+ )
+
+thm (eliminateBiconditionalReverse () (H (↔ p q)) (→ p q)
+        H
+        p q BiconditionalReverseElimination
+        applyModusPonens
+ )
+thm (AntecedentDistribution () () (↔ (→ p (→ q r)) (→ (→ p q) (→ p r)))
+        p q r Frege
+        p q r FregeConverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (Transportation () () (↔ (→ p (→ q r)) (→ (∧ p q) r))
+        p q r Importation
+        p q r Exportation
+        introduceBiconditionalFromImplications
+ )
+
+thm (ConjunctionComposition () () (↔ (∧ (→ p q) (→ p r)) (→ p (∧ q r)))
+        p q r ConjunctionComposition1
+        import
+
+        p q r ConjunctionCompositionReverse
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (DisjunctionComposition () () (↔ (∧ (→ p r) (→ q r)) (→ (∨ p q) r))
+        p r q DisjunctionCompositionAxiom
+        import
+
+        p q r DisjunctionCompositionReverse
+        introduceBiconditionalFromImplications
+ )
+thm (BiconditionalReflexivity () () (↔ p p)
+        p Id
+        p Id
+        introduceBiconditionalFromImplications
+ )
+
+thm (BiconditionalSymmetryImplication () () (→ (↔ p q) (↔ q p))
+        p q Biconditional
+        eliminateRightConjunct
+
+        (→ p q) (→ q p) ConjunctionCommutativityImplication
+        applySyllogism
+
+        q p Biconditional
+        eliminateLeftConjunct
+        applySyllogism
+ )
+
+thm (BiconditionalSymmetry () () (↔ (↔ p q) (↔ q p))
+        p q BiconditionalSymmetryImplication
+        q p BiconditionalSymmetryImplication
+        introduceBiconditionalFromImplications
+ )
+
+thm (swapBiconditional () (H (↔ p q)) (↔ q p)
+        H
+        p q BiconditionalSymmetryImplication
+        applyModusPonens
+ )
+
+thm (BiconditionalTransitivity () () (→ (∧ (↔ p q) (↔ q r)) (↔ p r))
+        (↔ p q) (↔ q r) ConjunctionRightElimination
+        p q Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
+        (→ p q) (→ q p) ConjunctionRightElimination
+        applySyllogism
+
+        (↔ p q) (↔ q r) ConjunctionLeftElimination
+        q r Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
+        (→ q r) (→ r q) ConjunctionRightElimination
+        applySyllogism
+        applySyllogismInConsequent
+
+        (↔ p q) (↔ q r) ConjunctionLeftElimination
+        q r Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
+        (→ q r) (→ r q) ConjunctionLeftElimination
+        applySyllogism
+
+        (↔ p q) (↔ q r) ConjunctionRightElimination
+        p q Biconditional
+        eliminateRightConjunct
+        applySyllogism
+
+        (→ p q) (→ q p) ConjunctionLeftElimination
+        applySyllogism
+        applySyllogismInConsequent
+        composeConjunction
+
+        p r Biconditional
+        eliminateLeftConjunct
+        applySyllogism
+ )
+
+thm (applyBiconditionalTransitivity () (H1 (↔ p q) H2 (↔ q r)) (↔ p r)
+        H1 H2 introduceConjunction
+        p q r BiconditionalTransitivity
+        applyModusPonens
+ )
+thm (BiconditionalImplication () () (↔ (↔ p q) (∧ (→ p q) (→ q p)))
+        p q Biconditional
+        eliminateRightConjunct
+
+        p q Biconditional
+        eliminateLeftConjunct
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (convertFromBiconditionalToImplications () (H (↔ p q)) (∧ (→ p q) (→ q p))
+        H
+        p q Biconditional
+        eliminateRightConjunct
+        applyModusPonens
+ )
+
+thm (convertToBiconditionalFromImplications () (H (∧ (→ p q) (→ q p))) (↔ p q)
+        H
+        p q Biconditional
+        eliminateLeftConjunct
+        applyModusPonens
+ )
+thm (ConjunctionIdempotenceForward () () (→ p (∧ p p))
+        p p ConjunctionRightIntroduction
+        absorbRedundantAntecedent
+ )
+
+thm (ConjunctionIdempotenceReverse () () (→ (∧ p p) p)
+        p p ConjunctionLeftElimination
+ )
+
+thm (ConjunctionIdempotence () () (↔ p (∧ p p))
+        p ConjunctionIdempotenceForward
+        p ConjunctionIdempotenceReverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (cloneAsConjunction () (H p) (∧ p p)
+        H
+        p ConjunctionIdempotence eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (conflateConjunction () (H (∧ p p)) p
+        H
+        p ConjunctionIdempotence eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (ConjunctionCommutativity () () (↔ (∧ p q) (∧ q p))
+        p q ConjunctionCommutativityImplication
+        q p ConjunctionCommutativityImplication
+        introduceBiconditionalFromImplications
+ )
+thm (ConjunctionRightAssociation () () (→ (∧ (∧ p q) r) (∧ p (∧ q r)))
+# <code>p</code>:
+        (∧ p q) r ConjunctionRightElimination
+        p q ConjunctionRightElimination
+        applySyllogism
+# <code>q</code>:
+        (∧ p q) r ConjunctionRightElimination
+        p q ConjunctionLeftElimination
+        applySyllogism
+# <code>r</code>:
+        (∧ p q) r ConjunctionLeftElimination
+# Now we compose <code>q ∧ r</code>:
+        composeConjunction
+# And <code>p ∧ (q ∧ r)</code>:
+        composeConjunction
+ )
+thm (ConjunctionLeftAssociation () () (→ (∧ p (∧ q r)) (∧ (∧ p q) r))
+# <code>p</code>:
+        p (∧ q r) ConjunctionRightElimination
+# <code>q</code>:
+        p (∧ q r) ConjunctionLeftElimination
+        q r ConjunctionRightElimination
+        applySyllogism
+# Composing <code>p ∧ q</code>:
+        composeConjunction
+# <code>r</code>:
+        p (∧ q r) ConjunctionLeftElimination
+        q r ConjunctionLeftElimination
+        applySyllogism
+# Composing <code>(p ∧ q) ∧ r</code>:
+        composeConjunction
+ )
+
+thm (ConjunctionAssociativity () () (↔ (∧ (∧ p q) r) (∧ p (∧ q r)))
+        p q r ConjunctionRightAssociation
+        p q r ConjunctionLeftAssociation
+        introduceBiconditionalFromImplications
+ )
+
+thm (groupConjunctionRight () (H (∧ (∧ p q) r)) (∧ p (∧ q r))
+        H
+        p q r ConjunctionAssociativity
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (groupConjunctionLeft () (H (∧ p (∧ q r))) (∧ (∧ p q) r)
+        H
+        p q r ConjunctionAssociativity
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (DisjunctionIdempotenceForward () () (→ p (∨ p p))
+        p p DisjunctionRightIntroduction
+ )
+
+thm (DisjunctionIdempotenceReverse () () (→ (∨ p p) p)
+        p ImplicationReflexivity
+        p ImplicationReflexivity
+        p p p DisjunctionCompositionAxiom
+        applyModusPonens
+        applyModusPonens
+ )
+
+thm (DisjunctionIdempotence () () (↔ p (∨ p p))
+        p DisjunctionIdempotenceForward
+        p DisjunctionIdempotenceReverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (cloneAsDisjunction () (H p) (∨ p p)
+        H
+        p DisjunctionIdempotence eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (conflateDisjunction () (H (∨ p p)) p
+        H
+        p DisjunctionIdempotence eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (DisjunctionCommutativity () () (↔ (∨ p q) (∨ q p))
+        p q DisjunctionCommutativityImplication
+        q p DisjunctionCommutativityImplication
+        introduceBiconditionalFromImplications
+ )
+thm (DisjunctionRightAssociation () () (→ (∨ (∨ p q) r) (∨ p (∨ q r)))
+# <code>p</code> implies <code>p ∨ (q ∨ r)</code>:
+        p (∨ q r) DisjunctionRightIntroduction
+# Likewise for <code>q</code>:
+        q r DisjunctionRightIntroduction
+        (∨ q r) p DisjunctionLeftIntroduction
+        applySyllogism
+# Composing <code>p ∨ q</code>:
+        composeDisjunction
+# <code>r</code>:
+        r q DisjunctionLeftIntroduction
+        (∨ q r) p DisjunctionLeftIntroduction
+        applySyllogism
+# Composing <code>(p ∨ q) ∨ r</code>:
+        composeDisjunction
+ )
+
+thm (DisjunctionLeftAssociation () () (→ (∨ p (∨ q r)) (∨ (∨ p q) r))
+# <code>p</code> implies <code>(p ∨ q) ∨ r</code>:
+        p q DisjunctionRightIntroduction
+        (∨ p q) r DisjunctionRightIntroduction
+        applySyllogism
+# <code>q</code>:
+        q p DisjunctionLeftIntroduction
+        (∨ p q) r DisjunctionRightIntroduction
+        applySyllogism
+# <code>r</code>:
+        r (∨ p q) DisjunctionLeftIntroduction
+# Composing <code>q ∨ r</code>:
+        composeDisjunction
+# Composing <code>p ∨ (q ∨ r)</code>:
+        composeDisjunction
+ )
+
+thm (DisjunctionAssociativity () () (↔ (∨ (∨ p q) r) (∨ p (∨ q r)))
+        p q r DisjunctionRightAssociation
+        p q r DisjunctionLeftAssociation
+        introduceBiconditionalFromImplications
+ )
+
+thm (groupDisjunctionLeft () (H (∨ p (∨ q r))) (∨ (∨ p q) r)
+        H
+        p q r DisjunctionLeftAssociation
+        applyModusPonens
+ )
+
+thm (groupDisjunctionRight () (H (∨ (∨ p q) r)) (∨ p (∨ q r))
+        H
+        p q r DisjunctionRightAssociation
+        applyModusPonens
+ )
+thm (ConjunctionFunction-1 () () (→ (∧ (∧ p q) (∧ r s)) (∧ (∧ p r) (∧ q s)))
+        p q (∧ r s) ConjunctionAssociativity
+        eliminateBiconditionalReverse
+
+        p Id
+        q r s ConjunctionAssociativity
+        eliminateBiconditionalForward
+        conjoin
+
+        applySyllogism
+
+        p Id
+        q r ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        s Id 
+        conjoin
+        conjoin
+
+        applySyllogism
+
+        p Id
+        r q s ConjunctionAssociativity
+        eliminateBiconditionalReverse
+        conjoin
+
+        applySyllogism
+
+        p r (∧ q s) ConjunctionAssociativity
+        eliminateBiconditionalForward
+
+        applySyllogism
+ )
+
+thm (ConjunctionFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (∧ p r) (∧ q s))) # *4.38
+        p q Biconditional
+        eliminateRightConjunct
+
+        r s Biconditional
+        eliminateRightConjunct
+
+        conjoin
+
+        (→ p q) (→ q p) (→ r s) (→ s r) ConjunctionFunction-1
+
+        p q r s ConjunctionMultiplication
+        q p s r ConjunctionMultiplication
+        conjoin
+
+        applySyllogism
+        applySyllogism
+
+        (∧ p r) (∧ q s) Biconditional
+        eliminateLeftConjunct
+        applySyllogism
+ )
+
+thm (buildConjunction () (H1 (↔ p q) H2 (↔ r s))
+  (↔ (∧ p r) (∧ q s))
+        H1 H2 introduceConjunction
+        p q r s ConjunctionFunction
+        applyModusPonens
+ )
+thm (DisjunctionFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (∨ p r) (∨ q s))) # *4.39
+        p q Biconditional
+        eliminateRightConjunct
+
+        r s Biconditional
+        eliminateRightConjunct
+        conjoin
+
+        (→ p q) (→ q p) (→ r s) (→ s r) ConjunctionFunction-1
+
+        p q r s DisjunctionSummation
+        q p s r DisjunctionSummation
+        conjoin
+
+        applySyllogism
+        applySyllogism
+
+        (∨ p r) (∨ q s) Biconditional
+        eliminateLeftConjunct
+        applySyllogism
+ )
+
+thm (buildDisjunction () (H1 (↔ p q) H2 (↔ r s))
+  (↔ (∨ p r) (∨ q s))
+        H1 H2 introduceConjunction
+        p q r s DisjunctionFunction
+        applyModusPonens
+ )
+thm (RedundantDisjunctionAbsorption () () (→ (∨ p (∨ p q)) (∨ p q))
+        p p q DisjunctionAssociativity
+        eliminateBiconditionalForward
+
+        p DisjunctionIdempotence
+        eliminateBiconditionalForward
+        q disjoinRR
+
+        applySyllogism
+ )
+thm (DisjunctionLeftDistribution-reverse () () (→ (∧ (∨ p q) (∨ p r)) (∨ p (∧ q r)))
+# We start with <code>r → (q → (q ∧ r))</code>, and disjoin <code>p</code> to both sides of the second implication.
+        r q ConjunctionLeftIntroduction
+        q (∧ q r) p DisjunctionSummationLL
+        applySyllogism
+# That gives us <code>r → (p ∨ q → p ∨ (q ∧ r))</code>. We commute antecedents and disjoin <code>p</code> again.
+        applyComm
+        r (∨ p (∧ q r)) p DisjunctionSummationLL
+        applySyllogism
+# We now have <code>p ∨ q → (p ∨ r → p ∨ (p ∨ (q ∧ r)))</code>.  We just need to import, remove the redundant <code>p</code>, and we are done.
+        import
+        p (∧ q r) RedundantDisjunctionAbsorption
+        applySyllogism
+ )
+thm (ConjunctionLeftDistribution-forward () () 
+  (→ (∧ p (∨ q r)) (∨ (∧ p q) (∧ p r)))
+        p q ConjunctionRightIntroduction
+        p r ConjunctionRightIntroduction
+        composeConjunction
+
+        q (∧ p q) r (∧ p r) DisjunctionSummation
+        applySyllogism
+
+        import
+ )
+
+thm (ConjunctionLeftDistribution-reverse () ()
+  (→ (∨ (∧ p q) (∧ p r)) (∧ p (∨ q r)))
+        p q ConjunctionRightElimination
+        p r ConjunctionRightElimination
+        composeDisjunction
+
+        p q ConjunctionLeftElimination
+        p r ConjunctionLeftElimination
+        disjoin
+
+        composeConjunction
+ )
+
+thm (ConjunctionLeftDistribution () () (↔ (∧ p (∨ q r)) (∨ (∧ p q) (∧ p r)))
+        p q r ConjunctionLeftDistribution-forward
+        p q r ConjunctionLeftDistribution-reverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (DisjunctionLeftDistribution-forward () () (→ (∨ p (∧ q r)) (∧ (∨ p q) (∨ p r)))
+        q r ConjunctionRightElimination
+        p disjoinLL
+
+        q r ConjunctionLeftElimination
+        p disjoinLL
+
+        composeConjunction
+ )
+
+thm (DisjunctionLeftDistribution () () (↔ (∨ p (∧ q r)) (∧ (∨ p q) (∨ p r)))
+        p q r DisjunctionLeftDistribution-forward
+        p q r DisjunctionLeftDistribution-reverse
+        introduceBiconditionalFromImplications
+ )
+thm (DisjunctionRightDistribution () () (↔ (∨ (∧ p q) r) (∧ (∨ p r) (∨ q r)))
+        (∧ p q) r DisjunctionCommutativity
+        r p q DisjunctionLeftDistribution
+        applyBiconditionalTransitivity
+
+        r p DisjunctionCommutativity
+        r q DisjunctionCommutativity
+        buildConjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (ConjunctionRightDistribution () () (↔ (∧ (∨ p q) r) (∨ (∧ p r) (∧ q r)))
+        (∨ p q) r ConjunctionCommutativity
+        r p q ConjunctionLeftDistribution
+        applyBiconditionalTransitivity
+
+        r p ConjunctionCommutativity
+        r q ConjunctionCommutativity
+        buildDisjunction
+
+        applyBiconditionalTransitivity
+ )
+
+thm (distributeLeftDisjunction () (H (∨ p (∧ q r))) (∧ (∨ p q) (∨ p r))
+        H
+        p q r DisjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (collectLeftDisjunction () (H (∧ (∨ p q) (∨ p r))) (∨ p (∧ q r))
+        H
+        p q r DisjunctionLeftDistribution
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (distributeRightDisjunction () (H (∨ (∧ p q) r)) (∧ (∨ p r) (∨ q r))
+        H
+        p q r DisjunctionRightDistribution
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (collectRightDisjunction () (H (∧ (∨ p r) (∨ q r))) (∨ (∧ p q) r)
+        H
+        p q r DisjunctionRightDistribution
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (distributeLeftConjunction () (H (∧ p (∨ q r))) (∨ (∧ p q) (∧ p r))
+        H
+        p q r ConjunctionLeftDistribution
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (collectLeftConjunction () (H (∨ (∧ p q) (∧ p r))) (∧ p (∨ q r))
+        H
+        p q r ConjunctionLeftDistribution
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+
+thm (distributeRightConjunction () (H (∧ (∨ p q) r)) (∨ (∧ p r) (∧ q r))
+        H
+        p q r ConjunctionRightDistribution
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (collectRightConjunction () (H (∨ (∧ p r) (∧ q r))) (∧ (∨ p q) r)
+        H
+        p q r ConjunctionRightDistribution
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (*4.7 () () (↔ (→ p q) (→ p (∧ p q)))
+        p ImplicationReflexivity
+        p p q ConjunctionCompositionForward
+
+        export
+        applyModusPonens
+
+        p q ConjunctionLeftElimination
+        p addCommonAntecedent
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (*4.71 () () (↔ (→ p q) (↔ p (∧ p q)))
+        p q *4.7
+
+        p q ConjunctionRightElimination
+
+        (→ (∧ p q) p) (→ p (∧ p q)) ConjunctionLeftIntroduction
+        applyModusPonens
+
+        (→ p (∧ p q)) (→ (∧ p q) p) ConjunctionRightElimination
+        introduceBiconditionalFromImplications
+
+        applyBiconditionalTransitivity
+
+        p (∧ p q) BiconditionalImplication
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (BiconditionalConjunct () () (→ q (↔ p (∧ p q))) # *4.73
+        q p AntecedentIntroduction
+
+        p q *4.71
+        eliminateBiconditionalReverse
+
+        applySyllogism
+ )
+thm (ModusPonens () () (→ (∧ p (→ p q)) q)
+        (→ p q) ImplicationReflexivity
+        applyComm
+        import
+ )
+thm (TranspositionIntroduction () () (→ (→ p q) (→ (¬ q) (¬ p)))
+# The <code>ProofByContradiction</code> axiom is <code>(p → q) → ((p → ¬ q) → ¬ p)</code>.  That is, if <code>p</code> implies both <code>q</code> and its negation, <code>p</code> cannot be true. What we are trying to prove can be thought of as a weaker form of this, which is that if <code>p</code> implies <code>q</code>, and the negation of q holds (without worrying about <code>p</code>), then <code>p</code> cannot be true, or in symbols <code>(p → q) → (¬ q → ¬ p)</code>.
+        p q ProofByContradiction
+
+        (¬ q) p AntecedentIntroduction
+        (¬ p) addCommonConsequent
+        (→ p q) addCommonAntecedent
+
+        applyModusPonens
+ )
+
+thm (introduceTransposition () (H (→ p q)) (→ (¬ q) (¬ p))
+        H
+        p q TranspositionIntroduction
+        applyModusPonens
+ )
+thm (ModusTollens () () (→ (∧ (¬ q) (→ p q)) (¬ p))
+        p q TranspositionIntroduction
+        (¬ q) conjoinLL
+
+        (¬ q) (¬ p) ModusPonens
+        applySyllogism
+ )
+
+thm (applyModusTollens () (H (¬ q) HIMP (→ p q)) (¬ p)
+        H
+        HIMP
+        introduceConjunction
+
+        q p ModusTollens
+
+        applyModusPonens
+ )
+thm (DoubleNegationIntroduction () () (→ p (¬ (¬ p)))
+# The key step in the proof will be <code>(¬p → p) ∧ (¬p → ¬p) → ¬¬p</code> (which follows from the <code>ProofByContradiction</code> axiom). Taking the pieces of that formula one at a time, <code>p</code> implies <code>¬p → p</code>
+        p (¬ p) AntecedentIntroduction
+# and <code>¬p → ¬p</code> is a theorem.
+         (¬ p) ImplicationReflexivity
+         p introduceAntecedent
+# Now we assemble the result.
+        composeConjunction
+
+        (¬ p) p ProofByContradiction
+        import
+        applySyllogism
+ )
+
+thm (introduceDoubleNegation () (H p) (¬ (¬ p))
+        H
+        p DoubleNegationIntroduction
+        applyModusPonens
+ )
+thm (TripleNegation () () (↔ (¬ (¬ (¬ p))) (¬ p))
+# We prove the forward direction by taking <code>p → ¬ ¬ p</code> and transposing it.
+        p DoubleNegationIntroduction
+        introduceTransposition
+# The reverse direction is even easier, as <code>¬ p → ¬ ¬ ¬ p</code> is an instance of the <code>DoubleNegationIntroduction</code> theorem.
+        (¬ p) DoubleNegationIntroduction
+
+        introduceBiconditionalFromImplications
+ )
+
+thm (eliminateTripleNegation () (H (¬ (¬ (¬ p)))) (¬ p)
+        H
+        p TripleNegation
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (DisjunctiveSyllogismLemma () () (→ (→ p q) (→ (∨ p q) q))
+# The key to the proof of this lemma is <code>(p → q) → ((q → q) → (p ∨ q → q))</code>, which holds by disjunction composition. Once we have that, we just need to remove the <code>q → q</code>.
+        q ImplicationReflexivity
+
+        p q q DisjunctionCompositionAxiom
+        applyComm
+
+        applyModusPonens
+ )
+
+thm (DisjunctiveSyllogism () () (→ (∧ (¬ p) (∨ p q)) q)
+        p q Explosion
+        applyComm
+
+        p q DisjunctiveSyllogismLemma
+        applySyllogism
+
+        import
+ )
+thm (NegationDistributionPDP () () (→ (¬ (∨ p q)) (∧ (¬ p) (¬ q)))
+        p q DisjunctionRightIntroduction
+        introduceTransposition
+
+        q p DisjunctionLeftIntroduction
+        introduceTransposition
+
+        composeConjunction
+ )
+
+thm (NegationCollectionNDN () () (→ (∨ (¬ p) (¬ q)) (¬ (∧ p q)))
+        p q ConjunctionRightElimination
+        introduceTransposition
+
+        p q ConjunctionLeftElimination
+        introduceTransposition
+
+        composeDisjunction
+ )
+thm (NegationCollectionNCNLemma () () (→ (¬ p) (→ (¬ q) (¬ (∨ p q))))
+        p q DisjunctiveSyllogism
+        export
+
+        (∨ p q) q TranspositionIntroduction
+        applySyllogism
+ )
+thm (NegationCollectionNCN () () (→ (∧ (¬ p) (¬ q)) (¬ (∨ p q)))
+        p q NegationCollectionNCNLemma
+        import
+ )
+thm (NegationCollectionNCNDistributionPDP () () (↔ (∧ (¬ p) (¬ q)) (¬ (∨ p q)))
+        p q NegationCollectionNCN
+        p q NegationDistributionPDP
+        introduceBiconditionalFromImplications
+ )
+thm (NegationCollectionPCP () () (→ (∧ p q) (¬ (∨ (¬ p) (¬ q))))
+        p DoubleNegationIntroduction
+        q DoubleNegationIntroduction
+        conjoin
+
+        (¬ p) (¬ q) NegationCollectionNCNDistributionPDP
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+thm (NegationCollectionPDP () () (→ (∨ p q) (¬ (∧ (¬ p) (¬ q))))
+        p DoubleNegationIntroduction
+        q DoubleNegationIntroduction
+        disjoin
+
+        (¬ p) (¬ q) NegationCollectionNDN
+        applySyllogism
+ )
+thm (collectNegationPCP () (H (∧ p q)) (¬ (∨ (¬ p) (¬ q)))
+        H
+        p q NegationCollectionPCP
+        applyModusPonens
+ )
+
+thm (collectNegationPDP () (H (∨ p q)) (¬ (∧ (¬ p) (¬ q)))
+        H
+        p q NegationCollectionPDP
+        applyModusPonens
+ )
+
+thm (collectNegationNDN () (H (∨ (¬ p) (¬ q))) (¬ (∧ p q))
+        H
+        p q NegationCollectionNDN
+        applyModusPonens
+ )
+
+thm (collectNegationNCN () (H (∧ (¬ p) (¬ q))) (¬ (∨ p q))
+        H
+        p q NegationCollectionNCNDistributionPDP
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (distributeNegationPDP () (H (¬ (∨ p q))) (∧ (¬ p) (¬ q))
+        H
+        p q NegationCollectionNCNDistributionPDP
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+thm (DoubleNegatedConjunctionReverse () () (→ (¬ (¬ (∧ p q))) (∧ (¬ (¬ p)) (¬ (¬ q))))
+        p q ConjunctionRightElimination
+        introduceTransposition
+        introduceTransposition
+
+        p q ConjunctionLeftElimination
+        introduceTransposition
+        introduceTransposition
+
+        composeConjunction
+ )
+
+thm (DoubleNegatedDisjunction () () (→ (∨ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∨ p q))))
+        p q DisjunctionRightIntroduction
+        introduceTransposition
+        introduceTransposition
+
+        q p DisjunctionLeftIntroduction
+        introduceTransposition
+        introduceTransposition
+
+        composeDisjunction
+ )
+thm (addDoubleNegationImplicationImplication () (H (→ p (→ q r)))
+  (→ (¬ (¬ p)) (→ (¬ (¬ q)) (¬ (¬ r))))
+        H
+        q r TranspositionIntroduction
+        applySyllogism
+
+        applyComm
+        p (¬ q) TranspositionIntroduction
+        applySyllogism
+
+        applyComm
+        (¬ r) (¬ p) TranspositionIntroduction
+        applySyllogism
+
+        applyComm
+ )
+
+thm (DoubleNegatedConjunctionForward () () (→ (∧ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∧ p q))))
+        p q ConjunctionRightIntroduction
+        addDoubleNegationImplicationImplication
+        import
+ )
+
+thm (DoubleNegatedConjunction () () (↔ (∧ (¬ (¬ p)) (¬ (¬ q))) (¬ (¬ (∧ p q))))
+        p q DoubleNegatedConjunctionForward
+        p q DoubleNegatedConjunctionReverse
+        introduceBiconditionalFromImplications
+ )
+thm (NoContradiction () () (¬ (∧ p (¬ p)))
+# The proof is based on <code>¬ q → ¬ (p ∧ ¬ p)</code>, which is a rearrangment of <code>Explosion</code>.  To apply this we just need a theorem (any theorem) which starts with a negation, to plug in for <code>¬ q</code>.  The double negation of <code>Id</code> will do.
+        r Id
+        introduceDoubleNegation
+
+        p (¬ (→ r r)) Explosion
+        import
+        introduceTransposition
+
+        applyModusPonens
+ )
+thm (DisjunctiveCaseElimination () () (→ (∧ (∨ p q) (∨ (¬ p) q)) q)
+# We start by collecting the <code>q</code> from the left side to get <code>(p ∧ ¬ p) ∨ q</code>.
+        p (¬ p) q DisjunctionRightDistribution
+        eliminateBiconditionalForward
+# Because <code>¬ (p ∧ ¬ p)</code> is a theorem, disjunctive syllogism gives us <code>(p ∧ ¬ p) ∨ q → q</code>.
+        p NoContradiction
+        (∧ p (¬ p)) q DisjunctiveSyllogism
+        export
+        applyModusPonens
+# And this is just a syllogism away from our desired result.
+        applySyllogism
+ )
+thm (NegationBuilder () () (→ (↔ p q) (↔ (¬ p) (¬ q)))
+        p q BiconditionalImplication
+        eliminateBiconditionalReverse
+
+        (→ p q) (→ q p) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        applySyllogism
+
+        q p TranspositionIntroduction
+        p q TranspositionIntroduction
+        conjoin
+        applySyllogism
+
+        (¬ p) (¬ q) BiconditionalImplication eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (addNegation () (H (↔ p q)) (↔ (¬ p) (¬ q))
+        H
+        p q NegationBuilder
+        applyModusPonens
+ )
+thm (ImplicationFunction-1 () () (→ (∧ (↔ p q) (↔ r s)) (→ (→ p r) (→ q r)))
+        (↔ p q) (↔ r s) ConjunctionRightElimination
+        p q BiconditionalForwardElimination
+        applySyllogism
+
+        q p r CommonConsequentAddition
+        applySyllogism
+ )
+
+thm (ImplicationFunction-2 () () (→ (∧ (↔ p q) (↔ r s)) (→ (→ q r) (→ q s)))
+        (↔ p q) (↔ r s) ConjunctionLeftElimination
+        r s BiconditionalReverseElimination
+        applySyllogism
+
+        r s q CommonAntecedentAddition
+        applySyllogism
+ )
+
+thm (ImplicationFunction-3 () () (→ (∧ (↔ p q) (↔ r s)) (→ (→ p r) (→ q s)))
+        p q r s ImplicationFunction-1
+        p q r s ImplicationFunction-2
+        applySyllogismInConsequent
+ )
+
+thm (ImplicationFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (→ p r) (→ q s)))
+        p q r s ImplicationFunction-3
+
+        p q BiconditionalSymmetry
+        r s BiconditionalSymmetry
+        buildConjunction
+        eliminateBiconditionalReverse
+        q p s r ImplicationFunction-3
+        applySyllogism
+
+        composeConjunction
+
+        (→ p r) (→ q s) BiconditionalImplication
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (buildImplication () (HPQ (↔ p q) HRS (↔ r s)) (↔ (→ p r) (→ q s))
+        HPQ
+        HRS
+        introduceConjunction
+        p q r s ImplicationFunction
+        applyModusPonens
+ )
+thm (BiconditionalFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (↔ p r) (↔ q s)))
+        # We will need (p ↔ r) ↔ (p → r) ∧ (r → p) later.
+        p r BiconditionalImplication
+        (∧ (↔ p q) (↔ r s)) introduceAntecedent
+
+        # The main part of the proof applies the implication and conjunction builders
+        p q r s ImplicationFunction
+
+        (↔ p q) (↔ r s) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        r s p q ImplicationFunction
+        applySyllogism
+
+        composeConjunction
+
+        (→ p r) (→ q s) (→ r p) (→ s q) ConjunctionFunction
+        applySyllogism
+
+        # Now we turn (p → r) ∧ (r → p) into p ↔ r
+        composeConjunction
+        (↔ p r) (∧ (→ p r) (→ r p)) (∧ (→ q s) (→ s q)) BiconditionalTransitivity
+        applySyllogism
+
+        # Now we just need to turn q → s ∧ s → q into q ↔ s
+        q s BiconditionalImplication
+        swapBiconditional
+        (∧ (↔ p q) (↔ r s)) introduceAntecedent
+        composeConjunction
+        (↔ p r) (∧ (→ q s) (→ s q)) (↔ q s) BiconditionalTransitivity
+        applySyllogism
+ )
+
+thm (buildBiconditional () (HPQ (↔ p q) HRS (↔ r s)) (↔ (↔ p r) (↔ q s))
+        HPQ HRS introduceConjunction
+        p q r s BiconditionalFunction
+        applyModusPonens
+ )
+thm (ImplicationDistributionOverBiconditional () () (↔ (→ p (↔ q r)) (↔ (→ p q) (→ p r)))
+        (→ p q) (→ p r) BiconditionalImplication
+
+        p q r AntecedentDistribution swapBiconditional
+        p r q AntecedentDistribution swapBiconditional
+
+        buildConjunction
+
+        applyBiconditionalTransitivity
+
+        p (→ q r) (→ r q) ConjunctionComposition
+        applyBiconditionalTransitivity
+
+        p BiconditionalReflexivity
+        q r BiconditionalImplication swapBiconditional
+        buildImplication
+        applyBiconditionalTransitivity
+
+        swapBiconditional
+ )
+
+thm (distributeImplicationOverBiconditional () (H (→ p (↔ q r))) (↔ (→ p q) (→ p r))
+        H
+        p q r ImplicationDistributionOverBiconditional eliminateBiconditionalReverse
+        applyModusPonens
+ )
+thm (ConjunctionImplication3 () () (→ (∧ p (¬ q)) (¬ (→ p q)))
+        p q ModusPonens export
+        (→ p q) q TranspositionIntroduction
+        applySyllogism
+        import
+ )
+thm (DisjunctionImplicationForward () () (→ (∨ p q) (→ (¬ p) q))
+# This one looks a lot like <code>DisjunctiveSyllogism</code>, modulo a commutation and an export.
+        (∨ p q) (¬ p) ConjunctionCommutativity
+        eliminateBiconditionalReverse
+
+        p q DisjunctiveSyllogism
+        applySyllogism
+
+        export
+ )
+
+thm (convertFromDisjunctionToImplication () (H (∨ p q)) (→ (¬ p) q)
+        H
+        p q DisjunctionImplicationForward
+        applyModusPonens
+ )
+thm (ImplicationDisjunctionReverse () () (→ (∨ (¬ p) q) (→ p q))
+        (¬ p) q DisjunctionImplicationForward
+
+        p DoubleNegationIntroduction
+        q addCommonConsequent
+        applySyllogism
+ )
+
+thm (convertToImplicationFromDisjunction () (H (∨ (¬ p) q)) (→ p q)
+        H
+        p q ImplicationDisjunctionReverse
+        applyModusPonens
+ )
+
+thm (NotImplicationDisjunction () () (→ (¬ (→ p q)) (¬ (∨ (¬ p) q)))
+        p q ImplicationDisjunctionReverse
+        introduceTransposition
+ )
+
+thm (NotDisjunctionImplicationReverse () () (→ (¬ (→ (¬ p) q)) (¬ (∨ p q)))
+        p q DisjunctionImplicationForward
+        introduceTransposition
+ )
+thm (NotDisjunctionImplicationForward () () (→ (¬ (∨ p q)) (¬ (→ (¬ p) q)))
+        p q NegationCollectionNCNDistributionPDP eliminateBiconditionalForward
+
+        (¬ p) q ConjunctionImplication3
+        applySyllogism
+ )
+
+thm (NotDisjunctionImplication () () (↔ (¬ (∨ p q)) (¬ (→ (¬ p) q)))
+        p q NotDisjunctionImplicationForward
+        p q NotDisjunctionImplicationReverse
+        introduceBiconditionalFromImplications
+ )
+thm (BiconditionalConjunctionReverse () () (→ (∧ (∨ (¬ p) q) (∨ p (¬ q))) (↔ p q))
+        p q ImplicationDisjunctionReverse
+
+        p (¬ q) DisjunctionCommutativity
+        eliminateBiconditionalReverse
+        q p ImplicationDisjunctionReverse
+        applySyllogism
+
+        conjoin
+
+        p q Biconditional
+        eliminateLeftConjunct
+        applySyllogism
+ )
+
+thm (convertToBiconditionalFromConjunction () (H (∧ (∨ (¬ p) q) (∨ p (¬ q)))) (↔ p q)
+        H
+        p q BiconditionalConjunctionReverse
+        applyModusPonens
+ )
+
+thm (introduceBiconditionalFromDisjunctions () (HPQ (∨ (¬ p) q) HQP (∨ p (¬ q))) (↔ p q)
+        HPQ HQP introduceConjunction
+        p q BiconditionalConjunctionReverse
+        applyModusPonens
+ )
+
+thm (*3.4 () () (→ (∧ p q) (→ p q))
+        p q ConjunctionLeftElimination
+        q p AntecedentIntroduction
+        applySyllogism
+ )
+
+thm (TruthBiconditional () () (→ (∧ p q) (↔ p q)) # *5.1
+        p q *3.4
+
+        p q ConjunctionCommutativity
+        eliminateBiconditionalReverse
+        q p *3.4
+        applySyllogism
+
+        composeConjunction
+
+        p q BiconditionalImplication
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (Truth () () (↔ (⊤) (¬ (∧ p (¬ p))))
+        True
+        p NoContradiction
+        introduceConjunction
+
+        (⊤) (¬ (∧ p (¬ p))) TruthBiconditional
+        applyModusPonens
+)
+
+thm (TautologyId () () (↔ (→ p p) (⊤))
+        p Id
+        True
+        introduceConjunction
+
+        (→ p p) (⊤) TruthBiconditional
+        applyModusPonens
+ )
+
+defthm (df-falsity formula (⊥) () () (↔ (⊥) (¬ (⊤)))
+        (¬ (⊤)) BiconditionalReflexivity
+ )
+thm (NotFalse () () (¬ (⊥))
+        True
+        introduceDoubleNegation
+
+        df-falsity
+        eliminateBiconditionalReverse
+        introduceTransposition
+
+        applyModusPonens
+ )
+
+thm (ContradictionForward () () (→ (∧ p (¬ p)) (⊥))
+        p (⊥) Explosion
+        import
+ )
+
+thm (ContradictionReverse () () (→ (⊥) (∧ p (¬ p)))
+# First prove ⊥ → ⊥ ∧ ¬ ⊥  (because ¬ ⊥ is a theorem)
+        (⊥) ImplicationReflexivity
+
+        NotFalse
+        (⊥) introduceAntecedent
+
+        composeConjunction
+# Now ⊥ ∧ ¬ ⊥ → p ∧ ¬ p by explosion
+        (⊥) (∧ p (¬ p)) Explosion
+        import
+        applySyllogism
+ )
+
+thm (Contradiction () () (↔ (∧ p (¬ p)) (⊥))
+        p ContradictionForward
+        p ContradictionReverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (NegationImplicationForward () () (→ (¬ p) (→ p (⊥)))
+        (¬ p) p ConjunctionCommutativity
+        eliminateBiconditionalReverse
+
+        p Contradiction
+        eliminateBiconditionalReverse
+
+        applySyllogism
+
+        export
+ )
+
+thm (NegationImplicationReverse () () (→ (→ p (⊥)) (¬ p))
+        q Contradiction eliminateBiconditionalForward
+        p addCommonAntecedent
+
+        p q (¬ q) ConjunctionComposition eliminateBiconditionalForward
+        applySyllogism
+
+        p q ProofByContradiction
+        import
+        applySyllogism
+ )
+
+thm (NegationImplication () () (↔ (¬ p) (→ p (⊥)))
+        p NegationImplicationForward
+        p NegationImplicationReverse
+        introduceBiconditionalFromImplications
+ )
+
+thm (convertFromNegationToImplication () (H (¬ p)) (→ p (⊥))
+        H
+        p NegationImplication
+        eliminateBiconditionalReverse
+        applyModusPonens
+ )
+
+thm (convertToNegationFromImplication () (H (→ p (⊥))) (¬ p)
+        H
+        p NegationImplication
+        eliminateBiconditionalForward
+        applyModusPonens
+ )
+export (INTUITIONISTIC Basic_intuitionistic_propositional_logic.ghi () "")

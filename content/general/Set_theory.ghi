@@ -1,0 +1,214 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = [[Interface:Complex number axioms]] and others
+# | exportedby = [[Relations 2]]
+# }}
+# 
+# This page will eventually cover as much of set theory as is generally used in the bulk of mathematics: empty set, singletons, unordered and ordered pairs, relations, functions, subset, union, intersection, etc.
+# 
+# We build on [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]] (including equality):
+# 
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+# 
+# == Variables (sets) and objects (classes) ==
+# First-order logic provides us with two kinds: <code>variable</code> is a variable, which represents a set and can be quantified over, and <code>object</code> is an expression which represents a set. For example, a variable might be <code>x</code>, <code>y</code>, or <code>z</code>, but an object could be the singleton <code>{ x }</code>, the unordered pair <code>{ x, y }</code>, the ordered pair <code>〈 x, y 〉</code>, etc. To some extent the concepts of variable and object correspond to set and class in some theories (like metamath's set.mm), but one key difference is that we have no [[w:proper class|proper classes]] thanks to the [[Interface:Axiom of quantifiability|axiom of quantifiability]].
+# 
+var (object a b x y z w)
+tvar (object A B C A0 A1 B0 B1)
+tvar (formula φ ψ φx φy antecedent)
+# 
+# == Set membership ==
+# We can test whether one set is an element of another, and define an abbreviation for the negated version.
+term (formula (∈ A B))
+# 
+# == Empty set ==
+# We assert the existence of the empty set, a set with no elements.
+term (object (∅))
+stmt (EmptySet () () (¬ (∈ A (∅))))
+# 
+# == Singleton ==
+# Given a set, we can form a set <code>{ s }</code> which has only it as an element.<ref>[http://us.metamath.org/mpeuni/elsncg.html elsncg], metamath's set.mm, accessed August 7, 2010</ref>
+term (object (singleton A))
+stmt (Singleton () () (↔ (∈ A (singleton B)) (= A B)))
+# 
+# A set is an element of its singleton: <code>A ∈ {A}</code>.<ref>[http://us.metamath.org/mpeuni/snid.html snid], metamath's set.mm, accessed August 5, 2010</ref>
+stmt (SingletonMembership () () (∈ A (singleton A)))
+# 
+# == Unordered pair ==
+# Given two sets, we can form a unordered pair <code>{ s, t }</code> which has only those sets as elements.
+term (object (unorderedPair A B))
+stmt (UnorderedPair () () (↔ (∈ B (unorderedPair A0 A1)) (∨ (= B A0) (= B A1))))
+# 
+# An unordered pair contains each of its members: <code>A ∈ {A, B}</code>.
+stmt (UnorderedPairLeftMembership () () (∈ A (unorderedPair A B)))
+stmt (UnorderedPairRightMembership () () (∈ B (unorderedPair A B)))
+# 
+# Unordered pairs are unordered: <code>{A, B} = {B, A}</code>.
+stmt (UnorderedPairCommutativity () () (= (unorderedPair A B) (unorderedPair B A)))
+# 
+# Unordered pair equality can imply equality of members: <code>{A, C} = {B, C} → A = B</code>,<ref>[http://us.metamath.org/mpeuni/preqr1.html preqr1], metamath's set.mm, accessed August 4, 2010</ref> and likewise if the unordered pairs are commuted.
+# 
+stmt (UnorderedPairFirstMembersEqual () () (→ (= (unorderedPair A C) (unorderedPair B C)) (= A B)))
+stmt (UnorderedPairSecondMembersEqual () () (→ (= (unorderedPair C A) (unorderedPair C B)) (= A B)))
+# 
+# A singleton is equal to an unordered pair with the same element listed twice.
+stmt (SingletonUnorderedPair () () (= (singleton A) (unorderedPair A A)))
+# 
+# == Ordered pair ==
+# An ordered pair has a first element and a second element, and two ordered pairs are equal if and only if their first elements are equal and their second elements are equal.
+term (object (orderedPair A B))
+stmt (OrderedPairTheorem () () (↔ (= (orderedPair A0 B0) (orderedPair A1 B1)) (∧ (= A0 A1) (= B0 B1))))
+# 
+# We can extract the first or second element of an ordered pair.
+term (object (1st A))
+stmt (First () () (= (1st (orderedPair A B)) A))
+term (object (2nd A))
+stmt (Second () () (= (2nd (orderedPair A B)) B))
+# 
+# == Relations ==
+# A relation is a set of ordered pairs. We define <code>relation A</code> as a formula meaning "A is a relation". We customarily use the letters <code>R, S, and T</code> for relations.
+term (formula (relation A))
+stmt (Relation ((A z)) ()
+  (↔ (relation A) (∀ z (→ (∈ z A) (∃ x (∃ y (= z (orderedPair x y))))))))
+
+tvar (object R S T)
+# 
+# The Cartesian product of two sets is the set of all ordered pairs consisting of one set from the first given set and one set from the second given set.<ref>[http://us.metamath.org/mpeuni/opelxp.html opelxp], metamath's set.mm, accessed November 3, 2010</ref>
+term (object (× A B))
+stmt (MembershipCartesianProduct
+  ((A b a) (B b a) (C b a)) ()
+  (↔ (∈ C (× A B))
+    (∃ a (∃ b (∧
+      (= C (orderedPair a b)) (∧ (∈ a A) (∈ b B)))))))
+stmt (OrderedPairCartesianProduct () ()
+  (↔ (∈ (orderedPair A0 B0) (× A B)) (∧ (∈ A0 A) (∈ B0 B))))
+stmt (FirstSecondCartesianProduct () ()
+  (→ (∈ A (× B C)) (∧ (∈ (1st A) B) (∈ (2nd A) C))))
+# 
+# The domain of a relation is a set consisting of all of the first elements of the ordered pairs in the relation. Our definition, and the theorems that follow, do not require <code>R</code> to be a relation, but they aren't especially interesting if it is not.
+term (object (domain A))
+stmt (Domain ((B y) (R y)) ()
+  (↔ (∈ B (domain R)) (∃ y (∈ (orderedPair B y) R))))
+stmt (DomainSingletonRelation () ()
+  (= (domain (singleton (orderedPair A B))) (singleton A)))
+# 
+# The range is a set containing exactly the values which the second members of the ordered pairs in the relation can take on (as opposed to the other common definition, which is a set which is a superset of what we call the range).
+term (object (range A))
+stmt (Range ((B x) (R x)) ()
+  (↔ (∈ B (range R)) (∃ x (∈ (orderedPair x B) R))))
+stmt (RangeSingletonRelation () ()
+  (= (range (singleton (orderedPair A B))) (singleton B)))
+# 
+# == Subset ==
+# The subset relationship is equivalent to various statements involving membership, unions, intersections, and set differences.<ref>[http://us.metamath.org/mpeuni/df-ss.html df-ss]</ref>
+term (formula (⊆ A B))
+stmt (Subset ((A x) (B x)) ()
+  (↔ (⊆ A B) (∀ x (→ (∈ x A) (∈ x B)))))
+stmt (SubsetMembership () () (→ (⊆ A B) (→ (∈ C A) (∈ C B))))
+
+stmt (SingletonSubset () () (↔ (∈ A B) (⊆ (singleton A) B)))
+stmt (UnorderedPairSubset () ()
+  (↔ (∧ (∈ A C) (∈ B C)) (⊆ (unorderedPair A B) C)))
+# 
+# === Partial order ===
+# The subset relationship has the three properties of a [[w:Partially ordered set|partial order]]. That is, it is reflexive, antisymmetric, and transitive.
+# 
+stmt (SubsetReflexivity () () (⊆ A A))
+stmt (SubsetAntisymmetry () () (→ (∧ (⊆ A B) (⊆ B A)) (= A B)))
+stmt (SubsetTransitivity () () (→ (∧ (⊆ A B) (⊆ B C)) (⊆ A C)))
+# 
+# == Union ==
+# The union of a set has as its elements everything which is an element of some set in the given set.
+term (object (⋃ A))
+stmt (Union ((A x) (B x)) () (↔ (∈ B (⋃ A)) (∃ x (∧ (∈ B x) (∈ x A)))))
+# 
+# The union of two sets is just a special case of the union of a set.
+term (object (∪ A B))
+stmt (BinaryUnionAsUnion () () (= (∪ A B) (⋃ (unorderedPair A B))))
+stmt (BinaryUnion () () (↔ (∈ A (∪ B C)) (∨ (∈ A B) (∈ A C))))
+
+stmt (MembershipUnionRightIntroduction () () (→ (∈ A B) (∈ A (∪ B C))))
+stmt (MembershipUnionLeftIntroduction () () (→ (∈ A C) (∈ A (∪ B C))))
+
+stmt (UnionIdempotence () () (= (∪ A A) A))
+stmt (UnionSingleton () () (= (⋃ (singleton A)) A))
+# 
+# An unordered pair is the union of singletons for each of its elements.
+stmt (UnorderedPairSingleton () ()
+  (= (unorderedPair A B) (∪ (singleton A) (singleton B))))
+# 
+# === Subsets and unions ===
+stmt (SubsetUnion () () (→ (∧ (⊆ A B) (∈ B C)) (⊆ A (⋃ C))))
+stmt (MembershipSubsetUnion () () (→ (∈ A B) (⊆ A (⋃ B))))
+
+stmt (SubsetUnionRightIntroduction () ()
+  (→ (⊆ A B) (⊆ A (∪ B C))))
+# 
+# == Power set ==
+# The power set of a set has as its elements all of the subsets of the given set.
+term (object (power A))
+stmt (PowerSet () () (↔ (∈ B (power A)) (⊆ B A)))
+# 
+# == Separation ==
+# We define <code>{x ∈ A | φ}</code>, the set of all elements in <code>A</code> which also satisfy <code>φ</code>. Although we write <code>{x ∈ A | φ}</code> informally, for Ghilbert it needs to be <code>(separate x A φ)</code>.
+term (object (separate x A φ) (x A))
+stmt (Separation () ()
+  (↔ (∈ C (separate x A φ)) (∧ (∈ C A) (subst C x φ))))
+stmt (FormulaBound ((A z) (B z)) ((→ φ (∈ z A)))
+  (↔ (∈ B (separate z A φ)) (subst B z φ)))
+# 
+# The term <code>{x ∈ A | φ}</code> is like a quantifier in the sense that it binds <code>x</code>, and we can change the variable in a similar manner.
+stmt (ChangeVariableSeparation
+  ((φx y) (φy x))
+  ((→ (= x y) (↔ φx φy)))
+  (= (separate x A φx) (separate y A φy)))
+# 
+# == Builders ==
+# Equals can be substituted for equals, in the context of set operations.
+# 
+stmt (MembershipBuilderLL () () (→ (= B0 B1) (↔ (∈ A B0) (∈ A B1))))
+stmt (MembershipBuilderRR () () (→ (= A0 A1) (↔ (∈ A0 B) (∈ A1 B))))
+stmt (buildMembershipLL () ((= B0 B1)) (↔ (∈ A B0) (∈ A B1)))
+stmt (buildMembershipRR () ((= A0 A1)) (↔ (∈ A0 B) (∈ A1 B)))
+stmt (buildMembershipLLInConsequent ()
+  ((→ antecedent (= B0 B1)))
+  (→ antecedent (↔ (∈ A B0) (∈ A B1))))
+stmt (buildMembershipRRInConsequent ()
+  ((→ antecedent (= A0 A1)))
+  (→ antecedent (↔ (∈ A0 B) (∈ A1 B))))
+
+stmt (SingletonBuilder () () (→ (= A B) (= (singleton A) (singleton B))))
+
+stmt (UnorderedPairBuilder () () (→ (∧ (= A0 B0) (= A1 B1)) (= (unorderedPair A0 A1) (unorderedPair B0 B1))))
+
+stmt (OrderedPairBuilder () () (→ (∧ (= A0 A1) (= B0 B1)) (= (orderedPair A0 B0) (orderedPair A1 B1))))
+stmt (OrderedPairBuilderLL () () (→ (= B0 B1) (= (orderedPair A B0) (orderedPair A B1))))
+stmt (buildOrderedPairLLInConsequent ()
+  ((→ antecedent (= B0 B1)))
+  (→ antecedent (= (orderedPair A B0) (orderedPair A B1))))
+stmt (OrderedPairBuilderRR () () (→ (= A0 A1) (= (orderedPair A0 B) (orderedPair A1 B))))
+stmt (buildOrderedPairRRInConsequent ()
+  ((→ antecedent (= A0 A1)))
+  (→ antecedent (= (orderedPair A0 B) (orderedPair A1 B))))
+
+stmt (buildSeparation () ((↔ φ ψ)) (= (separate x A φ) (separate x A ψ)))
+
+stmt (UnionBuilder () () (→ (= A B) (= (⋃ A) (⋃ B))))
+stmt (buildUnion () ((= A B)) (= (⋃ A) (⋃ B)))
+
+stmt (FirstBuilder () () (→ (= A B) (= (1st A) (1st B))))
+stmt (SecondBuilder () () (→ (= A B) (= (2nd A) (2nd B))))
+stmt (DomainBuilder () () (→ (= R S) (= (domain R) (domain S))))
+stmt (RangeBuilder () () (→ (= R S) (= (range R) (range S))))
+# 
+# == Extensionality ==
+# Sets with the same elements are equal.
+stmt (Extensionality ((A z) (B z)) () (→ (∀ z (↔ (∈ z A) (∈ z B))) (= A B)))
+stmt (applyExtensionality ((A x) (B x)) ((↔ (∈ x A) (∈ x B))) (= A B))
+# 
+# == References ==
+# <references/>
+# 
+# [[Category:Set theory|{{PAGENAME}}]]

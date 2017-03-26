@@ -1,0 +1,79 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = Axioms of first-order logic
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = Predicate logic builds on [[Interface:Classical propositional calculus|propositional logic]] by adding quantifiers ("for all" and "there exists") and equality. More specifically, the kind of predicate logic we define here is known as first-order logic, which is a common basis for theories such as set theory or arithmetic.
+# }}
+# 
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]]
+# | importedby = [[First-order logic]]
+# | exportedby = none
+# }}
+# 
+# The axioms of first-order logic are usually stated in terms of substitution of one variable or constant for another, [[w:free variable|free variables]] and [[w:bound variable|bound variables]]. JHilbert or metamath do not have the ability to perform this kind of substitution or recognize free variables syntactically, so the version of the axioms here is not based on those concepts. JHilbert does have distinct variable constraints, although whether to use them in this context is somewhat a matter of taste; the metamath archive contains versions of many of these axioms either with distinct variable constraints or with other conditions which also make them correct. The axioms as presented here are adapted from metamath (which in turn got many of the ideas from a 1965 paper by Tarski).<ref>[http://us.metamath.org/mpeuni/mmset.html#pcaxioms Predicate calculus], accessed February 24, 2010</ref>
+# 
+# == Formulas and objects ==
+# We build on [[Interface:Classical propositional calculus]]:
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+# 
+# By convention we use φ, ψ, χ, and θ to represent formulas:
+tvar (formula φ ψ χ θ)
+# 
+# First-order logic provides variables and terms, and we use the kind object to represent the things that variables and terms can stand for (ghilbert deals with the distinction between variables (var) and terms (tvar).
+# We also define [[w:First-order_logic#Terms|term]]s, although for our current purposes the only kind of term we consider is a variable. Theories built on first-order logic, like [[w:Zermelo-Fraenkel set theory|ZFC set theory]] or [[Interface:Peano axioms|Peano arithmetic]], will define additional kinds of terms such as <code>+</code> (addition) or <code>∪</code> (union). Because <code>term</code> is a ghilbert keyword, we use the word ''object'' to refer to a term.
+
+kind (object)
+var (object x y z x0 x1 y0 y1)
+tvar (object s t u s0 s1 t0 t1)
+# 
+# == Quantification ==
+# We extend the available formulas with [[w:Universal quantification|universal quantification]]:
+term (formula (∀ x φ))
+
+stmt (QuantifiedImplication () () ( → (∀ x (→ φ ψ)) (→ (∀ x φ) (∀ x ψ)) ) )
+stmt (QuantifiedNegation () () ( → (¬ (∀ x φ)) (∀ x (¬ (∀ x φ))) ) )
+stmt (QuantifierCommutation () () ( → (∀ x (∀ y φ)) (∀ y (∀ x φ)) ) )
+# 
+# [[w:Generalization (logic)|Generalization]]:
+stmt (Generalization ((φ x)) () (→ φ (∀ x φ)))
+stmt (generalize () (φ) (∀ x φ))
+# 
+# Although a usable theory of predicate logic will generally have at least one more quantifier (∃ for "there exists"), it can be defined in terms of ∀, so we have avoided it in the above axioms and do not need to define it here.
+# 
+# == Equality ==
+# In this set of axioms we are concerned with equality between two variables, rather than two terms. [[Interface:Axiom of quantifiability]] takes up equality of terms in one way, and [[Interface:Equality of classes]] has a different approach.<ref>[http://us.metamath.org/mpeuni/df-cleq.html df-cleq], metamath's set.mm, accessed April 16, 2012</ref> However, as a matter of syntax we do say that equality is between two terms, so that those interfaces can adopt an axiom concerning equality between terms without having to use two different equality symbols, one for variables and one for terms.
+# 
+term (formula (= s t))
+# 
+# === Building equalities ===
+# We need some axioms defining equality. Because it seems like the path of least resistance, we adopt reflexivity, symmetry, and transitivity for terms. Other approaches would just assume these for variables, or a smaller set of axioms which imply these.<ref>[http://us.metamath.org/mpeuni/ax-8.html ax-8], metamath's set.mm, accessed April 16, 2012</ref>
+stmt (EqualityReflexivity () () (= s s))
+stmt (EqualitySymmetry () () (↔ (= s t) (= t s)))
+stmt (EqualityTransitivity () () (→ (∧ (= s t) (= t u)) (= s u)))
+# 
+# === Axioms combining equality and quantification ===
+# 
+# The <code>Existence</code> axiom asserts that there is at least one object:
+stmt (Existence () () (¬ (∀ x (¬ (= x y)))) )
+stmt (QuantifierSubstitution () () (→ (∀ x (= x y)) (∀ y (= y x))) )
+# 
+# The <code>VariableSubstitution</code> axiom converts a statement about one variable to a statement about another. In most uses, <code>φ</code> will contain <code>x</code> as a free variable.  Then the axiom allows one to deduce <code>∀ x (x = y → φ)</code>, a statement where <code>x</code> is not free, but where <code>y</code> is free.  <code>∀ x (x = y → φ)</code> means (in some sense), <code>φ</code> with <code>y</code> substituted for <code>x</code>. Metamath contains several equivalent variations of this axiom;<ref>[http://us.metamath.org/mpeuni/ax11v.html ax11v], [http://us.metamath.org/mpeuni/ax-11.html ax-11], and [http://us.metamath.org/mpeuni/ax-11o.html ax-11o] in metamath's set.mm, accessed March 14, 2010</ref> we pick ax11v, which is the most convenient one for us.
+stmt (VariableSubstitution () () 
+  (→ (= x y) (→ φ (∀ x (→ (= x y) φ)))) )
+# 
+# There is also the principle of "equals can be substituted for equals". In our system, there is no way to express this generally, and it must be provided separately for each kind of predicate or operation which exists in the theory (for example, <code>∈</code> (is an element of), for set theory, or <code>S</code> (successor) or <code>+</code> (addition) for Peano arithmetic). Such a statement for equals itself, <code>(s0 = s1 ∧ t0 = t1) → (s0 = t0 ↔ s1 = t1)</code>, can be proved from the above axioms, so an additional axiom is not needed here.
+# 
+# == Axiom of quantifiability ==
+# In the axioms as shown above, we do not preclude the possibility of a term which cannot be equal to any variable (this will be true of [[w:proper class|proper classes]] in some formulations of set theory, for example). If this generality is not needed, assuming the [[Interface:Axiom of quantifiability]] may make life easier.
+# 
+# == References ==
+# <references/>
+# 
+# == External links ==
+# *[[w:First-order logic]]
+# 
+# [[Category:Classical first-order logic|{{PAGENAME}}]]

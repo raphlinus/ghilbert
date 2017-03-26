@@ -1,0 +1,708 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+import (CLASSICAL /general/Classical_propositional_calculus.ghi () "")
+import (WITHOUT_QUANTIFIABILITY /general/First-order_logic.ghi (CLASSICAL) "")
+tvar (formula φ ψ φx φy φs)
+tvar (object s t u s0 s1 t0 t1)
+var (object x y z x0 x1 y0 y1)
+import (QUANTIFIABILITY_AXIOM /general/Axiom_of_quantifiability.ghi (CLASSICAL WITHOUT_QUANTIFIABILITY) "")
+
+thm (swapEqualityInConsequent () (H (→ φ (= s t))) (→ φ (= t s))
+        H
+        s t EqualitySymmetry
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (applyEqualityTransitivityInConsequent () (H1 (→ φ (= s t)) H2 (→ φ (= t u))) (→ φ (= s u))
+        H1
+        H2
+        composeConjunction
+        s t u EqualityTransitivity
+        applySyllogism
+ )
+thm (EqualityBuilderRR () () (→ (= s0 s1) (↔ (= s0 t) (= s1 t)))
+# The proof has two halves, each of which is proved by transitivity and an export.
+# The forward implication, <code>s0 = s1 → (s0 = t → s1 = t)</code>, also involves switching the order of the opening equality.
+        s0 s1 EqualitySymmetry
+        eliminateBiconditionalReverse
+
+        s1 s0 t EqualityTransitivity
+        export
+
+        applySyllogism
+
+# The reverse implication, <code>s0 = s1 → (s1 = t → s0 = t)</code>, is even simpler:
+        s0 s1 t EqualityTransitivity
+        export
+
+# We then combine the two directions:
+        composeConjunction
+
+        (= s0 t) (= s1 t) BiconditionalImplication eliminateBiconditionalForward
+        applySyllogism
+ )
+thm (commute2 () () (→ (↔ (= s0 t0) (= s1 t1)) (↔ (= t0 s0) (= t1 s1)))
+        s0 t0 EqualitySymmetry
+        s1 t1 EqualitySymmetry
+        buildBiconditional
+        eliminateBiconditionalReverse
+ )
+
+thm (EqualityBuilderLL () () (→ (= s0 s1) (↔ (= t s0) (= t s1)))
+        s0 s1 t EqualityBuilderRR
+        s0 t s1 t commute2
+        applySyllogism
+ )
+thm (EqualityBuilder () () (→ (∧ (= s0 s1) (= t0 t1)) (↔ (= s0 t0) (= s1 t1)))
+        (= s0 s1) (= t0 t1) ConjunctionRightElimination
+        s0 s1 t0 EqualityBuilderRR
+        applySyllogism
+
+        (= s0 s1) (= t0 t1) ConjunctionLeftElimination
+        t0 t1 s1 EqualityBuilderLL
+        applySyllogism
+
+        composeConjunction
+
+        (= s0 t0) (= s1 t0) (= s1 t1) BiconditionalTransitivity
+        applySyllogism
+ )
+
+thm (buildEquality () (HX (= s0 s1) HY (= t0 t1)) (↔ (= s0 t0) (= s1 t1))
+        HX
+        HY
+        introduceConjunction
+        s0 s1 t0 t1 EqualityBuilder
+        applyModusPonens
+ )
+
+thm (buildEqualityRR () (H (= s0 s1)) (↔ (= s0 t) (= s1 t))
+        H
+        t EqualityReflexivity
+        introduceConjunction
+
+        s0 s1 t t EqualityBuilder
+
+        applyModusPonens
+ )
+
+thm (buildEqualityLL () (H (= t0 t1)) (↔ (= s t0) (= s t1))
+        s EqualityReflexivity
+        H
+        introduceConjunction
+
+        s s t0 t1 EqualityBuilder
+
+        applyModusPonens
+ )
+thm (buildEqualityInConsequent ()
+  (HN (→ φ (= s0 s1)) HM (→ φ (= t0 t1)))
+  (→ φ (↔ (= s0 t0) (= s1 t1)))
+        HN HM composeConjunction
+        s0 s1 t0 t1 EqualityBuilder
+        applySyllogism
+ )
+
+thm (buildEqualityRRInConsequent ()
+  (H (→ φ (= s0 s1)))
+  (→ φ (↔ (= s0 t) (= s1 t)))
+        H
+        t EqualityReflexivity φ introduceAntecedent
+        buildEqualityInConsequent
+ )
+
+thm (buildEqualityLLInConsequent ()
+  (H (→ φ (= t0 t1)))
+  (→ φ (↔ (= s t0) (= s t1)))
+        s EqualityReflexivity φ introduceAntecedent
+        H
+        buildEqualityInConsequent
+ )
+defthm (Subst formula (subst s x φ) ((s y) (φ y)) () (↔ (subst s x φ) (∃ y (∧ (= y s) (∃ x (∧ (= x y) φ)))))
+# What we need to prove is <code>∃ z (z = s ∧ ∃ x (x = z ∧ φ)) ↔ ∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code>.  The first step is <code>z = y → (z = s ∧ ∃ x (x = z ∧ φ) ↔ y = s ∧ ∃ x (x = y ∧ φ))</code>
+        z y s EqualityBuilderRR
+
+        z y x EqualityBuilderLL
+        φ buildConjunctionRRInConsequent
+        x buildThereExistsInConsequent
+
+        buildConjunctionInConsequent
+# Then we just apply our change-variable theorem and we are done.
+        ChangeVariableThereExists
+ )
+thm (SubstBuilderReplacement () ()
+  (→ (= s t) (↔ (subst s x φ) (subst t x φ)))
+        s t y EqualityBuilderLL
+        (∃ x (∧ (= x y) φ)) buildConjunctionRRInConsequent
+        y buildThereExistsInConsequent
+
+# Now we just need to apply the definition of <code>subst</code> and we are done:
+        s x φ y Subst
+        t x φ y Subst
+        buildBiconditional
+
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (buildSubstReplacement () (H (= s t)) 
+  (↔ (subst s x φ) (subst t x φ))
+        H
+        s t x φ SubstBuilderReplacement
+        applyModusPonens
+ )
+thm (SubstAddition () () (→ (∀ x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))
+        φ ψ (= x y) ConjunctionMultiplicationLL
+        x addForAll
+
+        x (∧ (= x y) φ) (∧ (= x y) ψ) ForAllImplicationThereExists
+        applySyllogism
+
+        (∃ x (∧ (= x y) φ))
+          (∃ x (∧ (= x y) ψ))
+          (= y s) ConjunctionMultiplicationLL
+        applySyllogism
+
+        y addForAllToConsequent
+        y
+          (∧ (= y s) (∃ x (∧ (= x y) φ)))
+          (∧ (= y s) (∃ x (∧ (= x y) ψ)))
+          ForAllImplicationThereExists
+        applySyllogism
+# Now we just need to apply the definition of <code>subst</code> and we are done:
+        s x φ y Subst
+        swapBiconditional
+
+        s x ψ y Subst
+        swapBiconditional
+
+        buildImplication
+        eliminateBiconditionalReverse
+        applySyllogism
+ )
+
+thm (addSubst () (H (→ φ ψ)) (→ (subst s x φ) (subst s x ψ))
+        H
+        x generalize
+        x φ ψ s SubstAddition
+        applyModusPonens
+ )
+thm (SubstBuilder () () (→ (∀ x (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ)))
+        φ ψ BiconditionalReverseElimination
+        x addForAll
+        x φ ψ s SubstAddition
+        applySyllogism
+
+        φ ψ BiconditionalForwardElimination
+        x addForAll
+        x ψ φ s SubstAddition
+        applySyllogism
+
+        introduceBiconditionalFromImplicationsInConsequent
+ )
+thm (buildSubst () (H (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ))
+        H eliminateBiconditionalReverse
+        s x addSubst
+        H eliminateBiconditionalForward
+        s x addSubst
+        introduceBiconditionalFromImplications
+ )
+thm (ThereExistsIntroductionFromObject () ()
+  (→ (subst s x φ) (∃ x φ))
+# The proof takes the definition of <code>subst</code>, <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code> and pares it down by eliminating the parts we don't need. We start by expanding the definition.
+        s x φ y Subst
+        eliminateBiconditionalReverse
+# Then we trim out <code>y = s</code>,
+        (= y s) (∃ x (∧ (= x y) φ)) ConjunctionLeftElimination
+        y addThereExists
+        applySyllogism
+# and <code>x = y</code>.
+        (= x y) φ ConjunctionLeftElimination
+        x addThereExists
+        y addThereExists
+        applySyllogism
+# The only thing remaining is to simplify <code>∃ y ∃ x φ</code> to <code>∃ x φ</code>.
+        removeThereExistsInConsequent
+ )
+
+thm (introduceThereExistsFromObject () (H (subst s x φ)) (∃ x φ)
+        H
+        s x φ ThereExistsIntroductionFromObject
+        applyModusPonens
+ )
+thm (SpecializationToObject () () (→ (∀ x φ) (subst s x φ))
+# We start with <code>∀ x φ ∧ ∃ x x = y → ∃ x (φ ∧ x = y)</code> and eliminate the second antecedent (because it is an instance of <code>Quantifiability</code>).
+        x y Quantifiability
+        x φ (= x y) ThereExistsConjunctionCombining
+        detach2of2
+# Commuting the conjunction in the consequent gives <code>∀ x φ → ∃ x (x = y ∧ φ)</code>
+        φ (= x y) ConjunctionCommutativity
+        x buildThereExists
+        eliminateBiconditionalReverse
+        applySyllogism
+# We are heading towards the definition of <code>[ s / x ] φ</code>, which has two quantifiers: an outer one on <code>y</code> and an inner one on <code>x</code>.  So far we have the quantifier for <code>x</code> and a similar set of steps to the ones we just took will give us a similar expression with a quantifier for <code>y</code>.
+        y addForAllToConsequent
+# We add <code>∃ y y = s</code> (a theorem) to the consequent:
+        y s Quantifiability
+        (∀ x φ) introduceAntecedent
+        composeConjunction
+# The consequent is <code>∀ y ∃ x (x = y ∧ φ) ∧ ∃ y y = s)</code>, which we first turn into <code>∃ y (∃ x (x = y ∧ φ) ∧ y = s)</code>,
+        y (∃ x (∧ (= x y) φ)) (= y s) ThereExistsConjunctionCombining
+        applySyllogism
+# And then into <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code>.
+        (∃ x (∧ (= x y) φ)) (= y s) ConjunctionCommutativity
+        y buildThereExists
+        eliminateBiconditionalReverse
+        applySyllogism
+# Now we just need to apply the definition of <code>subst</code> and we are done:
+        s x φ y Subst
+        eliminateBiconditionalForward
+        applySyllogism )
+tvar (formula antecedent)
+thm (specializeToObjectInConsequent () (H (→ antecedent (∀ x φ))) (→ antecedent (subst s x φ))
+        H
+        x φ s SpecializationToObject
+        applySyllogism
+ )
+thm (ImplicitSubstitutionForAll ((s x) (ψ x)) ()
+  (→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∀ x (→ (= x s) φ)) ψ))
+# First we turn <code>x = s → (φ ↔ ψ)</code> into <code>(x = s → φ) ↔ (x = s → ψ)</code>.
+        (= x s) φ ψ ImplicationDistributionOverBiconditional
+# Then we distribute the quantifier to give <code>∀ x (x = s → φ) ↔ ∀ x (x = s → ψ)</code>.
+        x buildForAll
+        eliminateBiconditionalReverse
+
+        x (→ (= x s) φ) (→ (= x s) ψ) ForAllBiconditional
+        applySyllogism
+# Since <code>x</code> is not free in <code>ψ</code>, we can rewrite <code>∀ x (x = s → ψ)<code> as <code>∃ x x = s → ψ</code>.
+        x (= x s) ψ ForAllImplicationConsequentMovement
+        transformImplicationBiconditionalRight
+# But <code>∃ x x = s</code> is a theorem, so we can detach it. We do so by first proving <code>(∃ x x = s → ψ) ↔ ψ</code>.
+        x s Quantifiability
+        (∃ x (= x s)) ψ ModusPonens
+        detach1of2
+
+        ψ (∃ x (= x s)) AntecedentIntroduction
+
+        introduceBiconditionalFromImplications
+
+        transformImplicationBiconditionalRight
+ )
+thm (ImplicitForAll ((s x) (ψ x)) (HEQ (→ (= x s) (↔ φ ψ)))
+  (↔ (∀ x (→ (= x s) φ)) ψ)
+        HEQ
+        x generalize
+
+        x s φ ψ ImplicitSubstitutionForAll
+
+        applyModusPonens
+ )
+thm (ImplicitSubstitutionThereExists ((s x) (ψ x)) ()
+  (→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∃ x (∧ (= x s) φ)) ψ))
+# The proof basically consists of massaging negations to derive this result from the corresponding one for ∀. We start by showing that <code>∀x (x = s → (φ ↔ ψ))</code> implies that <code>∀x(x = s → ¬ φ)</code> is equivalent to <code>¬ ψ</code>.
+        φ ψ NegationFunction eliminateBiconditionalReverse
+        (= x s) addCommonAntecedent
+        x addForAll
+
+        x s (¬ φ) (¬ ψ) ImplicitSubstitutionForAll
+
+        applySyllogism
+# Now we need to show that <code>∀ x (x = s → ¬ φ) ↔ (¬ ψ)</code> implies <code>∃ x (x = s ∧ φ) ↔ ψ</code>. We first turn the former into <code>ψ ↔ (¬ ∀ x (x = s → ¬ φ))</code>:
+        (∀ x (→ (= x s) (¬ φ))) ψ BiconditionalTranspositionWithNegatedRight
+# We stick <code>ψ ↔ ψ</code> on the proof stack for later use,
+        ψ BiconditionalReflexivity
+# and work just with <code>¬ ∀ x (x = s → ¬ φ)</code> for now. We move the negation past the quantifier to get <code>∃ x ¬ (x = s → ¬ φ)</code>:
+        x (→ (= x s) (¬ φ)) NotForAll
+# Now we turn the negations and implication into a conjunction:
+        (= x s) φ ConjunctionImplication swapBiconditional
+        x buildThereExists
+        applyBiconditionalTransitivity
+# Bringing back two statements we left on the proof stack, we assemble the formula that <code>∀ x (x = s → ¬ φ) ↔ (¬ ψ)</code> is equivalent to <code>ψ ↔ ∃ x (x = s ∧ φ)</code>,
+        buildBiconditional
+        applyBiconditionalTransitivity
+# flip the order to get <code>∃ x (x = s ∧ φ) ↔ ψ</code>,
+        eliminateBiconditionalReverse
+        ψ (∃ x (∧ (= x s) φ)) BiconditionalSymmetry eliminateBiconditionalReverse
+        applySyllogism
+# and combine this with the first part of the proof.
+        applySyllogism
+ )
+thm (ImplicitThereExists ((s x) (ψ x)) (HEQ (→ (= x s) (↔ φ ψ)))
+  (↔ (∃ x (∧ (= x s) φ)) ψ)
+        HEQ
+        x generalize
+
+        x s φ ψ ImplicitSubstitutionThereExists
+
+        applyModusPonens
+ )
+thm (VariableToObjectLemma ((s x) (φ x))
+  (H (→ (= x s) φ))
+  φ
+        x s Quantifiability
+        H
+        x addThereExistsToAntecedent
+        applyModusPonens
+ )
+thm (VariableToObject ((s x) (φs x))
+  (HSUB (→ (= x s) (↔ φx φs)) Hφx φx)
+  φs
+        Hφx HSUB detachImplicationBiconditional
+        VariableToObjectLemma
+ )
+thm (ObjectSubstitution ((s x)) ()
+  (→ (= x s) (→ φ (∀ x (→ (= x s) φ))))
+# The general idea of the proof is to "substitute" <code>s</code> for <code>y</code> using a formula of the form <code>y = s → (''a formula with y in it'' ↔ ''much the same formula, but with s'')</code>.
+# 
+# We start with our substitution, <code>y = s → ((x = y → (φ → ∀ x (x = y → φ))) ↔ (x = s → (φ → ∀ x (x = s → φ))))</code>
+        y s x EqualityBuilderLL
+
+        y s x EqualityBuilderLL
+        φ buildCommonConsequentInConsequent
+        x buildForAllInConsequent
+        φ buildCommonAntecedentInConsequent
+
+        buildImplicationInConsequent
+# Now we apply <code>VariableToObject</code> to convert the axiom to our desired result.
+        x y φ VariableSubstitution
+        VariableToObject
+ )
+thm (ThereExistsForAll ((s x)) () (↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x s) φ)))
+# The proof consists of first proving <code>x = s → (φ ↔ ∀ x (x = s → φ))</code>,
+        x s φ ObjectSubstitution
+
+        x (→ (= x s) φ) Specialization
+        applyComm
+
+        introduceBiconditionalFromImplicationsInConsequent
+# and then turning this implicit substitution into its ∃ form.
+        ImplicitThereExists
+ )
+thm (SubstitutionThereExists ((s x)) () ( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))
+# We start with applying some builders to get <code>y = s → (∃ x (x = y ∧ φ) ↔ ∃ x (x = s ∧ φ))</code>.
+        y s x EqualityBuilderLL
+        φ buildConjunctionRRInConsequent
+        x buildThereExistsInConsequent
+# <code>ImplicitThereExists</code> then gives us <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ)) ↔ ∃ x (x = s ∧ φ)</code>, which is our desired result by the definition of <code>subst</code>.
+        ImplicitThereExists
+# Now we just need to apply the definition of <code>subst</code> and we are done:
+        swapBiconditional
+        s x φ y Subst
+        swapBiconditional
+        applyBiconditionalTransitivity
+        swapBiconditional
+ )
+thm (NullSubstitution ((φ x)) () (↔ (subst s x φ) φ)
+# The forward direction is <code>[s / x] φ → φ</code>.
+        s x φ ThereExistsIntroductionFromObject
+        removeThereExistsInConsequent
+# The reverse direction starts with <code>Generalization</code> to give <code>φ → ∀ x φ</code>, and then <code>SpecializationToObject</code> turns that into <code>[ s / x ] φ</code>
+        φ x Generalization
+        x φ s SpecializationToObject
+        applySyllogism
+# Combining the forward and reverse directions finishes the proof.
+        introduceBiconditionalFromImplications
+ )
+thm (SubstNegationLemma () () 
+  (↔ (∀ x (→ (= x s) (¬ φ))) (¬ (∃ x (∧ (= x s) φ))))
+        x s φ equs3
+        transposeBiconditionalWithNegatedRight
+ )
+
+thm (SubstNegation () () (↔ (subst s x (¬ φ)) (¬ (subst s x φ)))
+        s x (¬ φ) y Subst
+
+        y s (∃ x (∧ (= x y) (¬ φ))) ThereExistsForAll
+        applyBiconditionalTransitivity
+
+        x y (¬ φ) ThereExistsForAll
+        (= y s) buildImplicationAntecedent
+        y buildForAll
+        applyBiconditionalTransitivity
+
+        x y φ SubstNegationLemma
+        (= y s) buildImplicationAntecedent
+        y buildForAll
+        applyBiconditionalTransitivity
+
+        y s (∃ x (∧ (= x y) φ)) SubstNegationLemma
+        applyBiconditionalTransitivity
+
+        s x φ y Subst swapBiconditional
+        addNegation
+        applyBiconditionalTransitivity
+ )
+thm (SubstDisjunction () () (↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))
+        s x (∨ φ ψ) y Subst
+
+        (= x y) φ ψ ConjunctionLeftDistribution
+        x buildThereExists
+        (= y s) buildConjunctionLL
+        y buildThereExists
+        applyBiconditionalTransitivity
+
+        x (∧ (= x y) φ) (∧ (= x y) ψ) ThereExistsDisjunction
+        (= y s) buildConjunctionLL
+        y buildThereExists
+        applyBiconditionalTransitivity
+
+        (= y s) (∃ x (∧ (= x y) φ)) (∃ x (∧ (= x y) ψ)) ConjunctionLeftDistribution
+        y buildThereExists
+        applyBiconditionalTransitivity
+
+        y (∧ (= y s) (∃ x (∧ (= x y) φ))) (∧ (= y s) (∃ x (∧ (= x y) ψ))) ThereExistsDisjunction
+        applyBiconditionalTransitivity
+
+        s x φ y Subst
+        s x ψ y Subst
+        buildDisjunction
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (SubstConjunction () () (↔ (subst s x (∧ φ ψ)) (∧ (subst s x φ) (subst s x ψ)))
+        φ ψ DeMorganNDN swapBiconditional
+        s x buildSubst
+
+        s x (∨ (¬ φ) (¬ ψ)) SubstNegation
+        applyBiconditionalTransitivity
+
+        s x (¬ φ) (¬ ψ) SubstDisjunction
+        addNegation
+        applyBiconditionalTransitivity
+
+        s x φ SubstNegation
+        s x ψ SubstNegation
+        buildDisjunction
+        addNegation
+        applyBiconditionalTransitivity
+
+        (subst s x φ) (subst s x ψ) DeMorganNDN
+        applyBiconditionalTransitivity
+ )
+
+thm (SubstImplication () () (↔ (subst s x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))
+        φ ψ ImplicationDisjunction
+        s x buildSubst
+
+        s x (¬ φ) ψ SubstDisjunction
+        applyBiconditionalTransitivity
+
+        s x φ SubstNegation
+        (subst s x ψ) buildDisjunctionRR
+        applyBiconditionalTransitivity
+
+        (subst s x φ) (subst s x ψ) ImplicationDisjunction
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+
+thm (SubstBiconditional () () (↔ (subst s x (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ)))
+        φ ψ BiconditionalImplication
+        s x buildSubst
+
+        s x (→ φ ψ) (→ ψ φ) SubstConjunction
+        applyBiconditionalTransitivity
+
+        s x φ ψ SubstImplication
+        s x ψ φ SubstImplication
+        buildConjunction
+        applyBiconditionalTransitivity
+
+        (subst s x φ) (subst s x ψ) BiconditionalImplication
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (SubstThereExists ((s y)) () (↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))
+# To prove this, we simply expand the definition of <code>subst</code> and move <code>∃ y</code> across each piece of it. The expansion is <code>∃ z (z = s ∧ ∃ x (x = z ∧ ∃ y φ))</code>
+        s x (∃ y φ) z Subst
+
+        y (= x z) φ ThereExistsConjunctionMovement
+        x buildThereExists
+        (= z s) buildConjunctionLL
+        z buildThereExists
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        x y (∧ (= x z) φ) ThereExistsCommutation
+        (= z s) buildConjunctionLL
+        z buildThereExists
+        applyBiconditionalTransitivity
+
+        y (= z s) (∃ x (∧ (= x z) φ)) ThereExistsConjunctionMovement
+        z buildThereExists
+        swapBiconditional
+        applyBiconditionalTransitivity
+
+        z y (∧ (= z s) (∃ x (∧ (= x z) φ))) ThereExistsCommutation
+        applyBiconditionalTransitivity
+
+        s x φ z Subst
+        y buildThereExists
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (SubstitutionComposition ((φ y) (s y) ) ()
+  (↔ (subst s y (subst y x φ)) (subst s x φ))
+# The proof consists of rewriting both of the substitutions on the left hand side via <code>SubstitutionThereExists</code>. First we show <code>[ s / y ] [ y / x ] φ ↔ ∃ y (y = s ∧ [ y / x ] φ)</code>.
+        s y (subst y x φ) SubstitutionThereExists
+# The second invocation of <code>SubstitutionThereExists</code> shows that the right hand side of that expression is equivalent to <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code>
+        y x φ SubstitutionThereExists
+        (= y s) buildConjunctionLL
+        y buildThereExists
+        applyBiconditionalTransitivity
+# But <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ))</code> is <code>[ s / x ] φ</code>, by definition.
+        s x φ y Subst
+        swapBiconditional applyBiconditionalTransitivity
+ )
+thm (introduceSubst () (H φ) (subst s x φ)
+        H
+        x generalize
+        x φ s SpecializationToObject
+        applyModusPonens
+ )
+thm (makeSubstExplicit ((s x) (ψ x))
+  (HEQ (→ (= x s) (↔ φ ψ)))
+  (↔ (subst s x φ) ψ)
+# The proof will basically consist of two applications of <code>ImplicitSubstitutionThereExists</code>.
+# 
+# First we rewrite <code>x = s → (φ ↔ ψ)</code> as <code>y = s → (x = y → (φ ↔ ψ))</code>
+        (= y s) (= x y) ConjunctionCommutativity eliminateBiconditionalReverse
+        x y s EqualityTransitivity
+        applySyllogism
+
+        HEQ
+        applySyllogism
+
+        export
+# Now we add <code>∀ x</code> to the consequent:
+        x addForAllToConsequent
+# The first application of <code>ImplicitSubstitutionThereExists</code> turns <code>∀ x (x = y → (φ ↔ ψ))</code> into <code>∃ x (x = y ∧ φ) ↔ ψ</code>:
+        x y φ ψ ImplicitSubstitutionThereExists
+# Combining these results gets <code>y = s → (∃x (x = y ∧ φ) ↔ ψ)</code>:
+        applySyllogism
+# We then apply <code>ImplicitSubstitutionThereExists</code> again to get <code>∃ y (y = s ∧ ∃ x (x = y ∧ φ)) ↔ ψ)</code>, which is our desired result.
+        y generalize
+        y s (∃ x (∧ (= x y) φ)) ψ ImplicitSubstitutionThereExists
+        applyModusPonens
+# Now we just need to apply the definition of <code>subst</code> and we are done:
+        swapBiconditional
+        s x φ y Subst
+        swapBiconditional
+        applyBiconditionalTransitivity
+        swapBiconditional
+ )
+
+thm (EqualitySubstForward ((s x)) () (→ (= x s) (→ φ (subst s x φ)))
+# The proof consists of gradually building up the definition of <code>subst</code>. It is somewhat similar to the proof in metamath<ref>[http://us.metamath.org/mpeuni/sbequ1.html sbequ1]</ref> although the details are different because we have a different definition of <code>subst</code>.
+# 
+# We're going to start with <code>x = s ∧ φ → ∃ x (x = s ∧ φ)</code>, and then we want to change the innermost <code>s</code> to <code>z</code> (under the condition that <code>z = s</code>). We do this by using <code>(x = s ∧ φ) ∧ z = s</code> as an antecedent in both cases.
+        (∧ (= x s) φ) (= z s) ConjunctionRightElimination
+        (∧ (= x s) φ) x ThereExistsIntroduction
+        applySyllogism
+# The next bit is centered around the substitution <code>z = s → (∃ x (x = z ∧ φ) ↔ ∃ x (x = s ∧ φ))</code>. When combined with conjunction elimination and getting rid of half of the biconditional, it becomes <code>(x = s ∧ φ) ∧ z = s → (∃ x (x = s ∧ φ) → ∃ x (x = z ∧ φ))</code>.
+        (∧ (= x s) φ) (= z s) ConjunctionLeftElimination
+
+        z s x EqualityBuilderLL
+        φ buildConjunctionRRInConsequent
+        x buildThereExistsInConsequent
+
+        applySyllogism
+
+        eliminateBiconditionalForwardInConsequent
+# Combining those two formulas and exporting gives <code>x = s ∧ φ → (z = s → ∃ x (x = z ∧ φ))</code>.
+        applyModusPonensInConsequent
+        export
+# It is easy to add <code>∀ z</code> because <code>z</code> is distinct from everything else. This gives us <code>x = s ∧ φ → ∀ z (z = s → ∃ x (x = z ∧ φ))</code>.
+        z addForAllToConsequent
+# Again, <code>z</code> being distinct makes life easy as we turn the consequent into the definition of subst and apply the definition.
+        z s (∃ x (∧ (= x z) φ)) ThereExistsForAll
+        eliminateBiconditionalForward
+        applySyllogism
+
+        s x φ z Subst
+        eliminateBiconditionalForward
+        applySyllogism
+# That gives us <code>x = s ∧ φ → [s / x] φ</code> which is just an export from our desired theorem.
+        export
+ )
+thm (EqualitySubstReverse ((s x)) () (→ (= x s) (→ (subst s x φ) φ))
+        x s (¬ φ) EqualitySubstForward
+
+        s x φ SubstNegation
+        transformImplicationImplicationConsequent
+
+        (subst s x φ) φ Transposition
+        eliminateBiconditionalForward
+        applySyllogism
+ )
+
+thm (EqualitySubstDistinct ((s x)) () (→ (= x s) (↔ φ (subst s x φ)))
+        x s φ EqualitySubstForward
+        x s φ EqualitySubstReverse
+        introduceBiconditionalFromImplicationsInConsequent
+ )
+thm (SubstItself () () (↔ (subst x x φ) φ)
+        x x φ z Subst
+
+# Before we get started, we leave a statement on the proof stack for later.
+        y x Quantifiability
+# The first step is <code>y = x → (φ ↔ [ y / x ] φ)</code>.
+        y x EqualitySymmetry
+        eliminateBiconditionalReverse
+
+        x y φ EqualitySubstDistinct
+        applySyllogism
+# The second step is <code>y = x → ([ y / x ] φ ↔ [ x / x ] φ)</code>.
+        y x x φ SubstBuilderReplacement
+# The rest of the proof is just combining those two.
+        applyBiconditionalTransitivityInConsequent
+# That gives us <code>y = x → (φ ↔ [ x / x ] φ)</code>. Because <code>y</code> is no longer found in the consequent, its value is arbitrary and we can remove it using <code>Quantifiability</code> (actually, the weaker <code>Existence</code> from [[Interface:Axioms of first-order logic]] would suffice, but we didn't bother to export that).
+        y addThereExists
+        applyModusPonens
+
+# Because [[Wikiproofs:JHilbert definition soundness|definitions in JHilbert]] are currently automatically expanded, we cannot just leave <code>[ x / x ] φ</code> as itself, but must expand it (so that we can give the variable <code>z</code> a name and declare the distinct variable constraint between <code>y</code> and <code>z</code>).
+        x x φ z Subst
+        φ buildBiconditionalLL
+        y buildThereExists
+        eliminateBiconditionalReverse
+        applyModusPonens
+# Now we can proceed to remove the quantifier.
+        removeThereExists
+
+        swapBiconditional
+        applyBiconditionalTransitivity
+ )
+thm (EqualitySubst () () (→ (= x s) (↔ φ (subst s x φ)))
+# The first step is <code>x = s → ([ x / x ] φ ↔ [ s / x ] φ)</code>
+        x s x φ SubstBuilderReplacement
+# Now we turn <code>[ x / x ] φ</code> into <code>φ</code>.
+        x φ SubstItself
+        transformImplicationBiconditionalLeft
+ )
+thm (ChangeVariableExplicitThereExists ((φ y)) () (↔ (∃ x φ) (∃ y (subst y x φ)))
+        x y φ EqualitySubst
+        ChangeVariableThereExists
+ )
+
+thm (ChangeVariableExplicitForAll ((φ y) ) () (↔ (∀ x φ) (∀ y (subst y x φ)))
+        x y φ EqualitySubst
+        ChangeVariableForAll
+ )
+thm (ChangeVariableSubstitution
+  ((φx y) (φy x) (s y))
+  (H (→ (= x y) (↔ φx φy)))
+  (↔ (subst s x φx) (subst s y φy))
+# We rewrite <code>[ s / x ] φx</code> as <code>[ s / y ] [ y / x ] φx</code>.
+        s y x φx SubstitutionComposition
+        swapBiconditional
+# Our hypothesis implies that <code>[ y / x ] φx ↔ φy</code>, so we use this to change <code>[ s / y ] [ y / x ] φx</code> into <code>[ s / y ] φy</code>.
+        H
+        makeSubstExplicit
+
+        s y buildSubst
+
+        applyBiconditionalTransitivity
+ )
+export (WITH_QUANTIFIABILITY First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+
+#export (SUBSTITUTION Axioms_of_first-order_logic_in_terms_of_substitution_built_on_equality.ghi (CLASSICAL) "")

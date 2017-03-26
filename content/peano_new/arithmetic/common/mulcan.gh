@@ -1,0 +1,395 @@
+import (PROP             /peano_new/prop.ghi () "")
+import (PREDICATE        /peano_new/predicate/all.ghi (PROP) "")
+import (ADD_MULTIPLY_MIN /peano_new/arithmetic/common/add_multiply_min.ghi (PROP PREDICATE) "")
+import (ADD_MULTIPLY     /peano_new/arithmetic/common/add_multiply.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+import (MULCAN_MIN       /peano_new/arithmetic/common/mulcan_min.ghi (PROP PREDICATE ADD_MULTIPLY_MIN) "")
+
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+## <context>
+##   This theorem is part of a set of proofs related to the multiplicative
+##   cancelation property. These theorems apply generally to natural
+##   numbers, integers, rational, and real numbers. They do not apply to complex numbers.
+## </context>
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (= A  [ B ]   ]   ] ) ps))
+##   (=                [ B ]   [ C ] )
+##   (-> ph (<-> (= A  [   [   [ C ] ) ps))
+## </table>
+thm (EqReplaceImp1Bi0Eq1 () (
+     replacee (-> ph (<-> (= A B) ps))
+     substitution (= B C)) 
+     (-> ph (<-> (= A C) ps))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Bi0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps th))
+  replacee
+  substitution
+ps imbi2i
+ph imbi2i
+mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-.  [ ch ]   ]    ] )))
+##   (<->               [ ch ]   [ th ] )
+##   (-> ph (-> ps (-.  [    [   [ th ] )))
+## </table>
+thm (BiReplaceImp1Imp1Not0 () (
+     replacee (-> ph (-> ps (-. ch)))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps (-. th)))
+  replacee substitution
+  con4biir
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+thm (mulcan0 () () (-> (-. (= A (0))) (<-> (= (* B A) (0)) (= B (0))))
+  A B (0) mulcan  
+  ## <d 'Evaluate'>
+    A mul0r
+    EqReplaceImp1Bi0Eq1
+  ## </d 'Evaluate'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (-. (=  [ A ]   ]   ]  C))))
+##   (=                    [ A ]   [ B ] )
+##   (-> ph (-> ps (-. (=  [   [   [ B ]  C))))
+## </table>
+thm (EqReplaceImp1Imp1Not0Eq0 () (
+     replacee (-> ph (-> ps (-. (= A C))))
+     substitution (= A B)) 
+     (-> ph (-> ps (-. (= B C))))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Imp1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-.  [ ps ]   ]    ] ))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceImp1Not0 () (
+     replacee (-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (-> ph (-. ch))
+  replacee substitution
+  con4biir
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+## <title> Zero Product Property </title>
+thm (zeroProductz () () (-> (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0))))
+  A B mulcan0
+  ## <d 'Infer Left to Right '>
+    (= (* B A) (0)) (= B (0)) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  ## <d 'Contrapositive '>
+    (= (* B A) (0)) (= B (0)) con34b
+    sylib
+  ## </d 'Contrapositive '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A mulcom  
+    EqReplaceImp1Imp1Not0Eq0
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Import-Export Theorem '>
+    (-. (= A (0))) (-. (= B (0))) (-. (= (* A B) (0))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/  [ ps ]   ]    ]  th)))
+##   (<->             [ ps ]   [ ch ] )
+##   (<-> ph (-. (\/  [    [   [ ch ]  th)))
+## </table>
+thm (BiReplaceBi1Not0Or0 () (
+     replacee (<-> ph (-. (\/ ps th)))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. (\/ ch th)))
+  replacee substitution
+  th orbi1i
+  BiReplaceBi1Not0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-. (\/ ps  [ ch ]   ]    ] )))
+##   (<->                [ ch ]   [ th ] )
+##   (<-> ph (-. (\/ ps  [    [   [ th ] )))
+## </table>
+thm (BiReplaceBi1Not0Or1 () (
+     replacee (<-> ph (-. (\/ ps ch)))
+     substitution (<-> ch th)) 
+     (<-> ph (-. (\/ ps th)))
+  replacee substitution
+  ps orbi2i
+  BiReplaceBi1Not0
+)
+
+## <title> Zero Product Property </title>
+thm (zeroFactors () () (<-> (= (* A B) (0)) (\/ (= A (0)) (= B (0))))
+  A B zeroProductz  
+  ## <d 'Contrapositive '>
+    (/\ (-. (= A (0))) (-. (= B (0)))) (-. (= (* A B) (0))) con34b
+    mpbi
+    (= (* A B) (0)) notnotr
+    sylbi2
+  ## </d 'Contrapositive '>  
+  ## <d 'DeMorgan's Law '>
+    (-. (= A (0))) (-. (= B (0))) anor
+    (= A (0)) notnotr
+    BiReplaceBi1Not0Or0
+    (= B (0)) notnotr
+    BiReplaceBi1Not0Or1
+    BiReplaceImp1Not0
+  ## </d 'DeMorgan's Law '>  
+  ## <d 'Double Negative '>
+    (\/ (= A (0)) (= B (0))) notnotr
+    sylib
+  ## </d 'Double Negative '>
+
+  A (0) B muleq1  
+  ## <d 'Multiply by 0 '>
+    B mul0r  
+    EqReplaceImp1Eq1
+  ## </d 'Multiply by 0 '>
+  B (0) A muleq2  
+  ## <d 'Multiply by 0 '>
+    A mul0  
+    EqReplaceImp1Eq1
+  ## </d 'Multiply by 0 '>
+  jaoi
+  impbii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (= A  [ B ]   ]   ] )))
+##   (=                  [ B ]   [ C ] )
+##   (-> ph (-> ps (= A  [   [   [ C ] )))
+## </table>
+thm (EqReplaceImp1Imp1Eq1 () (
+     replacee (-> ph (-> ps (= A B)))
+     substitution (= B C)) 
+     (-> ph (-> ps (= A C)))
+  replacee substitution
+  A eqeq2i
+  BiReplaceImp1Imp1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps (=  [ A ]   ]   ]  C)))
+##   (=                [ A ]   [ B ] )
+##   (-> ph (-> ps (=  [   [   [ B ]  C)))
+## </table>
+thm (EqReplaceImp1Imp1Eq0 () (
+     replacee (-> ph (-> ps (= A C)))
+     substitution (= A B)) 
+     (-> ph (-> ps (= B C)))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Imp1
+)
+
+thm (nonzeroProduct () () (-> (-. (= A (0))) (<-> (= B (0)) (= (* A B) (0))))
+  A B zeroProductz  
+  ## <d 'Import-Export Theorem '>
+    (-. (= A (0))) (-. (= B (0))) (-. (= (* A B) (0))) impexp
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  A B (0) mulcan  
+  ## <d 'Infer Right to Left '>
+    (= (* B A) (* (0) A)) (= B (0)) bi2
+    syl
+  ## </d 'Infer Right to Left '>
+  ## <d 'Multiply by 0 '>
+    A mul0r  
+    EqReplaceImp1Imp1Eq1
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Commutative Property of Multiplication '>
+    B A mulcom  
+    EqReplaceImp1Imp1Eq0
+  ## </d 'Commutative Property of Multiplication '>
+  ## <d 'Contrapositive '>
+    (= B (0)) (= (* A B) (0)) con34b
+    sylib
+  ## </d 'Contrapositive '>
+  impbid  
+  ## <d 'Negate Both Sides '>
+    (= B (0)) (= (* A B) (0)) notbi bicomi
+    sylib
+  ## </d 'Negate Both Sides '>
+)
+
+## <title> Zero Product Property </title>
+thm (nonzeroProduct2 () () (<-> (-. (= (* A B) (0))) (/\ (-. (= A (0))) (-. (= B (0)))))
+  A B zeroFactors  
+  ## <d 'Negate Both Sides '>
+    (= (* A B) (0)) (\/ (= A (0)) (= B (0))) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>  
+  ## <d 'DeMorgan's Law '>
+    (= A (0)) (= B (0)) oran
+    BiReplaceBi1Not0
+  ## </d 'DeMorgan's Law '>
+  ## <d 'Double Negative '>
+    (/\ (-. (= A (0))) (-. (= B (0)))) notnotr
+    bitri
+  ## </d 'Double Negative '>
+)
+
+## <title> Multiply Nonequal Numbers </title>
+thm (neqmul () () (-> (/\ (-. (= A B)) (-. (= C (0)))) (-. (= (* A C) (* B C))))
+  C A B mulcan  
+  ## <d 'Negate Both Sides '>
+    (= (* A C) (* B C)) (= A B) notbi
+    sylib
+  ## </d 'Negate Both Sides '>  
+  ## <d 'Infer Right to Left '>
+    (-. (= (* A C) (* B C))) (-. (= A B)) bi2
+    syl
+  ## </d 'Infer Right to Left '>  
+  ## <d 'Import-Export Theorem '>
+    (-. (= C (0))) (-. (= A B)) (-. (= (* A C) (* B C))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>  
+  ## <d 'Commute Conjunction '>
+    (-. (= C (0))) (-. (= A B)) ancom
+    sylbi2
+  ## </d 'Commute Conjunction '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (=  [ A ]   ]   ]  C) ps))
+##   (=              [ A ]   [ B ] )
+##   (-> ph (<-> (=  [   [   [ B ]  C) ps))
+## </table>
+thm (EqReplaceImp1Bi0Eq0 () (
+     replacee (-> ph (<-> (= A C) ps))
+     substitution (= A B)) 
+     (-> ph (<-> (= B C) ps))
+  replacee substitution
+  C eqeq1i
+  BiReplaceImp1Bi0
+)
+
+## <title> Cancel Multiplication </title>
+thm (mulcan2 () () (-> (-. (= A (0))) (<-> (= (* A B) (* A C)) (= B C)))
+  A B C mulcan  
+  ## <d 'Commutative Property '>
+    B A mulcom
+    EqReplaceImp1Bi0Eq0
+  ## </d 'Commutative Property '>  
+  ## <d 'Commutative Property '>
+    C A mulcom
+    EqReplaceImp1Bi0Eq1
+  ## </d 'Commutative Property '>
+)
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (=    <r> A   ] (0))) ] ]
+##   (= (* B ] <r> A ) ] (* [ C <r> A))
+##   (=    B ]         ]    [ C)
+## </table>
+thm (mulcani () (Anot0 (-. (= A (0))) hyp (= (* B A) (* C A))) (= B C)
+  hyp
+  Anot0
+  A B C mulcan  
+  ax-mp
+  mpbi
+)
+
+## <title> Cancel Multiplication </title>
+## <table>
+##   (-. (= <r> A ] ] (0)))  ]
+##   (=  (* <r> A [ B ) ] (* <r> A [ C ))
+##   (=           [ B   ]          [ C)
+## </table>
+thm (mulcan2i () (Anot0 (-. (= A (0))) hyp (= (* A B) (* A C))) (= B C)
+  hyp
+  Anot0
+  A B C mulcan2
+  ax-mp
+  mpbi
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (MULCAN mulcan.ghi (PROP PREDICATE ADD_MULTIPLY_MIN MULCAN_MIN) "")

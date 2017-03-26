@@ -1,0 +1,236 @@
+import (PROP      /peano_new/prop.ghi () "")
+import (PREDICATE /peano_new/predicate/all.ghi (PROP) "")
+
+import (SET_MIN   /peano_new/set_min.ghi (PROP PREDICATE) "")
+import (SET       /peano_new/set.ghi (PROP PREDICATE SET_MIN) "")
+
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+tvar (set S T U V)
+
+## <context>
+##   This theorem is part of a series of proofs on the
+##   <a href="/wiki/peano/arithmetic/ifn">ternary conditional</a> which is
+##   an operation that chooses between two numbers depending on whether or
+##   not a boolean expression is true. These theorems apply generally to
+##   all types of numbers.
+## </context>
+
+# == Ternary conditional for naturals ==
+
+# Ternary expressions for naturals: (ph ? A : B)
+thm (df-ifn-just ((ph x y) (A x y) (B x y)) () (=
+  (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))))
+  (iota ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))))
+
+  x  y  A  eqeq1
+  ph  anbi2d
+    x  y  B  eqeq1
+    (-. ph)  anbi2d
+  orbi12d
+  abeq
+  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} y (\/ (/\ ph (= y A)) (/\ (-. ph) (= y B))))  ax-iotaeq    ax-mp
+)
+
+defthm (df-ifn nat (ifn ph A B) ((ph x) (A x) (B x)) ()
+  (= (ifn ph A B)   (iota ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))))
+  y  ph  A  B  x  df-ifn-just)
+
+## <title> First branch of ternary expression </title>
+thm (ifn1 () () (-> ph (= (ifn ph A B) A))
+     ph  (= x A)  iba
+     ph  (= x A)  ancom    syl6bbr
+       (-. ph)  (= x B)  pm3.26    con2i
+       (/\ (-. ph) (= x B))  (/\ ph (= x A))  biorf    syl
+         (/\ (-. ph) (= x B))  (/\ ph (= x A))  orcom
+       syl6rbb
+     bitr4d
+     x  19.21ai
+       x  (= x A)  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  abbi2
+     syl
+     ({|} x (= x A))  ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ax-iotaeq    syl
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        A  x  df-sn
+          ({} A)  ({|} x (= x A))  ax-iotaeq    ax-mp
+        syl6eqr
+      A  ax-iota    syl6eq
+)
+
+## <title> Second branch of ternary expression </title>
+thm (ifn2 () () (-> (-. ph) (= (ifn ph A B) B))
+     (-. ph)  (= x B)  iba
+     (-. ph)  (= x B)  ancom    syl6bbr
+       ph  (= x A)  pm3.26    con3i
+       (/\ ph (= x A))  (/\ (-. ph) (= x B))  biorf    syl
+       bitr2d
+       x  19.21ai
+         x  (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B)))  (= x B)  abbi2
+       syl
+     ({|} x (\/ (/\ ph (= x A)) (/\ (-. ph) (= x B))))  ({|} x (= x B))  ax-iotaeq    syl
+     eqcomd
+         ph  A  B  x  df-ifn
+      syl6eqr
+      eqcomd
+        B  x  df-sn
+          ({} B)  ({|} x (= x B))  ax-iotaeq    ax-mp
+        syl6eqr
+      B  ax-iota    syl6eq
+)
+
+## <title> Equivalence of predicate in ifn </title>
+thm (ifnbi1 () () (-> (<-> ph ps) (= (ifn ph A B) (ifn ps A B)))
+  ph ps dfbi3
+    ph A B ifn1 ps adantr ps A B ifn1 ph adantl eqcomd eqtrd
+      ph A B ifn2 (-. ps) adantr ps A B ifn2 (-. ph) adantl eqcomd eqtrd
+    jaoi
+  sylbi
+)
+
+thm (ifnbi1i () (
+     hyp1 (<-> ph ps))
+     (= (ifn ph A B) (ifn ps A B))
+  hyp1
+  ph ps A B ifnbi1
+  ax-mp
+)
+
+thm (ifnbi1d () (
+     hyp1 (-> ch (<-> ph ps)))
+     (-> ch (= (ifn ph A B) (ifn ps A B)))
+  hyp1
+  ph ps A B ifnbi1
+  syl
+)
+
+## <title> Equality of first term for ifn </title>
+thm (ifneq2 () () (-> (= A B) (= (ifn ph A C) (ifn ph B C)))
+  ph A C ifn1 B eqeq1d biimprd imp
+  ph B C ifn1 (= A B) adantr eqcomd eqtrd ex
+    ph A C ifn2
+    ph B C ifn2 eqcomd eqtrd (= A B) a1d
+  pm2.61i
+)
+
+thm (ifneq2i () (
+     hyp1 (= A B))
+     (= (ifn ph A C) (ifn ph B C))
+  hyp1
+  A B ph C ifneq2
+  ax-mp
+)
+
+thm (ifneq2d () (
+     hyp1 (-> ps (= A B)))
+     (-> ps (= (ifn ph A C) (ifn ph B C)))
+  hyp1
+  A B ph C ifneq2
+  syl
+)
+
+## <title> Equality of second term for ifn </title>
+thm (ifneq3 () () (-> (= A B) (= (ifn ph C A) (ifn ph C B)))
+  ph C A ifn1
+  ph C B ifn1 eqcomd eqtrd (= A B) a1d
+    ph C A ifn2 B eqeq1d biimprd imp
+    ph C B ifn2 (= A B) adantr eqcomd eqtrd ex
+  pm2.61i
+)
+
+thm (ifneq3i () (
+     hyp1 (= A B))
+     (= (ifn ph C A) (ifn ph C B))
+  hyp1
+  A B ph C ifneq3
+  ax-mp
+)
+
+thm (ifneq3d () (
+     hyp1 (-> ps (= A B)))
+     (-> ps (= (ifn ph C A) (ifn ph C B)))
+  hyp1
+  A B ph C ifneq3
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1An0 () (
+     replacee (-> ph (/\ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (/\ ch th))
+  replacee
+  substitution
+th anbi1i
+ph imbi2i
+mpbi
+)
+
+thm (ifneq13 () () (-> (/\ (<-> ph ps) (= A B)) (= (ifn ph C A) (ifn ps C B)))
+  ph ps C A ifnbi1
+  A B ps C ifneq3
+  pm3.2i  
+  ## <d 'Praeclarum Theorema '>
+    (<-> ph ps) (= (ifn ph C A) (ifn ps C A)) (= A B) (= (ifn ps C A) (ifn ps C B)) prth
+    ax-mp
+  ## </d 'Praeclarum Theorema '>
+  
+  ## <d 'Symmetric Property '>
+    (ifn ph C A) (ifn ps C A) eqcom
+    BiReplaceImp1An0
+  ## </d 'Symmetric Property '>
+  
+  ## <d 'Transitive Property '>
+    (ifn ps C A) (ifn ph C A) (ifn ps C B) eqtr2
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Equivalence for ifn </title>
+thm (ifnbi123 () () (-> (/\ (<-> ph ps) (/\ (= A C) (= B D))) (= (ifn ph A B) (ifn ps C D)))
+  ph ps A B ifnbi1
+  A C ps B ifneq2
+  anim12i
+  ## <d 'Equality Transitive Property '>
+    (ifn ph A B) (ifn ps A B) (ifn ps C B) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  B D ps C ifneq3
+  anim12i
+  ## <d 'Equality Transitive Property '>
+    (ifn ph A B) (ifn ps C B) (ifn ps C D) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  ## <d 'Associative Property '>
+    (<-> ph ps) (= A C) (= B D) anass
+    sylbi2
+  ## </d 'Associative Property '>
+)
+
+thm (ifnbi123d () (
+     hyp1 (-> ph (<-> ps ch))
+     hyp2 (-> ph (= A B))
+     hyp3 (-> ph (= C D)))
+     (-> ph (= (ifn ps A C) (ifn ch B D)))
+  hyp1
+  hyp2
+  hyp3
+  jca
+  jca
+  ps ch A B C D ifnbi123
+  syl
+)
+
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (IFN ifn.ghi (PROP PREDICATE) "")

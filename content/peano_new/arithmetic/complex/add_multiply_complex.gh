@@ -1,0 +1,575 @@
+import (PROP          /peano_new/prop.ghi () "")
+import (PREDICATE     /peano_new/predicate/all.ghi (PROP) "")
+import (REALS         /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")        # We need to create a new collection for complex numbers. The real numbers include several axioms related to inequalities that should not be included with complex numbers.
+import (COMPLEX_MIN   /peano_new/arithmetic/complex/add_multiply_complex_min.ghi (PROP PREDICATE REALS) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D' a b c d)
+
+## <context>
+##   This theorem is part of a series of theorems that demonstrate complex addition,
+##   multiplication, and division.
+## </context>
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+  [ A ]   ]   ]  C) D)
+##   (=     [ A ]   [ B ] )
+##   (= (+  [   [   [ B ]  C) D)
+## </table>
+thm (EqReplaceEq0Add0 () (
+     replacee (= (+ A C) D)
+     substitution (= A B)) 
+     (= (+ B C) D)
+  replacee substitution
+  C addeq1i
+  EqReplaceEq0
+)
+
+## <title> i squared is -1 </title>
+## <suggest> right('Simplify', '-1') </suggest>
+thm (iSquared2 () () (= (exp (i) (2)) (-n (1)))
+  iSquared
+  (i) exp2 eqcomi  
+  EqReplaceEq0Add0
+  minusValuei  
+  ## <d 'Subtract from 0 '>
+    (1) 0minus
+    EqReplaceEq1
+  ## </d 'Subtract from 0 '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (*  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (*  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= A (* B D))
+     substitution (= B C)) 
+     (= A (* C D))
+  replacee substitution
+  D muleq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (-n  [ B ]   ]   ] ))
+##   (=        [ B ]   [ C ] )
+##   (= A (-n  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEq1Neg0 () (
+     replacee (= A (-n B))
+     substitution (= B C)) 
+     (= A (-n C))
+  replacee substitution
+  negeqi
+  EqReplaceEq1
+)
+
+thm (iCubed () () (= (exp (i) (3)) (-n (i)))
+  (i) exp3
+  iSquared2
+  (i) exp2   
+  EqReplaceEq0  
+  EqReplaceEq1Mul0  
+  ## <d 'Negative Multiplication '>
+    (1) (i) negmul
+    (i) mulidr
+    EqReplaceEq1Neg0
+    EqReplaceEq1
+  ## </d 'Negative Multiplication '>
+)
+
+
+
+## <title> One-digit Addition </title>
+thm (3plus1 () () (= (+ (3) (1)) (4))
+  df-4
+  ## <d 'Commutative Property'>
+    (4) (+ (3) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (exp A  [ B ]   ]   ] ) D)
+##   (=         [ B ]   [ C ] )
+##   (= (exp A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Exp1 () (
+     replacee (= (exp A B) D)
+     substitution (= B C)) 
+     (= (exp A C) D)
+  replacee substitution
+  A expeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (* B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (* B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Mul1 () (
+     replacee (= A (* B C))
+     substitution (= C D)) 
+     (= A (* B D))
+  replacee substitution
+  B muleq2i
+  EqReplaceEq1
+)
+
+## <title> i to the fourth is 1 </title>
+thm (iPower4 () () (= (exp (i) (4)) (1))
+  ## <d>
+  (i) (3) expplus1    
+  ## <d 'Evaluate'>
+    3plus1
+    EqReplaceEq0Exp1
+  ## </d 'Evaluate'>
+  ## </d>
+  ## <d>
+  iCubed  
+  EqReplaceEq1Mul1  
+  ## <d 'Negative Multiplication '>
+    (i) (i) negmul2
+    EqReplaceEq1
+  ## </d 'Negative Multiplication '>
+  ## </d>
+  ## <d 'Squared means multiply twice '>
+    (i) exp2 eqcomi
+    EqReplaceEq1Neg0
+  ## </d 'Squared means multiply twice '>
+  iSquared2    
+  EqReplaceEq1Neg0
+  
+  ## <d 'Double Negative '>
+    (1) doubleneg
+    EqReplaceEq1
+  ## </d 'Double Negative '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (+ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= A (+ B C))
+     substitution (= C D)) 
+     (= A (+ B D))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1
+)
+
+## <title> Complex Addition Formula </title>
+thm (comadd () () (= (+ (+ a (* b (i))) (+ c (* d (i)))) (+ (+ a c) (* (+ b d) (i))))
+  a (* b (i)) c (* d (i)) add4  
+  ## <d 'Distributive Property '>
+    b d (i) distl eqcomi
+    EqReplaceEq1Add1
+  ## </d 'Distributive Property '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+  [ C ]   ]   ]  A')))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ B (+  [   [   [ D ]  A')))
+## </table>
+thm (EqReplaceEq1Add1Add0 () (
+     replacee (= A (+ B (+ C A')))
+     substitution (= C D)) 
+     (= A (+ B (+ D A')))
+  replacee substitution
+  A' addeq1i
+  EqReplaceEq1Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (+  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Add0 () (
+     replacee (= A (+ B D))
+     substitution (= B C)) 
+     (= A (+ C D))
+  replacee substitution
+  D addeq1i
+  EqReplaceEq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+ B  [ C ]   ]   ] ) A'))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ (+ B  [   [   [ D ] ) A'))
+## </table>
+thm (EqReplaceEq1Add0Add1 () (
+     replacee (= A (+ (+ B C) A'))
+     substitution (= C D)) 
+     (= A (+ (+ B D) A'))
+  replacee substitution
+  B addeq2i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (+ C  [ D ]   ]    ] )))
+##   (=              [ D ]   [ A' ] )
+##   (= A (+ B (+ C  [   [   [ A' ] )))
+## </table>
+thm (EqReplaceEq1Add1Add1 () (
+     replacee (= A (+ B (+ C D)))
+     substitution (= D A')) 
+     (= A (+ B (+ C A')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (+ B (* C  [ D ]   ]    ] )) B'))
+##   (=                 [ D ]   [ A' ] )
+##   (= A (+ (+ B (* C  [   [   [ A' ] )) B'))
+## </table>
+thm (EqReplaceEq1Add0Add1Mul1 () (
+     replacee (= A (+ (+ B (* C D)) B'))
+     substitution (= D A')) 
+     (= A (+ (+ B (* C A')) B'))
+  replacee substitution
+  C muleq2i
+  EqReplaceEq1Add0Add1
+)
+
+
+## <title> Complex Multiplication Formula </title>
+thm (commul () () (= (* (+ a (* b (i))) (+ c (* d (i)))) (+ (- (* a c) (* b d)) (* (+ (* a d) (* b c)) (i))))
+  ## <d 'Distributive Property '>
+    a (* b (i)) c (* d (i)) distrl
+  ## </d> 
+  ## <d 'Associate and Commute'> 
+  ## <d 'Associative Property '>
+    a d (i) mulass eqcomi
+    EqReplaceEq1Add1Add0
+  ## </d 'Associative Property '>
+   
+  ## <d>
+  ## <d 'Associative Property '>
+    b (i) c mulass
+  ## </d 'Associative Property '>  
+  ## <d 'Commutative Property '>
+    (i) c mulcom
+    EqReplaceEq1Mul1
+  ## </d 'Commutative Property '>  
+  ## <d 'Associative Property '>
+    b c (i) mulass eqcomi
+    EqReplaceEq1
+  ## </d 'Associative Property '>
+  EqReplaceEq1Add0Add1
+  ## </d>
+  ## <d>
+  b (i) d (i) mul4
+  ## <d 'Squared means multiply twice '>
+    (i) exp2 eqcomi
+    EqReplaceEq1Mul1
+  ## </d 'Squared means multiply twice '>  
+  EqReplaceEq1Add1Add1
+  ## </d>
+  ## </d>
+
+  (* a c) (* (* b c) (i)) (* (* a d) (i)) (* (* b d) (exp (i) (2))) add24
+  EqReplaceEq1
+  
+  ## <d 'Distributive Property '>
+    (* a d) (* b c) (i) distl eqcomi
+    EqReplaceEq1Add1
+  ## </d 'Distributive Property '>  
+
+  ## <d>
+  ## <d 'i squared is -1 '>
+    iSquared2
+  ## </d 'i squared is -1 '>
+  (* b d) muleq2i  
+  ## <d 'Negative Multiplication '>
+    (* b d) (1) negmul2
+    (* b d) mulid
+    EqReplaceEq1Neg0
+    EqReplaceEq1
+  ## </d 'Negative Multiplication '>
+  (* a c) addeq2i    
+  ## <d 'Definition of Subtraction '>
+    (* a c) (* b d) df-minus eqcomi
+    EqReplaceEq1
+  ## </d 'Definition of Subtraction '>  
+  EqReplaceEq1Add0
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (* A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (* A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Mul1 () (
+     replacee (= (* A B) D)
+     substitution (= B C)) 
+     (= (* A C) D)
+  replacee substitution
+  A muleq2i
+  EqReplaceEq0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (* A (+ B  [ C ]   ]   ] )) A')
+##   (=            [ C ]   [ D ] )
+##   (= (* A (+ B  [   [   [ D ] )) A')
+## </table>
+thm (EqReplaceEq0Mul1Add1 () (
+     replacee (= (* A (+ B C)) A')
+     substitution (= C D)) 
+     (= (* A (+ B D)) A')
+  replacee substitution
+  B addeq2i
+  EqReplaceEq0Mul1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ (- B  [ C ]   ]   ] ) A'))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ (- B  [   [   [ D ] ) A'))
+## </table>
+thm (EqReplaceEq1Add0Minus1 () (
+     replacee (= A (+ (- B C) A'))
+     substitution (= C D)) 
+     (= A (+ (- B D) A'))
+  replacee substitution
+  B minuseq2i
+  EqReplaceEq1Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (*  [ C ]   ]   ]  A')))
+##   (=            [ C ]   [ D ] )
+##   (= A (+ B (*  [   [   [ D ]  A')))
+## </table>
+thm (EqReplaceEq1Add1Mul0 () (
+     replacee (= A (+ B (* C A')))
+     substitution (= C D)) 
+     (= A (+ B (* D A')))
+  replacee substitution
+  A' muleq1i
+  EqReplaceEq1Add1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (* (+  [ C ]   ]   ]  A') B')))
+##   (=               [ C ]   [ D ] )
+##   (= A (+ B (* (+  [   [   [ D ]  A') B')))
+## </table>
+thm (EqReplaceEq1Add1Mul0Add0 () (
+     replacee (= A (+ B (* (+ C A') B')))
+     substitution (= C D)) 
+     (= A (+ B (* (+ D A') B')))
+  replacee substitution
+  A' addeq1i
+  EqReplaceEq1Add1Mul0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/  [ B ]   ]   ]  D))
+##   (=       [ B ]   [ C ] )
+##   (= A (/  [   [   [ C ]  D))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= A (/ B D))
+     substitution (= B C)) 
+     (= A (/ C D))
+  replacee substitution
+  D diveq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (+ B (* (+ C  [ D ]   ]    ] ) B')))
+##   (=                 [ D ]   [ A' ] )
+##   (= A (+ B (* (+ C  [   [   [ A' ] ) B')))
+## </table>
+thm (EqReplaceEq1Add1Mul0Add1 () (
+     replacee (= A (+ B (* (+ C D) B')))
+     substitution (= D A')) 
+     (= A (+ B (* (+ C A') B')))
+  replacee substitution
+  C addeq2i
+  EqReplaceEq1Add1Mul0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (- B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (- B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Minus1 () (
+     replacee (= A (- B C))
+     substitution (= C D)) 
+     (= A (- B D))
+  replacee substitution
+  B minuseq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= A (/ B  [ C ]   ]   ] ))
+##   (=         [ C ]   [ D ] )
+##   (= A (/ B  [   [   [ D ] ))
+## </table>
+thm (EqReplaceEq1Div1 () (
+     replacee (= A (/ B C))
+     substitution (= C D)) 
+     (= A (/ B D))
+  replacee substitution
+  B diveq2i
+  EqReplaceEq1
+)
+
+## <title> Complex Division Formula </title>
+thm (comdiv () (hyp (/\ (-. (= (+ c (* d (i))) (0))) (-. (= (- c (* d (i))) (0)))) ) (= (/ (+ a (* b (i))) (+ c (* d (i)))) (/ (+ (+ (* a c) (* b d)) (* (- (* b c) (* a d)) (i))) (+ (exp c (2)) (exp d (2)))))
+  hyp
+  (+ c (* d (i))) (- c (* d (i))) (+ a (* b (i))) fracFactors  
+  ax-mp
+  eqcomi
+   
+  
+  ## <d 'Definition of Subtraction '>
+    c (* d (i)) df-minus
+  ## </d 'Definition of Subtraction '>
+  (+ a (* b (i))) muleq2i
+  a b c (-n d) commul  
+  ## <d 'Negative Multiplication '>
+    d (i) negmul
+    EqReplaceEq0Mul1Add1
+  ## </d 'Negative Multiplication '>
+  EqReplaceEq1  
+  ## <d 'Negative Multiplication '>
+    b d negmul2
+    EqReplaceEq1Add0Minus1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Negative and Subtraction Cancel '>
+    (* a c) (* b d) minusneg
+    EqReplaceEq1Add0
+  ## </d 'Negative and Subtraction Cancel '>  
+  ## <d 'Negative Multiplication '>
+    a d negmul2
+    EqReplaceEq1Add1Mul0Add0
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Commutative Property '>
+    (-n (* a d)) (* b c) addcom
+    EqReplaceEq1Add1Mul0
+  ## </d 'Commutative Property '>  
+  ## <d 'Definition of Subtraction '>
+    (* b c) (* a d) df-minus eqcomi
+    EqReplaceEq1Add1Mul0
+  ## </d 'Definition of Subtraction '>  
+  EqReplaceEq1Div0
+
+  ## <d>
+  c d c (-n d) commul  
+  ## <d 'Cancel Imaginary Part'>
+  ## <d 'Negative Multiplication '>
+    c d negmul2
+    EqReplaceEq1Add1Mul0Add0
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Commutative Property '>
+    d c mulcom
+    EqReplaceEq1Add1Mul0Add1
+  ## </d 'Commutative Property '>  
+  ## <d 'Cancel using subtraction '>
+    (* c d) negcan2
+    EqReplaceEq1Add1Mul0
+  ## </d 'Cancel using subtraction '>  
+  ## <d 'Multiply by 0 '>
+    (i) mul0r
+    EqReplaceEq1Add1
+  ## </d 'Multiply by 0 '>  
+  ## <d 'Additive Identity '>
+    (- (* c c) (* d (-n d))) addid
+    EqReplaceEq1
+  ## </d 'Additive Identity '>
+  ## </d>  
+  ## <d>
+  ## <d 'Negative Multiplication '>
+    d d negmul2
+    EqReplaceEq1Minus1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Negative and Subtraction Cancel '>
+    (* c c) (* d d) minusneg
+    EqReplaceEq1
+  ## </d 'Negative and Subtraction Cancel '>
+  ## </d>
+  ## <d>
+  c exp2 eqcomi  
+  EqReplaceEq1Add0
+  d exp2 eqcomi    
+  EqReplaceEq1Add1
+  ## </d>
+  
+  ## <d>
+  ## <d 'Negative Multiplication '>
+    d (i) negmul
+    EqReplaceEq0Mul1Add1
+  ## </d 'Negative Multiplication '>  
+  ## <d 'Definition of Subtraction '>
+    c (* d (i)) df-minus eqcomi
+    EqReplaceEq0Mul1
+  ## </d 'Definition of Subtraction '>
+  ## </d>  
+  EqReplaceEq1Div1
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)

@@ -1,0 +1,409 @@
+{{header
+ | title    = First-order logic
+ | subtitle = 
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = The purpose of this page is to prove the statements of [[Interface:First-order logic]] from [[Interface:Axioms of first-order logic]].
+}}
+{{interfaces
+| imports = [[Interface:Axioms of first-order logic]]
+| exports = [[Interface:First-order logic]]
+}}
+
+Many of the proofs on this page are adapted from metamath's set.mm, and theorems may be named after set.mm.  However, since set.mm names do change over time, do not count on this correspondence to be exact.
+
+We start with the [[Interface:Classical propositional calculus|theorems of propositional logic]] and [[Interface:Axioms of first-order logic]]:
+
+
+As usual, φ, ψ, χ, and θ are formulas, x, y, and z are variables, and s, t, and u are objects:
+
+
+We also define some variables which suggest which variables are likely to be included. For example, {{{φx}}} is likely to include the variable {{{x}}} (of course, it is the distinct variable constraints which really specify what variables are allowed). This is similar in intent to the notation {{{φ(x)}}} which is sometimes used in treatments of predicate logic.
+
+== ForAllImplication ==
+
+The ∀ quantifier can be distributed across an implication. This is one of our axioms, so we just provide an additional name:
+
+* #(→ (∀ x (→ φ ψ)) (→ (∀ x φ) (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllImplication | ForAllImplication])
+
+=== Builder for ∀ ===
+From {{{φ → ψ}}} we want to be able to get {{{∀ x φ → ∀ x ψ}}}.<ref>[http://us.metamath.org/mpeuni/19.20i.html 19.20i] in metamath's set.mm, accessed February 18, 2010</ref>
+* #(→ φ ψ)# ⊢ #(→ (∀ x φ) (∀ x ψ))# ([/general/First-order_logic.gh/addForAll | addForAll])
+
+The builder for the biconditional follows trivially:
+* #(↔ φ ψ)# ⊢ #(↔ (∀ x φ) (∀ x ψ))# ([/general/First-order_logic.gh/buildForAll | buildForAll])
+
+== Equality ==
+
+The basic facts about equality are that it is reflexive, symmetric and transitive. Instead of supposing these as axioms, we have a single axiom which implies them (when combined with some of the other axioms).
+
+=== Reflexivity ===
+We start with reflexivity.  The first two theorems are intermediate steps:
+
+* #(→ (= x y) (= y y))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-1 | VariableEqualityReflexivity-1])
+* #(→ (∀ x (¬ (= y y))) (∀ x (¬ (= x y))))# ([/general/First-order_logic.gh/VariableEqualityReflexivity-2 | VariableEqualityReflexivity-2])
+
+The proof of reflexivity involves adding an extra variable {{{x}}}. We need to specify that this variable is distinct from {{{y}}}, but this doesn't affect the generality of the result. The variable {{{x}}} only appears in the proof, not in the theorem, and so the distinct variable constraint only needs to appear here, not in the statement of the theorem in [[Interface:First-order logic]].
+* #(= y y)# ([/general/First-order_logic.gh/VariableEqualityReflexivity | VariableEqualityReflexivity])
+
+=== Symmetry ===
+To prove symmetry, we take {{{x = y → (x = x → y = x)}}} from the equality axiom, and then detach {{{x = x}}} because we have already proved reflexivity.
+* #(→ (= x y) (= y x))# ([/general/First-order_logic.gh/VariableEqualitySymmetryImplication | VariableEqualitySymmetryImplication])
+* #(↔ (= x y) (= y x))# ([/general/First-order_logic.gh/VariableEqualitySymmetry | VariableEqualitySymmetry])
+* #(= x y)# ⊢ #(= y x)# ([/general/First-order_logic.gh/swapVariableEquality | swapVariableEquality])
+
+=== Transitivity ===
+Transitivity is now just a rearangement of our equality axiom:
+* #(→ (∧ (= x y) (= y z)) (= x z))# ([/general/First-order_logic.gh/VariableEqualityTransitivity | VariableEqualityTransitivity])
+* #(= x y)#, #(= y z)# ⊢ #(= x z)# ([/general/First-order_logic.gh/applyVariableEqualityTransitivity | applyVariableEqualityTransitivity])
+
+=== Not equal ===
+Although {{{≠}}} is just an abbreviation for negation and equality, we do need to repeat the definition in this file to be able to export to [[Interface:First-order logic]].
+
+== Specialization ==
+We can remove a universal quantifier. This is sometimes taken as an axiom but here we prove it from the other axioms via a number of intermediate steps.<ref>[http://us.metamath.org/mpeuni/ax4.html ax4] in metamath's set.mm, accessed February 18, 2010</ref> In many formulations of predicate logic, specialization is combined with substitution (and often a distinction between constants and variables), but we handle substitution later.  Constants in our system are represented by predicates with no arguments (for example, {{{(0)}}} in [[Interface:Basic arithmetic]]), and our substitution mechanisms will be able to handle them (as well as other kinds of terms).
+
+* #(→ (= y x) (→ (¬ φ) (∀ x (→ (= x y) (¬ φ)))))# ([/general/First-order_logic.gh/Specialization-18 | Specialization-18])
+* #(→ (∀ x (→ (= x y) (¬ φ))) (∀ x (→ φ (¬ (= x y)))))# ([/general/First-order_logic.gh/Specialization-22 | Specialization-22])
+* #(→ (∀ x (→ φ (¬ (= x y)))) (¬ (∀ x φ)))# ([/general/First-order_logic.gh/Specialization-a | Specialization-a])
+* #(→ (¬ (→ (∀ x φ) φ)) (¬ (= y x)))# ([/general/First-order_logic.gh/Specialization-30 | Specialization-30])
+* #(→ (∀ y (¬ (→ (∀ x φ) φ))) (∀ y (¬ (= y x))))# ([/general/First-order_logic.gh/Specialization-33 | Specialization-33])
+
+The proof of reflexivity involves adding an extra variable {{{y}}}. We need to specify that this variable is distinct from {{{x}}} and {{{φ}}}, but this doesn't affect the generality of the result. The variable {{{y}}} only appears in the proof, not in the theorem, and so the distinct variable constraint only needs to appear here, not in the statement of the theorem in [[Interface:First-order logic]].
+* #(→ (∀ x φ) φ)# ([/general/First-order_logic.gh/Specialization | Specialization])
+* #(∀ x φ)# ⊢ #φ# ([/general/First-order_logic.gh/specialize | specialize])
+
+== Doubling ∀ ==
+
+If we have a universal quantifier, it doesn't change anything to apply it twice.  That is, {{{∀ x φ → ∀ x ∀ x φ}}}
+
+* #(→ (∀ x (¬ (∀ x (¬ (∀ x φ))))) (∀ x (∀ x φ)))# ([/general/First-order_logic.gh/ForAllDoubling-negation-lemma | ForAllDoubling-negation-lemma])
+* #(→ (∀ x φ) (∀ x (∀ x φ)))# ([/general/First-order_logic.gh/ForAllDoubling | ForAllDoubling])
+
+=== a5i ===
+A consequence is a variant of {{{QuantifiedImplication}}}:
+* #(→ (∀ x φ) ψ)# ⊢ #(→ (∀ x φ) (∀ x ψ))# ([/general/First-order_logic.gh/a5i | a5i])
+
+== Existential quantification ==
+The axioms are written in terms of just the universal quantifier ∀. We define the existential quantifier ∃ in terms of it:
+
+
+and the following two theorems are immediate consequences from this definition:
+
+* #(↔ (¬ (∃ x φ)) (∀ x (¬ φ)))# ([/general/First-order_logic.gh/NotThereExists | NotThereExists])
+* #(↔ (¬ (∀ x φ)) (∃ x (¬ φ)))# ([/general/First-order_logic.gh/NotForAll | NotForAll])
+
+=== Builders ===
+
+The builders for ∃ follow from the builders for ∀:
+* #(→ φ ψ)# ⊢ #(→ (∃ x φ) (∃ x ψ))# ([/general/First-order_logic.gh/addThereExists | addThereExists])
+* #(↔ φ ψ)# ⊢ #(↔ (∃ x φ) (∃ x ψ))# ([/general/First-order_logic.gh/buildThereExists | buildThereExists])
+
+=== Adding existential quantifier ===
+We can add ∃ to the start of a formula:<ref>[http://us.metamath.org/mpeuni/19.8a.html 19.8a] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(→ φ (∃ x φ))# ([/general/First-order_logic.gh/ThereExistsIntroduction | ThereExistsIntroduction])
+
+=== Another for-all distribution law ===
+
+If we have an implication quantified by ∀, we've already shown that {{{∀ x φ → ∀ x ψ}}} follows. It also will sometimes be useful to know that alternately {{{∃ x φ → ∃ x ψ}}} does.<ref>[http://us.metamath.org/mpeuni/19.22.html 19.22] in metamath's set.mm, accessed February 21, 2010</ref>
+* #(→ (∀ x (→ φ ψ)) (→ (∃ x φ) (∃ x ψ)))# ([/general/First-order_logic.gh/ForAllImplicationThereExists | ForAllImplicationThereExists])
+
+== Quantifier order ==
+Being able to swap the order of two ∀ quantifiers is an axiom, so we just need to biconditionalize it:
+
+* #(↔ (∀ x (∀ y φ)) (∀ y (∀ x φ)))# ([/general/First-order_logic.gh/ForAllCommutation | ForAllCommutation])
+
+The corresponding theorem for ∃ follows from it.  It may be easier to follow the proof below if you remember that 
+ {{{∃ x ∃ y φ}}}
+is equivalent to 
+ {{{¬ ∀ x ¬ ¬ ∀ y ¬ φ}}}
+
+* #(↔ (∃ x (∃ y φ)) (∃ y (∃ x φ)))# ([/general/First-order_logic.gh/ThereExistsCommutation | ThereExistsCommutation])
+
+== Combining quantified statements ==
+
+=== For-all across a Conjunction ===
+The ability to combine or split ∀ across a conjunction follows from {{{ForAllImplication}}} and some propositional logic.<ref>[http://us.metamath.org/mpeuni/19.26.html 19.26] in metamath's set.mm, accessed February 19, 2010</ref> We prove the forward and reverse implications separately.
+
+* #(→ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllConjunctionSplitting | ForAllConjunctionSplitting])
+* #(→ (∧ (∀ x φ) (∀ x ψ)) (∀ x (∧ φ ψ)))# ([/general/First-order_logic.gh/ForAllConjunctionCombining | ForAllConjunctionCombining])
+* #(↔ (∀ x (∧ φ ψ)) (∧ (∀ x φ) (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllConjunction | ForAllConjunction])
+
+=== There-exists across a disjunction ===
+
+This one follows from {{{ForAllConjunction}}} via DeMorgan's law and a little bit of negation rearranging.<ref>[http://us.metamath.org/mpeuni/19.43.html 19.43], metamath's set.mm, accessed January 22, 2012</ref>
+* #(↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsDisjunction | ThereExistsDisjunction])
+
+=== There-exists across a conjunction ===
+In the last two sections we tackled ∀ across a conjunction and ∃ across a disjunction. The other two similar cases (∃ across a conjunction and ∀ across a disjunction) also hold, but only in one direction, not as biconditionals.<ref>[http://us.metamath.org/mpeuni/19.40.html 19.40] and [http://us.metamath.org/mpeuni/19.33.html 19.33] in metamath's set.mm, accessed January 3, 2011</ref>
+
+Here we prove ∃ across a conjunction.
+* #(→ (∃ x (∧ φ ψ)) (∧ (∃ x φ) (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsConjunction | ThereExistsConjunction])
+
+=== For-all across a biconditional ===
+Distributing {{{∀}}} across an implication also works for the biconditional.  The proof is just expanding the biconditional into conjunctions and implications and distribution of {{{∀}}} across the conjunctions and implications.
+* #(→ (∀ x (↔ φ ψ)) (↔ (∀ x φ) (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllBiconditional | ForAllBiconditional])
+
+=== There-exists across an implication ===
+
+This is another proof which mostly consists of the definition of ∃ and propositional calculus.
+
+* #(↔ (∃ x (→ φ ψ)) (→ (∀ x φ) (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsImplication | ThereExistsImplication])
+
+=== Combining ∀ and ∃ to prove ∃ on a conjunction ===
+One way of thinking of the following theorem is that we want to find an {{{x}}} for which both {{{φ}}} and {{{ψ}}} hold. The second half of the antecedent ({{{∃ x ψ}}}) gives us such an {{{x}}}, which also holds for {{{φ}}} because {{{φ}}} holds for any value of {{{x}}}.<ref>[http://us.metamath.org/mpeuni/19.29.html 19.29] in metamath's set.mm, accessed 2010</ref>
+* #(→ (∧ (∀ x φ) (∃ x ψ)) (∃ x (∧ φ ψ)))# ([/general/First-order_logic.gh/ThereExistsConjunctionCombining | ThereExistsConjunctionCombining])
+
+It will also be convenient to have a commuted version,
+* #(→ (∧ (∃ x φ) (∀ x ψ)) (∃ x (∧ φ ψ)))# ([/general/First-order_logic.gh/ThereExistsConjunctionRightCombining | ThereExistsConjunctionRightCombining])
+
+and a rule.
+* #(∃ x φ)#, #(∀ x ψ)# ⊢ #(∃ x (∧ φ ψ))# ([/general/First-order_logic.gh/combineThereExistsForAll | combineThereExistsForAll])
+
+== Negation ==
+This relationship between quantification and negation is sometimes taken as an axiom instead of our {{{QuantifiedNegation}}}, but we prove it here:<ref>[http://us.metamath.org/mpeuni/ax6o.html ax6o] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(→ (¬ (∀ x (¬ (∀ x φ)))) φ)# ([/general/First-order_logic.gh/ax6o | ax6o])
+
+== Free variables ==
+The conventional treatment of [[w:free variable|free variables]] is syntactic; variables are defined as free depending on where they occur in a formula relative to the quantifiers over that variable. JHilbert (following metamath before it) does not contain the ability to analyze formulas this way, and we instead define free variables based on whether generalization is possible:
+
+
+This differs slightly from the syntactic definition of free variables, and so might better be termed ''effectively free'' than simply ''free''. For example, this definition does not consider {{{x}}} to be free in {{{x = x}}}.<ref>[http://us.metamath.org/mpeuni/mmset.html#traditional Appendix 2: Traditional Textbook Axioms of Predicate Calculus with Equality], Metamath Proof Explorer, accessed February 20, 2010.</ref> In fact, this relationship is true of any theorem.<ref>[http://us.metamath.org/mpeuni/hbth.html hbth] in metamath's set.mm, accessed February 20, 2010.</ref> There is little need to actually use {{{TheoremNotFree}}} for anything, but we show it here to demonstrate the implications of our definition.
+* #φ# ⊢ #(is-not-free-in x φ)# ([/general/First-order_logic.gh/TheoremNotFree | TheoremNotFree])
+
+Our next two results just restate axioms or theorems we already have. The first one can be thought of as saying that a variable is not free in an expression in which it does not occur:
+
+* #(is-not-free-in x φ)# ([/general/First-order_logic.gh/DistinctNotFree | DistinctNotFree])
+
+And the second states that a universal quantifier makes the variable not free (that is, the variable is ''bound'' by a quantifier):<ref>[http://us.metamath.org/mpeuni/hba1.html hba1] in metamath's set.mm, accessed February 20, 2010. In case your font doesn't make it clear, this is hba followed by the number 1.</ref>
+* #(is-not-free-in x (∀ x φ))# ([/general/First-order_logic.gh/BoundForAllNotFree | BoundForAllNotFree])
+
+There's another result for universal quantifiers, this one about adding a quantifier for a (possibly) different variable:<ref>[http://us.metamath.org/mpeuni/hbal.html hbal] in metamath's set.mm, accessed February 20, 2010.  In case your font doesn't make it clear, this is hba followed by the lowercase letter l.</ref>
+* #(is-not-free-in x φ)# ⊢ #(is-not-free-in x (∀ y φ))# ([/general/First-order_logic.gh/addForAllNotFree | addForAllNotFree])
+
+Next, if a variable is not free in {{{φ}}}, it is not free in {{{¬ φ}}}. We first prove an implication version:<ref>[http://us.metamath.org/mpeuni/hbnt.html hbnt] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(→ (∀ x (is-not-free-in x φ)) (is-not-free-in x (¬ φ)))# ([/general/First-order_logic.gh/NegationNotFree | NegationNotFree])
+
+The rule form does not need the extra quantifier:<ref>[http://us.metamath.org/mpeuni/hbn.html hbn] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x φ)# ⊢ #(is-not-free-in x (¬ φ))# ([/general/First-order_logic.gh/negateNotFree | negateNotFree])
+
+Having negation makes it easy to prove the analogues to {{{BoundForAllNotFree}}} and {{{addForAllNotFree}}} for ∃:<ref>[http://us.metamath.org/mpeuni/hbex.html hbex] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x (∃ x φ))# ([/general/First-order_logic.gh/BoundThereExistsNotFree | BoundThereExistsNotFree])
+* #(is-not-free-in x φ)# ⊢ #(is-not-free-in x (∃ y φ))# ([/general/First-order_logic.gh/addThereExistsNotFree | addThereExistsNotFree])
+
+The following builder is analogous to our builders for other formulas:
+
+* #(↔ φ ψ)# ⊢ #(↔ (is-not-free-in x φ) (is-not-free-in x ψ))# ([/general/First-order_logic.gh/buildNotFree | buildNotFree])
+
+=== Adding ∀ to the consequent of a theorem ===
+
+Here is a result, a variation of one direction of ForAllImplicationAntecedentMovement, which we are able to prove now and which will help us later:<ref>[http://us.metamath.org/mpeuni/19.21ai.html 19.21ai] in metamath's set.mm, accessed 2010</ref>
+* #(is-not-free-in x φ)#, #(→ φ ψ)# ⊢ #(→ φ (∀ x ψ))# ([/general/First-order_logic.gh/addForAllToConsequentNotFree | addForAllToConsequentNotFree])
+* #(→ φ ψ)# ⊢ #(→ φ (∀ x ψ))# ([/general/First-order_logic.gh/addForAllToConsequent | addForAllToConsequent])
+
+=== Free variables and connectives ===
+If a variable is not free in either of two propositions, it is not free in the implication of the two:<ref>[http://us.metamath.org/mpeuni/hbim.html hbim] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(→ (¬ φ) (→ φ ψ))# ([/general/First-order_logic.gh/principia*2.21 | principia*2.21])
+* #(is-not-free-in x φ)#, #(is-not-free-in x ψ)# ⊢ #(is-not-free-in x (→ φ ψ))# ([/general/First-order_logic.gh/implicationNotFree | implicationNotFree])
+
+The same is true of the other connectives:
+* #(is-not-free-in x φ)#, #(is-not-free-in x ψ)# ⊢ #(is-not-free-in x (∨ φ ψ))# ([/general/First-order_logic.gh/disjunctionNotFree | disjunctionNotFree])
+* #(is-not-free-in x φ)#, #(is-not-free-in x ψ)# ⊢ #(is-not-free-in x (∧ φ ψ))# ([/general/First-order_logic.gh/conjunctionNotFree | conjunctionNotFree])
+* #(is-not-free-in x φ)#, #(is-not-free-in x ψ)# ⊢ #(is-not-free-in x (↔ φ ψ))# ([/general/First-order_logic.gh/biconditionalNotFree | biconditionalNotFree])
+
+=== Quantification of a variable which isn't free ===
+
+Quantifying with ∃ over a variable which is not free in a formula has no effect:<ref>[http://us.metamath.org/mpeuni/19.9.html 19.9] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x φ)# ⊢ #(↔ (∃ x φ) φ)# ([/general/First-order_logic.gh/ThereExistsAddRemoveNotFree | ThereExistsAddRemoveNotFree])
+* #(↔ (∃ x φ) φ)# ([/general/First-order_logic.gh/NullThereExists | NullThereExists])
+* #(∃ x φ)# ⊢ #φ# ([/general/First-order_logic.gh/removeThereExists | removeThereExists])
+* #(→ antecedent (∃ x φ))# ⊢ #(→ antecedent φ)# ([/general/First-order_logic.gh/removeThereExistsInConsequent | removeThereExistsInConsequent])
+
+The same is true of ∀:<ref>[http://us.metamath.org/mpeuni/19.3.html 19.3] in metamath's set.mm, accessed February 21, 2010</ref>
+* #(is-not-free-in x φ)# ⊢ #(↔ (∀ x φ) φ)# ([/general/First-order_logic.gh/ForAllAddRemoveNotFree | ForAllAddRemoveNotFree])
+
+=== Moving formulas in and out of quantification ===
+
+The results in this section all have to do with being able to move around formulas relative to quantifiers, given that the quantified variable is not free in the formula being moved.
+
+==== Implication ====
+The forward direction of the next theorem just combines a few of our previous results.<ref>[http://us.metamath.org/mpeuni/19.21.html 19.21] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x φ)# ⊢ #(↔ (∀ x (→ φ ψ)) (→ φ (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllImplicationAntecedentMovement | ForAllImplicationAntecedentMovement])
+* #(∀ x (→ φ ψ))#, #(is-not-free-in x φ)# ⊢ #(→ φ (∀ x ψ))# ([/general/First-order_logic.gh/moveAntecedentOutOfForAll | moveAntecedentOutOfForAll])
+* #(→ φ (∀ x ψ))#, #(is-not-free-in x φ)# ⊢ #(∀ x (→ φ ψ))# ([/general/First-order_logic.gh/moveAntecedentIntoForAll | moveAntecedentIntoForAll])
+
+The corresponding theorem for ∃ is similar:<ref>[http://us.metamath.org/mpeuni/19.37.html 19.37] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x φ)# ⊢ #(↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsAntecedentMovementNotFree | ThereExistsAntecedentMovementNotFree])
+
+The two theorems which involve moving the consequent result in changing ∃ to ∀ or vice versa. We name them after the quantifier which appears on the combined half of the equivalence. We'll first prove the for-all one.<ref>[http://us.metamath.org/mpeuni/19.23.html 19.23] in metamath's set.mm, accessed February 21, 2010</ref>
+* #(is-not-free-in x ψ)# ⊢ #(↔ (∀ x (→ φ ψ)) (→ (∃ x φ) ψ))# ([/general/First-order_logic.gh/ForAllImplicationConsequentMovement | ForAllImplicationConsequentMovement])
+
+And closing out this section is the corresponding result for ∃:<ref>[http://us.metamath.org/mpeuni/19.36.html 19.36] in metamath's set.mm, accessed February 20, 2010</ref>
+* #(is-not-free-in x ψ)# ⊢ #(↔ (∃ x (→ φ ψ)) (→ (∀ x φ) ψ))# ([/general/First-order_logic.gh/ThereExistsImplicationConsequentMovement | ThereExistsImplicationConsequentMovement])
+
+==== Disjunction ====
+There are similar theorems moving disjunctions and conjuncts. To move a disjunct in or out of ∀:<ref>[http://us.metamath.org/mpeuni/19.32.html 19.32] in metamath's set.mm, accessed February 26, 2010</ref>
+
+* #(is-not-free-in x φ)# ⊢ #(↔ (∀ x (∨ φ ψ)) (∨ φ (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllDisjunctionMovement | ForAllDisjunctionMovement])
+
+To move a disjunct in or out of ∃:<ref>[http://us.metamath.org/mpeuni/19.45.html 19.45] in metamath's set.mm, accessed March 17, 2010</ref>
+
+* #(is-not-free-in x φ)# ⊢ #(↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsDisjunctionMovementNotFree | ThereExistsDisjunctionMovementNotFree])
+* #(↔ (∃ x (∨ φ ψ)) (∨ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsDisjunctionMovement | ThereExistsDisjunctionMovement])
+* #(↔ (∃ x (∨ φ ψ)) (∨ (∃ x φ) ψ))# ([/general/First-order_logic.gh/ThereExistsDisjunctionRightMovement | ThereExistsDisjunctionRightMovement])
+
+==== Conjunction ====
+The theorems for conjunctions are similar. For ∀:<ref>[http://us.metamath.org/mpeuni/19.28.html 19.28] in metamath's set.mm, accessed March 18, 2010</ref>
+
+* #(is-not-free-in x φ)# ⊢ #(↔ (∀ x (∧ φ ψ)) (∧ φ (∀ x ψ)))# ([/general/First-order_logic.gh/ForAllConjunctionMovement | ForAllConjunctionMovement])
+
+For ∃:<ref>[http://us.metamath.org/mpeuni/19.42.html 19.42] in metamath's set.mm, accessed May 31, 2010</ref>
+
+* #(is-not-free-in x φ)# ⊢ #(↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsConjunctionMovementNotFree | ThereExistsConjunctionMovementNotFree])
+
+=== Distinct variable versions of movement theorems ===
+Although the concept of {{{x is-not-free-in φ}}} is more general than saying that {{{x}}} does not appear in {{{φ}}} at all, most often the latter is the situation and it will be convenient to have versions of the above theorems which have distinct variable constraints rather than explicit freeness hypotheses.
+* #(↔ (∃ x (∧ φ ψ)) (∧ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsConjunctionMovement | ThereExistsConjunctionMovement])
+* #(↔ (∃ x (∧ φ ψ)) (∧ (∃ x φ) ψ))# ([/general/First-order_logic.gh/ThereExistsConjunctionRightMovement | ThereExistsConjunctionRightMovement])
+* #(↔ (∃ x (→ φ ψ)) (→ φ (∃ x ψ)))# ([/general/First-order_logic.gh/ThereExistsAntecedentMovement | ThereExistsAntecedentMovement])
+
+Here are a few rules, for convenience:
+* #(→ antecedent (∧ φ (∃ x ψ)))# ⊢ #(→ antecedent (∃ x (∧ φ ψ)))# ([/general/First-order_logic.gh/moveLeftConjunctIntoThereExistsInConsequent | moveLeftConjunctIntoThereExistsInConsequent])
+* #(→ antecedent (∧ (∃ x φ) ψ))# ⊢ #(→ antecedent (∃ x (∧ φ ψ)))# ([/general/First-order_logic.gh/moveRightConjunctIntoThereExistsInConsequent | moveRightConjunctIntoThereExistsInConsequent])
+* #(→ antecedent (∃ x ψ))# ⊢ #(→ antecedent (∃ x (∧ antecedent ψ)))# ([/general/First-order_logic.gh/repeatAntecedentThereExists | repeatAntecedentThereExists])
+
+=== Adding ∃ to the antecedent of a theorem ===
+
+A consequence of {{{ForAllImplicationConsequentMovement}}} is that if we have a theorem which is an implication, we can add ∃ to the antecedent (provided the consequent does not contain the variable we are quantifying over).
+* #(→ φ ψ)# ⊢ #(→ (∃ x φ) ψ)# ([/general/First-order_logic.gh/addThereExistsToAntecedent | addThereExistsToAntecedent])
+
+=== Scattering and gathering ===
+This is a variation of movement of formulas in and out of quantification.<ref>[http://us.metamath.org/mpeuni/eeanv.html eeanv], metamath's set.mm, accessed September 13, 2010</ref>
+* #(↔ (∃ x (∃ y (∧ φx ψy))) (∧ (∃ x φx) (∃ y ψy)))# ([/general/First-order_logic.gh/ThereExistsScattering | ThereExistsScattering])
+
+Here is a rule form.
+* #(→ antecedent (∧ (∃ x φx) (∃ y ψy)))# ⊢ #(→ antecedent (∃ x (∃ y (∧ φx ψy))))# ([/general/First-order_logic.gh/gatherThereExistsInConsequent | gatherThereExistsInConsequent])
+
+== Distinctors ==
+So far we've just dealt with distinct variables via distinct variable constraints, and in fact that is sufficient for everything we need. Here we sketch out how we could introduce a formula {{{x is-distinct-from y}}}. We would define it to {{{¬ ∀x x = y}}}.<ref>See ax10o and other theorems in the section "Axioms ax-10 and ax-11" of metamath's set.mm, accessed 2011</ref>. Then we could prove theorems like {{{x is-distinct-from y ↔ y is-distinct-from x}}}<ref>easy consequence of ax10, metamath's set.mm</ref> or {{{¬ x is-distinct-from y → x is-not-free-in ∀ y φ}}}.<ref>follows readily from ax10o, metamath's set.mm</ref> Such a development is interesting if one wishes to avoid distinct variable constraints, but the convenience of distinct variable constraints is large enough that we prefer to use them when we can.
+
+== Quantifier order: ∃ x ∀ y to ∀ y ∃ x ==
+We put aside switching the order of quantifiers for a while, but {{{is-not-free-in}}} enables us to make some more progress on it.<ref>[http://us.metamath.org/mpeuni/19.12.html 19.12] in metamath's set.mm, accessed February 22, 2010</ref>
+* #(→ (∃ x (∀ y φ)) (∀ y (∃ x φ)))# ([/general/First-order_logic.gh/ThereExistsForAllCommutation | ThereExistsForAllCommutation])
+
+The converse does not in general hold. Metamath includes one particular case where it does,<ref>[http://us.metamath.org/mpeuni/19.12vv.html 19.12vv] in metamath's set.mm, accessed January 22, 2012</ref> although it is a curiosity more than anything which is needed in proofs.
+
+== Quantifiers and equality ==
+Here we prove a number of results involving equality and quantifiers.  Many of them will pave the way for results involving explicit ({{{subst}}}) substitution.
+
+=== ax9o ===
+First is a variant of the {{{Existence}}} axiom:<ref>[http://us.metamath.org/mpeuni/ax9o.html ax9o] in metamath's set.mm, accessed February 22, 2010</ref>
+
+* #(→ (∀ x (→ (= x y) (∀ x φ))) φ)# ([/general/First-order_logic.gh/ax9o | ax9o])
+
+=== A quantified statement which starts with a proposition ===
+It is common for a quantifier to be followed by some kind of condition.  For example "for every ε > 0, (¬ ψ)" or "there exists a δ > 0 such that ψ".  Despite the similar wording, the former is formalized as {{{∀ ε (ε > 0 → ¬ ψ)}}} (with an implication) and the latter is formalized as {{{∃ δ (δ > 0 ∧ ψ)}}} (with a conjunction).  The first theorem in this section expresses this relationship:<ref>[http://us.metamath.org/mpeuni/alinexa.html alinexa] in metamath's set.mm, accessed February 22, 2010</ref>
+
+* #(↔ (∀ x (→ φ (¬ ψ))) (¬ (∃ x (∧ φ ψ))))# ([/general/First-order_logic.gh/alinexa | alinexa])
+
+The second theorem, {{{equs3}}}, is a special case which will be useful in dealing with substitution:<ref>[http://us.metamath.org/mpeuni/equs3.html equs3] in metamath's set.mm, accessed February 22, 2010</ref>
+
+* #(↔ (∃ x (∧ (= x s) φ)) (¬ (∀ x (→ (= x s) (¬ φ)))))# ([/general/First-order_logic.gh/equs3 | equs3])
+
+== Change variable ==
+We can change the variable in a quantifier and the expression which it quantifies. For example, in [[Basic arithmetic]] we will need to prove {{{∃ n a + n = b ↔ ∃ m a + m = b}}}. Here we state a theorem which lets us do this: given {{{x = y → (φx ↔ φy)}}}, where {{{x}}} is not free in {{{φy}}} and {{{y}}} is not free in {{{φx}}}, conclude {{{∃ x φx ↔ ∃ y φy}}}.
+
+We start by proving {{{∃ y φy → ∃ x φx}}} (subject to the same hypotheses).<ref>The proof is based on exalpha1 in [http://code.google.com/p/ghilbert/ ghilbert]'s [http://code.google.com/p/ghilbert/source/browse/trunk/peano/peano_thms.gh peano_thms.gh], accessed October 12, 2010</ref>
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(→ (∃ y φy) (∃ x φx))# ([/general/First-order_logic.gh/ChangeVariableThereExistsReverseNotFree | ChangeVariableThereExistsReverseNotFree])
+
+The other direction is an easy consequence, but to prove it we do need to commute the equality and the biconditional.
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(→ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsForwardNotFree | ChangeVariableThereExistsForwardNotFree])
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExistsNotFree | ChangeVariableThereExistsNotFree])
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∃ x φx) (∃ y φy))# ([/general/First-order_logic.gh/ChangeVariableThereExists | ChangeVariableThereExists])
+
+The corresponding result for ∀ is an easy consequence. The proof consists of the usual technique of pushing negations around until all the ∃ turn into ∀.
+* #(is-not-free-in x φy)#, #(is-not-free-in y φx)#, #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAllNotFree | ChangeVariableForAllNotFree])
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (∀ x φx) (∀ y φy))# ([/general/First-order_logic.gh/ChangeVariableForAll | ChangeVariableForAll])
+
+== Substitution of variables ==
+We now move to proper substitution via {{{substVariable}}}.
+
+This section only covers the case where we substitute one variable for another, not where we substitute an object for a variable. The latter is more general and is treated in [[First-order logic with quantifiability]]. This section, on {{{substVariable}}}, is of interest mainly for theories which do not want to accept the [[Interface:Axiom of quantifiability]]. It is not yet fully developed.
+
+=== Definition ===
+Our definition of {{{substVariable}}} is somewhat complicated, mainly in order to handle the case in which y and x are not distinct.<ref>[http://us.metamath.org/mpeuni/df-sb.html df-sb] in metamath's set.mm, accessed February 22, 2010</ref>
+
+=== Proving substitution from (∀ x ((x = y) → φ)) ===
+Given the definition we have adopted, our first order of business is making it a bit easier to prove a substitution formula.<ref>[http://us.metamath.org/mpeuni/sb2.html sb2] in metamath's set.mm, accessed February 22, 2010</ref>
+
+The following lemma's consequent is half of the definition of {{{substVariable}}}:<ref>[http://us.metamath.org/mpeuni/equs4.html equs4] in metamath's set.mm, accessed February 22, 2010</ref>
+
+* #(→ (∀ x (→ (= x y) φ)) (∃ x (∧ (= x y) φ)))# ([/general/First-order_logic.gh/equs4 | equs4])
+
+Now we're ready for our first theorem to help us prove a substituted formula:
+* #(→ (∀ x (→ (= x y) φ)) (substVariable y x φ))# ([/general/First-order_logic.gh/sb2 | sb2])
+
+=== Substitution implies ∃ x (x = y ∧ φ) ===
+
+Although being able to prove a formula involving {{{substVariable}}} is our first order of business, some of the theorems below also do the reverse. Here is a lemma to help turn {{{substVariable}}} into something else (it is just extracting half of the definition):<ref>[http://us.metamath.org/mpeuni/sb1.html sb1] in metamath's set.mm, accessed February 24, 2010</ref>
+* #(→ (substVariable y x φ) (∃ x (∧ (= x y) φ)))# ([/general/First-order_logic.gh/sb1 | sb1])
+
+=== Substitution applied to an equality ===
+This theorem is basically just equality reflexivity, except that one side has been substituted with the object on the other side.<ref>[http://us.metamath.org/mpeuni/equsb1.html equsb1] in metamath's set.mm, accessed February 22, 2010</ref>
+
+* #(substVariable y x (= x y))# ([/general/First-order_logic.gh/SubstitutionEquality | SubstitutionEquality])
+
+=== Substitution of a theorem remains a theorem ===
+If we have a theorem, we can add a variable substitution onto it.<ref>[http://us.metamath.org/mpeuni/sbt.html sbt] in metamath's set.mm, accessed February 24, 2010</ref>
+* #φ# ⊢ #(substVariable y x φ)# ([/general/First-order_logic.gh/introduceSubstVariable | introduceSubstVariable])
+
+=== Convert from implicit substitution ===
+A statement of the form {{{x = y → (φ ↔ ψ)}}}, where {{{x}}} is not free in {{{ψ}}}, can be thought of as an ''implicit substitution'', as it can be used to relate a formula about {{{x}}} to a formula about {{{y}}}. It also provides one of the ways to construct a statement using {{{subst}}}.<ref>[http://us.metamath.org/mpeuni/sbie.html sbie] in metamath's set.mm, accessed February 24, 2010</ref>
+
+We break up the proof into several steps:
+
+* #(→ (= x y) (↔ φ ψ))# ⊢ #(→ (∧ (= x y) φ) ψ)# ([/general/First-order_logic.gh/sbie-1 | sbie-1])
+* #(→ (∧ (= x y) φ) ψ)# ⊢ #(→ (substVariable y x φ) (∃ x ψ))# ([/general/First-order_logic.gh/sbie-2 | sbie-2])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(→ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie-forward | sbie-forward])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(→ ψ (substVariable y x φ))# ([/general/First-order_logic.gh/sbie-reverse | sbie-reverse])
+* #(is-not-free-in x ψ)#, #(→ (= x y) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/sbie | sbie])
+* #(→ (= x y) (↔ φ ψ))# ⊢ #(↔ (substVariable y x φ) ψ)# ([/general/First-order_logic.gh/makeSubstVariableExplicit | makeSubstVariableExplicit])
+
+=== sbequ12 ===
+Another relationship between {{{substVariable}}} and equality is {{{x = y → (φ ↔ [y / x]φ)}}}.<ref>[http://us.metamath.org/mpeuni/sbequ12.html sbequ12] in metamath's set.mm, accessed February 26, 2010</ref>  We prove each direction of the biconditional separately.
+* #(→ (= x y) (→ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ1 | sbequ1])
+
+The other direction is also simple:
+* #(→ (= x y) (→ (substVariable y x φ) φ))# ([/general/First-order_logic.gh/sbequ2 | sbequ2])
+
+We now combine the two to get {{{sbequ12}}}:
+* #(→ (= x y) (↔ φ (substVariable y x φ)))# ([/general/First-order_logic.gh/sbequ12 | sbequ12])
+
+=== Implication builder ===
+Analogous to our other implication builders, this theorem takes an implication and lets us add {{{substVariable}}} to both sides.<ref>[http://us.metamath.org/mpeuni/sbimi.html sbimi] in metamath's set.mm, accessed February 24, 2010</ref>
+* #(→ φ ψ)# ⊢ #(→ (substVariable y x φ) (substVariable y x ψ))# ([/general/First-order_logic.gh/addSubstVariable | addSubstVariable])
+
+=== Biconditional builder ===
+The builder for the biconditional is very similar to the implication builder.  It could be proved much the way we proved the implication builder, but we derive it from the implication builder.<ref>[http://us.metamath.org/mpeuni/sbbii.html sbbii] in metamath's set.mm, accessed February 24, 2010</ref>
+
+* #(↔ φ ψ)# ⊢ #(↔ (substVariable y x φ) (substVariable y x ψ))# ([/general/First-order_logic.gh/buildSubstVariable | buildSubstVariable])
+
+== More builders ==
+These builders are similar in spirit to the convenience builders of propositional logic, although they are (slightly) harder to derive.
+
+First, a biconditionalized version of {{{ForAllImplicationThereExists}}}.<ref>[http://us.metamath.org/mpeuni/19.18.html 19.18] in metamath's set.mm, accessed June 12, 2010</ref>
+* #(→ (∀ x (↔ φ ψ)) (↔ (∃ x φ) (∃ x ψ)))# ([/general/First-order_logic.gh/ForAllBiconditionalThereExists | ForAllBiconditionalThereExists])
+
+Now, builders.
+
+* #(→ φ (↔ ψ χ))# ⊢ #(→ φ (↔ (∃ x ψ) (∃ x χ)))# ([/general/First-order_logic.gh/buildThereExistsInConsequent | buildThereExistsInConsequent])
+* #(→ φ (↔ ψ χ))# ⊢ #(→ φ (↔ (∀ x ψ) (∀ x χ)))# ([/general/First-order_logic.gh/buildForAllInConsequent | buildForAllInConsequent])
+
+== Export ==
+We've now proved all the theorems in [[Interface:First-order logic]], so we export them.
+
+== References ==
+<references/>
+
+[[Category:Classical first-order logic]]

@@ -1,0 +1,142 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = Tarski's axioms
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = Since [[w:Euclid|Euclid]], geometry has been presented as following from postulates. However, it was not until the 20th century that a complete set of postulates were put forward. This page is for one such set, the [[w:Tarski's axioms|first-order axiomization by Tarski]]. It is less powerful than full Euclidian geometry and more powerful than compass-and-straightedge geometry.<ref>footnote 5 on page 191 of Tarski and Givant (1999)</ref> It makes reference to points (not directly to lines, angles, or circles), and has two relationships between points: betweenness and congruence. The version here is for two dimensions. Adapting the axioms for one dimension is complicated,<ref>Tarski and Givant (1999), pages 204–209</ref> but only slight modifications are needed for more than two dimensions.<ref>Tarski and Givant (1999), page 195</ref>
+# }}
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability]]
+# | importedby = [[Line segment congruence]]
+# | exportedby = [[Tarski's geometry axioms derived from real numbers]]
+# }}
+# 
+# First, we adopt the axioms of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|first-order logic]] (including equality):
+# 
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (CLASSICAL) "")
+# 
+# The kind <code>object</code>, defined in first-order logic, represents a point:
+tvar (object x y z w u v)
+
+var (object a b c xx yy)
+# 
+# == Congruence ==
+# We introduce congruence of line segments; <code>(x y ≡ w z)</code> means that the line segment xy is the same length as the line segment wz. This property is also known as equidistance.<ref>Tarski and Givant, 1999, page 177</ref>
+term (formula (≡ x y z w))
+# 
+# The distance from x to y is the same as the distance from y to x.  This property is called reflexivity by Tarski and Givant<ref>Tarski and Givant, 1999, page 177</ref> and symmetry by Narboux.<ref>Narboux, 2007, page 141</ref> Narboux also calls it the pseudo-commutativity property of the oriented distance (on page 148) and in his proofs pseudo_reflexivity.<ref>Narboux, 2007</ref>
+stmt (CongruenceABBA () () (≡ x y y x))
+# 
+# A segment which has zero length starts and ends at the same point (although saying "zero length" is a bit of a shortcut, as the axioms are not based on real numbers or any other numbers).
+stmt (CongruenceIdentity () () (→ (≡ x y z z) (= x y)))
+# 
+# Two segments which are congruent to a common segment are congruent to each other.
+stmt (CongruenceTransitivityAxiom () () (→ (∧ (≡ x y z u) (≡ x y v w)) (≡ z u v w)))
+# 
+# == Betweenness ==
+# The other fundamental formula is betweenness; <code>(between x y z)</code> signifies "y is between x and z".
+# 
+term (formula (between x y z))
+# 
+# There are no other points between x and x.
+stmt (Indivisibility () () (→ (between x y x) (= x y)))
+# 
+# === Pasch's axiom ===
+# [[File:Tarski's formulation of Pasch's axiom.svg|left|thumb]]
+# Tarski's version of the [[w:Axiom of Pasch]].
+# {{clear}}
+stmt (Pasch ((x a) (u a) (z a) (y a) (v a)) () (→ (∧ (between x u z) (between y v z)) (∃ a (∧ (between u a y) (between v a x)))))
+# 
+# === Continuity ===
+# [[File:Tarski's continuity axiom.svg|left|thumb]]
+# The variables <code>xx</code> and <code>yy</code> correspond with <code>x</code> and <code>y</code> in the diagram and [[w:Tarski's axioms|wikipedia]]. (We can't just call them <code>x</code> and <code>y</code> because we've declared <code>x</code> and <code>y</code> as objects, which unlike variables cannot be subject to quantification).
+tvar (formula φx ψy)
+stmt (Continuity ((φx yy) (φx a) (φx b) (ψy xx) (ψy a) (ψy b) ) () 
+  (→
+  (∃ a (∀ xx (∀ yy (→ (∧ φx ψy) (between a xx yy))))) (∃ b (∀ xx (∀ yy (→ (∧ φx ψy) (between xx b yy)))))))
+# 
+# == Dimension ==
+# [[File:Points in a plane equidistant to two given points lie on a line.svg|thumb|right|Upper dimension]]
+# The dimension is greater than one,
+stmt (LowerDimension () ()
+  (∃ a (∃ b (∃ c
+    (∧
+     (∧
+     (¬ (between a b c)) (¬ (between b c a))) (¬ (between c a b))
+)))))
+# 
+# and less than three.
+stmt (UpperDimension () ()
+  (→
+  (∧ (∧ (∧ (≡ x u x v) (≡ y u y v)) (≡ z u z v)) (¬ (= u v))) (∨ (∨ (between x y z) (between y z x)) (between z x y))))
+# 
+# == Axiom of Euclid ==
+# [[File:Tarski's axiom of Euclid C.svg|thumb|right]]
+# There are quite a variety of ways to state Euclid's [[w:parallel postulate]]. Here we adopt one which says that if a point u is in the interior of ∠yxz (in the sense of being on the line segment yz drawn across the angle), then any point v which is further out (that is, u is between v and the vertex of the angle) will also be in the interior (in the sense that a line segment containing v can be drawn across the angle).
+stmt (AxiomEuclid ((x b a) (u b a) (v b a) (y b a) (z b a)) () (
+  →
+  (∧ (∧ (between x u v) (between y u z)) (¬ (= x u))) (∃ a (∃ b (∧ (∧ (between x y a) (between x z b)) (between a v b))))))
+# 
+# == Five Segment ==
+# [[File:Five segment.svg|thumb|right]]
+# This is a version of familiar theorems concerning congruent triangles (without any explicit reference to angles, of course).
+tvar (object x′ y′ z′ u′)
+stmt (OuterFiveSegment () ()
+  (→
+   (∧ (∧ (∧ (∧
+     (∧ (∧ (¬ (= x y)) (between x y z)) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x u x′ u′)) (≡ y u y′ u′)) (≡ z u z′ u′))
+)
+# 
+# == Segment Construction ==
+# Given a line segment wx and a line segment yz, construct an extension of wx which is as long as yz is.
+stmt (SegmentConstruction ((w a) (x a) (y a) (z a)) () (∃ a (∧ (between w x a) (≡ x a y z))))
+# 
+# == Builders ==
+# Being able to substitute equals for equals is generally taken as a logical axiom, but we need to provide it for every operator.
+tvar (object x0 x1 x2 x3 y0 y1 y2 y3)
+stmt (CongruenceBuilder () () (
+  →
+  (∧ (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (= x3 y3)) (↔ (≡ x0 x1 x2 x3) (≡ y0 y1 y2 y3))
+))
+stmt (BetweenBuilder () () (
+  →
+  (∧ (∧ (= x0 y0) (= x1 y1)) (= x2 y2)) (↔ (between x0 x1 x2) (between y0 y1 y2))
+))
+# 
+# == Comments about the predicate logic ==
+# 
+# There are two related comments to make about translating the predicate logic used in Tarski and Givant to what we use here. The Tarski and Givant paper, except as explicitly noted in axiom schema As. 11, does not contain axiom schemas but instead concrete axioms. The corresponding concept, given our [[Interface:First-order logic with quantifiability|first-order logic]], would be to use <code>variable</code> (rather than <code>object</code>) everywhere with distinct variable constraints between all variables (again, except for As. 11 which has explicit distinct variable constraints in the Tarski and Givant paper).<ref>Tarski and Givant, 1999, page 177 and page 185</ref>
+# For convenience, we loosen this in two ways. First of all, we use <code>object</code> instead of <code>variable</code> for all variables not subject to quantification (for comparison, this is similar to the way that metamath handles their complex number axioms<ref>[http://us.metamath.org/mpeuni/mmcomplex.html Real and Complex Numbers], last updated on May 6, 2008, paragraph beginning "In case you are wondering: Why do we use the purple class variables for most postulates instead of the more conventional-looking red set variables?"</ref>). Secondly, we only supply distinct variable constraints where quantifiers are involved (this also parallels metamath, although the metamath page doesn't explicitly discuss it). These changes do not affect the mathematical meaning of the axioms or their strength: for an example of translating axioms stated using <code>variable</code> and distinct variable constraints on everything, to axioms in the style presented here, see [[First steps in set theory]].
+# 
+# == Expressions for points ==
+# Geometry traditionally proves the existence of a point and then assigns it to a variable, rather than providing an expression for that point. For example, we might say "let C be the midpoint of the line segment A B" rather than having a notation "midpoint A B". To supply that kind of notation, we'd need an axiom analogous to <code>Abstraction</code> in [[Interface:Zermelo-Fraenkel set theory]] (of course the notation wouldn't create a set, just a single point for which a formula holds). We do not pursue this notation, in deference to tradition and to avoid complexities in convincing ourselves that such an extension would not inadvertently make our system inconsistent or increase its strength.
+# 
+# == Tarski's axioms as the basis for geometry ==
+# Tarski's axioms are intended to be sufficient for the development of classical geometry (in the style of Euclid's ''Elements'' and similar works). Getting from the axioms to the familiar theorems involving congruent triangles, angles, midpoints, perpendicular and parallel lines, and the like does entail quite a few proofs. They are broken up into the following pages, with references to the corresponding chapters in Narboux.<ref>Narboux, 2007, which references the chapter numbering to W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+# *[[Line segment congruence]]. Also includes outer three segment and segment construction uniqueness. (chapter 2)
+# *[[Betweenness of points]], including the existence of distinct points, <code>PaschLine</code> (chapter 3)
+# *[[Triangle congruence]] defined and with some basic results for degenerate triangles.  Also includes inner five segment. (first half of chapter 4)
+# *[[Collinearity]] (second half of chapter 4)
+# *[[Connectivity for betweenness]] (first half of chapter 5)
+# *[[Line segment inequality]] including an additional line segment construction theorem (second half of chapter 5)
+# *[[Out lines]] (chapter 6)
+# *[[Symmetric point]] (first portion of chapter 7)
+# *[[Midpoint]] (latter portion of chapter 7)
+# *Orthogonality: [[Orthogonality 1|1]], [[Orthogonality 2|2]], [[Orthogonality 3|3]] (chapter 8)
+# *[[The plane]] (chapter 9)
+# *[[Line reflexivity]] (chapter 10)
+# *[[Angles]] (chapter 11)
+# *[[Parallelism]] (chapter 12)
+# 
+# == References ==
+# <references/>
+# * [[w:Tarski's axioms]]
+# * Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, [[doi:10.2307/421089]], MR1791303, ISSN 1079-8986
+# * Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Euclidean geometries (general) and generalizations]]
+# [[Category:Foundations of classical theories (including reverse mathematics)]]

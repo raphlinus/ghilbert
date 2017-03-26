@@ -1,0 +1,48 @@
+== Construction of the Rationals ==
+
+Rational numbers can be constructed from the [/wiki/peano/arithmetic/integers | integers] and
+integer arithmetic. A rational number is constructed from an
+[/wiki/peano/tuple/ordered-pair | ordered pair] of integers in a
+[/wiki/peano/arithmetic/rationals/fraction | fraction]: #(= A (</> (top A) (bottom A)))#.
+The first number in the ordered pair: #(top A)# is the
+[/wiki/peano/arithmetic/rationals/top | top or numerator]. The second number #(bottom A)# in the
+pair is the [/wiki/peano/arithmetic/rationals/bottom | bottom or denominator].
+
+Two rational numbers #A# and #B# are equal if the ratio between them is equal #(= (</> (top A) (bottom A)) (</> (top B) (bottom B)))#,
+but this equation requires division which has not been properly defined yet. This equation
+is equivalent to #(= (* (top A) (bottom B)) (* (top B) (bottom A)))#. However, division by zero
+adds a further complication. 
+If we used the equation #(= (* (top A) (bottom B)) (* (top B) (bottom A)))# to define rational equality,
+then the fraction #(</> (0) (0))# would be equal to all numbers. So we
+add a further restriction that rational numbers are only equal if both denominators are not
+#(0)# or both are #(0)#. The full definition of rational equality is given
+[/edit/peano/rationals.gh/df-eqq | here].
+
+There is more than one fraction that is equal to a given rational number. For example, one
+half can be represented as #(</> (1) (2))#, or #(</> (2) (4))# or #(</> (5) (10))#. Each rational
+number represents a class of [/edit/peano/rationals.gh/qequivalence | equivalent ordered pairs].
+
+The difficult part of constructing the rationals is to shown that the arithmetic operations are
+properly defined over these equivalence classes. Rational multiplication is defined by multiply the
+numerators and denominators
+#(= (* (</> a b) (</> c d)) (</> (z.* a c) (z.* b d))) /edit/peano/rationals.gh/qmulfrac#. Rational
+addition is defined by the formula
+#(= (+ (</> a b) (</> c d)) (</> (z.+ (z.* a d) (z.* c b)) (z.* b d))) /edit/peano/rationals.gh/qaddfrac#. We can prove all
+the important properties of addition and multiplication with these definitions:
+
+* Commutivity:   [/edit/peano/rationals.gh/qaddcom | add] [/edit/peano/rationals.gh/qmulcom | multiply]
+* Associativity: [/edit/peano/rationals.gh/qaddass | add] [/edit/peano/rationals.gh/qmulass | multiply]
+* Identities:    [/edit/peano/rationals.gh/qaddid | add] [/edit/peano/rationals.gh/qmulid | multiply]
+* Inverses: [/edit/peano/rationals.gh/qaddcan | add] [/edit/peano/rationals.gh/qdivcan | multiply]
+* [/edit/peano/rationals.gh/qdistr | Distributive Property]
+
+=== Related Topics ===
+
+* [/wiki/peano/arithmetic/rationals/fraction | Fractions]
+* [/wiki/peano/arithmetic/rationals/bottom | Bottom (denominator)]
+* [/wiki/peano/arithmetic/rationals/top | Top (numerator)]
+* [/wiki/peano/arithmetic/rationals/NaN | Not a Number]
+* [/wiki/peano/arithmetic/rationals/rationals-set | Set of Rationals]
+* [/wiki/peano/arithmetic/divide | Division]
+
+[/wiki/peano/arithmetic | Arithmetic Overview]

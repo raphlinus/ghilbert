@@ -1,0 +1,56 @@
+## <justification>
+##   redirect halfminus.gh
+## </justification>
+
+param (PROP ../../prop.ghi () "")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+param (NATURALS common.ghi (PROP PREDICATE) "")
+
+# This file contains inequality theorems specific to natural numbers.
+# Numbers are assumed to be natural within the naturals directory. So it is safe to import this
+# file into any file in the naturals directory. However, outside this directory the prefix 'n.'
+# should be used to specify that this is for natural numbers only.
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (.- A B))
+
+stmt (halfminuseq1 () () (-> (= A C) (= (.- A B) (.- C B))))
+
+stmt (halfminuseq2 () () (-> (= B C) (= (.- A B) (.- A C))))
+
+stmt (halfminuseq1i () (
+     (= A B))
+     (= (.- A C) (.- B C)))
+
+stmt (halfminuseq2i () (
+     (= B C))
+     (= (.- A B) (.- A C)))
+
+## <title> Minus is the inverse of addition </title>
+stmt (halfminus () () (-> (<= B A) (= (+ (.- A B) B) A)))
+
+## <title> A number minus zero is itself </title>
+stmt (halfminuszero () () (= (.- A (0)) A))
+
+## <title> A number minus itself is zero </title>
+## <suggest> right('Cancel', '-') </suggest>
+## <table>
+##   (= (.- <r> A <r> A) (0))
+## </table>
+stmt (halfminusid () () (= (.- A A) (0)))
+
+## <title> Commute Half Minus </title>
+## <table>
+##   (-> (<= <r> B <g> A) (= (+ (.- <g> A <r> B) <b> C) (.- (+ <g> A <b> C) <r> B)))
+## </table>
+stmt (halfminusaddcom () () (-> (<= B A) (= (+ (.- A B) C) (.- (+ A C) B))))
+
+## <title> Half minus cancellation </title>
+## <suggest> right('Simplify', '-') </suggest>
+## <table>
+##   (= (.- (+ A <r> B) <r> B) A)
+## </table>
+stmt (halfminuscan() () (= (.- (+ A B) B) A))

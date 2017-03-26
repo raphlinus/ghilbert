@@ -1,0 +1,33 @@
+## <justification> redirect add_multiply_min.gh </justification>
+
+param (PROP prop.ghi () "")
+param (PREDICATE ../../predicate/predicate_all.ghi (PROP) "")
+param (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+param (N_NATURALS ../common/collections/naturals.ghi (PROP N_PREDICATE) "n.")
+param (EQUALITY_INT equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE) "")
+param (ADD_MULTIPLY_MIN ../common/add_multiply_min.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (n.nat a b c d)
+var (nat x y z)
+
+## <title> Addition on Ordered Pairs </title>
+stmt (addop () () (= (+ (<,> a b) (<,> c d)) (<,> (n.+ a c) (n.+ b d))))
+
+## <title> Multiplication on Ordered Pairs </title>
+## <suggest> right('Equivalence', '∙') </suggest>
+stmt (mulop () () (= (* (<,> a b) (<,> c d)) (<,> (n.+ (n.* a c) (n.* b d)) (n.+ (n.* a d) (n.* b c)))))
+
+## <title> Def. 0 as an ordered pair </title>
+stmt (df0z () () (= (0) (<,> (n.0) (n.0))))
+
+## <title> Def. 1 as an ordered pair </title>
+stmt (df1z() () (= (1) (<,> (n.1) (n.0))))
+
+## <title> 0 equivalence class </title>
+stmt (zequivalence0 () () (= (0) (<,> c c)))
+
+## <title> Definition of Integer Multiplication </title>
+## <suggest> left('Simplify', '∙') </suggest>
+stmt (df-mul () () (= (* A B) (<,> (n.+ (n.* (head A) (head B)) (n.* (tail A) (tail B))) (n.+ (n.* (head A) (tail B)) (n.* (tail A) (head B))))))

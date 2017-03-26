@@ -1,0 +1,545 @@
+import (PROP         /peano_new/prop.ghi () "")
+import (N_PREDICATE  /peano_new/predicate/all.ghi (PROP) "r.")
+import (ORDERED_PAIR /peano_new/arithmetic/common/ordered-pair.ghi (PROP N_PREDICATE) "r.")
+
+kindbind (r.nat nat)
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (r.nat a b c d)
+var (r.nat v w x y z)
+
+
+## <context>
+##   This theorem is part of a series of theorems constructing the complex numbers.
+##   A complex number is constructed as a pair of real numbers which
+##   represents the real and the imaginary part of the complex number. This requires
+##   us to construct a new version of equality for complex numbers. These theorems
+##   demonstrate that this complex equality has all the essential properties we
+##   expect for equality.
+## </context>
+
+
+defthm (df-head r.nat (head A) () () (r.= (head A) (r.head A))
+  (r.head A) r.eqid
+)
+
+defthm (df-tail r.nat (tail A) () () (r.= (tail A) (r.tail A))
+  (r.tail A) r.eqid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.=  [ A ]   ]   ]  C)
+##   (r.=  [ A ]   [ B ] )
+##   (r.=  [   [   [ B ]  C)
+## </table>
+thm (ReqReplaceReq0 () (
+     replacee (r.= A C)
+     substitution (r.= A B)) 
+     (r.= B C)
+  replacee substitution
+  C r.eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (r.= A  [ B ]   ]   ] )
+##   (r.=    [ B ]   [ C ] )
+##   (r.= A  [   [   [ C ] )
+## </table>
+thm (ReqReplaceReq1 () (
+     replacee (r.= A B)
+     substitution (r.= B C)) 
+     (r.= A C)
+  replacee
+  substitution
+  A r.eqeq2i
+  mpbi
+)
+
+## <title> Definition of Complex Equality </title>
+## <summary>
+##   A complex number is defined as an order pair of real numbers. The first
+##   number in the pair represents the real part of the number, the 
+##   second number represent the imaginary part.
+## </summary>
+## <suggest> left('Simplify', '=') </suggest>
+defthm (df-eq wff (= A B) () () (<-> (= A B) (/\ (r.= (r.head A) (r.head B)) (r.= (r.tail A) (r.tail B))))
+  (/\ (r.= (r.head A) (r.head B)) (r.= (r.tail A) (r.tail B))) biid
+)
+
+thm (dfeq () () (<-> (= A B) (/\ (r.= (head A) (head B)) (r.= (tail A) (tail B))))
+  A B df-eq
+  A df-head r.eqcomi
+  B df-head r.eqcomi
+  r.eqeq12i
+  A df-tail r.eqcomi
+  B df-tail r.eqcomi
+  r.eqeq12i
+  anbi12i  
+  bitri
+)
+
+## <title> Complex and Read Equality are equivalent </title>
+## <summary>
+##   Yes, they are exactly the same, but its useful to define a new version
+##   of equality so that we can keep the real and complex kinds separate.
+## </summary>
+thm (ceqeq () () (<-> (r.= A B) (= A B))
+  A r.opexpand
+  B r.opexpand
+  r.eqeq12i
+  ## <d>
+    (r.head A) (r.tail A) (r.head B) (r.tail B) r.opth  
+    bitri
+  ## </d>
+  ## <d>
+    A B df-eq bicomi  
+    bitri
+  ## </d>
+)
+
+thm (eqid () () (= A A)
+  A r.eqid
+  A A ceqeq  
+  mpbi
+)
+
+thm (eqcom () () (<-> (= A B) (= B A))
+  A B r.eqcom
+  A B ceqeq  
+  bitr3icom
+  B A ceqeq    
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee substitution
+  ch anbi1i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee substitution
+  ph anbi2i
+  sylbi2
+)
+
+thm (eqtr () () (-> (/\ (= A B) (= B C)) (= A C))
+  A B C r.eqtr
+  A B ceqeq  
+  BiReplaceImp0An0
+  B C ceqeq    
+  BiReplaceImp0An1
+  A C ceqeq      
+  sylib
+)
+
+thm (ceqeq1 () () (-> (= A B) (<-> (= A C) (= B C)))
+  B A C eqtr ex
+  B A eqcom
+  sylbi2
+  A B C eqtr ex
+  impbid
+)
+
+## <title> Equivalence over Equality </title>
+thm (ceqeq1i () (hyp (= A B)) (<-> (= A C) (= B C))
+  hyp A B C ceqeq1 ax-mp)	
+
+## <title> Equivalence over Equality </title>
+thm (ceqeq2 () () (-> (= A B) (<-> (= C A) (= C B)))
+  A B C ceqeq1
+    A C eqcom B C eqcom bibi12i
+  sylib
+)
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=        [ A  ] [       [ B)
+##   (<-> (= C [ A) ] [ (= C [ B))
+## </table>
+thm (ceqeq2i () (hyp (= A B)) (<-> (= C A) (= C B))
+  hyp A B C ceqeq2 ax-mp)	
+
+defthm (df-op r.nat (<,> a b) () () (= (<,> a b) (r.<,> a b))
+  (r.<,> a b) eqid
+)
+
+## <title> Symmetric Property </title>
+## <table>
+##   (= <r> A <g> B)
+##   (= <g> B <r> A)
+## </table>
+thm (ceqcomi () (hyp (= A B)) (= B A)
+  hyp
+  A B eqcom
+  mpbi
+)
+
+thm (opexpand () () (= A (<,> (head A) (tail A)))
+  A r.opexpand
+  A df-head r.eqcomi
+  (r.tail A) r.opeq1i
+  A r.eqeq2i
+  mpbi
+  A df-tail r.eqcomi
+  (head A) r.opeq2i
+  A r.eqeq2i
+  mpbi
+  A (r.<,> (head A) (tail A)) ceqeq
+  mpbi
+  (head A) (tail A) df-op ceqcomi
+  A ceqeq2i  
+  mpbi
+)
+
+## <title> Convert Natural to Integer Equality </title>
+thm (eqceqi () (hyp (r.= A B)) (= A B)
+  hyp
+  A B ceqeq  
+  mpbi
+)
+
+thm (rdfop () () (r.= (<,> A B) (r.<,> A B))
+  A B df-op
+  (<,> A B) (r.<,> A B) ceqeq bicomi  
+  mpbi
+)
+
+thm (opeq1 () () (-> (r.= a b) (= (<,> a c) (<,> b c)))
+  a b c r.opeq1 
+  a c rdfop r.eqcomi
+  b c rdfop r.eqcomi
+  r.eqeq12i  
+  sylib
+  (<,> a c) (<,> b c) ceqeq  
+  sylib
+)
+
+thm (opeq2 () () (-> (r.= a b) (= (<,> c a) (<,> c b)))
+  a b c r.opeq2
+  c a rdfop r.eqcomi
+  c b rdfop r.eqcomi
+  r.eqeq12i  
+  sylib
+  (<,> c a) (<,> c b) ceqeq  
+  sylib
+)
+
+thm (opeq1i () (
+     hyp1 (r.= A C))
+     (= (<,> A B) (<,> C B))
+  hyp1
+  A C B opeq1
+  ax-mp
+)
+
+thm (opeq1d () (
+     hyp1 (-> ph (r.= a c)))
+     (-> ph (= (<,> a b) (<,> c b)))
+  hyp1
+  a c b opeq1
+  syl
+)
+
+thm (opeq2i () (
+     hyp1 (r.= B C))
+     (= (<,> A B) (<,> A C))
+  hyp1
+  B C A opeq2
+  ax-mp
+)
+
+
+thm (opeq2d () (
+     hyp1 (-> ph (r.= B C)))
+     (-> ph (= (<,> A B) (<,> A C)))
+  hyp1
+  B C A opeq2
+  syl
+)
+
+## <title> Equivalence for <,> </title> ##
+thm (opeq12 () () (-> (/\ (r.= a b) (r.= c d)) (= (<,> a c) (<,> b d)))
+  a b c opeq1
+  c d b opeq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (<,> a c) (<,> b c) (<,> b d) eqtr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+thm (opeq12d () (
+     hyp1 (-> ph (r.= A B))
+     hyp2 (-> ph (r.= C D)))
+     (-> ph (= (<,> A C) (<,> B D)))
+  hyp1
+  hyp2
+  jca
+  A B C D opeq12
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (r.=  [ a ]   ]   ]  c))
+##   (r.=         [ a ]   [ b ] )
+##   (-> ph (r.=  [   [   [ b ]  c))
+## </table>
+thm (ReqReplaceImp1Req0 () (
+     replacee (-> ph (r.= a c))
+     substitution (r.= a b)) 
+     (-> ph (r.= b c))
+  replacee substitution
+  c r.eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (r.= a  [ b ]   ]   ] ))
+##   (r.=           [ b ]   [ c ] )
+##   (-> ph (r.= a  [   [   [ c ] ))
+## </table>
+thm (ReqReplaceImp1Req1 () (
+     replacee (-> ph (r.= a b))
+     substitution (r.= b c)) 
+     (-> ph (r.= a c))
+  replacee substitution
+  a r.eqeq2i
+  sylib
+)
+
+thm (headeq () () (-> (r.= A B) (r.= (head A) (head B)))
+  A B r.headeq
+  A df-head r.eqcomi  
+  ReqReplaceImp1Req0
+  B df-head r.eqcomi    
+  ReqReplaceImp1Req1
+)
+
+thm (headop () () (r.= (head (<,> A B)) A)
+  A B r.headop
+  (r.<,> A B) df-head r.eqcomi
+  ReqReplaceReq0
+
+  A B rdfop
+  (<,> A B) (r.<,> A B) headeq  
+  ax-mp
+  A r.eqeq1i bicomi  
+  mpbi
+)
+
+thm (taileq () () (-> (r.= A B) (r.= (tail A) (tail B)))
+  A B r.taileq
+  A df-tail r.eqcomi  
+  ReqReplaceImp1Req0
+  B df-tail r.eqcomi    
+  ReqReplaceImp1Req1
+)
+
+thm (tailop () () (r.= (tail (<,> A B)) B)
+  A B r.tailop
+  (r.<,> A B) df-tail r.eqcomi
+  ReqReplaceReq0
+
+  A B rdfop
+  (<,> A B) (r.<,> A B) taileq  
+  ax-mp
+  B r.eqeq1i bicomi  
+  mpbi
+)
+
+defthm (df-al wff (A. x ph) () ()  (<-> (A. x ph) (r.A. x ph)) 
+  (r.A. x ph) biid)
+
+## <summary> Reproved for integers directly from the natural number versior. </title>
+thm (alnfi ((ph x)) () (-> ph (A. x ph))
+  ph x r.alnfi
+  x ph df-al bicomi  
+  sylib
+)
+
+## <title> Generalization Axiom </title>
+## <table>
+##       [ ph ]
+## (A. x [ ph ] )
+## </table>
+## <summary> Reproved for integers directly from the natural number versior. </title>
+thm (gen () (hyp ph) (A. x ph)
+  hyp
+  x r.gen
+  x ph df-al bicomi  
+  mpbi
+)
+
+# roughly Margaris A5, but without the subst
+## <title> Axiom 4: Specialization </title>
+## <suggest> right('Remove', '∀') </suggest>
+thm (ax-4 () () (-> (A. x ph) ph)
+  x ph r.ax-4
+  x ph df-al bicomi    
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (->  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Imp0 () (
+     replacee (-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imbi2i
+  sylib
+)
+
+## <title> Axiom 5: Quantified Implication </title>
+thm (ax-alim () () (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps)))
+  x ph ps r.ax-alim
+  ## <d>
+  x (-> ph ps) df-al bicomi 
+  sylbi2
+  ## </d>
+  ## <d>
+  x ph df-al bicomi  
+  BiReplaceImp1Imp0
+  ## </d>
+  ## <d>
+  x ps df-al bicomi    
+  BiReplaceImp1Imp1
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+## <title> Axiom 6: Quantified Negation </title>
+thm (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph))))
+  x ph r.ax-6
+  x ph df-al bicomi    
+  BiReplaceImp0Not0
+  x ph df-al bicomi
+  
+  ## <d 'Negate Both Sides '>
+    (r.A. x ph) (A. x ph) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  x r.albii  
+  sylib
+  x (-. (A. x ph)) df-al bicomi
+  sylib
+)
+
+## <title> Axiom 7: Quantifier Commutation </title>
+thm (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph)))
+  x y ph r.ax-7
+  ## <d>
+  x ph df-al bicomi
+  y r.albii
+  y (A. x ph) df-al bicomi
+  bitri  
+  sylib
+  ## </d>
+  ## <d>
+  y ph df-al bicomi
+  x r.albii
+  x (A. y ph) df-al bicomi  
+  bitri
+  sylbi2
+  ## </d>
+)
+
+export (PREDICATE_MIN /peano_new/predicate/predicate_min.ghi (PROP) "")
+import (PREDICATE     /peano_new/predicate/predicate.ghi (PROP PREDICATE_MIN) "")
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+## <title> Real and Complex Existence are the same </title>
+thm (cexex () () (<-> (r.E. x ph) (E. x ph))
+  x ph r.df-ex
+  x (-. ph) df-al bicomi    
+  BiReplaceBi1Not0
+  x ph df-ex bicomi  
+  bitri
+)
+
+thm (tyex ((A z)) () (E. z (= z A))
+  z A r.tyex
+  z A ceqeq
+  z r.exbii  
+  mpbi
+  z (= z A) cexex
+  mpbi
+)
+
+export (EQUALITY_MIN ../../predicate/equality_min.ghi (PROP PREDICATE_MIN PREDICATE) "")
+import (EQUALITY ../../predicate/equality.ghi (PROP PREDICATE_MIN PREDICATE EQUALITY_MIN) "")
+export (PREDICATE_ALL ../../predicate/all.ghi (PROP) "")
+
+export (EQUALITY_COM equality_com.ghi (PROP N_PREDICATE PREDICATE_ALL) "")

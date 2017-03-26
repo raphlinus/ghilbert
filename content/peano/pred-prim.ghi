@@ -1,0 +1,45 @@
+# Primitive axioms for a formulation of the predicate calculus with
+# a single type. The idea is that a very simple mechanical translation
+# can add rwff assumptions so that proofs will verify in pax/tpred.
+
+param (PROP prop () "")
+
+kind (val)
+kind (var)
+
+tvar (wff ph ps ch)
+tvar (val A B C)
+var (var x y z)
+
+term (wff (A. x ph))
+term (wff (= A B))
+
+term (wff (E. x ph))
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+stmt (gen ()
+  (ph)
+  (A. x ph))
+
+# Margaris A4
+stmt (alim () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+
+# roughly Margaris A5, but without the subst
+stmt (spec-var () ()
+  (-> (A. x ph) ph))
+
+stmt (eqid () ()
+  (= A A))
+
+stmt (eqcom () ()
+  (<-> (= A B) (= B A)))
+
+stmt (ax-eqtr () ()
+  (-> (/\ (= A B) (= B C)) (= A C)))
+
+# Norm's ax-11 (actually strengthened to bi)
+stmt (ax-subst ((A x)) ()
+  (-> (= (cv x) A) (<-> ph (A. x (-> (= (cv x) A) ph)))))
+
+term (val (iota var wff))

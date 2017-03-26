@@ -1,0 +1,814 @@
+import (PROP          /peano_new/prop.ghi () "")
+import (N_PREDICATE   /peano_new/predicate/all.ghi (PROP) "n.")
+import (ORDERED_PAIR  /peano_new/arithmetic/common/ordered-pair.ghi (PROP N_PREDICATE) "n.")
+import (N_NATURALS    /peano_new/arithmetic/naturals/common.ghi (PROP N_PREDICATE) "n.")
+
+kindbind (n.nat nat)
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (n.nat a b c d)
+var (n.nat v w x y z)
+
+
+## <context>
+##   This theorem is part of a series of theorems constructing the integers.
+##   <a href="/wiki/peano/arithmetic/integers">An integer is constructed</a> as a
+##   pair of natural numbers which represents the positive and the negative part
+##   of the integer. This requires us to construct a new version of equality
+##   for integers involving pairs of natural numbers. These theorems
+##   demonstrate that this integer equality has all the essential properties we
+##   expect for equality.
+## </context>
+
+defthm (df-head n.nat (head A) () () (n.= (head A) (n.head A))
+  (n.head A) n.eqid
+)
+
+defthm (df-tail n.nat (tail A) () () (n.= (tail A) (n.tail A))
+  (n.tail A) n.eqid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (n.=  [ A ]   ]   ]  C)
+##   (n.=  [ A ]   [ B ] )
+##   (n.=  [   [   [ B ]  C)
+## </table>
+thm (NeqReplaceNeq0 () (
+     replacee (n.= A C)
+     substitution (n.= A B)) 
+     (n.= B C)
+  replacee substitution
+  C n.eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (n.= A  [ B ]   ]   ] )
+##   (n.=    [ B ]   [ C ] )
+##   (n.= A  [   [   [ C ] )
+## </table>
+thm (NeqReplaceNeq1 () (
+     replacee (n.= A B)
+     substitution (n.= B C)) 
+     (n.= A C)
+  replacee
+  substitution
+A n.eqeq2i
+mpbi
+)
+
+## <title> Definition of Integer Equality </title>
+## <summary>
+##   An integer is defined as an order pair of natural numbers. The first
+##   number in the pair represents the positive part of the number, the 
+##   second number represent the negative part of the number. Thus (0,0),
+##   (1,1), (2,2) are all equivalent to the integer 0, since their negative
+##   and positive parts are equal. (A, 0) presents +A. (0, A) represents -A.
+##   For more information see the <a href="/wiki/peano/arithmetic/integers">construction of the integers</a>.
+## </summary>
+## <suggest> left('Simplify', '=') </suggest>
+defthm (df-eq wff (= A B) () ()
+       (<-> (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))))
+  (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))) biid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceImp1Neq1 () (
+     replacee (-> ph (n.= A B))
+     substitution (n.= B C)) 
+     (-> ph (n.= A C))
+  replacee substitution
+  A n.eqeq2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.= [ A ]   ]   ]  C))
+##   (n.=        [ A ]   [ B ] )
+##   (-> ph (n.=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceImp1Neq0 () (
+     replacee (-> ph (n.= A C))
+     substitution (n.= A B)) 
+     (-> ph (n.= B C))
+  replacee substitution
+  C n.eqeq1i
+  sylib
+)
+
+thm (headeq () () (-> (n.= A B) (n.= (head A) (head B)))
+  A B n.headeq
+  A df-head n.eqcomi  
+  NeqReplaceImp1Neq0
+  B df-head n.eqcomi   
+  NeqReplaceImp1Neq1
+)
+
+thm (taileq () () (-> (n.= A B) (n.= (tail A) (tail B)))
+  A B n.taileq
+  A df-tail n.eqcomi  
+  NeqReplaceImp1Neq0
+  B df-tail n.eqcomi   
+  NeqReplaceImp1Neq1
+)
+
+## <title> Convert Natural to Integer Equality </title>
+## <suggest> right('Infer', '=z') </suggest>
+thm (eqzeq () () (-> (n.= A B) (= A B))
+  A B headeq
+  A B taileq
+  ## <d 'Symmetric Property '>
+    (tail A) (tail B) n.eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  n.addeq12d
+  ## <d 'Definition of Integer Equality '>
+    A B df-eq bicomi
+    sylib
+  ## </d 'Definition of Integer Equality '>
+)
+
+## <title> Convert Natural to Integer Equality </title>
+thm (eqzeqi () (hyp (n.= A B)) (= A B)
+  hyp
+  A B eqzeq
+  ax-mp
+)
+	
+## <title> Convert Natural to Integer Equality </title>
+thm (eqzeqd () (hyp (-> ph (n.= A B))) (-> ph (= A B))
+  hyp
+  A B eqzeq
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceBi1Neq1 () (
+     replacee (<-> ph (n.= A B))
+     substitution (n.= B C)) 
+     (<-> ph (n.= A C))
+  replacee substitution
+  A n.eqeq2i
+  bitri
+)
+
+## <title> Reflexive Property </title>
+## <summary> Integer equality is reflexive. 
+##   For more information see the <a href="/wiki/peano/arithmetic/integers">construction of the integers</a>.
+##</summary>
+thm (eqid () () (= A A)
+  A A df-eq
+  (n.+ (head A) (tail A)) n.eqid  
+  mpbirRemove
+)
+
+## <title> Symmetric Property </title>
+## <summary> Integer equality is symmetric.
+##   For more information see the <a href="/wiki/peano/arithmetic/integers">construction of the integers</a>.
+## </summary>
+## <suggest> right('Commute', '=') </suggest>
+thm (eqcom () () (<-> (= A B) (= B A))
+  A B df-eq
+  ## <d 'Symmetric Property '>
+    (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) n.eqcom
+    bitri
+  ## </d 'Symmetric Property '>
+  B A df-eq
+  bitr4i
+)
+
+## <title> Symmetric Property </title>
+## <table>
+##   (= <r> A <g> B)
+##   (= <g> B <r> A)
+## </table>
+thm (zeqcomi () (hyp (= A B)) (= B A)
+  hyp
+  A B eqcom
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.= A (n.+  [ B ]   ]   ]  D)))
+##   (n.=              [ B ]   [ C ] )
+##   (-> ph (n.= A (n.+  [   [   [ C ]  D)))
+## </table>
+thm (NeqReplaceImp1Neq1Add0 () (
+     replacee (-> ph (n.= A (n.+ B D)))
+     substitution (n.= B C)) 
+     (-> ph (n.= A (n.+ C D)))
+  replacee substitution
+  D n.addeq1i
+  NeqReplaceImp1Neq1
+)
+
+## <title> Transitive Property </title>
+##   <summary> For more information see the <a href="/wiki/peano/arithmetic/integers">construction of the integers</a>. </summary> 
+## <suggest> right('Simplify', '=') </suggest>
+thm (eqtr() () (-> (/\ (= A B) (= B C)) (= A C))
+  A B df-eq
+  biimpi
+  (head C) n.addeq1d
+  B C df-eq  
+  biimpi  
+  ## <d 'Commutative Property '>
+    (head C) (tail B) n.addcom
+    NeqReplaceImp1Neq1
+  ## </d 'Commutative Property '>
+  ## <d 'Symmetric Property '>
+    (n.+ (head B) (tail C)) (n.+ (tail B) (head C)) n.eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  (head A) n.addeq2d
+  
+  ## <d 'Associative Property '>
+    (head A) (tail B) (head C) n.addass
+    ## <d 'Commutative Property'>
+      (n.+ (n.+ (head A) (tail B)) (head C)) (n.+ (head A) (n.+ (tail B) (head C))) n.eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    NeqReplaceImp1Neq0
+  ## </d 'Associative Property '>
+  anim12i  
+  ## <d 'Equality Transitive Axiom '>
+    (n.+ (n.+ (head A) (tail B)) (head C)) (n.+ (n.+ (head B) (tail A)) (head C)) (n.+ (head A) (n.+ (head B) (tail C))) n.eqtr2
+    syl
+  ## </d 'Equality Transitive Axiom '>
+
+  
+  ## <d 'Associative Property '>
+    (head A) (head B) (tail C) n.addass
+    ## <d 'Commutative Property'>
+      (n.+ (n.+ (head A) (head B)) (tail C)) (n.+ (head A) (n.+ (head B) (tail C))) n.eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    NeqReplaceImp1Neq1
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commutative Property '>
+    (head A) (head B) n.addcom
+    NeqReplaceImp1Neq1Add0
+  ## </d 'Commutative Property '> 
+  ## <d 'Associative Property '>
+    (head B) (tail A) (head C) n.addass
+    NeqReplaceImp1Neq0
+  ## </d 'Associative Property '>
+  
+  ## <d 'Associative Property '>
+    (head B) (head A) (tail C) n.addass
+    NeqReplaceImp1Neq1
+  ## </d 'Associative Property '>
+  (head B) (n.+ (tail A) (head C)) (n.+ (head A) (tail C)) n.addcan2   
+  sylib
+
+  A C df-eq    
+  ## <d 'Commutative Property '>
+    (head C) (tail A) n.addcom
+    NeqReplaceBi1Neq1
+  ## </d 'Commutative Property '>
+  
+  ## <d 'Symmetric Property '>
+    (n.+ (head A) (tail C)) (n.+ (tail A) (head C)) n.eqcom
+    bitri
+  ## </d 'Symmetric Property '>
+  
+  ## <d 'Commutative Property '>
+    (= A C) (n.= (n.+ (tail A) (head C)) (n.+ (head A) (tail C))) bicom
+    mpbi
+  ## </d 'Commutative Property '>
+  
+  sylib
+)
+
+thm (zeqeq1 () () (-> (= A B) (<-> (= A C) (= B C)))
+  B A C eqtr ex
+  B A eqcom
+  sylbi2
+  A B C eqtr ex
+  impbid
+)
+
+## <title> Equivalence over Equality </title>
+thm (zeqeq1i () (hyp (= A B)) (<-> (= A C) (= B C))
+  hyp A B C zeqeq1 ax-mp)	
+
+## <title> Equivalence over Equality </title>
+thm (zeqeq2 () () (-> (= A B) (<-> (= C A) (= C B)))
+  A B C zeqeq1
+    A C eqcom B C eqcom bibi12i
+  sylib
+)
+
+## <title> Equivalence over Equality </title>
+## <table>
+##   (=        [ A  ] [       [ B)
+##   (<-> (= C [ A) ] [ (= C [ B))
+## </table>
+thm (zeqeq2i () (hyp (= A B)) (<-> (= C A) (= C B))
+  hyp A B C zeqeq2 ax-mp)	
+
+defthm (df-op n.nat (<,> a b) () () (n.= (<,> a b) (n.<,> a b))
+  (n.<,> a b) n.eqid
+)
+
+thm (dfop () () (= (<,> a b) (n.<,> a b))
+  a b df-op eqzeqi
+)
+
+thm (opexpand () () (= A (<,> (head A) (tail A)))
+  A n.opexpand
+  ## <d>
+    A df-head n.eqcomi (n.tail A) n.opeq1i
+    NeqReplaceNeq1
+  ## </d>
+  ## <d>
+    A df-tail n.eqcomi (head A) n.opeq2i
+    NeqReplaceNeq1
+  ## </d>
+  eqzeqi
+
+  (head A) (tail A) dfop zeqcomi
+  A zeqeq2i  
+  mpbi
+)
+
+thm (opeq1i () (hyp (n.= a b)) (= (<,> a c) (<,> b c))
+  hyp c n.opeq1i eqzeqi
+
+  b c dfop zeqcomi
+  (n.<,> a c) zeqeq2i  
+  mpbi
+
+  a c dfop zeqcomi
+  (n.<,> a c) (<,> a c) (<,> b c) zeqeq1    
+  ax-mp  
+  mpbi
+)
+
+thm (opeq2i () (hyp (n.= a b)) (= (<,> c a) (<,> c b))
+  hyp c n.opeq2i eqzeqi
+
+  c b dfop zeqcomi
+  (n.<,> c a) zeqeq2i  
+  mpbi
+
+  c a dfop zeqcomi
+  (n.<,> c a) (<,> c a) (<,> c b) zeqeq1    
+  ax-mp  
+  mpbi
+)
+
+thm (opeq12 () () (-> (/\ (n.= a b) (n.= c d)) (= (<,> a c) (<,> b d)))
+  a b c d n.opeq12 eqzeqd
+
+  a c dfop zeqcomi
+  (n.<,> a c) (<,> a c) (n.<,> b d) zeqeq1    
+  ax-mp  
+  sylib
+
+  b d dfop zeqcomi
+  (<,> a c) zeqeq2i    
+  sylib
+)
+
+thm (headop () () (n.= (head (<,> A B)) A)
+  A B n.headop
+  (n.<,> A B) df-head n.eqcomi
+  NeqReplaceNeq0
+  ## <d 'Convert to integer ordered pair'>
+    A B df-op
+    (<,> A B) (n.<,> A B) headeq  
+    ax-mp n.eqcomi  
+    NeqReplaceNeq0
+  ## </d>
+)
+
+thm (tailop () () (n.= (tail (<,> A B)) B)
+  A B n.tailop
+  (n.<,> A B) df-tail n.eqcomi
+  NeqReplaceNeq0
+  ## <d 'Convert to integer ordered pair'>
+    A B df-op
+    (<,> A B) (n.<,> A B) taileq  
+    ax-mp n.eqcomi  
+    NeqReplaceNeq0
+  ## </d>
+)
+
+defthm (df-al wff (A. x ph) () ()  (<-> (A. x ph) (n.A. x ph)) 
+  (n.A. x ph) biid)
+
+## <summary> Reproved for integers directly from the natural number version. </title>
+thm (alnfi ((ph x)) () (-> ph (A. x ph))
+  ph x n.alnfi
+  x ph df-al bicomi  
+  sylib
+)
+
+## <title> Generalization Axiom </title>
+## <table>
+##       [ ph ]
+## (A. x [ ph ] )
+## </table>
+## <summary> Reproved for integers directly from the natural number version. </title>
+thm (gen () (hyp ph) (A. x ph)
+  hyp
+  x n.gen
+  x ph df-al bicomi  
+  mpbi
+)
+
+# roughly Margaris A5, but without the subst
+## <title> Axiom 4: Specialization </title>
+## <suggest> right('Remove', '∀') </suggest>
+thm (ax-4 () () (-> (A. x ph) ph)
+  x ph n.ax-4
+  x ph df-al bicomi    
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (->  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Imp0 () (
+     replacee (-> ph (-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (-> ch th))
+  replacee substitution
+  th imbi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imbi2i
+  sylib
+)
+
+## <title> Axiom 5: Quantified Implication </title>
+thm (ax-alim () () (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps)))
+  x ph ps n.ax-alim
+  ## <d>
+  x (-> ph ps) df-al bicomi 
+  sylbi2
+  ## </d>
+  ## <d>
+  x ph df-al bicomi  
+  BiReplaceImp1Imp0
+  ## </d>
+  ## <d>
+  x ps df-al bicomi    
+  BiReplaceImp1Imp1
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (-.  [ ph ]   ]    ] ) ch)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (-.  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceImp0Not0 () (
+     replacee (-> (-. ph) ch)
+     substitution (<-> ph ps)) 
+     (-> (-. ps) ch)
+  replacee substitution
+  con4biir
+  sylbi2
+)
+
+## <title> Axiom 6: Quantified Negation </title>
+thm (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph))))
+  x ph n.ax-6
+  x ph df-al bicomi    
+  BiReplaceImp0Not0
+  x ph df-al bicomi
+  
+  ## <d 'Negate Both Sides '>
+    (n.A. x ph) (A. x ph) notbi
+    mpbi
+  ## </d 'Negate Both Sides '>
+  x n.albii  
+  sylib
+  x (-. (A. x ph)) df-al bicomi
+  sylib
+)
+
+## <title> Axiom 7: Quantifier Commutation </title>
+thm (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph)))
+  x y ph n.ax-7
+  ## <d>
+  x ph df-al bicomi
+  y n.albii
+  y (A. x ph) df-al bicomi
+  bitri  
+  sylib
+  ## </d>
+  ## <d>
+  y ph df-al bicomi
+  x n.albii
+  x (A. y ph) df-al bicomi  
+  bitri
+  sylbi2
+  ## </d>
+)
+
+export (PREDICATE_MIN /peano_new/predicate/predicate_min.ghi (PROP) "")
+import (PREDICATE     /peano_new/predicate/predicate.ghi (PROP PREDICATE_MIN) "")
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (-.  [ ps ]   ]    ] ))
+##   (<->         [ ps ]   [ ch ] )
+##   (<-> ph (-.  [    [   [ ch ] ))
+## </table>
+thm (BiReplaceBi1Not0 () (
+     replacee (<-> ph (-. ps))
+     substitution (<-> ps ch)) 
+     (<-> ph (-. ch))
+  replacee substitution
+  con4biir
+  bitri
+)
+
+## <title> Natural and Integer Existence are the same </title>
+thm (nexex () () (<-> (n.E. x ph) (E. x ph))
+  x ph n.df-ex
+  x (-. ph) df-al bicomi    
+  BiReplaceBi1Not0
+  x ph df-ex bicomi  
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x  [ ps ]   ]    ] ))
+##   (->            [ ps ]   [ ch ] )
+##   (<-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceBi1Ex1 () (
+     replacee (<-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  ImpReplaceBi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x  [ ph ]   ]    ] )
+##   (->    [ ph ]   [ ps ] )
+##   (E. x  [    [   [ ps ] )
+## </table>
+thm (ImpReplaceEx1 () (
+     replacee (E. x ph)
+     substitution (-> ph ps)) 
+     (E. x ps)
+  replacee substitution
+  x 19.22i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (E. x (= A  [ B ]   ]   ] ))
+##   (=          [ B ]   [ C ] )
+##   (E. x (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceEx1Eq1 () (
+     replacee (E. x (= A B))
+     substitution (= B C)) 
+     (E. x (= A C))
+  replacee substitution
+  A zeqeq2i
+  exbiii
+)
+
+## <title> One-Digit Inequality </title>
+thm (tyex ((A z)) () (E. z (= z A))
+  x (head A) n.tyex
+  y (tail A) n.tyex
+  pm3.2i
+  ## <d 'Combine Existence Quantifiers '>
+    x (n.= x (head A)) y (n.= y (tail A)) n.doubleex
+    ax-mp
+  ## </d 'Combine Existence Quantifiers '>
+  x (head A) y (tail A) n.opeq12
+  ## <d>
+    (head A) (tail A) df-op n.eqcomi
+    (n.<,> x y) n.eqeq2i  
+    sylib
+  ## </d>
+  ## <d>
+    x y df-op n.eqcomi
+    (<,> (head A) (tail A)) n.eqeq1i  
+    sylib
+  ## </d>
+  y n.19.22i
+  x n.19.22i  
+  ax-mp
+
+  z (<,> x y) (<,> (head A) (tail A)) n.eqeq1
+  n.ceqsex bicomi
+  z (/\ (n.= z (<,> x y)) (n.= z (<,> (head A) (tail A)))) nexex
+  
+  bitri  
+    
+  ## <d 'Remove Left Side of AND '>
+    (n.= z (<,> x y)) (n.= z (<,> (head A) (tail A))) pm3.27
+    ImpReplaceBi1Ex1
+  ## </d 'Remove Left Side of AND '>
+  y n.19.22i
+  x n.19.22i  
+  ax-mp
+
+  ## <d 'Quantified Non-free Variable '>
+    x (n.E. y (E. z (n.= z (<,> (head A) (tail A))))) n.19.9
+    mpbi
+  ## </d 'Quantified Non-free Variable '>
+  
+  ## <d 'Quantified Non-free Variable '>
+    y (E. z (n.= z (<,> (head A) (tail A)))) n.19.9
+    mpbi
+  ## </d 'Quantified Non-free Variable '>
+  z (<,> (head A) (tail A)) eqzeq  
+  ImpReplaceEx1
+  ## <d>
+    A opexpand zeqcomi
+    EqReplaceEx1Eq1
+  ## </d>
+)
+
+export (EQUALITY_MIN  /peano_new/predicate/equality_min.ghi (PROP PREDICATE_MIN PREDICATE) "")
+import (EQUALITY      /peano_new/predicate/equality.ghi (PROP PREDICATE_MIN PREDICATE EQUALITY_MIN) "")
+export (PREDICATE_ALL /peano_new/predicate/all.ghi (PROP) "")
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.=  [ A ]   ]   ]  C))
+##   (n.=          [ A ]   [ B ] )
+##   (<-> ph (n.=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceBi1Neq0 () (
+     replacee (<-> ph (n.= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.= b c))
+  replacee substitution
+  c n.eqeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.= (n.+  [ A ]   ]   ]  C) D))
+##   (n.=             [ A ]   [ B ] )
+##   (<-> ph (n.= (n.+  [   [   [ B ]  C) D))
+## </table>
+thm (NeqReplaceBi1Neq0Add0 () (
+     replacee (<-> ph (n.= (n.+ a c) d))
+     substitution (n.= a b)) 
+     (<-> ph (n.= (n.+ b c) d))
+  replacee substitution
+  c n.addeq1i
+  NeqReplaceBi1Neq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.= (n.+ a  [ B ]   ]   ] ) D))
+##   (n.=               [ B ]   [ C ] )
+##   (<-> ph (n.= (n.+ a  [   [   [ C ] ) D))
+## </table>
+thm (NeqReplaceBi1Neq0Add1 () (
+     replacee (<-> ph (n.= (n.+ a b) d))
+     substitution (n.= b c)) 
+     (<-> ph (n.= (n.+ a c) d))
+  replacee substitution
+  a n.addeq2i
+  NeqReplaceBi1Neq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.= a (n.+  [ B ]   ]   ]  D)))
+##   (n.=               [ B ]   [ C ] )
+##   (<-> ph (n.= a (n.+  [   [   [ C ]  D)))
+## </table>
+thm (NeqReplaceBi1Neq1Add0 () (
+     replacee (<-> ph (n.= a (n.+ b d)))
+     substitution (n.= b c)) 
+     (<-> ph (n.= a (n.+ c d)))
+  replacee substitution
+  d n.addeq1i
+  NeqReplaceBi1Neq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.= a (n.+ b  [ C ]   ]   ] )))
+##   (n.=                 [ C ]   [ D ] )
+##   (<-> ph (n.= a (n.+ b  [   [   [ D ] )))
+## </table>
+thm (NeqReplaceBi1Neq1Add1 () (
+     replacee (<-> ph (n.= a (n.+ b c)))
+     substitution (n.= c d)) 
+     (<-> ph (n.= a (n.+ b d)))
+  replacee substitution
+  b n.addeq2i
+  NeqReplaceBi1Neq1
+)
+
+## <title> Natural-Integer Equality Conversion </title>
+## <suggest> right('Equivalence', '=N') left('Equivalence', '=z') </suggest>
+thm (opzeq () () (<-> (= (<,> a b) (<,> c d)) (n.= (n.+ a d) (n.+ c b)))
+  (<,> a b) (<,> c d) df-eq
+  ## <d 'Apply Head Operator '>
+    a b headop
+    NeqReplaceBi1Neq0Add0
+  ## </d 'Apply Head Operator '>  
+  ## <d 'Apply Tail Operator '>
+    c d tailop
+    NeqReplaceBi1Neq0Add1
+  ## </d 'Apply Tail Operator '>  
+  ## <d 'Apply Head Operator '>
+    c d headop
+    NeqReplaceBi1Neq1Add0
+  ## </d 'Apply Head Operator '>  
+  ## <d 'Apply Tail Operator '>
+    a b tailop
+    NeqReplaceBi1Neq1Add1
+  ## </d 'Apply Tail Operator '>
+)
+
+## <title> Expand Integer Equality </title>
+thm (zeqexpand () () (-> (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A)))) 
+  A opexpand
+  B opexpand
+  eqeq12i
+  ## <d 'Natural-Integer Equality Conversion '>
+    (head A) (tail A) (head B) (tail B) opzeq
+    bitri
+  ## </d 'Natural-Integer Equality Conversion '>
+  ## <d 'Infer Left to Right '>
+    (= A B) (n.= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+)
+
+## <title> Def. Natural to Integer Mapping </title>
+## <summary>
+##   Defines a mapping between a natural number to an ordered pair
+##   that represents the same number as an integer. Subsequent
+##   theorems show that this mapping is a homomorphism respecting 
+##   <a href="addhomomorph">addition</a>, <a href="df-mul">multiplication</a>,
+##   and <a href="lehomomorph">inequality</a>.
+## </summary>
+## <suggest> left('Simplify', 'int') </suggest>
+defthm (df-int nat (int a) () () (= (int a) (<,> a (n.0)))
+  (<,> a (n.0)) eqid
+)
+
+export (EQUALITY_INT equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE_ALL) "")

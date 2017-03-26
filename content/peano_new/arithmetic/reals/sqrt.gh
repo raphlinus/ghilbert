@@ -1,0 +1,2467 @@
+# This file define the supremum. It does not prove much about it yet.
+
+import (PROP          /peano_new/prop.ghi () "")
+import (PREDICATE     /peano_new/predicate/all.ghi (PROP) "")
+import (REALS         /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+import (SQRT_MIN      /peano_new/arithmetic/reals/sqrt_min.ghi (PROP PREDICATE REALS) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat a b c d a' b' c' d' ep)
+var (nat v w x y z)
+
+## <context>
+##   This theorem is part of a series of proofs about the properties of square roots.
+##   The numbers here are assumed to be real numbers and we do not allow for negative
+##   numbers to have imaginary square roots. A treatment of square roots for complex
+##   number has not been added yet, but many of the building blocks for complex numbers
+##   have been proven.
+## </context>
+
+thm (sqrteqi () (
+     hyp1 (= a b))
+     (= (sqrt a) (sqrt b))
+  hyp1
+  a b sqrteq
+  ax-mp
+)
+
+thm (sqrteqd () (
+     hyp1 (-> ph (= a b)))
+     (-> ph (= (sqrt a) (sqrt b)))
+  hyp1
+  a b sqrteq
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (-> ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (-> ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Imp1 () (
+     replacee (-> ph (-> ps ch))
+     substitution (-> ch th)) 
+     (-> ph (-> ps th))
+  replacee substitution
+  ps imim2i
+  syl
+)
+
+## <title> A Square Root is an inverse of squaring </title>
+thm (sqrtsq1 () () (-> (>= a (0)) (= a (exp (sqrt a) (2))))
+  a sqrtpos
+  (sqrt a) dfabs1  
+  syl
+  a (sqrt a) sqrtsq  
+  ## <d 'Commutative Biconditional '>
+    (= (exp (sqrt a) (2)) a) (= (abs (sqrt a)) (sqrt a)) bicom
+    sylib
+  ## </d 'Commutative Biconditional '>
+  jca  
+  ## <d>
+    (= (abs (sqrt a)) (sqrt a)) (= (exp (sqrt a) (2)) a) mpbi-inline
+    syl
+  ## </d>
+  eqcomd
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<=  [ a ]   ]   ]  c))
+##   (=          [ a ]   [ b ] )
+##   (-> ph (<=  [   [   [ b ]  c))
+## </table>
+thm (EqReplaceImp1Le0 () (
+     replacee (-> ph (<= a c))
+     substitution (= a b)) 
+     (-> ph (<= b c))
+  replacee substitution
+  c leeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\  [ ph ]   ]    ]  ch) th)
+##   (<->     [ ph ]   [ ps ] )
+##   (-> (/\  [    [   [ ps ]  ch) th)
+## </table>
+thm (BiReplaceImp0An0 () (
+     replacee (-> (/\ ph ch) th)
+     substitution (<-> ph ps)) 
+     (-> (/\ ps ch) th)
+  replacee substitution
+  ch anbi1i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (/\ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (/\ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0An1 () (
+     replacee (-> (/\ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (/\ ph ch) th)
+  replacee substitution
+  ph anbi2i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1An1 () (
+     replacee (-> ph (/\ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (/\ ps th))
+  replacee substitution
+  ps anbi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ a ]   ]   ]  c))
+##   (=         [ a ]   [ b ] )
+##   (-> ph (=  [   [   [ b ]  c))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= a c))
+     substitution (= a b)) 
+     (-> ph (= b c))
+  replacee substitution
+  c eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= a  [ b ]   ]   ] ))
+##   (=           [ b ]   [ c ] )
+##   (-> ph (= a  [   [   [ c ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= a b))
+     substitution (= b c)) 
+     (-> ph (= a c))
+  replacee substitution
+  a eqeq2i
+  sylib
+)
+
+## <title> Square Root Zero or Negative is Zero </title>
+thm (negsqrt0 () () (-> (/\ (/\ (>= a (0)) (>= b (0))) (= (* (sqrt a) (sqrt b)) (-n (sqrt (* a b))))) (= (-n (sqrt (* a b))) (sqrt (* a b))))
+  a sqrtpos
+  b sqrtpos
+  anim12i
+  (0) (sqrt a) (sqrt b) lemul1
+  ## <d 'Multiply by 0 '>
+    (sqrt b) mul0r
+    EqReplaceImp1Le0
+  ## </d 'Multiply by 0 '>
+  ## <d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) (sqrt a) lecon
+    BiReplaceImp0An0
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) (sqrt b) lecon
+    BiReplaceImp0An1
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) (* (sqrt a) (sqrt b)) lecon
+    sylib
+  ## </d 'Converse of ≤ '>
+  ## </d 'Converse of ≤ '>
+  syl
+
+  (* (sqrt a) (sqrt b)) (-n (sqrt (* a b))) (0) geeq1
+  anim12i
+  ## <d>
+    ## <d>
+      (>= (* (sqrt a) (sqrt b)) (0)) (>= (-n (sqrt (* a b))) (0)) pm5.36
+      sylib
+    ## </d>
+    ## <d 'Remove Right Side of ANd '>
+      (>= (-n (sqrt (* a b))) (0)) (<-> (>= (* (sqrt a) (sqrt b)) (0)) (>= (-n (sqrt (* a b))) (0))) pm3.26
+      syl
+    ## </d 'Remove Right Side of ANd '>
+  ## </d>
+
+  (0) a b lemul1
+  ## <d 'Multiply by 0 '>
+    b mul0r
+    EqReplaceImp1Le0
+  ## </d 'Multiply by 0 '>
+  ## <d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) a lecon
+    BiReplaceImp0An0
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) b lecon
+    BiReplaceImp0An1
+  ## </d 'Converse of ≤ '>
+  ## <d 'Converse of ≤ '>
+    (0) (* a b) lecon
+    sylib
+  ## </d 'Converse of ≤ '>
+  ## </d 'Converse of ≤ '>
+  (* a b) sqrtpos
+  syl
+  (sqrt (* a b)) negle
+  sylib
+  (= (* (sqrt a) (sqrt b)) (-n (sqrt (* a b)))) pm3.41i
+  jca
+
+  ## <d>
+  ## <d 'Commute Conjunction '>
+    (>= (-n (sqrt (* a b))) (0)) (<= (-n (sqrt (* a b))) (0)) ancom
+    sylib
+  ## </d 'Commute Conjunction '>
+  ## <d 'Converse of ≤ '>
+    (0) (-n (sqrt (* a b))) lecon bicomi
+    BiReplaceImp1An1
+  ## </d 'Converse of ≤ '>
+  ## <d 'Same upper and lower bound implies equality '>
+    (-n (sqrt (* a b))) (0) lesym bicomi
+    sylib
+  ## </d 'Same upper and lower bound implies equality '>
+  ## <d>
+  (-n (sqrt (* a b))) (0) negeq
+
+  ## <d 'Double Negative '>
+    (sqrt (* a b)) doubleneg
+    EqReplaceImp1Eq0
+  ## </d 'Double Negative '>
+  neg0
+  EqReplaceImp1Eq1
+  ancli
+  
+  ## <d 'Symmetric Property '>
+    (sqrt (* a b)) (0) eqcom
+    BiReplaceImp1An1
+  ## </d 'Symmetric Property '>  
+  ## <d 'Equality Transitive Property '>
+    (-n (sqrt (* a b))) (0) (sqrt (* a b)) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>  
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (* b  [ c ]   ]   ] ))
+##   (=         [ c ]   [ d ] )
+##   (= a (* b  [   [   [ d ] ))
+## </table>
+thm (EqReplaceEq1Mul1 () (
+     replacee (= a (* b c))
+     substitution (= c d)) 
+     (= a (* b d))
+  replacee substitution
+  b muleq2i
+  EqReplaceEq1
+)
+
+## <title> One-digit Addition </title>
+thm (1plus1 () () (= (+ (1) (1)) (2))
+  df-2
+  ## <d 'Commutative Property'>
+    (2) (+ (1) (1)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ a ]   ]   ]  c)
+##   (=  [ a ]   [ b ] )
+##   (=  [   [   [ b ]  c)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= a c)
+     substitution (= a b)) 
+     (= b c)
+  replacee substitution
+  c eqeq1i
+  mpbi
+)
+
+## <title> Exponentiation </title>
+thm (0power2 () () (= (exp (0) (2)) (0))
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      1plus1
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (+ (1) (1)) (2) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    (0) expeq2i
+  ## </d 'Evaluate'>
+  (0) (1) expplus1
+  EqReplaceEq1
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      ## <d 'Evaluate'>
+        (1) addidr
+      ## </d 'Evaluate'>
+      ## <d 'Commutative Property'>
+        (+ (0) (1)) (1) eqcom
+        mpbi
+      ## </d 'Commutative Property'>
+      (0) expeq2i
+    ## </d 'Evaluate'>
+    (0) (0) expplus1
+    EqReplaceEq1
+    ## <d 'Evaluate'>
+      (0) exp0
+      EqReplaceEq1Mul1
+    ## </d 'Evaluate'>
+    ## <d 'Evaluate'>
+      (1) mul0r
+      EqReplaceEq1
+    ## </d 'Evaluate'>
+    EqReplaceEq1Mul1
+  ## </d 'Evaluate'>
+  ## <d 'Evaluate'>
+    (0) mul0r
+    EqReplaceEq1
+  ## </d 'Evaluate'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= a (sqrt  [ b ]   ]   ] )))
+##   (=                 [ b ]   [ c ] )
+##   (-> ph (= a (sqrt  [   [   [ c ] )))
+## </table>
+thm (EqReplaceImp1Eq1Sqrt0 () (
+     replacee (-> ph (= a (sqrt b)))
+     substitution (= b c)) 
+     (-> ph (= a (sqrt c)))
+  replacee substitution
+  sqrteqi
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> (= a  [ b ]   ]   ] ) ph)
+##   (=        [ b ]   [ c ] )
+##   (-> (= a  [   [   [ c ] ) ph)
+## </table>
+thm (EqReplaceImp0Eq1 () (
+     replacee (-> (= a b) ph)
+     substitution (= b c)) 
+     (-> (= a c) ph)
+  replacee substitution
+  a eqeq2i
+  sylbi2
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (= a (-n  [ b ]   ]   ] )) ph)
+##   (=            [ b ]   [ c ] )
+##   (-> (= a (-n  [   [   [ c ] )) ph)
+## </table>
+thm (EqReplaceImp0Eq1Neg0 () (
+     replacee (-> (= a (-n b)) ph)
+     substitution (= b c)) 
+     (-> (= a (-n c)) ph)
+  replacee substitution
+  negeqi
+  EqReplaceImp0Eq1
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (= a (-n (sqrt  [ b ]   ]   ] ))) ph)
+##   (=                  [ b ]   [ c ] )
+##   (-> (= a (-n (sqrt  [   [   [ c ] ))) ph)
+## </table>
+thm (EqReplaceImp0Eq1Neg0Sqrt0 () (
+     replacee (-> (= a (-n (sqrt b))) ph)
+     substitution (= b c)) 
+     (-> (= a (-n (sqrt c))) ph)
+  replacee substitution
+  sqrteqi
+  EqReplaceImp0Eq1Neg0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (-n  [ a ]   ]   ] ) c))
+##   (=             [ a ]   [ b ] )
+##   (-> ph (= (-n  [   [   [ b ] ) c))
+## </table>
+thm (EqReplaceImp1Eq0Neg0 () (
+     replacee (-> ph (= (-n a) c))
+     substitution (= a b)) 
+     (-> ph (= (-n b) c))
+  replacee substitution
+  negeqi
+  EqReplaceImp1Eq0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (-n (sqrt  [ a ]   ]   ] )) c))
+##   (=                   [ a ]   [ b ] )
+##   (-> ph (= (-n (sqrt  [   [   [ b ] )) c))
+## </table>
+thm (EqReplaceImp1Eq0Neg0Sqrt0 () (
+     replacee (-> ph (= (-n (sqrt a)) c))
+     substitution (= a b)) 
+     (-> ph (= (-n (sqrt b)) c))
+  replacee substitution
+  sqrteqi
+  EqReplaceImp1Eq0Neg0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph  [ ps ]   ]    ] )
+##   (->     [ ps ]   [ ch ] )
+##   (\/ ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceOr1 () (
+     replacee (\/ ph ps)
+     substitution (-> ps ch)) 
+     (\/ ph ch)
+  replacee substitution
+  ph orim2i
+  ax-mp
+)
+
+## <title> Square Root of 0 </title>
+thm (sqrt0 () () (= (0) (sqrt (0)))
+  (0) dfabs1
+  (0) (0) sqrtsq
+  (0) eqid
+  ## <d>
+  ## <d 'Evaluate'>
+    ## <d 'Evaluate'>
+      0power2
+    ## </d 'Evaluate'>
+    ## <d 'Commutative Property'>
+      (exp (0) (2)) (0) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceEq0
+  ## </d 'Evaluate'>  
+  (= (abs (0)) (sqrt (0))) biRemove1
+  (>= (0) (0)) imbi2i
+  mpbi
+  ## </d>
+  jca
+  (abs (0)) (0) (sqrt (0)) eqtr2  
+  syl
+  ## <d>
+  (0) eqid
+  ## <d 'Convert to ≥'>
+    (0) (0) eqge
+    ax-mp
+  ## </d 'Convert to ≥'>
+  ax-mpRemove
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= a (*  [ b ]   ]   ]  d)))
+##   (=              [ b ]   [ c ] )
+##   (-> ph (= a (*  [   [   [ c ]  d)))
+## </table>
+thm (EqReplaceImp1Eq1Mul0 () (
+     replacee (-> ph (= a (* b d)))
+     substitution (= b c)) 
+     (-> ph (= a (* c d)))
+  replacee substitution
+  d muleq1i
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= a (* b  [ c ]   ]   ] )))
+##   (=                [ c ]   [ d ] )
+##   (-> ph (= a (* b  [   [   [ d ] )))
+## </table>
+thm (EqReplaceImp1Eq1Mul1 () (
+     replacee (-> ph (= a (* b c)))
+     substitution (= c d)) 
+     (-> ph (= a (* b d)))
+  replacee substitution
+  b muleq2i
+  EqReplaceImp1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\  [ ps ]   ]    ]  th))
+##   (->         [ ps ]   [ ch ] )
+##   (-> ph (/\  [    [   [ ch ]  th))
+## </table>
+thm (ImpReplaceImp1An0 () (
+     replacee (-> ph (/\ ps th))
+     substitution (-> ps ch)) 
+     (-> ph (/\ ch th))
+  replacee substitution
+  th anim1i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (/\ ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (/\ ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1An1 () (
+     replacee (-> ph (/\ ps ch))
+     substitution (-> ch th)) 
+     (-> ph (/\ ps th))
+  replacee substitution
+  ps anim2i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (->            [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (ImpReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orim2i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (>= a  [ b ]   ]   ] ))
+##   (=            [ b ]   [ c ] )
+##   (-> ph (>= a  [   [   [ c ] ))
+## </table>
+thm (EqReplaceImp1Ge1 () (
+     replacee (-> ph (>= a b))
+     substitution (= b c)) 
+     (-> ph (>= a c))
+  replacee substitution
+  a geeq2i
+  sylib
+)
+
+## <title> Multiply Square Roots </title>
+thm (sqrtmul () () (-> (/\ (>= a (0)) (>= b (0))) (= (* (sqrt a) (sqrt b)) (sqrt (* a b))))
+  a sqrtpos
+  b sqrtpos
+  anim12i  
+  (sqrt a) (0) (sqrt b) gemul1  
+  ## <d 'Multiply by 0 '>
+    (sqrt b) mul0r
+    EqReplaceImp1Ge1
+  ## </d 'Multiply by 0 '>
+  (* (sqrt a) (sqrt b)) dfabs1  
+  syl
+  syl
+  eqcomd
+
+  ## <d>
+    a sqrtsq1
+    b sqrtsq1
+    anim12i
+    a (exp (sqrt a) (2)) b (exp (sqrt b) (2)) muleq12
+    syl
+  ## </d>
+  ## <d 'Squared means multiply twice '>
+    ## <d 'Squared means multiply twice '>
+      (sqrt a) exp2
+      EqReplaceImp1Eq1Mul0
+    ## </d 'Squared means multiply twice '>
+    ## <d 'Squared means multiply twice '>
+      (sqrt b) exp2
+      EqReplaceImp1Eq1Mul1
+    ## </d 'Squared means multiply twice '>
+  ## </d 'Squared means multiply twice '>
+  ## <d>
+    (sqrt a) (sqrt a) (sqrt b) (sqrt b) mul4
+    EqReplaceImp1Eq1
+    ## <d 'Squared means multiply twice '>
+      (* (sqrt a) (sqrt b)) exp2 eqcomi
+      EqReplaceImp1Eq1
+    ## </d 'Squared means multiply twice '>
+  ## </d>
+  ## <d>
+  eqcomd
+
+  ## <d>
+  a (0) b gemul1  
+  ## <d 'Multiply by 0 '>
+    b mul0r
+    EqReplaceImp1Ge1
+  ## </d 'Multiply by 0 '>
+  (* a b) (* (sqrt a) (sqrt b)) sqrtsq
+  syl
+  jca
+  ## <d>
+    (= (exp (* (sqrt a) (sqrt b)) (2)) (* a b)) (= (abs (* (sqrt a) (sqrt b))) (sqrt (* a b))) mpbi-inline
+    syl
+  ## </d>
+  ## </d>
+  jca  
+  ## <d 'Equality Transitive Property '>
+    (* (sqrt a) (sqrt b)) (abs (* (sqrt a) (sqrt b))) (sqrt (* a b)) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= a (+  [ b ]   ]   ]  d))
+##   (=       [ b ]   [ c ] )
+##   (= a (+  [   [   [ c ]  d))
+## </table>
+thm (EqReplaceEq1Add0 () (
+     replacee (= a (+ b d))
+     substitution (= b c)) 
+     (= a (+ c d))
+  replacee substitution
+  d addeq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+  [ a ]   ]   ]  c) d)
+##   (=     [ a ]   [ b ] )
+##   (= (+  [   [   [ b ]  c) d)
+## </table>
+thm (EqReplaceEq0Add0 () (
+     replacee (= (+ a c) d)
+     substitution (= a b)) 
+     (= (+ b c) d)
+  replacee substitution
+  c addeq1i
+  EqReplaceEq0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (+  [ a ]   ]   ]  c) d) a')
+##   (=        [ a ]   [ b ] )
+##   (= (+ (+  [   [   [ b ]  c) d) a')
+## </table>
+thm (EqReplaceEq0Add0Add0 () (
+     replacee (= (+ (+ a c) d) a')
+     substitution (= a b)) 
+     (= (+ (+ b c) d) a')
+  replacee substitution
+  c addeq1i
+  EqReplaceEq0Add0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (>  [ a ]   ]   ]  c)
+##   (=  [ a ]   [ b ] )
+##   (>  [   [   [ b ]  c)
+## </table>
+thm (EqReplaceGt0 () (
+     replacee (> a c)
+     substitution (= a b)) 
+     (> b c)
+  replacee substitution
+  c gteq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> a  [ b ]   ]   ] )
+##   (=    [ b ]   [ c ] )
+##   (> a  [   [   [ c ] )
+## </table>
+thm (EqReplaceGt1 () (
+     replacee (> a b)
+     substitution (= b c)) 
+     (> a c)
+  replacee substitution
+  a gteq2i
+  mpbi
+)
+
+
+
+
+## <title> One-Digit Inequality </title>
+thm (2greater1 () () (> (2) (1))
+  ## <d 'Add To Both Sides'>
+    ## <d 'Derive Smaller Inequality'>
+      1greater0
+    ## </d 'Derive Smaller Inequality'>
+    ## <d 'Add To Both Sides'>
+      (1) gtadd2i
+    ## </d 'Add To Both Sides'>
+    ## <d 'Simplify Left Side'>
+      1plus1
+      EqReplaceGt0
+    ## </d 'Simplify Left Side'>
+    ## <d 'Simplify Right Side'>
+      (1) addid
+      EqReplaceGt1
+    ## </d 'Simplify Right Side'>
+  ## </d 'Add To Both Sides'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (> a  [ b ]   ]   ] )
+##   (>    [ b ]   [ c ] )
+##   (> a  [   [   [ c ] )
+## </table>
+thm (GtReplaceGt1 () (
+     replacee (> a b)
+     substitution (> b c)) 
+     (> a c)
+  replacee substitution
+  a gtTrgt
+  ax-mp
+)
+
+
+
+## <title> One-Digit Inequality </title>
+thm (2greater0 () () (> (2) (0))
+  ## <d 'Separate into smaller inequalities'>
+    2greater1
+    1greater0
+    GtReplaceGt1
+  ## </d 'Separate into smaller inequalities'>
+)
+
+
+## <title> One-Digit Inequality </title>
+thm (2notEqual0 () () (-. (= (2) (0)))
+  2greater0
+  ## <d 'Convert to ≠'>
+    (2) (0) gtneq
+    ax-mp
+  ## </d 'Convert to ≠'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (* a  [ b ]   ]   ] ) d)
+##   (=       [ b ]   [ c ] )
+##   (= (* a  [   [   [ c ] ) d)
+## </table>
+thm (EqReplaceEq0Mul1 () (
+     replacee (= (* a b) d)
+     substitution (= b c)) 
+     (= (* a c) d)
+  replacee substitution
+  a muleq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (+ a  [ b ]   ]   ] ) d) a')
+##   (=          [ b ]   [ c ] )
+##   (= (+ (+ a  [   [   [ c ] ) d) a')
+## </table>
+thm (EqReplaceEq0Add0Add1 () (
+     replacee (= (+ (+ a b) d) a')
+     substitution (= b c)) 
+     (= (+ (+ a c) d) a')
+  replacee substitution
+  a addeq2i
+  EqReplaceEq0Add0
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (= a (* b (/ c  [ d ]   ]    ] )))
+##   (=              [ d ]   [ a' ] )
+##   (= a (* b (/ c  [   [   [ a' ] )))
+## </table>
+thm (EqReplaceEq1Mul1Div1 () (
+     replacee (= a (* b (/ c d)))
+     substitution (= d a')) 
+     (= a (* b (/ c a')))
+  replacee substitution
+  c diveq2i
+  EqReplaceEq1Mul1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (+ a (/  [ b ]   ]   ]  d)) a') b')
+##   (=             [ b ]   [ c ] )
+##   (= (+ (+ a (/  [   [   [ c ]  d)) a') b')
+## </table>
+thm (EqReplaceEq0Add0Add1Div0 () (
+     replacee (= (+ (+ a (/ b d)) a') b')
+     substitution (= b c)) 
+     (= (+ (+ a (/ c d)) a') b')
+  replacee substitution
+  d diveq1i
+  EqReplaceEq0Add0Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (+ a (* b  [ c ]   ]   ] )) a') b')
+##   (=               [ c ]   [ d ] )
+##   (= (+ (+ a (* b  [   [   [ d ] )) a') b')
+## </table>
+thm (EqReplaceEq0Add0Add1Mul1 () (
+     replacee (= (+ (+ a (* b c)) a') b')
+     substitution (= c d)) 
+     (= (+ (+ a (* b d)) a') b')
+  replacee substitution
+  b muleq2i
+  EqReplaceEq0Add0Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ (+ a (*  [ b ]   ]   ]  d)) a') b')
+##   (=             [ b ]   [ c ] )
+##   (= (+ (+ a (*  [   [   [ c ]  d)) a') b')
+## </table>
+thm (EqReplaceEq0Add0Add1Mul0 () (
+     replacee (= (+ (+ a (* b d)) a') b')
+     substitution (= b c)) 
+     (= (+ (+ a (* c d)) a') b')
+  replacee substitution
+  d muleq1i
+  EqReplaceEq0Add0Add1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (/  [ b ]   ]   ]  d))
+##   (=       [ b ]   [ c ] )
+##   (= a (/  [   [   [ c ]  d))
+## </table>
+thm (EqReplaceEq1Div0 () (
+     replacee (= a (/ b d))
+     substitution (= b c)) 
+     (= a (/ c d))
+  replacee substitution
+  d diveq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (/ b  [ c ]   ]   ] ))
+##   (=         [ c ]   [ d ] )
+##   (= a (/ b  [   [   [ d ] ))
+## </table>
+thm (EqReplaceEq1Div1 () (
+     replacee (= a (/ b c))
+     substitution (= c d)) 
+     (= a (/ b d))
+  replacee substitution
+  b diveq2i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (-  [ b ]   ]   ]  d))
+##   (=       [ b ]   [ c ] )
+##   (= a (-  [   [   [ c ]  d))
+## </table>
+thm (EqReplaceEq1Minus0 () (
+     replacee (= a (- b d))
+     substitution (= b c)) 
+     (= a (- c d))
+  replacee substitution
+  d minuseq1i
+  EqReplaceEq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (*  [ a ]   ]   ]  c) d)
+##   (=     [ a ]   [ b ] )
+##   (= (*  [   [   [ b ]  c) d)
+## </table>
+thm (EqReplaceEq0Mul0 () (
+     replacee (= (* a c) d)
+     substitution (= a b)) 
+     (= (* b c) d)
+  replacee substitution
+  c muleq1i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (+ b  [ c ]   ]   ] ))
+##   (=         [ c ]   [ d ] )
+##   (= a (+ b  [   [   [ d ] ))
+## </table>
+thm (EqReplaceEq1Add1 () (
+     replacee (= a (+ b c))
+     substitution (= c d)) 
+     (= a (+ b d))
+  replacee substitution
+  b addeq2i
+  EqReplaceEq1
+)
+
+## <title> One-digit Addition </title>
+thm (1plus2 () () (= (+ (1) (2)) (3))
+  df-3
+  ## <d 'Commutative Property'>
+    (2) (1) addcom
+    EqReplaceEq1
+  ## </d 'Commutative Property'>
+  ## <d 'Commutative Property'>
+    (3) (+ (1) (2)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+## <title> One-digit Addition </title>
+thm (1plus3 () () (= (+ (1) (3)) (4))
+  df-4
+  ## <d 'Commutative Property'>
+    (3) (1) addcom
+    EqReplaceEq1
+  ## </d 'Commutative Property'>
+  ## <d 'Commutative Property'>
+    (4) (+ (1) (3)) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+)
+
+
+
+## <title> One-digit Addition </title>
+thm (2plus2 () () (= (+ (2) (2)) (4))
+  ## <d 'One-digit Addition'>
+    ## <d 'Increment Right'>
+      df-2
+      (2) addeq1i
+      ## <d 'Associative Property'>
+        (1) (1) (2) addass
+        EqReplaceEq1
+      ## </d 'Associative Property'>
+      ## <d 'Definition of 3'>
+        1plus2
+        EqReplaceEq1Add1
+      ## </d 'Definition of 3'>
+    ## </d 'Increment Right'>
+    ## <d 'Definition of 4'>
+      1plus3
+      EqReplaceEq1
+    ## </d 'Definition of 4'>
+  ## </d 'One-digit Addition'>
+)
+
+
+
+## <title> One-digit Multiplication </title>
+thm (2times2 () () (= (* (2) (2)) (4))
+  ## <d 'One-Digit Multiplication'>
+    ## <d 'Seperate into Smaller Digits'>
+      ## <d 'Evaluate'>
+        1plus1
+      ## </d 'Evaluate'>
+      ## <d 'Commutative Property'>
+        (+ (1) (1)) (2) eqcom
+        mpbi
+      ## </d 'Commutative Property'>
+      (2) muleq2i
+    ## </d 'Seperate into Smaller Digits'>
+    ## <d 'Distributive Property'>
+      (2) (1) (1) distr
+      EqReplaceEq1
+    ## </d 'Distributive Property'>
+    ## <d 'Multiply Smaller Digits'>
+      ## <d 'Multiply Left Side'>
+        (2) mulid
+        (* (2) (1)) addeq1i
+      ## </d 'Multiply Left Side'>
+      ## <d 'Multiply Right Side'>
+        (2) mulid
+        EqReplaceEq1Add1
+      ## </d 'Multiply Right Side'>
+      EqReplaceEq1
+    ## </d 'Multiply Smaller Digits'>
+    ## <d 'Sum the Total'>
+      2plus2
+      EqReplaceEq1
+    ## </d 'Sum the Total'>
+  ## </d 'One-Digit Multiplication'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (* (*  [ a ]   ]   ]  c) d) a')
+##   (=        [ a ]   [ b ] )
+##   (= (* (*  [   [   [ b ]  c) d) a')
+## </table>
+thm (EqReplaceEq0Mul0Mul0 () (
+     replacee (= (* (* a c) d) a')
+     substitution (= a b)) 
+     (= (* (* b c) d) a')
+  replacee substitution
+  c muleq1i
+  EqReplaceEq0Mul0
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (= a (/ b (*  [ c ]   ]   ]  a')))
+##   (=            [ c ]   [ d ] )
+##   (= a (/ b (*  [   [   [ d ]  a')))
+## </table>
+thm (EqReplaceEq1Div1Mul0 () (
+     replacee (= a (/ b (* c a')))
+     substitution (= c d)) 
+     (= a (/ b (* d a')))
+  replacee substitution
+  a' muleq1i
+  EqReplaceEq1Div1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (/ a  [ b ]   ]   ] ) d)
+##   (=       [ b ]   [ c ] )
+##   (= (/ a  [   [   [ c ] ) d)
+## </table>
+thm (EqReplaceEq0Div1 () (
+     replacee (= (/ a b) d)
+     substitution (= b c)) 
+     (= (/ a c) d)
+  replacee substitution
+  a diveq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (=  [ a ]   ]   ]  c))
+##   (=      [ a ]   [ b ] )
+##   (-. (=  [   [   [ b ]  c))
+## </table>
+thm (EqReplaceNot0Eq0 () (
+     replacee (-. (= a c))
+     substitution (= a b)) 
+     (-. (= b c))
+  replacee substitution
+  c eqeq1i
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (>=  [ a ]   ]   ]  c)
+##   (=   [ a ]   [ b ] )
+##   (>=  [   [   [ b ]  c)
+## </table>
+thm (EqReplaceGe0 () (
+     replacee (>= a c)
+     substitution (= a b)) 
+     (>= b c)
+  replacee substitution
+  c geeq1i
+  mpbi
+)
+
+## <title> Apply Square Root </title>
+thm (sqrtsq2 () () (-> (= (exp a (2)) b) (= (abs a) (sqrt b)))
+  (exp a (2)) b (0) geeq1
+  a squareNotNeg  
+  ## <d 'Squared means multiply twice '>
+    a exp2 eqcomi
+    EqReplaceGe0
+  ## </d 'Squared means multiply twice '>  
+  (>= b (0)) biRemove1
+  (= (exp a (2)) b) imbi2i
+  mpbi
+  b a sqrtsq    
+  ## <d 'Infer Left to Right '>
+    (= (exp a (2)) b) (= (abs a) (sqrt b)) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  com12
+  jca  
+  ## <d 'Introduce conjunct as antecedent '>
+    (>= b (0)) (= (abs a) (sqrt b)) abai bicomi
+    sylib
+  ## </d 'Introduce conjunct as antecedent '>  
+  ## <d 'Remove Left Side of ANd '>
+    (>= b (0)) (= (abs a) (sqrt b)) pm3.27
+    syl
+  ## </d 'Remove Left Side of ANd '>
+)
+
+## <title> Square is the inverse of squaring </title>
+thm (sqrtsq3 () () (-> (>= a (0)) (= (exp (sqrt a) (2)) a))
+  a sqrtpos
+  (sqrt a) dfabs1
+  syl
+  a (sqrt a) sqrtsq  
+  bicomd
+  jca  
+  ## <d>
+    (= (abs (sqrt a)) (sqrt a)) (= (exp (sqrt a) (2)) a) mpbi-inline
+    syl
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=  [ a ]   ]   ]  c))
+##   (=          [ a ]   [ b ] )
+##   (<-> ph (=  [   [   [ b ]  c))
+## </table>
+thm (EqReplaceBi1Eq0 () (
+     replacee (<-> ph (= a c))
+     substitution (= a b)) 
+     (<-> ph (= b c))
+  replacee substitution
+  c eqeq1i
+  bitri
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps (=  [ a ]   ]   ]  c)))
+##   (=                 [ a ]   [ b ] )
+##   (-> ph (<-> ps (=  [   [   [ b ]  c)))
+## </table>
+thm (EqReplaceImp1Bi1Eq0 () (
+     replacee (-> ph (<-> ps (= a c)))
+     substitution (= a b)) 
+     (-> ph (<-> ps (= b c)))
+  replacee substitution
+  c eqeq1i
+  BiReplaceImp1Bi1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> (=  [ a ]   ]   ]  c) ps))
+##   (=              [ a ]   [ b ] )
+##   (-> ph (<-> (=  [   [   [ b ]  c) ps))
+## </table>
+thm (EqReplaceImp1Bi0Eq0 () (
+     replacee (-> ph (<-> (= a c) ps))
+     substitution (= a b)) 
+     (-> ph (<-> (= b c) ps))
+  replacee substitution
+  c eqeq1i
+  BiReplaceImp1Bi0
+)
+
+## <title> Square root of a positive is positive </title>
+thm (sqrtpos2 () () (-> (> a (0)) (> (sqrt a) (0)))
+  ## <d 'Inequality Conversion '>
+    a (0) gtneq
+  ## </d 'Inequality Conversion '>
+
+  ## <d 'Inequality Conversion '>
+    a (0) gtge
+  ## </d 'Inequality Conversion '>
+  a (0) sqrtsq
+  (0) absPosDef  
+  (0) eqid  
+  mpbiRemove
+  EqReplaceImp1Bi1Eq0  
+  ## <d 'Evaluate'>
+    0power2
+    EqReplaceImp1Bi0Eq0
+  ## </d 'Evaluate'>  
+  ## <d 'Symmetric Property '>
+    (0) a eqcom
+    BiReplaceImp1Bi0
+  ## </d 'Symmetric Property '>  
+  ## <d 'Symmetric Property '>
+    (0) (sqrt a) eqcom
+    BiReplaceImp1Bi1
+  ## </d 'Symmetric Property '>  
+  syl  
+  ## <d 'Negate Both Sides '>
+    (= a (0)) (= (sqrt a) (0)) notbi
+    sylib
+  ## </d 'Negate Both Sides '>
+  jca  
+  ## <d>
+    (-. (= a (0))) (-. (= (sqrt a) (0))) mpbi-inline
+    syl
+  ## </d>
+
+  ## <d 'Inequality Conversion '>
+    a (0) gtge
+  ## </d 'Inequality Conversion '>
+  a sqrtpos  
+  syl
+  jca  
+  ## <d 'Inequality Conversion '>
+    (sqrt a) (0) axgrtri bicomi
+    sylib
+  ## </d 'Inequality Conversion '>
+)
+
+## <title> Square root over division </title>
+thm (sqrtReciprocal () (Anot0 (> a (0))) (= (/ (1) (sqrt a)) (sqrt (/ (1) a)))
+  ## <d 'Squared means multiply twice '>
+    (/ (1) (sqrt a)) exp2
+  ## </d 'Squared means multiply twice '>
+  ## <d>
+    Anot0 a sqrtpos2  ax-mp
+    ## <d 'Inequality Conversion '>
+      (sqrt a) (0) gtneq
+      ax-mp
+    ## </d 'Inequality Conversion '>
+    Anot0 a sqrtpos2  ax-mp
+    ## <d 'Inequality Conversion '>
+      (sqrt a) (0) gtneq
+      ax-mp
+    ## </d 'Inequality Conversion '>
+    (1) (1) fracmuli  
+    ## <d 'Multiplicative Identity '>
+      (1) mulidr
+      EqReplaceEq1Div0
+    ## </d 'Multiplicative Identity '>  
+    EqReplaceEq1
+    ## <d 'Squared means multiply twice '>
+      (sqrt a) exp2 eqcomi
+      EqReplaceEq1Div1
+    ## </d 'Squared means multiply twice '>
+  ## </d>
+  Anot0  
+  ## <d 'Inequality Conversion '>
+    a (0) gtge
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  a sqrtsq3  
+  ax-mp  
+  EqReplaceEq1Div1
+  (/ (1) (sqrt a)) (/ (1) a) sqrtsq2  
+  ax-mp
+  ## <d>
+  Anot0
+  a sqrtpos2
+  ax-mp
+  (sqrt a) posReciprocal    
+  ax-mp  
+  ## <d 'Inequality Conversion '>
+    (/ (1) (sqrt a)) (0) gtge
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  (/ (1) (sqrt a)) dfabs1  
+  ax-mp  
+  EqReplaceEq0
+  ## </d>
+)
+
+## <title> Square root over division </title>
+thm (sqrtdivi () (Apos (>= a (0)) Bpos (> b (0))) (= (sqrt (/ a b)) (/ (sqrt a) (sqrt b)))
+  Bpos
+  ## <d 'Inequality Conversion '>
+    b (0) gtneq
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  a expandFraci 
+  sqrteqi
+  Apos
+  Bpos
+  b posReciprocal  
+  ax-mp  
+  ## <d 'Inequality Conversion '>
+    (/ (1) b) (0) gtge
+    ax-mp
+  ## </d 'Inequality Conversion '>
+  pm3.2i
+  a (/ (1) b) sqrtmul  
+  ax-mp
+  eqcomi  
+  EqReplaceEq1
+  ## <d>
+    Bpos
+    sqrtReciprocal
+    eqcomi  
+    EqReplaceEq1Mul1
+  ## </d>
+  ## <d>
+    Bpos
+    b sqrtpos2
+    ax-mp
+    ## <d 'Inequality Conversion '>
+      (sqrt b) (0) gtneq
+      ax-mp
+    ## </d 'Inequality Conversion '>
+    (sqrt a) expandFraci eqcomi  
+    EqReplaceEq1
+  ## </d>
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (pos  [ a ]   ]   ] ))
+##   (=           [ a ]   [ b ] )
+##   (-> ph (pos  [   [   [ b ] ))
+## </table>
+thm (EqReplaceImp1Pos0 () (
+     replacee (-> ph (pos a))
+     substitution (= a b)) 
+     (-> ph (pos b))
+  replacee substitution
+  poseqi
+  sylib
+)
+
+## <title> Square Root is the inverse of squaring </title>
+thm (sqrtsq4 () () (= (sqrt (exp a (2))) (abs a))
+  (exp a (2)) a sqrtsq
+  (exp a (2)) eqid  
+  (= (abs a) (sqrt (exp a (2)))) biRemove1
+  (>= (exp a (2)) (0)) imbi2i
+  mpbi
+  a squareNotNeg  
+  ## <d 'Squared means multiply twice '>
+    a exp2 eqcomi
+    EqReplaceGe0
+  ## </d 'Squared means multiply twice '>  
+  ax-mpRemove
+  eqcomi
+)
+
+
+## <title> Discriminant is Positive or 0 </title>
+## <summary> 
+##   Proves that if a solution to the quadratic equation exists, the discriminant must
+##   be positive or zero. This repeats part of the proof in the quadratic equation.
+## </summary>
+thm (posDiscriminant () (quadratic (= (+ (+ (* a (exp x (2))) (* b x)) c) (0)) Anot0 (-. (= a (0)))) (>= (- (exp b (2)) (* (* (4) a) c)) (0))
+  quadratic
+  ## <d 'Divide Both Sides by a'>
+    a diveq1i
+    ## <d 'Divide Both Sides by a'>
+      Anot0
+      a 0div
+      ax-mp
+      EqReplaceEq1
+    ## </d>
+    ## <d 'Distribute Division over Addition'>
+      Anot0
+      (+ (* a (exp x (2))) (* b x)) c divdistri eqcomi
+      Anot0
+      (* a (exp x (2))) (* b x) divdistri eqcomi  EqReplaceEq1Add0
+      EqReplaceEq0
+    ## </d>
+    ## <d 'Cancel a'>
+      Anot0 (exp x (2)) divcan2i
+      EqReplaceEq0Add0Add0
+    ## </d>
+  ## </d 'Divide Both Sides by a'>
+
+  ## <d 'Subtract C/a from both sides'>
+    (/ c a) minuseq1i
+    ## <d 'Addition is the inverse of Subtraction '>
+      (+ (exp x (2)) (/ (* b x) a)) (/ c a) addcanr
+      EqReplaceEq0
+    ## </d 'Addition is the inverse of Subtraction '>
+    ## <d 'Subtract from 0 '>
+      (/ c a) 0minus
+      EqReplaceEq1
+    ## </d 'Subtract from 0 '>
+  ## </d>
+  ## <d 'Complete the Square'>
+    (exp (/ b (* (2) a)) (2)) addeq1i
+    ## <d 'Commutative Property '>
+      (-n (/ c a)) (exp (/ b (* (2) a)) (2)) addcom
+      EqReplaceEq1
+    ## </d 'Commutative Property '>
+    ## <d 'Definition of Subtraction '>
+      (exp (/ b (* (2) a)) (2)) (/ c a) df-minus eqcomi
+      EqReplaceEq1
+    ## </d 'Definition of Subtraction '>
+  ## </d>
+  ## <d 'Square an Addition '>
+    ## <d 'Multiply Numerator and Denominator by 2'>
+      ## <d 'Commutative Property '>
+        b x mulcom
+        EqReplaceEq0Add0Add1Div0
+      ## </d 'Commutative Property '>
+      Anot0
+      x b divmulassi eqcomi
+      EqReplaceEq0Add0Add1
+      2notEqual0
+      (/ b a) divcani
+      Anot0
+      2notEqual0
+      b doubledivi
+      EqReplaceEq0Mul1
+      eqcomi
+      ## <d 'Commutative Property '>
+        a (2) mulcom
+        EqReplaceEq1Mul1Div1
+      ## </d 'Commutative Property '>
+      EqReplaceEq0Add0Add1Mul1
+      ## <d 'Associative Property '>
+        x (2) (/ b (* (2) a)) mulass eqcomi
+        EqReplaceEq0Add0Add1
+      ## </d 'Associative Property '>
+      ## <d 'Commutative Property '>
+        x (2) mulcom
+        EqReplaceEq0Add0Add1Mul0
+      ## </d 'Commutative Property '>
+    ## </d>
+    ## <d 'Square an Addition '>
+      x (/ b (* (2) a)) sqadd eqcomi
+      EqReplaceEq0
+    ## </d 'Square an Addition '>
+  ## </d 'Square an Addition '>
+  ## <d 'Multiply Numerator and Denominator by 4a'>
+    ## <d 'Squared means multiply twice '>
+      (/ b (* (2) a)) exp2
+      (/ c a) minuseq1i
+    ## </d 'Squared means multiply twice '>
+      2notEqual0 Anot0 zeroProducti
+      2notEqual0 Anot0 zeroProducti
+      b b fracmuli
+    ## <d 'Squared means multiply twice '>
+      b exp2 eqcomi
+      EqReplaceEq1Div0
+    ## </d 'Squared means multiply twice '>
+    ## <d 'Squared means multiply twice '>
+      (* (2) a) exp2 eqcomi
+      EqReplaceEq1Div1
+    ## </d 'Squared means multiply twice '>
+    EqReplaceEq1Minus0
+
+    ## <d 'Multiply Numerator and Denominator by 4a'>
+      2notEqual0 2notEqual0 Anot0 zeroProducti zeroProducti
+      (/ c a) divcani
+      ## <d 'Associative Property '>
+        (2) (2) a mulass
+        ## <d 'Commutative Property'>
+          (* (* (2) (2)) a) (* (2) (* (2) a)) eqcom
+          mpbi
+        ## </d 'Commutative Property'>
+        EqReplaceEq0Mul0
+      ## </d 'Associative Property '>
+      ## <d 'Evaluate'>
+        2times2
+        EqReplaceEq0Mul0Mul0
+      ## </d 'Evaluate'>
+      Anot0 2notEqual0 2notEqual0 Anot0 zeroProducti zeroProducti
+      c doubledivi
+      ## <d 'Associative Property '>
+        a (2) (* (2) a) mulass
+        ## <d 'Commutative Property'>
+          (* (* a (2)) (* (2) a)) (* a (* (2) (* (2) a))) eqcom
+          mpbi
+        ## </d 'Commutative Property'>
+        EqReplaceEq1Div1
+      ## </d 'Associative Property '>
+      ## <d 'Commutative Property '>
+        a (2) mulcom
+        EqReplaceEq1Div1Mul0
+      ## </d 'Commutative Property '>
+      EqReplaceEq0Mul1
+      ## <d>
+        2notEqual0  Anot0  zeroProducti
+        2notEqual0  Anot0  zeroProducti  zeroProducti
+        (* (4) a) c divmulassi
+        EqReplaceEq0
+      ## </d>
+      ## <d 'Squared means multiply twice '>
+        (* (2) a) exp2 eqcomi
+        EqReplaceEq0Div1
+      ## </d 'Squared means multiply twice '>
+      eqcomi
+      (/ (exp b (2)) (exp (* (2) a) (2))) minuseq2i
+      EqReplaceEq1
+    ## </d>
+    EqReplaceEq1
+    ## <d>
+      2notEqual0  Anot0  zeroProducti
+      2notEqual0  Anot0  zeroProducti  zeroProducti
+      ## <d 'Squared means multiply twice '>
+        (* (2) a) exp2 eqcomi
+        EqReplaceNot0Eq0
+      ## </d 'Squared means multiply twice '>
+      (exp (* (2) a) (2)) (exp b (2)) (* (* (4) a) c) divminusdistr
+      ax-mp
+      EqReplaceEq1
+    ## </d>
+  ## </d>
+  (exp (* (2) a) (2)) muleq2i  
+  ## <d>
+  Anot0
+  (2) a zeroProductz
+  2notEqual0  
+  (-. (= a (0))) anRemove1
+  (-. (= (* (2) a) (0))) imbi1i
+  mpbi  
+  ax-mp
+  (* (2) a) (* (2) a) zeroProductz  
+  ## <d 'Conjunction is Idempotent '>
+    (-. (= (* (2) a) (0))) anidm
+    sylbi2
+  ## </d 'Conjunction is Idempotent '>
+  ax-mp
+  
+  ## <d 'Squared means multiply twice '>
+    (* (2) a) exp2 eqcomi
+    EqReplaceNot0Eq0
+  ## </d 'Squared means multiply twice '>
+  (- (exp b (2)) (* (* (4) a) c)) divcani  
+  EqReplaceEq1
+  ## </d>
+  ## <d 'Squares are never negative'>
+  (* (exp (* (2) a) (2)) (exp (+ x (/ b (* (2) a))) (2))) (- (exp b (2)) (* (* (4) a) c)) (0) geeq1
+  (* (2) a) squareNotNeg  
+  ## <d 'Squared means multiply twice '>
+    (* (2) a) exp2 eqcomi
+    EqReplaceGe0
+  ## </d 'Squared means multiply twice '>
+  (+ x (/ b (* (2) a)))  squareNotNeg  
+  ## <d 'Squared means multiply twice '>
+    (+ x (/ b (* (2) a))) exp2 eqcomi
+    EqReplaceGe0
+  ## </d 'Squared means multiply twice '>
+  pm3.2i
+  (exp (* (2) a) (2)) (0) (exp (+ x (/ b (* (2) a))) (2)) gemul1    
+  ## <d 'Multiply by 0 '>
+    (exp (+ x (/ b (* (2) a))) (2)) mul0r
+    EqReplaceImp1Ge1
+  ## </d 'Multiply by 0 '>  
+  ax-mp
+
+  
+  (>= (- (exp b (2)) (* (* (4) a) c)) (0)) biRemove1
+  (= (* (exp (* (2) a) (2)) (exp (+ x (/ b (* (2) a))) (2))) (- (exp b (2)) (* (* (4) a) c))) imbi2i
+  mpbi
+  ax-mp
+  ## </d>
+)
+
+## <title> Nonnegative Square is positive </title>
+thm (2aSquarePos () () (-> (-. (= a (0))) (> (exp (* (2) a) (2)) (0)))
+  (2) a zeroProductz  
+  2notEqual0  
+  (-. (= a (0))) anRemove1
+  (-. (= (* (2) a) (0))) imbi1i
+  mpbi
+  (* (2) a) posSquares  
+  ## <d 'Squared means multiply twice '>
+    (* (2) a) exp2 eqcomi
+    EqReplaceImp1Pos0
+  ## </d 'Squared means multiply twice '>
+  (exp (* (2) a) (2)) df-pos  
+  sylib  
+  syl
+)
+
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> (\/ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (-> (\/ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceImp0Or1 () (
+     replacee (-> (\/ ph ps) th)
+     substitution (<-> ps ch)) 
+     (-> (\/ ph ch) th)
+  replacee substitution
+  ph orbi2i
+  sylbi2
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (->         [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (ImpReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orim1i
+  syl
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (-> ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Or1 () (
+     replacee (-> ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  sylib
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ ps (/\ ch  [ th ]   ]    ] )))
+##   (<->                  [ th ]   [ ta ] )
+##   (-> ph (\/ ps (/\ ch  [    [   [ ta ] )))
+## </table>
+thm (BiReplaceImp1Or1An1 () (
+     replacee (-> ph (\/ ps (/\ ch th)))
+     substitution (<-> th ta)) 
+     (-> ph (\/ ps (/\ ch ta)))
+  replacee substitution
+  ch anbi2i
+  BiReplaceImp1Or1
+)
+
+thm (quadraticEq.1 () (Bnot0 (-. (= b (0)))) (-> (= (/ a b) (0)) (= (/ a (abs b)) (/ a b)))
+  b dfabs2
+  a diveq2d
+  b dfabs1
+  a diveq2d
+  orim12i  
+  ## <d 'Def. Greater Than or Equal to '>
+    b (0) df-ge
+    BiReplaceImp0Or1
+  ## </d 'Def. Greater Than or Equal to '>
+  ## <d 'Definition of OR '>
+    (< b (0)) exmid    
+    ax-mpRemove
+  ## </d 'Definition of OR '>
+  (= (/ a b) (0)) a1i
+  (/ a b) (0) negeq  
+  ## <d 'Negative of 0 is 0 '>
+    neg0
+    EqReplaceImp1Eq1
+  ## </d 'Negative of 0 is 0 '>
+  Bnot0
+  b a negDenominator  
+  ax-mp  
+  EqReplaceImp1Eq0
+  ancri  
+  ## <d 'Symmetric Property '>
+    (/ a b) (0) eqcom
+    BiReplaceImp1An1
+  ## </d 'Symmetric Property '>
+  ## <d 'Equality Transitive Property '>
+    (/ a (-n b)) (0) (/ a b) eqtr
+    syl
+  ## </d 'Equality Transitive Property '>
+  jca  
+  ## <d 'Distributive Property '>
+    (= (/ a (abs b)) (/ a (-n b))) (= (/ a (abs b)) (/ a b)) (= (/ a (-n b)) (/ a b)) andir
+    sylib
+  ## </d 'Distributive Property '>  
+  ## <d 'Remove Right Side of ANd '>
+    (= (/ a (abs b)) (/ a b)) (= (/ a (-n b)) (/ a b)) pm3.26
+    ImpReplaceImp1Or1
+  ## </d 'Remove Right Side of ANd '>  
+  ## <d 'Equality Transitive Property '>
+    (/ a (abs b)) (/ a (-n b)) (/ a b) eqtr
+    ImpReplaceImp1Or0
+  ## </d 'Equality Transitive Property '>  
+  ## <d 'Disjunction is Idempotent '>
+    (= (/ a (abs b)) (/ a b)) oridm
+    sylib
+  ## </d 'Disjunction is Idempotent '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (-> ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Or0 () (
+     replacee (-> ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (\/ (/\  [ ps ]   ]    ]  th) ta))
+##   (<->            [ ps ]   [ ch ] )
+##   (-> ph (\/ (/\  [    [   [ ch ]  th) ta))
+## </table>
+thm (BiReplaceImp1Or0An0 () (
+     replacee (-> ph (\/ (/\ ps th) ta))
+     substitution (<-> ps ch)) 
+     (-> ph (\/ (/\ ch th) ta))
+  replacee substitution
+  th anbi1i
+  BiReplaceImp1Or0
+)
+
+## <summary> 
+##   If a fraction and its numerator are both positive, then either the denominator is positive
+##   or the fraction is zero. In either case, an absolute value on the denominator can be eliminated.
+## </summary>
+thm (quadraticEq.2 () (Bnot0 (-. (= b (0)))) (-> (/\ (>= (/ a b) (0)) (>= a (0))) (= (/ a (abs b)) (/ a b)))
+  b a expandFrac
+  (0) gteq1d
+
+  a (/ (1) b) posProduct
+  (* a (/ (1) b)) df-pos
+  bitr3icom
+  BiReplaceImp1Bi1
+  ## <d 'Infer Left to Right '>
+    (> (/ a b) (0)) (\/ (/\ (zneg a) (zneg (/ (1) b))) (/\ (pos a) (pos (/ (1) b)))) bi1
+    syl
+  ## </d 'Infer Left to Right '>
+  ## <d 'Import-Export Theorem '>
+    (-. (= b (0))) (> (/ a b) (0)) (\/ (/\ (zneg a) (zneg (/ (1) b))) (/\ (pos a) (pos (/ (1) b)))) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  a df-pos bicomi biimpi
+  a posNotNeg
+  syl
+  anim12i
+  ## <d 'Distributive Property '>
+    (/\ (zneg a) (zneg (/ (1) b))) (/\ (pos a) (pos (/ (1) b))) (-. (zneg a)) andir
+    sylib
+  ## </d 'Distributive Property '>
+
+  ## <d 'Commute Conjunction '>
+    (/\ (zneg a) (zneg (/ (1) b))) (-. (zneg a)) ancom
+    BiReplaceImp1Or0
+  ## </d 'Commute Conjunction '>
+
+  ## <d 'Associative Property '>
+    (-. (zneg a)) (zneg a) (zneg (/ (1) b)) anass bicomi
+    BiReplaceImp1Or0
+  ## </d 'Associative Property '>
+
+  ## <d 'Commute Conjunction '>
+    (-. (zneg a)) (zneg a) ancom
+    BiReplaceImp1Or0An0
+  ## </d 'Commute Conjunction '>
+
+  ## <d 'Remove Left Side of ANd '>
+    (zneg a) pm3.24
+
+    (zneg (/ (1) b)) anNotRemove1
+    (/\ (/\ (pos a) (pos (/ (1) b))) (-. (zneg a))) orbi1i
+    sylib
+  ## </d 'Remove Left Side of ANd '>
+  notfal
+  (/\ (/\ (pos a) (pos (/ (1) b))) (-. (zneg a))) orNotRemove1
+  (/\ (/\ (-. (= b (0))) (> (/ a b) (0))) (> a (0))) imbi2i
+  mpbi
+  ## <d 'Remove Right Side of ANd '>
+    (/\ (pos a) (pos (/ (1) b))) (-. (zneg a)) pm3.26
+    syl
+  ## </d 'Remove Right Side of ANd '>
+  ## <d 'Remove Left Side of ANd '>
+    (pos a) (pos (/ (1) b)) pm3.27
+    syl
+  ## </d 'Remove Left Side of ANd '>
+  Bnot0
+
+  (> (/ a b) (0)) anRemove1
+  (> a (0)) anbi1i
+  sylbi2
+
+  (/ (1) b) df-pos
+  sylib
+
+  Bnot0
+  b posReciprocal2
+  ax-mp bicomi
+  sylib    
+  ## <d>
+    ## <d 'Inequality Conversion '>
+      b (0) gtge
+      syl
+    ## </d 'Inequality Conversion '>
+    b dfabs1
+    a diveq2d  
+    syl
+  ## </d>
+
+  ## <d 'Add a = 0 case'>
+  a (0) b diveq1
+  Bnot0
+  b 0div  
+  ax-mp  
+  EqReplaceImp1Eq1
+  Bnot0
+  a quadraticEq.1  
+  syl
+  (> (/ a b) (0)) a1i  
+  ## <d 'Import-Export Theorem '>
+    (> (/ a b) (0)) (= a (0)) (= (/ a (abs b)) (/ a b)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jaoi  
+  ## <d 'Distributive Property '>
+    (> (/ a b) (0)) (> a (0)) (= a (0)) andi bicomi
+    sylbi2
+  ## </d 'Distributive Property '>  
+  ## <d '≥ means > OR = '>
+    a (0) gegeo bicomi
+    BiReplaceImp0An1
+  ## </d '≥ means > OR = '>
+  ## </d>
+
+  ## <d 'Add A/b = 0 case'>
+  Bnot0
+  a quadraticEq.1
+  (>= a (0)) a1d  
+  ## <d 'Import-Export Theorem '>
+    (= (/ a b) (0)) (>= a (0)) (= (/ a (abs b)) (/ a b)) impexp bicomi
+    mpbi
+  ## </d 'Import-Export Theorem '>
+  jaoi  
+  ## <d 'Distributive Property '>
+    (> (/ a b) (0)) (= (/ a b) (0)) (>= a (0)) andir bicomi
+    sylbi2
+  ## </d 'Distributive Property '>
+  ## <d '≥ means > OR = '>
+    (/ a b) (0) gegeo bicomi
+    BiReplaceImp0An0
+  ## </d '≥ means > OR = '>
+  ## <d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/  [ ph ]   ]    ]  ch)
+##   (->  [ ph ]   [ ps ] )
+##   (\/  [    [   [ ps ]  ch)
+## </table>
+thm (ImpReplaceOr0 () (
+     replacee (\/ ph ch)
+     substitution (-> ph ps)) 
+     (\/ ps ch)
+  replacee substitution
+  ch orim1i
+  ax-mp
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph (\/  [ ps ]   ]    ]  th))
+##   (<->        [ ps ]   [ ch ] )
+##   (\/ ph (\/  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceOr1Or0 () (
+     replacee (\/ ph (\/ ps th))
+     substitution (<-> ps ch)) 
+     (\/ ph (\/ ch th))
+  replacee substitution
+  th orbi1i
+  orbi2ii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph (\/ ps  [ ch ]   ]    ] ))
+##   (<->           [ ch ]   [ th ] )
+##   (\/ ph (\/ ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceOr1Or1 () (
+     replacee (\/ ph (\/ ps ch))
+     substitution (<-> ch th)) 
+     (\/ ph (\/ ps th))
+  replacee substitution
+  ps orbi2i
+  orbi2ii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ (\/ ph  [ ps ]   ]    ] ) th)
+##   (<->        [ ps ]   [ ch ] )
+##   (\/ (\/ ph  [    [   [ ch ] ) th)
+## </table>
+thm (BiReplaceOr0Or1 () (
+     replacee (\/ (\/ ph ps) th)
+     substitution (<-> ps ch)) 
+     (\/ (\/ ph ch) th)
+  replacee substitution
+  ph orbi2i
+  orbi1ii
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (\/ (\/ ph (= a  [ b ]   ]   ] )) ps)
+##   (=               [ b ]   [ c ] )
+##   (\/ (\/ ph (= a  [   [   [ c ] )) ps)
+## </table>
+thm (EqReplaceOr0Or1Eq1 () (
+     replacee (\/ (\/ ph (= a b)) ps)
+     substitution (= b c)) 
+     (\/ (\/ ph (= a c)) ps)
+  replacee substitution
+  a eqeq2i
+  BiReplaceOr0Or1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= a  [ b ]   ]   ] ))
+##   (=            [ b ]   [ c ] )
+##   (<-> ph (= a  [   [   [ c ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= a b))
+     substitution (= b c)) 
+     (<-> ph (= a c))
+  replacee substitution
+  a eqeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph (\/ ps (= a  [ b ]   ]   ] )))
+##   (=                  [ b ]   [ c ] )
+##   (\/ ph (\/ ps (= a  [   [   [ c ] )))
+## </table>
+thm (EqReplaceOr1Or1Eq1 () (
+     replacee (\/ ph (\/ ps (= a b)))
+     substitution (= b c)) 
+     (\/ ph (\/ ps (= a c)))
+  replacee substitution
+  a eqeq2i
+  BiReplaceOr1Or1
+)
+
+## <title> Two numbers have the same absolute value </title>
+thm (quadraticEq.3 () (hyp (= (abs a) (/ b (abs c))) Cnot0 (-. (= c (0)))) (\/ (= a (/ b c)) (= a (-n (/ b c))))
+  hyp
+  ## <d>
+    a (/ b (abs c)) absTwoValues
+    ## <d 'Remove Right Side of ANd '>
+      (\/ (= a (/ b (abs c))) (= (-n a) (/ b (abs c)))) (>= (/ b (abs c)) (0)) pm3.26
+      ImpReplaceBi1
+    ## </d 'Remove Right Side of ANd '>  
+    ax-mp
+  ## </d>
+  
+  ## <d 'Expand the absolute value in denominator'>
+    c absTwoValues2
+    (abs c)     c  b diveq2 a eqeq2d
+    (abs c) (-n c) b diveq2 a eqeq2d
+    orim12i
+    ax-mp  
+    ## <d 'Infer Left to Right '>
+      (= a (/ b (abs c))) (= a (/ b c)) bi1
+      ImpReplaceOr0
+    ## </d 'Infer Left to Right '>  
+    ## <d 'Infer Left to Right '>
+      (= a (/ b (abs c))) (= a (/ b (-n c))) bi1
+      ImpReplaceOr1
+    ## </d 'Infer Left to Right '>  
+    ## <d 'Distributive Property '>
+      (= a (/ b (abs c))) (= a (/ b c)) (= a (/ b (-n c))) pm4.78
+      mpbi
+    ## </d 'Distributive Property '>  
+    ImpReplaceOr0
+
+    c absTwoValues2
+    (abs c)     c  b diveq2 (-n a) eqeq2d
+    (abs c) (-n c) b diveq2 (-n a) eqeq2d
+    orim12i
+    ax-mp  
+    ## <d 'Infer Left to Right '>
+      (= (-n a) (/ b (abs c))) (= (-n a) (/ b c)) bi1
+      ImpReplaceOr0
+    ## </d 'Infer Left to Right '>  
+    ## <d 'Infer Left to Right '>
+      (= (-n a) (/ b (abs c))) (= (-n a) (/ b (-n c))) bi1
+      ImpReplaceOr1
+    ## </d 'Infer Left to Right '>  
+    ## <d 'Distributive Property '>
+      (= (-n a) (/ b (abs c))) (= (-n a) (/ b c)) (= (-n a) (/ b (-n c))) pm4.78
+      mpbi
+    ## </d 'Distributive Property '>  
+    ImpReplaceOr1
+  ## </d>  
+  ## <d 'Rearrange & Cancel Negatives'>
+  ## <d 'Negative can switch sides '>
+    ## <d 'Negative can switch sides '>
+      a (/ b c) negeq3 bicomi
+      BiReplaceOr1Or0
+    ## </d 'Negative can switch sides '>  
+    ## <d 'Negative can switch sides '>
+      a (/ b (-n c)) negeq3 bicomi
+      BiReplaceOr1Or1
+    ## </d 'Negative can switch sides '>
+  ## </d 'Negative can switch sides '>
+
+  ## <d>
+    Cnot0
+    b negDenominatori  
+    EqReplaceOr0Or1Eq1
+  ## </d>
+
+  ## <d>
+    Cnot0 b doublenegfraci
+    Cnot0
+    c (0) negeq2  
+    ## <d 'Negative of 0 is 0 '>
+      neg0
+      EqReplaceBi1Eq1
+    ## </d 'Negative of 0 is 0 '>  
+    mtbi
+    b negNumeratori  
+    EqReplaceEq0
+    EqReplaceOr1Or1Eq1
+  ## </d>
+  ## </d 'Rearrange & Cancel Negatives'>
+  ## <d 'Disjunction is Idempotent '>
+  ## <d 'Commutative Property of OR '>
+    (= a (-n (/ b c))) (= a (/ b c)) orcom
+    orbi2ii
+  ## </d 'Commutative Property of OR '>
+  (= a (/ b c)) (= a (-n (/ b c))) (= a (/ b c)) (= a (-n (/ b c))) or4
+  mpbi  
+  ## <d 'Disjunction is Idempotent '>
+    (= a (/ b c)) oridm
+    orbi1ii
+  ## </d 'Disjunction is Idempotent '>  
+  ## <d 'Disjunction is Idempotent '>
+    (= a (-n (/ b c))) oridm
+    orbi2ii
+  ## </d 'Disjunction is Idempotent '>
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ (= a  [ b ]   ]   ] ) ph)
+##   (=        [ b ]   [ c ] )
+##   (\/ (= a  [   [   [ c ] ) ph)
+## </table>
+thm (EqReplaceOr0Eq1 () (
+     replacee (\/ (= a b) ph)
+     substitution (= b c)) 
+     (\/ (= a c) ph)
+  replacee substitution
+  a eqeq2i
+  orbi1ii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (-  [ a ]   ]   ]  c) d)
+##   (=     [ a ]   [ b ] )
+##   (= (-  [   [   [ b ]  c) d)
+## </table>
+thm (EqReplaceEq0Minus0 () (
+     replacee (= (- a c) d)
+     substitution (= a b)) 
+     (= (- b c) d)
+  replacee substitution
+  c minuseq1i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (\/ ph (= a  [ b ]   ]   ] ))
+##   (=           [ b ]   [ c ] )
+##   (\/ ph (= a  [   [   [ c ] ))
+## </table>
+thm (EqReplaceOr1Eq1 () (
+     replacee (\/ ph (= a b))
+     substitution (= b c)) 
+     (\/ ph (= a c))
+  replacee substitution
+  a eqeq2i
+  orbi2ii
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= a (*  [ b ]   ]   ]  d))
+##   (=       [ b ]   [ c ] )
+##   (= a (*  [   [   [ c ]  d))
+## </table>
+thm (EqReplaceEq1Mul0 () (
+     replacee (= a (* b d))
+     substitution (= b c)) 
+     (= a (* c d))
+  replacee substitution
+  d muleq1i
+  EqReplaceEq1
+)
+
+## <title> The Quadratic Equation </title>
+## <summary>
+##   The quadratic equation gives two possible solutions to a second-order polynomial equation.
+##   This proof begins with the assumption that solutions to the equation exists and that the
+##   constant a is not 0. If the value of a were 0, the equation would be linear not quadratic.
+## </summary>
+thm (quadraticEq () (quadratic (= (+ (+ (* a (exp x (2))) (* b x)) c) (0)) Anot0 (-. (= a (0)))) (\/ (= x (/ (+ (-n b) (sqrt (- (exp b (2)) (* (* (4) a) c)))) (* (2) a))) (= x (/ (- (-n b) (sqrt (- (exp b (2)) (* (* (4) a) c)))) (* (2) a))))
+  ## <d 'Starting Hypothesis'>
+    quadratic
+  ## /<d>
+  ## <d 'Subtract C, Divide A'>
+    ## <d 'Divide by A'>
+      ## <d 'Divide Both Sides by A'>
+        a diveq1i
+      ## </d>
+      ## <d 'Simplify 0 divided by A'>
+        Anot0
+        a 0div
+        ax-mp
+        EqReplaceEq1
+      ## </d>
+    ## </d>
+    ## <d 'Distribute and Cancel A'>
+      ## <d 'Distribute Division over Addition'>
+        Anot0
+        (+ (* a (exp x (2))) (* b x)) c divdistri eqcomi
+        Anot0
+        (* a (exp x (2))) (* b x) divdistri eqcomi  EqReplaceEq1Add0
+        EqReplaceEq0
+      ## </d>
+      ## <d 'Cancel a'>
+        Anot0 (exp x (2)) divcan2i
+        EqReplaceEq0Add0Add0
+      ## </d>
+    ## </d 'Divide by A'>
+    ## <d 'Subtract C/A from both sides'>
+      ## <d 'Subtract C/A from both sides'>
+        (/ c a) minuseq1i
+      ## </d 'Subtract C/A from both sides'>
+      ## <d 'Cancel C/A'>
+        ## <d 'Cancel C/A'>
+          (+ (exp x (2)) (/ (* b x) a)) (/ c a) addcanr
+          EqReplaceEq0
+        ## </d 'Cancel C/A'>
+        ## <d 'Subtract from 0'>
+          (/ c a) 0minus
+          EqReplaceEq1
+        ## </d 'Cancel C/A'>
+      ## </d 'Subtract from 0 '>
+    ## </d>
+  ## </d>
+  ## <d 'Complete the Square'>
+    ## <d 'Add the same number to both sides'>
+      (exp (/ b (* (2) a)) (2)) addeq1i
+    ## </d>
+    ## <d 'Commutative Property '>
+      ## <d 'Commutative Property '>
+        (-n (/ c a)) (exp (/ b (* (2) a)) (2)) addcom
+        EqReplaceEq1
+      ## </d 'Commutative Property '>
+      ## <d 'Definition of Subtraction '>
+        (exp (/ b (* (2) a)) (2)) (/ c a) df-minus eqcomi
+        EqReplaceEq1
+      ## </d 'Definition of Subtraction '>
+    ## </d 'Commutative Property '>
+  ## </d>
+  ## <d 'Factor the polynomial'>
+    ## <d 'Factor the polynomial'>
+      ## <d 'Multiply top and bottom by 2'>
+        ## <d 'Commute B and X'>
+          b x mulcom
+          a diveq1i
+        ## </d>
+        ## <d 'Multiplication and Division by 2 cancel'>
+          2notEqual0
+          (/ (* x b) a) divcani eqcomi
+          EqReplaceEq1
+        ## </d>
+        ## <d 'Combine Two Divisions'>
+          ## <d 'Combine Two Divisions'>
+            Anot0
+            2notEqual0
+            (* x b) doubledivi
+            EqReplaceEq1Mul1
+          ## </d>
+          ## <d 'Commute a and 2'>
+            a (2) mulcom
+            EqReplaceEq1Mul1Div1
+          ## </d 'Commutative Property '>
+        ## </d>
+        ## <d 'Multiplication and Division by 2 cancel'>
+          ## <d 'Associative Property'>
+            2notEqual0  Anot0  zeroProducti
+            x b divmulassi eqcomi
+            EqReplaceEq1Mul1
+          ## </d>
+          ## <d 'Associative Property'>
+            (2) x (/ b (* (2) a)) mulass eqcomi
+            EqReplaceEq1
+          ## </d 'Associative Property '>
+        ## </d 'Associative Property '>
+        EqReplaceEq0Add0Add1
+      ## </d>
+      ## <d 'Factor the Polynomail'>
+        x (/ b (* (2) a)) sqadd eqcomi
+        EqReplaceEq0
+      ## </d 'Square an Addition '>
+    ## </d 'Square an Addition '>
+
+    ## <d 'Multiply top and bottom by 4A'>
+      ## <d 'Square numerator and denominator'>
+        ## <d 'Squared means multiply twice '>
+          (/ b (* (2) a)) exp2
+        ## </d 'Squared means multiply twice '>
+        ## <d 'Multiply Fractions'>
+          2notEqual0 Anot0 zeroProducti
+          2notEqual0 Anot0 zeroProducti
+          b b fracmuli
+          EqReplaceEq1
+        ## </d 'Multiply Fractions'>
+        ## <d 'Squared means multiply twice '>
+          b exp2 eqcomi
+          EqReplaceEq1Div0
+        ## </d 'Squared means multiply twice '>
+        ## <d 'Squared means multiply twice '>
+          (* (2) a) exp2 eqcomi
+          EqReplaceEq1Div1
+        ## </d 'Squared means multiply twice '>
+      ## </d 'Square numerator and denominator'>
+
+      ## <d 'Multiply and divide by 4A'>
+        ## <d 'Multiply and divide by 2∙2∙A'>
+          2notEqual0 2notEqual0 Anot0 zeroProducti zeroProducti
+          (/ c a) divcani  eqcomi
+        ## </d 'Multiply and divide by top and bottom by 2∙2∙A'>
+        ## <d 'Multiply 2∙2'>
+          (2) (2) a mulass eqcomi
+          2times2
+          EqReplaceEq1Mul0
+          EqReplaceEq1Mul0
+        ## </d>
+        ## <d 'Combine Divisions'>
+          Anot0 2notEqual0 2notEqual0 Anot0 zeroProducti zeroProducti
+          c doubledivi
+          ## <d 'Associative Property '>
+            a (2) (* (2) a) mulass eqcomi
+            EqReplaceEq1Div1
+          ## </d 'Associative Property '>
+          ## <d 'Commutative Property '>
+            a (2) mulcom
+            EqReplaceEq1Div1Mul0
+          ## </d 'Commutative Property '>
+          ## <d 'Squared means multiply twice '>
+            (* (2) a) exp2 eqcomi
+            EqReplaceEq1Div1
+          ## </d 'Squared means multiply twice '>
+          EqReplaceEq1Mul1
+        ## </d>
+        ## <d 'Move 4A into the numerator'>
+          2notEqual0  Anot0  zeroProducti
+          2notEqual0  Anot0  zeroProducti  zeroProducti
+          ## <d 'Squared means multiply twice '>
+            (* (2) a) exp2 eqcomi
+            EqReplaceNot0Eq0
+          ## </d 'Squared means multiply twice '>
+          (* (4) a) c divmulassi
+          EqReplaceEq1
+        ## </d>
+        ## </d 'Multiply and divide by 4A'>
+        minuseq12i
+        EqReplaceEq1
+    ## </d>
+    ## <d 'Combine Fractions with same denominator'>
+      ## <d>
+        2notEqual0  Anot0  zeroProducti
+        2notEqual0  Anot0  zeroProducti  zeroProducti
+        ## <d 'Squared means multiply twice '>
+          (* (2) a) exp2 eqcomi
+          EqReplaceNot0Eq0
+        ## </d 'Squared means multiply twice '>
+        (exp (* (2) a) (2)) (exp b (2)) (* (* (4) a) c) divminusdistr
+        ax-mp
+        EqReplaceEq1
+      ## </d>
+    ## </d>
+  ## </d>
+  ## <d 'Two solutions when inverting a square'>
+    ## <d 'Apply the Square Root'>
+      (+ x (/ b (* (2) a))) (/ (- (exp b (2)) (* (* (4) a) c)) (exp (* (2) a) (2)))  sqrtsq2
+      ax-mp
+    ## </d>
+    ## <d 'Square Root over Division'>
+      quadratic
+      Anot0
+      posDiscriminant
+      Anot0
+      a 2aSquarePos
+      ax-mp
+      sqrtdivi
+      EqReplaceEq1
+    ## </d>
+    (* (2) a) sqrtsq4
+    EqReplaceEq1Div1
+    ## <d>
+      2notEqual0  Anot0  zeroProducti
+      quadraticEq.3
+    ## </d>
+  ## </d>
+
+  ## <d 'Subtract B/2A from both sides'>
+    ## <d 'Subtract B/2A from both sides'>
+      ## <d>
+        (+ x (/ b (* (2) a))) (/ (sqrt (- (exp b (2)) (* (* (4) a) c))) (* (2) a)) (-n (/ b (* (2) a))) addeq2
+        ## <d 'Commutative Property '>
+          (-n (/ b (* (2) a))) (+ x (/ b (* (2) a))) addcom
+          EqReplaceImp1Eq0
+        ## </d 'Commutative Property '>
+        ## <d 'Definition of Subtraction '>
+          (+ x (/ b (* (2) a))) (/ b (* (2) a)) df-minus eqcomi
+          EqReplaceImp1Eq0
+        ## </d 'Definition of Subtraction '>
+        ## <d 'Addition is the inverse of Subtraction '>
+          x (/ b (* (2) a)) addcanr
+          EqReplaceImp1Eq0
+        ## </d 'Addition is the inverse of Subtraction '>
+        ImpReplaceOr0
+      ## </d>
+      ## <d 'Addition is the inverse of Subtraction'>
+        (+ x (/ b (* (2) a))) (-n (/ (sqrt (- (exp b (2)) (* (* (4) a) c))) (* (2) a))) (-n (/ b (* (2) a))) addeq2
+        ## <d 'Commutative Property '>
+          (-n (/ b (* (2) a))) (+ x (/ b (* (2) a))) addcom
+          EqReplaceImp1Eq0
+        ## </d 'Commutative Property '>
+        ## <d 'Definition of Subtraction '>
+          (+ x (/ b (* (2) a))) (/ b (* (2) a)) df-minus eqcomi
+          EqReplaceImp1Eq0
+        ## </d 'Definition of Subtraction '>
+        ## <d 'Addition is the inversse of Subtraction '>
+          x (/ b (* (2) a)) addcanr
+          EqReplaceImp1Eq0
+        ## </d 'Addition is the inverse of Subtraction '>
+        ImpReplaceOr1
+        ## <d 'Definition of Subtraction '>
+          (-n (/ b (* (2) a))) (/ (sqrt (- (exp b (2)) (* (* (4) a) c))) (* (2) a)) df-minus eqcomi
+          EqReplaceOr1Eq1
+        ## </d 'Definition of Subtraction '>
+      ## </d>
+    ## </d>
+    ## <d 'Combine fractions with same denominator'>
+      ## <d 'Combine fractions with same denominator'>
+        ## <d 'Distribute division over addition'>
+          2notEqual0  Anot0  zeroProducti (-n b)
+          (sqrt (- (exp b (2)) (* (* (4) a) c))) divdistri
+        ## </d>
+        ## <d>
+          2notEqual0  Anot0  zeroProducti b negNumeratori
+          EqReplaceEq0Add0
+          EqReplaceOr0Eq1
+        ## </d>
+      ## </d>
+      ## <d 'Combine fractions with same denominator'>
+        ## <d 'Distribute division over addition'>
+          2notEqual0  Anot0  zeroProducti
+          (* (2) a) (-n b) (sqrt (- (exp b (2)) (* (* (4) a) c))) divminusdistr
+        ## </d 'Distribute division over addition'>
+        ## <d>
+          ax-mp
+          2notEqual0  Anot0  zeroProducti b negNumeratori
+          EqReplaceEq0Minus0
+          EqReplaceOr1Eq1
+        ## </d>
+      ## </d>
+    ## </d>
+  ## </d 'Subtract B/2A from both sides'>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+  tru
+)

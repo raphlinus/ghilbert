@@ -1,0 +1,78 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{modules
+# | parameters = [[Interface:Classical propositional calculus|Classical propositional calculus]], [[Interface:First-order logic with quantifiability|first-order logic]]
+# | importedby = none yet
+# | exportedby = [[First-order linear order defined via strict inequality]]
+# }}
+# 
+# Here we provide theorems for a [[w:total order|linear order]] for use in a proof module which has already exported [[Interface:First-order linear order defined via strict inequality]].
+# 
+# We start by importing propositional and predicate logic.
+# 
+param (PROPOSITIONAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic_with_quantifiability.ghi (PROPOSITIONAL) "")
+# 
+# We also have as a parameter [[Interface:First-order linear order defined via strict inequality]].
+param (DEFINED First-order_linear_order_defined_via_strict_inequality.ghi (PROPOSITIONAL FIRSTORDER) "")
+# 
+# Here are some variables.
+tvar (object x y z x0 y0 z0 x1 y1 z1)
+# 
+# == Strict order ==
+# The predicate <code><</code> for less than was defined in [[Interface:First-order linear order defined via strict inequality]], which also provides the builder <code>LessThanBuilder</code>, transitivity, asymmetry, and totality. We add some consequences and convenience theorems.
+# 
+# We also provide greater-than, which is just an abbreviation for less-than with the order of the arguments reversed.
+term (formula (> x y))
+stmt (GreaterThan () () (↔ (> x y) (< y x)))
+# 
+# === Trichotomy ===
+# Exactly one of <code>x < y</code>, <code>x = y</code>, or <code>y < x</code> hold. Our propositional logic doesn't have a notation which directly states "exactly one of three propositions holds" and even if it did, it might be inconvenient to work with. So we provide multiple theorems to express this idea.
+stmt (LessThanEquality () () (→ (< x y) (¬ (= x y))))
+stmt (LessThanGreaterThan () () (→ (< x y) (¬ (> x y))))
+stmt (EqualityLessThan () () (→ (= x y) (¬ (< x y))))
+# 
+# == Less than or equal to ==
+# There is a predicate for less than or equal to.
+term (formula (≤ x y))
+# 
+# It is transitive, antisymmetric, and total.
+stmt (LessEqualTransitivity () () (→ (∧ (≤ x y) (≤ y z)) (≤ x z)))
+stmt (LessEqualAntisymmetry () () (→ (∧ (≤ x y) (≤ y x)) (= x y)))
+stmt (LessEqualTotality () () (∨ (≤ x y) (≤ y x)))
+# 
+# One consequence is reflexivity.
+stmt (LessEqualReflexivity () () (≤ x x))
+# 
+# We also provide greater-than-or-equal, which is just an abbreviation for less-than-or-equal with the order of the arguments reversed.
+term (formula (≥ x y))
+stmt (GreaterEqual () () (↔ (≥ x y) (≤ y x)))
+# 
+# == Relationships between less-than, less-equal, and equality ==
+stmt (LessThanLessEqual () () (↔ (< x y) (∧ (≤ x y) (¬ (= x y)))))
+stmt (LessEqualLessThan () () (↔ (≤ x y) (∨ (< x y) (= x y))))
+
+stmt (LessThanLessEqualImplication () () (→ (< x y) (≤ x y)))
+
+stmt (EqualityLessEqual () () (→ (= x y) (≤ x y)))
+
+stmt (LessEqualLessThanTransitivity () () (→ (∧ (≤ x y) (< y z)) (< x z)))
+# 
+# == Builders ==
+# Both predicates obey the usual builders. <code>LessEqualBuilder</code> was already defined, so it is the only one not defined here.
+stmt (LessThanBuilderLL () () (→ (= y0 y1) (↔ (< x y0) (< x y1))))
+stmt (LessThanBuilderRR () () (→ (= x0 x1) (↔ (< x0 y) (< x1 y))))
+
+stmt (buildLessThan () ((= x0 x1) (= y0 y1)) (↔ (< x0 y0) (< x1 y1)))
+stmt (buildLessThanLL () ((= y0 y1)) (↔ (< x y0) (< x y1)))
+stmt (buildLessThanRR () ((= x0 x1)) (↔ (< x0 y) (< x1 y)))
+
+stmt (LessEqualBuilderRR () () (→ (= x0 x1) (↔ (≤ x0 y) (≤ x1 y))))
+stmt (LessEqualBuilderLL () () (→ (= y0 y1) (↔ (≤ x y0) (≤ x y1))))
+stmt (LessEqualBuilder () () (→ (∧ (= x0 x1) (= y0 y1)) (↔ (≤ x0 y0) (≤ x1 y1))))
+
+stmt (buildLessEqual () ((= x0 x1) (= y0 y1)) (↔ (≤ x0 y0) (≤ x1 y1)))
+stmt (buildLessEqualRR () ((= x0 x1)) (↔ (≤ x0 y) (≤ x1 y)))
+stmt (buildLessEqualLL () ((= y0 y1)) (↔ (≤ x y0) (≤ x y1)))
+# 
+# {{DEFAULTSORT:{{PAGENAME}}}}
+# [[Category:Total order]]

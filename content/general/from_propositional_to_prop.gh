@@ -1,0 +1,103 @@
+# The file peano/prop.ghi and general/Classical_propositional_calculus.ghi are
+# very similar. The only real difference is that the names are different, but
+# most of the theorems, terms, etc are identical. The goal of this file is to
+# show that prop.ghi follows from Classical_propositional_calculus.ghi. We could
+# do so directly, which would highlight the identical or near-identical theorems.
+# However, prop.ghi has quite a few propositional theorems which follow readily
+# from others, for convenience or for special purposes.
+#
+# Therefore, it seems better to just prove peano/prop_min.ghi and
+# thus avoid duplicating all the effort between here and peano/prop.gh.
+
+import (PROP /general/Classical_propositional_calculus.ghi () "")
+
+kindbind (formula wff)
+
+tvar (formula p q r s antecedent)
+
+defthm (NegationNegation formula (-. p) () () (↔ (-. p) (¬ p))
+  (¬ p) BiconditionalReflexivity
+)
+
+defthm (ImplicationImplication formula (-> p q) () () (↔ (-> p q) (→ p q))
+  (→ p q) BiconditionalReflexivity
+)
+
+# Convert -> to →
+thm (symbolizeImplication () (H (-> p q)) (→ p q)
+  H
+  p q ImplicationImplication eliminateBiconditionalReverse
+  applyModusPonens
+)
+
+# Convert → to ->
+thm (desymbolizeImplication () (H (→ p q)) (-> p q)
+  H
+  p q ImplicationImplication eliminateBiconditionalForward
+  applyModusPonens
+)
+
+thm (ax-mp () (H p HIMP (-> p q)) q
+  H
+
+  HIMP
+  symbolizeImplication
+
+  applyModusPonens
+)
+
+thm (ax-1 () () (-> p (-> q p))
+  p q AntecedentIntroduction
+
+  q p ImplicationImplication
+  p buildImplicationAntecedent
+  eliminateBiconditionalForward applyModusPonens
+
+  desymbolizeImplication
+)
+
+# AntecedentDistribution is just a biconditionalized version of ax-2.
+# We just need to get rid of one direction and convert the symbols.
+thm (ax-2 () () (-> (-> p (-> q r)) (-> (-> p q) (-> p r)))
+  p q r AntecedentDistribution
+  eliminateBiconditionalReverse
+
+  q r ImplicationImplication
+  p buildImplicationAntecedent
+
+  p q ImplicationImplication
+  p r ImplicationImplication
+  buildImplication
+
+  buildImplication
+  eliminateBiconditionalForward applyModusPonens
+
+# We now have (→ (→ p (-> q r)) (→ (-> p q) (-> p r)))
+  p (-> q r) ImplicationImplication
+  (-> p q) (-> p r) ImplicationImplication
+  buildImplication
+  eliminateBiconditionalForward applyModusPonens
+
+  desymbolizeImplication
+)
+
+thm (ax-3 () () (-> (-> (-. q) (-. p)) (-> p q))
+  p q Transposition
+  eliminateBiconditionalForward
+
+  q NegationNegation
+  p NegationNegation
+  buildImplication
+  (→ p q) buildImplicationConsequent
+  eliminateBiconditionalForward applyModusPonens
+
+  (-. q) (-. p) ImplicationImplication
+  p q ImplicationImplication
+  buildImplication
+  eliminateBiconditionalForward applyModusPonens
+
+  desymbolizeImplication
+)
+
+export (PROP_MIN ../peano/prop_min.ghi () "")
+

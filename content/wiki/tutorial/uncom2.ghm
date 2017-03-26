@@ -1,0 +1,76 @@
+== Suggestion Box: Union is Commutative Proof Revisited ==
+
+This is tutorial explains how to write a simple proof using the suggestion box. We will
+prove that union is commutative: #(=_ (u. S T) (u. T S))#. This is the same theorem we proved in the
+[wiki/tutorial/uncom | previous tutorial], but this tutorial proves the theorem in a slightly
+different way to highlight other features of the suggestion box.
+
+=== Getting Started ===
+
+* Open up the [/edit/peano_new/set.gh/uncom | existing proof that union is commutative].
+* Click the edit button.
+* There are two "X" marks. We want to start over, so click the top one:
+
+[Image:static/wiki/uncomClose.jpg]
+
+=== Error Messages ===
+
+We'll start by adding a reference to the definition of union. In Ghilbert code, this definition
+is found in {{{df-un}}}. Type "{{{df-un}}}" into the [wiki/tutorial/tutorial | editor]. This produces an
+error message:
+
+[Image:static/wiki/uncom2Error.jpg]
+
+This error message explains that {{{df-un}}} must have three input arguments in front of it. The first two
+arguments must be sets and the third must be a binding variable. The proof stack can display many
+different types of error messages. The proof stack indicates if
+you have too many arguments or too few or if you're using the wrong kind of argument. For example, if you
+type in "{{{S T U df-un}}}", you will see the following error message:
+
+[Image:static/wiki/uncom2Error2.jpg]
+
+This error message explains that the third argument is supposed to be a binding variable, but you
+have used {{{U}}} which is a set. To fix the error use {{{x}}} instead of {{{U}}}.
+
+* Type {{{S T x df-un}}} into the editor. It should now look like this:
+	
+[Image:static/wiki/uncom2Code.jpg]
+
+=== Copying Expressions ===
+
+We now want to use the theorem [edit/peano/prop.gh/orcom | orcom] which says that the OR
+operation ∨ is commutative. The orcom theorem expects two inputs. We would like to reverse the order of two expressions:
+#(e. x S)# and #(e. x T)# using {{{orcom}}}. We could type those expressions in, but these expressions are
+already on the proof stack and there is a simple way to  copy them. In the suggestion box, highlight
+this part of expression and press "Copy":
+
+[Image:static/wiki/uncom2Copy.jpg]
+
+This copies the expression {{{(\/ (e. x S) (e. x T))}}} into the editor. That is almost,
+but not exactly what we want. We would like to delete the OR operation and have two seperate boolean
+expression. Delete the "{{{\/}}}" operation and type in {{{orcom}}}, so the editor looks like this:
+
+[Image:static/wiki/uncom2Code2.jpg]
+
+=== Substitution ===
+
+The suggestion box now contains a new row:
+
+[Image:static/wiki/uncom2Substitute.jpg]
+
+The bottom row of the suggestion box is for the bottom expression on the proof stack. The other row
+is for the second lowest expression. Whenever it is possible to directly substitute the bottom expression
+into the expression above it, this substitution is suggested. Both expressions share the term
+#(\/ (e. x S) (e. x T))#. The bottom expression asserts that #(\/ (e. x S) (e. x T))# is logically equivalent to #(\/ (e. x T) (e. x S))#.
+By clicking the substitute button, #(\/ (e. x S) (e. x T))# gets replaced by #(\/ (e. x T) (e. x S))#. After clicking,
+the proof stack looks like this:
+
+[Image:static/wiki/uncom2Substituted.jpg]
+
+To finish off the proof, highlight the right side of the equation and click simplify.
+
+[Image:static/wiki/uncomSimplify.jpg]
+
+We've now shown the union is commutative.
+
+[wiki/tutorial/uncom | Prev] | [wiki/tutorial/tutorial | Main] | [wiki/tutorial/remove | Next: Suggestion Box - The Remove Button]

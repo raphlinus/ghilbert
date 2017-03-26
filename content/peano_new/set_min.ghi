@@ -1,0 +1,91 @@
+# Naive set theory
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+
+kind (set)
+
+tvar (wff ph ps ch)
+tvar (nat A B C D)
+var (nat x y z)
+tvar (set S T U V)
+
+term (set ({|} x ph))
+term (wff (e. A S))
+
+# This axiom introduces both the element relationship and class
+# abstraction. Thus, it is similar to df-clel and df-clab in
+# set.mm. It is conservative with respect to the strength of Peano
+# axioms, but improves the expressive power greatly. In addition, in
+# interpretations from Z2, HOL, or ZFC, we'd expect this to be
+# represented by a set of numbers.
+
+## <suggest> right('Equivalence', '[/]') left('Equivalence', '∈') </suggest>
+## <axiom>
+stmt (ax-elab () ()
+  (<-> (e. A ({|} x ph)) ([/] A x ph)))
+  
+## <axiom>
+stmt (ax-eleq1 () ()
+  (-> (= A B) (<-> (e. A S) (e. B S))))
+
+# Naive set theory definitions
+
+# This definition is similar to set.mm's df-cleq. A separate term is
+# needed from =, because otherwise kinds wouldn't match.
+term (wff (=_ S T))
+
+## <title> Definition of Set Equality </title>
+## <suggest> right('Define', '=') left('Simplify', '=') </suggest>
+## <axiom>
+stmt (df-seq ((S x) (T x)) () (<-> (=_ S T) (A. x (<-> (e. x S) (e. x T)))))
+
+term (set ({/}))
+## <axiom>
+stmt (df-emptyset () () (=_ ({/}) ({|} x (-. (= x x)))))
+
+term (set ({} A))
+## <suggest> right('Define', '{}') left('Simplify', '{}') </suggest>
+## <axiom>
+stmt (df-sn () () (=_ ({} A) ({|} x (= x A))))
+
+term (set (u. S T))
+
+## <title> Definition of Union </title>
+## <suggest> right('Define', '∪') left('Simplify', '∪') </suggest>
+## <axiom>
+stmt (df-un () () (=_ (u. S T) ({|} x (\/ (e. x S) (e. x T)))))
+
+term (set (i^i S T))
+
+## <title> Definition of Intersection </title>
+## <suggest> right('Define', '∩') left('Simplify', '∩') </suggest>
+## <axiom>
+stmt (df-in () () (=_ (i^i S T) ({|} x (/\ (e. x S) (e. x T)))))
+
+term (wff (C_ S T))
+#stmt (df-ss () () (<-> (C_ S T) (A. x (-> (e. x S) (e. x T)))))
+## <title> Definition of Subset </title>
+## <suggest> right('Define', '⊆') left('Simplify', '⊆') </suggest>
+## <axiom>
+stmt (df-ss () () (<-> (C_ S T) (=_ (i^i S T) S)))
+
+term (wff (C. S T))
+## <axiom>
+stmt (df-pss () () (<-> (C. S T) (/\ (C_ S T) (-. (=_ S T)))))
+
+# Iota
+
+# As with the introduction of sets, this introduction of iota is
+# conservative, in that all instances could be mechanically removed,
+# at the cost of making expressions uglier.
+
+term (nat (iota S))
+
+## <title> Iota Axiom </title>
+## <suggest> right('Simplify', '{}') </suggest>
+## <axiom>
+stmt (ax-iota () () (= (iota ({} A)) A))
+
+## <axiom>
+stmt (ax-iotaeq () () (-> (=_ S T) (= (iota S) (iota T))))

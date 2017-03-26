@@ -1,0 +1,275 @@
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (NATURALS naturals.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+## <justification> redirect negative_min.ghi </justification>
+
+term (nat (-n A))
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+stmt (negcan () () (= (+ A (-n A)) (0)))
+
+stmt (negeq  () () (-> (= A B) (= (-n A) (-n B))))
+
+
+## <justification> redirect negative.gh </justification>
+
+term (nat (- A B))
+
+## <table>
+##  (=     [ A      [ B)
+##  (= (-n [ A) (-n [ B))
+## </table>
+stmt (negeqi () ((= A B)) (= (-n A) (-n B)))
+
+stmt (negeqd () ((-> ph (= A B))) (-> ph (= (-n A) (-n B))))
+
+## <suggest> left('Simplify', '-') </suggest>
+stmt (negeq2() () (<-> (= A B) (= (-n A) (-n B))))
+
+## <title> Negative can switch sides </title>
+## <suggest> right('Equivalence', '-') left('Equivalence', '-') </suggest>
+stmt (negeq3 () () (<-> (= A (-n B)) (= (-n A) B)))
+
+## <title> Double Negative </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (doubleneg () () (= (-n (-n A)) A))
+
+## <title> Negative of 0 is 0 </title>
+## <suggest> right('Simplify', '0') </suggest>
+stmt (neg0 () () (= (-n (0)) (0)))
+
+## <title> Negative 1 is not 0 </title>
+stmt (neg1ne0 () () (-. (= (-n (1)) (0))))
+
+## <title> Nonzero negatives are not zero </title>
+stmt (negne0 () () (<-> (-. (= A (0))) (-. (= (-n A) (0)))))
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+stmt (negcan2() () (= (+ (-n A) A) (0)))
+
+## <title> Definition of Subtraction </title>
+## <suggest> right('Define', '-') left('Simplify', '-') </suggest>
+stmt (df-minus () () (= (- A B) (+ A (-n B))))
+
+## <title> Minus Definition Reversed </title>
+stmt (df-minusr () () (= (+ A (-n B)) (- A B)))
+
+## <title> Equivalence for - </title> ##
+stmt (minuseq1 () () (-> (= A C) (= (- A B) (- C B))))
+
+## <title> Subtract a number from both sides </title>
+## <table>
+##  (=    A ]       ]      C ] )
+##  (= (- A ] <g> B ] ) (- C ] <g> B))
+## </table>
+stmt (minuseq1i () ((= A C)) (= (- A B) (- C B)))
+
+## <title> Equivalence for - </title> ##
+stmt (minuseq2 () () (-> (= B C) (= (- A B) (- A C))))
+
+stmt (minuseq1d () ((-> ph (= A C))) (-> ph (= (- A B) (- C B))))
+
+stmt (minuseq2i () ((= B C)) (= (- A B) (- A C)))
+
+stmt (minuseq2d () ((-> ph (= B C))) (-> ph (= (- A B) (- A C))))
+
+stmt (minuseq12 () () (-> (/\ (= A B) (= C D)) (= (- A C) (- B D))))
+
+## <title> Equality over Subtraction </title>
+stmt (minuseq12d ()
+  ((-> ph (= A B))
+   (-> ph (= C D)))
+  (-> ph (= (- A C) (- B D))))
+
+## <title> Equality over Subtraction </title>
+## <table>
+##   (=    A ] ]   ]      [ B ] ] )
+##   (=      [ [ C ]      [   [ [ D)
+##   (= (- A ] [ C ] ) (- [ B ] [ D))
+## </table>
+stmt (minuseq12i ()
+  ((= A B)
+   (= C D))
+  (= (- A C) (- B D)))
+
+## <title> Cancel using subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+stmt (minuscan () () (= (- A A) (0)))
+
+## <title> Addition is the inverse of Subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+stmt (minuscan2 () () (= (+ (- A B) B) A))
+
+## <title> Addition is the inverse of Subtraction </title>
+## <suggest> right('Simplify','-') </suggest>
+## <table>
+##   (= (- (+ A <r> B) <r> B) A)
+## </table>
+stmt (addcanr () () (= (- (+ A B) B) A))
+
+## <title> Negative and Subtraction Cancel </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (minusneg () () (= (- A (-n B)) (+ A B)))
+
+## <title> Negative Multiplication </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (negmul () () (= (* (-n A) B) (-n (* A B))))
+
+## <title> Negative Multiplication </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (negmul2 () () (= (* A (-n B)) (-n (* A B))))
+
+## <title> Multiply by Negative 1 </title>
+stmt (mulneg1 () () (= (* (-n (1)) A) (-n A)))
+
+## <title> Multiply Two Negative Numbers </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (doublenegmul () () (= (* (-n A) (-n B)) (* A B)))
+
+## <title> Distribute Multiplication over Subtraction </title>
+## <table>
+##   (= (* <c> A (- B C)) (- (* <c> A B) (* <c> A C)))
+## </table>
+## <suggest> right('Distribute', 'R') left('Distribute', '-R') </suggest>
+stmt (minusdistr () () (= (* A (- B C)) (- (* A B) (* A C))))
+
+## <title> Distribute Multiplication over Subtraction </title>
+## <table>
+##   (= (* (- A B) <c> C) (- (* A <c> C) (* B <c> C)))
+## </table>
+## <suggest> right('Distribute', 'L') left('Distribute', '-L') </suggest>
+stmt (minusdistl () () (= (* (- A B) C) (- (* A C) (* B C))))
+
+## <title> Multiply Two Negative Numbers </title>
+stmt (negProduct () () (-> (/\ (zneg A) (zneg B)) (pos (* A B))))
+
+## <title> Squares are not negative </title>
+stmt (posSquares () () (-> (-. (= A (0))) (pos (* A A))))
+
+## <title> Squares are not negative </title>
+stmt (squareNotNeg () () (>= (* A A) (0)))
+
+## <title> Negative numbers are not positive </title>
+stmt (negNotPos () () (-> (zneg A) (-. (pos A))))
+
+## <title> Positive numbers are not negative </title>
+stmt (posNotNeg () () (-> (pos A) (-. (zneg A))))
+
+stmt (posProduct () () (<-> (pos (* A B)) (\/ (/\ (zneg A) (zneg B)) (/\ (pos A) (pos B)))))
+
+stmt (productPos () () (-> (pos (* A B)) (<-> (pos A) (pos B))))
+
+## <title> Positive Proof by Cases </title>
+stmt (posCases () () (-> (/\ (-. (zneg A)) (-. (= A (0)))) (pos A)))
+
+stmt (notPos () () (-> (-. (pos A)) (\/ (zneg A) (= A (0)))))
+
+## <title> Negative of a positive number </title>
+stmt (negPositive () () (<-> (pos (-n A)) (zneg A)))
+
+## <title> Negative of Subtraction </title>
+## <suggest> left('Simplify', '-') </suggest>
+stmt (negminus () () (= (- A B) (-n (- B A))))
+
+## <title> Negative of Subtraction </title>
+stmt (negminus2 () () (= (+ (-n A) B) (-n (- A B))))
+
+## <title> Negative of Subtraction </title>
+stmt (negminus3 () () (= (- (-n A) B) (-n (+ A B))))
+
+## <title> Negative distributes over addition </title>
+stmt (negadd () () (= (- (-n A) B) (-n (+ A B))))
+
+## <title> Subtraction Value from Addition </title>
+stmt (minusValue () () (-> (= (+ A B) C) (= A (- C B))))
+
+## <title> Subtract both sides </title>
+## <table>
+##   (= (+ A <c> B) C)
+##   (= A (- C <c> B ) )
+## </table>
+stmt (minusValuei () ((= (+ A B) C)) (= A (- C B)))
+
+## <title> Subtraction from both sides </title>
+## <table>
+##   (= (+ A <c>     B ) [ C)
+##   (= A (- <c> (-n B )  [ C) )
+## </table>
+stmt (minusValue2i () ((= (+ A B) C)) (= A (+ (-n B) C)))
+
+## <title> Subtraction Value from Addition </title>
+## <table>
+##   (= (+ A B) C)
+##   (= (- C B ) A )
+## </table>
+stmt (minusValue3i () ((= (+ A B) C)) (= (- C B) A))
+
+## <title> Subtract from 0 </title>
+## <suggest> right('Simplify', '-') </suggest>
+stmt (0minus () () (= (- (0) A) (-n A)))
+
+## <title> Subtraction Identity </title>
+## <suggest> right('Simplify', '0') </suggest>
+stmt (minusid () () (= (- A (0)) A))
+
+## <title> Add or subtract on both sides </title>
+stmt (gediff () () (<-> (>= A B) (>= (- A B) (0))))
+
+## <title> Add or subtract on both sides </title>
+stmt (gtdiff () () (<-> (> A B) (> (- A B) (0))))
+
+## <title> Positive Number Subtraction </title>
+stmt (subtractPositive () () (<-> (> B (0)) (< (- A B) A)))
+
+stmt (negle () () (<-> (>= A (0)) (<= (-n A) (0))))
+
+stmt (neglt () () (<-> (< (-n A) (0)) (> A (0))))
+
+stmt (negge () () (<-> (>= (-n A) (0)) (<= A (0))))
+
+stmt (neggt () () (<-> (> (-n A) (0)) (< A (0))))
+
+
+term (nat (abs A))
+
+## <title> Definition of Absolute Value </title>
+## <suggest> right('Define', '|x|') left('Simplify', '|x|') </suggest>
+stmt (df-abs () () (= (abs A) (ifn (>= A (0)) A (-n A))))
+
+## <title> Equivalence for abs </title> ##
+stmt (abseq () () (-> (= A B) (= (abs A) (abs B))))
+
+stmt (abseqi () (
+     (= A B))
+     (= (abs A) (abs B)))
+
+stmt (abseqd () (
+     (-> ph (= A B)))
+     (-> ph (= (abs A) (abs B))))
+
+## <title> Def. Absolute Value for Positive Numbers </title>
+stmt (dfabs1 () () (-> (>= A (0)) (= (abs A) A)))
+
+## <title> Def. Absolute Value for Negative Numbers </title>
+stmt (dfabs2 () () (-> (< A (0)) (= (abs A) (-n A))))
+
+## <title> The absolute value is not negative </title>
+stmt (absNotNeg () () (>= (abs A) (0)))
+
+## <title> The absolute value is idempotent </title>
+stmt (absidm () () (= (abs (abs A)) (abs A)))
+
+## <title> The absolute value is positive definite </title>
+stmt (absPosDef () () (<-> (= A (0)) (= (abs A) (0))))
+
+## <title> Two numbers have the same absolute value </title>
+stmt (absTwoValues () () (<-> (= (abs A) B) (/\ (\/ (= A B) (= (-n A) B)) (>= B (0)))))
+
+stmt (absTwoValues2 () () (\/ (= (abs A) A) (= (abs A) (-n A))))

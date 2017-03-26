@@ -1,0 +1,874 @@
+import (PROP             /peano_new/prop.ghi () "")
+import (N_PREDICATE      /peano_new/predicate/all.ghi (PROP) "n.")
+import (ORDERED_PAIR     /peano_new/arithmetic/common/ordered-pair.ghi (PROP N_PREDICATE) "n.")
+import (N_NATURALS       /peano_new/arithmetic/naturals/common.ghi (PROP N_PREDICATE) "n.")
+import (PREDICATE_ALL    /peano_new/predicate/all.ghi (PROP) "")
+import (EQUALITY_INT     /peano_new/arithmetic/integers/equality_int.ghi (PROP N_PREDICATE N_NATURALS PREDICATE_ALL) "")
+import (ADD_MULTIPLY_MIN /peano_new/arithmetic/common/add_multiply_min.ghi (PROP PREDICATE_ALL) "")
+import (ADD_MULTIPLY     /peano_new/arithmetic/common/add_multiply.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")
+import (ADD_MULTIPLY_INT /peano_new/arithmetic/integers/add_multiply_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATURALS EQUALITY_INT ADD_MULTIPLY_MIN) "")
+import (NEGATIVE_MIN     /peano_new/arithmetic/common/negative_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")
+
+
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B' C' D')
+tvar (n.nat a b c d a' b' c' d')
+var (nat v w x y z)
+
+
+## <context>
+##   This theorem is part of a series of theorems constructing the integers.
+##   <a href="/wiki/peano/arithmetic/integers">An integer is constructed</a> as a
+##   pair of natural numbers which represents the positive and the negative part
+##   of the integer. This requires us to construct a new version of the less than
+##   or equal to relation for integers involving pairs of natural numbers. These theorems
+##   demonstrate that the integers has all the essential properties of a totally
+##   ordered set.
+## </context>
+
+
+## <title> Def. Integer Less Than or Equal To' </title>
+defthm (df-le wff (<= A B) () ()
+       (<-> (<= A B) (n.<= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))))
+  (n.<= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))) biid
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<=  [ A ]   ]   ]  C))
+##   (n.=           [ A ]   [ B ] )
+##   (<-> ph (n.<=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceBi1Le0 () (
+     replacee (<-> ph (n.<= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.<= b c))
+  replacee substitution
+  c n.leeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<= a  [ B ]   ]   ] ))
+##   (n.=             [ B ]   [ C ] )
+##   (<-> ph (n.<= a  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceBi1Le1 () (
+     replacee (<-> ph (n.<= a b))
+     substitution (n.= b c)) 
+     (<-> ph (n.<= a c))
+  replacee substitution
+  a n.leeq2i
+  bitri
+)
+
+## <title> Apply ≤ to ordered pair </title>
+thm (leop() () (<-> (<= (<,> a b) (<,> c d)) (n.<= (n.+ a d) (n.+ c b)))
+  (<,> a b) (<,> c d) df-le
+  ## <d 'Apply heads and tails'>
+    a b headop
+    c d tailop
+    n.addeq12i  
+    NeqReplaceBi1Le0
+  ## </d 'Apply heads and tails'>
+  ## <d 'Apply heads and tails'>
+    c d headop
+    a b tailop
+    n.addeq12i
+    NeqReplaceBi1Le1
+  ## </d 'Apply heads and tails'>  
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<->  [ ps ]   ]    ]  th))
+##   (<->         [ ps ]   [ ch ] )
+##   (-> ph (<->  [    [   [ ch ]  th))
+## </table>
+thm (BiReplaceImp1Bi0 () (
+     replacee (-> ph (<-> ps th))
+     substitution (<-> ps ch)) 
+     (-> ph (<-> ch th))
+  replacee substitution
+  th bibi1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (<-> ps  [ ch ]   ]    ] ))
+##   (<->            [ ch ]   [ th ] )
+##   (-> ph (<-> ps  [    [   [ th ] ))
+## </table>
+thm (BiReplaceImp1Bi1 () (
+     replacee (-> ph (<-> ps ch))
+     substitution (<-> ch th)) 
+     (-> ph (<-> ps th))
+  replacee substitution
+  ps bibi2i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.= [ A ]   ]   ]  C))
+##   (n.=        [ A ]   [ B ] )
+##   (-> ph (n.=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceImp1Neq0 () (
+     replacee (-> ph (n.= a c))
+     substitution (n.= a b)) 
+     (-> ph (n.= b c))
+  replacee substitution
+  c n.eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceImp1Neq1 () (
+     replacee (-> ph (n.= a b))
+     substitution (n.= b c)) 
+     (-> ph (n.= a c))
+  replacee substitution
+  a n.eqeq2i
+  sylib
+)
+
+thm (leeq1 () () (-> (= A B) (<-> (<= A C) (<= B C)))
+  A B zeqexpand
+  ## <d 'Add C term to both sides'>
+   (n.+ (head C) (tail C)) n.addeq1d
+  ## </d>
+  ## <d 'Reorder Addition'>
+    (head A) (tail B) (head C) (tail C) n.add24
+    NeqReplaceImp1Neq0
+    (head B) (tail A) (head C) (tail C) n.add24  
+    NeqReplaceImp1Neq1  
+    ## <d 'Commutative Property '>
+      (n.+ (head B) (tail C)) (n.+ (head C) (tail A)) n.addcom
+      NeqReplaceImp1Neq1
+    ## </d 'Commutative Property '>
+  ## </d 'Reorder Addition'>
+  ## <d 'Inequality for equal sums'>
+    (n.+ (head A) (tail C)) (n.+ (head C) (tail B)) (n.+ (head C) (tail A)) (n.+ (head B) (tail C))   n.leadd12  
+    syl
+  ## </d 'Inequality for equal sums'>
+  ## <d 'Def. Less Than or Equal'>
+    A C df-le bicomi  
+    BiReplaceImp1Bi0
+    B C df-le bicomi  
+    BiReplaceImp1Bi1
+  ## </d>
+)
+
+thm (leeq2 () () (-> (= A B) (<-> (<= C A) (<= C B)))
+  A B zeqexpand
+  ## <d 'Add C term to both sides'>
+   (n.+ (head C) (tail C)) n.addeq1d
+  ## </d>
+  ## <d 'Reorder Addition'>
+    (head A) (tail B) (head C) (tail C) n.add24
+    NeqReplaceImp1Neq0
+    (head B) (tail A) (head C) (tail C) n.add24  
+    NeqReplaceImp1Neq1  
+    ## <d 'Commutative Property '>
+      (n.+ (head B) (tail C)) (n.+ (head C) (tail A)) n.addcom
+      NeqReplaceImp1Neq1
+    ## </d 'Commutative Property '>
+  ## </d 'Reorder Addition'>  
+  ## <d 'Symmetric Property '>
+    (n.+ (n.+ (head A) (tail C)) (n.+ (head C) (tail B))) (n.+ (n.+ (head C) (tail A)) (n.+ (head B) (tail C))) n.eqcom
+    sylib
+  ## </d 'Symmetric Property '>
+  ## <d 'Inequality for equal sums'>
+    (n.+ (head C) (tail A)) (n.+ (head B) (tail C)) (n.+ (head A) (tail C)) (n.+ (head C) (tail B))   n.leadd12    
+    syl
+  ## </d 'Inequality for equal sums'>
+  ## <d 'Def. Less Than or Equal'>
+    C A df-le bicomi  
+    BiReplaceImp1Bi0
+    C B df-le bicomi  
+    BiReplaceImp1Bi1
+  ## </d>
+)
+
+thm (leeq1i () (
+     hyp1 (= A B))
+     (<-> (<= A C) (<= B C))
+  hyp1
+  A B C leeq1
+  ax-mp
+)
+
+thm (leeq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (<= A C) (<= B C)))
+  hyp1
+  A B C leeq1
+  syl
+)
+
+thm (leeq2i () (
+     hyp1 (= A B))
+     (<-> (<= C A) (<= C B))
+  hyp1
+  A B C leeq2
+  ax-mp
+)
+
+thm (leeq2d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (<-> (<= C A) (<= C B)))
+  hyp1
+  A B C leeq2
+  syl
+)
+
+## <title> Nequivalence for >z </title> ##
+thm (leeq12 () () (-> (/\ (= A B) (= C D)) (<-> (<= A C) (<= B D)))
+  A B C leeq1
+  C D B leeq2
+  anim12i
+  ## <d 'Transitive Property'>
+    (<= A C) (<= B C) (<= B D) bitr
+    syl
+  ## </d 'Transitive Property'>
+)
+
+## <title> Integer Inequality Homomorphism </title>
+## <summary> The <a href="df-int">int embedding</a>  is a homomorphism respecting <a href="df-le">less than or equal to</a>. </summary>
+thm (lehomomorph () () (<-> (<= (int a) (int b)) (n.<= a b))
+  ## <d 'Definition of int A'>
+    a df-int
+    (int a) (<,> a (n.0)) (int b) leeq1  
+    ax-mp
+  ## </d>
+  ## <d 'Definition of int B'>
+    b df-int
+    (int b) (<,> b (n.0)) (<,> a (n.0)) leeq2  
+    ax-mp
+    bitri
+  ## </d>
+  ## <d 'Apply  ≤  to ordered pair'>
+    a (n.0) b (n.0) leop
+    bitri
+  ## </d>  
+  ## <d 'Additive Identity Axiom '>
+    ## <d 'Additive Identity Axiom '>
+      a n.addid
+      NeqReplaceBi1Le0
+    ## </d 'Additive Identity Axiom '>  
+    ## <d 'Additive Identity Axiom '>
+      b n.addid
+      NeqReplaceBi1Le1
+    ## </d 'Additive Identity Axiom '>
+  ## </d 'Additive Identity Axiom '>
+)
+
+thm (leid () () (<= A A)
+  (n.+ (head A) (tail A)) n.leid  
+  ## <d>
+    A A df-le bicomi
+    mpbi
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (<=  [ A ]   ]   ]  C) ph)
+##   (=        [ A ]   [ B ] )
+##   (<-> (<=  [   [   [ B ]  C) ph)
+## </table>
+thm (EqReplaceBi0Le0 () (
+     replacee (<-> (<= A C) ph)
+     substitution (= A B)) 
+     (<-> (<= B C) ph)
+  replacee substitution
+  C leeq1i
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (<= A  [ B ]   ]   ] ) ph)
+##   (=          [ B ]   [ C ] )
+##   (<-> (<= A  [   [   [ C ] ) ph)
+## </table>
+thm (EqReplaceBi0Le1 () (
+     replacee (<-> (<= A B) ph)
+     substitution (= B C)) 
+     (<-> (<= A C) ph)
+  replacee substitution
+  A leeq2i
+  bitr3icom
+)
+
+## <title> Addition on Both Sides of Inequality </title>
+## <suggest> left('Cancel', '+') </suggest>
+thm (leadd1() () (<-> (<= (+ A C) (+ B C)) (<= A B))
+  (n.+ (head A) (head C)) (n.+ (tail A) (tail C)) (n.+ (head B) (head C)) (n.+ (tail B) (tail C)) leop
+  ## <d 'Simplify A + C'>
+    A opexpand
+    C opexpand
+    addeq12i  
+    ## <d 'Addition on Ordered Pairs '>
+      (head A) (tail A) (head C) (tail C) addop
+      (+ A C) eqeq2i
+      mpbi
+    ## </d 'Addition on Ordered Pairs '>
+    eqcomi  
+    EqReplaceBi0Le0
+  ## </d 'Simplify A + C'>
+  ## <d 'Simplify B + C'>
+    B opexpand
+    C opexpand
+    addeq12i    
+    ## <d 'Addition on Ordered Pairs '>
+    (head B) (tail B) (head C) (tail C) addop
+    (+ B C) eqeq2i
+    mpbi
+    eqcomi  
+    EqReplaceBi0Le1
+  ## </d 'Addition on Ordered Pairs '>
+  ## </d 'Simplify B + C'>
+  ## <d 'Rearrange Addition'>
+  (head A) (head C) (tail B) (tail C) n.add4  
+  NeqReplaceBi1Le0
+  (head B) (head C) (tail A) (tail C) n.add4    
+  NeqReplaceBi1Le1
+  ## </d 'Rearrange Addition'>  
+  ## <d 'Addition is Monotonic '>
+    (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) (n.+ (head C) (tail C)) n.leadd1 bicomi
+    bitri
+  ## </d 'Addition is Monotonic '>
+  ## <d 'Definition of ≤ '>
+    A B df-le bicomi
+    bitri
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-. (n.= a  [ B ]   ]   ] ))
+##   (n.=        [ B ]   [ C ] )
+##   (-. (n.= a  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceNot0Neq1 () (
+     replacee (-. (n.= a b))
+     substitution (n.= b c)) 
+     (-. (n.= a c))
+  replacee substitution
+  a n.eqeq2i
+  mtbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<=  [ A ]   ]   ]  C))
+##   (n.=          [ A ]   [ B ] )
+##   (-> ph (n.<=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceImp1Nle0 () (
+     replacee (-> ph (n.<= a c))
+     substitution (n.= a b)) 
+     (-> ph (n.<= b c))
+  replacee substitution
+  c n.leeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<= a  [ B ]   ]   ] ))
+##   (n.=            [ B ]   [ C ] )
+##   (-> ph (n.<= a  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceImp1Nle1 () (
+     replacee (-> ph (n.<= a b))
+     substitution (n.= b c)) 
+     (-> ph (n.<= a c))
+  replacee substitution
+  a n.leeq2i
+  sylib
+)
+
+## <title> Transitive Property </title>
+thm (letr () () (-> (/\ (<= A B) (<= B C)) (<= A C))
+  ## <d 'Definition of Less Than'>
+  A B df-le
+  B C df-le
+  anbi12i  
+  ## <d 'Infer Left to Right '>
+    (/\ (<= A B) (<= B C)) (/\ (n.<= (n.+ (head A) (tail B)) (n.+ (head B) (tail A))) (n.<= (n.+ (head B) (tail C)) (n.+ (head C) (tail B)))) bi1
+    ax-mp
+  ## </d 'Infer Left to Right '>
+  ## </d>
+  ## <d 'Transitive Property with Addition'>
+    (n.+ (head A) (tail B)) (n.+ (head B) (tail A))
+    (n.+ (head B) (tail C)) (n.+ (head C) (tail B)) n.letradd
+    syl
+  ## </d 'Transitive Property'>
+  ## <d 'Rearrange Addition Terms'>
+    ## <d>
+      (head A) (tail B) (head B) (tail C) n.add24  
+      NeqReplaceImp1Nle0
+    ## </d>
+    ## <d>
+      (head B) (tail A) (head C) (tail B) n.add24
+      NeqReplaceImp1Nle1
+    ## </d>
+    ## <d 'Commutative Property '>
+      (n.+ (head B) (tail B)) (n.+ (head C) (tail A)) n.addcom 
+      NeqReplaceImp1Nle1
+    ## </d 'Commutative Property '>
+  ## </d 'Rearrange Addition Terms'>
+  ## <d 'Cancel Addition on both sides'>
+    (n.+ (head A) (tail C))
+    (n.+ (head C) (tail A))
+    (n.+ (head B) (tail B)) n.leadd1 bicomi  
+    sylib
+  ## </d>
+  ## <d>
+    A C df-le bicomi  
+    sylib
+  ## </d>
+)
+
+## <title> Same upper and lower bound implies equality </title>
+thm (lesym () () (<-> (= A B) (/\ (<= A B) (<= B A)))
+  A B df-le
+  B A df-le
+  anbi12i  
+  ## <d 'Same upper and lower bound implies equality '>
+    (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) n.lesym bicomi
+    bitri
+  ## </d 'Same upper and lower bound implies equality '>  
+  ## <d 'Definition of Integer Equality '>
+    A B df-eq bicomi
+    bitri
+  ## </d 'Definition of Integer Equality '>
+  bicomi
+)
+
+## <title> Integer Total Relationship </title>
+thm (letot () () (\/ (<= A B) (<= B A))
+  ## <d 'Natural Number Total Relationship'>
+    (n.+ (head A) (tail B))
+    (n.+ (head B) (tail A)) n.letot
+  ## </d 'Natural Number Total Relationship'>
+  ## <d>
+    A B df-le bicomi
+    orbi1ii
+  ## </d>
+  ## <d>
+    B A df-le bicomi  
+    orbi2ii
+  ## </d>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<= (n.+  [ A ]   ]   ]  C) D))
+##   (n.=               [ A ]   [ B ] )
+##   (-> ph (n.<= (n.+  [   [   [ B ]  C) D))
+## </table>
+thm (NeqReplaceImp1Nle0Nadd0 () (
+     replacee (-> ph (n.<= (n.+ a c) d))
+     substitution (n.= a b)) 
+     (-> ph (n.<= (n.+ b c) d))
+  replacee substitution
+  c n.addeq1i
+  NeqReplaceImp1Nle0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<= (n.+ a  [ B ]   ]   ] ) D))
+##   (n.=                 [ B ]   [ C ] )
+##   (-> ph (n.<= (n.+ a  [   [   [ C ] ) D))
+## </table>
+thm (NeqReplaceImp1Nle0Nadd1 () (
+     replacee (-> ph (n.<= (n.+ a b) d))
+     substitution (n.= b c)) 
+     (-> ph (n.<= (n.+ a c) d))
+  replacee substitution
+  a n.addeq2i
+  NeqReplaceImp1Nle0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<= a (n.+  [ B ]   ]   ]  D)))
+##   (n.=                 [ B ]   [ C ] )
+##   (-> ph (n.<= a (n.+  [   [   [ C ]  D)))
+## </table>
+thm (NeqReplaceImp1Nle1Nadd0 () (
+     replacee (-> ph (n.<= a (n.+ b d)))
+     substitution (n.= b c)) 
+     (-> ph (n.<= a (n.+ c d)))
+  replacee substitution
+  d n.addeq1i
+  NeqReplaceImp1Nle1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (n.<= a (n.+ b  [ C ]   ]   ] )))
+##   (n.=                   [ C ]   [ D ] )
+##   (-> ph (n.<= a (n.+ b  [   [   [ D ] )))
+## </table>
+thm (NeqReplaceImp1Nle1Nadd1 () (
+     replacee (-> ph (n.<= a (n.+ b c)))
+     substitution (n.= c d)) 
+     (-> ph (n.<= a (n.+ b d)))
+  replacee substitution
+  b n.addeq2i
+  NeqReplaceImp1Nle1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<= a (n.+ b  [ C ]   ]   ] )))
+##   (n.=                  [ C ]   [ D ] )
+##   (<-> ph (n.<= a (n.+ b  [   [   [ D ] )))
+## </table>
+thm (NeqReplaceBi1Le1Add1 () (
+     replacee (<-> ph (n.<= a (n.+ b c)))
+     substitution (n.= c d)) 
+     (<-> ph (n.<= a (n.+ b d)))
+  replacee substitution
+  b n.addeq2i
+  NeqReplaceBi1Le1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<= (n.+  [ A ]   ]   ]  C) D))
+##   (n.=              [ A ]   [ B ] )
+##   (<-> ph (n.<= (n.+  [   [   [ B ]  C) D))
+## </table>
+thm (NeqReplaceBi1Le0Add0 () (
+     replacee (<-> ph (n.<= (n.+ a c) d))
+     substitution (n.= a b)) 
+     (<-> ph (n.<= (n.+ b c) d))
+  replacee substitution
+  c n.addeq1i
+  NeqReplaceBi1Le0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee
+  substitution
+  ph biim2i
+  ax-mp
+)
+
+thm (ge0 () () (<-> (<= (0) A) (n.<= (tail A) (head A)))
+  (<,> (n.0) (n.0)) A df-le
+  df0z eqcomi  
+  EqReplaceBi0Le0  
+  ## <d 'Apply Head Operator '>
+    (n.0) (n.0) headop
+    NeqReplaceBi1Le0Add0
+  ## </d 'Apply Head Operator '>  
+  ## <d 'Additive Identity '>
+    (tail A) n.addidr
+    NeqReplaceBi1Le0
+  ## </d 'Additive Identity '>  
+  ## <d 'Apply Tail Operator '>
+    (n.0) (n.0) tailop
+    NeqReplaceBi1Le1Add1
+  ## </d 'Apply Tail Operator '>  
+  ## <d 'Additive Identity Axiom '>
+    (head A) n.addid
+    NeqReplaceBi1Le1
+  ## </d 'Additive Identity Axiom '>
+)
+
+## <title> Transitive Property </title>
+thm (lemul1 () () (-> (/\ (<= A B) (<= (0) C)) (<= (* A C) (* B C)))
+  A B df-le
+  C ge0
+  anbi12i
+  (n.+ (head A) (tail B)) (n.+ (head B) (tail A)) (tail C) (head C) n.lemul4
+  ImpReplaceBi1  
+  
+  ## <d 'Distributive Property '>
+  ## <d 'Distributive Property '>
+    (head A) (tail B) (head C) n.distl
+    NeqReplaceImp1Nle0Nadd0
+  ## </d 'Distributive Property '>  
+  ## <d 'Distributive Property '>
+    (head B) (tail A) (tail C) n.distl
+    NeqReplaceImp1Nle0Nadd1
+  ## </d 'Distributive Property '>  
+  ## <d 'Distributive Property '>
+    (head A) (tail B) (tail C) n.distl
+    NeqReplaceImp1Nle1Nadd0
+  ## </d 'Distributive Property '>  
+  ## <d 'Distributive Property '>
+    (head B) (tail A) (head C) n.distl
+    NeqReplaceImp1Nle1Nadd1
+  ## </d 'Distributive Property '>
+  ## </d 'Distributive Property '>
+  ## <d>
+  ## <d>
+  (n.* (head A) (head C)) (n.* (tail B) (head C))
+  (n.* (head B) (tail C)) (n.* (tail A) (tail C)) n.add24  
+  NeqReplaceImp1Nle0
+  ## </d>
+  ## <d>
+  (n.* (head A) (tail C)) (n.* (tail B) (tail C))
+  (n.* (head B) (head C)) (n.* (tail A) (head C)) n.add24   
+  NeqReplaceImp1Nle1
+  ## </d>
+  
+  ## <d 'Commutative Property '>
+    (n.+ (n.* (head A) (tail C)) (n.* (tail A) (head C))) (n.+ (n.* (head B) (head C)) (n.* (tail B) (tail C))) n.addcom
+    NeqReplaceImp1Nle1
+  ## </d 'Commutative Property '>
+  ## </d>
+
+  ## <d>
+  A C df-mul
+  B C df-mul
+  pm3.2i
+  (* A C) (<,> (n.+ (n.* (head A) (head C)) (n.* (tail A) (tail C))) (n.+ (n.* (head A) (tail C)) (n.* (tail A) (head C))))
+  (* B C) (<,> (n.+ (n.* (head B) (head C)) (n.* (tail B) (tail C))) (n.+ (n.* (head B) (tail C)) (n.* (tail B) (head C)))) leeq12    
+  ax-mp
+
+  (n.+ (n.* (head A) (head C)) (n.* (tail A) (tail C)))
+  (n.+ (n.* (head A) (tail C)) (n.* (tail A) (head C)))
+  (n.+ (n.* (head B) (head C)) (n.* (tail B) (tail C)))
+  (n.+ (n.* (head B) (tail C)) (n.* (tail B) (head C))) leop  
+  bitri bicomi  
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<=  [ A ]   ]   ]  C))
+##   (n.=           [ A ]   [ B ] )
+##   (<-> ph (n.<=  [   [   [ B ]  C))
+## </table>
+thm (NeqReplaceBi1Nle0 () (
+     replacee (<-> ph (n.<= a c))
+     substitution (n.= a b)) 
+     (<-> ph (n.<= b c))
+  replacee substitution
+  c n.leeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (n.<= a  [ B ]   ]   ] ))
+##   (n.=             [ B ]   [ C ] )
+##   (<-> ph (n.<= a  [   [   [ C ] ))
+## </table>
+thm (NeqReplaceBi1Nle1 () (
+     replacee (<-> ph (n.<= a b))
+     substitution (n.= b c)) 
+     (<-> ph (n.<= a c))
+  replacee substitution
+  a n.leeq2i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A  [ B ]   ]   ] ))
+##   (=            [ B ]   [ C ] )
+##   (<-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceBi1Eq1 () (
+     replacee (<-> ph (= A B))
+     substitution (= B C)) 
+     (<-> ph (= A C))
+  replacee
+  substitution
+A eqeq2i
+ph bibi2i
+mpbi
+)
+
+## <title> One-Digit Inequality </title>
+thm (0le1 () () (<= (0) (1))
+  ## <d 'Expand 0 ≤ 1 as an ordered pair'>
+    (n.0) (n.0) (n.1) (n.0) leop
+    ## <d>
+      df0z eqcomi  
+      EqReplaceBi0Le0
+    ## </d>
+    ## <d>
+      df1z eqcomi    
+      EqReplaceBi0Le1
+    ## </d>
+  ## </d>  
+  ## <d 'Additive Identity '>
+    (n.0) n.addid
+    NeqReplaceBi1Nle0
+  ## </d 'Additive Identity '>  
+  ## <d 'Additive Identity '>
+    (n.1) n.addid
+    NeqReplaceBi1Nle1
+  ## </d 'Additive Identity '>
+  ## <d 'Apply Natural verision'>
+    n.0le1
+    mpbirRemove
+  ## </d 'Apply Natural verision'>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (<=  [ A ]   ]   ]  C))
+##   (=           [ A ]   [ B ] )
+##   (<-> ph (<=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Le0 () (
+     replacee (<-> ph (<= A C))
+     substitution (= A B)) 
+     (<-> ph (<= B C))
+  replacee substitution
+  C leeq1i
+  bitri
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (= A (+ B  [ C ]   ]   ] )))
+##   (=                 [ C ]   [ D ] )
+##   (<-> ph (= A (+ B  [   [   [ D ] )))
+## </table>
+thm (EqReplaceBi1Eq1Add1 () (
+     replacee (<-> ph (= A (+ B C)))
+     substitution (= C D)) 
+     (<-> ph (= A (+ B D)))
+  replacee substitution
+  B addeq2i
+  EqReplaceBi1Eq1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (E. x  [ ph ]   ]    ] ) ch)
+##   (<->        [ ph ]   [ ps ] )
+##   (<-> (E. x  [    [   [ ps ] ) ch)
+## </table>
+thm (BiReplaceBi0Ex1 () (
+     replacee (<-> (E. x ph) ch)
+     substitution (<-> ph ps)) 
+     (<-> (E. x ps) ch)
+  replacee substitution
+  x exbii
+  bitr3icom
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> (E. x (/\ ph  [ ps ]   ]    ] )) th)
+##   (<->               [ ps ]   [ ch ] )
+##   (<-> (E. x (/\ ph  [    [   [ ch ] )) th)
+## </table>
+thm (BiReplaceBi0Ex1An1 () (
+     replacee (<-> (E. x (/\ ph ps)) th)
+     substitution (<-> ps ch)) 
+     (<-> (E. x (/\ ph ch)) th)
+  replacee substitution
+  ph anbi2i
+  BiReplaceBi0Ex1
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (=  [ A ]   ]   ]  C))
+##   (=          [ A ]   [ B ] )
+##   (<-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceBi1Eq0 () (
+     replacee (<-> ph (= A C))
+     substitution (= A B)) 
+     (<-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  bitri
+)
+
+## <title> One-Digit Inequality </title>
+thm (exle ((B x)(A x)) () (<-> (<= A B) (E. x (/\ (<= (0) x) (= (+ A x) B))))
+  x (+ B (-n A)) (0) leeq2
+  ceqsex
+  ## <d 'Commute Conjunction '>
+    (= x (+ B (-n A))) (<= (0) x) ancom
+    BiReplaceBi0Ex1
+  ## </d 'Commute Conjunction '>
+
+  ## <d>
+  A (-n A) B leadd1 bicomi
+  ## <d 'Cancel using subtraction '>
+    A negcan
+    EqReplaceBi1Le0
+  ## </d 'Cancel using subtraction '>
+  bicomi
+  bitri
+  ## </d>
+  x A (+ B (-n A)) addcan  bicomi
+
+  ## <d 'Associative Property '>
+    B (-n A) A addass
+    EqReplaceBi1Eq1
+  ## </d 'Associative Property '>
+  ## <d 'Cancel using subtraction '>
+    A negcan  
+    ## <d 'Commutative Property '>
+      A (-n A) addcom
+      EqReplaceEq0
+    ## </d 'Commutative Property '>
+    EqReplaceBi1Eq1Add1
+  ## </d 'Cancel using subtraction '>
+  ## <d 'Integer Addition Identity '>
+    B addid
+    EqReplaceBi1Eq1
+  ## </d 'Integer Addition Identity '>
+  ## <d 'Commutative Property of Addition '>
+    x A addcom
+    EqReplaceBi1Eq0
+  ## </d 'Commutative Property of Addition '>
+  BiReplaceBi0Ex1An1
+  bicomi
+)
+
+export (INEQUALITY_MIN ../common/inequality_min.ghi (PROP PREDICATE_ALL ADD_MULTIPLY_MIN) "")
+export (INEQUALITY_INT inequality_int.ghi (PROP PREDICATE_ALL N_PREDICATE N_NATURALS EQUALITY_INT ADD_MULTIPLY_MIN INEQUALITY_MIN) "")

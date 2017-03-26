@@ -1,0 +1,90 @@
+{{interfaces
+| imports = [[Interface:Midpoint]]
+| exports = [[Interface:Orthogonality 1]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+Here we prove results involving perpendicular lines. This also enables us to prove the existence of the midpoint of a line segment.
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Midpoint|geometry results so far]] and define some variables:
+
+== Right angles ==
+[[File:Perpendicular-coloured.svg|thumb|right]]
+Our treatment of perpendicularity, on the page and following ones, is in terms of three related concepts. First is the perpendicularity of a line segment and another line segment which share an endpoint, in this diagram whether {{{A B}}} is perpendicular to {{{B C}}}. The second is whether a line segment is perpendicular to another line segment at a given point, for example whether {{{A B}}} is perpendicular to {{{C D}}} (or whether they are perpendicular if {{{A B}}} is specified by {{{A}}} and another point, not shown, on the line {{{A B}}}). The third is similar, but just whether there is a point where the two lines are perpendicular, without needing to mention that point explicitly.
+
+We start with the first of those, a predicate which can be thought of as recognizing whether {{{A B}}} is perpendicular to {{{B C{{{. We call it {{{is-right-angle}}} even though it is not tied to any larger theory of angles (that will come later).<ref>Definition Per in Narboux</ref> The definition can be read as "{{{∠ A B C}}} is a right angle iff the symmetric point of {{{C}}} around {{{B}}} is as far from {{{A}}} as {{{C}}} is".
+
+As usual, we'll need to restate the definition as a theorem.
+* #(↔ (is-right-angle A B C)
+    (∃ c′ (∧ (is-midpoint-of B C c′) (≡ A C A c′))))# ([/general/Orthogonality_1.gh/RightAngle | RightAngle])
+
+=== A convenience rule ===
+{{cleanup|moving applyCongruenceTransitivityInConsequent to where we define {{{CongruenceTransitivity}}}}}
+* #(→ antecedent (≡ A B C D))#, #(→ antecedent (≡ C D E F))# ⊢ #(→ antecedent (≡ A B E F))# ([/general/Orthogonality_1.gh/applyCongruenceTransitivityInConsequent | applyCongruenceTransitivityInConsequent])
+
+=== Can interchange legs of a right angle ===
+Although it isn't obvious from the definition, the roles of the two points which aren't the vertex are equivalent.<ref>l8_2 in Narboux</ref> To prove this, expand {{{is-right-angle A B C}}} according to the definition into {{{∃ c′ (B is-midpoint-of C c′ ∧ A C ≡ A c′)}}}. Then let {{{a′}}} be the symmetric point of {{{A}}} around {{{B}}}. Since reflecting through a point preserves distances ({{{SymmetricPointDistance}}}), {{{A c′ ≡ a′ C}}}. This allows us to show {{{is-right-angle C B A}}} by the definition.
+* #(→ (∧ (∧ (is-midpoint-of B C C′) (≡ A C A C′)) (is-midpoint-of B A A′))
+  (∧ (is-midpoint-of B A A′) (≡ C A C A′)))# ([/general/Orthogonality_1.gh/RightAngleSymmetryImplicationLemma | RightAngleSymmetryImplicationLemma])
+* #(→ (is-right-angle A B C) (is-right-angle C B A))# ([/general/Orthogonality_1.gh/RightAngleSymmetryImplication | RightAngleSymmetryImplication])
+* #(↔ (is-right-angle A B C) (is-right-angle C B A))# ([/general/Orthogonality_1.gh/RightAngleSymmetry | RightAngleSymmetry])
+
+=== Picking a different point on a right angle's line ===
+Given a right angle {{{A B C}}} where {{{A B}}} is a line (that is, {{{A ≠ B}}}), picking a different point {{{A′}}} on the line {{{A B}}} also produces a right angle {{{A′ B C}}}.<ref>l8_3 in Narboux</ref>
+* #(→ (∧ (∧ (is-right-angle A B C) (¬ (= A B))) (collinear B A A′)) (is-right-angle A′ B C))# ([/general/Orthogonality_1.gh/RightAngleLeg | RightAngleLeg])
+
+=== Reflecting about the vertex ===
+Reflecting one of the points of a right angle through the vertex of that angle produces a right angle. In symbols, {{{is-right-angle A B C ∧ B is-midpoint-of C C′ → is-right-angle A B C′}}}.<ref>l8_4 in Narboux</ref>.
+
+The proof will start by expanding the definition of {{{is-right-angle}}} into {{{∃ c″ (B is-midpoint-of C c″ ∧ A C ≡ A c″)}}}. Then the result of reflecting {{{C}}} through {{{B{{{ is unique, so {{{C″ = C′}}}, which is our first lemma.
+* #(→ (∧ (∧ (is-midpoint-of B C C″) (≡ A C A C″)) (is-midpoint-of B C C′))
+  (= C″ C′))# ([/general/Orthogonality_1.gh/RightAngleSymmetricPoint-cdoubleprime-cprime | RightAngleSymmetricPoint-cdoubleprime-cprime])
+* #(→ (∧ (is-right-angle A B C) (is-midpoint-of B C C′)) (is-right-angle A B C′))# ([/general/Orthogonality_1.gh/RightAngleSymmetricPoint | RightAngleSymmetricPoint])
+
+=== Degenerate cases ===
+In defining {{{is-right-angle}}} we also encompassed degenerate cases, in this case where the vertex and one point defining a leg are the same.<ref>l8_5 in Narboux</ref>
+* #(is-right-angle A B B)# ([/general/Orthogonality_1.gh/RightAngleABB | RightAngleABB])
+
+=== One leg between two points on the perpendicular ===
+There are a few cases which imply we are dealing with a degenerate {{{is-right-angle}}}. Here's one in which the point defining one leg is between two points which both lie on the perpendicular. Specifically, {{{is-right-angle A B C ∧ is-right-angle A′ B C ∧ between A C A′ → B = C}}}.<ref>l8_6 in Narboux</ref>
+
+The proof first expands both occurrences of {{{is-right-angle}}} according to the definition to get points {{{c′}}} and {{{c″}}} for which {{{(B is-midpoint-of C c′ ∧ A C ≡ A c′) ∧ (B is-midpoint-of C c″ ∧ A′ C ≡ A′ c″) ∧ between A C A′}}}.
+
+Then we apply {{{SymmetricPointDistance}}} to get {{{C′ C″ ≡ C C}}}, which in turn implies {{{C′ = C″}}}.
+* #(→ (∧ (∧ (∧ (is-midpoint-of B C C′) (≡ A C A C′))
+    (∧ (is-midpoint-of B C C″) (≡ A′ C A′ C″)))
+    (between A C A′))
+    (= C′ C″))# ([/general/Orthogonality_1.gh/RightAngleBetween-cprime-cdoubleprime | RightAngleBetween-cprime-cdoubleprime])
+Next is {{{A′ C ≡ A′ C′}}} which is just a matter of substituting {{{C′}}} for {{{C″}}}.
+* #(→ (∧ (∧ (∧ (is-midpoint-of B C C′) (≡ A C A C′))
+    (∧ (is-midpoint-of B C C″) (≡ A′ C A′ C″)))
+    (between A C A′))
+    (≡ A′ C A′ C′))# ([/general/Orthogonality_1.gh/RightAngleBetween-aprime-c-aprime-cprime | RightAngleBetween-aprime-c-aprime-cprime])
+Next we apply {{{BetweennessTwoDistanceUniqueness}}} which in this case is {{{between A C A′ ∧ A C ≡ A C′ ∧ A′ C ≡ A′ C′ → C = C′}}}.
+* #(→ (∧ (∧ (∧ (is-midpoint-of B C C′) (≡ A C A C′))
+    (∧ (is-midpoint-of B C C″) (≡ A′ C A′ C″)))
+    (between A C A′))
+    (= C C′))# ([/general/Orthogonality_1.gh/RightAngleBetween-c-cprime | RightAngleBetween-c-cprime])
+
+From here we get {{{B is-midpoint-of C C}}} by substituting {{{C}}} for {{{C′}}}, which in turn implies {{{B = C}}}.
+* #(→ (∧ (∧ (∧ (is-midpoint-of B C C′) (≡ A C A C′))
+    (∧ (is-midpoint-of B C C″) (≡ A′ C A′ C″)))
+    (between A C A′))
+    (= B C))# ([/general/Orthogonality_1.gh/RightAngleBetween-b-c | RightAngleBetween-b-c])
+* #(→ (∧ (∧ (is-right-angle A B C) (is-right-angle A′ B C)) (between A C A′)) (= B C))# ([/general/Orthogonality_1.gh/RightAngleBetween | RightAngleBetween])
+
+=== Builder ===
+We prove the builder for {{{is-right-angle}}} similarly to other builders: by applying builders for each of the expressions which make up the definition.<ref>not in Narboux</ref>
+* #(→ (∧ (∧ (= A A′) (= B B′)) (= C C′)) (↔ (is-right-angle A B C) (is-right-angle A′ B′ C′)))# ([/general/Orthogonality_1.gh/RightAngleBuilder | RightAngleBuilder])
+
+== Export ==
+We now export to [[Interface:Orthogonality 1]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

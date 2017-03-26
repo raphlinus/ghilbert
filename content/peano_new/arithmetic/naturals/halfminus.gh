@@ -1,0 +1,359 @@
+import (PROP           /peano_new/prop.ghi () "")
+import (PREDICATE      /peano_new/predicate/all.ghi (PROP) "")
+import (NATURALS       /peano_new/arithmetic/naturals/common.ghi (PROP PREDICATE) "")
+import (INEQUALITY_NAT /peano_new/arithmetic/naturals/inequality_nat.ghi (PROP PREDICATE NATURALS) "")
+
+import (SET_MIN        /peano_new/set_min.ghi (PROP PREDICATE) "")
+import (SET            /peano_new/set.ghi (PROP PREDICATE SET_MIN) "")
+
+tvar (wff ph ps ch th ta et si ph' ps' ch' th' ta')
+tvar (nat A B C D A' B' C' D' A0 A1 A2 A3 i j k)
+var (nat v w x y z v' w' x' y' z')
+
+## <context>
+##   This theorem is part of a series of theorems related to the halfminus operation
+##   This is an unusual operation that is only used for natural numbers. Halfminus
+##   is defined to be equal to normal subtraction when the result is not negative.
+##   If the number is negative, the result is equal to 0, since natural numbers cannot
+##   go below 0.
+## </context>
+
+
+# == Subtraction over natural numbers ==
+
+# Justification for definition of halfminus
+thm (df-halfminus-just ((A x y) (B x y)) ()
+  (= (ifn (< A B) (0) (iota ({|} x (= A (+ B x)))))
+    (ifn (< A B) (0) (iota ({|} y (= A (+ B y))))))
+  x y B addeq2 A eqeq2d abeq
+  ({|} x (= A (+ B x))) ({|} y (= A (+ B y))) ax-iotaeq ax-mp
+  (iota ({|} x (= A (+ B x)))) (iota ({|} y (= A (+ B y)))) (< A B) (0) ifneq3 ax-mp
+)
+
+# Definition of "half minus"
+defthm (df-halfminus nat (.- A B) ((A x) (B x)) ()
+  (= (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))))
+  A B y x df-halfminus-just
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (=  [ A ]   ]   ]  C))
+##   (=         [ A ]   [ B ] )
+##   (-> ph (=  [   [   [ B ]  C))
+## </table>
+thm (EqReplaceImp1Eq0 () (
+     replacee (-> ph (= A C))
+     substitution (= A B)) 
+     (-> ph (= B C))
+  replacee substitution
+  C eqeq1i
+  sylib
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= A  [ B ]   ]   ] ))
+##   (=           [ B ]   [ C ] )
+##   (-> ph (= A  [   [   [ C ] ))
+## </table>
+thm (EqReplaceImp1Eq1 () (
+     replacee (-> ph (= A B))
+     substitution (= B C)) 
+     (-> ph (= A C))
+  replacee substitution
+  A eqeq2i
+  sylib
+)
+
+thm (halfminuseq1 () () (-> (= A C) (= (.- A B) (.- C B)))
+  A C B lteq1
+  A C (+ B x) eqeq1
+  x abbi2d
+  iotaseqd
+  jca
+  (< A B) (< C B) (iota ({|} x (= A (+ B x)))) (iota ({|} x (= C (+ B x)))) (0) ifneq13
+  syl
+
+  A B x df-halfminus
+  ## <d 'Commutative Property'>
+    (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  C B x df-halfminus  
+  ## <d 'Symmetric Property '>
+    (.- C B) (ifn (< C B) (0) (iota ({|} x (= C (+ B x))))) eqcom
+    mpbi
+  ## </d 'Symmetric Property '>
+  EqReplaceImp1Eq1
+)
+
+thm (halfminuseq1i () (
+     hyp1 (= A B))
+     (= (.- A C) (.- B C))
+  hyp1
+  A B C halfminuseq1
+  ax-mp
+)
+
+thm (halfminuseq1d () (
+     hyp1 (-> ph (= A B)))
+     (-> ph (= (.- A C) (.- B C)))
+  hyp1
+  A B C halfminuseq1
+  syl
+)
+
+## <title> Equivalence for - </title>
+thm (halfminuseq2 () () (-> (= B C) (= (.- A B) (.- A C)))
+  B C A lteq2
+  B C x addeq1
+  A eqeq2d
+  x abbi2d
+  iotaseqd
+  jca  
+  (< A B) (< A C) (iota ({|} x (= A (+ B x)))) (iota ({|} x (= A (+ C x)))) (0) ifneq13
+  syl
+
+  A B x df-halfminus
+  ## <d 'Commutative Property'>
+    (.- A B) (ifn (< A B) (0) (iota ({|} x (= A (+ B x))))) eqcom
+    mpbi
+  ## </d 'Commutative Property'>
+  EqReplaceImp1Eq0
+  A C x df-halfminus  
+  ## <d 'Symmetric Property '>
+    (.- A C) (ifn (< A C) (0) (iota ({|} x (= A (+ C x))))) eqcom
+    mpbi
+  ## </d 'Symmetric Property '>
+  EqReplaceImp1Eq1
+)
+
+thm (halfminuseq2i () (
+     hyp1 (= B C))
+     (= (.- A B) (.- A C))
+  hyp1
+  B C A halfminuseq2
+  ax-mp
+)
+
+thm (halfminuseq2d () (
+     hyp1 (-> ph (= B C)))
+     (-> ph (= (.- A B) (.- A C)))
+  hyp1
+  B C A halfminuseq2
+  syl
+)
+
+thm (halfminuseq12 () () (-> (/\ (= A B) (= C D)) (= (.- A C) (.- B D)))
+  A B C halfminuseq1
+  C D B halfminuseq2
+  anim12i  
+  ## <d 'Transitive Property '>
+    (.- A C) (.- B C) (.- B D) eqtr
+    syl
+  ## </d 'Transitive Property '>
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph  [ ps ]   ]    ] )
+##   (->      [ ps ]   [ ch ] )
+##   (<-> ph  [    [   [ ch ] )
+## </table>
+thm (ImpReplaceBi1 () (
+     replacee (<-> ph ps)
+     substitution (-> ps ch)) 
+     (-> ph ch)
+  replacee substitution
+  ph biim2i
+  ax-mp
+)
+
+
+## <title> Substitution </title>
+## <table>
+##   (<-> ph (E. x  [ ps ]   ]    ] ))
+##   (->            [ ps ]   [ ch ] )
+##   (<-> ph (E. x  [    [   [ ch ] ))
+## </table>
+thm (ImpReplaceBi1Ex1 () (
+     replacee (<-> ph (E. x ps))
+     substitution (-> ps ch)) 
+     (-> ph (E. x ch))
+  replacee substitution
+  x 19.22i
+  ImpReplaceBi1
+)
+
+## <title> The difference between two numbers is unique </title>
+thm (eudiff ((B x)(A x)) () (-> (<= B A) (E! x (= A (+ B x))))
+  B A x exle
+  
+  ## <d 'Remove Left Side of AND '>
+    (<= (0) x) (= (+ B x) A) pm3.27
+    ImpReplaceBi1Ex1
+  ## </d 'Remove Left Side of AND '>
+
+    (+ B x) A eqcom x exbii sylib
+      A (+ B x) (+ B y) eqtr2
+      B x y addcan2 sylib
+      y gen x gen (E. x (= A (+ B x))) biantru sylib
+      x y B addeq2 A eqeq2d eu4 bicomi sylib
+)
+
+## <title> Minus is the inverse of addition </title>
+thm (halfminus () () (-> (<= B A) (= (+ (.- A B) B) A))
+  B A lecon
+  ## <d 'Def. Greater Than or Equal to '>
+    A B df-ge
+    bitri
+  ## </d 'Def. Greater Than or Equal to '>
+  (< A B) (0) (iota ({|} x (= A (+ B x)))) ifn2 sylbi
+  A B x df-halfminus syl5eq
+  B addeq1d
+    B A x eudiff
+      x (= A (+ B x)) iotacl2  syl
+
+      x (iota ({|} x (= A (+ B x)))) B addeq2 A eqeq2d  elab
+    sylib
+    B (iota ({|} x (= A (+ B x)))) addcom syl6eq
+  eqcomd eqtrd
+)
+
+## <title> A number minus itself is zero </title>
+## <suggest> right('Cancel', '-') </suggest>
+## <table>
+##   (= (.- <r> A <r> A) (0))
+## </table>
+thm (halfminusid () () (= (.- A A) (0))
+  A leid A A halfminus ax-mp
+  A addidr eqcomi eqtri
+  (.- A A) A (0) addcan mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (<=  [ A ]   ]   ]  C)
+##   (=   [ A ]   [ B ] )
+##   (<=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceLe0 () (
+     replacee (<= A C)
+     substitution (= A B)) 
+     (<= B C)
+  replacee substitution
+  C leeq1i
+  mpbi
+)
+
+## <title> A number minus zero is itself </title>
+thm (halfminuszero () () (= (.- A (0)) A)
+  (.- A (0)) addid eqcomi
+    A ge0 (0) A lecon mpbir
+    (0) A halfminus ax-mp
+  eqtri
+)
+
+## <title> Half minus cancellation </title>
+## <suggest> right('Simplify', '-') </suggest>
+## <table>
+##   (= (.- (+ A <r> B) <r> B) A)
+## </table>
+thm (halfminuscan() () (= (.- (+ A B) B) A)
+  A 0le
+  B leadd1i  
+  ## <d 'Additive Identity Axiom '>
+    B addidr
+    EqReplaceLe0
+  ## </d 'Additive Identity Axiom '>
+  B (+ A B) halfminus  
+  ax-mp
+  (.- (+ A B) B) B A addcan  
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (=  [ A ]   ]   ]  C)
+##   (=  [ A ]   [ B ] )
+##   (=  [   [   [ B ]  C)
+## </table>
+thm (EqReplaceEq0 () (
+     replacee (= A C)
+     substitution (= A B)) 
+     (= B C)
+  replacee substitution
+  C eqeq1i
+  mpbi
+)
+
+## <title> Substitution </title>
+## <table>
+##   (= (+ A  [ B ]   ]   ] ) D)
+##   (=       [ B ]   [ C ] )
+##   (= (+ A  [   [   [ C ] ) D)
+## </table>
+thm (EqReplaceEq0Add1 () (
+     replacee (= (+ A B) D)
+     substitution (= B C)) 
+     (= (+ A C) D)
+  replacee substitution
+  A addeq2i
+  EqReplaceEq0
+)
+
+## <title> Substitution </title>
+## <table>
+##   (-> ph (= (+ A  [ B ]   ]   ] ) D))
+##   (=              [ B ]   [ C ] )
+##   (-> ph (= (+ A  [   [   [ C ] ) D))
+## </table>
+thm (EqReplaceImp1Eq0Add1 () (
+     replacee (-> ph (= (+ A B) D))
+     substitution (= B C)) 
+     (-> ph (= (+ A C) D))
+  replacee substitution
+  A addeq2i
+  EqReplaceImp1Eq0
+)
+
+## <title> Commute Half Minus </title>
+## <table>
+##   (-> (<= <r> B <g> A) (= (+ (.- <g> A <r> B) <b> C) (.- (+ <g> A <b> C) <r> B)))
+## </table>
+thm (halfminusaddcom () () (-> (<= B A) (= (+ (.- A B) C) (.- (+ A C) B)))
+  B A halfminus
+  C addeq1d  
+  ## <d 'Associative Property '>
+    (.- A B) B C addass
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>
+  
+  ## <d 'Commutative Property '>
+    B C addcom
+    EqReplaceImp1Eq0Add1
+  ## </d 'Commutative Property '>
+  
+  ## <d 'Associative Property '>
+    (.- A B) C B addass
+    ## <d 'Commutative Property'>
+      (+ (+ (.- A B) C) B) (+ (.- A B) (+ C B)) eqcom
+      mpbi
+    ## </d 'Commutative Property'>
+    EqReplaceImp1Eq0
+  ## </d 'Associative Property '>
+  B halfminuseq1d  
+  ## <d>
+    (+ (.- A B) C) B halfminuscan
+    EqReplaceImp1Eq0
+  ## </d>
+)
+
+## <summary> This is used just for convenience to get an empty theorem. </summary>
+thm (emptyThm () () (T)
+ tru
+)
+
+export (HALFMINUS halfminus.ghi (PROP PREDICATE NATURALS) "")

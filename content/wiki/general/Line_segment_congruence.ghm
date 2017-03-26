@@ -1,0 +1,78 @@
+{{interfaces
+| imports = [[Interface:Tarski's geometry axioms]]
+| exports = [[Interface:Line segment congruence]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Tarski's geometry axioms|geometry axioms]] and define some variables:
+
+== Congruence ==
+A line segment is congruent to itself.<ref>Lemma cong_reflexivity in Narboux</ref>
+* #(≡ x y x y)# ([/general/Line_segment_congruence.gh/CongruenceReflexivity | CongruenceReflexivity])
+
+Congruence is symmetrical.<ref>Lemma cong_symmetry in Narboux</ref> The biconditionalized version is not in Narboux, but fits our usual conventions and the nature of JHilbert.
+* #(→ (≡ x y z w) (≡ z w x y))# ([/general/Line_segment_congruence.gh/CongruenceSymmetryImplication | CongruenceSymmetryImplication])
+* #(↔ (≡ x y z w) (≡ z w x y))# ([/general/Line_segment_congruence.gh/CongruenceSymmetry | CongruenceSymmetry])
+* #(→ antecedent (≡ x y z w))# ⊢ #(→ antecedent (≡ z w x y))# ([/general/Line_segment_congruence.gh/swapCongruenceInConsequent | swapCongruenceInConsequent])
+
+Congruence is transitive.<ref>Lemma cong_transitivity in Narboux</ref>
+* #(→ (∧ (≡ x y z w) (≡ z w u v)) (≡ x y u v))# ([/general/Line_segment_congruence.gh/CongruenceTransitivity | CongruenceTransitivity])
+
+We can commute the endpoints of the first line segment.<ref>Lemma cong_left_commutativity in Narboux</ref>
+* #(→ (≡ x y z w) (≡ y x z w))# ([/general/Line_segment_congruence.gh/CongruenceLeftCommutativityImplication | CongruenceLeftCommutativityImplication])
+* #(↔ (≡ x y z w) (≡ y x z w))# ([/general/Line_segment_congruence.gh/CongruenceLeftCommutativity | CongruenceLeftCommutativity])
+* #(→ antecedent (≡ x y z w))# ⊢ #(→ antecedent (≡ y x z w))# ([/general/Line_segment_congruence.gh/commuteCongruenceLeftInConsequent | commuteCongruenceLeftInConsequent])
+
+Likewise for the second line segment.<ref>Lemma cong_right_commutativity in Narboux, biconditionalized</ref>
+* #(↔ (≡ x y z w) (≡ x y w z))# ([/general/Line_segment_congruence.gh/CongruenceRightCommutativity | CongruenceRightCommutativity])
+* #(→ antecedent (≡ x y z w))# ⊢ #(→ antecedent (≡ x y w z))# ([/general/Line_segment_congruence.gh/commuteCongruenceRightInConsequent | commuteCongruenceRightInConsequent])
+
+A line segment with the same point as both of its endpoints is congruent to another such segment. To prove this, start with the line segment x x. Extend x y beyond y to another point a such that y a ≡ x x. Then we show that a must equal y.<ref>Lemma cong_trivial_identity in Narboux</ref>
+* #(≡ y y x x)# ([/general/Line_segment_congruence.gh/CongruenceTrivialIdentity | CongruenceTrivialIdentity])
+
+Here is a version of {{{CongruenceIdentity}}} with left and right sides swapped.<ref>Lemma cong_reverse_identity in Narboux</ref>
+* #(→ (≡ x x y z) (= y z))# ([/general/Line_segment_congruence.gh/CongruenceIdentityLeft | CongruenceIdentityLeft])
+
+Congruence is unaffected by exchanging the endpoints of both line segments.<ref>Lemma cong_commutativity in Narboux</ref>
+* #(↔ (≡ x y z w) (≡ y x w z))# ([/general/Line_segment_congruence.gh/CongruenceCommutativity | CongruenceCommutativity])
+* #(→ antecedent (≡ x y z w))# ⊢ #(→ antecedent (≡ y x w z))# ([/general/Line_segment_congruence.gh/commuteCongruenceInConsequent | commuteCongruenceInConsequent])
+
+{{deprecated|1 = converting this version of CongruenceIdentityFromEquality, {{{x = y → (x y ≡ z w → z = w)}}}, to the imported one in [[Interface:Basic geometry]], {{{x = y ∧ x y ≡ z w → z = w}}}}}
+The next lemma is a convenience form of {{{CongruenceIdentity}}}.<ref>not in Narboux</ref>
+* #(→ (= x y) (→ (≡ x y z w) (= z w)))# ([/general/Line_segment_congruence.gh/CongruenceIdentityFromEquality | CongruenceIdentityFromEquality])
+
+== Outer three segment ==
+The next theorem, {{{between x y z ∧ between x′ y′ z′ ∧ x y ≡ x′ y′ ∧ y z ≡ y′ z′ → x z ≡ x′ z′}}}, is basically a degenerate case of the five segment axiom.<ref>Lemma l2_11 in Narboux</ref><ref>Axiom 23 in Givant and Tarski, 1999</ref> We call it ''outer'' three segment because we are given congruences for the inner line segments, and conclude a congruence for the outer segments. We will later prove an inner variant in which which the reverse is true.
+
+There are two cases. If {{{x ≠ y}}}, then applying five segments to x y z and x yields the desired result (the additional two antecedents are fulfilled because one becomes {{{x x ≡ x′ x′}}} and the other {{{y x ≡ y′ x′}}}). If {{{x = y}}}, then {{{x z ≡ x′ z′}}} follows from {{{y z ≡ y′ z′}}} (and {{{x′ = y′}}}, which follows from {{{x y ≡ x′ y′}}}).
+
+We first prove the {{{x = y}}} case as a lemma.
+* #(→ (= x y) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))# ([/general/Line_segment_congruence.gh/ThreeSegmentXEqualsY | ThreeSegmentXEqualsY])
+Now, the {{{x ≠ y}}} case.
+* #(→ (¬ (= x y)) (→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′)))# ([/general/Line_segment_congruence.gh/ThreeSegmentXNotEqualY | ThreeSegmentXNotEqualY])
+* #(→ (∧ (∧ (∧ (between x y z) (between x′ y′ z′)) (≡ x y x′ y′)) (≡ y z y′ z′)) (≡ x z x′ z′))# ([/general/Line_segment_congruence.gh/OuterThreeSegment | OuterThreeSegment])
+
+== Uniqueness of segment construction ==
+Here we prove that the segment constructed by the segment construction axiom is unique. We state this as {{{Q ≠ A ∧ between Q A x ∧ A x ≡ B C ∧ between Q A y ∧ A y ≡ B C → x = y}}}. The proof is first that {{{A x ≡ A y}}} (because both are congruent to {{{B C}}}), and between that and {{{Q A ≡ Q A}}} we can apply {{{OuterThreeSegment}}} to {{{Q A x}}} and {{{Q A y}}} to get {{{Q x ≡ Q y}}}. Then we will apply {{{OuterFiveSegment}}} with the lines {{{Q A x}}} and {{{Q A x}}} and the points {{{x}}} and {{{y}}}. The four congruences we need are {{{Q A ≡ Q A}}}, {{{A x ≡ A x}}}, {{{Q x ≡ Q y}}}, and {{{A x ≡ A y}}}, and then {{{OuterFiveSegment}}} gives us {{{x x ≡ x y}}}. This congruence yields {{{x = y}}} by {{{CongruenceIdentityLeft}}}.<ref>construction_unicity in Narboux</ref>
+
+The only real difficulty in formalizing this is juggling all those conjunctions and multiple antecedents. The first lemma shows {{{A x ≡ A y}}}.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ A x A y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessAxAy | SegmentConstructionUniquenessAxAy])
+The next lemma shows {{{Q x ≡ Q y}}}.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ Q x Q y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessQxQy | SegmentConstructionUniquenessQxQy])
+
+The next lemma gets us most of the way. It shows {{{x x ≡ x y}}}.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (≡ x x x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniquenessxxxy | SegmentConstructionUniquenessxxxy])
+
+The final theorem is only a small step further.
+* #(→ (∧ (∧ (∧ (∧ (¬ (= Q A)) (between Q A x)) (≡ A x B C)) (between Q A y)) (≡ A y B C)) (= x y))# ([/general/Line_segment_congruence.gh/SegmentConstructionUniqueness | SegmentConstructionUniqueness])
+
+== Export ==
+We now export to [[Interface:Line segment congruence]].
+
+== References ==
+<references/>
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

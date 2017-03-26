@@ -1,0 +1,87 @@
+# Defines upper bound and supremum. Contains a theorem that there is at most one supremum.
+
+param (PROP         /peano_new/prop.ghi () "")
+param (PREDICATE    /peano_new/predicate/all.ghi (PROP) "")
+param (REALS        /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+param (SET_MIN      /peano_new/set_min.ghi (PROP PREDICATE) "")
+
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+tvar (set S T U V)
+
+## <justification>
+##   redirect supremum-def.gh
+## </justification>
+
+term (wff (upperbound A S))
+term (wff (supremum A S))
+
+## <title> Def. Set Upper Bound </title>
+stmt (df-upperbound ((S x) (A x)) () (<-> (upperbound A S) (A. x (-> (e. x S) (<= x A)))))
+
+## <title> Equivalence for upperbound </title> ##
+stmt (upperboundeq1 () () (-> (= A B) (<-> (upperbound A S) (upperbound B S))))
+
+## <title> Equivalence for upperbound </title> ##
+stmt (upperboundseq2 () () (-> (=_ S T) (<-> (upperbound A S) (upperbound A T))))
+
+## <title> Supremum Definition </title>
+stmt (df-supremum ((S x)(A x)) () (<-> (supremum A S) (/\ (upperbound A S) (-. (E. x (/\ (upperbound x S) (< x A)))))))
+
+## <title> Equivalence for supremum </title> ##
+stmt (supremumeq1 () () (-> (= A B) (<-> (supremum A S) (supremum B S))))
+
+## <title> Equivalence for supremum </title> ##
+stmt (supremumseq2 () () (-> (=_ S T) (<-> (supremum A S) (supremum A T))))
+
+## <title> There is at most one supremum </title>
+stmt (supremummo ((S x)) () (E* x (supremum x S)))
+
+
+## <justification>
+##   redirect supremum-ax.ghi
+## </justification>
+
+## <title> Supremum exists for sets with upperbounds </title>
+## <summary>
+##   The supremum axiom. This is the axiom that distinguishes real numbers from the rationals.
+##   For every non-empty set that has an upper bound, there exists a supremum for that set within
+##   the set of real numbers.
+## </summary>
+stmt (ax-sup ((S x) (S y)) () (-> (/\ (-. (=_ S ({/}))) (E. x (upperbound x S))) (E. y (supremum y S))))
+
+
+## <justification>
+##   redirect supremum.gh
+## </justification>
+
+term (nat (sup S))
+
+stmt (supremumeq1i () (
+     (= A B))
+     (<-> (supremum A S) (supremum B S)))
+
+stmt (supremumeq1d () (
+     (-> ph (= A B)))
+     (-> ph (<-> (supremum A S) (supremum B S))))
+
+stmt (supremumseq2i () (
+     (=_ S T))
+     (<-> (supremum A S) (supremum A T)))
+
+stmt (supremumseq2d () (
+     (-> ph (=_ S T)))
+     (-> ph (<-> (supremum A S) (supremum A T))))
+
+## <title> Equivalence for supremum </title>
+stmt (supremumeq12 () () (-> (/\ (= A B) (=_ S T)) (<-> (supremum A S) (supremum B T))))
+
+stmt (supremumeq12d () (
+     (-> ph (= A B))
+     (-> ph (=_ S T)))
+     (-> ph (<-> (supremum A S) (supremum B T))))
+
+## <title> sup is the supremum when one exists </title>
+stmt (supsupremum ((S y)) () (-> (/\ (-. (=_ S ({/}))) (E. y (upperbound y S))) (supremum (sup S) S)))

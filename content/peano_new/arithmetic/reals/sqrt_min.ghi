@@ -1,0 +1,35 @@
+# Defines upper bound and supremum. Contains a theorem that there is at most one supremum.
+
+param (PROP         /peano_new/prop.ghi () "")
+param (PREDICATE    /peano_new/predicate/all.ghi (PROP) "")
+param (REALS        /peano_new/arithmetic/reals/common.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (sqrt A))
+
+
+## <justification>
+##   redirect sqrt_min.gh
+## </justification>
+
+## <title> Equivalence for square root </title>
+stmt (sqrteq () () (-> (= A B) (= (sqrt A) (sqrt B))))
+
+## <title> Square Roots are Positive </title>
+stmt (sqrtpos () () (-> (>= A (0)) (>= (sqrt A) (0))))
+
+
+## <justification>
+##   Reals axiom
+## </justification>
+
+## <title> Square Roots are the inverse of squaring </title>
+## <summary>
+##   We are missing a proof for this theorem. It has been added as an axiom
+##   until we correct this.
+## </summary>
+stmt (sqrtsq () () (-> (>= B (0)) (<-> (= (exp A (2)) B) (= (abs A) (sqrt B)))))
+   

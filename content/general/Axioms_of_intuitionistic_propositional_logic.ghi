@@ -1,0 +1,85 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = Axioms of intuitionistic propositional logic
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = [[w:Intuitionistic logic|Intuitionistic logic]] is a subset of [[Interface:Classical propositional calculus]] (subset in the sense that every theorem of intuitionistic logic is also a theorem of classical logic). It differs in omitting the [[Interface:Law of the excluded middle|law of the excluded middle]]. This interface contains one axiomization of intuitionistic logic.
+# }}
+# {{modules
+# | parameters = ''None''
+# | importedby = [[Intuitionistic propositional logic]]
+# | exportedby = none
+# }}
+# 
+# The axioms here are essentially identical to those in the ''Stanford Encyclopedia of Philosophy''.<ref>[http://plato.stanford.edu/entries/logic-intuitionistic/ Intuitionistic Logic], 
+# First published Wed Sep 1, 1999; substantive revision Wed Apr 28, 2010, ''Stanford Encyclopedia of Philosophy''</ref>
+# 
+# == Well-formed formulas ==
+# 
+# We first introduce the kind of [[w:well-formed formulas|well-formed formulas]] and a few variables for this kind.
+kind (formula)
+tvar (formula p q r s)
+# 
+# == Connectives ==
+# Although it is possible to define intuitionistic logic with a single (complicated) connective, or with as few as three of the usual connectives, here we take implication, disjunction, conjunction, and negation as primitive:
+# 
+term (formula (¬ p)) # Negation
+term (formula (→ p q)) # Implication
+term (formula (∨ p q)) # Disjunction
+term (formula (∧ p q)) # Conjunction
+# 
+# == Inference rule ==
+# 
+# The one rule is [[w:modus ponens|modus ponens]]:
+stmt (applyModusPonens () (p (→ p q)) q)
+# 
+# == Implication ==
+# 
+# The first two of the [[Interface:Standard axioms of propositional logic]] serve as our axioms governing implication:
+# 
+stmt (Simp () () (→ p (→ q p)))
+stmt (Frege () () (→ (→ p (→ q r)) (→ (→ p q) (→ p r))))
+# 
+# == Disjunction ==
+# 
+# For disjunction, we assume the ability to introduce a left hand or right hand side to any proposition:
+stmt (DisjunctionLeftIntroduction () () (→ p (∨ q p)))
+stmt (DisjunctionRightIntroduction () () (→ p (∨ p q)))
+# 
+# and the following form of disjunction composition:
+stmt (DisjunctionCompositionAxiom () () (→ (→ p r) (→ (→ q r) (→ (∨ p q) r))))
+# 
+# == Conjunction ==
+# 
+# A conjunction implies either of its propositions:
+stmt (ConjunctionLeftElimination () () (→ (∧ p q) q))
+stmt (ConjunctionRightElimination () () (→ (∧ p q) p))
+# 
+# and can be derived from its propositions:
+stmt (ConjunctionRightIntroduction () () (→ p (→ q (∧ p q))))
+# 
+# == Negation ==
+# 
+# If an antecedent implies both a consequent and its negation, we can infer the negation of the original statement.
+stmt (ProofByContradiction () () (→ (→ p q) (→ (→ p (¬ q)) (¬ p)))) # *2.65 in Principia
+# 
+# From a contradiction, anything follows. This is also known as the [[w:Principle of explosion|principle of explosion]]. The presence of this axiom distinguishes intuitionistic logic from [[w:Minimal logic|minimal logic]].
+stmt (Explosion () () (→ p (→ (¬ p) q))) # *2.24 in Principia
+#
+# == Truth ==
+#
+# Although ghilbert can, basically, define truth and falsity in terms of the above concepts, it doesn't appear to have the ability to give a notation for truth (⊤) or falsity (⊥) without an additional axiom. We adopt an axiom that asserts that ⊤ holds, which is enough (⊥ can be defined in terms of ⊤).
+term (formula (⊤))
+stmt (True () () (⊤))
+# 
+# == Biconditional ==
+# Note that biconditional can be defined in terms of conjunction and implication, so an axiom
+# is not necessary to introduce it; Ghilbert's defthm mechanism is powerful enough. See
+# [BiconditionalJust] for the theorem justifying the definition.
+#
+# == References ==
+# <references/>
+# 
+# [[Category:Subsystems of classical logic|{{PAGENAME}}]]

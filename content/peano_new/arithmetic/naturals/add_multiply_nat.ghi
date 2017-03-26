@@ -1,0 +1,45 @@
+## <justification> redirect add_multiply_min.gh </justification>
+
+param (PROP ../../../prop.ghi () "")
+param (PREDICATE_EQ ../../../predicate_all.ghi (PROP) "")
+param (ADD_MULTIPLY add_multiply_min.ghi (PROP PREDICATE_EQ) "")
+
+# This file contains addition and multiplication theorems specific to natural numbers.
+# Numbers are assumed to be natural within the naturals directory. So it is safe to import this
+# file into any file in the naturals directory. However, outside this directory the prefix 'n.'
+# should be used to specify that this is for natural numbers only.
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+
+## <title> 0 is the first natural number </title>
+stmt (pa_axplus1 () () (-. (= (0) (+ A (1)))))
+
+## <title> Proof by Induction </title>
+## <summary>
+##   Same as <a href="finds">finds</a> except uses +1 instead of successor.
+## </summary>
+stmt (findplus1 ((A x) (ch x) (th x) (ta x) (ph y))
+  ((-> (= x (0)) (<-> ph ps))
+   (-> (= x y) (<-> ph ch))
+   (-> (= x (+ y (1))) (<-> ph th))
+   (-> (= x A) (<-> ph ta))
+   ps
+   (-> ch th))
+  ta)
+
+## <title> Induction </title>
+stmt (pa_indplus1 ((ph y)) () (-> (/\ (A. x (-> (= x (0)) ph)) (A. y (-> (A. x (-> (= x y) ph)) (A. x (-> (= x (+ y (1))) ph))))) (A. x ph)))
+
+## <title> Proof by Induction </title>
+## <table>
+##       ([/] (0) z ph) ] ]                  ]
+##   (-> ([/]  y  z ph) ] [ ([/] (+ y (1)) z [ ph))
+##                      [ [ ([/] A         z [ ph)
+## </table>
+stmt (induction ((ph y)) (([/] (0) z ph) (-> ([/] y z ph) ([/] (+ y (1)) z ph))) ([/] A z ph))
+
+## <title> Proof by Induction </title>
+stmt (induction1 ((ph y)) () (-> (/\ ([/] (0) z ph) (A. y (-> ([/] y z ph) ([/] (+ y (1)) z ph)))) ([/] A z ph)))

@@ -1,0 +1,38 @@
+== Construction of the Integers ==
+
+The integers can be constructed from the natural numbers using natural arithmetic
+operations. An integer is constructed as an [/wiki/peano/tuple/ordered-pair | ordered pair]
+of natural numbers: #(= A (<,> (head A) (tail A)))#. The first number in the pair #(head A)# is called
+the [/wiki/peano/tuple/head | head] and represents the positive part of the integer.  The second number
+in the pair #(tail A)# is called the [/wiki/peano/tuple/tail | tail] and represents the negative part
+of the integer.
+
+Two integers #A# and #B# are equal if subtracting the negative part from the positive part results
+in the same number #(= (- (head A) (tail A)) (- (head B) (tail B)))#, but we actually cannot use
+subtraction yet because subtraction is only defined after the integers have been constructed. But we can use
+an equivalent equation #(= (+ (head A) (tail B)) (+ (head B) (tail A))) /edit/peano_new/arithmetic/integers/equality_min.gh/df-eq#
+to define integer equality.
+
+The additive inverse is found by reversing the
+[/edit/peano_new/arithmetic/integers/negative_min.gh/df-neg | order of the negative and positive parts]. For example,
+the integer #(2)# is represented by #(<,> (2) (0))#. Its additive inverse, the integer #(-n (2))# is
+represented by #(<,> (0) (2))#.
+
+Multiple ordered pairs correspond to the same integer. The integer #(0)# can be represented as #(= (0) (<,> (0) (0)))#
+or #(= (0) (<,> (1) (1)))# or #(= (0) (<,> (2) (2)))#, etc. Each integer represents a
+class of [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/zequivalence | equivalent ordered pairs].
+
+The difficult part of constructing the integers is to shown that the arithmetic operations are
+properly defined over these equivalence classes. Integer addition is defined by adding the
+positive and negative parts #(= (+ (<,> a b) (<,> c d)) (<,> (n.+ a c) (n.+ b d))) /edit/peano_new/arithmetic/integers/add_multiply_min.gh/addop#. Integer 
+multiplication is defined by the formula
+#(= (* (<,> a b) (<,> c d)) (<,> (n.+ (n.* a c) (n.* b d)) (n.+ (n.* a d) (n.* b c)))) /edit/peano_new/arithmetic/integers/add_multiply_min.gh/mulop#.
+We can prove all the important properties of addition and multiplication with the equivalence classes:
+
+* Commutivity:   [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/addcom | add] [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/mulcom | multiply]
+* Associativity: [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/addass | add] [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/mulass | multiply]
+* [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/addid | Additive Identity]
+* [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/addcan | Additive Inverse]
+* [/edit/peano_new/arithmetic/integers/add_multiply_min.gh/distr | Distributive Property]
+
+[/wiki/peano/arithmetic | Arithmetic Overview]

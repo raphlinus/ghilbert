@@ -1,0 +1,60 @@
+param (PROP ../prop.ghi () "")
+
+kind (nat)
+
+tvar (wff ph ps ch)
+tvar (nat A B C D)
+var (nat x y z)
+
+term (wff (A. x ph))
+
+# roughly equivalent to ax-17
+## <title> Axiom of Quantifier Introduction </title>
+## <summary>
+##   Axiom to quantify a variable over a formula in which it does not occur.
+##   One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+stmt (alnfi ((ph x)) () (-> ph (A. x ph)))
+
+## <title> Generalization Axiom </title>
+## <summary>
+##    Rule of Generalization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##    This rule says that if something is unconditionally true, then it is true for all values of a variable.
+##    Theorem <a href="/edit/peano_new/predicate/predicate.gh/a4i">a4i</a> shows we can go the other way. In other words,
+##    we can add or remove universal quantifiers from the beginning of any theorem as required.
+## </summary>
+## <table>
+##       [ ph ]
+## (A. x [ ph ] )
+## </table>
+stmt (gen () (ph) (A. x ph))
+
+# roughly Margaris A5, but without the subst
+## <title> Axiom 4: Specialization </title>
+## <summary>
+##   Axiom of Specialization. One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+##   A quantified wff implies the wff without a quantifier. In other words if
+##   something is true for all x, it is true for any specific x. Note that the converse of this axiom does
+##   not hold in general, but a weaker inference form of the converse holds in the
+##   <a href="gen">Rule of Generalization</a>. A conditional forms of the converse is given by the 
+##   <a href="alnfi">Axiom alnfi</a>.
+## </summary>
+## <suggest> right('Remove', '∀') </suggest>
+stmt (ax-4 () () (-> (A. x ph) ph))
+
+# Margaris A4, a.k.a. ax-5
+## <title> Axiom 5: Quantified Implication </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+stmt (ax-alim () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+  
+## <title> Axiom 6: Quantified Negation </title>
+## <summary> One of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>. </summary>
+stmt (ax-6 () () (-> (-. (A. x ph)) (A. x (-. (A. x ph)))))
+
+## <title> Axiom 7: Quantifier Commutation </title>
+## <summary>
+##   Axiom of Quantifier Commutation. This axiom says universal quantifiers can be swapped.
+##   It is one of the axioms of <a href="/wiki/peano/predicate">predicate calculus</a>.
+## </summary>
+stmt (ax-7 () () (-> (A. x (A. y ph)) (A. y (A. x ph))))

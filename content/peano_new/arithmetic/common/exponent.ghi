@@ -1,0 +1,68 @@
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (NATURALS naturals.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z)
+
+term (nat (exp A B))
+
+## <justification> redirect exponent_min.ghi </justification>
+
+## <title> Equivalence for exp </title>
+stmt (expeq1 () () (-> (= A B) (= (exp A C) (exp B C))))
+
+## <title> Equivalence for exp </title>
+stmt (expeq2 () () (-> (= B C) (= (exp A B) (exp A C))))
+
+## <title> 0th power of a number is 1 </title>
+## <suggest> right('Simplify', '1') </suggest>
+stmt (exp0 () () (= (exp A (0)) (1)))
+
+## <title> Multiply by the base for the next power </title>
+stmt (expplus1 () () (= (exp A (+ B (1))) (* A (exp A B))))
+
+
+
+## <justification> redirect exponent.gh </justification>
+
+stmt (expeq1i () (
+     (= A B))
+     (= (exp A C) (exp B C)))
+
+stmt (expeq1d () (
+     (-> ph (= A B)))
+     (-> ph (= (exp A C) (exp B C))))
+
+stmt (expeq2i () (
+     (= A B))
+     (= (exp C A) (exp C B)))
+
+stmt (expeq2d () (
+     (-> ph (= A B)))
+     (-> ph (= (exp C A) (exp C B))))
+
+## <title> Equivalence for exp </title>
+stmt (expeq12 () () (-> (/\ (= A B) (= C D)) (/\ (= (exp A C) (exp B C)) (= (exp B C) (exp B D)))))
+
+stmt (expeq12d () (
+     (-> ph (= A B))
+     (-> ph (= C D)))
+     (-> ph (/\ (= (exp A C) (exp B C)) (= (exp B C) (exp B D)))))
+
+## <title> Raise to the power of 1 </title>
+## <suggest> right('Simplify', '1') </suggest>
+stmt (exp1 () () (= (exp A (1)) A))
+
+## <title> Squared means multiply twice </title>
+## <suggest> left('Simplify', '2') right('Equivalence', '2') </suggest>
+stmt (exp2 () () (= (exp A (2)) (* A A)))
+
+## <title> Cubed means multiply thrice </title>
+## <suggest> left('Simplify', '3') </suggest>
+stmt (exp3 () () (= (exp A (3)) (* (* A A) A)))
+
+## <title> Square an Addition </title>
+## <suggest> left('Simplify', '2') right('Equivalence', '+') </suggest>
+stmt (sqadd () () (= (exp (+ A B) (2)) (+ (+ (exp A (2)) (* (* (2) A) B)) (exp B (2)))))

@@ -1,0 +1,47 @@
+{{interfaces
+| imports = [[Interface:Basic arithmetic]]
+| exports = [[Interface:Peano axioms]]
+}}
+
+The idea behind [[Interface:Basic arithmetic]] is that it should include everything we need to conveniently do arithmetic. This module provides a minimal baseline: basic arithmetic should at least be sufficient to prove the Peano axioms.  This is not trivially true because basic arithmetic lacks a successor operation and contains few of the axioms in their original form.
+
+We import [[Interface:Classical propositional calculus]], [[Interface:First-order logic with quantifiability]], and [[Interface:Basic arithmetic]] and define some variables:
+
+== Successor ==
+We define the successor operation as adding one:
+
+
+Then {{{Successor}}} is a consequence of the addition builder.
+* #(↔ (= (succ a) (succ b)) (= a b))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/Successor | Successor])
+
+== Addition and multiplication ==
+
+The defining properties of addition and multiplication exist as theorems, or easy consequences of theorems.
+
+* #(= (+ a (0)) a)# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/AdditiveIdentity | AdditiveIdentity])
+* #(= (+ a (succ b)) (succ (+ a b)))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/Addition | Addition])
+* #(= (· a (0)) (0))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/MultiplicativeZero | MultiplicativeZero])
+* #(= (· a (succ b)) (+ a (· a b)))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/Multiplication | Multiplication])
+
+== Induction ==
+
+The only thing we need to do with induction is deal with successor versus adding one.
+* #(→ 
+   (∧ (subst (0) n φ) 
+    (∀ k (→ (subst k n φ) (subst (succ k) n φ)))) (∀ n φ))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/Induction | Induction])
+
+== Zero is not the successor of any number ==
+We have saved {{{ZeroNotSuccessor}}} for last, as it is the most difficult and deepest (in terms of distinguishing natural numbers from other structures).
+
+In particular, this proof relies both on {{{0 ≤ a}}}, which rules out negative numbers, and {{{0 ≠ 1}}}, which is needed to establish that more than one number exists.
+* #(¬ (= (0) (succ a)))# ([/general/Basic_arithmetic_implies_Peano_axioms.gh/ZeroNotSuccessor | ZeroNotSuccessor])
+
+== Export ==
+
+We're now ready to export [[Interface:Peano axioms]].
+
+
+== References ==
+<references/>
+
+[[Category:Elementary number theory|{{PAGENAME}}]]

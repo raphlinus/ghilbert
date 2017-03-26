@@ -1,0 +1,215 @@
+# The file peano/prop.ghi and general/Classical_propositional_calculus.ghi are
+# very similar. The only real difference is that the names are different, but
+# most of the theorems, terms, etc are identical. The goal of this file is to
+# show that Classical_propositional_calculus.ghi follows from prop.ghi. We could
+# do so directly, which would highlight the identical or near-identical theorems.
+# But because it is less work, at least for now we just prove
+# general/Axioms_of_intuitionistic_propositional_logic.ghi and
+# general/Law_of_the_excluded_middle.ghi.
+
+import (PROP /peano/prop.ghi () "")
+
+kindbind (wff formula)
+
+tvar (formula p q r s antecedent)
+
+defthm (NegationNegation formula (¬ p) () () (<-> (¬ p) (-. p))
+  (-. p) biid
+)
+
+defthm (ImplicationImplication formula (→ p q) () () (<-> (→ p q) (-> p q))
+  (-> p q) biid
+)
+
+defthm (DisjunctionDisjunction formula (∨ p q) () () (<-> (∨ p q) (\/ p q))
+  (\/ p q) biid
+)
+
+defthm (ConjunctionConjunction formula (∧ p q) () () (<-> (∧ p q) (/\ p q))
+  (/\ p q) biid
+)
+
+import (TRUTH truth.ghi (PROP) "")
+
+defthm (df-falsity formula (⊥) () () (<-> (⊥) (¬ (⊤)))
+  (¬ (⊤)) biid
+)
+
+# Convert -> to →
+thm (symbolizeImplication () (H (-> p q)) (→ p q)
+  H
+  p q ImplicationImplication biimpri
+  ax-mp
+)
+
+# Convert → to ->
+thm (desymbolizeImplication () (H (→ p q)) (-> p q)
+  H
+  p q ImplicationImplication biimpi
+  ax-mp
+)
+
+thm (applyModusPonens () (H p HIMP (→ p q)) q
+  H
+
+  HIMP
+  desymbolizeImplication
+
+  ax-mp
+)
+
+thm (Simp () () (→ p (→ q p))
+  p q ax-1
+
+  q p ImplicationImplication biimpri
+  p imim2i
+  ax-mp
+
+  symbolizeImplication
+)
+
+thm (Frege () () (→ (→ p (→ q r)) (→ (→ p q) (→ p r)))
+  p q r ax-2
+
+  q r ImplicationImplication
+  p imbi2i
+
+  p q ImplicationImplication
+  p r ImplicationImplication
+  imbi12i
+
+  imbi12i
+  biimpri ax-mp
+
+# We now have (-> (-> p (→ q r)) (-> (→ p q) (→ p r)))
+  p (→ q r) ImplicationImplication
+  (→ p q) (→ p r) ImplicationImplication
+  imbi12i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (DisjunctionLeftIntroduction () () (→ p (∨ q p))
+  p q olc
+  q p DisjunctionDisjunction
+  p imbi2i biimpri ax-mp
+  symbolizeImplication
+)
+
+thm (DisjunctionRightIntroduction () () (→ p (∨ p q))
+  p q orc
+  p q DisjunctionDisjunction
+  p imbi2i biimpri ax-mp
+  symbolizeImplication
+)
+
+thm (DisjunctionCompositionAxiom () () (→ (→ p r) (→ (→ q r) (→ (∨ p q) r)))
+  p r q jao
+  p q DisjunctionDisjunction
+  r imbi1i
+  (-> q r) imbi2i
+  (-> p r) imbi2i
+  biimpri ax-mp
+
+  q r ImplicationImplication
+  (∨ p q) r ImplicationImplication
+  imbi12i
+  (-> p r) imbi2i
+  biimpri ax-mp
+
+  p r ImplicationImplication
+  (→ q r) (→ (∨ p q) r) ImplicationImplication
+  imbi12i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (ConjunctionLeftElimination () () (→ (∧ p q) q)
+  p q pm3.27
+
+  p q ConjunctionConjunction
+  q imbi1i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (ConjunctionRightElimination () () (→ (∧ p q) p)
+  p q pm3.26
+
+  p q ConjunctionConjunction
+  p imbi1i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (ConjunctionRightIntroduction () () (→ p (→ q (∧ p q)))
+  p q pm3.2
+
+  p q ConjunctionConjunction
+  q imbi2i
+  p imbi2i
+  biimpri ax-mp
+
+  q (∧ p q) ImplicationImplication
+  p imbi2i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (ProofByContradiction () () (→ (→ p q) (→ (→ p (¬ q)) (¬ p)))
+  p q pm2.65
+
+  q NegationNegation
+  p imbi2i
+  (-. p) imbi1i
+  (-> p q) imbi2i
+  biimpri ax-mp
+
+  p (¬ q) ImplicationImplication
+  p NegationNegation
+  imbi12i
+  (-> p q) imbi2i
+  biimpri ax-mp
+
+  p q ImplicationImplication
+  (→ p (¬ q)) (¬ p) ImplicationImplication
+  imbi12i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (Explosion () () (→ p (→ (¬ p) q))
+  p q pm2.24
+
+  p NegationNegation
+  q imbi1i
+  p imbi2i
+  biimpri ax-mp
+
+  (¬ p) q ImplicationImplication
+  p imbi2i
+  biimpri ax-mp
+
+  symbolizeImplication
+)
+
+thm (TertiumNonDatur () () (∨ p (¬ p))
+  p exmid
+
+  p NegationNegation
+  p orbi2i
+  biimpri ax-mp
+
+  p (¬ p) DisjunctionDisjunction
+  biimpri ax-mp
+)
+
+export (INTUITIONISTIC_AXIOMS Axioms_of_intuitionistic_propositional_logic.ghi () "")
+export (MIDDLE Law_of_the_excluded_middle.ghi (INTUITIONISTIC_AXIOMS) "")
+

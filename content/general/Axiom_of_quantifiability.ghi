@@ -1,0 +1,43 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = Axioms of quantifiability
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = The axiom of quantifiability asserts that any object (term) can be made equal to a variable which is subject to quantification.  It corresponds roughly to the notion that there are no [[w:proper class|proper classes]].
+# }}
+# 
+# In [[Interface:First-order logic]], we present a theory which deals with quantifiers (∀ and ∃), free variables, and the substitution of one variable for another. However, there is an issue with substitution of a term for a variable. To make this work as straightforwardly as substitution of a variable for a variable, we put forth an axiom here which we call the axiom of quantifiability. It is a variant of the axiom of existence which says that we can introduce a variable equal to a given variable.
+# 
+# == Prerequisities ==
+# We build on [[Interface:Classical propositional calculus]] and [[Interface:First-order logic]]:
+param (CLASSICAL Classical_propositional_calculus.ghi () "")
+param (FIRSTORDER First-order_logic.ghi (CLASSICAL) "")
+# 
+# == Equality between terms ==
+# The axiom of quantifiability is all about equality between terms, not just equality between variables. At least for now, First-order_logic.ghi defines equality between terms, so we don't need to do anything here.
+# 
+# == The axiom of quantifiability ==
+# 
+# The axiom:
+# 
+var (object x)
+tvar (object s)
+
+stmt (Quantifiability ((s x)) () (∃ x (= x s)) )
+# 
+# == Consequences ==
+# In some formulations of [[w:set theory|set theory]], for example metamath's set.mm, a variable (something which can be quantified over) corresponds to a set, and an object corresponds to a class.
+# 
+# As can be seen in more detail in [[First-order logic with quantifiability]] and [[Interface:First-order logic with quantifiability]], the axiom of quantifiability allows substitution of a term for a variable.  In metamath's set.mm, such substitution is still possible, but it requires an additional hypothesis.  For example, set.mm's <code>vtocl</code> has as a hypothesis <code>A ∈ V</code> which means "A is not a proper class".<ref>[http://us.metamath.org/mpeuni/vtocl.html vtocl] in metamath's set.mm, accessed May 6, 2010</ref>
+# 
+# First-order logic with quantifiability works fine for Peano arithmetic (see for example Raph Levien's peano_thms<ref>[http://levien.com/garden/ghnew/peano/ Peano], accessed 6 May 2010</ref>), and set theories without proper classes, such as ZF.
+# 
+# == Similar axioms/theorems in other systems ==
+# Metamath's set.mm has a theorem <code>A ∈ B → ∃ x x = A</code> (where <code>A</code> and <code>B</code> are classes and <code>x</code> is a variable),<ref>[http://us.metamath.org/mpeuni/elex.html elex], accessed 31 May 2010</ref> which closely resembles our axiom of quantifiability except for A ∈ B (which means "A is not a proper class").
+# 
+# == References ==
+# <references/>
+# 
+# [[Category:Classical first-order logic|{{PAGENAME}}]]

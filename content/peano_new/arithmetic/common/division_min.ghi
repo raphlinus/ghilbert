@@ -1,0 +1,21 @@
+# Division
+
+## <justification>
+##   Rationals  ../rationals/NaN_construction/division_NaN.gh
+##   Rationals2 ../rationals/division_min.gh
+##   Complex    ../complex/division_min.gh
+## </justification>
+
+param (PROP prop.ghi () "")
+param (PREDICATE_EQ predicate_eq.ghi (PROP) "")
+param (ARITHMETIC_MIN arithmetic.ghi (PROP PREDICATE_EQ) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat x)
+
+term (nat (/ A B))
+
+stmt (diveq12 () () (-> (/\ (= A B) (= C D)) (= (/ A C) (/ B D))))
+
+stmt (divcan () () (-> (-. (= B (0))) (= (* B (/ A B)) A)))

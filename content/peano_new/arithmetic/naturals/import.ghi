@@ -1,0 +1,41 @@
+## <justification>
+##   Integers ../integers/import_naturals.ghi
+## </justification>
+
+param (PROP prop.ghi () "")
+param (N_PREDICATE ../../predicate/all.ghi (PROP) "n.")
+param (N_NATURALS ../common/naturals/common.ghi (PROP N_PREDICATE) "n.")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+param (NATURALS ../common/naturals/common.ghi (PROP PREDICATE) "")
+param (SET_MIN ../common/collections/naturals.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+tvar (n.nat a b c d)
+var (nat x y z)
+
+term (set (N))
+term (n.nat (n A))
+term (nat (n-1 a))
+
+## <title> Natural conversion has an inverse </title>
+stmt (ninv () () (n.= (n (n-1 a)) a))
+
+stmt (n0 () () (n.= (n (0)) (n.0)))
+stmt (n1 () () (n.= (n (1)) (n.1)))
+
+## <title> 0 is a Natural Number </title>
+stmt (0nat () () (e. (0) (N)))
+
+## <title> 1 is a Natural Number </title>
+stmt (1nat () () (e. (1) (N)))
+
+stmt (eqHomomorph  () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (=  A B) (n.=  (n A) (n B)))))
+stmt (leHomomorph  () () (-> (/\ (e. A (N)) (e. B (N))) (<-> (<= A B) (n.<= (n A) (n B)))))
+stmt (addHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (n.= (n (+ A B)) (n.+ (n A) (n B)))))
+stmt (mulHomomorph () () (-> (/\ (e. A (N)) (e. B (N))) (n.= (n (* A B)) (n.* (n A) (n B)))))
+
+stmt (addClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (+ A B) (N))))
+stmt (mulClosure () () (-> (/\ (e. A (N)) (e. B (N))) (e. (* A B) (N))))
+
+# stmt (elHomomorph () () (-> (/\ (e. A (N)) (C_ S (N))) (<-> (e. A S) (n.e. (n A) (ns S)))))

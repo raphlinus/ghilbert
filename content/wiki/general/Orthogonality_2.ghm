@@ -1,0 +1,286 @@
+{{interfaces
+| imports = [[Interface:Orthogonality 1]]
+| exports = [[Interface:Orthogonality 2]]
+}}
+
+This is part of a series of modules which prove a variety of geometrical theorems starting with Tarski's axioms for geometry. We follow the formalization of Julien Narboux<ref>The formal proofs are at [http://www.lix.polytechnique.fr/Labo/Julien.Narboux/tarski.html Formalization of Tarski's geometry in the Coq proof assistant] and are described in Julien Narboux (2007), "[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.158.8614 Mechanical Theorem Proving in Tarski’s Geometry]", F. Botana and T. Recio (Eds.): ADG 2006, LNAI 4869, pp. 139–156</ref> which itself closely follows a treatise by Schwabhäuser, Szmielew, and Tarski.<ref>W. Schwabhäuser, W Szmielew, and A. Tarski (1983), ''Metamathematische Methoden in der Geometrie'', ISBN 0387129588</ref>
+
+This page is one of several involving perpendicular lines. We prove some additional theorems about {{{is-right-angle}}}, and define a predicate saying that lines are perpendicular at a point. A future page will enable us to prove the existence of the midpoint of a line segment.
+
+We import the theorems of [[Interface:Classical propositional calculus|propositional logic]] and [[Interface:First-order logic with quantifiability|predicate logic]], and the [[Interface:Orthogonality 1|geometry results so far]] and define some variables:
+
+== Right angles ==
+We've proved a number of the results relating to {{{is-right-angle}}} in [[Orthogonality definitions]]. Here we pick up a few more (particularly ones for which the automatic expansion of definitions in [[Orthogonality definitions]] is inconvenient, and ones which follow from those).
+
+=== Proving is-right-angle from an object ===
+To prove {{{is-right-angle}}} from {{{RightAngle}}} requires that we come up with a point which satisfies the conditions of {{{RightAngle}}}. Here's a theorem which handles the logic involved in going from that point to an expression containing {{{∃}}}.<ref>not in Narboux, as coq handles this sort of thing</ref>
+* #(→ (∧ (is-midpoint-of B C Z) (≡ A C A Z))
+    (is-right-angle A B C))# ([/general/Orthogonality_2.gh/RightAngleObject | RightAngleObject])
+
+=== Swapping the vertex with one of the legs ===
+Another degenerate case is {{{is-right-angle A B C ∧ is-right-angle A C B → B = C}}}.<ref>l8_7 in Narboux</ref>
+
+Let {{{A′}}} be the symmetric point of {{{A}}} through the point {{{C}}}.
+
+First assume {{{B ≠ C}}} (if not, we are done). Then expand {{{is-right-angle A B C}}} by the definition: {{{∃ c′ (B is-midpoint-of C c′ ∧ A C ≡ A c′)}}}. We also flip {{{is-right-angle A C B}}} to {{{is-right-angle B C A}}} and expand it according to the definition: {{{∃ a′ (C is-midpoint-of A a′ ∧ B A ≡ B a′)}}}.
+* #(→ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+    (∃ c′
+      (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C c′) (≡ A C A c′)))
+  ))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-cprime | RightAngleVertexLeg-cprime])
+* #(
+    → (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+    (∃ a′
+      (∧ (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+      (∧ (is-midpoint-of C A a′) (≡ B A B a′)))
+  ))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-aprime | RightAngleVertexLeg-aprime])
+
+Now we apply {{{RightAngleLeg}}} to get {{{is-right-angle c′ C A}}}.
+
+* #(
+    → (∧ (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+      (∧ (is-midpoint-of C A A′) (≡ B A B A′)))
+    (is-right-angle C′ C A)
+  )# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-cprime-c-a | RightAngleVertexLeg-cprime-c-a])
+
+We can paraphrase the definition of {{{is-right-angle C′ C A}}} as "the symmetric point of {{{A}}} through {{{C}}} is the same distance from {{{C′}}} as {{{A}}} is". By symmetric point uniqueness, said symmetric point is just {{{A′}}}. We express this via the "uniqueness lemma", {{{is-right-angle C′ C A ∧ C is-midpoint-of A A′ → C′ A ≡ C′ A′}}}, which we prove after a few lemmas which reflect parts of its proof.
+* #(→ (∧ (∧ (is-midpoint-of C A Z) (≡ C′ A C′ Z)) (is-midpoint-of C A A′)) (= Z A′))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-uniqueness-lemma-z-aprime | RightAngleVertexLeg-uniqueness-lemma-z-aprime])
+* #(→ (∧ (∧ (is-midpoint-of C A Z) (≡ C′ A C′ Z)) (is-midpoint-of C A A′)) (≡ C′ A C′ A′))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-uniqueness-lemma-cprime-a-cprime-aprime | RightAngleVertexLeg-uniqueness-lemma-cprime-a-cprime-aprime])
+* #(→ (∧ (is-right-angle C′ C A) (is-midpoint-of C A A′)) (≡ C′ A C′ A′))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-uniqueness-lemma | RightAngleVertexLeg-uniqueness-lemma])
+
+Our next step is {{{A′ C ≡ A′ C′}}}.
+* #(
+    → (∧ (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+      (∧ (is-midpoint-of C A A′) (≡ B A B A′)))
+    (≡ A′ C A′ C′)
+  )# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-aprime-c-aprime-cprime | RightAngleVertexLeg-aprime-c-aprime-cprime])
+
+Next is {{{is-right-angle A′ B C}}}.
+* #(
+    → (∧ (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+      (∧ (is-midpoint-of C A A′) (≡ B A B A′)))
+    (is-right-angle A′ B C)
+  )# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-aprime-b-c | RightAngleVertexLeg-aprime-b-c])
+
+* #(
+    → (∧ (∧ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+      (∧ (is-midpoint-of B C C′) (≡ A C A C′)))
+      (∧ (is-midpoint-of C A A′) (≡ B A B A′)))
+    (= B C)
+  )# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-b-not-c-1 | RightAngleVertexLeg-b-not-c-1])
+* #(→ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (is-right-angle A C B)))
+    (= B C))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg-b-not-c | RightAngleVertexLeg-b-not-c])
+* #(→ (∧ (is-right-angle A B C) (is-right-angle A C B)) (= B C))# ([/general/Orthogonality_2.gh/RightAngleVertexLeg | RightAngleVertexLeg])
+
+=== A leg which is perpendicular to itself ===
+Another degenerate case is {{{is-right-angle A B A → A = B}}}.<ref>l8_8 in Narboux</ref> The proof is that {{{RightAngleVertexLeg}}} gives us {{{is-right-angle A B A ∧ is-right-angle A A B → A = B}}}, but {{{is-right-angle A A B}}} is a theorem, so we are done.
+* #(→ (is-right-angle A B A) (= A B))# ([/general/Orthogonality_2.gh/RightAngleLegItself | RightAngleLegItself])
+
+=== Three points which are both perpendicular and collinear ===
+If three points are both perpendicular and collinear, then one of the legs must be an empty line segment.<ref>l8_9 in Narboux</ref>
+* #(→ (∧ (is-right-angle A B C) (collinear A B C)) (∨ (= A B) (= C B)))# ([/general/Orthogonality_2.gh/RightAngleCollinear | RightAngleCollinear])
+
+=== Slight variant of RightAngleABB ===
+We'll want this straightforward consequence of {{{RightAngleABB}}} in a moment.
+
+* #(→ (= B C) (is-right-angle A B C))# ([/general/Orthogonality_2.gh/RightAngleABBFromEquality | RightAngleABBFromEquality])
+
+=== A congruence theorem ===
+The only reason we rederive this theorem, rather than importing it, is to avoid editing all the interfaces between [[Betweenness of points]] and here.
+* #(→ (∧ (¬ (= A B)) (≡ A B C D)) (¬ (= C D)))# ([/general/Orthogonality_2.gh/NegatedCongruenceIdentityFromEquality | NegatedCongruenceIdentityFromEquality])
+
+=== An angle congruent to a right angle is a right angle ===
+That is, {{{is-right-angle A B C ∧ A B C ≅ A′ B′ C′ → is-right-angle A′ B′ C′}}}.<ref>l8_10 in Narboux</ref>
+
+We start with the {{{B = C}}} case, where we first conclude {{{B′ = C′}}} and so the conclusion follows from {{{RightAngleABB}}}.
+* #(→ (∧ (= B C) (∧ (is-right-angle A B C) (≅ A B C A′ B′ C′))) (is-right-angle A′ B′ C′))# ([/general/Orthogonality_2.gh/RightAngleCongruence-b-c | RightAngleCongruence-b-c])
+
+Here's the sketch of the {{{B ≠ C}}} case. Let {{{D}}} be the point we get by expanding the definition of {{{is-right-angle A B C}}} (that is, {{{B is-midpoint-of C D ∧ A C ≡ A D}}}). Let {{{D′}}} be the symmetric point of {{{C′}}} through {{{B′}}}. Now we just need {{{A′ C′ ≡ A′ D′}}}. We apply outer five segment with baselines {{{C B D{{{ and {{{C′ B′ D′}}} and points {{{A}}} and {{{A′}}}, which gives us {{{D A ≡ D′ A′}}}. We have {{{A C ≡ A D}}} from the construction of {{{D}}} and {{{A′ C′ ≡ A C}}} from {{{A B C ≅ A′ B′ C′}}}. So by transitivity, we have {{{A′ C′ ≡ A′ D′}}} which is what we needed.
+
+It will be most convenient to start with the construction of {{{D}}} and {{{D′}}}. First we construct {{{D}}} by expanding the definition of {{{is-right-angle}}} and moving terms inside the quantifier.
+* #(→ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (≅ A B C A′ B′ C′)))
+  (∃ d (∧ (¬ (= B C))
+    (∧ (∧ (is-midpoint-of B C d) (≡ A C A d))
+      (≅ A B C A′ B′ C′)))))# ([/general/Orthogonality_2.gh/RightAngleCongruence-d | RightAngleCongruence-d])
+
+Next we construct {{{D′}}} as the symmetric point of {{{C′}}} through {{{B′}}}.
+* #(→ (∧ (¬ (= B C))
+    (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+      (≅ A B C A′ B′ C′)))
+    (∃ d′ (∧ (∧ (¬ (= B C))
+      (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+        (≅ A B C A′ B′ C′)))
+      (is-midpoint-of B′ C′ d′))
+    )
+  )# ([/general/Orthogonality_2.gh/RightAngleCongruence-dprime | RightAngleCongruence-dprime])
+
+Having constructed our points, we can get going, starting with {{{B′ ≠ C′}}}, which follows from {{{B ≠ C}}} and {{{A B C ≅ A′ B′ C′}}}.
+* #(→ (∧ (∧ (¬ (= B C))
+      (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+        (≅ A B C A′ B′ C′)))
+      (is-midpoint-of B′ C′ D′))
+    (¬ (= B′ C′)))# ([/general/Orthogonality_2.gh/RightAngleCongruence-bprime-not-cprime | RightAngleCongruence-bprime-not-cprime])
+
+Next is outer five segment with baselines {{{C B D{{{ and {{{C′ B′ D′}}} and points {{{A}}} and {{{A′}}}, to get {{{D A ≡ D′ A′}}}.
+
+* #(→ (∧ (∧ (¬ (= B C))
+      (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+        (≅ A B C A′ B′ C′)))
+      (is-midpoint-of B′ C′ D′))
+    (≡ D A D′ A′))# ([/general/Orthogonality_2.gh/RightAngleCongruence-d-a-dprime-aprime | RightAngleCongruence-d-a-dprime-aprime])
+
+Now we apply transitivity on some line segment congruences which we already have to get {{{A′ C′ ≡ A′ D′}}}.
+
+* #(→ (∧ (∧ (¬ (= B C))
+      (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+        (≅ A B C A′ B′ C′)))
+      (is-midpoint-of B′ C′ D′))
+    (≡ A′ C′ A′ D′))# ([/general/Orthogonality_2.gh/RightAngleCongruence-aprime-cprime-aprime-dprime | RightAngleCongruence-aprime-cprime-aprime-dprime])
+
+That's all the major pieces of {{{is-right-angle A′ B′ C′}}}. We just need to do a bit of assembly.
+
+* #(→ (∧ (∧ (¬ (= B C))
+    (∧ (∧ (is-midpoint-of B C D) (≡ A C A D))
+      (≅ A B C A′ B′ C′)))
+    (is-midpoint-of B′ C′ D′))
+  (is-right-angle A′ B′ C′))# ([/general/Orthogonality_2.gh/RightAngleCongruence-aprime-bprime-cprime | RightAngleCongruence-aprime-bprime-cprime])
+* #(→ (∧ (¬ (= B C)) (∧ (is-right-angle A B C) (≅ A B C A′ B′ C′))) (is-right-angle A′ B′ C′))# ([/general/Orthogonality_2.gh/RightAngleCongruence-b-not-c | RightAngleCongruence-b-not-c])
+* #(→ (∧ (is-right-angle A B C) (≅ A B C A′ B′ C′)) (is-right-angle A′ B′ C′))# ([/general/Orthogonality_2.gh/RightAngleCongruence | RightAngleCongruence])
+
+== Perpendicular lines at a point ==
+The line {{{A B}}} is perpendicular to the line {{{C D}}} at the point {{{X}}} if that point lies on both lines and if choosing one point from each line plus the vertex {{{X}}} always produces a right angle. In symbols, {{{A B C D ⟂at X}}} is defined as {{{A ≠ B ∧ C ≠ D ∧ collinear X A B ∧ collinear X C D ∧ ∀ u ∀ v (collinear u A B ∧ collinear v C D → is-right-angle u X v)}}}.
+
+
+=== Definition as a theorem ===
+As usual, we'll need a theorem form of the definition.
+* #(↔ (⟂at A B C D X)
+    (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
+     (∀ u (∀ v (→ (∧ (collinear u A B) (collinear v C D))
+       (is-right-angle u X v))))))# ([/general/Orthogonality_2.gh/PerpendicularAt | PerpendicularAt])
+
+=== Symmetry ===
+Here we prove {{{A B C D ⟂at X ↔ C D A B ⟂at X}}}.<ref>l8_12 and perp_in_symmetry in Narboux</ref> The concept is pretty simple: expand the definition and apply symmetry to each piece. The only thing which makes this proof a bit long is the number of pieces.
+* #(↔ (⟂at A B C D X) (⟂at C D A B X))# ([/general/Orthogonality_2.gh/PerpendicularAtSymmetry | PerpendicularAtSymmetry])
+
+=== Only one point on each line is needed ===
+The definition of {{{⟂at}}} might seem a bit odd, in that it would intuitively appear that one point on each line which forms a right angle would suffice, rather than needing to make an assertion about all points on those lines. In fact, this intuition is correct subject to the condition that the points being chosen on the line do not equal the vertex. In symbols, {{{A ≠ B ∧ C ≠ D ∧ collinear X A B ∧ collinear X C D ∧ ∃ u ∃ v (collinear u A B ∧ collinear v C D ∧ u ≠ X ∧ v ≠ X ∧ is-right-angle u X v) → A B C D ⟂at X}}}.<ref>l8_13_2 in Narboux</ref>
+
+The proof is based on the idea that {{{A}}}, {{{B}}}, {{{u}}} are on a line and we'll also consider an arbitrary point, which we'll call {{{U0}}}, on that line. We'll use {{{RightAngleLeg}}} to turn {{{is-right-angle u X v}}} to {{{is-right-angle U0 X v}}} (and some collinearity transitivity to set up the hypotheses for {{{RightAngleLeg}}}). Then we'll do much the same for {{{C}}}, {{{D}}}, {{{v}}}, and an arbitrary point {{{V0}}} on the line {{{C D{{{, which will turn {{{is-right-angle v X U0}}} to {{{is-right-angle V0 X U0}}}. Fortunately, the first half and the similar half are similar enough that we can break it off into a lemma which we'll be able to apply twice.
+
+The lemma is {{{A ≠ B ∧ collinear A B U0 ∧ collinear A B X ∧ collinear A B U ∧ is-right-angle U X V ∧ U ≠ X → is-right-angle U0 X V}}}. In this case, {{{RightAngleLeg}}} is {{{is-right-angle U X V ∧ U ≠ X ∧ collinear X U U0 → is-right-angle U0 X V}}}. The first two hypotheses we have, so the first part of our proof is headed towards {{{collinear X U U0}}}. We'll start by applying collinearity transitivity twice.<ref>based on Narboux's proof of l8_13_2 but streamlined, as Narboux also asserts {{{collinear A X U0}}} and {{{collinear A U X}}}, which don't seem to be used.</ref>
+
+The first collinearity is {{{collinear B U U0}}} by transitivity from {{{B ≠ A}}}, {{{collinear B A U}}} and {{{collinear B A U0}}}.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X)))
+    (collinear B U U0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-b-u-u0 | PerpendicularAtThereExists-b-u-u0])
+
+The other collinearity is {{{collinear B U X}}} by transitivity from {{{A ≠ B}}}, {{{collinear A B U}}} and {{{collinear A B X}}}.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X)))
+    (collinear B U X))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-b-u-x | PerpendicularAtThereExists-b-u-x])
+
+At this point we prove {{{collinear X U U0}}} by considering {{{B = U}}} and {{{B ≠ U}}} cases.
+
+For the {{{B = U}}} case, we first apply transitivity to give {{{collinear B X U0}}} (from {{{A ≠ B}}}, {{{A B X}}} and {{{A B U0}}}).
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X)))
+    (collinear B X U0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-b-x-u0 | PerpendicularAtThereExists-b-x-u0])
+The rest of the {{{B = U}}} case is just substituting {{{U}}} for {{{B}}} in {{{collinear B X U0}}} to get {{{collinear X U U0}}}.
+
+* #(→ (∧ (= B U) (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X))))
+    (collinear X U U0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-b-u | PerpendicularAtThereExists-b-u])
+
+The {{{B ≠ U}}} case applies transitivity to {{{B ≠ U}}}, {{{collinear B U U0}}} and {{{collinear B U X}}}, to give {{{collinear U U0 X}}}.
+
+* #(→ (∧ (¬ (= B U)) (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X))))
+    (collinear X U U0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-b-not-u | PerpendicularAtThereExists-b-not-u])
+Combining the two cases gives {{{collinear X U U0}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X)))
+    (collinear X U U0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-x-u-u0 | PerpendicularAtThereExists-x-u-u0])
+
+We're now ready to prove the lemma {{{A ≠ B ∧ collinear A B U0 ∧ collinear A B X ∧ collinear A B U ∧ is-right-angle U X V ∧ U ≠ X → is-right-angle U0 X V}}}. We just need to apply {{{RightAngleLeg}}} which is {{{is-right-angle U X V ∧ U ≠ X ∧ collinear X U U0 → is-right-angle U0 X V}}}.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (collinear A B U0)) (collinear A B X)) (collinear A B U))
+      (is-right-angle U X V)) (¬ (= U X)))
+    (is-right-angle U0 X V))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-half | PerpendicularAtThereExists-half])
+
+Now we apply this lemma twice to give {{{A ≠ B ∧ C ≠ D ∧ collinear X A B ∧ collinear X C D ∧ (collinear U A B ∧ collinear V C D ∧ U ≠ X ∧ V ≠ X ∧ is-right-angle U X V) ∧ (collinear U0 A B ∧ collinear V0 C D) → is-right-angle U0 X V0}}}.
+
+The first application of the lemma is {{{A ≠ B ∧ collinear A B U0 ∧ collinear A B X ∧ collinear A B U ∧ is-right-angle U X V ∧ U ≠ X → is-right-angle U0 X V}}}.
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
+  (∧ (∧ (∧ (∧ (collinear U A B) (collinear V C D)) (¬ (= U X))) (¬ (= V X))) (is-right-angle U X V)))
+  (∧ (collinear U0 A B) (collinear V0 C D)))
+  (is-right-angle U0 X V))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-u0-x-v | PerpendicularAtThereExists-u0-x-v])
+
+Applying the lemma a second time is only slightly more complicated.
+
+* #(→ (∧ (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
+  (∧ (∧ (∧ (∧ (collinear U A B) (collinear V C D)) (¬ (= U X))) (¬ (= V X))) (is-right-angle U X V)))
+  (∧ (collinear U0 A B) (collinear V0 C D)))
+  (is-right-angle U0 X V0))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-u0-x-v0 | PerpendicularAtThereExists-u0-x-v0])
+
+Now we need to handle the logic to turn that into our desired theorem.
+
+* #(
+    → (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
+      (∃ u (∃ v (∧ (∧ (∧ (∧ (collinear u A B) (collinear v C D))
+        (¬ (= u X))) (¬ (= v X)))
+        (is-right-angle u X v)))))
+  (→ (∧ (collinear U0 A B) (collinear V0 C D))
+    (is-right-angle U0 X V0)))# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists-1 | PerpendicularAtThereExists-1])
+* #(
+    → (∧ (∧ (∧ (∧ (¬ (= A B)) (¬ (= C D))) (collinear X A B)) (collinear X C D))
+      (∃ u (∃ v (∧ (∧ (∧ (∧ (collinear u A B) (collinear v C D))
+        (¬ (= u X))) (¬ (= v X)))
+        (is-right-angle u X v)))))
+    (⟂at A B C D X)
+  )# ([/general/Orthogonality_2.gh/PerpendicularAtThereExists | PerpendicularAtThereExists])
+
+=== Perpendicular lines meet at right angles ===
+
+Narboux doesn't explicitly state the following lemma (apparently his coq tactics cover it), but it states that if lines are perpendicular at a point, they form a right angle there. The proof may seem a bit long, but the idea is simple: expand {{{A B C D ⟂at X}}} according to the definition to get {{{∀ u ∀ v (collinear u A B ∧ collinear v C D → is-right-angle u X v)}}}. Substitute {{{A}}} for {{{u}}} and {{{C}}} for {{{v}}} to get {{{collinear A A B ∧ collinear C C D → is-right-angle A X C}}}, and then detach {{{collinear A A B}}} and {{{collinear C C D}}} as they are theorems.
+
+* #(→ (⟂at A B C D X) (is-right-angle A X C))# ([/general/Orthogonality_2.gh/PerpendicularAtRightAngle | PerpendicularAtRightAngle])
+
+=== Builder ===
+Equals can be substituted for equals, in the context of {{{⟂at}}}. Because the definition of {{{⟂at}}} is long, this proof is kind of long, but it is just a straightforward application of the builders for everything making up the definition of {{{⟂at}}}.
+* #(→ (∧ (∧ (∧ (∧ (= A A′) (= B B′)) (= C C′)) (= D D′)) (= X X′)) (↔ (⟂at A B C D X) (⟂at A′ B′ C′ D′ X′)))# ([/general/Orthogonality_2.gh/PerpendicularAtBuilder | PerpendicularAtBuilder])
+
+=== Commutativity ===
+As with line segment congruence, we use the word ''commutativity'' to refer to exchanging the points within each line (that is, {{{A B C D ⟂at X ↔ B A D C ⟂at X}}}), and the word ''symmetry'' to exchanging the two lines ({{{A B C D ⟂at X ↔ C D A B ⟂at X}}}).
+
+We already proved symmetry, so next is commutativity on the left side.<ref>perp_in_left_commutativity in Narboux</ref> The proof is a straightforward exercise in expanding the definition and then commuting the relevant pieces.
+* #(↔ (⟂at A B C D X) (⟂at B A C D X))# ([/general/Orthogonality_2.gh/PerpendicularAtLeftCommutativity | PerpendicularAtLeftCommutativity])
+
+Right commutativity follows from left commutativity and symmetry.<ref>perp_in_right_commutativity in Narboux</ref>
+* #(↔ (⟂at A B C D X) (⟂at A B D C X))# ([/general/Orthogonality_2.gh/PerpendicularAtRightCommutativity | PerpendicularAtRightCommutativity])
+
+Commutativity follows from left and right commutativity.<ref>perp_in_commutativity in Narboux</ref>
+* #(↔ (⟂at A B C D X) (⟂at B A D C X))# ([/general/Orthogonality_2.gh/PerpendicularAtCommutativity | PerpendicularAtCommutativity])
+
+=== No line is perpendicular to itself ===
+Here we show {{{¬ A B A B ⟂at X}}}. The proof is by contradiction: {{{A ≠ B}}} from the definition, but {{{A = B}}} will follow from two applications of {{{RightAngleLegItself}}}.<ref>l8_14_1 in Narboux</ref>
+* #(¬ (⟂at A B A B X))# ([/general/Orthogonality_2.gh/PerpendicularIrreflexivityAt | PerpendicularIrreflexivityAt])
+
+== Export ==
+We now export to [[Interface:Orthogonality 2]].
+
+Also, since this is currently the last proof module for geometry, we export to [[Interface:Basic geometry]].
+
+== References ==
+<references/>
+* Tarski, Alfred; Givant, Steven (1999), "Tarski's system of geometry", The Bulletin of Symbolic Logic 5 (2): 175–214, doi:10.2307/421089, MR1791303, ISSN 1079-8986
+
+{{DEFAULTSORT:{{PAGENAME}}}}
+[[Category:Euclidean geometries (general) and generalizations]]
+[[Category:Foundations of classical theories (including reverse mathematics)]]

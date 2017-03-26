@@ -1,0 +1,63 @@
+param (PROP prop.ghi () "")
+param (PREDICATE ../predicate/predicate_equals.ghi (PROP) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D A' B')
+
+term (nat (head A))
+term (nat (tail A))
+term (nat (<,> A B))
+
+## <title> Apply Head Operator </title>
+## <suggest> right('Simplify', 'Hd') </suggest>
+stmt (headop () () (= (head (<,> A B)) A))
+
+## <title> Apply Tail Operator </title>
+## <suggest> right('Simplify', 'Tl') </suggest>
+stmt (tailop () () (= (tail (<,> A B)) B))
+
+## <title> Equality theorem for head </title>
+stmt (headeq () () (-> (= A B) (= (head A) (head B))))
+
+## <title> Equality theorem for tail </title>
+stmt (taileq () () (-> (= A B) (= (tail A) (tail B))))
+
+## <title> Equality theorem for head </title>
+stmt (headeqi () ((= A B)) (= (head A) (head B)))
+
+## <title> Equality theorem for tail </title>
+stmt (taileqi () ((= A B)) (= (tail A) (tail B)))
+
+stmt (headeqd () ((-> ph (= A B))) (-> ph (= (head A) (head B))))
+
+stmt (taileqd () ((-> ph (= A B))) (-> ph (= (tail A) (tail B))))
+
+## <title> Ordered Pair Equality </title>
+stmt (opeq1 () () (-> (= A B) (= (<,> A C) (<,> B C))))
+
+## <title> Ordered Pair Equality </title>
+stmt (opeq2 () () (-> (= A B) (= (<,> C A) (<,> C B))))
+
+stmt (opeq1i () ((= A B)) (= (<,> A C) (<,> B C)))
+
+stmt (opeq1d () ((-> ph (= A B))) (-> ph (= (<,> A C) (<,> B C))))
+
+stmt (opeq2i () ((= A B)) (= (<,> C A) (<,> C B)))
+
+stmt (opeq2d () ((-> ph (= A B))) (-> ph (= (<,> C A) (<,> C B))))
+
+## <title> Ordered Pair Equality </title>
+stmt (opeq12 () () (-> (/\ (= A B) (= C D)) (= (<,> A C) (<,> B D))))
+
+## <title> Ordered Pair Equality </title>
+stmt (opeq12d () ((-> ph (= A B)) (-> ph (= C D))) (-> ph (= (<,> A C) (<,> B D))))
+
+## <title> Expand Ordered Pair </title>
+stmt (opexpand () () (= A (<,> (head A) (tail A))))
+
+## <title> Ordered Pair Theorem </title>
+## <summary>
+##   Two ordered pairs are equal if and only if the first and the
+##   second numbers of the pair are equal.
+## </summary>
+stmt (opth () () (<-> (= (<,> A B) (<,> A' B')) (/\ (= A A') (= B B'))))

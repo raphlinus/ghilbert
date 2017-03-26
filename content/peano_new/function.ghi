@@ -1,0 +1,62 @@
+## <justification> redirect function.gh </justification>
+
+param (PROP ../../prop.ghi () "")
+param (PREDICATE ../../predicate/all.ghi (PROP) "")
+param (ORDERED_PAIR arithmetic/common/ordered_pair.ghi (PROP PREDICATE) "")
+param (SET_MIN ../../set_min.ghi (PROP PREDICATE) "")
+
+tvar (wff ph ps ch th ta)
+tvar (nat A B C D)
+var (nat v w x y z x')
+tvar (set S T U V)
+
+term (wff (fun S))
+term (nat (apply S A))
+term (set (lambda y A))
+
+## <title> Function Definition </title>
+stmt (df-fun ((S x y))  ()  (<-> (fun S) (/\ (A. x  (E! y  (e. (<,> x  y ) S))) (A. x (-> (e. x S) (E. y (E. z (= x (<,> y z)))))))))
+
+stmt (funseq () () (-> (=_ S T) (<-> (fun S) (fun T))))
+stmt (funseqi () ((=_ S T)) (<-> (fun S) (fun T)))
+stmt (funseqd () ((-> ph (=_ S T))) (-> ph (<-> (fun S) (fun T))))
+
+## <title> Lambda constructs are functions </title>
+stmt (funlambda ((A y) (B x)) ((-> (= x y) (= A B))) (fun (lambda x A)))
+
+stmt (piecewisefun ((S x') (T x')) () (-> (/\ (fun S) (fun T)) (fun ({|} x' (\/ (/\ ([/] (head x') x' ph)  (e. x' S))
+                                                                         (/\ (-. ([/] (head x') x' ph)) (e. x' T)))))))
+
+stmt (ellambda ((A y) (B y) (C x)) ((-> (= x y) (= B C))) (<-> (e. (<,> x A) (lambda x B)) (= A B)))
+
+stmt (lambdaeq1 ((A y) (B x)) ((-> (= x y) (= A B)))  (=_ (lambda x A) (lambda y B)))
+
+stmt (lambdaeq2 () () (-> (A. x (= A B)) (=_ (lambda x A) (lambda x B))))
+
+stmt (lambdaeq2i () (
+      (A. x (= B C)))
+      (=_ (lambda x B) (lambda x C)))
+
+stmt (lambdaeq2d () (
+     (-> ph (A. x (= B C))))
+     (-> ph (=_ (lambda x B) (lambda x C))))
+
+## <summary> apply actually works (assuming S is a function). </summary>
+stmt (funapply () () (-> (fun S) (e. (<,> A (apply S A)) S)))
+
+## <title> Apply the function </title>
+stmt (applylambda ((D x) (A x) (C x) (B y)) ((-> (= x y) (= B D)) (-> (= x A) (= B C))) (= (apply (lambda x B) A) C))
+
+## <title> Equivalence for apply </title>
+stmt (applyseq1 () () (-> (=_ S T) (= (apply S A) (apply T A))))
+
+stmt (applyseq1i () ((=_ S T)) (= (apply S A) (apply T A)))
+
+stmt (applyseq1d () ((-> ph (=_ S T))) (-> ph (= (apply S A) (apply T A))))
+
+## <title> Equivalence for apply </title>
+stmt (applyeq2 () () (-> (= A B) (= (apply S A) (apply S B))))
+
+stmt (applyeq2i () ((= A B)) (= (apply S A) (apply S B)))
+
+stmt (applyeq2d () ((-> ph (= A B))) (-> ph (= (apply S A) (apply S B))))

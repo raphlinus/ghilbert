@@ -1,0 +1,494 @@
+# Creative Commons Attribution-Share Alike 3.0 Unported (http://creativecommons.org/licenses/by-sa/3.0/)
+# {{header
+#  | title    = Classical propositional calculus
+#  | subtitle = 
+#  | left     = 
+#  | right    = 
+#  | shortcut = 
+#  | notes    = This interface collects all important theorems from [[w:classical propositional calculus|classical propositional calculus]]. It is meant as a user-friendly reservoir for those interfaces and proof modules which merely use propositional logic, without proving anything new within it.
+# 
+# Statements can be added if necessary, but then the exporting modules have to be updated accordingly.
+# }}
+# {{modules
+# | parameters = ''None''
+# | importedby = [[Interface:First-order logic]], [[Interface:Basic arithmetic]] and many others
+# | exportedby = [[Convenience theorems of propositional logic]]
+# }}
+# 
+# == Well-formed formulas ==
+# 
+# We first introduce the kind of [[w:well-formed formulas|formulas]] (sometimes known as well-formed formulas) and a few variables for this kind.
+kind (formula)
+tvar (formula p q r s)
+# 
+# == Logical connectives ==
+# 
+# There are five standard [[w:logical connective|logical connective]]s in the classical propositional calculus, [[w:negation|negation]],
+term (formula (¬ p))
+# [[w:material conditional|implication]],
+term (formula (→ p q))
+# [[w:logical disjunction|disjunction]],
+term (formula (∨ p q))
+# [[w:logical conjunction|conjunction]],
+term (formula (∧ p q))
+# and, finally, the [[w:logical biconditional|biconditional]],
+term (formula (↔ p q))
+# In addition, one can also consider the constant formulas (or [[w:nullary#Nullary|nullary]] connectives) "the true",
+term (formula (⊤))
+# and "the false",
+term (formula (⊥))
+# 
+# === Order of operations ===
+# JHilbert requires everything to be parenthesized, and there is no ambiguity about which operations apply to which operands. However, in explanatory text we tend to omit some parentheses for readability, according to the following [[w:Order of operations|precedence]]:
+# 
+# * ¬
+# * ∧
+# * ∨
+# * →, ↔
+# 
+# For example, <code>¬ p ∧ q ∨ r → q ∨ r</code> means <code>(((¬ p) ∧ q) ∨ r) → (q ∨ r)</code>.
+# 
+# == Simple statements ==
+# 
+# Here are the statements which do not require any hypotheses.
+# 
+# === Constant statements ===
+# 
+# The simplest statements are the "true" and the "not false" statement:
+stmt (True () () (⊤))
+stmt (NotFalse () () (¬ (⊥)))
+# 
+# === Negation and implication ===
+# 
+# [[w:double negative elimination|Double negation]]:
+stmt (DoubleNegation () () (↔ p (¬ (¬ p))))
+# Implication is [[w:reflexive relation|reflexive]]. Sometimes, this is called "Identity" or "Tautology".
+stmt (ImplicationReflexivity () () (→ p p))
+# Introduction of an [[w:antecedent (logic)|antecedent]]. Whitehead and Russell call this "Simplification"<ref>{{sc|A. Whitehead, B. Russell}}, Principia Mathematica, ''Cambridge University Press'', 1910.</ref>:
+stmt (AntecedentIntroduction () () (→ p (→ q p)))
+# [[w:Syllogism|Syllogism]] can be stated in several ways, but this is probably the most familiar:
+stmt (ImplicationTransitivity () () (→ (∧ (→ p q) (→ q r)) (→ p r)))
+# Syllogism can also applied to formulas with a common antecedent. Other formulas with a common antecedent can be built up using rules such as <code>conjoin</code>, <code>addCommonAntecedent</code>, ''etc'', but we provide this one for convenience:
+stmt (SyllogismInConsequent () () (→ (→ p (→ q r)) (→ (→ p (→ r s)) (→ p (→ q s)))))
+# If the [[w:consequent|consequent]] of an implication is an implication itself, its antecedent can be distributed over antecedent and consequent of the consequent, and vice versa.
+stmt (AntecedentDistribution () () (↔ (→ p (→ q r)) (→ (→ p q) (→ p r))))
+# There are three [[w:Transposition_(logic)|transposition]] statements:
+stmt (Transposition () () (↔ (→ p q) (→ (¬ q) (¬ p))))
+stmt (TranspositionWithNegatedAntecedent () () (↔ (→ (¬ p) q) (→ (¬ q) p)))
+stmt (TranspositionWithNegatedConsequent () () (↔ (→ p (¬ q)) (→ q (¬ p))))
+# 
+# === Disjunction and conjunction ===
+# 
+# [[w:Idempotence|Idempotence]]:
+stmt (DisjunctionIdempotence () () (↔ p (∨ p p)))
+stmt (ConjunctionIdempotence () () (↔ p (∧ p p)))
+# 
+# [[w:Associativity|Associativity]]:
+stmt (DisjunctionAssociativity () () (↔ (∨ (∨ p q) r) (∨ p (∨ q r))))
+stmt (ConjunctionAssociativity () () (↔ (∧ (∧ p q) r) (∧ p (∧ q r))))
+# 
+# [[w:Commutativity|Commutativity]]:
+stmt (DisjunctionCommutativity () () (↔ (∨ p q) (∨ q p)))
+stmt (ConjunctionCommutativity () () (↔ (∧ p q) (∧ q p)))
+# 
+# [[w:Distributivity|Distributivity]]:
+stmt (DisjunctionLeftDistribution () () (↔ (∨ p (∧ q r)) (∧ (∨ p q) (∨ p r))))
+stmt (DisjunctionRightDistribution () () (↔ (∨ (∧ p q) r) (∧ (∨ p r) (∨ q r))))
+stmt (ConjunctionLeftDistribution () () (↔ (∧ p (∨ q r)) (∨ (∧ p q) (∧ p r))))
+stmt (ConjunctionRightDistribution () () (↔ (∧ (∨ p q) r) (∨ (∧ p r) (∧ q r))))
+# 
+# === De Morgan's laws ===
+# 
+# Since [[w:De Morgan's laws|De Morgan's laws]] have many forms, we use the suffix <code>xAy</code> to indicate the form. A law with suffix <code>xAy</code> will have the form <code>(¬ (z B w)) ↔ &hellip;</code>, where <code>B</code> is <code>∨</code> or <code>∧</code> if <code>A</code> is <code>D</code> or <code>C</code>, respectively. <code>z</code> is <code>p</code> or <code>(¬ p)</code> if <code>z</code> is <code>P</code> or <code>N</code>, respectively. Likewise for <code>w</code>, except that <code>q</code> is used instead of <code>p</code>.
+stmt (DeMorganPDP () () (↔ (¬ (∨ p q)) (∧ (¬ p) (¬ q))))
+stmt (DeMorganPDN () () (↔ (¬ (∨ p (¬ q))) (∧ (¬ p) q)))
+stmt (DeMorganNDP () () (↔ (¬ (∨ (¬ p) q)) (∧ p (¬ q))))
+stmt (DeMorganNDN () () (↔ (¬ (∨ (¬ p) (¬ q))) (∧ p q)))
+stmt (DeMorganPCP () () (↔ (¬ (∧ p q)) (∨ (¬ p) (¬ q))))
+stmt (DeMorganPCN () () (↔ (¬ (∧ p (¬ q))) (∨ (¬ p) q)))
+stmt (DeMorganNCP () () (↔ (¬ (∧ (¬ p) q)) (∨ p (¬ q))))
+stmt (DeMorganNCN () () (↔ (¬ (∧ (¬ p) (¬ q))) (∨ p q)))
+# 
+# === Other statements containing negation, implication, disjunction and conjunction ===
+# 
+# Although there is no associativity law for implication, we have the following importation/exportation principle due to [[w:Guiseppe Peano|Guiseppe Peano]]:
+stmt (Transportation () () (↔ (→ p (→ q r)) (→ (∧ p q) r)))
+# Two famous implication elimination principles, [[w:Modus ponens|Modus ponens]] and [[w:modus tollens|modus tollens]]:
+stmt (ModusPonens () () (→ (∧ p (→ p q)) q))
+stmt (ModusTollens () () (→ (∧ (¬ q) (→ p q)) (¬ p)))
+# Introduction principle for disjunction:
+stmt (DisjunctionLeftIntroduction () () (→ p (∨ q p)))
+stmt (DisjunctionRightIntroduction () () (→ p (∨ p q)))
+# Introduction and elimination principles for conjunction:
+stmt (ConjunctionLeftIntroduction () () (→ p (→ q (∧ q p))))
+stmt (ConjunctionRightIntroduction () () (→ p (→ q (∧ p q))))
+stmt (ConjunctionLeftElimination () () (→ (∧ p q) q))
+stmt (ConjunctionRightElimination () () (→ (∧ p q) p))
+# Case by case elimination:
+stmt (CaseElimination () () (→ (∧ (→ p q) (→ (¬ p) q)) q))
+# Composition for disjunction and conjunction:
+stmt (DisjunctionComposition () () (↔ (∧ (→ p r) (→ q r)) (→ (∨ p q) r)))
+stmt (ConjunctionComposition () () (↔ (∧ (→ p q) (→ p r)) (→ p (∧ q r))))
+# Summation for disjunction. We use the suffixes <code>LL</code>, <code>LR</code>, <code>RL</code> and <code>RR</code> to indicate if the summands were added to the left or the right of antecedent or consequent, respectively.
+stmt (DisjunctionSummationLL () () (→ (→ p q) (→ (∨ r p) (∨ r q))))
+stmt (DisjunctionSummationLR () () (→ (→ p q) (→ (∨ r p) (∨ q r))))
+stmt (DisjunctionSummationRL () () (→ (→ p q) (→ (∨ p r) (∨ r q))))
+stmt (DisjunctionSummationRR () () (→ (→ p q) (→ (∨ p r) (∨ q r))))
+stmt (DisjunctionSummation () () (→ (∧ (→ p q) (→ r s)) (→ (∨ p r) (∨ q s))))
+# Multiplication for conjunction, with the same suffixes as above.
+stmt (ConjunctionMultiplicationLL () () (→ (→ p q) (→ (∧ r p) (∧ r q))))
+stmt (ConjunctionMultiplicationLR () () (→ (→ p q) (→ (∧ r p) (∧ q r))))
+stmt (ConjunctionMultiplicationRL () () (→ (→ p q) (→ (∧ p r) (∧ r q))))
+stmt (ConjunctionMultiplicationRR () () (→ (→ p q) (→ (∧ p r) (∧ q r))))
+stmt (ConjunctionMultiplication () () (→ (∧ (→ p q) (→ r s)) (→ (∧ p r) (∧ q s))))
+# Adding a common antecedent to an implication, or adding a common consequent and reversing the direction of the implication:
+stmt (CommonAntecedentAddition () () (→ (→ q r) (→ (→ p q) (→ p r))))
+stmt (CommonConsequentAddition () () (→ (→ p q) (→ (→ q r) (→ p r))))
+# 
+# === Biconditional ===
+# 
+# ==== Equivalence relation ====
+# 
+# The biconditional simply creates an [[w:equivalence relation|equivalence relation]] among well-formed formulas:
+stmt (BiconditionalReflexivity () () (↔ p p))
+stmt (BiconditionalSymmetry () () (↔ (↔ p q) (↔ q p)))
+stmt (BiconditionalTransitivity () () (→ (∧ (↔ p q) (↔ q r)) (↔ p r)))
+# This equivalence relation creates two [[w:equivalence class|equivalence class]]es, the true and the false formulas:
+stmt (Tautology () () (↔ (∨ p (¬ p)) (⊤)))
+stmt (Contradiction () () (↔ (∧ p (¬ p)) (⊥)))
+# The left hand side of ''Tautology'' is precisely the [[w:tertium non datur|tertium non datur]] statement ensuring the existence of at most two truth-values:
+stmt (TertiumNonDatur () () (∨ p (¬ p)))
+# 
+# ==== Weakenings ====
+# 
+# A biconditional makes a strong statement. Often, we only need a weaker statement. For introductions, see the section on [[#Truth function interdependencies|truth function interdependencies]].
+# 
+# The naming convention here is that when we think of <code>p ↔ q</code> as consisting of two implications, we call <code>p → q</code> the ''forward'' one and <code>q → p</code> the ''reverse'' one.
+stmt (BiconditionalForwardElimination () () (→ (↔ p q) (→ q p)))
+stmt (BiconditionalReverseElimination () () (→ (↔ p q) (→ p q)))
+# 
+# When we think of a biconditional as two disjunctions, an intuitive naming convention is more elusive, but we currently call <code>(¬ p) ∨ q</code> the ''left'' one and <code>p ∨ (¬ q)</code> the ''right'' one.
+stmt (BiconditionalDisjunctionLeftElimination () () (→ (↔ p q) (∨ p (¬ q))))
+stmt (BiconditionalDisjunctionRightElimination () () (→ (↔ p q) (∨ (¬ p) q)))
+# 
+# ==== Truth functions ====
+# 
+# The logical connectives are functions on the equivalence classes of true and false formulas. That is, if <math>p_1,\ldots,p_n</math> and <math>q_1,\ldots,q_n</math> are formulas such that <math>p_i</math> and <math>q_i</math> are in the same equivalence class for <math>i=1,\ldots,n</math>, then an <math>n</math>-ary logical connective will send both groups of formulas to the same equivalence class. We express this for our truth functions:
+stmt (NegationFunction () () (↔ (↔ p q) (↔ (¬ p) (¬ q))))
+stmt (ImplicationFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (→ p r) (→ q s))))
+stmt (DisjunctionFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (∨ p r) (∨ q s))))
+stmt (ConjunctionFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (∧ p r) (∧ q s))))
+stmt (BiconditionalFunction () () (→ (∧ (↔ p q) (↔ r s)) (↔ (↔ p r) (↔ q s))))
+# Note that only negation has <code>↔</code> as its leading connective because it is the only truth function  which is [[w:injective|injective]]
+# 
+# ==== Truth function interdependencies ====
+# 
+# The truth functions are not always independent of each other. We have already seen that in De Morgan's laws. Here are the remaining important interdependencies:
+# Biconditional as bidirectional implication:
+stmt (BiconditionalImplication () () (↔ (↔ p q) (∧ (→ p q) (→ q p))))
+# Biconditional as disjunction of the two equivalence classes:
+stmt (BiconditionalDisjunction () () (↔ (↔ p q) (∨ (∧ p q) (∧ (¬ p) (¬ q)))))
+# Biconditional as conjunction:
+stmt (BiconditionalConjunction () () (↔ (↔ p q) (∧ (∨ (¬ p) q) (∨ p (¬ q)))))
+# Implication as disjunction:
+stmt (ImplicationDisjunction () () (↔ (→ p q) (∨ (¬ p) q)))
+# Disjunction as implication:
+stmt (DisjunctionImplication () () (↔ (∨ p q) (→ (¬ p) q)))
+# Negation as implication:
+stmt (NegationImplication () () (↔ (¬ p) (→ p (⊥))))
+# 
+# ==== Transposition ====
+# Transposition applies for the biconditional as well as for the implication, although commutativity means that some of the theorems can look different while still covering the same territory.  The <code>NegationFunction</code> theorem covers the case in which both or neither side is negated, and the following covers the case in which one side is negated:
+# 
+stmt (BiconditionalTranspositionWithNegatedRight () () (↔ (↔ p (¬ q)) (↔ q (¬ p))))
+# 
+# ==== Antecedent distribution ====
+# Here is a version of <code>AntecedentDistribution</code> with one of the implications replaced by a biconditional.
+stmt (ImplicationDistributionOverBiconditional () () (↔ (→ p (↔ q r)) (↔ (→ p q) (→ p r))))
+# 
+# ==== Biconditional and conjunction ====
+# A true conjunct does not affect the truth of a proposition.
+stmt (BiconditionalConjunct () () (→ q (↔ p (∧ p q))))
+# 
+# Two true propositions are equivalent.
+stmt (TruthBiconditional () () (→ (∧ p q) (↔ p q)))
+# 
+# == Rules ==
+# 
+# Each propositional calculus needs at least one rule of detachment (modus ponens appears to be the most common). However, it will be convenient to have certain toolbox of rules implementing often used statements.
+# 
+# Negation and implication:
+stmt (introduceDoubleNegation () (p) (¬ (¬ p)))
+stmt (eliminateDoubleNegation () ((¬ (¬ p))) p)
+stmt (introduceAntecedent () (p) (→ q p))
+stmt (applySyllogism () ((→ p q) (→ q r)) (→ p r))
+stmt (applySyllogismInConsequent () ((→ p (→ q r)) (→ p (→ r s))) (→ p (→ q s)))
+stmt (distributeAntecedent () ((→ p (→ q r))) (→ (→ p q) (→ p r)))
+stmt (collectAntecedent () ((→ (→ p q) (→ p r))) (→ p (→ q r)))
+stmt (eliminateTransposition () ((→ (¬ q) (¬ p))) (→ p q))
+stmt (introduceTransposition () ((→ p q)) (→ (¬ q) (¬ p)))
+stmt (transposeWithNegatedAntecedent () ((→ (¬ p) q)) (→ (¬ q) p))
+stmt (transposeWithNegatedConsequent () ((→ p (¬ q))) (→ q (¬ p)))
+# Disjunction and conjunction:
+stmt (cloneAsDisjunction () (p) (∨ p p))
+stmt (conflateDisjunction () ((∨ p p)) p)
+stmt (cloneAsConjunction () (p) (∧ p p))
+stmt (conflateConjunction () ((∧ p p)) p)
+stmt (groupDisjunctionLeft () ((∨ p (∨ q r))) (∨ (∨ p q) r))
+stmt (groupDisjunctionRight () ((∨ (∨ p q) r)) (∨ p (∨ q r)))
+stmt (groupConjunctionLeft () ((∧ p (∧ q r))) (∧ (∧ p q) r))
+stmt (groupConjunctionRight () ((∧ (∧ p q) r)) (∧ p (∧ q r)))
+stmt (swapDisjunction () ((∨ p q)) (∨ q p))
+stmt (swapConjunction () ((∧ p q)) (∧ q p))
+stmt (distributeLeftDisjunction () ((∨ p (∧ q r))) (∧ (∨ p q) (∨ p r)))
+stmt (collectLeftDisjunction () ((∧ (∨ p q) (∨ p r))) (∨ p (∧ q r)))
+stmt (distributeRightDisjunction () ((∨ (∧ p q) r)) (∧ (∨ p r) (∨ q r)))
+stmt (collectRightDisjunction () ((∧ (∨ p r) (∨ q r))) (∨ (∧ p q) r))
+stmt (distributeLeftConjunction () ((∧ p (∨ q r))) (∨ (∧ p q) (∧ p r)))
+stmt (collectLeftConjunction () ((∨ (∧ p q) (∧ p r))) (∧ p (∨ q r)))
+stmt (distributeRightConjunction () ((∧ (∨ p q) r)) (∨ (∧ p r) (∧ q r)))
+stmt (collectRightConjunction () ((∨ (∧ p r) (∧ q r))) (∧ (∨ p q) r))
+# De Morgan's laws:
+stmt (distributeNegationPDP () ((¬ (∨ p q))) (∧ (¬ p) (¬ q)))
+stmt (distributeNegationPDN () ((¬ (∨ p (¬ q)))) (∧ (¬ p) q))
+stmt (distributeNegationNDP () ((¬ (∨ (¬ p) q))) (∧ p (¬ q)))
+stmt (distributeNegationNDN () ((¬ (∨ (¬ p) (¬ q)))) (∧ p q))
+stmt (distributeNegationPCP () ((¬ (∧ p q))) (∨ (¬ p) (¬ q)))
+stmt (distributeNegationPCN () ((¬ (∧ p (¬ q)))) (∨ (¬ p) q))
+stmt (distributeNegationNCP () ((¬ (∧ (¬ p) q))) (∨ p (¬ q)))
+stmt (distributeNegationNCN () ((¬ (∧ (¬ p) (¬ q)))) (∨ p q))
+stmt (collectNegationPDP () ((∨ p q)) (¬ (∧ (¬ p) (¬ q))))
+stmt (collectNegationPDN () ((∨ p (¬ q))) (¬ (∧ (¬ p) q)))
+stmt (collectNegationNDP () ((∨ (¬ p) q)) (¬ (∧ p (¬ q))))
+stmt (collectNegationNDN () ((∨ (¬ p) (¬ q))) (¬ (∧ p q)))
+stmt (collectNegationPCP () ((∧ p q)) (¬ (∨ (¬ p) (¬ q))))
+stmt (collectNegationPCN () ((∧ p (¬ q))) (¬ (∨ (¬ p) q)))
+stmt (collectNegationNCP () ((∧ (¬ p) q)) (¬ (∨ p (¬ q))))
+stmt (collectNegationNCN () ((∧ (¬ p) (¬ q))) (¬ (∨ p q)))
+# Other rules containing negation, implication, disjunction and conjunction:
+stmt (import () ((→ p (→ q r))) (→ (∧ p q) r))
+stmt (export () ((→ (∧ p q) r)) (→ p (→ q r)))
+stmt (applyModusPonens () (p (→ p q)) q)
+stmt (applyModusTollens () ((¬ q) (→ p q)) (¬ p))
+stmt (introduceLeftDisjunction () (p) (∨ q p))
+stmt (introduceRightDisjunction () (p) (∨ p q))
+stmt (introduceConjunction () (p q) (∧ p q))
+stmt (eliminateLeftConjunct () ((∧ p q)) q)
+stmt (eliminateRightConjunct () ((∧ p q)) p)
+stmt (eliminateCases () ((→ p q) (→ (¬ p) q)) q)
+stmt (composeDisjunction () ((→ p r) (→ q r)) (→ (∨ p q) r))
+stmt (extractLeftDisjunction () ((→ (∨ p q) r)) (→ p r))
+stmt (extractRightDisjunction () ((→ (∨ p q) r)) (→ q r))
+stmt (composeConjunction () ((→ p q) (→ p r)) (→ p (∧ q r)))
+stmt (extractLeftConjunction () ((→ p (∧ q r))) (→ p q))
+stmt (extractRightConjunction () ((→ p (∧ q r))) (→ p r))
+stmt (disjoinLL () ((→ p q)) (→ (∨ r p) (∨ r q)))
+stmt (disjoinLR () ((→ p q)) (→ (∨ r p) (∨ q r)))
+stmt (disjoinRL () ((→ p q)) (→ (∨ p r) (∨ r q)))
+stmt (disjoinRR () ((→ p q)) (→ (∨ p r) (∨ q r)))
+stmt (disjoin () ((→ p q) (→ r s)) (→ (∨ p r) (∨ q s)))
+stmt (conjoinLL () ((→ p q)) (→ (∧ r p) (∧ r q)))
+stmt (conjoinLR () ((→ p q)) (→ (∧ r p) (∧ q r)))
+stmt (conjoinRL () ((→ p q)) (→ (∧ p r) (∧ r q)))
+stmt (conjoinRR () ((→ p q)) (→ (∧ p r) (∧ q r)))
+stmt (conjoin () ((→ p q) (→ r s)) (→ (∧ p r) (∧ q s)))
+stmt (addCommonAntecedent () ((→ q r)) (→ (→ p q) (→ p r)))
+stmt (addCommonConsequent () ((→ p q)) (→ (→ q r) (→ p r)))
+# Biconditional:
+stmt (swapBiconditional () ((↔ p q)) (↔ q p))
+stmt (applyBiconditionalTransitivity () ((↔ p q) (↔ q r)) (↔ p r))
+stmt (eliminateBiconditionalForward () ((↔ p q)) (→ q p))
+stmt (eliminateBiconditionalReverse () ((↔ p q)) (→ p q))
+stmt (eliminateLeftBiconditionalDisjunction () ((↔ p q)) (∨ p (¬ q)))
+stmt (eliminateRightBiconditionalDisjunction () ((↔ p q)) (∨ (¬ p) q))
+stmt (addNegation () ((↔ p q)) (↔ (¬ p) (¬ q)))
+stmt (removeNegation () ((↔ (¬ p) (¬ q))) (↔ p q))
+stmt (buildImplication () ((↔ p q) (↔ r s)) (↔ (→ p r) (→ q s)))
+stmt (buildDisjunction () ((↔ p q) (↔ r s)) (↔ (∨ p r) (∨ q s)))
+stmt (buildConjunction () ((↔ p q) (↔ r s)) (↔ (∧ p r) (∧ q s)))
+stmt (buildBiconditional () ((↔ p q) (↔ r s)) (↔ (↔ p r) (↔ q s)))
+stmt (convertFromBiconditionalToImplications () ((↔ p q)) (∧ (→ p q) (→ q p)))
+stmt (convertToBiconditionalFromImplications () ((∧ (→ p q) (→ q p))) (↔ p q))
+stmt (introduceBiconditionalFromImplications () ((→ p q) (→ q p)) (↔ p q))
+stmt (convertFromBiconditionalToDisjunction () ((↔ p q)) (∨ (∧ p q) (∧ (¬ p) (¬ q))))
+stmt (convertToBiconditionalFromDisjunction () ((∨ (∧ p q) (∧ (¬ p) (¬ q)))) (↔ p q))
+stmt (convertFromBiconditionalToConjunction () ((↔ p q)) (∧ (∨ (¬ p) q) (∨ p (¬ q))))
+stmt (convertToBiconditionalFromConjunction () ((∧ (∨ (¬ p) q) (∨ p (¬ q)))) (↔ p q))
+stmt (introduceBiconditionalFromDisjunctions () ((∨ (¬ p) q) (∨ p (¬ q))) (↔ p q))
+stmt (convertFromImplicationToDisjunction () ((→ p q)) (∨ (¬ p) q))
+stmt (convertToImplicationFromDisjunction () ((∨ (¬ p) q)) (→ p q))
+stmt (convertFromDisjunctionToImplication () ((∨ p q)) (→ (¬ p) q))
+stmt (convertToDisjunctionFromImplication () ((→ (¬ p) q)) (∨ p q))
+stmt (convertFromNegationToImplication () ((¬ p)) (→ p (⊥)))
+stmt (convertToNegationFromImplication () ((→ p (⊥))) (¬ p))
+stmt (transposeBiconditionalWithNegatedRight () ((↔ p (¬ q))) (↔ q (¬ p)))
+stmt (distributeImplicationOverBiconditional () ((→ p (↔ q r))) (↔ (→ p q) (→ p r)))
+# 
+# == Convenience theorems and rules ==
+# 
+# === Additional builders ===
+tvar (formula antecedent consequent common p0 q0 p1 q1)
+
+stmt (DisjunctionBuilderLL () () (→ (↔ p q) (↔ (∨ common p) (∨ common q))))
+stmt (buildDisjunctionLL () ((↔ p q)) (↔ (∨ common p) (∨ common q)))
+stmt (DisjunctionBuilderRR () () (→ (↔ p q) (↔ (∨ p common) (∨ q common))))
+stmt (buildDisjunctionRR () ((↔ p q)) (↔ (∨ p common) (∨ q common)))
+
+stmt (buildConjunctionLL () ((↔ p q)) (↔ (∧ r p) (∧ r q)))
+stmt (buildConjunctionRR () ((↔ p q)) (↔ (∧ p r) (∧ q r)))
+stmt (BiconditionalBuilderRR () () (→ (↔ p q) (↔ (↔ p common) (↔ q common))))
+stmt (buildBiconditionalLL () ((↔ p q)) (↔ (↔ common p) (↔ common q)))
+
+stmt (ImplicationBuilderRR () () (→ (↔ p q) (↔ (→ p common) (→ q common))))
+stmt (ImplicationBuilderConsequent () () (→ (↔ p q) (↔ (→ p common) (→ q common))))
+stmt (buildImplicationConsequent () ((↔ p q)) (↔ (→ p common) (→ q common)))
+stmt (buildImplicationAntecedent () ((↔ p q)) (↔ (→ common p) (→ common q)))
+
+stmt (addNegationInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ (¬ p) (¬ q))))
+stmt (buildConjunctionRRInConsequent ()
+  ((→ antecedent (↔ p q)))
+  (→ antecedent (↔ (∧ p common) (∧ q common))))
+stmt (buildConjunctionLLInConsequent ()
+  ((→ antecedent (↔ p q)))
+  (→ antecedent (↔ (∧ common p) (∧ common q))))
+stmt (buildDisjunctionRRInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ (∨ p common) (∨ q common))))
+stmt (buildDisjunctionLLInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ (∨ common p) (∨ common q))))
+stmt (buildConjunctionInConsequent ()
+  ((→ antecedent (↔ p0 q0))
+   (→ antecedent (↔ p1 q1)))
+  (→ antecedent (↔ (∧ p0 p1) (∧ q0 q1))))
+stmt (buildDisjunctionInConsequent ()
+  ((→ antecedent (↔ p0 q0))
+   (→ antecedent (↔ p1 q1)))
+  (→ antecedent (↔ (∨ p0 p1) (∨ q0 q1))))
+
+stmt (buildCommonAntecedentInConsequent ()
+  ((→ antecedent (↔ p q)))
+  (→ antecedent (↔ (→ common p) (→ common q))))
+stmt (buildCommonConsequentInConsequent ()
+  ((→ antecedent (↔ p q)))
+  (→ antecedent (↔ (→ p common) (→ q common))))
+stmt (buildImplicationInConsequent ()
+  ((→ antecedent (↔ p0 q0))
+   (→ antecedent (↔ p1 q1)))
+  (→ antecedent (↔ (→ p0 p1) (→ q0 q1))))
+stmt (buildBiconditionalInConsequent ()
+  ((→ antecedent (↔ p0 q0))
+   (→ antecedent (↔ p1 q1)))
+  (→ antecedent (↔ (↔ p0 p1) (↔ q0 q1))))
+stmt (buildBiconditionalLLInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ (↔ common p) (↔ common q))))
+stmt (buildBiconditionalRRInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ (↔ p common) (↔ q common))))
+# 
+# === Various theorems in the consequent ===
+stmt (introduceBiconditionalFromImplicationsInConsequent () ((→ antecedent (→ p q)) (→ antecedent (→ q p))) (→ antecedent (↔ p q)))
+stmt (eliminateBiconditionalReverseInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (→ p q)))
+stmt (eliminateBiconditionalForwardInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (→ q p)))
+stmt (applyModusPonensInConsequent () ((→ antecedent p) (→ antecedent (→ p q))) (→ antecedent q))
+stmt (applyBiconditionalTransitivityInConsequent ()
+  ((→ antecedent (↔ p q))
+   (→ antecedent (↔ q r)))
+  (→ antecedent (↔ p r)))
+stmt (swapBiconditionalInConsequent () ((→ antecedent (↔ p q))) (→ antecedent (↔ q p)))
+
+stmt (introduceAntecedentInConsequent () ((→ antecedent p)) (→ antecedent (→ q p)))
+stmt (importInConsequent ()
+  ((→ antecedent (→ p (→ q r))))
+  (→ antecedent (→ (∧ p q) r)))
+stmt (exportInConsequent ()
+  ((→ antecedent (→ (∧ p q) r)))
+  (→ antecedent (→ p (→ q r))) )
+
+stmt (eliminateLeftConjunctInConsequent () ((→ antecedent (∧ p q))) (→ antecedent q))
+stmt (eliminateRightConjunctInConsequent () ((→ antecedent (∧ p q))) (→ antecedent p))
+
+stmt (introduceTranspositionInConsequent ()
+  ((→ antecedent (→ p q)))
+  (→ antecedent (→ (¬ q) (¬ p))))
+stmt (eliminateTranspositionInConsequent ()
+  ((→ antecedent (→ (¬ q) (¬ p))))
+  (→ antecedent (→ p q)))
+# 
+# === Theorems partly in the consequent ===
+# We can have a theorem not in the consequent (for example, <code>introduceConjunction</code> derives <code>p ∧ q</code> from hypotheses <code>p</code> and <code>q</code>). We can have a theorem entirely in the consequent–that is, all hypotheses have a common antecedent (for example, <code>composeConjunction</code> derives <code>antecedent → p ∧ q</code> from <code>antecedent → p</code> and <code>antecedent → q</code>). In this section we have some theorems in which some, but not all, hypotheses have a common antecedent which also figures in the conclusion.<ref>introduceLeftConjunctToConsequent is [http://us.metamath.org/mpeuni/jctil jctil] in metamath, accessed December 2010. introduceRightConjunctToConsequent is [http://us.metamath.org/mpeuni/jctir jctir]</ref>
+stmt (introduceLeftConjunctToConsequent () ((→ antecedent p) q) (→ antecedent (∧ q p)))
+stmt (introduceRightConjunctToConsequent () ((→ antecedent p) q) (→ antecedent (∧ p q)))
+# 
+# === Theorems in the antecedent ===
+# There are more cases where it is convenient to have a rule that operates in the consequent than in the antecedent. But there are a few for the latter.
+stmt (importInAntecedent ()
+  ((→ (→ p (→ q r)) consequent))
+  (→ (→ (∧ p q) r) consequent))
+stmt (exportInAntecedent ()
+  ((→ (→ (∧ p q) r) consequent))
+  (→ (→ p (→ q r)) consequent))
+# 
+# === Detachment ===
+# These are analogues to modus ponens, but where some other portion of the formula, other than a single antecedent, is detached.
+stmt (detach1of2 () (p (→ (∧ p q) r)) (→ q r))
+stmt (detach2of2 () (q (→ (∧ p q) r)) (→ p r))
+
+stmt (detach1of3 () (p (→ (∧ (∧ p q) r) consequent)) (→ (∧ q r) consequent))
+stmt (detach2of3 () (q (→ (∧ (∧ p q) r) consequent)) (→ (∧ p r) consequent))
+# Invoke detach2of2 to detach the third of three antecedents
+
+stmt (detach1of4 () (p (→ (∧ (∧ (∧ p q) r) s) consequent)) (→ (∧ (∧ q r) s) consequent))
+# Invoke detach2of3 to detach the third of four antecedents
+# Invoke detach2of2 to detach the fourth of four antecedents
+
+stmt (detachImplicationBiconditional () (q (→ p (↔ q r))) (→ p r))
+stmt (detachImplicationBiconditionalRight () (r (→ p (↔ q r))) (→ p q))
+stmt (detachImplicationImplication () (p (→ antecedent (→ p q))) (→ antecedent q))
+# 
+# === Negated detachment ===
+# These are variants of ''modus tollens'' where we detach a portion of a formula which is more complicated than just a single implication.
+stmt (negatedDetachImplicationBiconditionalRight () ((¬ r) (→ p (↔ q r))) (→ p (¬ q)))
+stmt (negatedDetachImplicationBiconditional () ((¬ q) (→ p (↔ q r))) (→ p (¬ r)))
+stmt (negatedDetachImplicationImplication () ((¬ r) (→ p (→ q r))) (→ p (¬ q)))
+# 
+# === Commutation of antecedents ===
+# This result is a consequence of import/export and conjunction commutativity.
+stmt (applyComm () ((→ p (→ q r))) (→ q (→ p r)))
+# 
+# === Transformation ===
+# By "transforming", we mean applying a biconditional to replace part of a formula.
+stmt (transformAntecedent () ((→ p q) (↔ p r)) (→ r q))
+stmt (transformImplicationImplicationConsequent () ((→ antecedent (→ p q)) (↔ q r)) (→ antecedent (→ p r)))
+stmt (transformImplicationImplicationAntecedent () ((→ antecedent (→ p q)) (↔ p r)) (→ antecedent (→ r q)))
+stmt (transformImplicationBiconditionalLeft () ((→ antecedent (↔ p q)) (↔ p r)) (→ antecedent (↔ r q)))
+stmt (transformImplicationBiconditionalRight () ((→ antecedent (↔ p q)) (↔ q r)) (→ antecedent (↔ p r)))
+stmt (transformImplicationDisjunctionLeft () ((→ antecedent (∨ p q)) (↔ p r)) (→ antecedent (∨ r q)))
+stmt (transformDisjunctionRight () ((∨ p q) (↔ q r)) (∨ p r))
+# 
+# === Additional relationships between connectives ===
+stmt (ConjunctionImplication () () (↔ (∧ p q) (¬ (→ p (¬ q)))))
+stmt (ImplicationConjunction () () (↔ (→ p q) (¬ (∧ p (¬ q)))))
+
+stmt (NegationBiconditional () () (↔ (¬ p) (↔ p (⊥))))
+# 
+# === Rules for associativity ===
+# {{cleanup|renaming these to groupConjunction* or renaming groupConjunctionRight to associateConjunctionRight and likewise for the other group* ones. Talk page discussion would be a good way to figure out which rename is better}}
+stmt (associateConjunctionRightInConsequent () ((→ antecedent (∧ (∧ p q) r)))
+  (→ antecedent (∧ p (∧ q r))))
+stmt (associateConjunctionLeftInConsequent () ((→ antecedent (∧ p (∧ q r))))
+  (→ antecedent (∧ (∧ p q) r)))
+# 
+# === Combinations of commutativity and associativity ===
+# Commutativity and associativity might be combined in any number of ways, but a few patterns turn out to be common.
+stmt (Disjunction4 () () (↔ (∨ (∨ p q) (∨ r s)) (∨ (∨ p r) (∨ q s))))
+stmt (swap23ofDisjunction4 () ((∨ (∨ p q) (∨ r s))) (∨ (∨ p r) (∨ q s)))
+stmt (swap23ofDisjunction3 () ((∨ (∨ p q) r)) (∨ (∨ p r) q))
+stmt (swap12ofDisjunction3 () ((∨ (∨ p q) r)) (∨ (∨ q p) r))
+
+stmt (Conjunction4 () () (↔ (∧ (∧ p q) (∧ r s)) (∧ (∧ p r) (∧ q s))))
+# 
+# === Proof by contradiction ===
+# Although <code>Contradiction</code> and similar theorems provide some tools for proof by contradiction, here are some rules to make it easier.
+stmt (noteContradiction () ((→ p q) (→ p (¬ q))) (¬ p))
+stmt (deduceNegationFromContradiction () ((→ p (¬ p))) (¬ p))
+stmt (deduceFromNegatedContradiction () ((→ (¬ p) p)) p)
+# 
+# == References ==
+# 
+# <references />
+# 
+# [[Category:Classical propositional logic|!]]

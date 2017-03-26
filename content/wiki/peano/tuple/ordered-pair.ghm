@@ -1,0 +1,35 @@
+== Ordered Pair ==
+
+#(<,> x y)# represents an ordered pair of numbers. Each ordered pair maps to a single number. The
+first number in the pair can be obtained from using the [/wiki/peano/tuple/head | head operation].
+The second number can be extracted using the [/wiki/peano/tuple/tail | tail operation].
+
+=== Definition ===
+
+The ordered pair #(<,> x y)# is defined using [/wiki/peano/arithmetic/triangle | triangular numbers]:
+
+#(= (<,> A B) (+ (tri (+ A B)) A)) /edit/peano/peano_thms.gh/df-op#
+
+This formula basically counts every space on a 2D grid, by traveling along the diagonals in the
+following sequence where each column is a new value of #x# and each row is a new value of #y# starting
+with 0. The triangular numbers form the first column.
+
+* 0 2 5 9 14
+* 1 4 8 13
+* 3 7 12
+* 6 11
+* 10
+
+Continuing to count in this fashion along the diagonals gives as a one-to-one correspondence between the ordered pairs
+and individual numbers.
+
+Every individual number [/edit/peano/peano_thms.gh/exOp | maps to a pair of numbers] and that mapping
+is unique for both the [/edit/peano/peano_thms.gh/euhead | first number] and the
+[/edit/peano/peano_thms.gh/eutail | second number].
+
+=== Theorems ===
+
+* Equivalence: #(<-> (= (<,> A B) (<,> A' B')) (/\ (= A A') (= B B'))) /edit/peano/peano_thms.gh/opth#
+* Expand into head and tail: #(= A (<,> (head A) (tail A))) /edit/peano/peano_thms.gh/opexpand#
+
+[/wiki/peano/tuple | Tuple Overview]

@@ -1,0 +1,276 @@
+{{header
+ | title    = First-order logic
+ | subtitle = 
+ | left     = 
+ | right    = 
+ | shortcut = 
+ | notes    = The purpose of this page is to prove the statements of [[Interface:First-order logic with quantifiability]] from [[Interface:First-order logic]] and the [[Interface:Axiom of quantifiability]]. In particular, it adds substitution of an object (term) for a variable.
+}}
+{{interfaces
+| imports = [[Interface:First-order logic]] [[Interface:Axiom of quantifiability]]
+| exports = [[Interface:First-order logic with quantifiability]]
+}}
+
+We start with [[Interface:Classical propositional calculus]] and [[Interface:First-order logic]].
+
+
+As usual, φ and ψ are formulas, x, y, and z are variables, and s, t, and u are objects:
+
+
+== Term equality ==
+Here we prove that equality between terms (not just variables) is reflexive, symmetric, and transitive, and prove some related convenience theorems.
+
+=== Axiom of quantifiability ===
+We define term equality in [[Interface:Axiom of quantifiability]], so we need to import that interface now, even though for now we are just using it for term equality, rather than for using the axiom of quantifiability in other contexts.
+
+
+=== Reflexivity ===
+We start with reflexivity. The proof is just as in [[First-order logic]] except we are using a term rather than a variable, and {{{Existence}}} and {{{EqualityAxiom}}} are replaced by {{{Quantifiability}}} and {{{TermEqualityAxiom}}}.
+
+* #(→ (= x s) (= s s))# ([/general/First-order_logic_with_quantifiability.gh/EqualityReflexivity-1 | EqualityReflexivity-1])
+* #(→ (∀ x (¬ (= s s))) (∀ x (¬ (= x s))))# ([/general/First-order_logic_with_quantifiability.gh/EqualityReflexivity-2 | EqualityReflexivity-2])
+* #(= s s)# ([/general/First-order_logic_with_quantifiability.gh/EqualityReflexivity | EqualityReflexivity])
+
+=== Symmetry ===
+Symmetry start with {{{s = t → (s = s → t = s)}}} from the equality axiom, and then detach {{{s = s}}} because we have already proved reflexivity.
+* #(→ (= s t) (= t s))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySymmetryImplication | EqualitySymmetryImplication])
+* #(↔ (= s t) (= t s))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySymmetry | EqualitySymmetry])
+
+=== Transitivity ===
+Transitivity is now just a rearangement of our equality axiom:
+* #(→ (∧ (= s t) (= t u)) (= s u))# ([/general/First-order_logic_with_quantifiability.gh/EqualityTransitivity | EqualityTransitivity])
+
+=== Rules ===
+Here are some rules for equality of terms.
+
+* #(= s t)# ⊢ #(= t s)# ([/general/First-order_logic_with_quantifiability.gh/swapEquality | swapEquality])
+* #(→ φ (= s t))# ⊢ #(→ φ (= t s))# ([/general/First-order_logic_with_quantifiability.gh/swapEqualityInConsequent | swapEqualityInConsequent])
+* #(= s t)#, #(= t u)# ⊢ #(= s u)# ([/general/First-order_logic_with_quantifiability.gh/applyEqualityTransitivity | applyEqualityTransitivity])
+* #(→ φ (= s t))#, #(→ φ (= t u))# ⊢ #(→ φ (= s u))# ([/general/First-order_logic_with_quantifiability.gh/applyEqualityTransitivityInConsequent | applyEqualityTransitivityInConsequent])
+
+=== Builder ===
+{{{EqualityBuilder}}} can be derived from transitivity.  We start with a special case:
+
+* #(→ (= s0 s1) (↔ (= s0 t) (= s1 t)))# ([/general/First-order_logic_with_quantifiability.gh/EqualityBuilderRR | EqualityBuilderRR])
+
+We provide an analogous result with the order of the equalities changed, {{{EqualityBuilderLL}}}.
+* #(→ (↔ (= s0 t0) (= s1 t1)) (↔ (= t0 s0) (= t1 s1)))# ([/general/First-order_logic_with_quantifiability.gh/commute2 | commute2])
+* #(→ (= s0 s1) (↔ (= t s0) (= t s1)))# ([/general/First-order_logic_with_quantifiability.gh/EqualityBuilderLL | EqualityBuilderLL])
+
+Combining {{{EqualityBuilderLL}}} and {{{EqualityBuilderRR}}} gives us the full builder.
+
+* #(→ (∧ (= s0 s1) (= t0 t1)) (↔ (= s0 t0) (= s1 t1)))# ([/general/First-order_logic_with_quantifiability.gh/EqualityBuilder | EqualityBuilder])
+* #(= s0 s1)#, #(= t0 t1)# ⊢ #(↔ (= s0 t0) (= s1 t1))# ([/general/First-order_logic_with_quantifiability.gh/buildEquality | buildEquality])
+* #(= s0 s1)# ⊢ #(↔ (= s0 t) (= s1 t))# ([/general/First-order_logic_with_quantifiability.gh/buildEqualityRR | buildEqualityRR])
+* #(= t0 t1)# ⊢ #(↔ (= s t0) (= s t1))# ([/general/First-order_logic_with_quantifiability.gh/buildEqualityLL | buildEqualityLL])
+
+For convenience, we also supply builders in the consequent:
+
+* #(→ φ (= s0 s1))#, #(→ φ (= t0 t1))# ⊢ #(→ φ (↔ (= s0 t0) (= s1 t1)))# ([/general/First-order_logic_with_quantifiability.gh/buildEqualityInConsequent | buildEqualityInConsequent])
+* #(→ φ (= s0 s1))# ⊢ #(→ φ (↔ (= s0 t) (= s1 t)))# ([/general/First-order_logic_with_quantifiability.gh/buildEqualityRRInConsequent | buildEqualityRRInConsequent])
+* #(→ φ (= t0 t1))# ⊢ #(→ φ (↔ (= s t0) (= s t1)))# ([/general/First-order_logic_with_quantifiability.gh/buildEqualityLLInConsequent | buildEqualityLLInConsequent])
+
+== Substitution of terms ==
+We now turn to substitution of a term for a variable.
+
+In some formulations of predicate logic, this kind of substitution (known as ''proper substitution'' as there are some rules about what kinds of substitution are valid) is performed syntactically and the rules governing it are expressed in English or a meta-theory.  JHilbert does not have a feature to do syntactic proper substitution, but we are able to build up equivalent mechanisms from equality. The theorems in [[Interface:First-order logic with quantifiability]] could be proven from either the syntactic definition or ours.
+
+We define a formula {{{(subst s x φ)}}} which means, roughly, that {{{φ}}} is true if ocurrences of {{{x}}} are replaced by {{{s}}} ("roughly" because we have not tried to define proper substitution precisely). In dicussion, we also use the notation {{{[ s / x ] φ}}} (which is not legal JHilbert syntax) for the same thing. The definition is {{{[ s / x ] φ ≝ ∃ y (y = s ∧ ∃ x (x = y ∧ φ))}}}. The definition contains a dummy variable {{{y}}} to give the expected results if {{{x}}} and {{{s}}} are not distinct.<ref>It resembles [http://us.metamath.org/mpeuni/dfsb7.html dfsb7] in metamath's set.mm, accessed March 8, 2010, except that {{{s}}} (the replacement) is an {{{object}}} rather than a {{{variable}}}.</ref>
+
+This section contains a few of the preliminary results, which mostly don't need the axiom of quantifiability (but which do rely on some term equality theorems which rely on [[Interface:Axiom of quantifiability]]).
+
+=== Definition as theorem ===
+We first prove a theorem form of the definition.
+* #(
+  ↔ (subst s x φ) 
+    (∃ y (∧ (= y s) 
+      (∃ x (∧ (= x y) φ))
+    ))
+)# ([/general/First-order_logic_with_quantifiability.gh/Subst | Subst])
+
+=== Builders ===
+We can build up formulas based on equivalences or equalities of the the substituted proposition or the replacement (that is, {{{φ}}} or {{{s}}} in {{{(subst s x φ)}}}, respectively).
+
+==== Based on replacement ====
+In this section we will prove {{{s = t → ((subst s x φ) ↔ (subst t x φ))}}}. This is like dfsbcq in set.mm.<ref>[http://us.metamath.org/mpeuni/dfsbcq.html dfsbcq] in metamath's set.mm, accessed March 7, 2010</ref> The set.mm analogue for substituting a {{{variable}}} (rather than an {{{object}}}) is sbequ.<ref>[http://us.metamath.org/mpeuni/sbequ.html sbequ] in metamath's set.mm, accessed June 20, 2010</ref>
+
+* #(→ (= s t) (↔ (subst s x φ) (subst t x φ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstBuilderReplacement | SubstBuilderReplacement])
+* #(= s t)# ⊢ #(↔ (subst s x φ) (subst t x φ))# ([/general/First-order_logic_with_quantifiability.gh/buildSubstReplacement | buildSubstReplacement])
+
+==== Implication builder ====
+Analogous to our other implication builders, this theorem takes an implication and lets us add {{{subst}}} to both sides. The proof is just a straightforward application of the existing builders for conjunction and ∃.
+* #(→ (∀ x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstAddition | SubstAddition])
+* #(→ φ ψ)# ⊢ #(→ (subst s x φ) (subst s x ψ))# ([/general/First-order_logic_with_quantifiability.gh/addSubst | addSubst])
+
+==== Biconditional builder ====
+The builder for the biconditional is very similar to the implication builder.  It could be proved much the way we proved the implication builder, but we derive it from the implication builder.
+
+* #(→ (∀ x (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstBuilder | SubstBuilder])
+
+Here is a rule form.<ref>Similar to [http://us.metamath.org/mpeuni/sbbii.html sbbii] in metamath's set.mm, accessed February 24, 2010, except that {{{s}}} is an {{{object}}} not a {{{variable}}}</ref>
+* #(↔ φ ψ)# ⊢ #(↔ (subst s x φ) (subst s x ψ))# ([/general/First-order_logic_with_quantifiability.gh/buildSubst | buildSubst])
+
+=== Proving there-exists ===
+One way to prove a formula of the form {{{∃ x φ}}} is to demonstrate a particular {{{x}}} for which {{{φ}}} holds.  In [[w:Intuitionistic logic|constructive logic]] any theorem {{{∃ x φ}}} can be proved this way (because of the [[w:Existence property|existence property]]), but even in classical (non-constructive) logic this is one of the most common ways of proving {{{∃ x φ}}}.
+
+In our notation, this idea is expressed via {{{subst}}}:
+* #(→ (subst s x φ) (∃ x φ))# ([/general/First-order_logic_with_quantifiability.gh/ThereExistsIntroductionFromObject | ThereExistsIntroductionFromObject])
+* #(subst s x φ)# ⊢ #(∃ x φ)# ([/general/First-order_logic_with_quantifiability.gh/introduceThereExistsFromObject | introduceThereExistsFromObject])
+
+== Free variables and substitution ==
+A substitution acts like a quantifier in the sense that it binds the variable being substituted. So this variable is not free in the substituted formula (provided it is not free in the object being substituted for the variable).
+* #(is-not-free-in x (subst s x φ))# ([/general/First-order_logic_with_quantifiability.gh/SubstNotFree | SubstNotFree])
+
+== Axiom of quantifiability ==
+At this point we start using the axiom of quantifiability without reservation, not just as a way of defining term equality.
+
+== Specialization with substitution ==
+The version of {{{Specialization}}} from [[Interface:First-order logic]] is not the one most often presented as a theorem (or axiom) of predicate logic.  The standard version also contains a substitution, and is often worded something like "if a formula holds for all values of a variable, it also holds when a particular term is properly substituted for that variable" or in symbols {{{∀ x φ → [ s / x ] φ}}}.<ref>[http://us.metamath.org/mpeuni/stdpc4.html stdpc4] in metamath's set.mm, accessed June 9, 2010</ref><ref>a5sbc in Raph Levien's [http://levien.com/garden/ghnew/peano/ Peano], accessed June 9, 2010</ref><ref>Hirst and Hirst, axiom 4 on page 51</ref>
+* #(→ (∀ x φ) (subst s x φ))# ([/general/First-order_logic_with_quantifiability.gh/SpecializationToObject | SpecializationToObject])
+
+=== A rule ===
+* #(→ antecedent (∀ x φ))# ⊢ #(→ antecedent (subst s x φ))# ([/general/First-order_logic_with_quantifiability.gh/specializeToObjectInConsequent | specializeToObjectInConsequent])
+
+== Quantifiers and equality ==
+
+Here we prove a number of results involving equality and quantifiers. Many of them will pave the way for results involving explicit (subst) substitution.
+
+=== Implicit substitution and ∀ ===
+A statement of the form {{{x = s → (φ ↔ ψ)}}}, where {{{x}}} is not free in {{{ψ}}}, can be thought of as an ''implicit substitution'', as it can be used to relate a formula about {{{x}}} to a formula about {{{s}}}. Here we relate such a statement to {{{∀x(x = s → φ)}}} (which is one of the formulas we'll be using in manipulating substitutions).<ref>[http://us.metamath.org/mpeuni/equsal.html equsal] in metamath's set.mm, accessed May 11, 2010, but for an object not a variable</ref> The proof is based on one from Raph Levien.<ref>ceqsal in Raph Levien's [http://levien.com/garden/ghnew/peano/ Peano], accessed 2012</ref>
+* #(is-not-free-in x ψ)# ⊢ #(→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∀ x (→ (= x s) φ)) ψ))# ([/general/First-order_logic_with_quantifiability.gh/ImplicitSubstitutionForAllNotFree | ImplicitSubstitutionForAllNotFree])
+
+A rule form with a distinct variable constraint instead of a freeness hypothesis is:
+* #(→ (= x s) (↔ φ ψ))# ⊢ #(↔ (∀ x (→ (= x s) φ)) ψ)# ([/general/First-order_logic_with_quantifiability.gh/ImplicitForAll | ImplicitForAll])
+
+=== Implicit substitution and ∃ ===
+There is a similar result with ∃.<ref>[http://us.metamath.org/mpeuni/equsex.html equsex] in metamath's set.mm, accessed March 9, 2010, with {{{s}}} (the replacement) changed from a {{{variable}}} to an {{{object}}}</ref>
+
+Our implicit substitution theorem is:
+* #(is-not-free-in x ψ)# ⊢ #(→ (∀ x (→ (= x s) (↔ φ ψ))) (↔ (∃ x (∧ (= x s) φ)) ψ))# ([/general/First-order_logic_with_quantifiability.gh/ImplicitSubstitutionThereExists | ImplicitSubstitutionThereExists])
+
+The rule form is:
+* #(is-not-free-in x ψ)#, #(→ (= x s) (↔ φ ψ))# ⊢ #(↔ (∃ x (∧ (= x s) φ)) ψ)# ([/general/First-order_logic_with_quantifiability.gh/ImplicitThereExistsNotFree | ImplicitThereExistsNotFree])
+
+and a version with distinct variable constraint instead of a freeness hypothesis is:
+* #(→ (= x s) (↔ φ ψ))# ⊢ #(↔ (∃ x (∧ (= x s) φ)) ψ)# ([/general/First-order_logic_with_quantifiability.gh/ImplicitThereExists | ImplicitThereExists])
+
+=== Implicit substitution of an object for a variable ===
+Suppose that we have a formula {{{φx}}} and a formula {{{φs}}} which is much the same, but with {{{s}}} in place of {{{x}}}.  Then if {{{φx}}} is a theorem, we can conclude {{{φs}}}.
+
+Before we state this more formally, we prove a lemma.
+
+* #(→ (= x s) φ)# ⊢ #φ# ([/general/First-order_logic_with_quantifiability.gh/VariableToObjectLemma | VariableToObjectLemma])
+
+Our main result can be restated as that {{{φx}}} and {{{x = s → (φx ↔ φs)}}} enable us to conclude {{{φs}}}.
+
+* #(→ (= x s) (↔ φx φs))#, #φx# ⊢ #φs# ([/general/First-order_logic_with_quantifiability.gh/VariableToObject | VariableToObject])
+
+=== Object version of VariableSubstitution axiom ===
+The {{{VariableSubstitution}}} axiom is stated in terms of substitution of one variable for another. The analogue in which an object is substituted for a variable also holds.
+* #(→ (= x s) (→ φ (∀ x (→ (= x s) φ))))# ([/general/First-order_logic_with_quantifiability.gh/ObjectSubstitution | ObjectSubstitution])
+
+=== Two ways to express substitution when variables are distinct ===
+In previous sections, we have seen that {{{∃ x (x = s ∧ φ)}}} and {{{∀ x (x = s → φ)}}} behave similarly.  In fact, as long as {{{x}}} and {{{s}}} are distinct, they are completely equivalent.<ref>[http://us.metamath.org/mpeuni/sb56.html sb56] in metamath's set.mm, accessed June 17, 2010, except that {{{s}}} is an {{{object}}} rather than a {{{variable}}}</ref>
+* #(↔ (∃ x (∧ (= x s) φ)) (∀ x (→ (= x s) φ)))# ([/general/First-order_logic_with_quantifiability.gh/ThereExistsForAll | ThereExistsForAll])
+
+== Substitution and ∃ ==
+We've already seen that {{{∃ x (x = s ∧ φ)}}} is closely related to substitution.  Here we show that it is equivalent to {{{[ s / x ] φ}}}, as long as {{{x}}} does not appear in {{{s}}}.
+* #( ↔ (subst s x φ) (∃ x (∧ (= x s) φ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstitutionThereExists | SubstitutionThereExists])
+
+== Substitution of a variable which is not free ==
+Substituting a formula with a variable which is not free in that formula has no effect.<ref>[http://us.metamath.org/mpeuni/sbf.html sbf], metamath's set.mm, accessed July 20, 2010, except that the replacement is an object not a variable</ref>
+
+* #(↔ (subst s x φ) φ)# ([/general/First-order_logic_with_quantifiability.gh/NullSubstitution | NullSubstitution])
+
+== Substitution can be moved across connectives and quantifiers ==
+Substituting a formula consisting of a logical connective is equivalent to substituting each of the operands of that connective.
+
+=== Negation ===
+For negation, this is {{{[ s / x ] ¬ φ ↔ ¬ [ s / x ] φ}}}.<ref>[http://us.metamath.org/mpeuni/sbn.html sbn] in metamath's set.mm, accessed 2010, except that {{{s}}} is an {{{object}}} rather than a {{{variable}}}</ref>
+
+The proof consists of just moving negation around (via the following lemma) and applying {{{ThereExistsForAll}}}.
+
+* #(↔ (∀ x (→ (= x s) (¬ φ))) (¬ (∃ x (∧ (= x s) φ))))# ([/general/First-order_logic_with_quantifiability.gh/SubstNegationLemma | SubstNegationLemma])
+* #(↔ (subst s x (¬ φ)) (¬ (subst s x φ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstNegation | SubstNegation])
+
+=== Disjunction ===
+We can prove the ability to move substitution across a disjunction by expanding the definition and applying theorems which let us move ∃ and ∧ across disjunctions.
+* #(↔ (subst s x (∨ φ ψ)) (∨ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstDisjunction | SubstDisjunction])
+
+=== Other connectives ===
+The corresponding theorems for the other three connectives follow from those for negation and disjunction.
+* #(↔ (subst s x (∧ φ ψ)) (∧ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstConjunction | SubstConjunction])
+* #(↔ (subst s x (→ φ ψ)) (→ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstImplication | SubstImplication])
+* #(↔ (subst s x (↔ φ ψ)) (↔ (subst s x φ) (subst s x ψ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstBiconditional | SubstBiconditional])
+
+=== Quantifiers ===
+We can move substitution across a quantifier to a distinct variable: {{{[ s / x ] ∃ y φ ↔ ∃ y [ s / x ] φ}}}.<ref>[http://us.metamath.org/mpeuni/sbex.html sbex], metamath's set.mm</ref>
+* #(↔ (subst s x (∃ y φ)) (∃ y (subst s x φ)))# ([/general/First-order_logic_with_quantifiability.gh/SubstThereExists | SubstThereExists])
+
+== Composition ==
+If we first substitute {{{y}}} for {{{x}}}, and then substitute {{{s}}} for {{{y}}}, the whole process is equivalent to substituting {{{s}}} for {{{x}}} (subject to some distinct variable constraints).<ref>sbcco in Raph Levien's [http://levien.com/garden/ghnew/peano/ Peano], accessed 12 Jun 2010. Note that the (x y) distinct variable constraint is implicit in ghilbert, because x and y are specified with var (not tvar).</ref>
+* #(↔ (subst s y (subst y x φ)) (subst s x φ))# ([/general/First-order_logic_with_quantifiability.gh/SubstitutionComposition | SubstitutionComposition])
+
+== Substitution of objects, with axiom of quantifiability ==
+The axiom of quantifiability allows us to prove more substitution results because we can assume that a variable can take on a value corresponding to any object.
+
+=== Substitution of a theorem remains a theorem ===
+If we have a theorem, we can add a variable substitution onto it.
+
+* #φ# ⊢ #(subst s x φ)# ([/general/First-order_logic_with_quantifiability.gh/introduceSubst | introduceSubst])
+
+=== Convert from implicit substitution ===
+A statement of the form {{{x = s → (φ ↔ ψ)}}}, where {{{x}}} is not free in {{{ψ}}}, can be thought of as an ''implicit substitution'', as it can be used to relate a formula about {{{x}}} to a formula about {{{s}}}.
+
+Although the distinct variable constraint between {{{x}}} and {{{s}}} should not be necessary (if we wanted to require that {{{x}}} and {{{s}}} are distinct we could have a simpler definition of {{{subst}}}), even the version with the constraint can be useful.
+
+* #(is-not-free-in x ψ)#, #(→ (= x s) (↔ φ ψ))# ⊢ #(↔ (subst s x φ) ψ)# ([/general/First-order_logic_with_quantifiability.gh/makeSubstExplicitNotFree | makeSubstExplicitNotFree])
+* #(→ (= x s) (↔ φ ψ))# ⊢ #(↔ (subst s x φ) ψ)# ([/general/First-order_logic_with_quantifiability.gh/makeSubstExplicit | makeSubstExplicit])
+
+== Substituting one quantified variable for another ==
+If we have a quantified formula, and we substitute the quantified variable for another (using {{{subst}}}), the formula holds with the substituted variable in the quantifier.  In symbols, this is {{{∀ x φ ↔ ∀ y [ y / x ] φ}}} and {{{∃ x φ ↔ ∃ y [ y / x ] φ}}}, where {{{y}}} is not free in {{{φ}}}.<ref>[http://us.metamath.org/mpeuni/sb8.html sb8] and [http://us.metamath.org/mpeuni/sb8e.html sb8e] in metamath's set.mm, accessed June 24, 2010</ref>
+
+=== A theorem relating a substituted formula to equality ===
+Here we prove {{{x = s → (φ ↔ [ s / x ] φ)}}}.<ref>[http://us.metamath.org/mpeuni/sbequ12.html sbequ12], metamath's set.mm, accessed October 6, 2010</ref> One way of understanding this theorem is to compare it with the following instance of {{{SubstBuilderReplacement}}}: {{{x = s → ([ x / x ] φ ↔ [ s / x ] φ)}}}. The similarity should be obvious (although we actually will prove {{{[ x / x ] φ ↔ φ}}} as a consequence of this result rather than the other way around).
+
+First we prove the case where {{{x}}} and {{{s}}} are distinct (later we will be able to remove this limitation). We start with the forward direction.
+* #(→ (= x s) (→ φ (subst s x φ)))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySubstForward | EqualitySubstForward])
+
+The reverse direction is basically a transposition away.
+* #(→ (= x s) (→ (subst s x φ) φ))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySubstReverse | EqualitySubstReverse])
+* #(→ (= x s) (↔ φ (subst s x φ)))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySubstDistinct | EqualitySubstDistinct])
+
+=== Substituting a variable for itself ===
+Here we prove {{{[ x / x ] φ ↔ φ}}}. Our proof is slightly more involved than metamath's, because we have a distinct variable constraint on {{{EqualitySubst}}} which is missing from the metamath equivalent thereof.<ref>[http://us.metamath.org/mpeuni/sbid.html sbid] in metamath's set.mm, accessed October 31, 2010</ref>
+* #(↔ (subst x x φ) φ)# ([/general/First-order_logic_with_quantifiability.gh/SubstItself | SubstItself])
+
+=== A version of EqualitySubst without the distinct variable requirement ===
+Now that we have proved that {{{[ x / x ] φ ↔ φ}}}, we can use it to remove the distinct variable constraint from {{{EqualitySubst}}}.
+* #(→ (= x s) (↔ φ (subst s x φ)))# ([/general/First-order_logic_with_quantifiability.gh/EqualitySubst | EqualitySubst])
+
+=== Change variable with explicit substitution ===
+We can now prove the version of the change variable theorem with explicit substitutions.
+* #(↔ (∃ x φ) (∃ y (subst y x φ)))# ([/general/First-order_logic_with_quantifiability.gh/ChangeVariableExplicitThereExists | ChangeVariableExplicitThereExists])
+* #(↔ (∀ x φ) (∀ y (subst y x φ)))# ([/general/First-order_logic_with_quantifiability.gh/ChangeVariableExplicitForAll | ChangeVariableExplicitForAll])
+
+=== Changing the variable in a substitution ===
+The variable in a substitution is bound like a quantified variable, and can be substituted in a similar way.
+* #(→ (= x y) (↔ φx φy))# ⊢ #(↔ (subst s x φx) (subst s y φy))# ([/general/First-order_logic_with_quantifiability.gh/ChangeVariableSubstitution | ChangeVariableSubstitution])
+
+== Export ==
+That gives us [[Interface:First-order logic with quantifiability]], which we now export.
+
+== Exporting to the axioms of first-order logic in terms of substitution based on equality ==
+We also export [[Interface:Axioms of first-order logic in terms of substitution built on equality]], to show that those axioms are no stronger than the ones we worked from here.
+
+For {{{GeneralizationNotFree}}}, we need a slight rearrangement of theorems we have, but other than that we've already proved everything.
+
+* #(is-not-free-in x φ)# ⊢ #(→ φ (∀ x φ))# ([/general/First-order_logic_with_quantifiability.gh/GeneralizationNotFree | GeneralizationNotFree])
+
+== Footnotes ==
+<references/>
+
+== Cited works ==
+Hirst, Holly P. and Hirst, Jeffry L. (2008-2009 Edition), ''[http://www.mathsci.appstate.edu/~jlh/primer/hirst.pdf A Primer for Logic and Proof]'', self-published on the web by [http://www.mathsci.appstate.edu/~jlh/ Jeff Hirst]
+
+[[Category:Classical first-order logic]]
