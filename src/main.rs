@@ -14,12 +14,16 @@
 
 //! A command line utility for the new Ghilbert format.
 
+extern crate union_find;
+
 use std::env;
 use std::fs::File;
 use std::io::Read;
 
 mod sexp;
 use sexp::{Intern, Sexp};
+
+mod unify;
 
 fn my_main() -> ::std::io::Result<()> {
 	let mut args = env::args();
