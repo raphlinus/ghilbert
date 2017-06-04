@@ -139,7 +139,7 @@ class EditHandler(users.AuthenticatedHandler):
         o.write('<span id="authetication">%s</span>' % auth);
         o.write("""
 <script type="text/javascript"
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 <script src="/js/verify.js" type="text/javascript"></script>
 <script src="/js/sandbox.js" type="text/javascript"></script>
