@@ -144,7 +144,7 @@ impl Graph {
 			if ainfo.constructor != binfo.constructor {
 				return Err(Error::ConstructorNoMatch);
 			}
-			for (achild, bchild) = ainfo.children.iter().zip(binfo.children.iter()) {
+			for (&achild, &bchild) in ainfo.children.iter().zip(binfo.children.iter()) {
 				self.unify_nodes(achild, bchild)?;
 			}
 		}
