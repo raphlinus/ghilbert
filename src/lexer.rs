@@ -1,0 +1,147 @@
+// Copyright 2017 Raph Levien. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//! A simple lexer for the the new Ghilbert format.
+
+use std::collections::BTreeMap;
+
+pub type Token = usize;
+
+struct Node {
+    terminal: Option<Token>,
+    succ: BTreeMap<char, Node>,
+}
+
+impl Node {
+    fn new() -> Node {
+        Node {
+            terminal: None,
+            succ: BTreeMap::new(),
+        }
+    }
+
+    fn traverse<I: Iterator<Item=char>>(&mut self, mut iter: I) -> &mut Node {
+        let mut node = self;
+        for c in iter {
+            node = {node}.succ.entry(c).or_insert_with(|| Node::new());
+        }
+        node
+    }
+}
+
+pub struct Lexer<'a> {
+    text: &'a str,
+    ix: usize,
+    root: Node,
+    tokens: Vec<String>,
+}
+
+impl<'a> Lexer<'a> {
+    /// Creates a new lexer for a given input string.
+    pub fn new(text: &str) -> Lexer {
+        Lexer {
+            text: text,
+            ix: 0,
+            root: Node::new(),
+            tokens: Vec::new(),
+        }
+    }
+
+    fn skip_whitespace(&mut self) {
+        let mut len = 0;
+        for c in self.text[self.ix..].chars() {
+            if !c.is_whitespace() {
+                break;
+            }
+            len += c.len_utf8();
+        }
+        self.ix += len;
+    }
+
+    /// Interns a token, in other words installs it in the table if not already
+    /// present.
+    pub fn intern(&mut self, s: &str) -> Token {
+        let mut node = self.root.traverse(s.chars());
+        if let Some(token) = node.terminal {
+            token
+        } else {
+            let token = self.tokens.len();
+            self.tokens.push(s.to_string());
+            node.terminal = Some(token);
+            token
+        }
+    }
+
+    fn next_from_len(&mut self, len: usize) -> Option<Token> {
+        if len == 0 {
+            None
+        } else {
+            let ix = self.ix;
+            self.ix += len;
+            Some(self.intern(&self.text[ix..ix + len]))
+        }
+    }
+
+    /// Scans a token using "long" policy; token is everything up to space.
+    pub fn next_long(&mut self) -> Option<Token> {
+        self.skip_whitespace();
+        let mut len = 0;
+        for c in self.text[self.ix..].chars() {
+            if c.is_whitespace() {
+                break;
+            }
+            len += c.len_utf8();
+        }
+        self.next_from_len(len)
+    }
+
+    /// Scans a token using normal policy; longest matching token, or at least
+    /// one codepoint.
+    pub fn next(&mut self) -> Option<Token> {
+        self.skip_whitespace();
+        let mut best = None;
+        let mut one_cp_len = None;
+        {
+            let mut len = 0;
+            let mut node = &mut self.root;
+            for c in self.text[self.ix..].chars() {
+                if c.is_whitespace() {
+                    break;
+                }
+                if len == 0 {
+                    one_cp_len = Some(c.len_utf8());
+                }
+                if let Some(next) = {node}.succ.get_mut(&c) {
+                    node = next;
+                } else {
+                    break;
+                }
+                len += c.len_utf8();
+                if let Some(token) = node.terminal {
+                    best = Some((token, len));
+                }
+            }
+        }
+        if let Some((token, len)) = best {
+            self.ix += len;
+            Some(token)
+        } else {
+            one_cp_len.and_then(|len| self.next_from_len(len))
+        }
+    }
+
+    pub fn tok_str(&self, tok: Token) -> &str {
+        &self.tokens[tok]
+    }
+}
