@@ -53,7 +53,10 @@ fn my_main() -> ::std::io::Result<()> {
             let mut parser = Parser::new(lexer);
             loop {
                 match parser.parse_cmd() {
-                    Ok(cmd) => println!("cmd: {:?}", cmd),
+                    Ok(cmd) => {
+                        //println!("cmd: {:?}", cmd)
+                        parser.dump_tree(&cmd);
+                    }
                     Err(e) => {
                         println!("err: {:?}", e);
                         break;

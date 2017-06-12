@@ -20,11 +20,11 @@ use lexer::{Lexer, Token};
 struct ParseNode {
     // We'll add syncing to source locations later.
     /*
-	start: usize,
-	end: usize,
+    start: usize,
+    end: usize,
     */
-	info: Info,
-	children: Vec<ParseNode>,
+    info: Info,
+    children: Vec<ParseNode>,
 }
 
 impl ParseNode {
@@ -39,13 +39,24 @@ impl ParseNode {
 
 #[derive(Debug)]
 enum Info {
-	KindCmd,
+    // children: kind
+    KindCmd,
+    // children: [vars], kind
     VarCmd,
+    // children: con, [args], kind
     TermCmd,
+    // children: step, [hyps], result
     AxiomCmd,
+    // children: label, [hyp_names], [hyps], [lines]
+    TheoremCmd,
+    // children: con, [args]
     Term,
+    // children: label, step, [args], result
+    // Notes: label is optional (Dummy if missing), arg = step or [lines]
+    Line,
     List,
-	Kind(Token),
+    Dummy,
+    Kind(Token),
     Var(Token),
     Const(Token),
     Atom(Token),  // is either Const or Var, will resolve later
@@ -56,11 +67,16 @@ struct Predefined {
     axiom: Token,
     kind: Token,
     term: Token,
+    theorem: Token,
     var: Token,
     open: Token,
     close: Token,
+    open_bracket: Token,
+    close_bracket: Token,
     semicolon: Token,
     colon: Token,
+    colon_colon: Token,
+    underline: Token,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -76,11 +92,16 @@ impl Predefined {
             axiom: lexer.intern("axiom"),
             kind: lexer.intern("kind"),
             term: lexer.intern("term"),
+            theorem: lexer.intern("theorem"),
             var: lexer.intern("var"),
             open: lexer.intern("("),
             close: lexer.intern(")"),
+            open_bracket: lexer.intern("["),
+            close_bracket: lexer.intern("]"),
             semicolon: lexer.intern(";"),
             colon: lexer.intern(":"),
+            colon_colon: lexer.intern("::"),
+            underline: lexer.intern("_"),
         }
     }
 }
@@ -155,6 +176,8 @@ impl<'a> Parser<'a> {
             Ok(ParseNode { info: Info::TermCmd, children })
         } else if token == self.predefined.axiom {
             self.parse_axiom()
+        } else if token == self.predefined.theorem {
+            self.parse_theorem()
         } else {
             Err(Error::SyntaxError)
         }
@@ -181,6 +204,84 @@ impl<'a> Parser<'a> {
         self.expect(semicolon)?;
         let children = vec![step, ParseNode::list(hyps), result];
         Ok(ParseNode { info: Info::AxiomCmd, children })
+    }
+
+    fn parse_theorem(&mut self) -> Result<ParseNode, Error> {
+        let step = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+        let step = ParseNode::leaf(Info::Step(step));
+        let mut hyps = Vec::new();
+        let mut hyp_names = Vec::new();
+        let colon = self.predefined.colon;
+        let open = self.predefined.open;
+        loop {
+            if self.lexer.expect(colon) {
+                break;
+            }
+            self.expect(open)?;
+            let hyp_name = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+            hyp_names.push(ParseNode::leaf(Info::Step(hyp_name)));
+            self.expect(colon)?;
+            let close = self.predefined.close;
+            hyps.push(self.parse_term(Some(close))?);
+            self.expect(close)?;
+        }
+        let colon_colon = self.predefined.colon_colon;
+        let result = self.parse_term(Some(colon_colon))?;
+        self.expect(colon_colon)?;
+
+        // the proof
+        self.expect(open);
+        let proof = self.parse_proof()?;
+        let children = vec![step, ParseNode::list(hyp_names), ParseNode::list(hyps), result, proof];
+        Ok(ParseNode { info: Info::TheoremCmd, children })
+    }
+
+    // Note: at this point, the open paren of the proof has already been consumed
+    fn parse_proof(&mut self) -> Result<ParseNode, Error> {
+        let open = self.predefined.open;
+        let close = self.predefined.close;
+        let open_bracket = self.predefined.open_bracket;
+        let close_bracket = self.predefined.close_bracket;
+        let semicolon = self.predefined.semicolon;
+        let mut lines = Vec::new();
+        let mut done = false;
+        while !done {
+            let mut label = ParseNode::leaf(Info::Dummy);
+            let mut tok = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+            //println!("tok {:?}", tok);
+            if tok == close {
+                break;
+            }
+            if self.lexer.expect(self.predefined.colon) {
+                label = ParseNode::leaf(Info::Step(tok));
+                tok = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+            }
+            let step = ParseNode::leaf(Info::Step(tok));
+            let mut args = Vec::new();
+            let mut result = ParseNode::leaf(Info::Dummy);
+            loop {
+                let tok = self.lexer.next().ok_or(Error::UnexpectedEof)?;
+                if tok == open_bracket {
+                    result = self.parse_term(Some(close_bracket))?;
+                    self.expect(close_bracket)?;
+                    break;
+                } else if tok == semicolon {
+                    break;
+                } else if tok == close {
+                    done = true;
+                    break;
+                } else if tok == open {
+                    args.push(self.parse_proof()?);
+                } else {
+                    // Note: this (currently) takes care of underline case
+                    args.push(ParseNode::leaf(Info::Step(tok)));
+                }
+            }
+            let children = vec![label, step, ParseNode::list(args), result];
+            //println!("line: {:?}", children);
+            lines.push(ParseNode { info: Info::Line, children });
+        }
+        Ok(ParseNode::list(lines))
     }
 
     fn parse_term(&mut self, closer: Option<Token>) -> Result<ParseNode, Error> {
@@ -217,6 +318,35 @@ impl<'a> Parser<'a> {
                 let children = vec![atom, args];
                 Ok(ParseNode { info: Info::Term, children })
             }
+        }
+    }
+
+    pub fn dump_tree(&self, node: &ParseNode) {
+        self.dump_tree_rec(node, 0);
+    }
+
+    pub fn dump_tree_rec(&self, node: &ParseNode, depth: usize) {
+        for _ in 0..depth {
+            print!("  ");
+        }
+        match node.info {
+            Info::KindCmd => println!("kind"),
+            Info::VarCmd => println!("var"),
+            Info::TermCmd => println!("term"),
+            Info::AxiomCmd => println!("axiom"),
+            Info::TheoremCmd => println!("theorem"),
+            Info::Term => println!("*"),
+            Info::Line => println!("line"),
+            Info::List => println!("[]"),
+            Info::Dummy => println!("_"),
+            Info::Kind(t) => println!("kind {}", self.lexer.tok_str(t)),
+            Info::Var(t) => println!("var {}", self.lexer.tok_str(t)),
+            Info::Const(t) => println!("const {}", self.lexer.tok_str(t)),
+            Info::Atom(t) => println!("atom {}", self.lexer.tok_str(t)),
+            Info::Step(t) => println!("step {}", self.lexer.tok_str(t)),
+        }
+        for child in &node.children {
+            self.dump_tree_rec(child, depth + 1);
         }
     }
 }
