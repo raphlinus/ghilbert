@@ -23,6 +23,9 @@ use std::io::Read;
 mod lexer;
 use lexer::Lexer;
 
+mod parser;
+use parser::Parser;
+
 mod sexp;
 use sexp::{Intern, Sexp};
 
@@ -32,24 +35,30 @@ fn my_main() -> ::std::io::Result<()> {
     let mut args = env::args();
     args.next();
     let mut verbose = true;
-    let mut toks = false;
+    let mut parse = false;
     for f in args {
         if f == "-q" {
             verbose = false;
             continue;
-        } else if f == "-t" {
-            toks = true;
+        } else if f == "-p" {
+            parse = true;
             continue;
         }
         let mut file = File::open(f)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let mut intern = Intern::new();
-        if toks {
-            let mut lexer = Lexer::new(&contents);
-            lexer.intern("kind");
-            while let Some(tok) = lexer.next() {
-                println!("tok {}", lexer.tok_str(tok));
+        if parse {
+            let lexer = Lexer::new(&contents);
+            let mut parser = Parser::new(lexer);
+            loop {
+                match parser.parse_cmd() {
+                    Ok(cmd) => println!("cmd: {:?}", cmd),
+                    Err(e) => {
+                        println!("err: {:?}", e);
+                        break;
+                    }
+                }
             }
         } else {
             let mut ix = 0;

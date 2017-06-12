@@ -45,6 +45,7 @@ pub struct Lexer<'a> {
     ix: usize,
     root: Node,
     tokens: Vec<String>,
+    lookahead: Option<(Token, usize)>,
 }
 
 impl<'a> Lexer<'a> {
@@ -55,6 +56,7 @@ impl<'a> Lexer<'a> {
             ix: 0,
             root: Node::new(),
             tokens: Vec::new(),
+            lookahead: None,
         }
     }
 
@@ -95,6 +97,10 @@ impl<'a> Lexer<'a> {
 
     /// Scans a token using "long" policy; token is everything up to space.
     pub fn next_long(&mut self) -> Option<Token> {
+        if let Some((tok, ix)) = self.lookahead.take() {
+            self.ix = ix;
+            return Some(tok);
+        }
         self.skip_whitespace();
         let mut len = 0;
         for c in self.text[self.ix..].chars() {
@@ -106,9 +112,30 @@ impl<'a> Lexer<'a> {
         self.next_from_len(len)
     }
 
+    /// Scans a token using "medium" policy; delimeters include space, semicolon, colon, parens.
+    pub fn next_medium(&mut self) -> Option<Token> {
+        if let Some((tok, ix)) = self.lookahead.take() {
+            self.ix = ix;
+            return Some(tok);
+        }
+        self.skip_whitespace();
+        let mut len = 0;
+        for c in self.text[self.ix..].chars() {
+            if len > 0 && (c.is_whitespace() || c == ';' || c == ':' || c == '(' || c == ')') {
+                break;
+            }
+            len += c.len_utf8();
+        }
+        self.next_from_len(len)
+    }
+
     /// Scans a token using normal policy; longest matching token, or at least
     /// one codepoint.
     pub fn next(&mut self) -> Option<Token> {
+        if let Some((tok, ix)) = self.lookahead.take() {
+            self.ix = ix;
+            return Some(tok);
+        }
         self.skip_whitespace();
         let mut best = None;
         let mut one_cp_len = None;
@@ -141,7 +168,30 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Returns the string for the given token.
     pub fn tok_str(&self, tok: Token) -> &str {
         &self.tokens[tok]
+    }
+
+    /// Peeks at the next token without advancing the cursor.
+    pub fn peek(&mut self) -> Option<Token> {
+        if let Some((tok, _)) = self.lookahead {
+            return Some(tok);
+        }
+        self.next().map(|tok| {
+            self.lookahead = Some((tok, self.ix));
+            tok
+        })
+    }
+
+    /// Consumes the expected token, otherwise leaves the lexer state unchanged.
+    pub fn expect(&mut self, expected: Token) -> bool {
+        if let Some(tok) = self.peek() {
+            if tok == expected {
+                let _ = self.next();
+                return true;
+            }
+        }
+        false
     }
 }
