@@ -31,7 +31,7 @@ impl Node {
         }
     }
 
-    fn traverse<I: Iterator<Item=char>>(&mut self, mut iter: I) -> &mut Node {
+    fn traverse<I: Iterator<Item=char>>(&mut self, iter: I) -> &mut Node {
         let mut node = self;
         for c in iter {
             node = {node}.succ.entry(c).or_insert_with(|| Node::new());

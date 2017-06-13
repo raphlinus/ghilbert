@@ -17,14 +17,14 @@
 use lexer::{Lexer, Token};
 
 #[derive(Debug)]
-struct ParseNode {
+pub struct ParseNode {
     // We'll add syncing to source locations later.
     /*
     start: usize,
     end: usize,
     */
-    info: Info,
-    children: Vec<ParseNode>,
+    pub info: Info,
+    pub children: Vec<ParseNode>,
 }
 
 impl ParseNode {
@@ -38,7 +38,7 @@ impl ParseNode {
 }
 
 #[derive(Debug)]
-enum Info {
+pub enum Info {
     // children: kind
     KindCmd,
     // children: [vars], kind
@@ -50,7 +50,6 @@ enum Info {
     // children: label, [hyp_names], [hyps], [lines]
     TheoremCmd,
     // children: con, [args]
-    Term,
     // children: label, step, [args], result
     // Notes: label is optional (Dummy if missing), arg = step or [lines]
     Line,
@@ -59,6 +58,7 @@ enum Info {
     Kind(Token),
     Var(Token),
     Const(Token),
+    // children: [args]
     Atom(Token),  // is either Const or Var, will resolve later
     Step(Token),
 }
@@ -80,7 +80,7 @@ struct Predefined {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-enum Error {
+pub enum Error {
     Eof,
     UnexpectedEof,
     SyntaxError,
@@ -293,7 +293,6 @@ impl<'a> Parser<'a> {
             Ok(result)
         } else {
             let atom = self.lexer.next().ok_or(Error::UnexpectedEof)?;
-            let atom = ParseNode::leaf(Info::Atom(atom));
             let mut args = Vec::new();
             loop {
                 if let Some(tok) = self.lexer.peek() {
@@ -311,6 +310,9 @@ impl<'a> Parser<'a> {
                     break;
                 }
             }
+            Ok(ParseNode { info: Info::Atom(atom), children: args })
+            /*
+            let atom = ParseNode::leaf(Info::Atom(atom));
             if args.is_empty() {
                 Ok(atom)
             } else {
@@ -318,6 +320,7 @@ impl<'a> Parser<'a> {
                 let children = vec![atom, args];
                 Ok(ParseNode { info: Info::Term, children })
             }
+            */
         }
     }
 
@@ -335,7 +338,6 @@ impl<'a> Parser<'a> {
             Info::TermCmd => println!("term"),
             Info::AxiomCmd => println!("axiom"),
             Info::TheoremCmd => println!("theorem"),
-            Info::Term => println!("*"),
             Info::Line => println!("line"),
             Info::List => println!("[]"),
             Info::Dummy => println!("_"),
@@ -348,5 +350,10 @@ impl<'a> Parser<'a> {
         for child in &node.children {
             self.dump_tree_rec(child, depth + 1);
         }
+    }
+
+    /// Returns the string for the given token.
+    pub fn tok_str(&self, tok: Token) -> &str {
+        self.lexer.tok_str(tok)
     }
 }

@@ -1,0 +1,24 @@
+kind term;
+var x y z: term;
+term ` x y: term;
+term S : term;
+term K : term;
+term I : term;
+kind wff;
+term = x y: wff;
+
+axiom AS: = (`(`(`Sx)y)z) (`(`xz)(`yz));
+axiom AK: = (`(`Kx)y) x;
+axiom fveq1i (= x y): = (`xz) (`yz);
+axiom fveq2i (= x y): = (`zx) (`zy);
+axiom eqtri (= x y) (= y z): = x z;
+axiom eta (= (`xz) (`yz)): = x y;
+
+theorem AI: = `(`(`(`SK)K)x) x ::(
+    AS
+    [= (`(`(`SK)K)x) (`(`Kx)(`Kx))]
+    eqtri _ (
+        AK
+        [= (`(`Kx)(`Kx)) x]
+    )
+)

@@ -16,9 +16,12 @@
 
 use union_find::{QuickUnionUf, UnionByRank, UnionFind};
 
-type Const = usize;
+use lexer::Token;
 
-enum Expr {
+type Const = Token;
+
+#[derive(Debug)]
+pub enum Expr {
 	Var(usize),
 	Term {
 		constructor: Const,
@@ -26,10 +29,11 @@ enum Expr {
 	}
 }
 
-struct Stmt {
-	n_var: usize,  // TODO: might become more info, like names
-	hyps: Vec<Expr>,
-	concl: Expr,
+#[derive(Debug)]
+pub struct Stmt {
+	pub n_var: usize,  // TODO: might become more info, like names
+	pub hyps: Vec<Expr>,
+	pub concl: Expr,
 }
 
 #[derive(Clone)]
@@ -43,6 +47,7 @@ pub struct Graph {
 	uf: QuickUnionUf<UnionByRank>,
 }
 
+#[derive(Debug)]
 pub enum Error {
 	UnifyError,
 	ConstructorNoMatch,

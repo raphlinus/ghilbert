@@ -29,41 +29,29 @@ use parser::Parser;
 mod sexp;
 use sexp::{Intern, Sexp};
 
+mod session;
+use session::Session;
+
 mod unify;
 
 fn my_main() -> ::std::io::Result<()> {
     let mut args = env::args();
     args.next();
     let mut verbose = true;
-    let mut parse = false;
+    let mut sexpr = false;
     for f in args {
         if f == "-q" {
             verbose = false;
             continue;
-        } else if f == "-p" {
-            parse = true;
+        } else if f == "-s" {
+            sexpr = true;
             continue;
         }
         let mut file = File::open(f)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let mut intern = Intern::new();
-        if parse {
-            let lexer = Lexer::new(&contents);
-            let mut parser = Parser::new(lexer);
-            loop {
-                match parser.parse_cmd() {
-                    Ok(cmd) => {
-                        //println!("cmd: {:?}", cmd)
-                        parser.dump_tree(&cmd);
-                    }
-                    Err(e) => {
-                        println!("err: {:?}", e);
-                        break;
-                    }
-                }
-            }
-        } else {
+        if sexpr {
             let mut ix = 0;
             loop {
                 match Sexp::parse(&mut intern, &contents[ix..]) {
@@ -79,6 +67,13 @@ fn my_main() -> ::std::io::Result<()> {
                         break;
                     }
                 }
+            }
+        } else {
+            let lexer = Lexer::new(&contents);
+            let parser = Parser::new(lexer);
+            let mut session = Session::new(parser);
+            if let Err(e) = session.run() {
+                println!("err: {:?}", e);
             }
         }
     }
