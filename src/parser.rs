@@ -37,7 +37,7 @@ impl ParseNode {
     }
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Info {
     // children: kind
     KindCmd,
@@ -47,7 +47,7 @@ pub enum Info {
     TermCmd,
     // children: step, [hyps], result
     AxiomCmd,
-    // children: label, [hyp_names], [hyps], [lines]
+    // children: label, [hyp_names], [hyps], result, [lines]
     TheoremCmd,
     // children: con, [args]
     // children: label, step, [args], result
@@ -230,7 +230,7 @@ impl<'a> Parser<'a> {
         self.expect(colon_colon)?;
 
         // the proof
-        self.expect(open);
+        self.expect(open)?;
         let proof = self.parse_proof()?;
         let children = vec![step, ParseNode::list(hyp_names), ParseNode::list(hyps), result, proof];
         Ok(ParseNode { info: Info::TheoremCmd, children })
@@ -272,8 +272,9 @@ impl<'a> Parser<'a> {
                     break;
                 } else if tok == open {
                     args.push(self.parse_proof()?);
+                } else if tok == self.predefined.underline {
+                    args.push(ParseNode::leaf(Info::Dummy));
                 } else {
-                    // Note: this (currently) takes care of underline case
                     args.push(ParseNode::leaf(Info::Step(tok)));
                 }
             }

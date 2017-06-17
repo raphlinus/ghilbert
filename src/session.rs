@@ -18,7 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
-use unify::{self, Expr, Stmt};
+use unify::{self, Expr, Graph, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -29,9 +29,12 @@ pub enum Error {
     DuplicateVar,
     DuplicateTerm,
     DuplicateStmt,
+    DuplicateStep,
     VarNotFound,
     ArityMismatch,
     KindMismatch,
+    EmptyProof,
+    StepNotFound,
     InconsistentParse,
     ParseError(parser::Error),
     UnifyError(unify::Error),
@@ -131,6 +134,7 @@ impl<'a> Session<'a> {
             Info::VarCmd => self.do_var(&cmd.children)?,
             Info::TermCmd => self.do_term(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
+            Info::TheoremCmd => self.do_theorem(&cmd.children)?,
             _ => return Err(Error::UnknownCommand),
         }
         Ok(())
@@ -193,20 +197,110 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        let mut hyps = Vec::with_capacity(children[1].children.len());
-        let mut var_map = BTreeMap::new();
-        for hyp in &children[1].children {
-            let (expr, _kind) = self.term_to_expr(hyp, &mut var_map)?;
-            hyps.push(expr);
-        }
-        let (concl, _kind) = self.term_to_expr(&children[2], &mut var_map)?;
-        let n_var = var_map.len();
-        let stmt = Stmt { n_var, hyps, concl };
+        let stmt = self.mk_stmt(&children[1], &children[2])?;
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }
         self.stmts.insert(step, stmt);
         Ok(())
+    }
+
+    fn do_theorem(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+        let step = get_step(&children[0])?;
+        if self.stmts.contains_key(&step) {
+            if self.verbose {
+                println!("Duplicate stmt {}", self.parser.tok_str(step));
+            }
+            return Err(Error::DuplicateStmt);
+        }
+        let stmt = self.mk_stmt(&children[2], &children[3])?;
+        let mut graph = Graph::new();
+        let (hyps, mut var_map) = graph.add_hyps(&stmt)?;
+        let mut steps = BTreeMap::new();
+        for (hyp_name, hyp) in children[1].children.iter().zip(hyps.into_iter()) {
+            steps.insert(get_step(hyp_name)?, hyp);
+        }
+        let concl_node = self.apply_proof(&children[4], &mut graph, &mut steps)?;
+        graph.unify_expr(concl_node, &stmt.concl, &mut var_map)?;
+        // Make sure all variables in hyps and concl are general
+        for opt_node in &var_map {
+            if let Some(node) = *opt_node {
+                graph.check_general(node)?;
+            }
+        }
+        if self.verbose {
+            println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
+        }
+        self.stmts.insert(step, stmt);
+        Ok(())
+    }
+
+    // The `proof` argument is a list of lines.
+    fn apply_proof(&self, proof: &ParseNode, graph: &mut Graph,
+        steps: &mut BTreeMap<Token, usize>) -> Result<usize, Error>
+    {
+        let mut last_line = None;
+        for line in &proof.children {
+            if line.info != Info::Line {
+                return Err(Error::InconsistentParse);
+            }
+            let step = get_step(&line.children[1])?;
+            let mut hyps = Vec::with_capacity(line.children[2].children.len());
+            for arg in &line.children[2].children {
+                let hyp = match arg.info {
+                    Info::List => self.apply_proof(arg, graph, steps)?,
+                    Info::Dummy => last_line.ok_or(Error::StepNotFound)?,
+                    Info::Step(arg_step) => {
+                        if let Some(r) = steps.get(&arg_step) {
+                            *r
+                        } else if let Some(arg_stmt) = self.stmts.get(&arg_step) {
+                            if !arg_stmt.hyps.is_empty() {
+                                return Err(Error::ArityMismatch);
+                            }
+                            graph.apply_stmt(arg_stmt, &[])?.0
+                        } else {
+                            return Err(Error::StepNotFound);
+                        }
+                    }
+                    _ => return Err(Error::InconsistentParse),
+                };
+                hyps.push(hyp);
+            }
+            let result;
+            if let Some(r) = steps.get(&step) {
+                if !hyps.is_empty() {
+                    return Err(Error::ArityMismatch);
+                }
+                result = *r;
+            } else if let Some(stmt) = self.stmts.get(&step) {
+                if hyps.len() != stmt.hyps.len() {
+                    return Err(Error::ArityMismatch);
+                }
+                result = graph.apply_stmt(stmt, &hyps)?.0;
+            } else {
+                return Err(Error::StepNotFound);
+            }
+            // TODO: unify result if present.
+            if let Info::Step(label) = line.children[0].info {
+                if steps.insert(label, result).is_some() {
+                    return Err(Error::DuplicateStep);
+                }
+            }
+            last_line = Some(result);
+        }
+        last_line.ok_or(Error::EmptyProof)
+    }
+
+    fn mk_stmt(&self, hyps_pn: &ParseNode, concl: &ParseNode) -> Result<Stmt, Error> {
+        let mut hyps = Vec::with_capacity(hyps_pn.children.len());
+        let mut var_map = BTreeMap::new();
+        for hyp in &hyps_pn.children {
+            let (expr, _kind) = self.term_to_expr(hyp, &mut var_map)?;
+            hyps.push(expr);
+        }
+        let (concl, _kind) = self.term_to_expr(concl, &mut var_map)?;
+        let n_var = var_map.len();
+        Ok(Stmt { n_var, hyps, concl })
     }
 
     // Convert a term (as parse node) to an expr suitable for unification. This method also
@@ -225,6 +319,11 @@ impl<'a> Session<'a> {
         } else if let Some(term) = self.terms.get(&atom) {
             let (ref args, kind) = *term;
             if node.children.len() != args.len() {
+                if self.verbose {
+                    println!("expected {} got {} for term {}",
+                        args.len(), node.children.len(), self.parser.tok_str(atom));
+                    self.parser.dump_tree(node);
+                }
                 return Err(Error::ArityMismatch);
             }
             let mut expr_args = Vec::with_capacity(args.len());

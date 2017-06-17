@@ -49,8 +49,8 @@ pub struct Graph {
 
 #[derive(Debug)]
 pub enum Error {
-	UnifyError,
 	ConstructorNoMatch,
+	NotGeneral,
 }
 
 impl Graph {
@@ -72,18 +72,38 @@ impl Graph {
 
 	/// Apply a proof step, performing unification.
 	///
-	/// Return node index of conclusion if successful.
-	pub fn apply_stmt(&mut self, stmt: &Stmt, hyps: &[usize]) -> Result<usize, Error> {
+	/// Return node index of conclusion if successful, as well as assignment of
+	/// variables to node indices.
+	pub fn apply_stmt(&mut self, stmt: &Stmt, hyps: &[usize])
+		-> Result<(usize, Vec<Option<usize>>), Error>
+	{
 		let mut vars = vec![None; stmt.n_var];
 		for (i, expr) in stmt.hyps.iter().enumerate() {
 			self.unify_expr(hyps[i], expr, &mut vars)?;
 		}
 		let concl = self.new_node();
 		self.unify_expr(concl, &stmt.concl, &mut vars)?;
-		Ok(concl)
+		Ok((concl, vars))
 	}
 
-	fn unify_expr(&mut self, node: usize, expr: &Expr, vars: &mut Vec<Option<usize>>)
+	/// Add hypotheses for a theorem being proved.
+	///
+	/// Return a vector of nodes corresponding to the hypotheses, as well
+	/// as the variable assignment.
+	pub fn add_hyps(&mut self, stmt: &Stmt)
+		-> Result<(Vec<usize>, Vec<Option<usize>>), Error>
+	{
+		let mut vars = vec![None; stmt.n_var];
+		let mut hyp_nodes = Vec::with_capacity(stmt.hyps.len());
+		for expr in &stmt.hyps {
+			let hyp_node = self.new_node();
+			self.unify_expr(hyp_node, expr, &mut vars)?;
+			hyp_nodes.push(hyp_node);
+		}
+		Ok((hyp_nodes, vars))
+	}
+
+	pub fn unify_expr(&mut self, node: usize, expr: &Expr, vars: &mut Vec<Option<usize>>)
 		-> Result<(), Error>
 	{
 		match *expr {
@@ -154,5 +174,14 @@ impl Graph {
 			}
 		}
 		Ok(())
+	}
+
+	/// Checks whether the node can be assigned any value of its kind.
+	pub fn check_general(&self, node: usize) -> Result<(), Error> {
+		if self.infos[node].is_some() {
+			Err(Error::NotGeneral)
+		} else {
+			Ok(())
+		}
 	}
 }
