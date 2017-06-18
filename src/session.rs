@@ -223,11 +223,7 @@ impl<'a> Session<'a> {
         let concl_node = self.apply_proof(&children[4], &mut graph, &mut steps)?;
         graph.unify_expr(concl_node, &stmt.concl, &mut var_map)?;
         // Make sure all variables in hyps and concl are general
-        for opt_node in &var_map {
-            if let Some(node) = *opt_node {
-                graph.check_general(node)?;
-            }
-        }
+        graph.validate(&var_map)?;
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }

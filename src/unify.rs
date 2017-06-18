@@ -36,7 +36,7 @@ pub struct Stmt {
 	pub concl: Expr,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct GraphNodeInfo {
 	constructor: Const,
 	children: Vec<usize>,  // indices to graph nodes
@@ -45,12 +45,28 @@ struct GraphNodeInfo {
 pub struct Graph {
 	infos: Vec<Option<GraphNodeInfo>>,
 	uf: QuickUnionUf<UnionByRank>,
+	queue: Vec<usize>,
 }
 
 #[derive(Debug)]
 pub enum Error {
+	/// Two terms were attempted to be unified with different constructors.
 	ConstructorNoMatch,
+	/// A variable in the theorem to be proved was specialized.
 	NotGeneral,
+	/// Two variables in the theorem were unified.
+	BadUnification,
+	/// Graph contains a cycle, so a term is infinite.
+	OccursCheck,
+	/// An intermediate variable was left general.
+	CannotSynthesize,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum State {
+	Unvisited,
+	Visiting,
+	Visited,
 }
 
 impl Graph {
@@ -58,6 +74,7 @@ impl Graph {
 		Graph {
 			infos: Vec::new(),
 			uf: QuickUnionUf::new(0),
+			queue: Vec::new(),
 		}
 	}
 
@@ -83,6 +100,11 @@ impl Graph {
 		}
 		let concl = self.new_node();
 		self.unify_expr(concl, &stmt.concl, &mut vars)?;
+		for opt_node in &vars {
+			if let Some(node) = *opt_node {
+				self.queue.push(node);
+			}
+		}
 		Ok((concl, vars))
 	}
 
@@ -115,7 +137,8 @@ impl Graph {
 				}
 			}
 			Expr::Term { constructor, ref children } => {
-				if self.infos[node].is_none() {
+				let nfind = self.uf.find(node);
+				if self.infos[nfind].is_none() {
 					let mut child_nodes = Vec::new();
 					for _ in 0..children.len() {
 						let child_node = self.new_node();
@@ -125,9 +148,9 @@ impl Graph {
 						constructor: constructor,
 						children: child_nodes,
 					};
-					self.infos[node] = Some(info);
+					self.infos[nfind] = Some(info);
 				}
-				let info = self.infos[node].as_ref().unwrap().clone();
+				let info = self.infos[nfind].as_ref().unwrap().clone();
 				if info.constructor != constructor {
 					return Err(Error::ConstructorNoMatch);
 				}
@@ -176,12 +199,57 @@ impl Graph {
 		Ok(())
 	}
 
-	/// Checks whether the node can be assigned any value of its kind.
-	pub fn check_general(&self, node: usize) -> Result<(), Error> {
-		if self.infos[node].is_some() {
-			Err(Error::NotGeneral)
-		} else {
-			Ok(())
+	/// Validates the graph, given variables of the theorem being proved.
+	///
+	/// This method checks a number of correctness conditions, including:
+	/// * All given variables are general.
+	/// * No two given variables have been unified.
+	/// * The graph contains no cycles (occurs check).
+	/// * No subterms (other than the given variables) have been left general.
+	pub fn validate(&mut self, var_map: &[Option<usize>]) -> Result<(), Error> {
+		/*
+		for i in 0..self.infos.len() {
+			println!("info {}->{}: {:?}", i, self.uf.find(i), self.infos[i]);
 		}
+		*/
+		let mut states = vec![State::Unvisited; self.infos.len()];
+		for opt_node in var_map {
+			if let Some(node) = *opt_node {
+				let nfind = self.uf.find(node);
+				if states[nfind] != State::Unvisited {
+					return Err(Error::BadUnification);
+				}
+				states[nfind] = State::Visited;
+				if self.infos[nfind].is_some() {
+					return Err(Error::NotGeneral);
+				}
+			}
+		}
+		// Note: this traversal could probably be made faster.
+		while let Some(node) = self.queue.pop() {
+			let nfind = self.uf.find(node);
+			//println!("running {}->{} ({:?})", node, nfind, states[nfind]);
+			match states[nfind] {
+				State::Unvisited => {
+					states[nfind] = State::Visiting;
+					self.queue.push(nfind);
+					if let Some(ref info) = self.infos[nfind] {
+						for child in &info.children {
+							let cfind = self.uf.find(*child);
+							match states[cfind] {
+								State::Unvisited => self.queue.push(cfind),
+								State::Visiting => return Err(Error::OccursCheck),
+								State::Visited => (),
+							}
+						}
+					} else {
+						return Err(Error::CannotSynthesize);
+					}
+				}
+				State::Visiting => states[nfind] = State::Visited,
+				State::Visited => (),
+			}
+		}
+		Ok(())
 	}
 }
