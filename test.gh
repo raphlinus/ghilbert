@@ -2,9 +2,25 @@ kind wff;
 var ph ps ch: wff;
 term -> ph ps: wff;
 axiom ax-1: -> ph (-> ps ph);
+axiom ax-2: -> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch));
 axiom ax-mp (ph) (-> ph ps): ps;
 theorem a1i (hyp: ph): -> ps ph ::(
     hyp;
     label: ax-mp _ (ax-1 [-> ph (-> ps ph)])
+)
+theorem a2i (hyp: -> ph (-> ps ch)): -> (-> ph ps) (-> ph ch) ::(
+    ax-mp hyp ax-2
+)
+theorem mpd
+    (hyp1: -> ph ps)
+    (hyp2: -> ph (-> ps ch)):
+    -> ph ch
+::(
+    ax-mp hyp1 (a2i hyp2)
+)
+theorem id: -> ph ph ::(
+    ax-1
+    [-> ph (-> ph ph)]
+    mpd _ ax-1
 )
 theorem bad: -> ph (-> ps ch) ::(ax-1)

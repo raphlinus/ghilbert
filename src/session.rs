@@ -213,16 +213,17 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        let stmt = self.mk_stmt(&children[2], &children[3])?;
+        let mut stmt = self.mk_stmt(&children[2], &children[3])?;
         let mut graph = Graph::new();
         let (hyps, mut var_map) = graph.add_hyps(&stmt)?;
         let mut steps = BTreeMap::new();
         for (hyp_name, hyp) in children[1].children.iter().zip(hyps.into_iter()) {
             steps.insert(get_step(hyp_name)?, hyp);
         }
-        let concl_node = self.apply_proof(&children[4], &mut graph, &mut steps)?;
+        let concl_node = self.apply_proof(&children[4], &mut graph, &mut steps,
+            &mut stmt.var_map, &mut var_map)?;
         graph.unify_expr(concl_node, &stmt.concl, &mut var_map)?;
-        // Make sure all variables in hyps and concl are general
+        // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&var_map)?;
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
@@ -232,8 +233,12 @@ impl<'a> Session<'a> {
     }
 
     // The `proof` argument is a list of lines.
+    // `var_map` maps variable name (Token) to 0..n_vars index.
+    // `var_ix_to_node` maps that index to node index in graph.
     fn apply_proof(&self, proof: &ParseNode, graph: &mut Graph,
-        steps: &mut BTreeMap<Token, usize>) -> Result<usize, Error>
+        steps: &mut BTreeMap<Token, usize>,
+        var_map: &mut BTreeMap<Token, usize>,
+        var_ix_to_node: &mut Vec<Option<usize>>) -> Result<usize, Error>
     {
         let mut last_line = None;
         for line in &proof.children {
@@ -244,7 +249,8 @@ impl<'a> Session<'a> {
             let mut hyps = Vec::with_capacity(line.children[2].children.len());
             for arg in &line.children[2].children {
                 let hyp = match arg.info {
-                    Info::List => self.apply_proof(arg, graph, steps)?,
+                    Info::List => self.apply_proof(arg, graph, steps, var_map,
+                        var_ix_to_node)?,
                     Info::Dummy => last_line.ok_or(Error::StepNotFound)?,
                     Info::Step(arg_step) => {
                         if let Some(r) = steps.get(&arg_step) {
@@ -276,7 +282,12 @@ impl<'a> Session<'a> {
             } else {
                 return Err(Error::StepNotFound);
             }
-            // TODO: unify result if present.
+            // Unify result line if present.
+            let res_line = &line.children[3];
+            if res_line.info != Info::Dummy {
+                let (result_line, _kind) = self.term_to_expr(res_line, var_map, true)?;
+                graph.unify_expr(result, &result_line, var_ix_to_node)?;
+            }
             if let Info::Step(label) = line.children[0].info {
                 if steps.insert(label, result).is_some() {
                     return Err(Error::DuplicateStep);
@@ -291,17 +302,26 @@ impl<'a> Session<'a> {
         let mut hyps = Vec::with_capacity(hyps_pn.children.len());
         let mut var_map = BTreeMap::new();
         for hyp in &hyps_pn.children {
-            let (expr, _kind) = self.term_to_expr(hyp, &mut var_map)?;
+            let (expr, _kind) = self.term_to_expr(hyp, &mut var_map, false)?;
             hyps.push(expr);
         }
-        let (concl, _kind) = self.term_to_expr(concl, &mut var_map)?;
-        let n_var = var_map.len();
-        Ok(Stmt { n_var, hyps, concl })
+        let (concl, _kind) = self.term_to_expr(concl, &mut var_map, false)?;
+        Ok(Stmt { var_map, hyps, concl })
     }
 
     // Convert a term (as parse node) to an expr suitable for unification. This method also
     // verifies well-formedness.
-    fn term_to_expr(&self, node: &ParseNode, var_map: &mut BTreeMap<Token, usize>)
+    //
+    // The `is_res` parameter controls whether the term is a result line, or whether it is
+    // a hypothesis or conclusion (in either an axiom or theorem). Result lines can't
+    // introduce new term variables (so `var_map` is effectively non-mut).
+    //
+    // TODO: result lines should also be able to contain dummy sub-terms. Actually, as a
+    // language design decision, a case can be made that hyps and concl in theorems can
+    // also contain dummy sub-terms, as long as they're assigned during unification. But
+    // that would require synthesizing the `Expr` back from the graph, which would
+    // basically be the inverse operation as this method.
+    fn term_to_expr(&self, node: &ParseNode, var_map: &mut BTreeMap<Token, usize>, is_res: bool)
         -> Result<(Expr, KindName), Error>
     {
         let atom = get_atom(node)?;
@@ -310,7 +330,11 @@ impl<'a> Session<'a> {
                 return Err(Error::ArityMismatch);
             }
             let new_var_id = var_map.len();
-            let id = *var_map.entry(atom).or_insert(new_var_id);
+            let id = if is_res {
+                *var_map.get(&atom).ok_or(Error::VarNotFound)?
+            } else {
+                *var_map.entry(atom).or_insert(new_var_id)
+            };
             Ok((Expr::Var(id), *kind))
         } else if let Some(term) = self.terms.get(&atom) {
             let (ref args, kind) = *term;
@@ -324,7 +348,7 @@ impl<'a> Session<'a> {
             }
             let mut expr_args = Vec::with_capacity(args.len());
             for (arg, child) in args.iter().zip(node.children.iter()) {
-                let (expr, kind) = self.term_to_expr(child, var_map)?;
+                let (expr, kind) = self.term_to_expr(child, var_map, is_res)?;
                 if kind != *arg {
                     return Err(Error::KindMismatch);
                 }

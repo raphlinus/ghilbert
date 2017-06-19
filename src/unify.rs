@@ -14,6 +14,8 @@
 
 //! Unification of terms, the core of the verification step.
 
+use std::collections::BTreeMap;
+
 use union_find::{QuickUnionUf, UnionByRank, UnionFind};
 
 use lexer::Token;
@@ -31,7 +33,8 @@ pub enum Expr {
 
 #[derive(Debug)]
 pub struct Stmt {
-	pub n_var: usize,  // TODO: might become more info, like names
+	/// Map from variable name to index, same as arg to Expr::Var
+	pub var_map: BTreeMap<Token, usize>,
 	pub hyps: Vec<Expr>,
 	pub concl: Expr,
 }
@@ -94,7 +97,7 @@ impl Graph {
 	pub fn apply_stmt(&mut self, stmt: &Stmt, hyps: &[usize])
 		-> Result<(usize, Vec<Option<usize>>), Error>
 	{
-		let mut vars = vec![None; stmt.n_var];
+		let mut vars = vec![None; stmt.var_map.len()];
 		for (i, expr) in stmt.hyps.iter().enumerate() {
 			self.unify_expr(hyps[i], expr, &mut vars)?;
 		}
@@ -115,7 +118,7 @@ impl Graph {
 	pub fn add_hyps(&mut self, stmt: &Stmt)
 		-> Result<(Vec<usize>, Vec<Option<usize>>), Error>
 	{
-		let mut vars = vec![None; stmt.n_var];
+		let mut vars = vec![None; stmt.var_map.len()];
 		let mut hyp_nodes = Vec::with_capacity(stmt.hyps.len());
 		for expr in &stmt.hyps {
 			let hyp_node = self.new_node();
@@ -125,6 +128,10 @@ impl Graph {
 		Ok((hyp_nodes, vars))
 	}
 
+	/// Unifies an expression with the given node in the graph.
+	///
+	/// The `vars` argument maps var index (same space as Var variant in Expr) to
+	/// node number.
 	pub fn unify_expr(&mut self, node: usize, expr: &Expr, vars: &mut Vec<Option<usize>>)
 		-> Result<(), Error>
 	{
