@@ -1,9 +1,17 @@
 kind wff;
+kind val;
 var ph ps ch: wff;
-term -> ph ps: wff;
+term -> wff wff: wff;
+term A. (val->wff): wff;
 axiom ax-1: -> ph (-> ps ph);
 axiom ax-2: -> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch));
 axiom ax-mp (ph) (-> ph ps): ps;
+binder x: val;
+axiom ax-gen (ph): A. (\ x ph);
+axiom ax-5: -> (A. (\ x -> ph ps)) (-> (A. (\ x ph)) (A. (\ x ps)));
+var a b c: val;
+term = val val: wff;
+axiom eqid: = a a;
 theorem a1i (hyp: ph): -> ps ph ::(
     hyp;
     label: ax-mp _ (ax-1 [-> ph (-> ps ph)])
@@ -22,5 +30,9 @@ theorem id: -> ph ph ::(
     ax-1
     [-> ph (-> ph ph)]
     mpd _ ax-1
+)
+theorem foo-lemma (hyp1: ph) (hyp2: A. (\ x = x x)): ph ::(hyp1)
+theorem foo: -> ph ph ::(
+    foo-lemma (id) (ax-gen eqid)
 )
 theorem bad: -> ph (-> ps ch) ::(ax-1)

@@ -43,6 +43,8 @@ pub enum Info {
     KindCmd,
     // children: [vars], kind
     VarCmd,
+    // children: [vars], kind
+    BinderCmd,
     // children: con, [args], kind
     TermCmd,
     // children: step, [hyps], result
@@ -55,6 +57,10 @@ pub enum Info {
     Line,
     List,
     Dummy,
+    // children: kind, type
+    Arrow,
+    // children: bound_var, body
+    Lambda,
     Kind(Token),
     Var(Token),
     Const(Token),
@@ -65,6 +71,7 @@ pub enum Info {
 
 struct Predefined {
     axiom: Token,
+    binder: Token,
     kind: Token,
     term: Token,
     theorem: Token,
@@ -77,6 +84,8 @@ struct Predefined {
     colon: Token,
     colon_colon: Token,
     underline: Token,
+    backslash: Token,
+    arrow: Token,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -90,6 +99,7 @@ impl Predefined {
     fn new(lexer: &mut Lexer) -> Predefined {
         Predefined {
             axiom: lexer.intern("axiom"),
+            binder: lexer.intern("binder"),
             kind: lexer.intern("kind"),
             term: lexer.intern("term"),
             theorem: lexer.intern("theorem"),
@@ -102,6 +112,8 @@ impl Predefined {
             colon: lexer.intern(":"),
             colon_colon: lexer.intern("::"),
             underline: lexer.intern("_"),
+            backslash: lexer.intern("\\"),
+            arrow: lexer.intern("->"),
         }
     }
 }
@@ -130,6 +142,11 @@ impl<'a> Parser<'a> {
         }
     }
 
+    // convenience function to get the next token, eof is error
+    fn next(&mut self) -> Result<Token, Error> {
+        self.lexer.next().ok_or(Error::UnexpectedEof)
+    }
+
     pub fn parse_cmd(&mut self) -> Result<ParseNode, Error> {
         let token = self.lexer.next().ok_or(Error::Eof)?;
         if token == self.predefined.kind {
@@ -148,12 +165,28 @@ impl<'a> Parser<'a> {
                     vars.push(ParseNode::leaf(Info::Var(token)));
                 }
             }
-            let kind = self.lexer.next().ok_or(Error::UnexpectedEof)?;
+            let kind = self.next()?;
             let semicolon = self.predefined.semicolon;
             self.expect(semicolon)?;
             let vars = ParseNode::list(vars);
             let children = vec![vars, ParseNode::leaf(Info::Kind(kind))];
             Ok(ParseNode { info: Info::VarCmd, children })
+        } else if token == self.predefined.binder {
+            let mut vars = Vec::new();
+            loop {
+                let token = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+                if token == self.predefined.colon {
+                    break;
+                } else {
+                    vars.push(ParseNode::leaf(Info::Var(token)));
+                }
+            }
+            let kind = self.next()?;
+            let semicolon = self.predefined.semicolon;
+            self.expect(semicolon)?;
+            let vars = ParseNode::list(vars);
+            let children = vec![vars, ParseNode::leaf(Info::Kind(kind))];
+            Ok(ParseNode { info: Info::BinderCmd, children })
         } else if token == self.predefined.term {
             // Note: long here means that nullary terms need a space between const and :
             let con = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
@@ -161,14 +194,14 @@ impl<'a> Parser<'a> {
             let mut args = Vec::new();
             loop {
                 // Note: an arg might be a lambda term, not just a token.
-                let token = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
-                if token == self.predefined.colon {
+                let colon = self.predefined.colon;
+                if self.lexer.expect(colon) {
                     break;
-                } else {
-                    args.push(ParseNode::leaf(Info::Var(token)));
                 }
+                let ty = self.parse_type()?;
+                args.push(ty);
             }
-            let kind = self.lexer.next().ok_or(Error::UnexpectedEof)?;
+            let kind = self.next()?;
             let semicolon = self.predefined.semicolon;
             self.expect(semicolon)?;
             let args = ParseNode { info: Info::List, children: args };
@@ -180,6 +213,34 @@ impl<'a> Parser<'a> {
             self.parse_theorem()
         } else {
             Err(Error::SyntaxError)
+        }
+    }
+
+    // recognizes either "kind" or "(" (kind "->")* kind ")"
+    fn parse_type(&mut self) -> Result<ParseNode, Error> {
+        let kind = self.next()?;
+        if kind == self.predefined.open {
+            // arrow term
+            let mut subterms = Vec::new();
+            loop {
+                subterms.push(self.next()?);
+                let close = self.predefined.close;
+                if self.lexer.expect(close) {
+                    break;
+                }
+                let arrow = self.predefined.arrow;
+                if !self.lexer.expect(arrow) {
+                    return Err(Error::SyntaxError);
+                }
+            }
+            let mut result = ParseNode::leaf(Info::Kind(subterms.pop().unwrap()));
+            while let Some(argtype) = subterms.pop() {
+                let children = vec![ParseNode::leaf(Info::Kind(argtype)), result];
+                result = ParseNode { info: Info::Arrow, children };
+            }
+            Ok(result)
+        } else {
+            Ok(ParseNode::leaf(Info::Kind(kind)))
         }
     }
 
@@ -260,7 +321,7 @@ impl<'a> Parser<'a> {
             let mut args = Vec::new();
             let mut result = ParseNode::leaf(Info::Dummy);
             loop {
-                let tok = self.lexer.next().ok_or(Error::UnexpectedEof)?;
+                let tok = self.next()?;
                 if tok == open_bracket {
                     result = self.parse_term(Some(close_bracket))?;
                     self.expect(close_bracket)?;
@@ -292,8 +353,13 @@ impl<'a> Parser<'a> {
             let result = self.parse_term(Some(close))?;
             self.expect(close)?;
             Ok(result)
+        } else if self.lexer.expect(self.predefined.backslash) {
+            let bound_var = self.next()?;
+            let body = self.parse_term(closer)?;
+            let children = vec![ParseNode::leaf(Info::Var(bound_var)), body];
+            Ok(ParseNode { info: Info::Lambda, children })
         } else {
-            let atom = self.lexer.next().ok_or(Error::UnexpectedEof)?;
+            let atom = self.next()?;
             let mut args = Vec::new();
             loop {
                 if let Some(tok) = self.lexer.peek() {
@@ -325,6 +391,10 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn backslash(&self) -> Token {
+        self.predefined.backslash
+    }
+
     pub fn dump_tree(&self, node: &ParseNode) {
         self.dump_tree_rec(node, 0);
     }
@@ -336,12 +406,15 @@ impl<'a> Parser<'a> {
         match node.info {
             Info::KindCmd => println!("kind"),
             Info::VarCmd => println!("var"),
+            Info::BinderCmd => println!("binder"),
             Info::TermCmd => println!("term"),
             Info::AxiomCmd => println!("axiom"),
             Info::TheoremCmd => println!("theorem"),
             Info::Line => println!("line"),
             Info::List => println!("[]"),
             Info::Dummy => println!("_"),
+            Info::Arrow => println!("->"),
+            Info::Lambda => println!("\\"),
             Info::Kind(t) => println!("kind {}", self.lexer.tok_str(t)),
             Info::Var(t) => println!("var {}", self.lexer.tok_str(t)),
             Info::Const(t) => println!("const {}", self.lexer.tok_str(t)),
