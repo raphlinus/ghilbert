@@ -40,9 +40,9 @@ pub enum Info {
     BinderCmd,
     // children: con, [args], kind
     TermCmd,
-    // children: step, [hyps], result
+    // children: step, [hyps], notfree, result
     AxiomCmd,
-    // children: label, [hyp_names], [hyps], result, [lines]
+    // children: label, [hyp_names], [hyps], notfree, result, [lines]
     TheoremCmd,
     // children: con, [args]
     // children: label, step, [args], result
@@ -54,6 +54,9 @@ pub enum Info {
     Arrow,
     // children: bound_var, body
     Lambda,
+    // children: [bound_var], var
+    // Discussion question, should we also allow list of var (eg "x y F/ A B")?
+    NotFree,
     Kind(Token),
     Var(Token),
     Const(Token),
@@ -79,6 +82,8 @@ struct Predefined {
     underline: Token,
     backslash: Token,
     arrow: Token,
+    notfree: Token,
+    comma: Token,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -107,6 +112,8 @@ impl Predefined {
             underline: lexer.intern("_"),
             backslash: lexer.intern("\\"),
             arrow: lexer.intern("->"),
+            notfree: lexer.intern("F/"),
+            comma: lexer.intern(","),
         }
     }
 }
@@ -281,6 +288,7 @@ impl<'a> Parser<'a> {
         let h_s = self.start();
         let mut hyps = Vec::new();
         let colon = self.predefined.colon;
+        let mut notfree = ParseNode::dummy();
         loop {
             if self.lexer.expect(colon) {
                 break;
@@ -289,14 +297,16 @@ impl<'a> Parser<'a> {
             if tok == self.predefined.open {
                 hyps.push(self.parse_term(None)?);
             } else {
-                return Err(Error::SyntaxError);
+                notfree = self.parse_not_free()?;
+                self.expect(colon)?;
+                break;
             }
         }
         let hyps_node = self.list(h_s, hyps);
         let semicolon = self.predefined.semicolon;
         let result = self.parse_term(Some(semicolon))?;
         self.expect(semicolon)?;
-        let children = vec![step, hyps_node, result];
+        let children = vec![step, hyps_node, notfree, result];
         Ok(self.node(start, Info::AxiomCmd, children))
     }
 
@@ -309,18 +319,24 @@ impl<'a> Parser<'a> {
         let colon = self.predefined.colon;
         let open = self.predefined.open;
         let h_s = self.start();
+        let mut notfree = ParseNode::dummy();
         loop {
             if self.lexer.expect(colon) {
                 break;
             }
-            self.expect(open)?;
-            let h_s = self.start();
-            let hyp_name = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
-            hyp_names.push(self.leaf(h_s,Info::Step(hyp_name)));
-            self.expect(colon)?;
-            let close = self.predefined.close;
-            hyps.push(self.parse_term(Some(close))?);
-            self.expect(close)?;
+            if self.lexer.expect(open) {
+                let h_s = self.start();
+                let hyp_name = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+                hyp_names.push(self.leaf(h_s,Info::Step(hyp_name)));
+                self.expect(colon)?;
+                let close = self.predefined.close;
+                hyps.push(self.parse_term(Some(close))?);
+                self.expect(close)?;
+            } else {
+                notfree = self.parse_not_free()?;
+                self.expect(colon)?;
+                break;
+            }
         }
         let hyp_names_node = self.list(h_s, hyp_names);
         let hyps_node = self.list(h_s, hyps);
@@ -331,7 +347,7 @@ impl<'a> Parser<'a> {
         // the proof
         self.expect(open)?;
         let proof = self.parse_proof()?;
-        let children = vec![step, hyp_names_node, hyps_node, result, proof];
+        let children = vec![step, hyp_names_node, hyps_node, notfree, result, proof];
         Ok(self.node(start, Info::TheoremCmd, children))
     }
 
@@ -429,6 +445,35 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_not_free(&mut self) -> Result<ParseNode, Error> {
+        let mut result = Vec::new();
+        let start = self.start();
+        loop {
+            let l_s = self.start();
+            let mut vars = Vec::new();
+            let notfree = self.predefined.notfree;
+            loop {
+                let v_s = self.start();
+                if self.lexer.peek() == Some(notfree) {
+                    break;
+                }
+                let var = self.next()?;
+                vars.push(self.leaf(v_s, Info::Var(var)));
+            }
+            let vars_node = self.list(l_s, vars);
+            self.expect(notfree)?;
+            let t_s = self.start();
+            let tvar = self.next()?;
+            let children = vec![vars_node, self.leaf(t_s, Info::Var(tvar))];
+            result.push(self.node(l_s, Info::NotFree, children));
+            if !self.lexer.expect(self.predefined.comma) {
+                break;
+            }
+        }
+        println!("{:?}", result);
+        Ok(self.list(start, result))
+    }
+
     pub fn backslash(&self) -> Token {
         self.predefined.backslash
     }
@@ -453,6 +498,7 @@ impl<'a> Parser<'a> {
             Info::Dummy => println!("_"),
             Info::Arrow => println!("->"),
             Info::Lambda => println!("\\"),
+            Info::NotFree => println!("F/"),
             Info::Kind(t) => println!("kind {}", self.lexer.tok_str(t)),
             Info::Var(t) => println!("var {}", self.lexer.tok_str(t)),
             Info::Const(t) => println!("const {}", self.lexer.tok_str(t)),

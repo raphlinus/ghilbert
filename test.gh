@@ -37,6 +37,9 @@ term A. (val->wff): wff;
 binder x: val;
 axiom ax-gen (ph): A. (\ x ph);
 axiom ax-5: -> (A. (\ x -> ph ps)) (-> (A. (\ x ph)) (A. (\ x ps)));
+/* An example of a "not free in" constraint. */
+axiom ax-17 x F/ ph: -> ph (A. (\ x ph));
+
 var a b c: val;
 term = val val: wff;
 axiom eqid: = a a;
@@ -45,6 +48,10 @@ axiom eqid: = a a;
 theorem foo-lemma (hyp1: ph) (hyp2: A. (\ x = x x)): ph ::(hyp1)
 theorem foo: -> ph ph ::(
     foo-lemma (id) (ax-gen eqid)
+)
+
+theorem a17d x F/ ps: -> ph (-> ps (A. (\ x ps))) ::(
+    a1i ax-17
 )
 
 /* This theorem shouldn't check:

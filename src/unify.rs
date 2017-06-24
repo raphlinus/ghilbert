@@ -14,7 +14,8 @@
 
 //! Unification of terms, the core of the verification step.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+use std::mem;
 
 use union_find::{QuickUnionUf, UnionByRank, UnionFind};
 
@@ -39,6 +40,8 @@ pub struct Stmt {
     pub var_map: BTreeMap<Token, usize>,
     /// Map from variable name to index, same as arg to BoundExpr::Var
     pub bound_map: BTreeMap<Token, usize>,
+    /// Not-free-in constraint is pair of bound var and term var.
+    pub notfree: Vec<(usize, usize)>,
     pub hyps: Vec<Expr>,
     pub concl: Expr,
 }
@@ -52,8 +55,14 @@ struct GraphNodeInfo {
 pub struct Graph {
     infos: Vec<Option<GraphNodeInfo>>,
     uf: QuickUnionUf<UnionByRank>,
+    /// Term vars of proof steps, for occurs and not-general checks.
     queue: Vec<usize>,
+    /// Bound vars of proofs steps, for distinctness check.
     bound_var_sets: Vec<Vec<usize>>,
+    /// Pair of node ix of bound var, node ix of term var
+    nfi_constraints: Vec<(usize, usize)>,
+    /// Identifier for backslash so that we can identifiy lambda
+    backslash: Const,
 }
 
 #[derive(Debug)]
@@ -70,6 +79,8 @@ pub enum Error {
     CannotSynthesize,
     /// Bound variables were unified so are not distinct.
     NotDistinct,
+    /// A not-free-in constraint was violated.
+    NotFreeIn,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -81,12 +92,14 @@ enum State {
 }
 
 impl Graph {
-    pub fn new() -> Graph {
+    pub fn new(backslash: Const) -> Graph {
         Graph {
             infos: Vec::new(),
             uf: QuickUnionUf::new(0),
             queue: Vec::new(),
             bound_var_sets: Vec::new(),
+            nfi_constraints: Vec::new(),
+            backslash,
         }
     }
 
@@ -120,8 +133,16 @@ impl Graph {
                 self.queue.push(node);
             }
         }
-        let bound_var_set = bound_vars.iter().filter_map(|o| *o).collect();
-        self.bound_var_sets.push(bound_var_set);
+        if !bound_vars.is_empty() {
+            let bound_var_set = bound_vars.iter().filter_map(|o| *o).collect();
+            self.bound_var_sets.push(bound_var_set);
+        }
+        for &(bound_var, var) in &stmt.notfree {
+            // The variables must be assigned after unification.
+            let bound_var_ix = bound_vars[bound_var].unwrap();
+            let var_ix = vars[var].unwrap();
+            self.nfi_constraints.push((bound_var_ix, var_ix));
+        }
         Ok((concl, vars))
     }
 
@@ -322,5 +343,80 @@ impl Graph {
             }
         }
         Ok(())
+    }
+
+    /// Validates the not-free-in constraints of the proof steps.
+    ///
+    /// The `notfree` argument is in the same form as `Stmt::notfree`.
+    pub fn validate_notfree(&mut self, var_map: &[Option<usize>],
+        bound_var_map: &[Option<usize>], notfree: &[(usize, usize)])
+        -> Result<(), Error>
+    {
+        if self.nfi_constraints.is_empty() {
+            return Ok(())
+        }
+        let mut term_var_set = BTreeSet::new();
+        for opt_var in var_map {
+            if let Some(var) = *opt_var {
+                term_var_set.insert(self.uf.find(var));
+            }
+        }
+        /// Maps node of bound var to set of term var nodes it can appear free in.
+        let mut free_set = BTreeMap::new();
+        for opt_bound_var in bound_var_map {
+            if let Some(bound_var) = *opt_bound_var {
+                let bfind = self.uf.find(bound_var);
+                free_set.insert(bfind, term_var_set.clone());
+            }
+        }
+        for &(bound_var, var) in notfree {
+            let bfind = self.uf.find(bound_var_map[bound_var].unwrap());
+            let vfind = self.uf.find(var_map[var].unwrap());
+            free_set.get_mut(&bfind).unwrap().remove(&vfind);
+        }
+        let nfi_constraints = mem::replace(&mut self.nfi_constraints, Vec::new());
+        for (bound_var, var) in nfi_constraints {
+            let bfind = self.uf.find(bound_var);
+            if self.is_free_in(bfind, var, free_set.get(&bfind)) {
+                return Err(Error::NotFreeIn);
+            }
+        }
+        Ok(())
+    }
+
+    /// Checks whether a given bound variable is free in the expression corresponding
+    /// to a graph node.
+    ///
+    /// The `bfind` parameter is the bound variable node, resolved with `uf.find()`.
+    // TODO (performance): should probably memoize the queries, otherwise this can be
+    // susceptible to exponential blowup.
+    fn is_free_in(&mut self, bfind: usize, var: usize,
+        free_set: Option<&BTreeSet<usize>>)
+        -> bool
+    {
+        // Note: could take a scratch stack as an argument to improve reuse and
+        // decrease allocation.
+        let mut stack = vec![var];
+        while let Some(var) = stack.pop() {
+            let vfind = self.uf.find(var);
+            if bfind == vfind {
+                return true;
+            }
+            if let Some(ref info) = self.infos[vfind] {
+                if info.constructor == self.backslash {
+                    let child_bound_var = self.uf.find(info.children[0]);
+                    if child_bound_var != bfind {
+                        stack.push(info.children[1])
+                    }
+                } else {
+                    stack.extend_from_slice(&info.children);
+                }
+            } else if let Some(free_set) = free_set {
+                if free_set.contains(&vfind) {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }

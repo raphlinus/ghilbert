@@ -227,7 +227,7 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        let stmt = self.mk_stmt(&children[1], &children[2])?;
+        let stmt = self.mk_stmt(&children[1], &children[2], &children[3])?;
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }
@@ -243,8 +243,8 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        let mut stmt = self.mk_stmt(&children[2], &children[3])?;
-        let mut graph = Graph::new();
+        let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
+        let mut graph = Graph::new(self.parser.backslash());
         let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
         // Result lines can add new binding variables, but those won't affect the stmt.
         let mut bound_map = stmt.bound_map.clone();
@@ -252,11 +252,12 @@ impl<'a> Session<'a> {
         for (hyp_name, hyp) in children[1].children.iter().zip(hyps.into_iter()) {
             steps.insert(get_step(hyp_name)?, hyp);
         }
-        let concl_node = self.apply_proof(&children[4], &mut graph, &mut steps,
+        let concl_node = self.apply_proof(&children[5], &mut graph, &mut steps,
             &mut stmt.var_map, &mut bound_map, &mut vars, &mut bound_vars)?;
         graph.unify_expr(concl_node, &stmt.concl, &mut vars, &mut bound_vars)?;
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
+        graph.validate_notfree(&vars, &bound_vars, &stmt.notfree)?;
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }
@@ -334,7 +335,9 @@ impl<'a> Session<'a> {
         last_line.ok_or(Error::EmptyProof)
     }
 
-    fn mk_stmt(&self, hyps_pn: &ParseNode, concl: &ParseNode) -> Result<Stmt, Error> {
+    fn mk_stmt(&self, hyps_pn: &ParseNode, nf_pn: &ParseNode, concl: &ParseNode)
+        -> Result<Stmt, Error>
+    {
         let mut hyps = Vec::with_capacity(hyps_pn.children.len());
         let mut var_map = BTreeMap::new();
         let mut bound_map = BTreeMap::new();
@@ -343,7 +346,20 @@ impl<'a> Session<'a> {
             hyps.push(expr);
         }
         let (concl, _kind) = self.term_to_expr(concl, &mut var_map, &mut bound_map, false)?;
-        Ok(Stmt { var_map, bound_map, hyps, concl })
+        let mut notfree = Vec::new();
+        for constraint in &nf_pn.children {
+            if constraint.info != Info::NotFree {
+                return Err(Error::InconsistentParse);
+            }
+            let tvar = get_var(&constraint.children[1])?;
+            let tvar_ix = *var_map.get(&tvar).ok_or(Error::VarNotFound)?;
+            for var_node in &constraint.children[0].children {
+                let var = get_var(var_node)?;
+                let var_ix = *bound_map.get(&var).ok_or(Error::VarNotFound)?;
+                notfree.push((var_ix, tvar_ix));
+            }
+        }
+        Ok(Stmt { var_map, bound_map, notfree, hyps, concl })
     }
 
     // Convert a term (as parse node) to an expr suitable for unification. This method also
