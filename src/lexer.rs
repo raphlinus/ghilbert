@@ -48,6 +48,29 @@ pub struct Lexer<'a> {
     lookahead: Option<(Token, usize)>,
 }
 
+fn find_end_of_comment(s: &str) -> usize {
+    let mut state = 0;
+    let mut nest = 1;
+    for (i, c) in s.char_indices() {
+        match (state, c) {
+            (0, '/') => state = 1,
+            (0, '*') => state = 2,
+            (1, '*') => { nest += 1; state = 0; }
+            (1, _) => state = 0,
+            (2, '/') => {
+                nest -= 1;
+                if nest == 0 {
+                    return i + 1;
+                }
+                state = 0;
+            }
+            (2, _) => state = 0,
+            _ => (),
+        }
+    }
+    s.len()
+}
+
 impl<'a> Lexer<'a> {
     /// Creates a new lexer for a given input string.
     pub fn new(text: &str) -> Lexer {
@@ -60,15 +83,26 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn skip_whitespace(&mut self) {
-        let mut len = 0;
-        for c in self.text[self.ix..].chars() {
-            if !c.is_whitespace() {
-                break;
+
+    /// Skips whitespace and comments.
+    pub fn skip_whitespace(&mut self) {
+        'outer: loop {
+            for (i, c) in self.text[self.ix..].char_indices() {
+                if c == '/' && self.ix + i + 1 < self.text.len() &&
+                    self.text.as_bytes()[self.ix + i + 1] == b'*'
+                {
+                    self.ix += i + 2;
+                    self.ix += find_end_of_comment(&self.text[self.ix..]);
+                    continue 'outer;
+                }
+                if !c.is_whitespace() {
+                    self.ix += i;
+                    return;
+                }
             }
-            len += c.len_utf8();
+            self.ix = self.text.len();
+            return;
         }
-        self.ix += len;
     }
 
     /// Interns a token, in other words installs it in the table if not already
@@ -178,8 +212,10 @@ impl<'a> Lexer<'a> {
         if let Some((tok, _)) = self.lookahead {
             return Some(tok);
         }
+        let save_ix = self.ix;
         self.next().map(|tok| {
             self.lookahead = Some((tok, self.ix));
+            self.ix = save_ix;
             tok
         })
     }
@@ -193,5 +229,10 @@ impl<'a> Lexer<'a> {
             }
         }
         false
+    }
+
+    /// Returns the current byte offset.
+    pub fn pos(&self) -> usize {
+        self.ix
     }
 }
