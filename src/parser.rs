@@ -78,6 +78,8 @@ struct Predefined {
     var: Token,
 
     syntax: Token,
+    prefix: Token,
+    binder: Token,
     infixl: Token,
     infixr: Token,
 
@@ -117,6 +119,8 @@ impl Predefined {
 
             // keywords for syntax
             syntax: lexer.intern("syntax"),
+            prefix: lexer.intern("prefix"),
+            binder: lexer.intern("binder"),
             infixl: lexer.intern("infixl"),
             infixr: lexer.intern("infixr"),
 
@@ -141,7 +145,14 @@ impl Predefined {
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     predefined: Predefined,
+    prefixes: BTreeMap<Token, Prefix>,
     binops: BTreeMap<Token, Binop>,
+}
+
+#[derive(Clone, Copy)]
+enum Prefix {
+    Unary(u32),
+    Binder(u32),
 }
 
 #[derive(Clone, Copy)]
@@ -166,6 +177,7 @@ impl<'a> Parser<'a> {
         Parser {
             lexer,
             predefined,
+            prefixes: BTreeMap::new(),
             binops: BTreeMap::new(),
         }
     }
@@ -483,6 +495,9 @@ impl<'a> Parser<'a> {
             Ok(self.node(start, Info::Lambda, children))
         } else {
             let atom = self.next()?;
+            if let Some(&prefix) = self.prefixes.get(&atom) {
+                return self.parse_term_prefix(start, atom, prefix, closer);
+            }
             let mut args = Vec::new();
             loop {
                 let t_s = self.start();
@@ -502,6 +517,25 @@ impl<'a> Parser<'a> {
                 }
             }
             Ok(self.node(start, Info::Atom(atom), args))
+        }
+    }
+
+    fn parse_term_prefix(&mut self, start: usize, tok: Token, prefix: Prefix,
+        closer: Option<Token>) -> Result<ParseNode, Error>
+    {
+        match prefix {
+            Prefix::Unary(prec) => {
+                let inner = self.parse_term_rec(closer, prec)?;
+                Ok(self.node(start, Info::Atom(tok), vec![inner]))
+            }
+            Prefix::Binder(prec) => {
+                let v_s = self.start();
+                let boundvar = self.next()?;
+                let inner = self.parse_term_rec(closer, prec)?;
+                let args = vec![self.leaf(v_s, Info::Var(boundvar)), inner];
+                let lambda = self.node(v_s, Info::Lambda, args);
+                Ok(self.node(start, Info::Atom(tok), vec![lambda]))
+            }
         }
     }
 
@@ -550,8 +584,7 @@ impl<'a> Parser<'a> {
             let tok = self.next()?;
             if tok == self.predefined.close_brace {
                 break;
-            }
-            if tok == self.predefined.infixl || tok == self.predefined.infixr {
+            } else if tok == self.predefined.infixl || tok == self.predefined.infixr {
                 let op = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
                 let prec = self.lexer.next_u32().ok_or(Error::ExpectedNum)?;
                 let semicolon = self.predefined.semicolon;
@@ -563,6 +596,17 @@ impl<'a> Parser<'a> {
                     Binop::infixr(prec)
                 };
                 self.binops.insert(op, binop);
+            } else if tok == self.predefined.prefix || tok == self.predefined.binder {
+                let op = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
+                let prec = self.lexer.next_u32().ok_or(Error::ExpectedNum)?;
+                let semicolon = self.predefined.semicolon;
+                self.expect(semicolon)?;
+                let prefix = if tok == self.predefined.prefix {
+                    Prefix::Unary(prec)
+                } else {
+                    Prefix::Binder(prec)
+                };
+                self.prefixes.insert(op, prefix); 
             }
         }
         Ok(self.node(start, Info::SyntaxCmd, result))

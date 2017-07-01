@@ -1,4 +1,5 @@
 syntax {
+    prefix -. 40;
     infixr -> 25;
     infixl \/ 30;
     infixl /\ 35;
@@ -10,8 +11,10 @@ kind wff;
 kind val;
 var ph ps ch: wff;
 term -> wff wff: wff;
+term -. wff: wff;
 axiom ax-1: ph -> ps -> ph;
 axiom ax-2: (ph -> ps -> ch) -> (ph -> ps) -> ph -> ch;
+axiom ax-3: (-.ph -> -.ps) -> ps -> ph;
 axiom ax-mp (ph) (ph -> ps): ps;
 
 theorem a1i (hyp: ph): ps -> ph ::(
@@ -25,7 +28,7 @@ theorem a2i (hyp: ph -> ps -> ch): (ph -> ps) -> ph -> ch ::(
 theorem mpd
     (hyp1: ph -> ps)
     (hyp2: ph -> ps -> ch):
-    -> ph ch
+    ph -> ch
 ::(
     ax-mp hyp1 (a2i hyp2)
 )
@@ -39,28 +42,31 @@ theorem id: ph -> ph ::(
 )
 
 /* Quantification. The universal quantifier takes a lambda term as its argument. */
+syntax {
+    binder A. 45;
+}
 term A. (val->wff): wff;
 bound x: val;
-axiom ax-gen (ph): A. (\ x ph);
-axiom ax-5: (A. (\ x ph -> ps)) -> (A. (\ x ph)) -> (A. (\ x ps));
+axiom ax-gen (ph): A. x ph;
+axiom ax-5: A. x (ph -> ps) -> A. x ph -> A. x ps;
 /* An example of a "not free in" constraint. */
-axiom ax-17 x F/ ph: ph -> (A. (\ x ph));
+axiom ax-17 x F/ ph: ph -> A. x ph;
 
 var a b c: val;
 term = val val: wff;
 axiom eqid: a = a;
 
 /* Here we check that a bound variable in an intermediate result needn't be specified. */
-theorem foo-lemma (hyp1: ph) (hyp2: A. (\ x x = x)): ph ::(hyp1)
+theorem foo-lemma (hyp1: ph) (hyp2: A. x x = x): ph ::(hyp1)
 theorem foo: ph -> ph ::(
     foo-lemma (id) (ax-gen eqid)
 )
 
-theorem a17d x F/ ps: ph -> ps -> (A. (\ x ps)) ::(
+theorem a17d x F/ ps: ph -> ps -> A. x ps ::(
     a1i ax-17
 )
 
-theorem hba1: (A. (\ x ph)) -> (A. (\ x (A. (\ x ph)))) ::(
+theorem hba1: A. x ph -> A. x A. x ph ::(
     ax-17
 )
 
