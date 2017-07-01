@@ -374,14 +374,19 @@ impl Graph {
             let vfind = self.uf.find(var_map[var].unwrap());
             free_set.get_mut(&bfind).unwrap().remove(&vfind);
         }
+        // We take it out to make the borrow checker happy. Alternatively we could
+        // make this method `&self` and put `uf` in a `RefCell`.
         let nfi_constraints = mem::replace(&mut self.nfi_constraints, Vec::new());
-        for (bound_var, var) in nfi_constraints {
+        let mut result = Ok(());
+        for &(bound_var, var) in &nfi_constraints {
             let bfind = self.uf.find(bound_var);
             if self.is_free_in(bfind, var, free_set.get(&bfind)) {
-                return Err(Error::NotFreeIn);
+                result = Err(Error::NotFreeIn);
+                break;
             }
         }
-        Ok(())
+        self.nfi_constraints = nfi_constraints;
+        result
     }
 
     /// Checks whether a given bound variable is free in the expression corresponding

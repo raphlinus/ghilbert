@@ -202,6 +202,36 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Scans a nonnegative decimal number (does not add token to trie).
+    ///
+    /// Returns `None` on u32 overflow; return type should arguably be changed
+    /// to provide for more precise error messages.
+    pub fn next_u32(&mut self) -> Option<u32> {
+        self.skip_whitespace();
+        let mut val = 0u32;
+        let mut len = 0;
+        for &c in self.text[self.ix..].as_bytes() {
+            if c >= b'0' && c <= b'9' {
+                if let Some(v) = val.checked_mul(10).and_then(|x|
+                    x.checked_add((c - b'0') as u32))
+                {
+                    val = v;
+                } else {
+                    return None;
+                }
+                len += 1;
+            } else {
+                break;
+            }
+        }
+        if len > 0 {
+            self.ix += len;
+            Some(val)
+        } else {
+            None
+        }
+    }
+
     /// Returns the string for the given token.
     pub fn tok_str(&self, tok: Token) -> &str {
         &self.tokens[tok]

@@ -14,6 +14,8 @@
 
 //! Parser for new-style Ghilbert format.
 
+use std::collections::BTreeMap;
+
 use lexer::{Lexer, Token};
 
 #[derive(Debug)]
@@ -32,12 +34,14 @@ impl ParseNode {
 
 #[derive(PartialEq, Debug)]
 pub enum Info {
+    // children: [syntax def], where syntax def is internal to this module
+    SyntaxCmd,
     // children: kind
     KindCmd,
     // children: [vars], kind
     VarCmd,
     // children: [vars], kind
-    BinderCmd,
+    BoundCmd,
     // children: con, [args], kind
     TermCmd,
     // children: step, [hyps], notfree, result
@@ -67,15 +71,22 @@ pub enum Info {
 
 struct Predefined {
     axiom: Token,
-    binder: Token,
+    bound: Token,
     kind: Token,
     term: Token,
     theorem: Token,
     var: Token,
+
+    syntax: Token,
+    infixl: Token,
+    infixr: Token,
+
     open: Token,
     close: Token,
     open_bracket: Token,
     close_bracket: Token,
+    open_brace: Token,
+    close_brace: Token,
     semicolon: Token,
     colon: Token,
     colon_colon: Token,
@@ -90,6 +101,7 @@ struct Predefined {
 pub enum Error {
     Eof,
     UnexpectedEof,
+    ExpectedNum,
     SyntaxError,
 }
 
@@ -97,15 +109,23 @@ impl Predefined {
     fn new(lexer: &mut Lexer) -> Predefined {
         Predefined {
             axiom: lexer.intern("axiom"),
-            binder: lexer.intern("binder"),
+            bound: lexer.intern("bound"),
             kind: lexer.intern("kind"),
             term: lexer.intern("term"),
             theorem: lexer.intern("theorem"),
             var: lexer.intern("var"),
+
+            // keywords for syntax
+            syntax: lexer.intern("syntax"),
+            infixl: lexer.intern("infixl"),
+            infixr: lexer.intern("infixr"),
+
             open: lexer.intern("("),
             close: lexer.intern(")"),
             open_bracket: lexer.intern("["),
             close_bracket: lexer.intern("]"),
+            open_brace: lexer.intern("{"),
+            close_brace: lexer.intern("}"),
             semicolon: lexer.intern(";"),
             colon: lexer.intern(":"),
             colon_colon: lexer.intern("::"),
@@ -121,6 +141,23 @@ impl Predefined {
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     predefined: Predefined,
+    binops: BTreeMap<Token, Binop>,
+}
+
+#[derive(Clone, Copy)]
+struct Binop {
+    lbp: u32,
+    rbp: u32,
+}
+
+impl Binop {
+    fn infixl(prec: u32) -> Binop {
+        Binop{ lbp: prec, rbp: prec }
+    }
+
+    fn infixr(prec: u32) -> Binop {
+        Binop{ lbp: prec, rbp: prec - 1}
+    }
 }
 
 impl<'a> Parser<'a> {
@@ -129,6 +166,7 @@ impl<'a> Parser<'a> {
         Parser {
             lexer,
             predefined,
+            binops: BTreeMap::new(),
         }
     }
 
@@ -198,7 +236,7 @@ impl<'a> Parser<'a> {
             self.expect(semicolon)?;
             let children = vec![vars, self.leaf(k_s, Info::Kind(kind))];
             Ok(self.node(start, Info::VarCmd, children))
-        } else if token == self.predefined.binder {
+        } else if token == self.predefined.bound {
             let v_s = self.start();
             let mut vars = Vec::new();
             loop {
@@ -216,7 +254,7 @@ impl<'a> Parser<'a> {
             let semicolon = self.predefined.semicolon;
             self.expect(semicolon)?;
             let children = vec![vars, self.leaf(k_s, Info::Kind(kind))];
-            Ok(self.node(start, Info::BinderCmd, children))
+            Ok(self.node(start, Info::BoundCmd, children))
         } else if token == self.predefined.term {
             let c_s = self.start();
             // Note: long here means that nullary terms need a space between const and :
@@ -242,9 +280,11 @@ impl<'a> Parser<'a> {
             let children = vec![con, args, kind_node];
             Ok(self.node(start, Info::TermCmd, children))
         } else if token == self.predefined.axiom {
-            self.parse_axiom()
+            self.parse_axiom(start)
         } else if token == self.predefined.theorem {
-            self.parse_theorem()
+            self.parse_theorem(start)
+        } else if token == self.predefined.syntax {
+            self.parse_syntax(start)
         } else {
             Err(Error::SyntaxError)
         }
@@ -281,8 +321,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_axiom(&mut self) -> Result<ParseNode, Error> {
-        let start = self.start();
+    fn parse_axiom(&mut self, start: usize) -> Result<ParseNode, Error> {
         let step = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
         let step = self.leaf(start, Info::Step(step));
         let h_s = self.start();
@@ -310,8 +349,7 @@ impl<'a> Parser<'a> {
         Ok(self.node(start, Info::AxiomCmd, children))
     }
 
-    fn parse_theorem(&mut self) -> Result<ParseNode, Error> {
-        let start = self.start();
+    fn parse_theorem(&mut self, start: usize) -> Result<ParseNode, Error> {
         let step = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
         let step = self.leaf(start, Info::Step(step));
         let mut hyps = Vec::new();
@@ -408,6 +446,28 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_term(&mut self, closer: Option<Token>) -> Result<ParseNode, Error> {
+        self.parse_term_rec(closer, 0)
+    }
+
+    // This method implements Pratt-style precedence parsing.
+    fn parse_term_rec(&mut self, closer: Option<Token>, rbp: u32) -> Result<ParseNode, Error> {
+        let start = self.start();
+        let mut l = self.parse_term_unary(closer, rbp)?;
+        while let Some(tok) = self.lexer.peek() {
+            if let Some(&op) = self.binops.get(&tok) {
+                if rbp < op.lbp {
+                    let _ = self.lexer.next();
+                    let r = self.parse_term_rec(closer, op.rbp)?;
+                    l = self.node(start, Info::Atom(tok), vec![l, r]);
+                    continue;
+                }
+            }
+            break;
+        }
+        Ok(l)
+    }
+
+    fn parse_term_unary(&mut self, closer: Option<Token>, rbp: u32) -> Result<ParseNode, Error> {
         let start = self.start();
         let open = self.predefined.open;
         let close = self.predefined.close;
@@ -418,7 +478,7 @@ impl<'a> Parser<'a> {
         } else if self.lexer.expect(self.predefined.backslash) {
             let b_s = self.start();
             let bound_var = self.next()?;
-            let body = self.parse_term(closer)?;
+            let body = self.parse_term_rec(closer, rbp)?;
             let children = vec![self.leaf(b_s, Info::Var(bound_var)), body];
             Ok(self.node(start, Info::Lambda, children))
         } else {
@@ -427,7 +487,7 @@ impl<'a> Parser<'a> {
             loop {
                 let t_s = self.start();
                 if let Some(tok) = self.lexer.peek() {
-                    if Some(tok) == closer {
+                    if Some(tok) == closer || self.binops.contains_key(&tok) {
                         break;
                     }
                     let _ = self.lexer.next();
@@ -474,6 +534,40 @@ impl<'a> Parser<'a> {
         Ok(self.list(start, result))
     }
 
+    // Support for syntax (note: this is expected to change quite a bit, to support
+    // typesetting, more sophisticated grammars, etc.).
+
+    /// Parses and immediately applies syntax definitions.
+    ///
+    /// The returned syntax node is empty; the syntax definitions are applied
+    /// as a side effect, rather than being returned. (If there are other uses
+    /// for the definitions, this will change)
+    fn parse_syntax(&mut self, start: usize) -> Result<ParseNode, Error> {
+        let open_brace = self.predefined.open_brace;
+        let result = Vec::new();
+        self.expect(open_brace)?;
+        loop {
+            let tok = self.next()?;
+            if tok == self.predefined.close_brace {
+                break;
+            }
+            if tok == self.predefined.infixl || tok == self.predefined.infixr {
+                let op = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
+                let prec = self.lexer.next_u32().ok_or(Error::ExpectedNum)?;
+                let semicolon = self.predefined.semicolon;
+                self.expect(semicolon)?;
+                let binop = if tok == self.predefined.infixl {
+                    Binop::infixl(prec)
+                } else {
+                    // Note: prec == 0 could panic
+                    Binop::infixr(prec)
+                };
+                self.binops.insert(op, binop);
+            }
+        }
+        Ok(self.node(start, Info::SyntaxCmd, result))
+    }
+
     pub fn backslash(&self) -> Token {
         self.predefined.backslash
     }
@@ -487,9 +581,10 @@ impl<'a> Parser<'a> {
             print!("  ");
         }
         match node.info {
+            Info::SyntaxCmd => println!("syntax"),
             Info::KindCmd => println!("kind"),
             Info::VarCmd => println!("var"),
-            Info::BinderCmd => println!("binder"),
+            Info::BoundCmd => println!("bound"),
             Info::TermCmd => println!("term"),
             Info::AxiomCmd => println!("axiom"),
             Info::TheoremCmd => println!("theorem"),

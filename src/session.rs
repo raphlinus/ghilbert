@@ -159,10 +159,11 @@ impl<'a> Session<'a> {
         match cmd.info {
             Info::KindCmd => self.do_kind(&cmd.children)?,
             Info::VarCmd => self.do_var(&cmd.children, false)?,
-            Info::BinderCmd => self.do_var(&cmd.children, true)?,
+            Info::BoundCmd => self.do_var(&cmd.children, true)?,
             Info::TermCmd => self.do_term(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
             Info::TheoremCmd => self.do_theorem(&cmd.children)?,
+            Info::SyntaxCmd => (),  // effect is done in parser
             _ => return Err(Error::UnknownCommand),
         }
         Ok(())
