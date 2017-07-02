@@ -18,7 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
-use unify::{self, Expr, Graph, Stmt};
+use unify::{self, Definition, Expr, Graph, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -37,6 +37,9 @@ pub enum Error {
     StepNotFound,
     InconsistentParse,
     LambdaArgMustBind,
+    NoRawBoundVars,
+    NoTermMatching,
+    DefCantBeLambda,
     ParseError(parser::Error),
     UnifyError(unify::Error),
 }
@@ -76,9 +79,10 @@ pub struct Session<'a> {
     verbose: bool,
     parser: Parser<'a>,
     kinds: BTreeSet<KindName>,
-    vars: BTreeMap<Token, VarType>,
-    terms: BTreeMap<Token, (Vec<Type>, KindName)>,
+    vars: BTreeMap<Token, VarType>
+,    terms: BTreeMap<Token, (Vec<Type>, KindName)>,
     stmts: BTreeMap<Token, Stmt>,
+    defs: BTreeMap<Token, Definition>,
 }
 
 // Should the following accessors be methods on ParseNode?
@@ -139,6 +143,7 @@ impl<'a> Session<'a> {
             vars: BTreeMap::new(),
             terms: BTreeMap::new(),
             stmts: BTreeMap::new(),
+            defs: BTreeMap::new(),
         }
     }
 
@@ -161,6 +166,7 @@ impl<'a> Session<'a> {
             Info::VarCmd => self.do_var(&cmd.children, false)?,
             Info::BoundCmd => self.do_var(&cmd.children, true)?,
             Info::TermCmd => self.do_term(&cmd.children)?,
+            Info::DefCmd => self.do_def(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
             Info::TheoremCmd => self.do_theorem(&cmd.children)?,
             Info::SyntaxCmd => (),  // effect is done in parser
@@ -220,6 +226,22 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
+    fn do_def(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+        let con = get_const(&children[0])?;
+        if self.terms.contains_key(&con) {
+            if self.verbose {
+                println!("Duplicate term {}", self.parser.tok_str(con));
+            }
+            return Err(Error::DuplicateTerm);
+        }
+        let args = &children[1];
+        let rhs = &children[2];
+        let (def, (args, kind)) = self.mk_def(con, args, rhs)?;
+        self.defs.insert(con, def);
+        self.terms.insert(con, (args, kind));
+        Ok(())
+    }
+
     fn do_axiom(&mut self, children: &[ParseNode]) -> Result<(), Error> {
         let step = get_step(&children[0])?;
         if self.stmts.contains_key(&step) {
@@ -245,7 +267,7 @@ impl<'a> Session<'a> {
             return Err(Error::DuplicateStmt);
         }
         let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
-        let mut graph = Graph::new(self.parser.backslash());
+        let mut graph = Graph::new(&self.defs, self.parser.backslash());
         let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
         // Result lines can add new binding variables, but those won't affect the stmt.
         let mut bound_map = stmt.bound_map.clone();
@@ -435,9 +457,84 @@ impl<'a> Session<'a> {
             Err(Error::InconsistentParse)
         }
     }
+
+    /// Makes an expr from a parse node representing a def argument.
+    fn def_arg_to_expr(&self, node: &ParseNode, var_map: &mut BTreeMap<Token, usize>,
+        bound_map: &mut BTreeMap<Token, usize>) -> Result<(Expr, Type), Error>
+    {
+        if node.info == Info::Lambda {
+            let bound_var = get_var(&node.children[0])?;
+            let (body, ty) = self.def_arg_to_expr(&node.children[1], var_map, bound_map)?;
+            let var_type = self.vars.get(&bound_var).ok_or(Error::VarNotFound)?;
+            let bound_var_ty = match *var_type {
+                VarType::BoundVar(kind) => kind,
+                _ => return Err(Error::LambdaArgMustBind),
+            };
+            let ty = Type::Arrow(bound_var_ty, Box::new(ty));
+            let id = add_unique(bound_map, bound_var)?;
+            let children = vec![Expr::BoundVar(id), body];
+            return Ok((Expr::Term { constructor: self.parser.backslash(), children }, ty));
+        }
+        let atom = get_atom(node)?;
+        if let Some(var_type) = self.vars.get(&atom) {
+            if !node.children.is_empty() {
+                return Err(Error::ArityMismatch);
+            }
+            match *var_type {
+                VarType::TermVar(kind) => {
+                    let id = add_unique(var_map, atom)?;
+                    Ok((Expr::Var(id), Type::Base(kind)))
+                }
+                VarType::BoundVar(_) => {
+                    Err(Error::NoRawBoundVars)
+                }
+            }
+        } else {
+            Err(Error::NoTermMatching)
+        }
+    }
+
+    fn mk_def(&self, con: Token, args: &ParseNode, rhs_node: &ParseNode)
+        -> Result<(Definition, (Vec<Type>, KindName)), Error>
+    {
+        let index = self.defs.len();
+        let mut var_map = BTreeMap::new();
+        let mut bound_map = BTreeMap::new();
+        let mut children = Vec::new();
+        let mut arg_types = Vec::new();
+        for arg in &args.children {
+            let (arg_expr, arg_ty) = self.def_arg_to_expr(arg, &mut var_map, &mut bound_map)?;
+            children.push(arg_expr);
+            arg_types.push(arg_ty);
+        }
+        let lhs = Expr::Term { constructor: con, children: children };
+        let (rhs, ty) = self.term_to_expr(rhs_node, &mut var_map, &mut bound_map, true)?;
+        let kind = match ty {
+            Type::Base(kind) => kind,
+            _ => return Err(Error::DefCantBeLambda),
+        };
+        let def = Definition { index, var_map, bound_map, lhs, rhs };
+        Ok((def, (arg_types, kind)))
+    }
 }
 
 fn find_or_insert(map: &mut BTreeMap<Token, usize>, tok: Token) -> usize {
     let new_val = map.len();
     *map.entry(tok).or_insert(new_val)
+}
+
+fn insert_unique<T>(map: &mut BTreeMap<Token, T>, key: Token, val: T) -> Option<()> {
+    // TODO: rewriting in terms of entry would no doubt be more efficient
+    if map.contains_key(&key) {
+        None
+    } else {
+        map.insert(key, val);
+        Some(())
+    }
+}
+
+/// Adds a unique variable mapping, returning error if duplicate.
+fn add_unique(map: &mut BTreeMap<Token, usize>, tok: Token) -> Result<usize, Error> {
+    let new_val = map.len();
+    insert_unique(map, tok, new_val).map(|_| new_val).ok_or(Error::DuplicateVar)
 }

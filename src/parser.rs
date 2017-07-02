@@ -44,6 +44,8 @@ pub enum Info {
     BoundCmd,
     // children: con, [args], kind
     TermCmd,
+    // children: con, [args], definiens
+    DefCmd,
     // children: step, [hyps], notfree, result
     AxiomCmd,
     // children: label, [hyp_names], [hyps], notfree, result, [lines]
@@ -72,6 +74,7 @@ pub enum Info {
 struct Predefined {
     axiom: Token,
     bound: Token,
+    def: Token,
     kind: Token,
     term: Token,
     theorem: Token,
@@ -112,6 +115,7 @@ impl Predefined {
         Predefined {
             axiom: lexer.intern("axiom"),
             bound: lexer.intern("bound"),
+            def: lexer.intern("def"),
             kind: lexer.intern("kind"),
             term: lexer.intern("term"),
             theorem: lexer.intern("theorem"),
@@ -206,7 +210,7 @@ impl<'a> Parser<'a> {
 
     /// Expects a token (consuming the next token either way).
     fn expect(&mut self, expected: Token) -> Result<(), Error> {
-        let token = self.lexer.next().ok_or(Error::Eof)?;
+        let token = self.next()?;
         if token == expected {
             Ok(())
         } else {
@@ -291,6 +295,8 @@ impl<'a> Parser<'a> {
             self.expect(semicolon)?;
             let children = vec![con, args, kind_node];
             Ok(self.node(start, Info::TermCmd, children))
+        } else if token == self.predefined.def {
+            self.parse_def(start)
         } else if token == self.predefined.axiom {
             self.parse_axiom(start)
         } else if token == self.predefined.theorem {
@@ -333,9 +339,34 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_def(&mut self, start: usize) -> Result<ParseNode, Error> {
+        let c_s = self.start();
+        let con = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
+        let con = self.leaf(c_s, Info::Const(con));
+        let a_s = self.start();
+        let mut args = Vec::new();
+        let colon = self.predefined.colon;
+        loop {
+            if self.lexer.expect(colon) {
+                break;
+            }
+            let arg = self.parse_term_arg()?;
+            // Note: could do more validation of arg here, but this is checked downstream
+            // in session.
+            args.push(arg);
+        }
+        let args_node = self.list(a_s, args);
+        let semicolon = self.predefined.semicolon;
+        let result = self.parse_term(Some(semicolon))?;
+        self.expect(semicolon)?;
+        let children = vec![con, args_node, result];
+        Ok(self.node(start, Info::DefCmd, children))
+    }
+
     fn parse_axiom(&mut self, start: usize) -> Result<ParseNode, Error> {
+        let s_s = self.start();
         let step = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
-        let step = self.leaf(start, Info::Step(step));
+        let step = self.leaf(s_s, Info::Step(step));
         let h_s = self.start();
         let mut hyps = Vec::new();
         let colon = self.predefined.colon;
@@ -479,6 +510,20 @@ impl<'a> Parser<'a> {
         Ok(l)
     }
 
+    /// Parses an argument to a term (in sexp-style term or def lhs)
+    fn parse_term_arg(&mut self) -> Result<ParseNode, Error> {
+        let start = self.start();
+        let tok = self.next()?;
+        if tok == self.predefined.open {
+            let close = self.predefined.close;
+            let result = self.parse_term(Some(close))?;
+            self.expect(close)?;
+            Ok(result)
+        } else {
+            Ok(self.leaf(start, Info::Atom(tok)))
+        }
+    }
+
     fn parse_term_unary(&mut self, closer: Option<Token>, rbp: u32) -> Result<ParseNode, Error> {
         let start = self.start();
         let open = self.predefined.open;
@@ -500,18 +545,11 @@ impl<'a> Parser<'a> {
             }
             let mut args = Vec::new();
             loop {
-                let t_s = self.start();
                 if let Some(tok) = self.lexer.peek() {
                     if Some(tok) == closer || self.binops.contains_key(&tok) {
                         break;
                     }
-                    let _ = self.lexer.next();
-                    if tok == open {
-                        args.push(self.parse_term(Some(close))?);
-                        self.expect(close)?;
-                    } else {
-                        args.push(self.leaf(t_s, Info::Atom(tok)))
-                    }
+                    args.push(self.parse_term_arg()?);
                 } else {
                     break;
                 }
@@ -630,6 +668,7 @@ impl<'a> Parser<'a> {
             Info::VarCmd => println!("var"),
             Info::BoundCmd => println!("bound"),
             Info::TermCmd => println!("term"),
+            Info::DefCmd => println!("def"),
             Info::AxiomCmd => println!("axiom"),
             Info::TheoremCmd => println!("theorem"),
             Info::Line => println!("line"),

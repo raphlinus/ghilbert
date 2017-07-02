@@ -38,7 +38,7 @@ pub enum Expr {
 pub struct Stmt {
     /// Map from variable name to index, same as arg to Expr::Var
     pub var_map: BTreeMap<Token, usize>,
-    /// Map from variable name to index, same as arg to BoundExpr::Var
+    /// Map from variable name to index, same as arg to Expr::BoundVar
     pub bound_map: BTreeMap<Token, usize>,
     /// Not-free-in constraint is pair of bound var and term var.
     pub notfree: Vec<(usize, usize)>,
@@ -46,13 +46,25 @@ pub struct Stmt {
     pub concl: Expr,
 }
 
+pub struct Definition {
+    pub index: usize,
+    /// Map from variable name to index, same as arg to Expr::Var
+    pub var_map: BTreeMap<Token, usize>,
+    /// Map from variable name to index, same as arg to Expr::BoundVar
+    pub bound_map: BTreeMap<Token, usize>,
+    pub lhs: Expr,
+    pub rhs: Expr,
+}
+
+
 #[derive(Clone, Debug)]
 struct GraphNodeInfo {
     constructor: Const,
     children: Vec<usize>,  // indices to graph nodes
 }
 
-pub struct Graph {
+pub struct Graph<'a> {
+    defs: &'a BTreeMap<Token, Definition>,
     infos: Vec<Option<GraphNodeInfo>>,
     uf: QuickUnionUf<UnionByRank>,
     /// Term vars of proof steps, for occurs and not-general checks.
@@ -61,7 +73,7 @@ pub struct Graph {
     bound_var_sets: Vec<Vec<usize>>,
     /// Pair of node ix of bound var, node ix of term var
     nfi_constraints: Vec<(usize, usize)>,
-    /// Identifier for backslash so that we can identifiy lambda
+    /// Identifier for backslash so that we can identify lambda
     backslash: Const,
 }
 
@@ -91,9 +103,10 @@ enum State {
     Bound,
 }
 
-impl Graph {
-    pub fn new(backslash: Const) -> Graph {
+impl<'a> Graph<'a> {
+    pub fn new(defs: &BTreeMap<Token, Definition>, backslash: Const) -> Graph {
         Graph {
+            defs,
             infos: Vec::new(),
             uf: QuickUnionUf::new(0),
             queue: Vec::new(),
@@ -122,7 +135,7 @@ impl Graph {
         -> Result<(usize, Vec<Option<usize>>), Error>
     {
         let mut vars = vec![None; stmt.var_map.len()];
-        let mut bound_vars = vec![None; stmt.var_map.len()];
+        let mut bound_vars = vec![None; stmt.bound_map.len()];
         for (i, expr) in stmt.hyps.iter().enumerate() {
             self.unify_expr(hyps[i], expr, &mut vars, &mut bound_vars)?;
         }
@@ -133,16 +146,13 @@ impl Graph {
                 self.queue.push(node);
             }
         }
-        if !bound_vars.is_empty() {
-            let bound_var_set = bound_vars.iter().filter_map(|o| *o).collect();
-            self.bound_var_sets.push(bound_var_set);
-        }
         for &(bound_var, var) in &stmt.notfree {
             // The variables must be assigned after unification.
             let bound_var_ix = bound_vars[bound_var].unwrap();
             let var_ix = vars[var].unwrap();
             self.nfi_constraints.push((bound_var_ix, var_ix));
         }
+        self.distinct_bound_vars(bound_vars);
         Ok((concl, vars))
     }
 
@@ -203,8 +213,11 @@ impl Graph {
                 }
                 let info = self.infos[nfind].as_ref().unwrap().clone();
                 if info.constructor != constructor {
-                    println!("constructor mismatch {} != {}", info.constructor, constructor);
-                    return Err(Error::ConstructorNoMatch);
+                    // Might be a definition to expand, so let node unification handle it
+                    // (and return an error if it still doesn't unify).
+                    let term_node = self.new_node();
+                    self.unify_expr(term_node, expr, vars, bound_vars)?;
+                    return self.unify_nodes(node, term_node);
                 }
                 for (i, child) in children.iter().enumerate() {
                     self.unify_expr(info.children[i], child, vars, bound_vars)?;
@@ -215,12 +228,37 @@ impl Graph {
     }
 
     fn unify_nodes(&mut self, a: usize, b: usize) -> Result<(), Error> {
-        // TODO: unify node info
         let afind = self.uf.find(a);
         let bfind = self.uf.find(b);
         if afind == bfind {
             // Nodes are already the same.
             return Ok(());
+        }
+        let def_info = if let (Some(ainfo), Some(binfo)) =
+            (self.infos[afind].as_ref(), self.infos[bfind].as_ref())
+        {
+            if ainfo.constructor != binfo.constructor {
+                match (self.defs.get(&ainfo.constructor), self.defs.get(&binfo.constructor)) {
+                    (Some(adef), Some(bdef)) => {
+                        // Expand the more recent definition.
+                        if adef.index > bdef.index {
+                            Some((afind, adef))
+                        } else {
+                            Some((bfind, bdef))
+                        }
+                    }
+                    (Some(adef), None) => Some((afind, adef)),
+                    (None, Some(bdef)) => Some((bfind, bdef)),
+                    _ => None,  // No definitions to expand, this will fail below.
+                }
+            } else {
+                None  // Constructors match.
+            }
+        } else {
+            None  // One or both nodes is general.
+        };
+        if let Some((node, def)) = def_info {
+            self.expand_def(node, def)?;
         }
         let _ = self.uf.union(a, b);
         let root = self.uf.find(afind);
@@ -251,6 +289,42 @@ impl Graph {
         Ok(())
     }
 
+    /// Expands the definition at the specified node, replacing its info.
+    fn expand_def(&mut self, node: usize, def: &Definition) -> Result<(), Error> {
+        let mut vars = vec![None; def.var_map.len()];
+        let mut bound_vars = vec![None; def.bound_map.len()];
+        self.unify_expr(node, &def.lhs, &mut vars, &mut bound_vars)?;
+        self.infos[node] = None;
+        self.unify_expr(node, &def.rhs, &mut vars, &mut bound_vars)?;
+        //println!("expanding {}, vars={:?} {:?}", node, vars, self.infos[node]);
+        self.distinct_bound_vars(bound_vars);
+        Ok(())
+    }
+
+    /// Registers the set of bound variables so that they'll be validated as all
+    /// distinct later.
+    fn distinct_bound_vars(&mut self, bound_vars: Vec<Option<usize>>) {
+        if !bound_vars.is_empty() {
+            let bound_var_set = bound_vars.iter().filter_map(|o| *o).collect();
+            self.bound_var_sets.push(bound_var_set);
+        }
+    }
+
+    /// Dumps graph, for debugging.
+    #[allow(dead_code)]
+    fn dump_graph(&mut self) {
+        for i in 0..self.infos.len() {
+            print!("info {}->{}", i, self.uf.find(i));
+            if let Some(info) = self.infos[i].as_ref() {
+                print!(": [{}]", info.constructor);
+                for child in &info.children {
+                    print!(" {}", child);
+                }
+            }
+            println!("");
+        }
+    }
+
     /// Validates the graph, given variables of the theorem being proved.
     ///
     /// This method checks a number of correctness conditions, including:
@@ -261,11 +335,6 @@ impl Graph {
     pub fn validate(&mut self, var_map: &[Option<usize>], bound_var_map: &[Option<usize>])
         -> Result<(), Error>
     {
-        /*
-        for i in 0..self.infos.len() {
-            println!("info {}->{}: {:?}", i, self.uf.find(i), self.infos[i]);
-        }
-        */
         let mut states = vec![State::Unvisited; self.infos.len()];
         // Ensure that the term variables appearing in hyps and concl of theorem
         // being proved are distinct and general.

@@ -1,5 +1,6 @@
 syntax {
     prefix -. 40;
+    infixl <-> 20;
     infixr -> 25;
     infixl \/ 30;
     infixl /\ 35;
@@ -9,7 +10,7 @@ kind wff;
 /* comment with /* nesting */ */
 /* ordinary comment */
 kind val;
-var ph ps ch: wff;
+var ph ps ch th: wff;
 term -> wff wff: wff;
 term -. wff: wff;
 axiom ax-1: ph -> ps -> ph;
@@ -48,6 +49,7 @@ syntax {
 term A. (val->wff): wff;
 bound x: val;
 axiom ax-gen (ph): A. x ph;
+axiom ax-4: A. x ph -> ph;
 axiom ax-5: A. x (ph -> ps) -> A. x ph -> A. x ps;
 /* An example of a "not free in" constraint. */
 axiom ax-17 x F/ ph: ph -> A. x ph;
@@ -72,4 +74,154 @@ theorem hba1: A. x ph -> A. x A. x ph ::(
 
 /* This theorem shouldn't check:
 theorem bad: -> ph (-> ps ch) ::(ax-1)
+*/
+
+/* Some theorems working up to supporting definitions of /\, \/, <-> */
+theorem imim2i (h: ph -> ps): ((ch -> ph) -> ch -> ps) ::(a2i (a1i h))
+
+theorem syl (h1: ph -> ps) (h2: ps -> ch): ph -> ch ::(mpd h1 (a1i h2))
+
+theorem con4d (h: ph -> (-.ps -> -.ch)): ph -> ch -> ps ::(syl h ax-3)
+
+theorem a1d (h: ph -> ps): ph -> ch -> ps ::(syl h ax-1)
+
+theorem pm2.21d (h: ph -> -.ps): ph -> ps -> ch ::(con4d (a1d h))
+
+theorem pm2.21: -.ph -> ph -> ps ::(pm2.21d id)
+
+theorem pm2.43i (h: ph -> ph -> ps): ph -> ps ::(mpd id h)
+
+theorem pm2.18: (-.ph -> ph) -> ph ::(pm2.43i (con4d (a2i pm2.21)))
+
+theorem pm2.18d (h: ph -> (-.ps -> ps)): ph -> ps ::(syl h pm2.18)
+
+theorem notnot2: -.-.ph -> ph ::(pm2.18d pm2.21)
+
+theorem sylcom (h1: ph -> ps -> ch) (h2: ps -> ch -> th): ph -> ps -> th ::(
+    syl h1 (a2i h2)
+)
+
+theorem syl5com (h1: ph -> ps) (h2: ch -> ps -> th): ph -> ch -> th ::(
+    sylcom (a1d h1) h2
+)
+
+theorem com12 (h: ph -> ps -> ch): ps -> ph -> ch ::(syl5com id h)
+
+theorem syl5 (h1: ph -> ps) (h2: ch -> ps -> th): ch -> ph -> th ::(
+    com12 (syl5com h1 h2)
+)
+
+theorem con2d (h: ph -> ps -> -.ch): ph -> ch -> -.ps ::(
+    con4d (syl5 notnot2 h)
+)
+
+theorem mt2d (h1: ph -> ch) (h2: ph -> ps -> -.ch): ph -> -.ps ::(
+    mpd h1 (con2d h2)
+)
+
+theorem nsyl3 (h1: ph -> -.ps) (h2: ch -> ps): ch -> -.ph ::(
+    mt2d h2 (a1i h1)
+)
+
+theorem con2i (h: ph -> -.ps): ps -> -.ph ::(nsyl3 h id)
+
+theorem notnot1: ph -> -.-.ph ::(con2i id)
+
+theorem syl6 (h1: ph -> ps -> ch) (h2: ch -> th): ph -> ps -> th ::(
+    sylcom h1 (a1i h2)
+)
+
+theorem con1d (h: ph -> -.ps -> ch): ph -> -.ch -> ps ::(
+    con4d (syl6 h notnot1)
+)
+
+theorem a2d (h: ph -> ps -> ch -> th): ph -> (ps -> ch) -> ps -> th ::(
+    syl h ax-2
+)
+
+theorem mpdd (h1: ph -> ps -> ch) (h2: ph -> ps -> ch -> th):
+    ph -> ps -> th
+::(
+    mpd h1 (a2d h2)
+)
+
+theorem syld (h1: ph -> ps -> ch) (h2: ph -> ch -> th): ph -> ps -> th ::(
+    mpdd h1 (a1d h2)
+)
+
+theorem pm2.61d (h1: ph -> ps -> ch) (h2: ph -> -.ps -> ch): ph -> ch ::(
+    syld (con1d h2) h1
+    [ph -> -.ch -> ch]
+    pm2.18d _
+)
+
+theorem pm2.61d1 (h1: ph -> ps -> ch) (h2: -.ps -> ch): ph -> ch ::(
+    pm2.61d h1 (a1i h2)
+)
+
+theorem ja (h1: -.ph -> ch) (h2: ps -> ch): (ph -> ps) -> ch ::(
+    pm2.61d1 (imim2i h2) h1
+)
+
+theorem pm2.01: (ph -> -.ph) -> -.ph ::(ja id id)
+
+theorem nsyl (h1: ph -> -.ps) (h2: ch -> ps): ph -> -.ch ::(
+    con2i (nsyl3 h1 h2)
+)
+
+theorem con3i (h: ph -> ps): -.ps -> -.ph ::(nsyl id h)
+
+theorem pm2.61i (h1: ph -> ps) (h2: -.ph -> ps): ps ::(
+    ja h2 h1
+    [(ph -> ph) -> ps]
+    ax-mp id _
+)
+
+theorem pm2.65i (h1: ph -> ps) (h2: ph -> -.ps): -.ph ::(
+    pm2.61i (con2i h2) (con3i h1)
+)
+
+theorem mt2 (h1: ps) (h2: ph -> -.ps): -.ph ::(pm2.65i (a1i h1) h2)
+
+theorem mt3d (h1: ph -> -.ch) (h2: ph -> -.ps -> ch): ph -> ps ::(
+    mpd h1 (con1d h2)
+)
+
+theorem nsyl2 (h1: ph -> -.ps) (h2: -.ch -> ps): ph -> ch ::(
+    mt3d h1 (a1i h2)
+)
+
+theorem con1i (h: -.ph -> ps): -.ps -> ph ::(nsyl2 id h)
+
+/* Definition of <-> plus related theorems. */
+
+def <-> ph ps: -.((ph -> ps) -> -.(ps -> ph));
+
+/* This proof is actually that of bijust, and the definition is expanded
+   on matching. */
+theorem df-bi: -.(((ph <-> ps) -> -.((ph -> ps) -> -.(ps -> ph))) ->
+    -.(-.((ph -> ps) -> -.(ps -> ph)) -> (ph <-> ps)))
+::(
+    mt2 id pm2.01
+)
+
+theorem simplim: -.(ph -> ps) -> ph ::(con1i pm2.21)
+
+theorem bi1: (ph <-> ps) -> ph -> ps ::(
+    ax-mp df-bi simplim;
+    syl _ simplim
+)
+
+def /\ ph ps: -.(ph -> -.ps);
+
+def \/ ph ps: -.ph -> ps;
+
+theorem pm2.53: (-.ph -> ps) -> ph \/ ps ::(id)
+
+def E. (\ x ph): -. A. x -.ph;
+
+/*
+def can't-be-lambda ph: \ x ph;
+
+def duplicate-bound-vars (\ x (\ x ph)): ph;
 */

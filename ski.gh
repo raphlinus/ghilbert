@@ -7,7 +7,6 @@ var x y z: term;
 term ` term term: term;
 term S : term;
 term K : term;
-term I : term;
 kind wff;
 term = term term: wff;
 
@@ -18,11 +17,36 @@ axiom fveq2i (x = y): z`x = z`y;
 axiom eqtri (x = y) (y = z): x = z;
 axiom eta (x`z = y`z): x = y;
 
-theorem AI: S`K`K`x = x ::(
+def I : S`K`K;
+
+theorem AI: I`x = x ::(
     AS
     [S`K`K`x = (K`x)`(K`x)]
     eqtri _ (
         AK
         [(K`x)`(K`x) = x]
     )
+    [S`K`K`x = x]
+)
+
+def F : S`K;
+
+theorem AF: F`x`y = y ::(
+    AS
+    [S`K`x`y = K`y`(x`y)]
+    eqtri _ AK
+    [S`K`x`y = y]
+)
+
+def B : S`(K`S)`K;
+
+theorem AB: B`x`y`z = x`(y`z) ::(
+    AS
+    [S`(K`S)`K`x = K`S`x`(K`x)]
+    _last: eqtri _ (fveq1i AK)
+    [S`(K`S)`K`x = S`(K`x)]
+    /* TODO: should probably allow _ here */
+    eqtri (fveq1i (fveq1i _last)) AS
+    [S`(K`S)`K`x`y`z = K`x`z`(y`z)]
+    eqtri _ (fveq1i AK)
 )
