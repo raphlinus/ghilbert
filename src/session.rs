@@ -16,9 +16,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use lampi::{self, Term};
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
-use unify::{self, Definition, Expr, Graph, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -41,7 +41,7 @@ pub enum Error {
     NoTermMatching,
     DefCantBeLambda,
     ParseError(parser::Error),
-    UnifyError(unify::Error),
+    LampiError(lampi::Error),
 }
 
 impl From<parser::Error> for Error {
@@ -50,49 +50,19 @@ impl From<parser::Error> for Error {
     }
 }
 
-impl From<unify::Error> for Error {
-    fn from(err: unify::Error) -> Error {
-        Error::UnifyError(err)
+impl From<lampi::Error> for Error {
+    fn from(err: lampi::Error) -> Error {
+        Error::LampiError(err)
     }
-}
-
-type KindName = Token;
-
-#[derive(Clone, Copy)]
-enum VarType {
-    TermVar(KindName),
-    BoundVar(KindName),
-}
-
-/// The type a term can have.
-///
-/// A few notes. First, the naming is odd here, the base case should
-/// probably not be called "kind". Second, this is purposefully a pretty
-/// limited family of types for now; I hope to expand it.
-#[derive(PartialEq, Eq)]
-enum Type {
-    Base(KindName),
-    Arrow(KindName, Box<Type>),
 }
 
 pub struct Session<'a> {
     verbose: bool,
     parser: Parser<'a>,
-    kinds: BTreeSet<KindName>,
-    vars: BTreeMap<Token, VarType>
-,    terms: BTreeMap<Token, (Vec<Type>, KindName)>,
-    stmts: BTreeMap<Token, Stmt>,
-    defs: BTreeMap<Token, Definition>,
+    consts: BTreeMap<Token, Term>,
 }
 
 // Should the following accessors be methods on ParseNode?
-
-fn get_kind(node: &ParseNode) -> Result<KindName, Error> {
-    match node.info {
-        Info::Kind(tok) => Ok(tok),
-        _ => Err(Error::InconsistentParse),
-    }
-}
 
 fn get_var(node: &ParseNode) -> Result<Token, Error> {
     match node.info {
@@ -122,28 +92,12 @@ fn get_atom(node: &ParseNode) -> Result<Token, Error> {
     }
 }
 
-fn get_type(node: &ParseNode) -> Result<Type, Error> {
-    match node.info {
-        Info::Kind(tok) => Ok(Type::Base(tok)),
-        Info::Arrow => {
-            let arg_kind = get_kind(&node.children[0])?;
-            let result_ty = get_type(&node.children[1])?;
-            Ok(Type::Arrow(arg_kind, Box::new(result_ty)))
-        }
-        _ => Err(Error::InconsistentParse),
-    }
-}
-
 impl<'a> Session<'a> {
     pub fn new(parser: Parser<'a>) -> Session<'a> {
         Session {
             verbose: true,
             parser,
-            kinds: BTreeSet::new(),
-            vars: BTreeMap::new(),
-            terms: BTreeMap::new(),
-            stmts: BTreeMap::new(),
-            defs: BTreeMap::new(),
+            consts: BTreeMap::new(),
         }
     }
 
@@ -158,23 +112,62 @@ impl<'a> Session<'a> {
     }
 
     fn do_cmd(&mut self, cmd: &ParseNode) -> Result<(), Error> {
+        /*
         if self.verbose {
             self.parser.dump_tree(cmd);
         }
+        */
         match cmd.info {
+            Info::AxiomCmd => self.do_axiom(&cmd.children)?,
+            Info::DefCmd => self.do_def(&cmd.children)?,
+            /*
             Info::KindCmd => self.do_kind(&cmd.children)?,
             Info::VarCmd => self.do_var(&cmd.children, false)?,
             Info::BoundCmd => self.do_var(&cmd.children, true)?,
             Info::TermCmd => self.do_term(&cmd.children)?,
-            Info::DefCmd => self.do_def(&cmd.children)?,
-            Info::AxiomCmd => self.do_axiom(&cmd.children)?,
             Info::TheoremCmd => self.do_theorem(&cmd.children)?,
+            */
             Info::SyntaxCmd => (),  // effect is done in parser
             _ => return Err(Error::UnknownCommand),
         }
         Ok(())
     }
 
+    fn do_axiom(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+        let step = get_step(&children[0])?;
+        if self.consts.contains_key(&step) {
+            if self.verbose {
+                println!("Duplicate const {}", self.parser.tok_str(step));
+            }
+            return Err(Error::DuplicateStmt);
+        }
+        let ty = Term::from_parse_node(&children[3])?;
+        if self.verbose {
+            println!("adding const {}: {:?}", self.parser.tok_str(step), self.print(&ty));
+        }
+        self.consts.insert(step, ty);
+        Ok(())
+    }
+
+    fn do_def(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+        let step = get_const(&children[0])?;
+        if self.consts.contains_key(&step) {
+            if self.verbose {
+                println!("Duplicate const {}", self.parser.tok_str(step));
+            }
+            return Err(Error::DuplicateStmt);
+        }
+        let body = Term::from_parse_node(&children[2])?;
+        let mut stack = Vec::new();
+        let ty = lampi::check_type(&body, &self.consts, &mut stack)?;
+        if self.verbose {
+            println!("adding defined const {}: {:?}", self.parser.tok_str(step), self.print(&ty));
+        }
+        self.consts.insert(step, ty);
+        Ok(())
+    }
+
+    /*
     fn do_kind(&mut self, children: &[ParseNode]) -> Result<(), Error> {
         let kind = get_kind(&children[0])?;
         if self.kinds.contains(&kind) {
@@ -242,21 +235,6 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    fn do_axiom(&mut self, children: &[ParseNode]) -> Result<(), Error> {
-        let step = get_step(&children[0])?;
-        if self.stmts.contains_key(&step) {
-            if self.verbose {
-                println!("Duplicate stmt {}", self.parser.tok_str(step));
-            }
-            return Err(Error::DuplicateStmt);
-        }
-        let stmt = self.mk_stmt(&children[1], &children[2], &children[3])?;
-        if self.verbose {
-            println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
-        }
-        self.stmts.insert(step, stmt);
-        Ok(())
-    }
 
     fn do_theorem(&mut self, children: &[ParseNode]) -> Result<(), Error> {
         let step = get_step(&children[0])?;
@@ -516,8 +494,14 @@ impl<'a> Session<'a> {
         let def = Definition { index, var_map, bound_map, lhs, rhs };
         Ok((def, (arg_types, kind)))
     }
+    */
+
+    fn print(&'a self, t: &'a Term) -> lampi::Print<'a> {
+        lampi::Print(t, self.parser.get_lexer())
+    }
 }
 
+/*
 fn find_or_insert(map: &mut BTreeMap<Token, usize>, tok: Token) -> usize {
     let new_val = map.len();
     *map.entry(tok).or_insert(new_val)
@@ -538,3 +522,5 @@ fn add_unique(map: &mut BTreeMap<Token, usize>, tok: Token) -> Result<usize, Err
     let new_val = map.len();
     insert_unique(map, tok, new_val).map(|_| new_val).ok_or(Error::DuplicateVar)
 }
+
+*/

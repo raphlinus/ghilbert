@@ -1,0 +1,21 @@
+syntax {
+    prefix |- 10;
+    infixr => 25;
+    prefix .- 40;
+}
+axiom prop: Type;
+axiom |- : Pi x : prop. Type;
+axiom => : Pi x : prop. Pi y : prop. prop;
+axiom ax-1 : Pi x : prop. Pi y : prop. |- x => y => x;
+axiom ax-2 : Pi x : prop. Pi y : prop. Pi z: prop.
+    |- (x => y => z) => (x => y) => x => z;
+axiom ax-mp : Pi x : prop. Pi y : prop. Pi h1 : |- x . Pi h2 : |- x => y . |- y;
+def a1i : \ x : prop. \ y: prop. \ h: |- x . ax-mp x (y => x) h (ax-1 x y);
+def a2i : \ x : prop. \ y: prop. \z: prop.
+    \ h: |- x => y => z .
+    ax-mp (x => y => z) ((x => y) => x => z) h (ax-2 x y z);
+def mpd : \ x : prop. \ y : prop. \ z : prop.
+    \ h1: |- x => y .
+    \ h2: |- x => y => z .
+    ax-mp (x => y) (x => z) h1 (a2i x y z h2);
+def id : \ x : prop. mpd x (x => x) x (ax-1 x x) (ax-1 x (x => x));

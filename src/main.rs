@@ -20,6 +20,8 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 
+mod lampi;
+
 mod lexer;
 use lexer::Lexer;
 

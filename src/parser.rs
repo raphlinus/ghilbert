@@ -58,9 +58,12 @@ pub enum Info {
     Dummy,
     // children: kind, type
     Arrow,
-    // children: bound_var, body
+    // children: bound_var, type, body
     Lambda,
+    // children: bound_var, type, body
+    Pi,
     // children: [bound_var], var
+    BaseType,
     // Discussion question, should we also allow list of var (eg "x y F/ A B")?
     NotFree,
     Kind(Token),
@@ -79,6 +82,7 @@ struct Predefined {
     term: Token,
     theorem: Token,
     var: Token,
+    capital_type: Token,
 
     syntax: Token,
     prefix: Token,
@@ -97,9 +101,11 @@ struct Predefined {
     colon_colon: Token,
     underline: Token,
     backslash: Token,
+    pi: Token,
     arrow: Token,
     notfree: Token,
     comma: Token,
+    dot: Token,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -120,6 +126,7 @@ impl Predefined {
             term: lexer.intern("term"),
             theorem: lexer.intern("theorem"),
             var: lexer.intern("var"),
+            capital_type: lexer.intern("Type"),
 
             // keywords for syntax
             syntax: lexer.intern("syntax"),
@@ -139,9 +146,11 @@ impl Predefined {
             colon_colon: lexer.intern("::"),
             underline: lexer.intern("_"),
             backslash: lexer.intern("\\"),
+            pi: lexer.intern("Pi"),
             arrow: lexer.intern("->"),
             notfree: lexer.intern("F/"),
             comma: lexer.intern(","),
+            dot: lexer.intern("."),
         }
     }
 }
@@ -534,10 +543,28 @@ impl<'a> Parser<'a> {
             Ok(result)
         } else if self.lexer.expect(self.predefined.backslash) {
             let b_s = self.start();
-            let bound_var = self.next()?;
+            let bound_var = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+            let colon = self.predefined.colon;
+            self.expect(colon)?;
+            let dot = self.predefined.dot;
+            let ty = self.parse_term_rec(Some(dot), rbp)?;
+            self.expect(dot)?;
             let body = self.parse_term_rec(closer, rbp)?;
-            let children = vec![self.leaf(b_s, Info::Var(bound_var)), body];
+            let children = vec![self.leaf(b_s, Info::Var(bound_var)), ty, body];
             Ok(self.node(start, Info::Lambda, children))
+        } else if self.lexer.expect(self.predefined.capital_type) {
+            Ok(self.leaf(start, Info::BaseType))
+        } else if self.lexer.expect(self.predefined.pi) {
+            let b_s = self.start();
+            let bound_var = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+            let colon = self.predefined.colon;
+            self.expect(colon)?;
+            let dot = self.predefined.dot;
+            let ty = self.parse_term_rec(Some(dot), rbp)?;
+            self.expect(dot)?;
+            let body = self.parse_term_rec(closer, rbp)?;
+            let children = vec![self.leaf(b_s, Info::Var(bound_var)), ty, body];
+            Ok(self.node(start, Info::Pi, children))
         } else {
             let atom = self.next()?;
             if let Some(&prefix) = self.prefixes.get(&atom) {
@@ -676,7 +703,9 @@ impl<'a> Parser<'a> {
             Info::Dummy => println!("_"),
             Info::Arrow => println!("->"),
             Info::Lambda => println!("\\"),
+            Info::Pi => println!("Π"),
             Info::NotFree => println!("F/"),
+            Info::BaseType => println!("Type"),
             Info::Kind(t) => println!("kind {}", self.lexer.tok_str(t)),
             Info::Var(t) => println!("var {}", self.lexer.tok_str(t)),
             Info::Const(t) => println!("const {}", self.lexer.tok_str(t)),
@@ -691,5 +720,9 @@ impl<'a> Parser<'a> {
     /// Returns the string for the given token.
     pub fn tok_str(&self, tok: Token) -> &str {
         self.lexer.tok_str(tok)
+    }
+
+    pub fn get_lexer(&self) -> &Lexer {
+        &self.lexer
     }
 }
