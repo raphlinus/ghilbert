@@ -20,11 +20,17 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 
+mod htmlout;
+use htmlout::HtmlOut;
+
 mod lexer;
 use lexer::Lexer;
 
 mod parser;
 use parser::Parser;
+
+mod prooflistener;
+use prooflistener::DebugListener;
 
 mod sexp;
 use sexp::{Intern, Sexp};
@@ -39,12 +45,16 @@ fn my_main() -> ::std::io::Result<()> {
     args.next();
     let mut verbose = true;
     let mut sexpr = false;
+    let mut debug = false;
     for f in args {
         if f == "-q" {
             verbose = false;
             continue;
         } else if f == "-s" {
             sexpr = true;
+            continue;
+        } else if f == "-d" {
+            debug = true;
             continue;
         }
         let mut file = File::open(f)?;
@@ -71,9 +81,21 @@ fn my_main() -> ::std::io::Result<()> {
         } else {
             let lexer = Lexer::new(&contents);
             let parser = Parser::new(lexer);
-            let mut session = Session::new(parser);
-            if let Err(e) = session.run() {
-                println!("err: {:?}", e);
+            // A little code duplication here, but not so bad...
+            if debug {
+                let mut out = DebugListener;
+                let mut session = Session::new(parser);
+                if let Err(e) = session.run(&mut out) {
+                    println!("err: {:?}", e);
+                }
+            } else {
+                let mut out_file = File::create("out.html")?;
+                let mut out = HtmlOut::new(&contents);
+                let mut session = Session::new(parser);
+                if let Err(e) = session.run(&mut out) {
+                    println!("err: {:?}", e);
+                }
+                out.write(&mut out_file, session.get_parser())?;
             }
         }
     }

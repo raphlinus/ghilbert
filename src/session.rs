@@ -18,6 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
+use prooflistener::{ProofListener};
 use unify::{self, Definition, Expr, Graph, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
@@ -79,8 +80,8 @@ pub struct Session<'a> {
     verbose: bool,
     parser: Parser<'a>,
     kinds: BTreeSet<KindName>,
-    vars: BTreeMap<Token, VarType>
-,    terms: BTreeMap<Token, (Vec<Type>, KindName)>,
+    vars: BTreeMap<Token, VarType>,
+    terms: BTreeMap<Token, (Vec<Type>, KindName)>,
     stmts: BTreeMap<Token, Stmt>,
     defs: BTreeMap<Token, Definition>,
 }
@@ -147,17 +148,23 @@ impl<'a> Session<'a> {
         }
     }
 
-    pub fn run(&mut self) -> Result<(), Error> {
+    pub fn get_parser(&self) -> &Parser {
+        &self.parser
+    }
+
+    pub fn run<L: ProofListener>(&mut self, listener: &mut L) -> Result<(), Error> {
         loop {
             match self.parser.parse_cmd() {
-                Ok(cmd) => self.do_cmd(&cmd)?,
+                Ok(cmd) => self.do_cmd(&cmd, listener)?,
                 Err(parser::Error::Eof) => return Ok(()),
                 Err(e) => return Err(From::from(e)),
             }
         }
     }
 
-    fn do_cmd(&mut self, cmd: &ParseNode) -> Result<(), Error> {
+    fn do_cmd<L: ProofListener>(&mut self, cmd: &ParseNode, listener: &mut L)
+        -> Result<(), Error>
+    {
         if self.verbose {
             self.parser.dump_tree(cmd);
         }
@@ -168,7 +175,7 @@ impl<'a> Session<'a> {
             Info::TermCmd => self.do_term(&cmd.children)?,
             Info::DefCmd => self.do_def(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
-            Info::TheoremCmd => self.do_theorem(&cmd.children)?,
+            Info::TheoremCmd => self.do_theorem(&cmd.children, listener)?,
             Info::SyntaxCmd => (),  // effect is done in parser
             _ => return Err(Error::UnknownCommand),
         }
@@ -258,7 +265,9 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    fn do_theorem(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+    fn do_theorem<L: ProofListener>(&mut self, children: &[ParseNode], listener: &mut L)
+        -> Result<(), Error>
+    {
         let step = get_step(&children[0])?;
         if self.stmts.contains_key(&step) {
             if self.verbose {
@@ -266,6 +275,7 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
+        listener.start_proof(&children[0]);
         let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
         let mut graph = Graph::new(&self.defs, self.parser.backslash());
         let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
@@ -276,11 +286,12 @@ impl<'a> Session<'a> {
             steps.insert(get_step(hyp_name)?, hyp);
         }
         let concl_node = self.apply_proof(&children[5], &mut graph, &mut steps,
-            &mut stmt.var_map, &mut bound_map, &mut vars, &mut bound_vars)?;
+            &mut stmt.var_map, &mut bound_map, &mut vars, &mut bound_vars, listener)?;
         graph.unify_expr(concl_node, &stmt.concl, &mut vars, &mut bound_vars)?;
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
         graph.validate_notfree(&vars, &bound_vars, &stmt.notfree)?;
+        listener.end_proof();
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }
@@ -292,24 +303,26 @@ impl<'a> Session<'a> {
     // `var_map` maps variable name (Token) to 0..n_vars index.
     // `var_ix_to_node` maps that index to node index in graph.
     // TODO: with these many args, should have a ProofCtx struct to hold them
-    fn apply_proof(&self, proof: &ParseNode, graph: &mut Graph,
+    fn apply_proof<L: ProofListener>(&self, proof: &ParseNode, graph: &mut Graph,
         steps: &mut BTreeMap<Token, usize>,
         var_map: &mut BTreeMap<Token, usize>,
         bound_map: &mut BTreeMap<Token, usize>,
         var_ix_to_node: &mut Vec<Option<usize>>,
-        bound_ix_to_node: &mut Vec<Option<usize>>) -> Result<usize, Error>
+        bound_ix_to_node: &mut Vec<Option<usize>>,
+        listener: &mut L) -> Result<usize, Error>
     {
         let mut last_line = None;
         for line in &proof.children {
             if line.info != Info::Line {
                 return Err(Error::InconsistentParse);
             }
-            let step = get_step(&line.children[1])?;
+            let step_node = &line.children[1];
+            let step = get_step(step_node)?;
             let mut hyps = Vec::with_capacity(line.children[2].children.len());
             for arg in &line.children[2].children {
                 let hyp = match arg.info {
                     Info::List => self.apply_proof(arg, graph, steps, var_map,
-                        bound_map, var_ix_to_node, bound_ix_to_node)?,
+                        bound_map, var_ix_to_node, bound_ix_to_node, listener)?,
                     Info::Dummy => last_line.ok_or(Error::StepNotFound)?,
                     Info::Step(arg_step) => {
                         if let Some(r) = steps.get(&arg_step) {
@@ -325,6 +338,7 @@ impl<'a> Session<'a> {
                     }
                     _ => return Err(Error::InconsistentParse),
                 };
+                listener.step(arg, hyp);
                 hyps.push(hyp);
             }
             let result;
@@ -341,9 +355,11 @@ impl<'a> Session<'a> {
             } else {
                 return Err(Error::StepNotFound);
             }
+            listener.step(step_node, result);
             // Unify result line if present.
             let res_line = &line.children[3];
             if res_line.info != Info::Dummy {
+                listener.result(res_line, result);
                 let (result_line, _kind) = self.term_to_expr(res_line, var_map,
                     bound_map, true)?;
                 graph.unify_expr(result, &result_line, var_ix_to_node, bound_ix_to_node)?;

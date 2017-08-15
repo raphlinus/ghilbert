@@ -30,6 +30,21 @@ impl ParseNode {
     fn dummy() -> ParseNode {
         ParseNode { start: 0, end: 0, info: Info::Dummy, children: Vec::new() }
     }
+
+    pub fn get_start(&self) -> usize {
+        self.start
+    }
+
+    pub fn get_end(&self) -> usize {
+        self.end
+    }
+
+    pub fn get_step(&self) -> Option<Token> {
+        match self.info {
+            Info::Step(tok) => Some(tok),
+            _ => None,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug)]
