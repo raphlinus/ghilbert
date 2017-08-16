@@ -24,7 +24,7 @@ use std::io::{self, Write};
 #[derive(Clone, Copy)]
 enum SpanInfo {
     Theorem(Token),
-    Step(usize),
+    Step(Option<Token>, usize),
     Result(usize),
 }
 
@@ -36,8 +36,13 @@ impl SpanInfo {
                 write!(writer, "<span class=\"thm\" id=\"thm_{}\">",
                     parser.tok_str(tok))
             }
-            SpanInfo::Step(ix) => {
-                write!(writer, "<span class=\"step\"><!-- node {} -->", ix)
+            SpanInfo::Step(opt_tok, _ix) => {
+                if let Some(tok) = opt_tok {
+                    write!(writer, "<span class=\"step\"><a href=\"#thm_{}\">",
+                        parser.tok_str(tok))
+                } else {
+                    write!(writer, "<span class=\"step\">")
+                }
             }
             SpanInfo::Result(ix) => {
                 write!(writer, "<span class=\"result\"><!-- node {} -->", ix)
@@ -48,7 +53,12 @@ impl SpanInfo {
     fn emit_end<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         match *self {
             SpanInfo::Theorem(_) => write!(writer, "</span>"),
-            SpanInfo::Step(_) => write!(writer, "</span>"),
+            SpanInfo::Step(opt_tok, _) => {
+                if opt_tok.is_some() {
+                    write!(writer, "</a>")?;
+                }
+                write!(writer, "</span>")
+            }
             SpanInfo::Result(_) => write!(writer, "</span>"),
         }
     }
@@ -119,7 +129,8 @@ impl<'a> ProofListener for HtmlOut<'a> {
     }
 
     fn step(&mut self, node: &ParseNode, node_ix: usize) {
-        self.add_span(node, SpanInfo::Step(node_ix));
+        println!("step {:?}", node);
+        self.add_span(node, SpanInfo::Step(node.get_step(), node_ix));
     }
 
     fn result(&mut self, node: &ParseNode, node_ix: usize) {

@@ -338,7 +338,9 @@ impl<'a> Session<'a> {
                     }
                     _ => return Err(Error::InconsistentParse),
                 };
-                listener.step(arg, hyp);
+                if arg.info != Info::List {
+                    listener.step(arg, hyp);
+                }
                 hyps.push(hyp);
             }
             let result;
