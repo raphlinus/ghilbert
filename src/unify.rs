@@ -23,7 +23,7 @@ use lexer::Token;
 
 type Const = Token;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Var(usize),
     BoundVar(usize),
@@ -492,5 +492,50 @@ impl<'a> Graph<'a> {
             }
         }
         false
+    }
+}
+
+pub struct ReconstructCtx {
+    var_map: BTreeMap<usize, Expr>,
+}
+
+impl ReconstructCtx {
+    pub fn new(var_ix_to_node: &[Option<usize>],
+        bound_ix_to_node: &[Option<usize>]) -> ReconstructCtx
+    {
+        let mut result = BTreeMap::new();
+        for (i, opt_ix) in var_ix_to_node.iter().enumerate() {
+            if let Some(ix) = *opt_ix {
+                result.insert(ix, Expr::Var(i));
+            }
+        }
+        for (i, opt_ix) in bound_ix_to_node.iter().enumerate() {
+            if let Some(ix) = *opt_ix {
+                result.insert(ix, Expr::BoundVar(i));
+            }
+        }
+        ReconstructCtx { var_map: result }
+    }
+}
+
+impl<'a> Graph<'a> {
+    pub fn reconstruct_expr(&mut self, ctx: &ReconstructCtx, node: usize) -> Option<Expr> {
+        let nfind = self.uf.find(node);
+        if let Some(expr) = ctx.var_map.get(&nfind) {
+            return Some(expr.clone());
+        }
+        if let Some(info) = self.infos[nfind].clone() {
+            let mut children = Vec::new();
+            for child in info.children {
+                if let Some(child_expr) = self.reconstruct_expr(ctx, child) {
+                    children.push(child_expr);
+                } else {
+                    return None;
+                }
+            }
+            Some(Expr::Term { constructor: info.constructor, children })
+        } else {
+            None
+        }
     }
 }
