@@ -12,29 +12,185 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! State from a Metamath session.
+//! Processing of a Metamath proof file for the purpose of translation.
+
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 
 use parser::{Statement, Compressed};
 
-pub struct Session {
+struct Block {
+    e_ix: usize,
+    f_ix: usize,
 }
 
-impl Session {
-    pub fn new() -> Session {
+#[derive(Debug)]
+struct Entry {
+    mand_vars: Vec<usize>,  // index to Session.f
+    n_hyps: usize,
+    is_judg: bool,  // indicate whether the conclusion is a judgment
+    // TODO: actually have hyps and concl
+}
+
+impl Entry {
+    fn new(mand_vars: Vec<usize>, n_hyps: usize, concl: &[&str]) -> Entry {
+        Entry {
+            mand_vars,
+            n_hyps,
+            is_judg: concl[0] == "|-",
+        }
+    }
+}
+
+pub struct Session<'a> {
+    labels: HashMap<&'a str, Entry>,
+    e: Vec<(&'a str, Vec<&'a str>)>,
+    f: Vec<(&'a str, &'a str, &'a str)>,
+    blocks: Vec<Block>,
+}
+
+fn add_syms<'a>(s: &mut BTreeSet<&'a str>, syms: &[&'a str]) {
+    for sym in syms {
+        s.insert(sym);
+    }
+}
+
+/// This is what's stored on the RPN stack
+#[derive(Clone, Debug)]
+enum El {
+    /// An essential hypothesis, value is an index to Session.e
+    Hyp(usize),
+    /// A previous step in the proof, value is the oix of that step
+    Ostep(usize),
+    /// a syntax step, not a judgment, mostly ignored
+    NonJudg,
+}
+
+impl<'a> Session<'a> {
+    pub fn new() -> Session<'a> {
         Session {
+            labels: HashMap::new(),
+            e: Vec::new(),
+            f: Vec::new(),
+            blocks: Vec::new(),
         }
     }
 
-    pub fn do_stmt(&mut self, stmt: Statement) {
-        match stmt {
-            Statement::Proof(label, concl, compr) => {
-                if let Some(pos) = compr.iter().position(|&step| step == ")") {
-                    let steps = Compressed::new(&compr[pos+1 ..]).collect::<Vec<_>>();
-                    println!("compressed {} {:?} {:?} {:?}", label, concl,
-                        &compr[1..pos], steps);
+    /// Gather the mandatory variables for the proof step. Result is
+    /// indices to `self.f`.
+    fn gather_mandatory(&self, concl: &[&str]) -> Vec<usize> {
+        let mut sym_set = BTreeSet::new();
+        for &(_label, ref hyp) in &self.e {
+            add_syms(&mut sym_set, &hyp);
+        }
+        add_syms(&mut sym_set, concl);
+        let mut result = Vec::new();
+        for (ix, &(_label, _con, var)) in self.f.iter().enumerate() {
+            if sym_set.contains(var) {
+                result.push(ix);
+            }
+        }
+        result
+    }
+
+    fn do_axiom(&mut self, label: &'a str, concl: Vec<&'a str>) {
+        let mand_vars = self.gather_mandatory(&concl);
+        self.labels.insert(label, Entry::new(mand_vars, self.e.len(), &concl));
+    }
+
+    fn do_proof(&mut self, label: &'a str, concl: Vec<&'a str>, compr: Vec<&'a str>) {
+        let mut oix = 0;
+        let mut stack: Vec<El> = Vec::new();
+        if let Some(pos) = compr.iter().position(|&step| step == ")") {
+            let mut saved = Vec::new();
+            println!("{}: e = {:?}", label, self.e);
+            let mand = self.gather_mandatory(&concl);
+            // total number of mandatory hypotheses
+            let m = mand.len() + self.e.len();
+            // number of labels inside parentheses
+            let n = pos - 1;
+            for step in Compressed::new(&compr[pos+1 ..]) {
+                if step == 0 {
+                    //println!("step {}: save {}", step, saved.len());
+                    saved.push(stack.last().unwrap().clone());
+                } else if step <= mand.len() {
+                    //println!("step {}: mand var {}", step, self.f[step - 1].0);
+                    stack.push(El::NonJudg);
+                } else if step <= m {
+                    let hyp_ix = step - mand.len() - 1;
+                    //println!("step {}: hyp {}", step, self.e[hyp_ix].0);
+                    stack.push(El::Hyp(hyp_ix));
+                } else if step <= m + n {
+                    let label = compr[step - m];
+                    //println!("step {}: label {}", step, label);
+                    if let Some(entry) = self.labels.get(label) {
+                        let hyp_start = stack.len() - entry.n_hyps;
+                        if entry.is_judg {
+                            print!("  l{}: {}", oix, label);
+                            for i in 0 .. entry.n_hyps {
+                                match stack[hyp_start + i] {
+                                    El::Hyp(hyp_ix) => print!(" {}", self.e[hyp_ix].0),
+                                    El::Ostep(i) => {
+                                        if i + 1 == oix {
+                                            print!(" _");
+                                        } else {
+                                            print!(" l{}", i);
+                                        }
+                                    }
+                                    _ => print!(" ??"),
+                                }
+                            }
+                            println!(";");
+                        }
+                        let new_size = hyp_start - entry.mand_vars.len();
+                        stack.truncate(new_size);
+                        if entry.is_judg {
+                            stack.push(El::Ostep(oix));
+                            oix += 1;
+                        } else {
+                            stack.push(El::NonJudg);
+                        }
+                    } else {
+                        // Almost certainly a syntax building step
+                        stack.push(El::NonJudg);
+                    }
                 } else {
-                    panic!("proof {:?} not valid compressed format", compr);
+                    let save_ix = step - (m + n + 1);
+                    //println!("step {}: reuse {}", step, save_ix);
+                    stack.push(saved[save_ix].clone());
                 }
+                //println!("stack: {:?}", stack);
+            }
+            self.labels.insert(label, Entry::new(mand, self.e.len(), &concl));
+        } else {
+            panic!("proof {:?} not valid compressed format", compr);
+        }
+    }
+
+    pub fn do_stmt(&mut self, stmt: Statement<'a>) {
+        match stmt {
+            Statement::StartBlock => {
+                self.blocks.push(Block {
+                    e_ix: self.e.len(),
+                    f_ix: self.f.len(),
+                });
+            }
+            Statement::EndBlock => {
+                let block = self.blocks.pop().unwrap();
+                self.e.truncate(block.e_ix);
+                self.f.truncate(block.f_ix);
+            }
+            Statement::Axiom(label, concl) => {
+                self.do_axiom(label, concl);
+            }
+            Statement::Essential(label, list) => {
+                self.e.push((label, list));
+            }
+            Statement::Floating(label, con, var) => {
+                self.f.push((label, con, var));
+            }
+            Statement::Proof(label, concl, compr) => {
+                self.do_proof(label, concl, compr);
             }
             _ => println!("stmt {:?}", stmt),
         }

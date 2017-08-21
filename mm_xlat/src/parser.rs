@@ -217,14 +217,14 @@ impl<'a> Compressed<'a> {
 }
 
 impl<'a> Iterator for Compressed<'a> {
-    type Item = u32;
+    type Item = usize;
 
     /// proof steps starting at 1, and 0 as special value representing Z tag
-    fn next(&mut self) -> Option<u32> {
+    fn next(&mut self) -> Option<usize> {
         if self.input.is_empty() {
             None
         } else {
-            let mut val = 0u32;
+            let mut val = 0;
             loop {
                 let c = self.input[0].as_bytes()[self.ix];
                 self.ix += 1;
@@ -233,9 +233,9 @@ impl<'a> Iterator for Compressed<'a> {
                     self.ix = 0;
                 }
                 if c >= b'A' && c < b'U' {
-                    return Some(val * 20 + ((c - b'A') as u32) + 1);
+                    return Some(val * 20 + ((c - b'A') as usize) + 1);
                 } else if c >= b'U' && c <= b'Y' {
-                    val = val * 5 + ((c - b'U') as u32) + 1;
+                    val = val * 5 + ((c - b'U') as usize) + 1;
                 } else if c == b'Z' {
                     return Some(0);
                 } else {

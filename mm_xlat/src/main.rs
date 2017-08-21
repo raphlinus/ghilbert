@@ -20,7 +20,7 @@ use std::io::{self, Read};
 use std::process::exit;
 
 mod parser;
-use parser::{Scanner, Parser, Statement, Compressed};
+use parser::{Scanner, Parser};
 
 mod session;
 use session::Session;
