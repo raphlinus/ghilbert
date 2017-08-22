@@ -17,7 +17,9 @@
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 
-use parser::{Statement, Compressed};
+use parser::{Parser, Statement, Compressed};
+use proofout::{ProofOut, StepId};
+use script::{Command, Script};
 
 struct Block {
     e_ix: usize,
@@ -43,6 +45,7 @@ impl Entry {
 }
 
 pub struct Session<'a> {
+    out: ProofOut,
     labels: HashMap<&'a str, Entry>,
     e: Vec<(&'a str, Vec<&'a str>)>,
     f: Vec<(&'a str, &'a str, &'a str)>,
@@ -58,22 +61,52 @@ fn add_syms<'a>(s: &mut BTreeSet<&'a str>, syms: &[&'a str]) {
 /// This is what's stored on the RPN stack
 #[derive(Clone, Debug)]
 enum El {
-    /// An essential hypothesis, value is an index to Session.e
-    Hyp(usize),
-    /// A previous step in the proof, value is the oix of that step
-    Ostep(usize),
+    /// A previous step in the proof
+    Ostep(StepId),
     /// a syntax step, not a judgment, mostly ignored
     NonJudg,
 }
 
 impl<'a> Session<'a> {
-    pub fn new() -> Session<'a> {
+    pub fn new(out: ProofOut) -> Session<'a> {
         Session {
+            out,
             labels: HashMap::new(),
             e: Vec::new(),
             f: Vec::new(),
             blocks: Vec::new(),
         }
+    }
+
+    /// Run the input proof up to the given label. Return the command at that label.
+    fn run_upto(&mut self, label: &str, parser: &mut Parser<'a>) -> Statement<'a> {
+        for stmt in parser {
+            match stmt {
+                Statement::Proof(l, _, _) if l == label => return stmt,
+                _ => self.do_stmt(stmt, false),
+            }
+        }
+        panic!("reached eof in input, expected {}", label);
+    }
+
+    fn run_through(&mut self, label: &str, parser: &mut Parser<'a>, skip: bool) {
+        let stmt = self.run_upto(label, parser);
+        self.do_stmt(stmt, skip);
+    }
+                
+    pub fn run_script(&mut self, script: &mut Script, parser: &mut Parser<'a>) {
+        for cmd in script {
+            match cmd {
+                Command::CopyLine(s) => self.out.write(&s),
+                Command::RunThrough(l) => self.run_through(&l, parser, false),
+                Command::Skip(l) => self.run_through(&l, parser, true),
+            }
+        }
+        /*
+        for stmt in parser {
+            self.do_stmt(stmt);
+        }
+        */
     }
 
     /// Gather the mandatory variables for the proof step. Result is
@@ -98,76 +131,72 @@ impl<'a> Session<'a> {
         self.labels.insert(label, Entry::new(mand_vars, self.e.len(), &concl));
     }
 
-    fn do_proof(&mut self, label: &'a str, concl: Vec<&'a str>, compr: Vec<&'a str>) {
-        let mut oix = 0;
-        let mut stack: Vec<El> = Vec::new();
-        if let Some(pos) = compr.iter().position(|&step| step == ")") {
-            let mut saved = Vec::new();
-            println!("{}: e = {:?}", label, self.e);
-            let mand = self.gather_mandatory(&concl);
-            // total number of mandatory hypotheses
-            let m = mand.len() + self.e.len();
-            // number of labels inside parentheses
-            let n = pos - 1;
-            for step in Compressed::new(&compr[pos+1 ..]) {
-                if step == 0 {
-                    //println!("step {}: save {}", step, saved.len());
-                    saved.push(stack.last().unwrap().clone());
-                } else if step <= mand.len() {
-                    //println!("step {}: mand var {}", step, self.f[step - 1].0);
-                    stack.push(El::NonJudg);
-                } else if step <= m {
-                    let hyp_ix = step - mand.len() - 1;
-                    //println!("step {}: hyp {}", step, self.e[hyp_ix].0);
-                    stack.push(El::Hyp(hyp_ix));
-                } else if step <= m + n {
-                    let label = compr[step - m];
-                    //println!("step {}: label {}", step, label);
-                    if let Some(entry) = self.labels.get(label) {
-                        let hyp_start = stack.len() - entry.n_hyps;
-                        if entry.is_judg {
-                            print!("  l{}: {}", oix, label);
-                            for i in 0 .. entry.n_hyps {
-                                match stack[hyp_start + i] {
-                                    El::Hyp(hyp_ix) => print!(" {}", self.e[hyp_ix].0),
-                                    El::Ostep(i) => {
-                                        if i + 1 == oix {
-                                            print!(" _");
-                                        } else {
-                                            print!(" l{}", i);
-                                        }
+    fn do_proof(&mut self, label: &'a str, concl: Vec<&'a str>, compr: Vec<&'a str>,
+        skip: bool)
+    {
+        let mand = self.gather_mandatory(&concl);
+        if !skip {
+            self.out.start_thm(label, &self.e, &concl);
+            let mut stack: Vec<El> = Vec::new();
+            if let Some(pos) = compr.iter().position(|&step| step == ")") {
+                let mut saved = Vec::new();
+                println!("{}: e = {:?}", label, self.e);
+                // total number of mandatory hypotheses
+                let m = mand.len() + self.e.len();
+                // number of labels inside parentheses
+                let n = pos - 1;
+                for step in Compressed::new(&compr[pos+1 ..]) {
+                    if step == 0 {
+                        //println!("step {}: save {}", step, saved.len());
+                        saved.push(stack.last().unwrap().clone());
+                    } else if step <= mand.len() {
+                        //println!("step {}: mand var {}", step, self.f[step - 1].0);
+                        stack.push(El::NonJudg);
+                    } else if step <= m {
+                        let hyp_ix = step - mand.len() - 1;
+                        //println!("step {}: hyp {}", step, self.e[hyp_ix].0);
+                        let ix = self.out.add_step(self.e[hyp_ix].0, vec![]);
+                        stack.push(El::Ostep(ix));
+                    } else if step <= m + n {
+                        let label = compr[step - m];
+                        //println!("step {}: label {}", step, label);
+                        if let Some(entry) = self.labels.get(label) {
+                            let hyp_start = stack.len() - entry.n_hyps;
+                            let new_el;
+                            if entry.is_judg {
+                                let args = (0 .. entry.n_hyps).map(|i|
+                                    match stack[hyp_start + i] {
+                                        El::Ostep(id) => id,
+                                        El::NonJudg => panic!("didn't expect NonJudg in hyp"),
                                     }
-                                    _ => print!(" ??"),
-                                }
+                                ).collect::<Vec<_>>();
+                                new_el = El::Ostep(self.out.add_step(label, args));
+                            } else {
+                                new_el = El::NonJudg;
                             }
-                            println!(";");
-                        }
-                        let new_size = hyp_start - entry.mand_vars.len();
-                        stack.truncate(new_size);
-                        if entry.is_judg {
-                            stack.push(El::Ostep(oix));
-                            oix += 1;
+                            let new_size = hyp_start - entry.mand_vars.len();
+                            stack.truncate(new_size);
+                            stack.push(new_el);
                         } else {
+                            // Almost certainly a syntax building step
                             stack.push(El::NonJudg);
                         }
                     } else {
-                        // Almost certainly a syntax building step
-                        stack.push(El::NonJudg);
+                        let save_ix = step - (m + n + 1);
+                        //println!("step {}: reuse {}", step, save_ix);
+                        stack.push(saved[save_ix].clone());
                     }
-                } else {
-                    let save_ix = step - (m + n + 1);
-                    //println!("step {}: reuse {}", step, save_ix);
-                    stack.push(saved[save_ix].clone());
+                    //println!("stack: {:?}", stack);
                 }
-                //println!("stack: {:?}", stack);
+            } else {
+                panic!("proof {:?} not valid compressed format", compr);
             }
-            self.labels.insert(label, Entry::new(mand, self.e.len(), &concl));
-        } else {
-            panic!("proof {:?} not valid compressed format", compr);
-        }
+            self.out.end_thm();
+            }
+        self.labels.insert(label, Entry::new(mand, self.e.len(), &concl));
     }
 
-    pub fn do_stmt(&mut self, stmt: Statement<'a>) {
+    pub fn do_stmt(&mut self, stmt: Statement<'a>, skip: bool) {
         match stmt {
             Statement::StartBlock => {
                 self.blocks.push(Block {
@@ -190,7 +219,7 @@ impl<'a> Session<'a> {
                 self.f.push((label, con, var));
             }
             Statement::Proof(label, concl, compr) => {
-                self.do_proof(label, concl, compr);
+                self.do_proof(label, concl, compr, skip);
             }
             _ => println!("stmt {:?}", stmt),
         }

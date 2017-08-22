@@ -22,39 +22,44 @@ use std::process::exit;
 mod parser;
 use parser::{Scanner, Parser};
 
+mod proofout;
+use proofout::ProofOut;
+
+mod script;
+use script::Script;
+
 mod session;
 use session::Session;
 
-fn run_file(filename: &str) -> io::Result<()> {
+fn run_file(scr_fn: &str, filename: &str, out_fn: &str) -> io::Result<()> {
     println!("running {}", filename);
+    let mut script = Script::new(scr_fn)?;
     let mut file = File::open(filename)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     let s = Scanner::new(&contents);
-    let p = Parser::new(s);
-    let mut sess = Session::new();
-    for stmt in p {
-        sess.do_stmt(stmt);
-    }
+    let mut p = Parser::new(s);
+    let out = ProofOut::new(out_fn)?;
+    let mut sess = Session::new(out);
+    sess.run_script(&mut script, &mut p);
     Ok(())
 }
 
 fn main() {
-    let mut inp_fn = None;
+    let mut args = Vec::new();
     for arg in env::args().skip(1) {
-        if inp_fn.is_some() {
-            eprintln!("More than one input filename");
-            exit(1);
-        }
-        inp_fn = Some(arg);
+        // could process flags here
+        args.push(arg);
     }
-    if let Some(inp_fn) = inp_fn {
-        if let Err(e) = run_file(&inp_fn) {
-            eprintln!("Error: {:?}", e);
-            exit(1);
-        }
-    } else {
-        eprintln!("More than one input filename");
+    if args.len() != 3 {
+        eprintln!("Usage: mm_xlat script set.mm out.gh");
+        exit(1);
+    }
+    let scr_fn = &args[0];
+    let inp_fn = &args[1];
+    let out_fn = &args[2];
+    if let Err(e) = run_file(scr_fn, inp_fn, out_fn) {
+        eprintln!("Error: {:?}", e);
         exit(1);
     }
 }
