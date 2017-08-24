@@ -14,16 +14,20 @@
 
 //! An interface (and maybe utility methods) for creating output based on proofs.
 
-use parser::ParseNode;
+use parser::{Parser, ParseNode};
 
 pub trait ProofListener {
     fn start_proof(&mut self, label: &ParseNode);
 
     fn end_proof(&mut self);
 
+    fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, parser: &Parser);
+
+    fn concl(&mut self, concl: &ParseNode, parser: &Parser);
+
     fn step(&mut self, node: &ParseNode, node_ix: usize);
 
-    fn result(&mut self, node: &ParseNode, node_ix: usize);
+    fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser);
 }
 
 pub struct DebugListener;
@@ -37,11 +41,19 @@ impl ProofListener for DebugListener {
         println!("end proof");
     }
 
+    fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, _parser: &Parser) {
+        println!("  hyp {:?}: {:?}", hyp_name, hyp);
+    }
+
+    fn concl(&mut self, concl: &ParseNode, _parser: &Parser) {
+        println!("  concl {:?}", concl);
+    }
+
     fn step(&mut self, node: &ParseNode, node_ix: usize) {
         println!("  step {:?} ix={}", node, node_ix);
     }
 
-    fn result(&mut self, node: &ParseNode, node_ix: usize) {
+    fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser) {
         println!("  result {:?} ix={}", node, node_ix);
     }
 }

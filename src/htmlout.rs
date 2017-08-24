@@ -14,18 +14,21 @@
 
 //! Generation of HTML output for proofs.
 
-use lexer::Token;
-use parser::{Parser, ParseNode};
-use prooflistener::ProofListener;
-
 use std::collections::HashMap;
 use std::io::{self, Write};
 
-#[derive(Clone, Copy)]
+use lexer::Token;
+use parser::{Parser, ParseNode};
+use prooflistener::ProofListener;
+use typeset::Typeset;
+
+#[derive(Clone)]
 enum SpanInfo {
     Theorem(Token),
     Step(Option<Token>, usize),
-    Result(usize),
+    HypName,
+    Hyp(String),
+    Result(String),
 }
 
 impl SpanInfo {
@@ -36,6 +39,12 @@ impl SpanInfo {
                 write!(writer, "<span class=\"thm\" id=\"thm_{}\">",
                     parser.tok_str(tok))
             }
+            SpanInfo::HypName => {
+                write!(writer, "<span class=\"hypname\">")
+            }
+            SpanInfo::Hyp(ref s) => {
+                write!(writer, "<span class=\"hyp\">\\({}\\)<!--", s)
+            }
             SpanInfo::Step(opt_tok, _ix) => {
                 if let Some(tok) = opt_tok {
                     write!(writer, "<span class=\"step\"><a href=\"#thm_{}\">",
@@ -44,27 +53,27 @@ impl SpanInfo {
                     write!(writer, "<span class=\"step\">")
                 }
             }
-            SpanInfo::Result(ix) => {
-                write!(writer, "<span class=\"result\"><!-- node {} -->", ix)
+            SpanInfo::Result(ref s) => {
+                write!(writer, "<span class=\"result\">\\({}\\)<!--", s)
             }
         }
     }
 
     fn emit_end<W: Write>(&self, writer: &mut W) -> io::Result<()> {
         match *self {
-            SpanInfo::Theorem(_) => write!(writer, "</span>"),
             SpanInfo::Step(opt_tok, _) => {
                 if opt_tok.is_some() {
                     write!(writer, "</a>")?;
                 }
                 write!(writer, "</span>")
             }
-            SpanInfo::Result(_) => write!(writer, "</span>"),
+            SpanInfo::Hyp(_) | SpanInfo::Result(_) => write!(writer, "--></span>"),
+            _ => write!(writer, "</span>"),
         }
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct Span {
     // We don't store start because it's the key of the map which holds the spans.
     end: usize,
@@ -74,6 +83,7 @@ struct Span {
 pub struct HtmlOut<'a> {
     text: &'a str,
     spans: HashMap<usize, Span>,
+    typeset: Typeset,
 }
 
 impl<'a> HtmlOut<'a> {
@@ -81,6 +91,7 @@ impl<'a> HtmlOut<'a> {
         HtmlOut {
             text,
             spans: HashMap::new(),
+            typeset: Typeset::new(),
         }
     }
 
@@ -89,12 +100,14 @@ impl<'a> HtmlOut<'a> {
         write_prelude(writer)?;
         let mut close: Option<Span> = None;
         for (i, c) in self.text.char_indices() {
-            if let Some(cur_span) = close {
+            let mut clear_close = false;
+            if let Some(ref cur_span) = close {
                 if i == cur_span.end {
                     cur_span.info.emit_end(writer)?;
-                    close = None;
+                    clear_close = true;
                 }
             }
+            if clear_close { close = None; }
             if let Some(span) = self.spans.remove(&i) {
                 // This is somewhat crude but should work.
                 if let Some(cur_span) = close {
@@ -128,13 +141,24 @@ impl<'a> ProofListener for HtmlOut<'a> {
     fn end_proof(&mut self) {
     }
 
+    fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, parser: &Parser) {
+        self.add_span(hyp_name, SpanInfo::HypName);
+        let hyp_str = self.typeset.typeset(hyp, parser);
+        self.add_span(hyp, SpanInfo::Hyp(hyp_str));
+    }
+
+    fn concl(&mut self, concl: &ParseNode, parser: &Parser) {
+        let concl_str = self.typeset.typeset(concl, parser);
+        self.add_span(concl, SpanInfo::Hyp(concl_str));
+    }
+
     fn step(&mut self, node: &ParseNode, node_ix: usize) {
-        println!("step {:?}", node);
         self.add_span(node, SpanInfo::Step(node.get_step(), node_ix));
     }
 
-    fn result(&mut self, node: &ParseNode, node_ix: usize) {
-        self.add_span(node, SpanInfo::Result(node_ix));
+    fn result(&mut self, node: &ParseNode, _node_ix: usize, parser: &Parser) {
+        let result_str = self.typeset.typeset(node, parser);
+        self.add_span(node, SpanInfo::Result(result_str));
     }
 }
 
@@ -146,6 +170,9 @@ fn write_prelude<W: Write>(writer: &mut W) -> io::Result<()> {
 <link rel="stylesheet" href="proof.css">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="utf-8">
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
 <body>
 <p class="proof">"#)
 }

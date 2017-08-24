@@ -282,11 +282,15 @@ impl<'a> Session<'a> {
         // Result lines can add new binding variables, but those won't affect the stmt.
         let mut bound_map = stmt.bound_map.clone();
         let mut steps = BTreeMap::new();
+        for (hyp_name, hyp) in children[1].children.iter().zip(children[2].children.iter()) {
+            listener.hyp(hyp_name, hyp, &self.parser);
+        }
         for (hyp_name, hyp) in children[1].children.iter().zip(hyps.into_iter()) {
             steps.insert(get_step(hyp_name)?, hyp);
         }
         let concl_node = self.apply_proof(&children[5], &mut graph, &mut steps,
             &mut stmt.var_map, &mut bound_map, &mut vars, &mut bound_vars, listener)?;
+        listener.concl(&children[4], &self.parser);
         graph.unify_expr(concl_node, &stmt.concl, &mut vars, &mut bound_vars)?;
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
@@ -361,7 +365,7 @@ impl<'a> Session<'a> {
             // Unify result line if present.
             let res_line = &line.children[3];
             if res_line.info != Info::Dummy {
-                listener.result(res_line, result);
+                listener.result(res_line, result, &self.parser);
                 let (result_line, _kind) = self.term_to_expr(res_line, var_map,
                     bound_map, true)?;
                 graph.unify_expr(result, &result_line, var_ix_to_node, bound_ix_to_node)?;

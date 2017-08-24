@@ -38,6 +38,8 @@ use sexp::{Intern, Sexp};
 mod session;
 use session::Session;
 
+mod typeset;
+
 mod unify;
 
 fn my_main() -> ::std::io::Result<()> {
