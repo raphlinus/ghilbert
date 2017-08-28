@@ -17,6 +17,10 @@
 use parser::{Parser, ParseNode};
 
 pub trait ProofListener {
+    /// start and end are indices of interior of comment (don't count comment
+    /// delimeters but do count spaces)
+    fn comment(&mut self, start: usize, end: usize);
+
     fn start_proof(&mut self, label: &ParseNode);
 
     fn end_proof(&mut self);
@@ -24,6 +28,8 @@ pub trait ProofListener {
     fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, parser: &Parser);
 
     fn concl(&mut self, concl: &ParseNode, parser: &Parser);
+
+    fn start_line(&mut self, node: &ParseNode);
 
     fn step(&mut self, node: &ParseNode, node_ix: usize);
 
@@ -33,6 +39,10 @@ pub trait ProofListener {
 pub struct DebugListener;
 
 impl ProofListener for DebugListener {
+    fn comment(&mut self, start: usize, end: usize) {
+        println!("comment {} {}", start, end);
+    }
+
     fn start_proof(&mut self, node: &ParseNode) {
         println!("start proof {:?}:", node);
     }
@@ -47,6 +57,10 @@ impl ProofListener for DebugListener {
 
     fn concl(&mut self, concl: &ParseNode, _parser: &Parser) {
         println!("  concl {:?}", concl);
+    }
+
+    fn start_line(&mut self, node: &ParseNode) {
+        println!("  start line {:?}", node);
     }
 
     fn step(&mut self, node: &ParseNode, node_ix: usize) {

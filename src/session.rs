@@ -154,6 +154,9 @@ impl<'a> Session<'a> {
 
     pub fn run<L: ProofListener>(&mut self, listener: &mut L) -> Result<(), Error> {
         loop {
+            if let Some((start, end)) = self.parser.next_comment() {
+                listener.comment(start, end);
+            }
             match self.parser.parse_cmd() {
                 Ok(cmd) => self.do_cmd(&cmd, listener)?,
                 Err(parser::Error::Eof) => return Ok(()),
@@ -175,7 +178,7 @@ impl<'a> Session<'a> {
             Info::TermCmd => self.do_term(&cmd.children)?,
             Info::DefCmd => self.do_def(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
-            Info::TheoremCmd => self.do_theorem(&cmd.children, listener)?,
+            Info::TheoremCmd => self.do_theorem(cmd, listener)?,
             Info::SyntaxCmd => (),  // effect is done in parser
             _ => return Err(Error::UnknownCommand),
         }
@@ -265,9 +268,11 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    fn do_theorem<L: ProofListener>(&mut self, children: &[ParseNode], listener: &mut L)
+    fn do_theorem<L: ProofListener>(&mut self, node: &ParseNode, listener: &mut L)
         -> Result<(), Error>
     {
+        listener.start_proof(node);
+        let children = &node.children;
         let step = get_step(&children[0])?;
         if self.stmts.contains_key(&step) {
             if self.verbose {
@@ -275,7 +280,6 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        listener.start_proof(&children[0]);
         let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
         let mut graph = Graph::new(&self.defs, self.parser.backslash());
         let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
@@ -320,6 +324,7 @@ impl<'a> Session<'a> {
             if line.info != Info::Line {
                 return Err(Error::InconsistentParse);
             }
+            listener.start_line(&line);
             let step_node = &line.children[1];
             let step = get_step(step_node)?;
             let mut hyps = Vec::with_capacity(line.children[2].children.len());

@@ -50,6 +50,7 @@ pub struct Session<'a> {
     e: Vec<(&'a str, Vec<&'a str>)>,
     f: Vec<(&'a str, &'a str, &'a str)>,
     blocks: Vec<Block>,
+    comment: Option<&'a str>,
 }
 
 fn add_syms<'a>(s: &mut BTreeSet<&'a str>, syms: &[&'a str]) {
@@ -75,6 +76,7 @@ impl<'a> Session<'a> {
             e: Vec::new(),
             f: Vec::new(),
             blocks: Vec::new(),
+            comment: None,
         }
     }
 
@@ -198,6 +200,7 @@ impl<'a> Session<'a> {
 
     pub fn do_stmt(&mut self, stmt: Statement<'a>, skip: bool) {
         match stmt {
+            Statement::Comment(s) => self.comment = Some(s),
             Statement::StartBlock => {
                 self.blocks.push(Block {
                     e_ix: self.e.len(),
@@ -210,6 +213,7 @@ impl<'a> Session<'a> {
                 self.f.truncate(block.f_ix);
             }
             Statement::Axiom(label, concl) => {
+                self.drain_comment(true); // not doing axioms for now
                 self.do_axiom(label, concl);
             }
             Statement::Essential(label, list) => {
@@ -219,9 +223,18 @@ impl<'a> Session<'a> {
                 self.f.push((label, con, var));
             }
             Statement::Proof(label, concl, compr) => {
+                self.drain_comment(skip);
                 self.do_proof(label, concl, compr, skip);
             }
             _ => println!("stmt {:?}", stmt),
+        }
+    }
+
+    fn drain_comment(&mut self, skip: bool) {
+        if let Some(comment) = self.comment.take() {
+            if !skip {
+                self.out.write_comment(comment);
+            }
         }
     }
 }

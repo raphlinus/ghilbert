@@ -77,4 +77,8 @@ impl ProofOut {
     pub fn end_thm(&mut self) {
         writeln!(self.o, "\n)").unwrap();
     }
+
+    pub fn write_comment(&mut self, comment: &str) {
+        writeln!(self.o, "/* {} */", comment).unwrap();
+    }
 }

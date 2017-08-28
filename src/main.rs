@@ -92,7 +92,7 @@ fn my_main() -> ::std::io::Result<()> {
                 }
             } else {
                 let mut out_file = File::create("out.html")?;
-                let mut out = HtmlOut::new(&contents);
+                let mut out = HtmlOut::new("gen", &contents);
                 let mut session = Session::new(parser);
                 if let Err(e) = session.run(&mut out) {
                     println!("err: {:?}", e);

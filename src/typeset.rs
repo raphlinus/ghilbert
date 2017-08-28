@@ -34,7 +34,7 @@ impl Typeset {
     }
 
     fn rec(&self, node: &ParseNode, parser: &Parser, buf: &mut String, prec: u32) {
-        println!("rec {:?}", node);
+        //println!("rec {:?}", node);
         if let Info::Atom(tok) = node.info {
             let tok = parser.tok_str(tok);
             match tok {

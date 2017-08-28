@@ -95,13 +95,13 @@ impl<'a> Iterator for Scanner<'a> {
 
 #[derive(Debug)]
 pub enum Statement<'a> {
+    Comment(&'a str),
     Axiom(&'a str, Vec<&'a str>),
     Constant(Vec<&'a str>),
     Distinct(Vec<&'a str>),
     Variable(Vec<&'a str>),
     Essential(&'a str, Vec<&'a str>),
     Floating(&'a str, &'a str, &'a str),  // label, const, var
-    // TODO: proof should also hold comment
     Proof(&'a str, Vec<&'a str>, Vec<&'a str>),
     StartBlock,
     EndBlock,
@@ -184,7 +184,7 @@ impl<'a> Iterator for Parser<'a> {
     // by some other tool).
     fn next(&mut self) -> Option<Statement<'a>> {
         let mut label = None;
-        while let Some(tok) = self.scanner.next_skip_comment() {
+        while let Some(tok) = self.scanner.next() {
             match tok {
                 Token::Keyword('a') => return self.axiom(label.take().unwrap()),
                 Token::Keyword('c') => return self.constant(),
@@ -198,6 +198,7 @@ impl<'a> Iterator for Parser<'a> {
                 Token::Symbol(s) => {
                     label = Some(s);
                 }
+                Token::Comment(s) => return Some(Statement::Comment(s)),
                 _ => panic!("unexpected token {:?}", tok),
             }
         }

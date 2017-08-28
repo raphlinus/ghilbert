@@ -83,8 +83,29 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Get a comment if it's present. Return value are start and end
+    /// indices.
+    pub fn next_comment(&mut self) -> Option<(usize, usize)> {
+        for (i, c) in self.text[self.ix..].char_indices() {
+            if c == '/' && self.ix + i + 1 < self.text.len() &&
+                self.text.as_bytes()[self.ix + i + 1] == b'*'
+            {
+                let comment_start = self.ix + i + 2;
+                let len = find_end_of_comment(&self.text[comment_start..]);
+                self.ix = comment_start + len;
+                return Some((comment_start, comment_start + len - 2));
+            }
+            if !c.is_whitespace() {
+                self.ix += i;
+                return None;
+            }
+        }
+        self.ix = self.text.len();
+        None
+    }
 
     /// Skips whitespace and comments.
+    // TODO: could avoid duplication by writing in terms of next_comment
     pub fn skip_whitespace(&mut self) {
         'outer: loop {
             for (i, c) in self.text[self.ix..].char_indices() {

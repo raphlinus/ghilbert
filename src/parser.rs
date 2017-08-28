@@ -18,7 +18,7 @@ use std::collections::BTreeMap;
 
 use lexer::{Lexer, Token};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParseNode {
     start: usize,
     end: usize,
@@ -47,7 +47,7 @@ impl ParseNode {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Info {
     // children: [syntax def], where syntax def is internal to this module
     SyntaxCmd,
@@ -236,6 +236,10 @@ impl<'a> Parser<'a> {
     // convenience function to get the next token, eof is error
     fn next(&mut self) -> Result<Token, Error> {
         self.lexer.next().ok_or(Error::UnexpectedEof)
+    }
+
+    pub fn next_comment(&mut self) -> Option<(usize, usize)> {
+        self.lexer.next_comment()
     }
 
     pub fn parse_cmd(&mut self) -> Result<ParseNode, Error> {
