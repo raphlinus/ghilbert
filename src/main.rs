@@ -15,6 +15,9 @@
 //! A command line utility for the new Ghilbert format.
 
 extern crate union_find;
+extern crate serde;
+#[macro_use]
+extern crate serde_json;
 
 use std::env;
 use std::fs::File;

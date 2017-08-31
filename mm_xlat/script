@@ -28,6 +28,7 @@ skip conventions
 # This fails with CannotSynthesize and is used, so we supply the result.
 # A smarter translator would recognize this case automatically.
 replace id
+/* Principle of identity. */ 
 theorem id:
   |- ( ph -> ph ) ::(
   ax-1
@@ -42,6 +43,7 @@ copy
 
 def <-> ph ps: -.((ph -> ps) -> -.(ps -> ph));
 
+/* Definition of biconditional. */
 theorem df-bi: |- -.(((ph <-> ps) -> -.((ph -> ps) -> -.(ps -> ph))) ->
     -.(-.((ph -> ps) -> -.(ps -> ph)) -> (ph <-> ps)))
 ::(
@@ -58,10 +60,12 @@ run_through imim21b
 copy
 def \/ ph ps: -.ph -> ps;
 
+/* Definition of disjunction. */
 theorem df-or: |- ( ( ph \/ ps ) <-> ( -. ph -> ps ) ) ::(biid)
 
 def /\ ph ps: -.(ph -> -.ps);
 
+/* Definition of conjunction. */
 theorem df-an: |- ( ( ph /\ ps ) <-> -. ( ph -> -. ps ) ) ::(biid)
 --
 run_through dn1

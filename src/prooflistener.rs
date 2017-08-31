@@ -34,6 +34,8 @@ pub trait ProofListener {
     fn step(&mut self, node: &ParseNode, node_ix: usize);
 
     fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser);
+
+    fn end_line(&mut self, node: &ParseNode);
 }
 
 pub struct DebugListener;
@@ -69,5 +71,9 @@ impl ProofListener for DebugListener {
 
     fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser) {
         println!("  result {:?} ix={}", node, node_ix);
+    }
+
+    fn end_line(&mut self, node: &ParseNode) {
+        println!("  end line {:?}", node);
     }
 }

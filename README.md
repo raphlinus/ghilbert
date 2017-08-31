@@ -23,8 +23,11 @@ cd ..
 cargo run -- /tmp/out.gh
 ```
 
-This will spew a lot of diagnostics, and also generate a file
-called `out.html`.
+This will spew a lot of diagnostics, and also generate an HTML file for
+each proof in the `gen` directory. Note that to view these files
+you probably want a simple server like `python -m SimpleHTTPServer 8000`
+rather than using `file://` URL's, because the JavaScript interactivity
+features load further files using XMLHttpRequest.
 
 ## License
 

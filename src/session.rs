@@ -324,9 +324,9 @@ impl<'a> Session<'a> {
             if line.info != Info::Line {
                 return Err(Error::InconsistentParse);
             }
-            listener.start_line(&line);
             let step_node = &line.children[1];
             let step = get_step(step_node)?;
+            listener.start_line(&line);
             let mut hyps = Vec::with_capacity(line.children[2].children.len());
             for arg in &line.children[2].children {
                 let hyp = match arg.info {
@@ -375,6 +375,7 @@ impl<'a> Session<'a> {
                     bound_map, true)?;
                 graph.unify_expr(result, &result_line, var_ix_to_node, bound_ix_to_node)?;
             }
+            listener.end_line(&line);
             if let Info::Step(label) = line.children[0].info {
                 if steps.insert(label, result).is_some() {
                     return Err(Error::DuplicateStep);
