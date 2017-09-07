@@ -21,7 +21,7 @@ use std::path::Path;
 
 use lexer::Token;
 use parser::{Info, Parser, ParseNode};
-use prooflistener::ProofListener;
+use prooflistener::{Inspector, NodeIx, ProofListener};
 use typeset::Typeset;
 
 use serde_json::Value;
@@ -57,6 +57,10 @@ struct ThmInfo {
     /// List of arguments for each step
     // Note: could switch to denser representation
     refs: HashMap<StepIx, Vec<StepIx>>,
+
+    step_to_node: HashMap<StepIx, NodeIx>,
+
+    step_typeset: HashMap<StepIx, String>,
 
     underscores: HashMap<Offset, StepIx>,
 }
@@ -257,6 +261,9 @@ This is the content in the right pane.
                 if let Some(refs) = ctx.thm_info.refs.get(&step.step_ix) {
                     step_info["refs"] = json!(refs);
                 }
+                if let Some(ts) = ctx.thm_info.step_typeset.get(&step.step_ix) {
+                    step_info["typeset"] = json!(ts);
+                }
                 ctx.json.insert(step_id, step_info);
             }
         } else {
@@ -268,6 +275,10 @@ This is the content in the right pane.
             _ => panic!("not valid linkable step {:?}", node.info),
         }
         write!(ctx, "</span>")
+    }
+
+    fn cur_info(&self) -> &ThmInfo {
+        self.thm_info.get(&self.cur_tok.unwrap()).unwrap()
     }
 
     fn cur_info_mut(&mut self) -> &mut ThmInfo {
@@ -290,6 +301,8 @@ impl<'a> ProofListener for HtmlOut<'a> {
                     short_text: extract_short_string(&comment),
                     defs: HashMap::new(),
                     refs: HashMap::new(),
+                    step_to_node: HashMap::new(),
+                    step_typeset: HashMap::new(),
                     underscores: HashMap::new(),
                 });
             }
@@ -298,7 +311,17 @@ impl<'a> ProofListener for HtmlOut<'a> {
         self.step_ix = 0;
     }
 
-    fn end_proof(&mut self) {
+    fn end_proof(&mut self, inspector: &mut Inspector, parser: &Parser) {
+        let mut step_typeset = HashMap::new();
+        {
+            let info = self.cur_info();
+            for (&step, &node_ix) in &info.step_to_node {
+                let node = inspector.describe(node_ix);
+                let ts = self.typeset.typeset(&node, parser);
+                step_typeset.insert(step, ts);
+            }
+        }
+        self.cur_info_mut().step_typeset = step_typeset;
         self.cur_tok = None;
     }
 
@@ -333,13 +356,15 @@ impl<'a> ProofListener for HtmlOut<'a> {
         self.last_line = step_ix;
     }
 
-    fn step(&mut self, node: &ParseNode, _node_ix: usize) {
+    fn step(&mut self, node: &ParseNode, node_ix: usize) {
         if node.info == Info::Dummy {
             let last_line = self.last_line;
             self.cur_info_mut().underscores.insert(node.get_start(), last_line);
         }
+        let step_ix = self.step_ix;
+        self.cur_info_mut().step_to_node.insert(step_ix, node_ix);
         self.steps.insert(node.get_start(), StepInfo {
-            step_ix: self.step_ix,
+            step_ix: step_ix,
             opt_tok: node.get_step(),
         });
         self.step_ix += 1;

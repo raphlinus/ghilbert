@@ -27,7 +27,13 @@ pub struct ParseNode {
 }
 
 impl ParseNode {
-    fn dummy() -> ParseNode {
+    /// Create node with `Atom` info, and no source map.
+    pub fn new_with_atom(atom: Token, children: Vec<ParseNode>) -> ParseNode {
+        ParseNode { start: 0, end: 0, info: Info::Atom(atom), children }
+    }
+
+    /// Create dummy parse node, with no source map info.
+    pub fn dummy() -> ParseNode {
         ParseNode { start: 0, end: 0, info: Info::Dummy, children: Vec::new() }
     }
 

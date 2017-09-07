@@ -16,6 +16,11 @@
 
 use parser::{Parser, ParseNode};
 
+/// Index of a node in the unification graph. I'm likely to want to change
+/// this to some other opaque token to identify a step (in particular, I'll
+/// want to extract the substitution for the step).
+pub type NodeIx = usize;
+
 pub trait ProofListener {
     /// start and end are indices of interior of comment (don't count comment
     /// delimeters but do count spaces)
@@ -23,7 +28,7 @@ pub trait ProofListener {
 
     fn start_proof(&mut self, label: &ParseNode);
 
-    fn end_proof(&mut self);
+    fn end_proof(&mut self, inspector: &mut Inspector, parser: &Parser);
 
     fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, parser: &Parser);
 
@@ -31,11 +36,16 @@ pub trait ProofListener {
 
     fn start_line(&mut self, node: &ParseNode);
 
-    fn step(&mut self, node: &ParseNode, node_ix: usize);
+    fn step(&mut self, node: &ParseNode, node_ix: NodeIx);
 
-    fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser);
+    fn result(&mut self, node: &ParseNode, node_ix: NodeIx, _parser: &Parser);
 
     fn end_line(&mut self, node: &ParseNode);
+}
+
+pub trait Inspector {
+    /// Provide an expression containing the result of the step.
+    fn describe(&mut self, node_ix: NodeIx) -> ParseNode;
 }
 
 pub struct DebugListener;
@@ -49,7 +59,7 @@ impl ProofListener for DebugListener {
         println!("start proof {:?}:", node);
     }
 
-    fn end_proof(&mut self) {
+    fn end_proof(&mut self, _inspector: &mut Inspector, _parser: &Parser) {
         println!("end proof");
     }
 
@@ -65,11 +75,11 @@ impl ProofListener for DebugListener {
         println!("  start line {:?}", node);
     }
 
-    fn step(&mut self, node: &ParseNode, node_ix: usize) {
+    fn step(&mut self, node: &ParseNode, node_ix: NodeIx) {
         println!("  step {:?} ix={}", node, node_ix);
     }
 
-    fn result(&mut self, node: &ParseNode, node_ix: usize, _parser: &Parser) {
+    fn result(&mut self, node: &ParseNode, node_ix: NodeIx, _parser: &Parser) {
         println!("  result {:?} ix={}", node, node_ix);
     }
 

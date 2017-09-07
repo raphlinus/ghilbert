@@ -499,26 +499,24 @@ pub struct ReconstructCtx {
     var_map: BTreeMap<usize, Expr>,
 }
 
-impl ReconstructCtx {
-    pub fn new(var_ix_to_node: &[Option<usize>],
+impl<'a> Graph<'a> {
+    pub fn mk_reconstruct(&mut self, var_ix_to_node: &[Option<usize>],
         bound_ix_to_node: &[Option<usize>]) -> ReconstructCtx
     {
         let mut result = BTreeMap::new();
         for (i, opt_ix) in var_ix_to_node.iter().enumerate() {
             if let Some(ix) = *opt_ix {
-                result.insert(ix, Expr::Var(i));
+                result.insert(self.uf.find(ix), Expr::Var(i));
             }
         }
         for (i, opt_ix) in bound_ix_to_node.iter().enumerate() {
             if let Some(ix) = *opt_ix {
-                result.insert(ix, Expr::BoundVar(i));
+                result.insert(self.uf.find(ix), Expr::BoundVar(i));
             }
         }
         ReconstructCtx { var_map: result }
     }
-}
 
-impl<'a> Graph<'a> {
     pub fn reconstruct_expr(&mut self, ctx: &ReconstructCtx, node: usize) -> Option<Expr> {
         let nfind = self.uf.find(node);
         if let Some(expr) = ctx.var_map.get(&nfind) {

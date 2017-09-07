@@ -52,6 +52,11 @@ function createRightPane(info) {
     comment.className = "text";
     comment.appendChild(document.createTextNode(info.comment));
     result.push(comment);
+    let ts = document.createElement("div");
+    ts.className = "text";
+    ts.appendChild(document.createTextNode("\\( " + info.typeset + " \\)"));
+    result.push(ts);
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub,ts]);
     return result;
 }
 

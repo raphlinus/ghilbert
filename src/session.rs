@@ -18,8 +18,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
-use prooflistener::{ProofListener};
-use unify::{self, Definition, Expr, Graph, Stmt};
+use prooflistener::{Inspector, ProofListener};
+use unify::{self, Definition, Expr, Graph, ReconstructCtx, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -299,7 +299,13 @@ impl<'a> Session<'a> {
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
         graph.validate_notfree(&vars, &bound_vars, &stmt.notfree)?;
-        listener.end_proof();
+        listener.end_proof(&mut MyInspector {
+            recon: graph.mk_reconstruct(&vars, &bound_vars),
+            var_map: &stmt.var_map,
+            bound_map: &bound_map,
+            session: self,
+            graph: &mut graph,
+        }, &self.parser);
         if self.verbose {
             println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
         }
@@ -543,6 +549,58 @@ impl<'a> Session<'a> {
         };
         let def = Definition { index, var_map, bound_map, lhs, rhs };
         Ok((def, (arg_types, kind)))
+    }
+}
+
+pub struct MyInspector<'a: 'b, 'b> {
+    recon: ReconstructCtx,
+    // TODO: invert these at inspector creation time for more efficient
+    // lookups. Alternatively, make a new mapping type that stores both.
+    var_map: &'b BTreeMap<Token, usize>,
+    bound_map: &'b BTreeMap<Token, usize>,
+    session: &'b Session<'a>,
+    graph: &'b mut Graph<'a>,
+}
+
+impl<'a, 'b> Inspector for MyInspector<'a, 'b> {
+    fn describe(&mut self, node_ix: usize) -> ParseNode {
+        if let Some(expr) = self.graph.reconstruct_expr(&self.recon, node_ix) {
+            self.expr_to_parse_node(expr)
+        } else {
+            ParseNode::dummy()
+        }
+    }
+}
+
+impl<'a, 'b> MyInspector<'a, 'b> {
+    fn lookup_var(&self, var_ix: usize) -> Option<Token> {
+        for (tok, ix) in self.var_map {
+            if var_ix == *ix { return Some(*tok); }
+        }
+        None
+    }
+
+    fn lookup_bound(&self, var_ix: usize) -> Option<Token> {
+        for (tok, ix) in self.bound_map {
+            if var_ix == *ix { return Some(*tok); }
+        }
+        None
+    }
+
+    // Note: no reason this couldn't be &Expr
+    fn expr_to_parse_node(&mut self, expr: Expr) -> ParseNode {
+        match expr {
+            Expr::Var(v) => ParseNode::new_with_atom(
+                self.lookup_var(v).unwrap(), Vec::new()),
+            Expr::BoundVar(v) => ParseNode::new_with_atom(
+                self.lookup_bound(v).unwrap(), Vec::new()),
+            Expr::Term { constructor, children } => {
+                let children = children.into_iter()
+                    .map(|child| self.expr_to_parse_node(child))
+                    .collect::<Vec<_>>();
+                ParseNode::new_with_atom(constructor, children)
+            }
+        }
     }
 }
 
