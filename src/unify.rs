@@ -23,6 +23,8 @@ use lexer::Token;
 
 type Const = Token;
 
+pub type StepIx = usize;
+
 #[derive(Debug, Clone)]
 pub enum Expr {
     Var(usize),
@@ -63,6 +65,10 @@ struct GraphNodeInfo {
     children: Vec<usize>,  // indices to graph nodes
 }
 
+struct StepInfo {
+    node: usize,
+}
+
 pub struct Graph<'a> {
     defs: &'a BTreeMap<Token, Definition>,
     infos: Vec<Option<GraphNodeInfo>>,
@@ -75,6 +81,8 @@ pub struct Graph<'a> {
     nfi_constraints: Vec<(usize, usize)>,
     /// Identifier for backslash so that we can identify lambda
     backslash: Const,
+    /// List of nodes
+    steps: Vec<StepInfo>,
 }
 
 #[derive(Debug)]
@@ -113,6 +121,7 @@ impl<'a> Graph<'a> {
             bound_var_sets: Vec::new(),
             nfi_constraints: Vec::new(),
             backslash,
+            steps: Vec::new(),
         }
     }
 
@@ -125,19 +134,45 @@ impl<'a> Graph<'a> {
         uf_result
     }
 
+    /// Assign a step for a simple step (hyp reference, label, etc).
+    fn assign_simple_step(&mut self, node: usize) -> StepIx {
+        let result = self.steps.len();
+        self.steps.push(StepInfo { node });
+        result
+    }
+
+    /// Create a new step that's aliased to the same node as an existing step
+    pub fn new_step_alias(&mut self, step: StepIx) -> StepIx {
+        let node = self.get_node(step);
+        self.assign_simple_step(node)
+    }
+
+    /// Assign a step during proof reconstruction.
+    // Note: this will pick up more information, in particular so we can
+    // reconstruct the substitution.
+    fn assign_step(&mut self, node: usize) -> StepIx {
+        self.assign_simple_step(node)
+    }
+
+    /// Gets the node index corresponding to the step
+    pub fn get_node(&self, step_ix: StepIx) -> usize {
+        self.steps[step_ix].node
+    }
+
     /// Apply a proof step, performing unification.
     ///
     /// Return node index of conclusion if successful, as well as assignment of
     /// variables to node indices.
     // TODO: probably don't need to return vars, rather logging the constraints
     // for validation later. In any case, bound_vars and vars should share fate.
-    pub fn apply_stmt(&mut self, stmt: &Stmt, hyps: &[usize])
-        -> Result<(usize, Vec<Option<usize>>), Error>
+    pub fn apply_stmt(&mut self, stmt: &Stmt, hyps: &[StepIx])
+        -> Result<(StepIx, Vec<Option<usize>>), Error>
     {
         let mut vars = vec![None; stmt.var_map.len()];
         let mut bound_vars = vec![None; stmt.bound_map.len()];
         for (i, expr) in stmt.hyps.iter().enumerate() {
-            self.unify_expr(hyps[i], expr, &mut vars, &mut bound_vars)?;
+            let hyp_node = self.get_node(hyps[i]);
+            self.unify_expr(hyp_node, expr, &mut vars, &mut bound_vars)?;
         }
         let concl = self.new_node();
         self.unify_expr(concl, &stmt.concl, &mut vars, &mut bound_vars)?;
@@ -153,25 +188,28 @@ impl<'a> Graph<'a> {
             self.nfi_constraints.push((bound_var_ix, var_ix));
         }
         self.distinct_bound_vars(bound_vars);
-        Ok((concl, vars))
+        let step_ix = self.assign_step(concl);
+        Ok((step_ix, vars))
     }
 
     /// Add hypotheses for a theorem being proved.
     ///
-    /// Return a vector of nodes corresponding to the hypotheses, as well
+    /// Return a vector of step indices corresponding to the hypotheses, as well
     /// as the variable assignments for term and binding variables.
+    // Note: will probably get rid of step indices, they're trivial
     pub fn add_hyps(&mut self, stmt: &Stmt)
-        -> Result<(Vec<usize>, Vec<Option<usize>>, Vec<Option<usize>>), Error>
+        -> Result<(Vec<StepIx>, Vec<Option<usize>>, Vec<Option<usize>>), Error>
     {
         let mut vars = vec![None; stmt.var_map.len()];
         let mut bound_vars = vec![None; stmt.bound_map.len()];
-        let mut hyp_nodes = Vec::with_capacity(stmt.hyps.len());
+        let mut step_ixs = Vec::with_capacity(stmt.hyps.len());
         for expr in &stmt.hyps {
             let hyp_node = self.new_node();
             self.unify_expr(hyp_node, expr, &mut vars, &mut bound_vars)?;
-            hyp_nodes.push(hyp_node);
+            let step_ix = self.assign_simple_step(hyp_node);
+            step_ixs.push(step_ix);
         }
-        Ok((hyp_nodes, vars, bound_vars))
+        Ok((step_ixs, vars, bound_vars))
     }
 
     /// Unifies an expression with the given node in the graph.

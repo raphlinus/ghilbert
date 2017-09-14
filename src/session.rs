@@ -19,7 +19,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
 use prooflistener::{Inspector, ProofListener};
-use unify::{self, Definition, Expr, Graph, ReconstructCtx, Stmt};
+use unify::{self, Definition, Expr, Graph, ReconstructCtx, StepIx, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -282,6 +282,7 @@ impl<'a> Session<'a> {
         }
         let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
         let mut graph = Graph::new(&self.defs, self.parser.backslash());
+        // Note: hyps here is just 0..n_hyps, we can optimize
         let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
         // Result lines can add new binding variables, but those won't affect the stmt.
         let mut bound_map = stmt.bound_map.clone();
@@ -292,9 +293,10 @@ impl<'a> Session<'a> {
         for (hyp_name, hyp) in children[1].children.iter().zip(hyps.into_iter()) {
             steps.insert(get_step(hyp_name)?, hyp);
         }
-        let concl_node = self.apply_proof(&children[5], &mut graph, &mut steps,
+        let concl_step = self.apply_proof(&children[5], &mut graph, &mut steps,
             &mut stmt.var_map, &mut bound_map, &mut vars, &mut bound_vars, listener)?;
         listener.concl(&children[4], &self.parser);
+        let concl_node = graph.get_node(concl_step);
         graph.unify_expr(concl_node, &stmt.concl, &mut vars, &mut bound_vars)?;
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
@@ -318,12 +320,12 @@ impl<'a> Session<'a> {
     // `var_ix_to_node` maps that index to node index in graph.
     // TODO: with these many args, should have a ProofCtx struct to hold them
     fn apply_proof<L: ProofListener>(&self, proof: &ParseNode, graph: &mut Graph,
-        steps: &mut BTreeMap<Token, usize>,
+        steps: &mut BTreeMap<Token, StepIx>,
         var_map: &mut BTreeMap<Token, usize>,
         bound_map: &mut BTreeMap<Token, usize>,
         var_ix_to_node: &mut Vec<Option<usize>>,
         bound_ix_to_node: &mut Vec<Option<usize>>,
-        listener: &mut L) -> Result<usize, Error>
+        listener: &mut L) -> Result<StepIx, Error>
     {
         let mut last_line = None;
         for line in &proof.children {
@@ -338,10 +340,12 @@ impl<'a> Session<'a> {
                 let hyp = match arg.info {
                     Info::List => self.apply_proof(arg, graph, steps, var_map,
                         bound_map, var_ix_to_node, bound_ix_to_node, listener)?,
-                    Info::Dummy => last_line.ok_or(Error::StepNotFound)?,
+                    Info::Dummy => {
+                        graph.new_step_alias(last_line.ok_or(Error::StepNotFound)?)
+                    }
                     Info::Step(arg_step) => {
                         if let Some(r) = steps.get(&arg_step) {
-                            *r
+                            graph.new_step_alias(*r)
                         } else if let Some(arg_stmt) = self.stmts.get(&arg_step) {
                             if !arg_stmt.hyps.is_empty() {
                                 return Err(Error::ArityMismatch);
@@ -363,7 +367,7 @@ impl<'a> Session<'a> {
                 if !hyps.is_empty() {
                     return Err(Error::ArityMismatch);
                 }
-                result = *r;
+                result = graph.new_step_alias(*r);
             } else if let Some(stmt) = self.stmts.get(&step) {
                 if hyps.len() != stmt.hyps.len() {
                     return Err(Error::ArityMismatch);
@@ -379,7 +383,8 @@ impl<'a> Session<'a> {
                 listener.result(res_line, result, &self.parser);
                 let (result_line, _kind) = self.term_to_expr(res_line, var_map,
                     bound_map, true)?;
-                graph.unify_expr(result, &result_line, var_ix_to_node, bound_ix_to_node)?;
+                let res_node = graph.get_node(result);
+                graph.unify_expr(res_node, &result_line, var_ix_to_node, bound_ix_to_node)?;
             }
             listener.end_line(&line);
             if let Info::Step(label) = line.children[0].info {
@@ -563,7 +568,8 @@ pub struct MyInspector<'a: 'b, 'b> {
 }
 
 impl<'a, 'b> Inspector for MyInspector<'a, 'b> {
-    fn describe(&mut self, node_ix: usize) -> ParseNode {
+    fn describe(&mut self, step_ix: StepIx) -> ParseNode {
+        let node_ix = self.graph.get_node(step_ix);
         if let Some(expr) = self.graph.reconstruct_expr(&self.recon, node_ix) {
             self.expr_to_parse_node(expr)
         } else {

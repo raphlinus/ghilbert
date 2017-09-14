@@ -21,7 +21,7 @@ use std::path::Path;
 
 use lexer::Token;
 use parser::{Info, Parser, ParseNode};
-use prooflistener::{Inspector, NodeIx, ProofListener};
+use prooflistener::{Inspector, ProofListener, StepIx};
 use typeset::Typeset;
 
 use serde_json::Value;
@@ -29,8 +29,6 @@ use serde_json::map::Map;
 
 // offset within text
 type Offset = usize;
-
-type StepIx = usize;
 
 pub struct HtmlOut<'a> {
     out_dir: String,
@@ -41,6 +39,7 @@ pub struct HtmlOut<'a> {
     thm_info: HashMap<Token, ThmInfo>,
     thms: Vec<(Option<&'a str>, ParseNode)>,
 
+    n_hyps: usize,
     step_ix: StepIx,
     steps: HashMap<Offset, StepInfo>,
     // name of current thm
@@ -57,8 +56,6 @@ struct ThmInfo {
     /// List of arguments for each step
     // Note: could switch to denser representation
     refs: HashMap<StepIx, Vec<StepIx>>,
-
-    step_to_node: HashMap<StepIx, NodeIx>,
 
     step_typeset: HashMap<StepIx, String>,
 
@@ -107,6 +104,7 @@ impl<'a> HtmlOut<'a> {
             thm_info: HashMap::new(),
             thms: Vec::new(),
 
+            n_hyps: 0,
             step_ix: 0,
             steps: HashMap::new(),
             cur_tok: None,
@@ -301,13 +299,13 @@ impl<'a> ProofListener for HtmlOut<'a> {
                     short_text: extract_short_string(&comment),
                     defs: HashMap::new(),
                     refs: HashMap::new(),
-                    step_to_node: HashMap::new(),
                     step_typeset: HashMap::new(),
                     underscores: HashMap::new(),
                 });
             }
         }
         self.thms.push((self.last_comment.take(), node.clone()));
+        self.n_hyps = 0;
         self.step_ix = 0;
     }
 
@@ -315,10 +313,10 @@ impl<'a> ProofListener for HtmlOut<'a> {
         let mut step_typeset = HashMap::new();
         {
             let info = self.cur_info();
-            for (&step, &node_ix) in &info.step_to_node {
-                let node = inspector.describe(node_ix);
+            for step_ix in self.n_hyps .. self.step_ix {
+                let node = inspector.describe(step_ix);
                 let ts = self.typeset.typeset(&node, parser);
-                step_typeset.insert(step, ts);
+                step_typeset.insert(step_ix, ts);
             }
         }
         self.cur_info_mut().step_typeset = step_typeset;
@@ -334,6 +332,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
         if let Some(tok) = hyp_name.get_step() {
             self.cur_info_mut().defs.insert(tok, step_ix);
         }
+        self.n_hyps += 1;
         self.step_ix += 1;
     }
 
@@ -356,13 +355,14 @@ impl<'a> ProofListener for HtmlOut<'a> {
         self.last_line = step_ix;
     }
 
-    fn step(&mut self, node: &ParseNode, node_ix: usize) {
+    fn step(&mut self, node: &ParseNode, step_ix: usize) {
         if node.info == Info::Dummy {
             let last_line = self.last_line;
             self.cur_info_mut().underscores.insert(node.get_start(), last_line);
         }
-        let step_ix = self.step_ix;
-        self.cur_info_mut().step_to_node.insert(step_ix, node_ix);
+        if step_ix != self.step_ix {
+            println!("step index mismatch {} != {}", step_ix, self.step_ix);
+        }
         self.steps.insert(node.get_start(), StepInfo {
             step_ix: step_ix,
             opt_tok: node.get_step(),

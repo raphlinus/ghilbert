@@ -16,10 +16,9 @@
 
 use parser::{Parser, ParseNode};
 
-/// Index of a node in the unification graph. I'm likely to want to change
-/// this to some other opaque token to identify a step (in particular, I'll
-/// want to extract the substitution for the step).
-pub type NodeIx = usize;
+/// Index of a step. The hypotheses start at 0. The first step in the proof is
+/// the number of hypotheses. They will be assigned in evaluation order.
+pub type StepIx = usize;
 
 pub trait ProofListener {
     /// start and end are indices of interior of comment (don't count comment
@@ -36,16 +35,16 @@ pub trait ProofListener {
 
     fn start_line(&mut self, node: &ParseNode);
 
-    fn step(&mut self, node: &ParseNode, node_ix: NodeIx);
+    fn step(&mut self, node: &ParseNode, step_ix: StepIx);
 
-    fn result(&mut self, node: &ParseNode, node_ix: NodeIx, _parser: &Parser);
+    fn result(&mut self, node: &ParseNode, step_ix: StepIx, _parser: &Parser);
 
     fn end_line(&mut self, node: &ParseNode);
 }
 
 pub trait Inspector {
     /// Provide an expression containing the result of the step.
-    fn describe(&mut self, node_ix: NodeIx) -> ParseNode;
+    fn describe(&mut self, node_ix: StepIx) -> ParseNode;
 }
 
 pub struct DebugListener;
@@ -75,12 +74,12 @@ impl ProofListener for DebugListener {
         println!("  start line {:?}", node);
     }
 
-    fn step(&mut self, node: &ParseNode, node_ix: NodeIx) {
-        println!("  step {:?} ix={}", node, node_ix);
+    fn step(&mut self, node: &ParseNode, step_ix: StepIx) {
+        println!("  step {:?} ix={}", node, step_ix);
     }
 
-    fn result(&mut self, node: &ParseNode, node_ix: NodeIx, _parser: &Parser) {
-        println!("  result {:?} ix={}", node, node_ix);
+    fn result(&mut self, node: &ParseNode, step_ix: StepIx, _parser: &Parser) {
+        println!("  result {:?} ix={}", node, step_ix);
     }
 
     fn end_line(&mut self, node: &ParseNode) {
