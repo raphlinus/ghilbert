@@ -15,7 +15,31 @@
 'use strict';
 
 // json info is available globally
-var json = null;
+let json = null;
+let mathq = [];
+
+// Some helpers for creating HTML.
+
+function div(child, cls) {
+    let result = document.createElement("div");
+    if (cls) {
+        result.setAttribute("class", cls);
+    }
+    if (child) {
+        result.appendChild(child);
+    }
+    return result;
+}
+
+function text(s) {
+    return document.createTextNode(s);
+}
+
+function mathjax(s, cls) {
+    let result = div(text("\\( " + s + " \\)"), cls);
+    mathq.push(result);
+    return result;
+}
 
 function replaceRight(newNodes) {
     let right = document.getElementById("right");
@@ -34,9 +58,15 @@ function replaceRight(newNodes) {
     right.appendChild(xd);
     right.className = "visible";
 
+    let main = div(null, "infomain");
     for (let child of newNodes) {
-        right.appendChild(child);
+        main.appendChild(child);
     }
+    right.appendChild(main);
+    // Note: we don't have an absolute guarantee that MathJax has
+    // loaded here. A more principled approach would be to defer if not.
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub,mathq]);
+    mathq = [];
 }
 
 function createRightPane(info) {
@@ -44,19 +74,19 @@ function createRightPane(info) {
     let title = document.createElement("h1");
     let a = document.createElement("a");
     let link = info.link;
-    a.appendChild(document.createTextNode(link));
+    a.appendChild(text(link));
     a.setAttribute("href", link + ".html");
     title.appendChild(a);
     result.push(title);
-    let comment = document.createElement("div");
-    comment.className = "text";
-    comment.appendChild(document.createTextNode(info.comment));
-    result.push(comment);
-    let ts = document.createElement("div");
-    ts.className = "text";
-    ts.appendChild(document.createTextNode("\\( " + info.typeset + " \\)"));
-    result.push(ts);
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub,ts]);
+    result.push(div(text(info.comment), "text"));
+    result.push(mathjax(info.typeset, "text"));
+    result.push(div(text("Original theorem:"), "text"));
+    let origthm = div(null, "origthm");
+    for (let hyp of info.hyps) {
+        origthm.appendChild(mathjax(hyp, "infohyp"));
+    }
+    origthm.appendChild(mathjax(info.concl, "infoconcl"));
+    result.push(origthm);
     return result;
 }
 

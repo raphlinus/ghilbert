@@ -17,6 +17,7 @@
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, ErrorKind, Write};
+use std::mem;
 use std::path::Path;
 
 use lexer::Token;
@@ -30,6 +31,11 @@ use serde_json::map::Map;
 // offset within text
 type Offset = usize;
 
+/// A collection of state for the HTML generation process
+// A good case can be made that this should be split into two structs
+// corresponding to the two main phases of operation. In the first, we
+// gather info from the ProofListener, and in the second (when all
+// dependency information is known) we generate the files.
 pub struct HtmlOut<'a> {
     out_dir: String,
     text: &'a str,
@@ -47,10 +53,16 @@ pub struct HtmlOut<'a> {
     last_line: StepIx,
 }
 
+struct ThmSummary {
+    hyp_strs: Vec<String>,
+    concl_str: String,
+}
+
 struct ThmInfo {
     // TODO: work out HTML formatting / escaping
     full_comment: String,
     short_text: String,
+    summary: Option<ThmSummary>,
     defs: HashMap<Token, StepIx>,
 
     /// List of arguments for each step
@@ -114,19 +126,21 @@ impl<'a> HtmlOut<'a> {
 
     /// Write the formatted proof to the output.
     pub fn write<W: Write>(&mut self, writer: &mut W, parser: &Parser) -> io::Result<()> {
-        for &(comment, ref thm) in &self.thms {
-            self.write_thm(comment, thm, parser)?;
+        let thms = mem::replace(&mut self.thms, Vec::new());
+        for (comment, ref thm) in thms {
+            let thm_name_tok = thm.children[0].get_step().expect("thm name wasn't step");
+            let summary = self.write_thm(thm_name_tok, comment, thm, parser)?;
+            self.thm_info.get_mut(&thm_name_tok).unwrap().summary = Some(summary);
         }
         Ok(())
     }
 
-    fn write_thm(&self, comment: Option<&'a str>, node: &ParseNode, parser: &Parser)
-        -> io::Result<()>
+    fn write_thm(&self, thm_name_tok: Token, comment: Option<&'a str>,
+        node: &ParseNode, parser: &Parser) -> io::Result<ThmSummary>
     {
-        let thm_name_tok = node.children[0].get_step().expect("thm name wasn't step");
         let thm_name = parser.tok_str(thm_name_tok);
         let page_fn = Path::new(&self.out_dir).join(format!("{}.html", thm_name));
-        let mut f = File::create(page_fn)?;
+        let f = File::create(page_fn)?;
         let thm_info = self.thm_info.get(&thm_name_tok).expect(
             &format!("no info for thm {}", parser.tok_str(thm_name_tok)));
         let mut ctx = Ctx {
@@ -143,6 +157,12 @@ impl<'a> HtmlOut<'a> {
 <link rel="stylesheet" href="../thm.css">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="utf-8"/>
+<script>
+window.MathJax = {{
+  AuthorInit: function() {{ MathJax.Hub.processSectionDelay = 0; }},
+  CommonHTML: {{ linebreaks: {{ automatic: true }} }}
+}};
+</script>
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
 </script>
@@ -152,9 +172,9 @@ impl<'a> HtmlOut<'a> {
 <div class="thmname"><span class="xt">Theorem</span> {}</div>
 "#, thm_name, thm_name)?;
         self.write_comment(&mut ctx, comment.unwrap_or("(comment missing)"))?;
-        self.write_hyps(&mut ctx, &node.children[1], &node.children[2])?;
+        let hyp_strs = self.write_hyps(&mut ctx, &node.children[1], &node.children[2])?;
         // TODO: free variable constraints
-        self.write_concl(&mut ctx, &node.children[4], parser)?;
+        let concl_str = self.write_concl(&mut ctx, &node.children[4], parser)?;
         self.write_proof(&mut ctx, &node.children[5])?;
         write!(&mut ctx.w, r#"</div>
 <div id="right" class="hidden">
@@ -166,7 +186,8 @@ This is the content in the right pane.
 "#)?;
         let json_fn = Path::new(&self.out_dir).join(format!("{}.json", thm_name));
         let mut json_f = File::create(json_fn)?;
-        writeln!(json_f, "{}", Value::Object(ctx.json).to_string())
+        writeln!(json_f, "{}", Value::Object(ctx.json).to_string())?;
+        Ok(ThmSummary { hyp_strs, concl_str })
     }
 
     fn write_comment<W: Write>(&self, w: &mut W, comment: &str) -> io::Result<()> {
@@ -179,14 +200,15 @@ This is the content in the right pane.
         writeln!(w, "</div>")
     }
 
-    fn write_hyps<W: Write>(&self, ctx: &mut Ctx<W>, hyp_names: &ParseNode, hyps: &ParseNode)
-        -> io::Result<()>
+    fn write_hyps<W: Write>(&self, ctx: &mut Ctx<W>, hyp_names: &ParseNode,
+        hyps: &ParseNode) -> io::Result<Vec<String>>
     {
         if hyp_names.children.len() == 1 {
             writeln!(ctx, "<div class=\"ex\">Hypothesis</div>")?;
         } else if hyp_names.children.len() > 1 {
             writeln!(ctx, "<div class=\"ex\">Hypotheses</div>")?;
         }
+        let mut hyp_strs = Vec::new();
         for (hyp_name, hyp) in hyp_names.children.iter().zip(hyps.children.iter()) {
             let hyp_name_tok = hyp_name.get_step().unwrap();
             writeln!(ctx, "<div class=\"l\"><span id=\"s{}\">{}</span></div>",
@@ -194,16 +216,18 @@ This is the content in the right pane.
                 ctx.parser.tok_str(hyp_name_tok))?;
             let hyp_str = self.typeset.typeset(hyp, &ctx.parser);
             writeln!(ctx, "<div class=\"f\">\\( {} \\)</div>", hyp_str)?;
+            hyp_strs.push(hyp_str);
         }
-        Ok(())
+        Ok(hyp_strs)
     }
 
     fn write_concl<W: Write>(&self, w: &mut W, concl: &ParseNode, parser: &Parser)
-        -> io::Result<()>
+        -> io::Result<String>
     {
         writeln!(w, "<div class=\"ex\">Conclusion</div>")?;
         let concl_str = self.typeset.typeset(concl, parser);
-        writeln!(w, "<div class=\"concl\">\\( {} \\)</div>", concl_str)
+        writeln!(w, "<div class=\"concl\">\\( {} \\)</div>", concl_str)?;
+        Ok(concl_str)
     }
 
     fn write_proof<W: Write>(&self, ctx: &mut Ctx<W>, proof: &ParseNode) -> io::Result<()>
@@ -244,11 +268,16 @@ This is the content in the right pane.
                         "def": step_ix,
                     }));
                 } else if let Some(info) = self.thm_info.get(&tok) {
-                    step_info = Some(json!({
+                    let mut info_out = json!({
                         "link": ctx.parser.tok_str(tok),
                         "comment": info.full_comment,
                         "hover": info.short_text
-                    }));
+                    });
+                    if let Some(ref summary) = info.summary {
+                        info_out["hyps"] = json!(summary.hyp_strs);
+                        info_out["concl"] = json!(summary.concl_str);
+                    }
+                    step_info = Some(info_out);
                 }
             } else {
                 if let Some(step_ix) = ctx.thm_info.underscores.get(&node.get_start()) {
@@ -301,6 +330,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
                     refs: HashMap::new(),
                     step_typeset: HashMap::new(),
                     underscores: HashMap::new(),
+                    summary: None,
                 });
             }
         }
@@ -312,7 +342,6 @@ impl<'a> ProofListener for HtmlOut<'a> {
     fn end_proof(&mut self, inspector: &mut Inspector, parser: &Parser) {
         let mut step_typeset = HashMap::new();
         {
-            let info = self.cur_info();
             for step_ix in self.n_hyps .. self.step_ix {
                 let node = inspector.describe(step_ix);
                 let ts = self.typeset.typeset(&node, parser);
@@ -323,7 +352,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
         self.cur_tok = None;
     }
 
-    fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, _parser: &Parser) {
+    fn hyp(&mut self, hyp_name: &ParseNode, _hyp: &ParseNode, _parser: &Parser) {
         let step_ix = self.step_ix;
         self.steps.insert(hyp_name.get_start(), StepInfo {
             step_ix,
