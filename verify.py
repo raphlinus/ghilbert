@@ -18,7 +18,6 @@ import sys
 import os.path
 import array
 
-
 # for debug printing
 def sexp_to_string(sexp):
     buf = array.array('c')
@@ -438,16 +437,12 @@ class VerifyCtx:
 
             if ifname in self.interfaces:
                 raise VerifyError("An interface named %s already exists." % ifname)
-            # Check that the parameter interfaces are all distinct and all
-            # correspond to existing interfaces.
-            inverse = {}
+            # Check that the parameter interfaces are all correspond to existing
+            # interfaces.
             params = []
             for pn in paramnames:
                 if (type(pn) != type('string')):
                     raise VerifyError("%s parameter must be an interface name." % cmd)
-                if pn in inverse:
-                    raise VerifyError("Interface %s passed more than once to import context." % pn)
-                inverse[pn] = 0
                 try:
                     params.append(self.interfaces[pn])
                 except KeyError:
@@ -962,6 +957,12 @@ class InterfaceCtx:
         self.mykinds = {}
         self.error_handler = None
 
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
     def get_kind(self, rawkind):
         try:
             return self.kinds[rawkind]
@@ -1042,7 +1043,10 @@ class InterfaceCtx:
         if subparams != p.params:
             raise VerifyError('Context ' + self.name + \
                    ' changes parameters to parameter interface ' + \
-                   ifname + ' (' + p.name + ')')
+                              ifname + ' (' + p.name + ').\n' + \
+                              'was: ' + repr(p.params) + '\n' +\
+                              'now: ' + repr(subparams)
+            )
 
         self.used_params[ifname] = p
 
