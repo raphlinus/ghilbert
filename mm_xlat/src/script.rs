@@ -38,6 +38,8 @@ pub enum Command {
     Assume(String),
     /// Keep all setvar variables of these statements bound (see Session).
     BoundForm(Vec<String>),
+    /// Write a theorem with a hand-written proof (the lines of its body).
+    Prove(String, String),
 }
 
 impl Script {
@@ -73,6 +75,17 @@ impl Iterator for Script {
                         "assume" => return Some(Command::Assume(l[1].to_string())),
                         "bound_form" => return Some(Command::BoundForm(
                             l[1..].iter().map(|s| s.to_string()).collect())),
+                        "prove" => {
+                            let label = l[1].to_string();
+                            let mut body = String::new();
+                            loop {
+                                let mut line = String::new();
+                                let n = self.i.read_line(&mut line).expect("error reading script");
+                                if n == 0 || line.trim() == "--" { break; }
+                                body.push_str(&line);
+                            }
+                            return Some(Command::Prove(label, body));
+                        }
                         "replace" => {
                             self.mode = Mode::Copy;
                             return Some(Command::Skip(l[1].to_string()));

@@ -112,6 +112,8 @@ pub struct Session<'a> {
     free_by_stmt: HashMap<&'a str, Vec<&'a str>>,
     /// A statement read but not yet processed (see `run_until`).
     pending: Option<Statement<'a>>,
+    /// A hand-written proof body for the next statement written (from `prove`).
+    manual_proof: Option<String>,
 }
 
 impl<'a> Session<'a> {
@@ -134,6 +136,7 @@ impl<'a> Session<'a> {
             bound_form: Vec::new(),
             free_by_stmt: HashMap::new(),
             pending: None,
+            manual_proof: None,
         }
     }
 
@@ -180,6 +183,11 @@ impl<'a> Session<'a> {
                 Command::BoundForm(labels) => self.bound_form.extend(labels),
                 Command::Assume(l) => {
                     let stmt = self.run_upto(&l, parser);
+                    self.do_stmt(stmt, Mode::Assume);
+                }
+                Command::Prove(l, body) => {
+                    let stmt = self.run_upto(&l, parser);
+                    self.manual_proof = Some(body);
                     self.do_stmt(stmt, Mode::Assume);
                 }
             }
@@ -463,18 +471,20 @@ impl<'a> Session<'a> {
     fn write_stmt(&mut self, label: &'a str, frame: &Frame<'a>, comment: Option<&str>,
         lines: Option<&[Line<'a>]>)
     {
+        let manual = self.manual_proof.take();
         self.free_setvars = self.find_free_setvars(label, frame, lines);
         self.free_by_stmt.insert(label, self.free_setvars.clone());
         let mut s = String::new();
         if let Some(comment) = comment {
             s.push_str(&format!("/* {} */\n", sanitize_comment(comment)));
         }
-        s.push_str(if lines.is_some() { "theorem " } else { "axiom " });
+        let has_proof = lines.is_some() || manual.is_some();
+        s.push_str(if has_proof { "theorem " } else { "axiom " });
         s.push_str(label);
         for &(hyp_label, ref hyp) in &frame.hyps {
             if let Hyp::E(ref e) = *hyp {
                 let e = self.gh_expr(label, e);
-                if lines.is_some() {
+                if has_proof {
                     s.push_str(&format!("\n  ({}: {})", hyp_label, e));
                 } else {
                     s.push_str(&format!("\n  ({})", e));
@@ -503,6 +513,11 @@ impl<'a> Session<'a> {
             s.push_str(&format!("\n  {}", notfree.join(", ")));
         }
         let concl = self.gh_expr(label, &frame.concl);
+        if let Some(body) = manual {
+            s.push_str(&format!(":\n  {} ::(\n{})\n\n", concl, body));
+            self.out.write(&s);
+            return;
+        }
         match lines {
             None => s.push_str(&format!(":\n  {};\n\n", concl)),
             Some(lines) => {
