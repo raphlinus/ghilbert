@@ -1,0 +1,412 @@
+# The pax axiomatization constructed from the set.mm axiomatization of
+# ZFC.
+
+import (PROP pax/prop () "")
+import (SET_MM_AX zfc/set_mm_ax (PROP) "")
+import (SET_MM zfc/set_mm (PROP SET_MM_AX) "")
+
+kindbind (set $var)
+kindbind (class $val)
+kindbind (class $type)
+
+var (wff ph ps ch)
+var (set x y z)
+var (class A B C)
+var (class T T')
+
+def (($cv x) (cv x))
+thm (df-$cv () ()
+  (= ($cv x) (cv x))
+  ((cv x) eqid))
+
+def (($A. x T ph) (A.e. x T ph))
+thm (df-$A. () ()
+  (<-> ($A. x T ph) (A.e. x T ph))
+  ((A.e. x T ph) pm4.2))
+
+def (($= T A B) (= A B))
+thm (df-$= () ()
+  (<-> ($= T A B) (= A B))
+  ((= A B) pm4.2))
+
+def (($istype T) (-. (= T ({/}))))
+thm (df-$istype () ()
+  (<-> ($istype T) (-. (= T ({/}))))
+  ((-. (= T ({/}))) pm4.2))
+
+def (($nfi x T ph) (<-> ph ($A. x T ph)))
+thm ($df-nfi () ()
+  (<-> ($nfi x T ph) (<-> ph ($A. x T ph)))
+  ((<-> ph ($A. x T ph)) pm4.2))
+
+thm (istype_ex ((T x))
+  ((hypT ($istype T)))
+  (E. x (e. (cv x) T))
+  (hypT T df-$istype mpbi T x n0 mpbi
+))
+
+thm (nfilem ((T x))
+  ((hyp (-> ph (A. x ph)))
+   (hypT ($istype T)))
+  ($nfi x T ph)
+  (
+   hypT x istype_ex ph a1bi
+     hyp (e. (cv x) T) 19.23
+   bitr4
+   x T ph df-ral bitr4
+   x T ph df-$A. bitr4
+   x T ph $df-nfi mpbir
+))
+
+thm ($nfi_dv ((ph x) (T x))
+  ((hypT ($istype T)))
+  ($nfi x T ph)
+  (
+   ph x ax-17 hypT nfilem
+))
+
+thm ($nfi_bound ((T x))
+  ((hypT ($istype T)))
+  ($nfi x T ($A. x T ph))
+  (
+   x T ph df-$A.
+     x T ph hbra1
+   sylbi
+     x T ph df-$A. x albii
+   sylibr
+   hypT nfilem
+))
+
+thm (nfi_19.9 ((T x))
+  ((hyp ($nfi x T ph))
+   (hypT ($istype T)))
+  (<-> (E.e. x T ph) ph)
+  (
+   x T ph df-rex
+     hyp x T ph $df-nfi mpbi x T ph df-$A. bitr x T ph df-ral bitr
+     (e. (cv x) T) anbi2i
+     x exbii
+       x (-> (e. (cv x) T) ph) hba1
+     (e. (cv x) T) 19.41 bitr
+       hypT x istype_ex (A. x (-> (e. (cv x) T) ph)) biantrur
+     bitr4
+       hyp x T ph $df-nfi mpbi x T ph df-$A. bitr x T ph df-ral bitr
+     bitr4
+   bitr
+))
+
+thm ($nfi_not ((T x))
+  ((hyp ($nfi x T ph))
+   (hypT ($istype T)))
+  ($nfi x T (-. ph))
+  (
+   x T ph ralnex
+     hyp hypT nfi_19.9 negbii
+   bitr bicomi
+   x T (-. ph) df-$A. bitr4 x T (-. ph) $df-nfi mpbir
+))
+
+thm ($nfi_im ((T x))
+  ((hyp1 ($nfi x T ph))
+   (hyp2 ($nfi x T ps))
+   (hypT ($istype T)))
+  ($nfi x T (-> ph ps))
+  (
+   hyp1 x T ph $df-nfi mpbi x T ph df-$A. bitr x T ph df-ral bitr
+     hyp2 x T ps $df-nfi mpbi x T ps df-$A. bitr x T ps df-ral bitr
+   imbi12i
+
+     x (-> (e. (cv x) T) ph) hba1
+     (-> (e. (cv x) T) ps) 19.21
+   bitr4
+     ph (e. (cv x) T) ps bi2.04
+       hyp1 x T ph $df-nfi mpbi x T ph df-$A. bitr x T ph df-ral bitr
+       (-> (e. (cv x) T) ps) imbi1i
+     bitr3
+     x albii
+   bitr4
+     x T (-> ph ps) df-ral bitr4 x T (-> ph ps) df-$A. bitr4 x T (-> ph ps) $df-nfi
+   mpbir
+))
+
+thm ($nfi_al ((T x y) (T' x))
+  ((hyp ($nfi x T ph))
+   (hypT ($istype T))
+   (hypT' ($istype T')))
+  ($nfi x T ($A. y T' ph))
+  (
+   hyp x T ph $df-nfi mpbi x T ph df-$A. bitr
+   y T' ralbii
+   x T y T' ph ralcom bitr4
+     y T' ph df-$A.
+       y T' ph df-$A. x T ralbii
+   3bitr4
+   x T ($A. y T' ph) df-$A. bitr4 x T ($A. y T' ph) $df-nfi mpbir
+))
+
+
+def (($E. x T ph) (-. ($A. x T (-. ph))))
+thm ($df-ex () ()
+  (<-> ($E. x T ph) (-. ($A. x T (-. ph))))
+  ((-. ($A. x T (-. ph))) pm4.2))
+
+thm (df-ex2 () ()
+  (<-> ($E. x T ph) (E.e. x T ph))
+  (
+   x T ph $df-ex
+     x T (-. ph) df-$A. negbii
+     x T ph dfrex2 bitr4
+   bitr
+))
+
+def (($: A T) ($E. x T ($= T ($cv x) A)))
+thm (df-tylem1 () ()
+  (<-> ($E. x T ($= T ($cv x) A)) (E.e. x T (= (cv x) A)))
+  (
+   x T ($= T ($cv x) A) df-ex2
+     T ($cv x) A df-$=
+       x df-$cv A eqeq1i
+     bitr
+     x T rexbii
+  bitr
+))
+
+thm (df-tylem2 ((T x y) (A x y)) ()
+  (<-> ($E. x T ($= T ($cv x) A)) ($E. y T ($= T ($cv y) A)))
+  (
+   (cv x) (cv y) A eqeq1 T cbvrexv
+     x T A df-tylem1
+       y T A df-tylem1
+   3bitr4
+))
+
+thm ($df-ty ((T x) (A x) (T y) (A y)) ()
+  (<-> ($: A T) ($E. x T ($= T ($cv x) A)))
+  (
+   y T A z df-tylem2
+     x T A z df-tylem2
+   bitr4
+))
+
+thm (df-ty2 () ()
+  (<-> ($: A T) (e. A T))
+  (
+   A T x $df-ty x T A df-tylem1 bitr
+   A T x risset bitr4
+))
+
+thm ($gen ()
+  ((hypT ($istype T))
+   (hyp (-> ($: ($cv x) T) ph)))
+  ($A. x T ph)
+  (
+   ($cv x) T df-ty2
+   x df-$cv T eleq1i bitr
+     hyp
+   sylbir
+   rgen
+   x T ph df-$A. mpbir
+))
+
+thm ($alim ()
+  ((hypT ($istype T)))
+  (-> ($A. x T (-> ph ps)) (-> ($A. x T ph) ($A. x T ps)))
+  (
+   x T (-> ph ps) df-$A.
+     x T ph ps r19.20
+   sylbi
+     x T ph df-$A. x T ps df-$A. imbi12i
+   sylibr
+))
+
+thm ($eqcom ()
+  ((hypT ($istype T)))
+  (<-> ($= T A B) ($= T B A))
+  (
+   A B eqcom
+     T A B df-$=
+       T B A df-$=
+   3bitr4
+))
+
+thm ($eqtr ()
+  ((hypT ($istype T)))
+  (-> (/\ ($= T A B) ($= T B C)) ($= T A C))
+  (
+   T A B df-$=
+     T B C df-$=
+   anbi12i
+     A B C eqeq1 biimprd imp
+   sylbi
+     T A C df-$=
+   sylibr
+))
+
+thm ($spec-var ()
+  ((hypT ($istype T)))
+  (-> ($A. x T ph) (-> ($: ($cv x) T) ph))
+  (
+   x T ph df-$A.
+   x T ph ra4 sylbi
+    ($cv x) T df-ty2
+       x df-$cv T eleq1i
+     bitr ph imbi1i
+   sylibr
+))
+
+def ((cast-set A) ({|} x (/\ (e. A (V)) (e. (cv x) A))))
+thm (df-cast-set ((A x) (A y)) ()
+  (= (cast-set A) ({|} x (/\ (e. A (V)) (e. (cv x) A))))
+  (
+   (cv y) (cv z) A eleq1 (e. A (V)) anbi2d cbvabv
+     (cv x) (cv z) A eleq1 (e. A (V)) anbi2d cbvabv
+   eqtr4
+))
+
+thm (cast-set-val () ()
+  (-> (e. A (V)) (= A (cast-set A)))
+  (
+   (e. A (V)) (e. (cv x) A) ibar
+   x 19.21aiv
+     A x (/\ (e. A (V)) (e. (cv x) A)) abeq2
+   sylibr
+   A x df-cast-set syl6eqr
+))
+
+thm (cast-set-isset () ()
+  (e. (cast-set A) (V))
+  (
+   A cast-set-val (V) eleq1d ibi
+     # this next line uses a proof technique almost identical to niabn
+     0ex
+       (e. A (V)) (e. (cv x) A) pm3.26 (cv x) eqid (e. A (V)) pm2.21ni pm5.21ni
+       x abbidv
+         A x df-cast-set
+           x dfnul2
+       3eqtr4g (V) eleq1d
+     mpbiri
+   pm2.61i
+))
+
+thm ($ax-subst ((T x) (A x))
+  ((hypT ($istype T)))
+  (-> ($: A T) (-> ($= T ($cv x) A) (<-> ph ($A. x T (-> ($= T ($cv x) A) ph)))))
+  (
+   T ($cv x) A df-$=
+     (cv x) A T eleq1 A T df-ty2 syl6bbr biimprd com12 imp
+     (e. (cv x) T) ph biimt syl ex
+     x df-$cv A eqeq1i syl5ib imp
+  
+       A T df-ty2 A T elisset sylbi
+         x df-$cv (e. A (V)) a1i
+         A cast-set-val eqeq12d
+       syl
+       biimpd imp
+
+         x (cast-set A) (-> (e. (cv x) T) ph) ceqex
+         A cast-set-isset x (-> (e. (cv x) T) ph) alexeq syl6bbr
+       syl
+
+         A T df-ty2 A T elisset sylbi
+           x df-$cv (e. A (V)) a1i 
+           A cast-set-val eqeq12d
+           T ($cv x) A df-$= syl5bb
+         syl
+         ph imbi1d x T ralbidv
+           x T (-> ($= T ($cv x) A) ph) df-$A.
+             x T (-> (= (cv x) (cast-set A)) ph) df-ral bicomi
+         3bitr4g
+  
+           (= (cv x) (cast-set A)) (e. (cv x) T) ph bi2.04
+         x albii syl6rbbr
+       sylan9bb ancoms anabss5
+     bitrd ex com12
+   sylbi com12
+))
+
+def (($E! x T ph) ($E. y T ($A. x T (<-> ph ($= T (cv x) (cv y))))))
+
+def (($E* x T ph) (-> ($E. x T ph) ($E! x T ph)))
+
+def (($iota x T ph) (U. ({e.|} x T ph)))
+
+def (($[:=] x T A ph)
+     ($E. z T (/\ ($= T ($cv z) A) ($E. x T (/\ ($= T ($cv x) ($cv z)) ph)))))
+
+def (($if T ph A B)
+     ($iota x T (\/ (/\ ($= T ($cv x) A) ph) (/\ ($= T ($cv x) B) (-. ph)))))
+
+export (PRED pax/pred (PROP) "$")
+
+export (ZFC-PAX-ADAPTER pax/zfc-pax-adapter (PROP SET_MM SET_MM_AX PRED) "")
+
+# Peano construction using NN0. We can also export the same interface using
+# an om construction.
+
+def (($N.T) (NN0))
+
+def (($0) (0))
+def (($S A) (opr A (+) (1)))
+def (($+ A B) (opr A (+) B))
+def (($* A B) (opr A (x.) B))
+
+
+thm (df-$N.T () ()
+  (= ($N.T) (NN0))
+  ((NN0) eqid))
+thm (df-$0 () ()
+  (= ($0) (0))
+  ((0) eqid))
+thm (df-$S () ()
+  (= ($S A) (opr A (+) (1)))
+  ((opr A (+) (1)) eqid))
+
+thm ($N.istype () ()
+  ($istype ($N.T))
+  (
+   0nn0 (0) (NN0) n0i ax-mp
+   df-$N.T ({/}) eqeq1i mtbir
+   ($N.T) df-$istype mpbir
+))
+
+thm ($0:N () ()
+  ($: ($0) ($N.T))
+  (
+   0nn0
+   df-$0 df-$N.T eleq12i mpbir
+   ($0) ($N.T) df-ty2 mpbir
+))
+
+thm ($S:N () ()
+  (-> ($: A ($N.T)) ($: ($S A) ($N.T)))
+  (
+   A ($N.T) df-ty2
+   df-$N.T A eleq2i bitr
+   1nn0 A (1) nn0addclt mpan2 sylbi
+   A df-$S df-$N.T eleq12i sylibr
+   ($S A) ($N.T) df-ty2 sylibr
+))
+
+#thm (peano3nn0 () ()
+#  (-> (e. A (NN0)) (e. (opr A (+) (1)) (NN)))
+#  (
+#   A elnn0
+#     A seq1lem2 (opr A (+) (1)) (NN) ({} (1)) eldifi syl
+#       1nn A (0) (+) (1) opreq1 1cn addid2 syl6eq (NN) eleq1d mpbiri
+#     jaoi
+#   sylbi
+#))
+
+thm ($pa_ax1 () ()
+  (-> ($: A ($N.T)) (-. ($= ($N.T) ($0) ($S A))))
+  (
+   A ($N.T) df-ty2 df-$N.T A eleq2i bitr
+   A peano3nn0 sylbi
+     0nnn
+   jctir
+   (opr A (+) (1)) (NN) (0) nelneq syl
+     ($N.T) (0) ($S A) df-$= A df-$S (0) eqeq2i bitr (0) (opr A (+) (1)) eqcom bitr
+   negbii sylibr
+))
+
+export (PEANO pax/peano (PROP PRED) "$")

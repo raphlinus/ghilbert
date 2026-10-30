@@ -1,0 +1,45 @@
+# A general interface for (small) sets
+
+param (PROP pax/prop () "")
+param (PRED pax/pred (PROP) "")
+param (A pax/basetype (PROP PRED) "A.")
+
+param (PA pax/basetype (PROP PRED) "PA.")
+
+var (val a b c) # elements
+var (var x y z)
+
+var (val A B C) # sets
+var (var X Y Z)
+
+var (wff ph)
+
+term (wff (elraw val val))
+
+# we could add an assumption (: A (PA.T)), but it's kinda gratuitous
+stmt (eleq1raw () ()
+  (-> (= (A.T) a b) (<-> (elraw a A) (elraw b A))))
+
+stmt (eleq2raw () ()
+  (-> (= (PA.T) A B) (<-> (elraw a A) (elraw a B))))
+
+# The reverse direction is roughly equivalent to eleq2.
+stmt (ax-ext ((A x) (B x)) ()
+  (-> (/\ (: A (PA.T)) (: B (PA.T)))
+   (<-> (A. x (A.T) (<-> (elraw (cv x) A) (elraw (cv x) B))) (= (PA.T) A B))))
+
+stmt (ax-compr ((ph X)) ()
+  (E. X (PA.T) (A. x (A.T) (<-> (elraw (cv x) (cv X)) ph))))
+
+
+# The set abstraction construction and its axioms follow from ax-compr
+# and properties of iota, so these will go away as soon as they're proved
+# in set-thms.
+
+term (val ({|} var wff))
+
+stmt (ab-ty () ()
+  (: ({|} x ph) (PA.T)))
+
+stmt (df-clab () ()
+  (<-> (elraw a ({|} x ph)) ([:=] x (A.T) a ph)))

@@ -1,0 +1,594 @@
+# Basic set theorems, generally following set.mm
+
+import (PROP pax/prop () "")
+import (PRED pax/pred (PROP) "")
+import (A pax/basetype (PROP PRED) "")
+
+import (PA pax/basetype (PROP PRED) "*")
+import (SET pax/set (PROP PRED A PA) "")
+import (SET-DEFS pax/set-defs (PROP PRED A PA SET) "")
+
+import (PROP-FULL pax/prop-full (PROP) "")
+import (ASSUMP pax/assump (PROP) "")
+import (PRED-THMS pax/pred-thms (PROP PRED) "")
+
+var (val a b c) # elements
+var (var x y z)
+
+var (val A B C) # sets
+
+var (wff ph ps ch th ta et)
+
+#thm (cbvabv ((x y) (ph y) (ps x))
+#  ((hyp (-> (/\ (/\ (: (cv x) (T)) (: (cv y) (T)))
+#             (= (T) (cv x) (cv y)))
+#         (<-> ph ps))))
+#  (= (*T) ({|} x ph) ({|} y ps))
+#  (
+#   istype
+#     istype hyp exp mksbc2
+#     (cv y) x ph df-clab syl5bb
+#       istype y ps sbcid
+#       (cv y) y ps df-clab syl5bb
+#     bitr4d
+#   gen
+#
+#   y ({|} x ph) ({|} y ps) ax-ext mpbi
+#))
+
+thm (elrawequiv () ()
+  (-> (/\ (: a (T)) (: B (*T))) (<-> (elraw a B) (e. a B)))
+  (
+   (/\ (: a (T)) (: B (*T))) (elraw a B) ibar
+   a B df-el syl6bbr
+))
+
+thm (elty () ()
+  (-> (e. a B) (/\ (: a (T)) (: B (*T))))
+  (a B df-el biimp pm3.26d
+))
+
+thm (eleq1 () ()
+  (-> (= (T) a b) (<-> (e. a A) (e. b A)))
+  (
+   istype a b tyeq1
+   (: A (*T)) anbi1d
+   a b A eleq1raw anbi12d
+     a A df-el
+       b A df-el
+   3bitr4g
+))
+
+thm (eleq2 () ()
+  (-> (= (*T) A B) (<-> (e. a A) (e. a B)))
+  (
+   *istype A B tyeq1
+   (: a (T)) anbi2d
+   A B a eleq2raw anbi12d
+     a A df-el
+       a B df-el
+   3bitr4g
+))
+
+thm (eleq2i ()
+  ((hyp (= (*T) A B)))
+  (<-> (e. a A) (e. a B))
+  (hyp A B a eleq2 ax-mp))
+
+thm (eleq2d ()
+  ((hyp (-> ph (= (*T) A B))))
+  (-> ph (<-> (e. a A) (e. a B)))
+  (hyp A B a eleq2 syl))
+
+thm (df-clel ((a x) (B x)) ()
+  (<-> (e. a B) (E. x (T) (/\ (= (T) (cv x) a) (e. (cv x) B))))
+  (
+   a B elty pm3.26d pm4.71ri
+     (cv x) a B eleq1 pm5.32i
+     istype x exbii
+       istype x (= (T) (cv x) a) (e. a B) 19.41v
+       a (T) x df-ty (e. a B) anbi1i bitr4
+     bitr bicomi
+   bitr
+))
+
+thm (clel2 ((a x) (B x)) ()
+  (-> (: a (T)) (<-> (e. a B) (A. x (T) (-> (= (T) (cv x) a) (e. (cv x) B)))))
+  (
+   (cv x) a B eleq1 (: (cv x) (T)) adantl istype ceqsalv bicomd
+))
+
+thm (nfi_ab1raw ((x y)) ()
+  (nfi x (T) (elraw (cv y) ({|} x ph)))
+  (
+   istype x (cv y) ph nfi_sbc nfii
+     (cv y) x ph df-clab
+       (cv y) x ph df-clab
+       istype x albii
+   3bitr4 nfiir
+))
+
+thm (nfi_ab1 ((x y)) ()
+  (nfi x (T) (e. (cv y) ({|} x ph)))
+  (
+   (cv y) ({|} x ph) df-el
+     istype x (: (cv y) (T)) nfi_dv
+       x ph ab-ty
+         istype x ph ab-ty (: (cv x) (T)) a1i gen
+           2th nfiir
+         istype nfi_an
+       x y ph nfi_ab1raw
+     istype nfi_an
+   istype nfi_fromdef
+))
+
+thm (dfcleq ((A x) (B x)) ()
+  (-> (/\ (: A (*T)) (: B (*T)))
+   (<-> (= (*T) A B) (A. x (T) (<-> (e. (cv x) A) (e. (cv x) B)))))
+  (
+   A B x ax-ext bicomd
+     (cv x) A elrawequiv
+       (cv x) B elrawequiv
+     bi2bian9 allarl
+     all-r istype albidv2
+   bitrd
+))
+
+thm (cleqf ((A y) (B y) (x y))
+  ((hyp1 (nfi x (T) (e. (cv y) A)))
+   (hyp2 (nfi x (T) (e. (cv y) B))))
+  (-> (/\ (: A (*T)) (: B (*T)))
+   (<-> (= (*T) A B) (A. x (T) (<-> (e. (cv x) A) (e. (cv x) B)))))
+  (
+   A B y dfcleq
+     istype y (<-> (e. (cv x) A) (e. (cv x) B)) nfi_dv
+       hyp1 hyp2 istype nfi_bi
+         (cv x) (cv y) A eleq1
+           (cv x) (cv y) B eleq1
+         bibi12d
+         (/\ (: (cv x) (T)) (: (cv y) (T))) a1i
+     istype cbval
+   syl6bbr
+))
+
+thm (abid () ()
+  (-> (: (cv x) (T)) (<-> (e. (cv x) ({|} x ph)) ph))
+  (
+   x ph ab-ty
+   (cv x) ({|} x ph) elrawequiv mpan2
+     istype x ph sbcid
+       (cv x) x ph df-clab
+     syl5bb
+   bitr3d
+))
+
+thm (eqriv ((A x) (B x))
+  ((eqri.1 (<-> (e. (cv x) A) (e. (cv x) B))))
+  (-> (/\ (: A (*T)) (: B (*T))) (= (*T) A B))
+  (istype eqri.1 (: (cv x) (T)) a1i gen A B x dfcleq mpbiri
+))
+
+thm (abeq2 ((A x)) ()
+  (-> (: A (*T))
+   (<-> (= (*T) A ({|} x ph)) (A. x (T) (<-> (e. (cv x) A) ph))))
+  (
+   x ph ab-ty
+     istype x (e. (cv y) A) nfi_dv
+       x y ph nfi_ab1
+     cleqf
+   mpan2
+     x ph abid
+     (e. (cv x) A) bibi2d
+     istype albii2
+   syl6bb
+))
+
+thm (abeq2i () ((abeqi.1 (= (*T) A ({|} x ph))))
+  (-> (: (cv x) (T)) (<-> (e. (cv x) A) ph))
+  (x ph abid abeqi.1 (cv x) eleq2i syl5bb))
+
+thm (dfss2 ((A x)) ()
+  (-> (: A (*T))
+   (<-> (C_ A B) (A. x (T) (-> (e. (cv x) A) (e. (cv x) B)))))
+  (
+   A B df-ss *istype (i^i A B) A eqcom bitr
+   (: A (*T)) a1i
+     A B x df-in
+     *istype (i^i A B) ({|} x (/\ (e. (cv x) A) (e. (cv x) B))) A eqeq2 ax-mp
+     (: A (*T)) a1i
+     A x (/\ (e. (cv x) A) (e. (cv x) B)) abeq2 bitrd
+       (e. (cv x) A) (e. (cv x) B) pm4.71
+       istype x albii
+     syl6bbr
+   bitrd
+))
+
+thm (ssel () ()
+  (-> (C_ A B) (-> (e. c A) (e. c B)))
+  (
+   c A elty pm3.27d
+     istype
+       A B x dfss2 biimpd imp istype 19.21bi
+       (= (T) (cv x) c) anim2d
+     exp 19.22dv
+       c A x df-clel
+         c B x df-clel
+     3imtr4g
+     exp com3r
+   mpd com12
+))
+
+thm (sstr2 () ()
+  (-> (/\ (: A (*T)) (: B (*T))) (-> (C_ A B) (-> (C_ B C) (C_ A C))))
+  (
+   B C x dfss2 (: A (*T)) adantl
+     A B x dfss2
+       (e. (cv x) A) (e. (cv x) B) (e. (cv x) C) imim1
+       (: (cv x) (T)) adantl istype 19.20ii
+     syl6bi (: B (*T)) adantr com23
+   sylbid imp3a
+     A C x dfss2 (: B (*T)) adantr
+   sylibrd exp3a com23
+))
+
+thm (eqss () ()
+  (-> (/\ (: A (*T)) (: B (*T))) (<-> (= (*T) A B) (/\ (C_ A B) (C_ B A))))
+  (
+   istype x (e. (cv x) A) (e. (cv x) B) albi
+     A B x dfcleq
+       A B x dfss2
+         B A x dfss2
+       bi2anan9
+     bibi12d
+   mpbiri
+))
+
+thm (ssid () ()
+  (-> (: A (*T)) (C_ A A))
+  (*istype A eqid A A eqss anidms mpbid pm3.26d))
+
+thm (eq2ab () ()
+  (<-> (= (*T) ({|} x ph) ({|} x ps)) (A. x (T) (<-> ph ps)))
+  (
+   x ph ab-ty
+     x ps ab-ty
+       x y ph nfi_ab1
+         x y ps nfi_ab1
+       cleqf
+   mp2an
+     x ph abid
+       x ps abid
+     bibi12d
+   istype albii2 bitr
+))
+
+thm (abbi2i ((A x))
+  ((abbiri.1 (-> (: (cv x) (T)) (<-> (e. (cv x) A) ph))))
+  (-> (: A (*T)) (= (*T) A ({|} x ph)))
+  (istype abbiri.1 gen A x ph abeq2 mpbiri))
+
+thm (abbid ()
+  ((abbid.1 (nfi x (T) ph))
+   (abbid.2 (-> (/\ ph (: (cv x) (T))) (<-> ps ch))))
+  (-> ph (= (*T) ({|} x ps) ({|} x ch)))
+  (abbid.2 istype abbid.1 19.21ai x ps ch eq2ab sylibr))
+
+thm (abbidv ((ph x))
+  ((abbidv.1 (-> (/\ ph (: (cv x) (T))) (<-> ps ch))))
+  (-> ph (= (*T) ({|} x ps) ({|} x ch)))
+  (istype x ph nfi_dv abbidv.1 abbid))
+
+thm (difty () ()
+  (: (\ A B) (*T))
+  (x (/\ (e. (cv x) A) (-. (e. (cv x) B))) ab-ty
+   A B x df-dif *istype tyeq1i mpbir
+))
+
+thm (difeq1 ((A x) (B x) (C x)) ()
+  (-> (= (*T) A B) (= (*T) (\ A C) (\ B C)))
+  (
+   A B (cv x) eleq2
+   (-. (e. (cv x) C)) anbi1d (: (cv x) (T)) adantr abbidv
+     A C x df-dif
+       B C x df-dif
+   *istype 3eqtr4g
+))
+
+thm (dfclab2 () ()
+  (-> (: a (T)) (<-> (e. a ({|} x ph)) ([:=] x (T) a ph)))
+  (
+   x ph ab-ty
+     a ({|} x ph) df-el baib
+   mpan2
+     a x ph df-clab
+   syl6bb
+))
+
+thm (tyisset () ()
+  (-> (: a (T)) (e. a (V)))
+  (
+   istype
+     istype (cv x) eqid
+   a sbctru
+     a x (= (T) (cv x) (cv x)) dfclab2
+     x df-v a eleq2i syl5bb
+   mpbird
+))
+
+thm (elabg ((ps x) (a x))
+  ((hyp (-> (/\ (: (cv x) (T)) (= (T) (cv x) a)) (<-> ph ps))))
+         
+  (-> (: a (T)) (<-> (e. a ({|} x ph)) ps))
+  (
+   a x ph dfclab2
+     istype hyp exp (: a (T)) adantr mksbc2
+   bitrd
+))
+
+thm (elab2g ((ps x) (a x))
+  ((hyp1 (-> (/\ (: (cv x) (T)) (= (T) (cv x) a)) (<-> ph ps)))
+   (hyp2 (= (*T) B ({|} x ph))))
+  (-> (: a (T)) (<-> (e. a B) ps))
+  (hyp1 elabg hyp2 a eleq2i syl5bb
+))
+
+thm (eldif () ()
+  (<-> (e. A (\ B C)) (/\ (e. A B) (-. (e. A C))))
+  (#A (\ B C) elisset A B elisset (-. (e. A C)) adantr
+   (cv x) A B eleq1
+     (cv x) A C eleq1 negbid
+   anbi12d (: (cv x) (T)) adantl
+   B C x df-dif elab2g
+     A (\ B C) elty pm3.26d
+       A B elty pm3.26d (-. (e. A C)) adantr
+     pm5.21ni
+   pm2.61i
+))
+
+thm (unty () ()
+  (: (u. A B) (*T))
+  (x (\/ (e. (cv x) A) (e. (cv x) B)) ab-ty
+   A B x df-un *istype tyeq1i mpbir
+))
+
+thm (uneq1 () ()
+  (-> (= (*T) A B) (= (*T) (u. A C) (u. B C)))
+  (
+   A B (cv x) eleq2 (e. (cv x) C) orbi1d (: (cv x) (T)) adantr abbidv
+   A C x df-un
+     B C x df-un
+   *istype 3eqtr4g
+))
+
+thm (uneq2 () ()
+  (-> (= (*T) A B) (= (*T) (u. C A) (u. C B)))
+  (
+   A B (cv x) eleq2 (e. (cv x) C) orbi2d (: (cv x) (T)) adantr abbidv
+   C A x df-un
+     C B x df-un
+   *istype 3eqtr4g
+))
+
+thm (elun () ()
+  (<-> (e. a (u. B C)) (\/ (e. a B) (e. a C)))
+  (
+   (cv x) a B eleq1
+     (cv x) a C eleq1
+   orbi12d (: (cv x) (T)) adantl
+     B C x df-un
+   elab2g
+     a (u. B C) elty pm3.26d
+       a B elty pm3.26d a C elty pm3.26d jaoi
+     pm5.21ni
+   pm2.61i
+))
+
+thm (uneqri ((A x) (B x) (C x))
+  ((uneqri.1 (<-> (\/ (e. (cv x) A) (e. (cv x) B)) (e. (cv x) C))))
+  (-> (: C (*T)) (= (*T) (u. A B) C))
+  (A B unty
+   (cv x) A B elun uneqri.1 bitr eqriv mpan))
+
+thm (unidm ((A x)) ()
+  (-> (: A (*T)) (= (*T) (u. A A) A))
+  ((e. (cv x) A) oridm uneqri))
+
+thm (ineq1 () ()
+  (-> (= (*T) A B) (= (*T) (i^i A C) (i^i B C)))
+  (
+   A B (cv x) eleq2 (e. (cv x) C) anbi1d (: (cv x) (T)) adantr abbidv
+   A C x df-in
+     B C x df-in
+   *istype 3eqtr4g
+))
+
+thm (ineq2 () ()
+  (-> (= (*T) A B) (= (*T) (i^i C A) (i^i C B)))
+  (
+   A B (cv x) eleq2 (e. (cv x) C) anbi2d (: (cv x) (T)) adantr abbidv
+   C A x df-in
+     C B x df-in
+   *istype 3eqtr4g
+))
+
+thm (sseq1 () ()
+  (-> (= (*T) A B) (<-> (C_ A C) (C_ B C)))
+  (
+   *istype A B C ineq1 (= (*T) A B) id eqeq12d
+     A C df-ss
+       B C df-ss
+   3bitr4g
+))
+
+thm (sseq2 () ()
+  (-> (= (*T) A B) (<-> (C_ C A) (C_ C B)))
+  (
+   *istype A B C ineq2 C eqeq1d
+     C A df-ss
+       C B df-ss
+   3bitr4g
+))
+
+thm (eqimss () ()
+  (-> (/\ (: A (*T)) (= (*T) A B)) (C_ A B))
+  (A ssid A B A sseq2 biimpd com12 syl imp))
+
+thm (snty () ()
+  (: ({} A) (*T))
+  (x (= (T) (cv x) A) ab-ty A x df-sn *istype tyeq1i mpbir
+))
+
+thm (sneq () () 
+  (-> (= (T) A B) (= (*T) ({} A) ({} B)))
+  (
+   istype A B (cv x) eqeq2 (: (cv x) (T)) adantr abbidv 
+     A x df-sn
+       B x df-sn
+   *istype 3eqtr4g))
+
+thm (dfsn2 () () (= (*T) ({} A) ({,} A A))
+  (A A df-pr A snty ({} A) unidm ax-mp *istype eqtr2))
+
+thm (elsn ((A x)) ()
+  (-> (: (cv x) (T)) (<-> (e. (cv x) ({} A)) (= (T) (cv x) A)))
+  (A x df-sn abeq2i))
+
+thm (bitrx ()
+  ((hyp1 (<-> ph ps))
+   (hyp2 (-> ch (<-> ps ta))))
+  (-> ch (<-> ph ta))
+  (hyp1 ch a1i hyp2 bitrd))
+
+thm (snss () ()
+  (-> (: A (T)) (<-> (e. A B) (C_ ({} A) B)))
+  (
+   A B x clel2
+     A snty ({} A) B x dfss2 ax-mp
+       x A elsn (e. (cv x) B) imbi1d istype albii2
+     bitr
+   syl6bbr
+))
+
+thm (snssi () ()
+  (-> (e. a B) (C_ ({} a) B))
+  (a B elty pm3.26d
+     a B snss
+   syl ibi
+))
+
+thm (dfpr2 ((A x) (B x)) ()
+  (= (*T) ({,} A B) ({|} x (\/ (= (T) (cv x) A) (= (T) (cv x) B))))
+  (
+   A B df-pr
+     ({} A) ({} B) unty
+       (cv x) ({} A) ({} B) elun
+         x A elsn
+           x B elsn
+         orbi12d
+       bitrx
+       abbi2i
+     ax-mp
+   *istype eqtr))
+
+thm (elprg () ()
+  (-> (: A (T)) (<-> (e. A ({,} B C)) (\/ (= (T) A B) (= (T) A C))))
+  (istype (cv x) A B eqeq1
+     istype (cv x) A C eqeq1
+   orbi12d (: (cv x) (T)) adantl
+     B C x dfpr2
+   elab2g
+))
+
+thm (elsncg () ()
+  (-> (: A (T)) (<-> (e. A ({} B)) (= (T) A B)))
+  (A B B elprg B dfsn2 *istype eqcomi A eleq2i (= (T) A B) oridm 3bitr3g))
+
+thm (syliba ()
+  ((hyp1 (-> ph (-> ps ch)))
+   (hyp2 (-> th (<-> ch ta))))
+  (-> (/\ ph th) (-> ps ta))
+  (hyp1 th adantr hyp2 ph adantl sylibd))
+
+thm (sylbira ()
+  ((hyp1 (-> ph (<-> ps ch)))
+   (hyp2 (-> th (-> ps ta))))
+  (-> (/\ ph th) (-> ch ta))
+  (hyp1 th adantr hyp2 ph adantl sylbird))
+
+thm (propcalcfoo1 ()
+  ((hyp (<-> ph (-> ps ch))))
+  (-> ps (<-> ph ch))
+  (hyp ps imbi2i ps ch pm5.4 bitr pm5.74ri
+))
+
+thm (nulty () ()
+  (: ({/}) (*T))
+  ((V) (V) difty df-nul *istype tyeq1i mpbir))
+
+
+thm (pm5.1d ()
+  ((hyp (-> ph (/\ ps ch))))
+  (-> ph (<-> ps ch))
+  (hyp ps ch pm5.1 syl))
+
+thm (dfnul2 () ()
+  (= (*T) ({/}) ({|} x (-. (= (T) (cv x) (cv x)))))
+  (
+   nulty
+     df-nul (cv x) eleq2i
+       (cv x) (V) (V) eldif
+         istype (cv x) eqid 
+         (e. (cv x) (V)) pm3.24 jctir pm5.1d bicon2d
+       bitrx
+     bitrx
+     abbi2i
+   ax-mp
+))
+
+thm (noel ((A x)) () (-. (e. A ({/})))
+  (
+   istype (cv x) eqid x dfnul2 abeq2i bicon2d mpbid 
+   (cv x) A ({/}) eleq1 negbid biimpd com12 syl
+   (: A (T)) adantr istype vtocleg2
+   A ({/}) elty pm3.26d con3i pm2.61i
+))
+thm (n0i () () (-> (e. B A) (-. (= (*T) A ({/})))) (B noel A ({/}) B eleq2 mtbiri con2i))
+thm (n0f ((x y) (A y))
+  ((nnullf.1 (nfi x (T) (e. (cv y) A))))
+  (-> (: A (*T)) (<-> (-. (= (*T) A ({/}))) (E. x (T) (e. (cv x) A))))
+  (
+   nulty nnullf.1 istype x (e. (cv y) ({/})) nfi_dv cleqf mpan2
+     (cv x) noel (e. (cv x) A) nbn istype x albii
+   syl6bbr negbid
+     x (T) (e. (cv x) A) df-ex 
+   syl6bbr
+))
+thm (n0 ((A x y)) ()
+  (-> (: A (*T)) (<-> (-. (= (*T) A ({/}))) (E. x (T) (e. (cv x) A))))
+  (istype x (e. (cv y) A) nfi_dv n0f))
+
+thm (ssriv ((A x) (B x))
+  ((ssriv.1 (-> (e. (cv x) A) (e. (cv x) B))))
+  (-> (: A (*T)) (C_ A B))
+  (istype ssriv.1 (: (cv x) (T)) a1i gen A B x dfss2 mpbiri))
+
+thm (0ss ((A x)) () (C_ ({/}) A)
+  (nulty (cv x) noel (e. (cv x) A) pm2.21i ssriv ax-mp))
+
+thm (sssn () ()
+  (-> (: A (*T)) (<-> (C_ A ({} B)) (\/ (= (*T) A ({/})) (= (*T) A ({} B)))))
+  (
+   A x n0 bicomd 
+     A ({} B) (cv x) ssel
+       (cv x) B elsncg
+     syliba
+       (cv x) B A eleq1
+     syl6 ibd istype 19.23adv
+   sylbira
+   B A snssi syl6 exp com12 imp3a anc2li exp3a com12 imp3a
+     B snty A ({} B) eqss mpan2
+   sylibrd exp3a imp orrd exp
+     ({} B) 0ss A ({/}) ({} B) sseq1 mpbiri (: A (*T)) a1i
+     A ({} B) eqimss exp jaod
+   impbid
+))

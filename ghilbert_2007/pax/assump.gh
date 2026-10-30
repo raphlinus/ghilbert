@@ -1,0 +1,454 @@
+# Some handy propositional calculus for manipulating assumptions.
+
+import (PROP pax/prop () "")
+import (PROP-FULL pax/prop-full (PROP) "")
+
+var (wff a b c d e f g h)
+
+# The canonical form for a statement with assumptions is an implication
+# with a tree of conjunctions on the lhs (antecedent).
+
+# In theorem naming, we use a string of l and r to traverse this tree
+# of conjunctions. If the antecedent is (a/\b) /\ (c/\d), then ll, lr,
+# rl, and rr name a, b, c, and d respectively. l names (a/\b), and
+# r names (c/\d).
+
+# Theorems for moving an individual assumption. All have the form
+# a<old>-<new>, where <old> and <new> name the old and new locations
+# for the assumption, respectively.
+
+thm (al-r ()
+  ((hyp (-> (/\ a b) c)))
+  (-> (/\ b a) c)
+  (hyp ancoms))
+
+thm (ar-l ()
+  ((hyp (-> (/\ a b) c)))
+  (-> (/\ b a) c)
+  (hyp ancoms))
+
+thm (all-l ()
+  ((hyp (-> (/\ (/\ a b) c) d)))
+  (-> (/\ a (/\ b c)) d)
+  (hyp anasss))
+
+thm (alr-l ()
+  ((hyp (-> (/\ (/\ a b) c) d)))
+  (-> (/\ b (/\ a c)) d)
+  (hyp exp ancoms imp anasss))
+
+thm (arl-l ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ b (/\ a c)) d)
+  (hyp exp32 com12 imp32))
+
+thm (arr-l ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ c (/\ a b)) d)
+  (hyp exp32 com3r imp32))
+
+thm (all-r ()
+  ((hyp (-> (/\ (/\ a b) c) d)))
+  (-> (/\ (/\ b c) a) d)
+  (hyp all-l al-r))
+
+thm (alr-r ()
+  ((hyp (-> (/\ (/\ a b) c) d)))
+  (-> (/\ (/\ a c) b) d)
+  (hyp alr-l al-r))
+
+thm (arl-r ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ (/\ a c) b) d)
+  (hyp arl-l al-r))
+
+thm (arr-r ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ (/\ a b) c) d)
+  (hyp arr-l al-r))
+
+thm (al-ll ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ (/\ a b) c) d)
+  (hyp anassrs))
+
+thm (al-lr ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ (/\ b a) c) d)
+  (hyp anassrs exp ancoms imp))
+
+thm (al-rl ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ b (/\ a c)) d)
+  (hyp arl-l))
+
+thm (al-rr ()
+  ((hyp (-> (/\ a (/\ b c)) d)))
+  (-> (/\ b (/\ c a)) d)
+  (hyp ancoms anasss))
+
+thm (alll-l ()
+  ((hyp (-> (/\ (/\ (/\ a b) c) d) e)))
+  (-> (/\ a (/\ (/\ b c) d)) e)
+  (hyp all-l all-r exp al-ll com12 imp
+))
+
+thm (allr-l ()
+  ((hyp (-> (/\ (/\ (/\ a b) c) d) e)))
+  (-> (/\ b (/\ (/\ a c) d)) e)
+  (hyp all-l alr-r exp al-ll com12 imp
+))
+
+thm (alrl-l ()
+  ((hyp (-> (/\ (/\ a (/\ b c)) d) e)))
+  (-> (/\ b (/\ (/\ a c) d)) e)
+  (hyp alr-l all-r exp al-lr com12 imp
+))
+
+thm (alrr-l ()
+  ((hyp (-> (/\ (/\ a (/\ b c)) d) e)))
+  (-> (/\ c (/\ (/\ a b) d)) e)
+  (hyp alr-l alr-r exp al-lr com12 imp
+))
+
+thm (arll-l ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ b (/\ a (/\ c d))) e)
+  (hyp al-r alll-l arr-l al-rl
+))
+
+thm (arlr-l ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ c (/\ a (/\ b d))) e)
+  (hyp al-r allr-l arr-l al-rl
+))
+
+thm (arrl-l ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ c (/\ a (/\ b d))) e)
+  (hyp al-r alrl-l arr-l al-rl
+))
+
+thm (arrr-l ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ d (/\ a (/\ b c))) e)
+  (hyp al-r alrr-l arr-l al-rl
+))
+
+thm (al-lll ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ (/\ (/\ a b) c) d) e)
+  (hyp al-rl ar-l al-ll allr-l al-r
+))
+
+thm (al-llr ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ (/\ (/\ b a) c) d) e)
+  (hyp al-rl ar-l al-lr alrr-l al-r
+))
+
+thm (al-lrl ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ (/\ b (/\ a c)) d) e)
+  (hyp al-rl ar-l al-rl arlr-l al-r
+))
+
+thm (al-lrr ()
+  ((hyp (-> (/\ a (/\ (/\ b c) d)) e)))
+  (-> (/\ (/\ b (/\ c a)) d) e)
+  (hyp al-rl ar-l al-rr arrr-l al-r
+))
+
+thm (al-rll ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ b (/\ (/\ a c) d)) e)
+  (hyp al-ll al-ll allr-l
+))
+
+thm (al-rlr ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ b (/\ (/\ c a) d)) e)
+  (hyp al-ll al-lr alrr-l
+))
+
+thm (al-rrl ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ b (/\ c (/\ a d))) e)
+  (hyp al-ll al-rl arlr-l
+))
+
+thm (al-rrr ()
+  ((hyp (-> (/\ a (/\ b (/\ c d))) e)))
+  (-> (/\ b (/\ c (/\ d a))) e)
+  (hyp al-ll al-rr arrr-l
+))
+
+# See mkassump.py for a generator for proofs of aX-l for length(X) > 3,
+# using only primitives of up to length 3.
+
+# Proof of aWXYZ-l is aWXY-l alZ-l al-r[~W]l al-WXY a[~W]l-l
+
+# Autogenned by mkassump.py - for x in genx(4): mkaxtol(x)
+thm (allll-l ()
+  ((hyp (-> (/\ (/\ (/\ (/\ a b) c) d) e) f)))
+  (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)
+  (hyp alll-l all-l al-rrl al-lll arl-l))
+
+thm (alllr-l ()
+  ((hyp (-> (/\ (/\ (/\ (/\ a b) c) d) e) f)))
+  (-> (/\ b (/\ (/\ (/\ a c) d) e)) f)
+  (hyp alll-l alr-l al-rrl al-lll arl-l))
+
+thm (allrl-l ()
+  ((hyp (-> (/\ (/\ (/\ a (/\ b c)) d) e) f)))
+  (-> (/\ b (/\ (/\ (/\ a c) d) e)) f)
+  (hyp allr-l all-l al-rrl al-llr arl-l))
+
+thm (allrr-l ()
+  ((hyp (-> (/\ (/\ (/\ a (/\ b c)) d) e) f)))
+  (-> (/\ c (/\ (/\ (/\ a b) d) e)) f)
+  (hyp allr-l alr-l al-rrl al-llr arl-l))
+
+thm (alrll-l ()
+  ((hyp (-> (/\ (/\ a (/\ (/\ b c) d)) e) f)))
+  (-> (/\ b (/\ (/\ a (/\ c d)) e)) f)
+  (hyp alrl-l all-l al-rrl al-lrl arl-l))
+
+thm (alrlr-l ()
+  ((hyp (-> (/\ (/\ a (/\ (/\ b c) d)) e) f)))
+  (-> (/\ c (/\ (/\ a (/\ b d)) e)) f)
+  (hyp alrl-l alr-l al-rrl al-lrl arl-l))
+
+thm (alrrl-l ()
+  ((hyp (-> (/\ (/\ a (/\ b (/\ c d))) e) f)))
+  (-> (/\ c (/\ (/\ a (/\ b d)) e)) f)
+  (hyp alrr-l all-l al-rrl al-lrr arl-l))
+
+thm (alrrr-l ()
+  ((hyp (-> (/\ (/\ a (/\ b (/\ c d))) e) f)))
+  (-> (/\ d (/\ (/\ a (/\ b c)) e)) f)
+  (hyp alrr-l alr-l al-rrl al-lrr arl-l))
+
+thm (arlll-l ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ b (/\ a (/\ (/\ c d) e))) f)
+  (hyp arll-l all-l al-rll al-rll all-l))
+
+thm (arllr-l ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ c (/\ a (/\ (/\ b d) e))) f)
+  (hyp arll-l alr-l al-rll al-rll all-l))
+
+thm (arlrl-l ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ c (/\ a (/\ (/\ b d) e))) f)
+  (hyp arlr-l all-l al-rll al-rlr all-l))
+
+thm (arlrr-l ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ d (/\ a (/\ (/\ b c) e))) f)
+  (hyp arlr-l alr-l al-rll al-rlr all-l))
+
+thm (arrll-l ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ c (/\ a (/\ b (/\ d e)))) f)
+  (hyp arrl-l all-l al-rll al-rrl all-l))
+
+thm (arrlr-l ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ d (/\ a (/\ b (/\ c e)))) f)
+  (hyp arrl-l alr-l al-rll al-rrl all-l))
+
+thm (arrrl-l ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ d (/\ a (/\ b (/\ c e)))) f)
+  (hyp arrr-l all-l al-rll al-rrr all-l))
+
+thm (arrrr-l ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ e (/\ a (/\ b (/\ c d)))) f)
+  (hyp arrr-l alr-l al-rll al-rrr all-l))
+
+# Samples of longer aX-l proofs, can be autogenned by mkassump.py
+
+thm (alllll-l ()
+  ((hyp (-> (/\ (/\ (/\ (/\ (/\ a b) c) d) e) f) g)))
+  (-> (/\ a (/\ (/\ (/\ (/\ b c) d) e) f)) g)
+  (hyp alll-l alll-l al-rrl al-lll arl-l
+))
+
+thm (allllll-l ()
+  ((hyp (-> (/\ (/\ (/\ (/\ (/\ (/\ a b) c) d) e) f) g) h)))
+  (-> (/\ a (/\ (/\ (/\ (/\ (/\ b c) d) e) f) g)) h)
+  (hyp alll-l alll-l all-l al-rrl al-lll arl-l al-rrl al-lll arl-l))
+
+# Autogenned by mkassump.py - for x in genx(4): mkaltox(x)
+thm (al-llll ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ (/\ (/\ (/\ a b) c) d) e) f)
+  (hyp al-rl alll-l arrl-l al-ll al-lll))
+
+thm (al-lllr ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ (/\ (/\ (/\ b a) c) d) e) f)
+  (hyp al-rl alll-l arrl-l al-lr al-lll))
+
+thm (al-llrl ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ (/\ (/\ b (/\ a c)) d) e) f)
+  (hyp al-rl allr-l arrl-l al-ll al-llr))
+
+thm (al-llrr ()
+  ((hyp (-> (/\ a (/\ (/\ (/\ b c) d) e)) f)))
+  (-> (/\ (/\ (/\ b (/\ c a)) d) e) f)
+  (hyp al-rl allr-l arrl-l al-lr al-llr))
+
+thm (al-lrll ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ (/\ b (/\ (/\ a c) d)) e) f)
+  (hyp al-rl alrl-l arrl-l al-ll al-lrl))
+
+thm (al-lrlr ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ (/\ b (/\ (/\ c a) d)) e) f)
+  (hyp al-rl alrl-l arrl-l al-lr al-lrl))
+
+thm (al-lrrl ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ (/\ b (/\ c (/\ a d))) e) f)
+  (hyp al-rl alrr-l arrl-l al-ll al-lrr))
+
+thm (al-lrrr ()
+  ((hyp (-> (/\ a (/\ (/\ b (/\ c d)) e)) f)))
+  (-> (/\ (/\ b (/\ c (/\ d a))) e) f)
+  (hyp al-rl alrr-l arrl-l al-lr al-lrr))
+
+thm (al-rlll ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ b (/\ (/\ (/\ a c) d) e)) f)
+  (hyp al-ll arll-l arll-l al-ll al-rll))
+
+thm (al-rllr ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ b (/\ (/\ (/\ c a) d) e)) f)
+  (hyp al-ll arll-l arll-l al-lr al-rll))
+
+thm (al-rlrl ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ b (/\ (/\ c (/\ a d)) e)) f)
+  (hyp al-ll arlr-l arll-l al-ll al-rlr))
+
+thm (al-rlrr ()
+  ((hyp (-> (/\ a (/\ b (/\ (/\ c d) e))) f)))
+  (-> (/\ b (/\ (/\ c (/\ d a)) e)) f)
+  (hyp al-ll arlr-l arll-l al-lr al-rlr))
+
+thm (al-rrll ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ b (/\ c (/\ (/\ a d) e))) f)
+  (hyp al-ll arrl-l arll-l al-ll al-rrl))
+
+thm (al-rrlr ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ b (/\ c (/\ (/\ d a) e))) f)
+  (hyp al-ll arrl-l arll-l al-lr al-rrl))
+
+thm (al-rrrl ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ b (/\ c (/\ d (/\ a e)))) f)
+  (hyp al-ll arrr-l arll-l al-ll al-rrr))
+
+thm (al-rrrr ()
+  ((hyp (-> (/\ a (/\ b (/\ c (/\ d e)))) f)))
+  (-> (/\ b (/\ c (/\ d (/\ e a)))) f)
+  (hyp al-ll arrr-l arll-l al-lr al-rrr))
+
+# Absorption theorems. All have the name a<one>a<two>. The second is removed.
+# One shorthand I've considered is using a<foo>a for al<foo>ar<foo>.
+# Worthwhile?
+
+thm (alar ()
+  ((hyp (-> (/\ a a) b)))
+  (-> a b)
+  (hyp anidms))
+
+thm (allar ()
+  ((hyp (-> (/\ (/\ a b) a) c)))
+  (-> (/\ a b) c)
+  (hyp anabss1))
+
+thm (alrar ()
+  ((hyp (-> (/\ (/\ a b) b) c)))
+  (-> (/\ a b) c)
+  (hyp anabss3))
+
+thm (arall ()
+  ((hyp (-> (/\ (/\ a b) a) c)))
+  (-> (/\ b a) c)
+  (hyp anabss4))
+
+thm (alarl ()
+  ((hyp (-> (/\ a (/\ a b)) c)))
+  (-> (/\ a b) c)
+  (hyp anabss5))
+
+thm (arral ()
+  ((hyp (-> (/\ a (/\ b a)) c)))
+  (-> (/\ b a) c)
+  (hyp anabss7))
+
+thm (allalr ()
+  ((hyp (-> (/\ (/\ a a) b) c)))
+  (-> (/\ a b) c)
+  (hyp anabsan))
+
+thm (allarl ()
+  ((hyp (-> (/\ (/\ a b) (/\ a c)) d)))
+  (-> (/\ (/\ a b) c) d)
+  (hyp 3impdi 3expa
+))
+
+thm (alrarr ()
+  ((hyp (-> (/\ (/\ a b) (/\ c b)) d)))
+  (-> (/\ (/\ a b) c) d)
+  (hyp alr-l arrr-l al-lr allalr al-lr
+))
+
+# Syllogisms
+
+thm (syl-l ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ b c) d)))
+  (-> (/\ a c) d)
+  (hyp2 hyp1 sylan))
+
+thm (syl-r ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ c b) d)))
+  (-> (/\ c a) d)
+  (hyp1 hyp2 ar-l syl-l al-r))
+
+thm (syl-ll ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ (/\ b c) d) e)))
+  (-> (/\ (/\ a c) d) e)
+  (hyp1 hyp2 all-l syl-l al-ll))
+
+thm (syl-lr ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ (/\ c b) d) e)))
+  (-> (/\ (/\ c a) d) e)
+  (hyp1 hyp2 alr-l syl-l al-lr))
+
+thm (syl-rl ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ c (/\ b d)) e)))
+  (-> (/\ c (/\ a d)) e)
+  (hyp1 hyp2 arl-l syl-l al-rl))
+
+thm (syl-rr ()
+  ((hyp1 (-> a b))
+   (hyp2 (-> (/\ c (/\ d b)) e)))
+  (-> (/\ c (/\ d a)) e)
+  (hyp1 hyp2 arr-l syl-l al-rr))
+

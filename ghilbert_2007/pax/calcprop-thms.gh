@@ -1,0 +1,342 @@
+# Based on Vladimir Lifschitz, "On Calculational Proofs"
+
+# An attempt to create a set of axioms for creating calculational proofs within
+# Ghilbert.  The system here is that which Lifschitz calls DS.  Numbering
+# matches his article.
+
+import (CALCPROP pax/calcprop () "")
+
+
+var (wff F G H)
+
+
+
+thm (inf-<->comm () ((hyp (<-> G H))) (<-> H G)
+	(
+		hyp
+		# (<-> G H)
+			G H ax-4
+			# (<-> (<-> G H) (<-> H G))
+		mpbi
+		# (<-> H G)
+	)
+)
+
+def ((-. F) (<-> F (false)))
+def ((true) (-. (false)))
+
+
+# Here are the proofs of some sample theorems from Lifschitz's article.  In all
+# proofs given here, the indentation of a statement represents the number of
+# expressions on the stack after that statement.  Also, for most statements the
+# expression on top of the stack is given just below that statement.  This
+# automatically gives us a layout is such that it is similar in format to a
+# calculational proof.
+#
+# Best viewed with syntax highlighting that gives comment lines a different
+# color.
+
+
+thm (th-12 () () (<-> F F)
+	(
+		F ax-9
+		# (<-> (\/ F (false)) F)
+			F ax-9
+			# (<-> (\/ F (false)) F)
+			F leibniz-<->l
+			# "in left hand side of <->"
+		mpbi
+		# (<-> F F)
+	)
+)
+
+thm (df-not () ()
+	(<-> (-. F) (<-> F (false)))
+	(
+		(<-> F (false)) th-12
+	)
+)
+
+thm (th-14 () ()
+	(true)
+	(
+		(false) th-12
+	)
+)
+
+thm (df-true () ()
+	(<-> (true) (-. (false)))
+	(
+		(-. (false)) th-12
+	)
+)
+
+thm (th-15 () ()
+	(<-> (<-> F (true)) F)
+	(
+		(<-> F (false)) th-12
+		# (<-> (<-> F (false)) (<-> F (false)))
+			F (false) ax-4
+			# "symmetry of <->"
+			(<-> F (false)) leibniz-<->r
+			# "in right hand side of <->"
+		mpbi
+		# (<-> (<-> F (false)) (<-> (false) F))
+			(<-> F (false)) (false) F ax-5
+			# ...
+		mpbi
+		# (<-> (<-> (<-> F (false)) (false)) F)
+			F (false) (false) ax-5
+			inf-<->comm
+			F leibniz-<->l
+		mpbi
+		# (<-> (<-> F (<-> (false) (false))) F)
+			# "by abbreviations (-. F) and (true)"
+		# (<-> (<-> F (true)) F)
+	)
+)
+
+# Note how the proof of (17) in Lifschitz just has one step saying
+# "commutativity and associativity of <->"...
+#
+# Now you see why I'd like to have a tool that supports calculational proofs
+# :-)
+
+thm (th-17 () ()
+	(<-> (<-> F F) (true))
+	(
+		(<-> F (false)) th-12
+		# (<-> (<-> F (false)) (<-> F (false)))
+			F (false) (<-> F (false)) ax-5
+			# "associativity of <->"
+			inf-<->comm
+			# "right to left"
+		mpbi
+		# (<-> F (<-> (false) (<-> F (false))))
+			(false) F (false) ax-5
+			# "associativity of <->"
+			F leibniz-<->r
+			# "in right hand side of <->"
+		mpbi
+		# (<-> F (<-> (<-> (false) F) (false)))
+			(false) F ax-4
+			# "symmetry of <->"
+			(false) leibniz-<->l
+			F leibniz-<->r
+			# "in right hand side of <->, in left hand side of <->"
+		mpbi
+		# (<-> F (<-> (<-> F (false)) (false)))
+			F (false) (false) ax-5
+			# "associativity of <->"
+			inf-<->comm
+			F leibniz-<->r
+			# "in right hand side of <->, right to left"
+		mpbi
+		# (<-> F (<-> F (<-> (false) (false))))
+			F F (<-> (false) (false)) ax-5
+			# "associativity of <->"
+		mpbi
+		# (<-> (<-> F F) (<-> (false) (false)))
+			# "by abbreviations (-. F) and (true)"
+		# (<-> (<-> F F) (true))
+	)
+)
+
+# This is a different (and simpler) proof than Lifschitz'.
+
+thm (th-19 () ()
+	(<-> (\/ F (true)) (true))
+	(
+		# all intermediate results below have the form
+		# (<-> (\/ F (true)) ...)
+		
+		(\/ F (true)) th-12
+		# ...(\/ F (true))...
+			df-true
+			# "expand definition of (true)"
+			F leibniz-\/r
+			# "in right hand side of \/"
+			(\/ F (true)) leibniz-<->r
+		mpbi
+		# ...(\/ F (-. (false)))...
+			(false) df-not
+			# "expand definition of -."
+			F leibniz-\/r
+			# "in right hand side of \/"
+			(\/ F (true)) leibniz-<->r
+		mpbi
+		# ...(\/ F (<-> (false) (false)))...
+			F (false) (false) ax-10
+			# "\/ distributes over <->"
+			(\/ F (true)) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ F (false)) (\/ F (false)))...
+			(\/ F (false)) th-17
+			#...
+			(\/ F (true)) leibniz-<->r
+		mpbi
+		# ...(true)...
+	)
+)
+
+thm (th-21 () ()
+	(<-> (\/ F (-. F)) (true))
+	(
+		F th-17
+		# (<-> (<-> F F) (true))
+			F ax-8
+			# (<-> (\/ F F) F)
+			inf-<->comm
+			F leibniz-<->l
+			(true) leibniz-<->l
+			# "in left hand side of <->, in left hand side of <->,
+			# backward"
+		mpbi
+		# (<-> (<-> (\/ F F) F) (true))
+			F ax-9
+			# (<-> (\/ F (false)) F)
+			inf-<->comm
+			(\/ F F) leibniz-<->r
+			(true) leibniz-<->l
+			# "in left hand side of <->, in right hand side of \/,
+			# backward"
+		mpbi
+		# (<-> (<-> (\/ F F) (\/ F (false)) (true)))
+			F F (false) ax-10
+			# "distribute F over <->"
+			inf-<->comm
+			(true) leibniz-<->l
+			# "in left hand side of <->, backward"
+		mpbi
+		# (<-> (\/ F (<-> F (false))) (true))
+			# "abbreviation -."
+		# (<-> (\/ F (-. F)) (true))
+	)
+)
+
+thm (th-24 () ()
+	(<-> (\/ (-. F) G) (<-> (\/ F G) G))
+	(
+		# all intermediate results below have the form
+		# (<-> (\/ (-. F) G) ...)
+
+		(\/ (-. F) G) th-12
+		# ...(\/ (-. F) G)...
+			F df-not
+			# "expand definition of -."
+			G leibniz-\/l
+			(\/ (-. F) G) leibniz-<->r
+		mpbi
+		# ...(\/ (<-> F (false)) G)...
+			(<-> F (false)) G ax-6
+			# "commutativity of \/"
+			(\/ (-. F) G) leibniz-<->r
+		mpbi
+		# ...(\/ G (<-> F (false)))...
+			G F (false) ax-10
+			# "\/ distributes over <->"
+			(\/ (-. F) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ G F) (\/ G (false)))...
+			G F ax-6
+			# "commutativity of \/"
+			(\/ G (false)) leibniz-<->l
+			(\/ (-. F) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ F G) (\/ G (false)))...
+			G ax-9
+			# "(false) is neutral element of \/"
+			(\/ F G) leibniz-<->r
+			(\/ (-. F) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ F G) G)...
+	)
+)
+
+thm (th-25 () ()
+	(<-> (\/ (-. (\/ F G)) G) (\/ (-. F) G))
+	(
+		# all intermediate results below have the form
+		# (<-> (\/ (-. (\/ F G)) G) ...)
+
+		(\/ (-. (\/ F G)) G) th-12
+		# ...(\/ (-. (\/ F G)) G)...
+			(\/ F G) G th-24
+			# "alternate representation of implication"
+			(\/ (-. (\/ F G)) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ (\/ F G) G) G)...
+			F G G ax-7
+			# "associativity of \/"
+			inf-<->comm
+			G leibniz-<->l
+			# "in left hand side of <->, backward"
+			(\/ (-. (\/ F G)) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ F (\/ G G)) G)...
+			G ax-8
+			# "\/ is idempotent"
+			F leibniz-\/r
+			G leibniz-<->l
+			# "in left hand side of <->, in right hand side of \/"
+			(\/ (-. (\/ F G)) G) leibniz-<->r
+		mpbi
+		# ...(<-> (\/ F G) G)...
+			F G th-24
+			# "alternate representation of implication"
+			inf-<->comm
+			# "backward"
+			(\/ (-. (\/ F G)) G) leibniz-<->r
+		mpbi
+		# ...(\/ (-. F) G)...
+	)
+)
+
+def ((-> F G) (\/ (-. F) G))
+
+thm (df-impl () ()
+	(<-> (-> F G) (\/ (-. F) G))
+	(
+		(\/ (-. F) G) th-12
+	)
+)
+
+thm (mp () ((hyp.1 F) (hyp.2 (-> F G)))
+	G
+	(
+		hyp.2
+		# (-> F G)
+			F G df-impl
+		mpbi
+		# (\/ (-. F) G)
+			F G th-24
+		mpbi
+		# (<-> (\/ F G) G)
+			hyp.1
+			# F
+				F th-15
+				# (<-> (<-> F (true)) F)
+				inf-<->comm
+			mpbi
+			# (<-> F (true))
+			G leibniz-\/l
+			G leibniz-<->l
+		mpbi
+		# (<-> (\/ (true) G) G)
+			(\/ (true) G) G ax-4
+		mpbi
+		# (<-> G (\/ (true) G))
+			(true) G ax-6
+			G leibniz-<->r
+		mpbi
+		# (<-> G (\/ G (true)))
+			G th-19
+			G leibniz-<->r
+		mpbi
+		# (<-> G (true))
+			G th-15
+		mpbi
+	)
+)
+
+export (CALCPROP-THMS pax/calcprop-thms (CALCPROP) "")

@@ -1,0 +1,127 @@
+# Ghilbert Pax
+# Interface file for predicate calculus
+
+param (PROP pax/prop () "")
+
+kind (type)
+kind (val)
+kind (var)
+
+var (wff ph ps ch)
+var (type T T')
+var (val A B C)
+var (var x y z)
+
+term (val (cv var))
+term (wff (istype type))
+term (wff (A. var type wff))
+term (wff (= type val val))
+
+# Basic predicate calculus axioms
+
+term (wff (nfi var type wff))
+stmt (df-nfi ((T x)) () (<-> (nfi x T ph) (<-> ph (A. x T ph))))
+
+stmt (nfi_dv ((ph x) (T x)) ((istype T)) (nfi x T ph))
+stmt (nfi_bound ((T x)) ((istype T))
+  (nfi x T (A. x T ph)))
+stmt (nfi_not ((T x)) ((nfi x T ph) (istype T))
+  (nfi x T (-. ph)))
+stmt (nfi_im ((T x))
+  ((nfi x T ph)
+   (nfi x T ps)
+   (istype T))
+  (nfi x T (-> ph ps)))
+stmt (nfi_al ((T x y) (T' x)) ((nfi x T ph) (istype T) (istype T'))
+  (nfi x T (A. y T' ph)))
+
+term (wff (E. var type wff))
+stmt (df-ex ((T x)) () (<-> (E. x T ph) (-. (A. x T (-. ph)))))
+
+term (wff (: val type))
+stmt (df-ty ((T x) (A x)) () (<-> (: A T) (E. x T (= T (cv x) A))))
+
+stmt (gen ((T x)) ((istype T)
+   (-> (: (cv x) T) ph))
+  (A. x T ph))
+
+# Margaris A4
+stmt (alim ((T x))
+  ((istype T))
+  (-> (A. x T (-> ph ps)) (-> (A. x T ph) (A. x T ps))))
+
+# roughly Margaris A5, but without the subst
+stmt (spec-var ((T x)) ((istype T))
+  (-> (A. x T ph) (-> (: (cv x) T) ph)))
+
+stmt (eqcom () ((istype T))
+  (<-> (= T A B) (= T B A)))
+
+stmt (ax-eqtr () ((istype T))
+  (-> (/\ (= T A B) (= T B C)) (= T A C)))
+
+# Norm's ax-11 (actually strengthened to bi)
+stmt (ax-subst ((T x) (A x)) ((istype T))
+  (-> (: A T) (-> (= T (cv x) A) (<-> ph (A. x T (-> (= T (cv x) A) ph))))))
+
+# Exists unique, definition from set.mm
+term (wff (E! var type wff))
+stmt (df-eu ((T x) (ph y)) ()
+  (<-> (E! x T ph) (E. y T (A. x T (<-> ph (= T (cv x) (cv y)))))))
+
+term (val (iota var type wff))
+stmt (iota-ax ((T x y) (ph y)) ((istype T))
+  (-> (E! x T ph)
+    (E. y T (/\ (= T (cv y) (iota x T ph))
+      (E. x T (/\ (= T (cv x) (cv y)) ph))))))
+
+# We've proved a guarded version of this, but this unguarded version should
+# be valid in all models.
+
+stmt (Nfi_iota_bound ((T x y) (ph y))
+  ((istype T))
+  (nfi x T (= T (cv y) (iota x T ph))))
+
+stmt (Nfi_iota ((T x y z) (T' x y z) (ph y))
+  ((nfi x T ph)
+   (istype T)
+   (istype T'))
+  (nfi x T (= T' (cv y) (iota z T' ph))))
+
+# A weaker form, where E! x ph, should be provable from the main axiom.
+# But this form is far more convenient for making definitions.
+
+# In fact, this axiom is problematic in some models; specifically
+# those in which iota x ph may take the value of "bottom" when -. E! x
+# ph, and for which -. bottom = bottom. If it's ok to exclude such
+# models, then we might as well posit the reflexivity of equality (as
+# opposed to eqid, which is guarded by A:T). If it's not ok to exclude
+# such models, then we should get rid of this axiom and make all iota
+# definitions guarded by existential quantification.
+
+stmt (iota-alphaconvt ((T x y))
+  ((istype T)
+   (nfi y T ph)
+   (nfi x T ps))
+  (-> (A. x T (A. y T
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+    (= T (iota x T ph) (iota y T ps))))
+
+# Useful defs that could be split off into their own interface; proof
+# fragments in pred-defs.gh
+
+term (wff (E* var type wff))
+stmt (df-mo () ()
+  (<-> (E* x T ph) (-> (E. x T ph) (E! x T ph))))
+
+term (wff ([:=] var type val wff)) 
+stmt (df-subst ((T x z))
+  ((istype T))
+  (<-> ([:=] x T A ph)
+    (E. z T (/\ (= T (cv z) A) (E. x T (/\ (= T (cv x) (cv z)) ph))))))
+
+term (val (if type wff val val)) 
+stmt (df-if ((T x) (A x) (B x) (ph x))
+  ((istype T))
+  (= T (if T ph A B)
+    (iota x T (\/ (/\ (= T (cv x) A) ph) (/\ (= T (cv x) B) (-. ph))))))

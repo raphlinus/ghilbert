@@ -1,0 +1,17 @@
+# An adapter interface for exporting ZFC constructions into pax.
+
+param (PROP pax/prop () "")
+param (SET_MM_AX pax/set_mm_ax (PROP) "")
+param (SET_MM pax/set_mm (PROP SET_MM_AX) "")
+param (PRED pax/pred (PROP) "$")
+
+kindbind (class $type)
+kindbind (class $val)
+kindbind (set $var)
+
+var ($val A B)
+var ($type T)
+
+stmt (df-$istype () () (<-> ($istype T) (-. (= T ({/})))))
+stmt (df-ty2 () () (<-> ($: A T) (e. A T)))
+stmt (df-$= () ()  (<-> ($= T A B) (= A B)))

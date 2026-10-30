@@ -1,0 +1,51 @@
+param (PROP pax/prop () "")
+param (PRED pax/pred (PROP) "")
+
+var (wff ph ps ch)
+var (val A B C D)
+var (var x y z)
+
+term (type (N.T))
+
+stmt (N.istype () () (istype (N.T)))
+
+term (val (0))
+term (val (S val))
+term (val (+ val val))
+term (val (* val val))
+
+stmt (0:N () () (: (0) (N.T)))
+stmt (S:N () () (-> (: A (N.T)) (: (S A) (N.T))))
+stmt (+:N () () (-> (/\ (: A (N.T)) (: B (N.T))) (: (+ A B) (N.T))))
+stmt (*:N () () (-> (/\ (: A (N.T)) (: B (N.T))) (: (* A B) (N.T))))
+
+# Equality axiom for addition
+stmt (addeq12 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (/\ (: C (N.T)) (: D (N.T))))
+    (-> (/\ (= (N.T) A B) (= (N.T) C D)) (= (N.T) (+ A C) (+ B D)))))
+
+# Equality axiom for multiplication
+stmt (muleq12 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (/\ (: C (N.T)) (: D (N.T))))
+    (-> (/\ (= (N.T) A B) (= (N.T) C D)) (= (N.T) (* A C) (* B D)))))
+
+stmt (pa_ax1 () () (-> (: A (N.T)) (-. (= (N.T) (0) (S A)))))
+
+# Note that the biconditional captures both equality properties of S as
+# well as the traditional Peano axiom 2.
+stmt (pa_ax2 () () (-> (/\ (: A (N.T)) (: B (N.T)))
+  (<-> (= (N.T) A B) (= (N.T) (S A) (S B)))))
+stmt (pa_ax3 () () (-> (: A (N.T))
+  (= (N.T) (+ A (0)) A)))
+stmt (pa_ax4 () () (-> (/\ (: A (N.T)) (: B (N.T)))
+  (= (N.T) (+ A (S B)) (S (+ A B)))))
+stmt (pa_ax5 () () (-> (: A (N.T))
+  (= (N.T) (* A (0)) (0))))
+stmt (pa_ax6 () () (-> (/\ (: A (N.T)) (: B (N.T)))
+  (= (N.T) (* A (S B)) (+ (* A B) A))))
+
+stmt (ind ((ph y)) ()
+  (-> (/\ (A. x (N.T) (-> (= (N.T) (cv x) (0)) ph))
+          (A. y (N.T) (-> (A. x (N.T) (-> (= (N.T) (cv x) (cv y)) ph))
+                        (A. x (N.T) (-> (= (N.T) (cv x) (S (cv y))) ph)))))
+      (A. x (N.T) ph)))

@@ -1,0 +1,161 @@
+# This interface contains the HOL base axioms. See hol-zfc for proofs
+# of these axioms interpreted in ZFC set theory.
+
+kind ( wff )
+kind ( type )
+kind ( val )
+kind ( var )
+var ( wff ph ps ch )
+var ( var x y x' y' z w )
+var ( type T T' T'' )
+var ( val A B C D F G G1 G2 G3 P )
+var ( var a b f g v )
+
+term ( wff ( : val type ) )
+term ( wff ( istype type ) )
+term ( wff ( $|- val val ) )
+term ( wff ( notbottom val ) )
+
+term ( type ( bool ) ) 
+term ( type ( $ind ) ) 
+term ( type ( $-> type type ) ) 
+
+term ( val ( var var type ) ) 
+term ( val ( lambda var type val ) ) 
+term ( val ( . val val ) ) 
+term ( val ( true ) )
+term ( val ( $0 ) )
+term ( val ( $suc ) )
+term ( val ( $= type ) ) 
+term ( val ( $==> ) ) 
+term ( val ( $iota type ) ) 
+term ( val ( $, val val ) ) 
+
+term ( val ( [:=] var val val ) )
+
+# Inference rules for types
+stmt ( boolistype ( ) ( ) ( istype ( bool ) ) )
+stmt ( indistype ( ) ( ) ( istype ( $ind ) ) )
+stmt ( arrowistype ( ( T f ) ( T' f ) ) ( ( istype T ) ( istype T' ) ) ( istype ( $-> T T' ) ) )
+stmt ( typeistype ( ) ( ( : A T ) ) ( istype T ) )
+
+stmt ( true:bool ( ) ( ) ( : ( true ) ( bool ) ) )
+stmt ( var: ( ) ( ( istype T ) ) ( : ( var v T ) T ) )
+stmt ( app: ( ) ( ( : F ( $-> T T' ) ) ( : A T ) ) ( : ( . F A ) T' ) )
+stmt ( abs: ( ( T x ) ( T' x ) ) ( ( istype T ) ( : A T' ) ) ( : ( lambda x T A ) ( $-> T T' ) ) )
+
+stmt ( eq: ( ) ( ( istype T ) ) ( : ( $= T ) ( $-> T ( $-> T ( bool ) ) ) ) )
+stmt ( eqistypei ( ) ( ( notbottom ( $= T ) ) ) ( istype T ) )
+
+# type inference rules
+stmt ( sequent1:bool ( ) ( ( $|- G A ) ) ( : G ( bool ) ) )
+stmt ( sequent2:bool ( ) ( ( $|- G A ) ) ( : A ( bool ) ) )
+stmt ( comma:booli ( ) ( ( : G1 ( bool ) ) ( : G2 ( bool ) ) ) ( : ( $, G1 G2 ) ( bool ) ) )
+stmt ( comma:bool1 ( ) ( ( : ( $, G1 G2 ) ( bool ) ) ) ( : G1 ( bool ) ) )
+stmt ( comma:bool2 ( ) ( ( : ( $, G1 G2 ) ( bool ) ) ) ( : G2 ( bool ) ) )
+stmt ( imptype ( ( a b ) ) ( ) ( : ( $==> ) ( $-> ( bool ) ( $-> ( bool ) ( bool ) ) ) ) )
+
+stmt ( appnotbottom1i ( ) ( ( notbottom ( . F A ) ) ) ( notbottom F ) )
+stmt ( appnotbottom2i ( ) ( ( notbottom ( . F A ) ) ) ( notbottom A ) )
+stmt ( typenotbottomi ( ) ( ( : A T ) ) ( notbottom A ) )
+stmt ( apptypenotboti ( ) ( ( : F ( $-> T T' ) ) ( notbottom ( . F A ) ) ) ( : A T ) )
+stmt ( betanotboti ( ( T x ) )
+  ( ( notbottom ( . ( lambda x T A ) B ) ) )
+  ( : B T ) )
+
+# The core inference rules
+stmt ( REFL ( ) ( ( : A T ) ) ( $|- ( true ) ( . ( . ( $= T ) A ) A ) ) )
+stmt ( BETA_CONV_x ( ( T' x ) ( T x ) ) ( ( : A T ) ( : B T' ) ) ( $|- ( true ) ( . ( . ( $= T ) ( . ( lambda x T' A ) B ) ) ( [:=] x B A ) ) ) )
+stmt ( BETA_CONV_im ( ( T' x ) ( T x ) ( B x ) ( C x ) ( G x ) )
+  ( ( : A T )
+    ( : B T' )
+    ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) )
+  ( $|- G ( . ( . ( $= T ) ( . ( lambda x T' A ) B ) ) C ) ) )
+stmt ( ASSUME ( ) ( ( : A ( bool ) ) ) ( $|- A A ) )
+stmt ( SUBST_app ( ) ( ( $|- G1 ( . ( . ( $= ( $-> T T' ) ) A ) B ) ) ( $|- G2 ( . ( . ( $= T ) C ) D ) ) ) ( $|- ( $, G1 G2 ) ( . ( . ( $= T' ) ( . A C ) ) ( . B D ) ) ) )
+
+stmt (ABS ((G x) (T x) (T' x))
+  ((istype T')
+   ($|- G (. (. ($= T) A) B)))
+  ($|- G (. (. ($= ($-> T' T)) (lambda x T' A)) (lambda x T' B))))
+
+stmt ( DISCH ( ) ( ( $|- ( $, G1 A ) B ) ) ( $|- G1 ( . ( . ( $==> ) A ) B ) ) )
+stmt ( MP ( ) ( ( $|- G1 ( . ( . ( $==> ) A ) B ) ) ( $|- G2 A ) ) ( $|- ( $, G1 G2 ) B ) )
+stmt ( EQ_MP ( ) ( ( $|- G1 ( . ( . ( $= ( bool ) ) A ) B ) ) ( $|- G2 A ) ) ( $|- ( $, G1 G2 ) B ) )
+
+# rules for manipulating assumptions
+stmt ( ADD_ASSUM ( ) ( ( $|- G1 A ) ( : G2 ( bool ) ) ) ( $|- ( $, G1 G2 ) A ) )
+stmt ( ASSUM_t ( ) ( ( $|- ( $, G ( true ) ) A ) ) ( $|- G A ) )
+stmt ( ASSUM_rot ( ) ( ( $|- ( $, ( $, G1 G2 ) G3 ) A ) ) ( $|- ( $, ( $, G2 G3 ) G1 ) A ) )
+stmt ( ASSUM_swap ( ) ( ( $|- ( $, ( $, G1 G2 ) G3 ) A ) ) ( $|- ( $, ( $, G2 G1 ) G3 ) A ) )
+stmt ( ASSUM_absorb ( ) ( ( $|- ( $, G1 ( $, G2 G2 ) ) A ) ) ( $|- ( $, G1 G2 ) A ) )
+
+# definitions
+term ( val ( $! type ) )
+stmt ( df-$! ( ( T x ) ( T f ) (f x))
+  ( ( istype T ) )
+  ( $|- ( true ) ( . ( . ( $= ( $-> ( $-> T ( bool ) ) ( bool ) ) ) ( $! T ) )
+    ( lambda f ( $-> T ( bool ) )
+      ( . ( . ( $= ( $-> T ( bool ) ) ) ( var f ( $-> T ( bool ) ) ) )
+          ( lambda x T ( true ) ) ) ) ) ) )
+
+term ( val ( $F ) ) 
+stmt ( df-$F ( ( x x' ) ) ( ) ( $|- ( true ) ( . ( . ( $= ( bool ) ) ( $F ) ) ( . ( $! ( bool ) ) ( lambda x' ( bool ) ( var x' ( bool ) ) ) ) ) ) )
+
+term ( val ( $~ ) ) 
+stmt ( df-$~ ( ) ( ) ( $|- ( true ) ( . ( . ( $= ( $-> ( bool ) ( bool ) ) ) ( $~ ) ) ( lambda x ( bool ) ( . ( . ( $==> ) ( var x ( bool ) ) ) ( $F ) ) ) ) ) )
+
+term ( val ( $\/ ) ) 
+stmt ( df-$\/ ((x y z)) ( ) ( $|- ( true ) ( . ( . ( $= ( $-> ( bool ) ( $-> ( bool ) ( bool ) ) ) ) ( $\/ ) ) ( lambda x ( bool ) ( lambda y ( bool ) ( . ( $! ( bool ) ) ( lambda z ( bool ) ( . ( . ( $==> ) ( . ( . ( $==> ) ( var x ( bool ) ) ) ( var z ( bool ) ) ) ) ( . ( . ( $==> ) ( . ( . ( $==> ) ( var y ( bool ) ) ) ( var z ( bool ) ) ) ) ( var z ( bool ) ) ) ) ) ) ) ) ) ) )
+
+# substitution rules
+stmt ( BETA1 ( ( T x ) )
+  ( ( : A T ) )
+  ( $|- ( true ) ( . ( . ( $= T ) ( . ( lambda x T ( var x T ) ) A ) ) A ) ) )
+
+# constant function
+stmt ( BETA2 ( ( T x ) ( T' x ) ( B x ) )
+  ( ( : A T )
+    ( : B T' ) )
+  ( $|- ( true ) ( . ( . ( $= T' ) ( . ( lambda x T B ) A ) ) B ) ) )
+
+# application
+stmt ( BETA3 ( ( T x ) ( T' x ) ( T'' x ) ) 
+  ( ( $|- ( true ) ( . ( . ( $= ( $-> T T' ) )
+      ( . ( lambda x T'' F ) A ) ) G ) )
+    ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . G C ) ) ) )
+
+stmt ( BETA4 ( ( T x y ) ( T' x y ) ( T'' x y ) ( A y ) )
+  ( ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) )
+    ( istype T' ) )
+  ( $|- ( true ) ( . ( . ( $= ( $-> T' T ) )
+      ( . ( lambda x T'' ( lambda y T' B ) ) A ) ) ( lambda y T' C ) ) ) )
+
+stmt (BETA5 ((T x) (T' x) (T'' x))
+  ((: A T)
+   (istype T')
+   (: B T''))
+  ($|- (true) (. (. ($= ($-> T' T''))
+    (. (lambda x T (lambda x T' B)) A))
+    (lambda x T' B))))
+
+stmt ( IMP_ANTISYM_AX ( ) ( ) ( $|- ( true ) ( . ( $! ( bool ) ) ( lambda a ( bool ) ( . ( $! ( bool ) ) ( lambda b ( bool ) ( . ( . ( $==> ) ( . ( . ( $==> ) ( var a ( bool ) ) ) ( var b ( bool ) ) ) ) ( . ( . ( $==> ) ( . ( . ( $==> ) ( var b ( bool ) ) ) ( var a ( bool ) ) ) ) ( . ( . ( $= ( bool ) ) ( var a ( bool ) ) ) ( var b ( bool ) ) ) ) ) ) ) ) ) ) )
+
+stmt (BOOL_CASES () ()
+  ($|- (true) (. ($! (bool)) (lambda x (bool)
+    (. (. ($\/) (. (. ($= (bool)) (var x (bool))) ($F)))
+       (. (. ($= (bool)) (var x (bool))) (true)))))))
+
+stmt ( ETA_AX ( ( T f x ) ( T' f x ) ) ( ( istype ( $-> T T' ) ) ) ( $|- ( true ) ( . ( $! ( $-> T T' ) ) ( lambda f ( $-> T T' ) ( . ( . ( $= ( $-> T T' ) ) ( lambda x T ( . ( var f ( $-> T T' ) ) ( var x T ) ) ) ) ( var f ( $-> T T' ) ) ) ) ) ) )
+
+stmt ( $0:$ind ( ) ( ) ( : ( $0 ) ( $ind ) ) )
+stmt ( $suc: ( ) ( ) ( : ( $suc ) ( $-> ( $ind ) ( $ind ) ) ) )
+stmt ( nsuconto ( ) ( ) ( $|- ( true ) ( . ( $! ( $ind ) ) ( lambda x ( $ind ) ( . ( $~ ) ( . ( . ( $= ( $ind ) ) ( . ( $suc ) ( var x ( $ind ) ) ) ) ( $0 ) ) ) ) ) ) )
+stmt ( suc1to1 ( ) ( ) ( $|- ( true ) ( . ( $! ( $ind ) ) ( lambda x ( $ind ) ( . ( $! ( $ind ) ) ( lambda y ( $ind ) ( . ( . ( $==> ) ( . ( . ( $= ( $ind ) ) ( . ( $suc ) ( var x ( $ind ) ) ) ) ( . ( $suc ) ( var y ( $ind ) ) ) ) ) ( . ( . ( $= ( $ind ) ) ( var x ( $ind ) ) ) ( var y ( $ind ) ) ) ) ) ) ) ) ) )
+
+stmt ( iota_ax ( ( T f x y ) ) ( ( istype T ) ) ( $|- ( true ) ( . ( $! ( $-> T ( bool ) ) ) ( lambda f ( $-> T ( bool ) ) ( . ( . ( $==> ) ( . ( $~ ) ( . ( $! T ) ( lambda x T ( . ( $~ ) ( . ( var f ( $-> T ( bool ) ) ) ( var x T ) ) ) ) ) ) ) ( . ( . ( $==> ) ( . ( $! T ) ( lambda x T ( . ( $! T ) ( lambda y T ( . ( . ( $==> ) ( . ( var f ( $-> T ( bool ) ) ) ( var x T ) ) ) ( . ( . ( $==> ) ( . ( var f ( $-> T ( bool ) ) ) ( var y T ) ) ) ( . ( . ( $= T ) ( var x T ) ) ( var y T ) ) ) ) ) ) ) ) ) ( . ( var f ( $-> T ( bool ) ) ) ( . ( $iota T ) ( var f ( $-> T ( bool ) ) ) ) ) ) ) ) ) ) )

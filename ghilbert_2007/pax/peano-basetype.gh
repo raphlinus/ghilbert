@@ -1,0 +1,54 @@
+import (PROP pax/prop () "")
+import (PRED pax/pred (PROP) "")
+import (PEANO pax/peano (PROP PRED) "")
+
+export (BASETYPE pax/basetype (PROP PRED) "N.")
+
+import (PROP-FULL pax/prop-full (PROP) "")
+import (ASSUMP pax/assump (PROP) "")
+import (PRED-THMS pax/pred-thms (PROP PRED) "")
+
+var (val A)
+
+def ((cast A) (if (N.T) (: A (N.T)) A (0)))
+
+thm (casttylem () ()
+  (: (if (N.T) (: A (N.T)) A (0)) (N.T))
+  (
+   N.istype (: A (N.T)) A (0) iftrue alar
+     N.istype (if (N.T) (: A (N.T)) A (0)) A tyeq1
+   syl biimprd pm2.43i
+
+     0:N
+       N.istype (: A (N.T)) (0) A iffalse
+         N.istype (if (N.T) (: A (N.T)) A (0)) (0) tyeq1
+       syl biimprd imp alrar
+     mpan2
+   pm2.61i
+))
+
+thm (df-cast () ()
+  (= (N.T) (cast A) (if (N.T) (: A (N.T)) A (0)))
+  (
+   A casttylem N.istype (if (N.T) (: A (N.T)) A (0)) eqid ax-mp
+))
+
+thm (cast-ax () ()
+  (-> (: A (N.T)) (= (N.T) (cast A) A))
+  (
+   A df-cast (: A (N.T)) a1i
+     N.istype (: A (N.T)) A (0) iftrue alar
+   N.istype eqtrd
+))
+
+thm (cast-ty () ()
+  (: (cast A) (N.T))
+  (
+   A casttylem
+     A df-cast
+       N.istype (cast A) (if (N.T) (: A (N.T)) A (0)) tyeq1
+     ax-mp
+   mpbir
+))
+
+# TODO: export (CAST pax/cast (PROP PRED BASETYPE) "")

@@ -1,0 +1,62 @@
+# Some very useful standard set definitions
+
+param (PROP pax/prop () "")
+param (PRED pax/pred (PROP) "")
+param (A pax/basetype (PROP PRED) "")
+
+param (PA pax/basetype (PROP PRED) "*")
+param (SET pax/set (PROP PRED A PA) "")
+
+var (val a b c) # elements
+var (var x y z)
+
+var (val A B C) # sets
+var (var X Y Z)
+
+var (wff ph)
+
+term (wff (e. val val))
+
+#term (val ({|} var wff))
+term (val (V))
+term (val (\ val val))
+term (val (u. val val))
+term (val (i^i val val))
+term (val ({/}))
+term (val ({} val))
+term (val ({,} val val))
+term (wff (C_ val val))
+term (wff (C: val val))
+
+stmt (df-el () ()
+  (<-> (e. a B) (/\ (/\ (: a (T)) (: B (*T))) (elraw a B))))
+
+stmt (df-ab () ()
+  (= (*T) ({|} x ph) (iota X (*T) (A. x (T) (<-> (e. (cv x) (cv X)) ph)))))
+
+stmt (df-v () ()
+  (= (*T) (V) ({|} x (= (T) (cv x) (cv x)))))
+
+stmt (df-dif () ()
+  (= (*T) (\ A B) ({|} x (/\ (e. (cv x) A) (-. (e. (cv x) B))))))
+
+stmt (df-un () ()
+  (= (*T) (u. A B) ({|} x (\/ (e. (cv x) A) (e. (cv x) B)))))
+
+stmt (df-in () ()
+  (= (*T) (i^i A B) ({|} x (/\ (e. (cv x) A) (e. (cv x) B)))))
+
+stmt (df-nul () ()
+  (= (*T) ({/}) (\ (V) (V))))
+
+stmt (df-sn () ()
+  (= (*T) ({} a) ({|} x (= (T) (cv x) a))))
+
+stmt (df-pr () ()
+  (= (*T) ({,} a b) (u. ({} a) ({} b))))
+
+stmt (df-ss () ()
+  (<-> (C_ A B) (= (*T) (i^i A B) A)))
+
+stmt (dfpss2 () ()
+  (<-> (C: A B) (/\ (C_ A B) (-. (= (*T) A B)))))

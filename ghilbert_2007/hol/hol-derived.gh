@@ -1,0 +1,271 @@
+import ( HOL hol/hol ( ) "" )
+
+var ( val G G1 G2 )
+var ( val F F' A B )
+var ( val t t' t1 t2 )
+var ( type T T1 T2 )
+var ( var x P )
+var ( var b1 b2 )
+
+thm ( UNDISCH ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) t1 ) t2 ) ) ) )
+  ( $|- ( $, G t1 ) t2 )
+  ( hyp imptype hyp sequent2:bool typenotbottomi appnotbottom1i apptypenotboti ASSUME MP
+) )
+
+thm ( eqtypei1 ( )
+  ( ( hyp ( : ( . ( . ( $= T ) A ) B ) ( bool ) ) ) )
+  ( : A T )
+  ( hyp typenotbottomi appnotbottom1i appnotbottom1i eqistypei eq:
+    hyp typenotbottomi appnotbottom1i apptypenotboti
+) )
+ 
+thm ( eqtypei2 ( )
+  ( ( hyp ( : ( . ( . ( $= T ) A ) B ) ( bool ) ) ) )
+  ( : B T )
+  ( hyp typenotbottomi appnotbottom1i appnotbottom1i eqistypei eq:
+    hyp eqtypei1 app:
+    hyp typenotbottomi apptypenotboti
+) )
+
+thm ( ASSUM_com ( )
+  ( ( hyp ( $|- ( $, G1 G2 ) t ) ) )
+  ( $|- ( $, G2 G1 ) t )
+  ( hyp true:bool ADD_ASSUM ASSUM_swap ASSUM_t ) )
+
+thm ( SYM ( )
+  ( ( hyp ( $|- G ( . ( . ( $= T ) t1 ) t2 ) ) ) )
+  ( $|- G ( . ( . ( $= T ) t2 ) t1 ) )
+  (
+    hyp sequent2:bool eqtypei1
+    typeistype eq: REFL hyp SUBST_app ASSUM_com ASSUM_t
+    hyp sequent2:bool eqtypei1 REFL SUBST_app ASSUM_t
+    hyp sequent2:bool eqtypei1 REFL EQ_MP ASSUM_t
+) )
+
+thm ( TRANS ( )
+  ( ( hyp1 ( $|- G1 ( . ( . ( $= T ) t1 ) t2 ) ) )
+    ( hyp2 ( $|- G2 ( . ( . ( $= T ) t2 ) t3 ) ) ) )
+  ( $|- ( $, G1 G2 ) ( . ( . ( $= T ) t1 ) t3 ) )
+  ( hyp1 sequent2:bool eqtypei1 typeistype eq: REFL hyp1 SUBST_app ASSUM_com ASSUM_t
+    hyp2 sequent2:bool eqtypei2 REFL SUBST_app ASSUM_t SYM
+    hyp2 EQ_MP
+) )
+
+thm ( AP_TERM ( )
+  ( ( hyp ( $|- G ( . ( . ( $= T ) t1 ) t2 ) ) )
+    ( hyp.t ( : t ( $-> T T' ) ) ) )
+  ( $|- G ( . ( . ( $= T' ) ( . t t1 ) ) ( . t t2 ) ) )
+  ( hyp.t REFL hyp SUBST_app ASSUM_com ASSUM_t
+) )
+
+thm ( AP_THM ( )
+  ( ( hyp ( $|- G ( . ( . ( $= ( $-> T T' ) ) t1 ) t2 ) ) )
+    ( hyp.t ( : t T ) ) )
+  ( $|- G ( . ( . ( $= T' ) ( . t1 t ) ) ( . t2 t ) ) )
+  ( hyp hyp.t REFL SUBST_app ASSUM_t
+) )
+
+thm ( EQ_IMP_RULE_1 ( )
+  ( ( hyp ( $|- G ( . ( . ( $= ( bool ) ) t1 ) t2 ) ) ) )
+  ( $|- G ( . ( . ( $==> ) t1 ) t2 ) )
+  ( hyp
+    hyp sequent2:bool eqtypei1 ASSUME
+    EQ_MP DISCH
+) )
+
+thm ( EQ_IMP_RULE_2 ( )
+  ( ( hyp ( $|- G ( . ( . ( $= ( bool ) ) t1 ) t2 ) ) ) )
+  ( $|- G ( . ( . ( $==> ) t2 ) t1 ) )
+  ( hyp SYM EQ_IMP_RULE_1
+) )
+
+# This is the most natural, considering that we use ( true ) in our
+# assumption manip rules. But we could do it the same way as HOL if
+# we wanted.
+thm ( TRUTH ( ) ( )
+  ( $|- ( true ) ( true ) )
+  ( true:bool ASSUME ) )
+
+thm ( EQT_ELIM ( )
+  ( ( hyp ( $|- G ( . ( . ( $= ( bool ) ) t ) ( true ) ) ) ) )
+  ( $|- G t )
+  ( hyp SYM TRUTH EQ_MP ASSUM_t ) )
+
+# Some beta calculations
+
+thm ( id ( )
+  ( ( hyp ( : t ( bool ) ) ) )
+  ( $|- ( true ) ( . ( . ( $==> ) t ) t ) )
+  ( hyp ASSUME true:bool ADD_ASSUM ASSUM_com DISCH
+) )
+
+# identity function
+# we should be able to get rid of t,x dv constraint.
+thm ( beta1 ( ( T x ) ( t x ) )
+  ( ( hyp ( : t T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T ) ( . ( lambda x T ( var x T ) ) t ) ) t ) )
+  ( hyp typeistype x var:
+    hyp
+    hyp typeistype eq: hyp typeistype x var: app: hyp app: id BETA_CONV_im
+) )
+
+# constant function
+# we should be able to get rid of t1,x dv constraint.
+thm ( beta2 ( ( T1 x ) ( T2 x ) ( t1 x ) ( t2 x ) )
+  ( ( hyp.1 ( : t1 T1 ) )
+    ( hyp.2 ( : t2 T2 ) ) )
+  ( $|- ( true ) ( . ( . ( $= T2 ) ( . ( lambda x T1 t2 ) t1 ) ) t2 ) )
+  ( hyp.2
+    hyp.1
+    hyp.2 REFL
+    hyp.1 typeistype eq: hyp.1 typeistype x var: app: hyp.1 app: ADD_ASSUM DISCH
+    BETA_CONV_im
+) )
+
+# This doesn't go through, because t might go wrong for values of
+# x not of type T. Also, we should be able to eliminate hyp.T.
+# thm ( forall_ti ( )
+#  ( ( hyp.T ( istype T ) )
+#    ( hyp ( : ( . ( $! T ) ( lambda x T t ) ) ( bool ) ) ) )
+#  ( : t ( bool ) )
+#  (
+# ) )
+
+thm ( forall_type ((T x) (T P))
+  ((hyp (istype T)))
+  (: ($! T) ($-> ($-> T (bool)) (bool)))
+  ( hyp P x df-$! sequent2:bool eqtypei1
+))
+
+# This is the same as SPEC, but with the final beta reduction left undone.
+thm ( SPEC_l ( ( T x ) ( T P ) ( P x ) ( P t ) )
+  ( ( hyp1 ( $|- G ( . ( $! T ) ( lambda x T t ) ) ) )
+    ( hyp2 ( : t1 T ) ) )
+  ( $|- G ( . ( lambda x T t ) t1 ) )
+  ( 
+            hyp2 typeistype forall_type
+          hyp1 sequent2:bool typenotbottomi apptypenotboti
+          hyp2 typeistype boolistype arrowistype eq:
+        P BETA2
+            hyp2 typeistype forall_type
+          hyp1 sequent2:bool typenotbottomi apptypenotboti
+        P BETA1
+      BETA3
+          hyp2 typeistype forall_type
+        hyp1 sequent2:bool typenotbottomi apptypenotboti
+        hyp2 typeistype true:bool x abs:
+      P BETA2
+    BETA3
+
+    hyp2 typeistype P x df-$!
+      hyp2 typeistype forall_type
+      hyp1 sequent2:bool typenotbottomi apptypenotboti
+    REFL SUBST_app ASSUM_t hyp1 EQ_MP ASSUM_com ASSUM_t
+
+    EQ_MP ASSUM_com ASSUM_t
+
+    hyp2 AP_THM SYM
+
+    hyp2 true:bool x BETA2 EQT_ELIM
+
+    EQ_MP ASSUM_t
+) )
+
+thm ( imptypei1 ( )
+  ( ( hyp ( : ( . ( . ( $==> ) A ) B ) ( bool ) ) ) )
+  ( : A ( bool ) )
+  ( imptype hyp typenotbottomi appnotbottom1i apptypenotboti ) )
+
+thm ( BETA31 ( ( T'' x ) ( T x ) ( B x ) ( T' x ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= ( $-> T T' ) )
+      ( . ( lambda x T'' F ) A ) ) F' ) ) )
+    ( hyp.B ( : B T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . F' B ) ) )
+  ( hyp
+      hyp sequent2:bool eqtypei1 typenotbottomi betanotboti
+    hyp.B x BETA2
+    BETA3
+) )
+
+thm ( BETA32 ( ( T'' x ) ( T x ) ( F x ) ( T' x ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) )
+    ( hyp.F ( : F ( $-> T T' ) ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . F C ) ) )
+  (
+      hyp sequent2:bool eqtypei1 typenotbottomi betanotboti
+    hyp.F x BETA2
+    hyp BETA3
+) )
+
+# hypotheses reversed for convenience
+thm ( EQ_MPr ( )
+  ( ( hyp2 ( $|- G2 A ) )
+    ( hyp1 ( $|- G1 ( . ( . ( $= ( bool ) ) A ) B ) ) ) )
+  ( $|- ( $, G1 G2 ) B )
+  ( hyp1 hyp2 EQ_MP
+) )
+
+thm ( impbi ( ( b1 t1 ) ( b1 b2 ) ( b2 t1 ) ( b2 t2 ) ( b1 t2 ) )
+  ( ( hyp1 ( $|- G1 ( . ( . ( $==> ) t1 ) t2 ) ) )
+    ( hyp2 ( $|- G2 ( . ( . ( $==> ) t2 ) t1 ) ) ) )
+  ( $|- ( $, G1 G2 ) ( . ( . ( $= ( bool ) ) t1 ) t2 ) )
+  ( b1 b2 IMP_ANTISYM_AX
+    hyp1 sequent2:bool imptypei1 SPEC_l
+        hyp1 sequent2:bool imptypei1 b1 BETA1 imptype BETA32
+      boolistype b2 var: BETA31 imptype BETA32
+          hyp1 sequent2:bool imptypei1 b1 BETA1
+        imptype boolistype b2 var: app: BETA32 imptype BETA32
+          hyp1 sequent2:bool imptypei1 b1 BETA1 boolistype eq: BETA32
+        boolistype b2 var: BETA31
+      BETA3
+    BETA3 boolistype b2 BETA4 boolistype forall_type BETA32
+    EQ_MPr ASSUM_t
+
+    hyp2 sequent2:bool imptypei1 SPEC_l
+        hyp2 sequent2:bool imptypei1 b2 BETA1
+      imptype hyp1 sequent2:bool imptypei1 app: BETA32 imptype BETA32
+          hyp2 sequent2:bool imptypei1 b2 BETA1 imptype BETA32
+        hyp1 sequent2:bool imptypei1 BETA31 imptype BETA32
+          hyp2 sequent2:bool imptypei1 b2 BETA1
+        boolistype eq: hyp1 sequent2:bool imptypei1 app: BETA32
+      BETA3
+    BETA3
+    EQ_MPr ASSUM_t
+
+    hyp1 MP ASSUM_com ASSUM_t
+    hyp2 MP
+) )
+
+thm ( EQT_INTRO ()
+  ((hyp ($|- G t)))
+  ($|- G (. (. ($= (bool)) t) (true)))
+  ( true:bool ASSUME
+    hyp sequent2:bool ADD_ASSUM DISCH
+    hyp true:bool ADD_ASSUM DISCH
+    impbi ASSUM_com ASSUM_t
+))
+
+# I think step 4 in the Kananaskis description is in error.
+thm ( GEN ((G x) (T x) (T P) (P x))
+  ((hyp ($|- G t))
+   (hyp.T (istype T)))
+  ($|- G (. ($! T) (lambda x T t)))
+  (   hyp.T
+      hyp EQT_INTRO
+    x ABS
+
+    hyp.T P x df-$!
+    hyp.T hyp sequent2:bool x abs: REFL
+    SUBST_app ASSUM_t
+
+        hyp.T hyp sequent2:bool x abs: P BETA1
+      hyp.T boolistype arrowistype eq: BETA32
+    hyp.T true:bool x abs: BETA31
+    TRANS ASSUM_t
+    SYM
+    EQ_MPr ASSUM_com ASSUM_t
+))

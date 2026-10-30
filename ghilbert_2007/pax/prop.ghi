@@ -1,0 +1,28 @@
+# Ghilbert Pax
+# Interface file for propositional calculus
+
+kind (wff)
+var (wff ph ps ch)
+
+term (wff (-. wff))
+term (wff (-> wff wff))
+stmt (ax-1 () () (-> ph (-> ps ph)))
+stmt (ax-2 () () (-> (-> ph (-> ps ch)) (-> (-> ph ps) (-> ph ch))))
+stmt (ax-3 () () (-> (-> (-. ph) (-. ps)) (-> ps ph)))
+stmt (ax-mp () (ph (-> ph ps)) ps)
+
+# Definitions, which could be split into a separate module
+
+term (wff (<-> wff wff))
+term (wff (\/ wff wff))
+term (wff (/\ wff wff))
+term (wff (\/\/ wff wff wff))
+term (wff (/\/\ wff wff wff))
+stmt (df-bi () ()
+  (-. (-> (-> (<-> ph ps) (-. (-> (-> ph ps) (-. (-> ps ph)))))
+          (-. (-> (-. (-> (-> ph ps) (-. (-> ps ph)))) (<-> ph ps))))))
+stmt (df-or () () (<-> (\/ ph ps) (-> (-. ph) ps)))
+stmt (df-an () () (<-> (/\ ph ps) (-. (-> ph (-. ps)))))
+stmt (df-3or () () (<-> (\/\/ ph ps ch) (\/ (\/ ph ps) ch)))
+stmt (df-3an () () (<-> (/\/\ ph ps ch) (/\ (/\ ph ps) ch)))
+

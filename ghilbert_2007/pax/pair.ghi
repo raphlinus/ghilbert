@@ -1,0 +1,21 @@
+# A general pairing interface
+
+param (PROP pax/prop () "")
+param (PRED pax/pred (PROP) "")
+param (A pax/basetype (PROP PRED) "A.")
+param (B pax/basetype (PROP PRED) "B.")
+
+param (AxB pax/basetype (PROP PRED) "AxB.")
+
+var (val a b a' b')
+
+term (val (pair val val))
+
+stmt (pair-ty () ()
+  (-> (/\ (: a (A.T)) (: b (B.T))) (: (pair a b) (AxB.T))))
+
+stmt (ax-pair () ()
+  (-> (/\ (/\ (: a (A.T)) (: b (B.T))) (/\ (: a' (A.T)) (: b' (B.T))))
+   (<-> (/\ (= (A.T) a a') (= (B.T) b b'))
+    (= (AxB.T) (pair a b) (pair a' b')))))
+

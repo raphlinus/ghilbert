@@ -1,0 +1,117 @@
+# Based on Vladimir Lifschitz, "On Calculational Proofs"
+
+# An attempt to create a set of axioms for creating calculational proofs within
+# Ghilbert.  The system here is that which Lifschitz calls DS.  Numbering
+# matches his article.
+
+kind (wff)
+
+var (wff F G H)
+
+term (wff (false))
+term (wff (<-> wff wff))
+term (wff (\/ wff wff))
+
+
+# The only propositional inference rules in [Lifschitz] are
+#
+#       (1a)  from  F[G]  and  (<-> G H)  follows  F[H]
+#       (1b)  from  F[H]  and  (<-> G H)  follows  F[G]
+#
+# where F[_] represents a wff parameterized by a wff.  (Note that (1b) can be
+# derived from (1a) using axiom (4), below.)
+#
+# In Ghilbert proofs it seems easier to use the following inference rules:
+#
+#     (mpbi)  from  G  and  (<-> G H)  follows  H
+#  (leibniz)  from  (<-> G H)  follows  (<-> F[G] F[H])
+#
+# From these rules, together with axiom (4), we can easily derive inference
+# rules (1a) and (1b).  Proof sketches (see calcprop-thms.gh for a quick
+# explanation of the proof layout; _ stands for a parameter position):
+#
+#	thm (proof-sketch-1a () ((hyp.1 F[G]) (hyp.2 (<-> G H))
+#		F[H]
+#		(
+#			hyp.1
+#			# F[G]
+#				hyp.2
+#				# (<-> G H)
+#				F[_] leibniz
+#				# (<-> F[G] F[H])
+#			mpbi
+#			# F[H]
+#		)
+#	)
+#	
+#	thm (proof-sketch-1b () ((hyp.1 F[H]) (hyp.2 (<-> G H))
+#		F[G]
+#		(
+#			hyp.1
+#			# F[H]
+#				hyp.2
+#				# (<-> G H)
+#					G H ax-4
+#					# (<-> (<-> G H) (<-> H G))
+#				mpbi
+#				# (<-> H G)
+#			mpbi
+#			# F[G]
+#		)
+#	)
+# 
+# The other way around, using axiom (9) we can easily derive (mpbi) and
+# (leibniz) from (1a) and (1b).  Proof sketches:
+# 
+#	thm (proof-sketch-mpbi () ((hyp.1 G) (hyp.2 (<-> G H)))
+#		H
+#		(
+#			hyp.1
+#			# G
+#				hyp.2
+#				# (<-> G H)
+#			_ 1a
+#			# H
+#		)
+#	)
+#	
+#	thm (proof-sketch-leibniz () ((hyp (<-> G H)))
+#		(<-> F[G] F[H])
+#		(
+#			F[G] ax-9
+#			# (<-> (\/ F[G] (false)) F[G])
+#				F[G] ax-9
+#				# (<-> (\/ F[G] (false)) F[G])
+#			(<-> _ F[G]) 1a
+#			# (<-> F[G] F[G])
+#				hyp
+#				# (<-> G H)
+#			(<-> F[G] F[_]) 1a
+#			# (<-> F[G] F[H])
+#		)
+#	)
+
+
+
+# We formalize our inference rules as follows.
+
+stmt (mpbi () (G (<-> G H)) H)
+
+# Since (leibniz) is not directly implementable in Ghilbert, we have to use a
+# number of separate instances.
+
+stmt (leibniz-<->l () ((<-> G H)) (<-> (<-> G F) (<-> H F)))
+stmt (leibniz-<->r () ((<-> G H)) (<-> (<-> F G) (<-> F H)))
+stmt (leibniz-\/l () ((<-> G H)) (<-> (\/ G F) (\/ H F)))
+stmt (leibniz-\/r () ((<-> G H)) (<-> (\/ F G) (\/ F H)))
+
+
+# These are DS's axioms.
+
+stmt (ax-4 () () (<-> (<-> F G) (<-> G F)))
+stmt (ax-5 () () (<-> (<-> F (<-> G H)) (<-> (<-> F G) H)))
+stmt (ax-6 () () (<-> (\/ F G) (\/ G F)))
+stmt (ax-7 () () (<-> (\/ F (\/ G H)) (\/ (\/ F G) H)))
+stmt (ax-8 () () (<-> (\/ F F) F))
+stmt (ax-9 () () (<-> (\/ F (false)) F))
+stmt (ax-10 () () (<-> (\/ F (<-> G H)) (<-> (\/ F G) (\/ F H))))

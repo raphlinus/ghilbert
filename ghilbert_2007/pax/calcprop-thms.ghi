@@ -1,0 +1,35 @@
+# Based on Vladimir Lifschitz, "On Calculational Proofs"
+
+# An attempt to create a set of axioms for creating calculational proofs within
+# Ghilbert.  The system here is that which Lifschitz calls DS.  Numbering
+# matches his article.
+
+param (CALCPROP pax/calcprop () "")
+
+
+var (wff F G)
+
+
+# TODO: Why are these necessary here?  Shouldn't these be coming from somewhere
+# else? --Marnix
+
+term (wff (true))
+term (wff (-. wff))
+term (wff (-> wff wff))
+
+
+stmt (df-not () () (<-> (-. F) (<-> F (false))))
+stmt (df-true () () (<-> (true) (-. (false))))
+stmt (df-impl () () (<-> (-> F G) (\/ (-. F) G)))
+
+stmt (th-12 () () (<-> F F))
+stmt (th-15 () () (<-> (<-> F (true)) F))
+stmt (th-14 () () (true))
+stmt (th-17 () () (<-> (<-> F F) (true)))
+stmt (th-19 () () (<-> (\/ F (true)) (true)))
+stmt (th-21 () () (<-> (\/ F (-. F)) (true)))
+stmt (th-24 () () (<-> (\/ (-. F) G) (<-> (\/ F G) G)))
+stmt (th-25 () () (<-> (\/ (-. (\/ F G)) G) (\/ (-. F) G)))
+
+stmt (mp () (F (-> F G)) G)
+

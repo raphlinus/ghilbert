@@ -1,0 +1,153 @@
+# Experimental interface for Peano arithmetic
+
+# We conjecture the following properties about this interface, with at
+# this point only a moderate amount of confidence:
+#
+# * It encapsulates PA soundly and completely.
+# * It is possible to interpret in a set.mm universe.
+# * It is reasonably useful.
+#
+# There are two extensions that may improve usefulness: classes and
+# ax-11. The latter would enable a substitution operator with all the
+# expected properties. However, it makes the syntactic interpretation
+# in set.mm problematic.
+
+param (PROP pax/prop () "")
+
+kind (num)
+kind (var)
+
+var (wff ph ps ch)
+var (num A B C D)
+var (var x y z)
+
+term (num (cv var))
+term (wff (nfi var wff))
+term (wff (A. var wff))
+term (wff (= num num))
+
+# Start by establishing properties of "not free in," generic across all
+# quantified logics
+
+stmt (ax-nfidv ((ph x)) ()
+  (nfi x ph))
+stmt (ax-nfinot ()
+  ((nfi x ph))
+  (nfi x (-. ph)))
+stmt (ax-nfiim ()
+  ((nfi x ph)
+   (nfi x ps))
+  (nfi x (-> ph ps)))
+stmt (ax-nfial ()
+  ((nfi x ph))
+  (nfi x (A. y ph)))
+stmt (ax-nfibound () ()
+  (nfi x (A. x ph)))
+
+stmt (ax-nfibi ()
+  ((nfi x ph)
+   (<-> ph ps))
+  (nfi x ps))
+
+# Basic predicate calculus axioms, adapted from set.mm and pax
+
+stmt (alnfi ()
+  ((nfi x ph))
+  (-> ph (A. x ph)))
+
+stmt (gen ()
+  (ph)
+  (A. x ph))
+
+# roughly Margaris A5, but without the subst
+stmt (ax-4 () ()
+  (-> (A. x ph) ph))
+
+# Margaris A4
+stmt (ax-alim () ()
+  (-> (A. x (-> ph ps)) (-> (A. x ph) (A. x ps))))
+
+# Similar to ax-8, but for num's instead of var's.
+stmt (ax-eqtr () ()
+  (-> (/\ (= A B) (= A C)) (= B C)))
+
+# Similar to ax-9, but expanded to num's instead of var's.
+stmt (ax-tyex ((A x)) ()
+  (-. (A. x (-. (= (cv x) A)))))
+
+
+# Definition of exists - could be done through def instead of axiom here.
+#term (wff (E. var wff))
+#stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+# Properties of numbers: Peano axioms
+
+term (num (0))
+term (num (S num))
+term (num (+ num num))
+term (num (* num num))
+
+# Equality axiom for addition
+stmt (addeq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (+ A C) (+ B D))))
+
+# Equality axiom for multiplication
+stmt (muleq12 () ()
+    (-> (/\ (= A B) (= C D)) (= (* A C) (* B D))))
+
+stmt (pa_ax1 () () (-. (= (0) (S A))))
+
+# Note that the biconditional captures equality properties of S as
+# well as the traditional Peano axiom 2.
+stmt (pa_ax2 () ()
+  (<-> (= A B) (= (S A) (S B))))
+stmt (pa_ax3 () ()
+  (= (+ A (0)) A))
+stmt (pa_ax4 () ()
+  (= (+ A (S B)) (S (+ A B))))
+stmt (pa_ax5 () ()
+  (= (* A (0)) (0)))
+stmt (pa_ax6 () ()
+  (= (* A (S B)) (+ (* A B) A)))
+
+stmt (pa_ind ((x y) (ph y)) ()
+  (-> (/\ (A. x (-> (= (cv x) (0)) ph))
+          (A. y (-> (A. x (-> (= (cv x) (cv y)) ph))
+                    (A. x (-> (= (cv x) (S (cv y))) ph)))))
+      (A. x ph)))
+
+# Definition of exists - could be done through def instead of axiom here.
+term (wff (E. var wff))
+stmt (df-ex () () (<-> (E. x ph) (-. (A. x (-. ph)))))
+
+# Exists-unique is handy for iota def, but could be expanded there
+term (wff (E! var wff))
+stmt (df-eu ((ph y)) ()
+  (<-> (E! x ph) (E. y (A. x (<-> ph (= (cv x) (cv y)))))))
+
+# iota is a draft at this point.
+
+# Define "not free in" for terms and establish basic properties
+
+term (wff (Nfi var num))
+
+stmt (ax-Nfidv ((A x)) ()
+  (Nfi x A))
+stmt (ax-nfieq ()
+  ((Nfi x A)
+   (Nfi x B))
+  (nfi x (= A B)))
+
+term (num (iota var wff))
+
+stmt (ax-iotanfi ()
+  ((nfi x ph))
+  (Nfi x (iota y ph)))
+stmt (ax-Nfiiota () ()
+  (Nfi x (iota x ph)))
+
+stmt (ax-iota ((ph y)) ()
+  (-> (E! x ph)
+    (E. y (/\ (= (cv y) (iota x ph))
+      (E. x (/\ (= (cv x) (cv y)) ph))))))
+

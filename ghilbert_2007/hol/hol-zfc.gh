@@ -1,0 +1,3672 @@
+# Construction of HOL in ZFC set theory
+
+import (PROP pax/prop () "")
+import (SET_MM_AX zfc/set_mm_ax (PROP) "")
+import (SET_MM zfc/set_mm (PROP SET_MM_AX) "")
+
+kindbind ( class type )
+kindbind ( class val )
+kindbind ( set var )
+
+var ( wff ph ps ch th ta et)
+var ( set x y z x' y' z' x'' y'' z'' w )
+var ( type T T' T'' )
+var ( val A B C D F G G1 G2 G3 P )
+var ( var a b f g v f' )
+
+# This is a somewhat funky definition, but lets us prove the obvious
+# properties using handy theorems in set.mm
+def ( ( fst A ) ( U. ( dom ( {} A ) ) ) )
+thm ( df-fst ( ) ( )
+  ( = ( fst A ) ( U. ( dom ( {} A ) ) ) )
+  ( (U. (dom ({} A))) eqid ) )
+
+def ( ( snd A ) ( U. ( dom ( `' ( {} A ) ) ) ) )
+thm ( df-snd ( ) ( )
+  ( = ( snd A ) ( U. ( dom ( `' ( {} A ) ) ) ) )
+  ( (U. (dom (`' ({} A)))) eqid ) )
+
+# A type is a pair consisting of a set of values, and a "witness"
+# Note: if we want to add a "choice" term, then we probably want a
+# total, well-ordered relation, rather than just a witness.
+def ( ( typeset T ) ( fst T ) )
+thm ( df-typeset ( ) ( ) ( = ( typeset T ) ( fst T ) ) ( (fst T) eqid ) )
+def ( ( witness T ) ( snd T ) )
+thm ( df-witness ( ) ( ) ( = ( witness T ) ( snd T ) ) ( (snd T) eqid ) )
+
+# It's not clear that we really gain anything by having the mktype abstraction.
+def ( ( mktype A B ) ( <,> A B ) )
+thm ( df-mktype ( ) ( ) ( = ( mktype A B ) ( <,> A B ) ) ( (<,> A B) eqid ) )
+thm ( mktypeeq1 ( ) ( ( hyp ( = A B ) ) ) ( = ( mktype A C ) ( mktype B C ) )
+  ( hyp A B C opeq1 ax-mp ) )
+
+def ( ( istype T ) ( E. x ( E. y ( /\ ( = T ( <,> ( cv x ) ( cv y ) ) )
+                                      ( e. ( cv y ) ( cv x ) ) ) ) ) )
+
+thm (df-istype-half ((T x x' y y')) ()
+  (<-> (E. x (E. y (/\ (= T (<,> (cv x) (cv y)))
+                     (e. ( cv y) (cv x)))))
+    ( E. x' ( E. y' ( /\ ( = T ( <,> ( cv x' ) ( cv y' ) ) )
+                                          ( e. ( cv y' ) ( cv x' ) ) ) ) ) )
+  ( (cv x) (cv x') (cv y) (cv y') opeq12 T eqeq2d
+    (cv y) (cv y') (cv x) (cv x') eleq12 ancoms anbi12d
+    cbvex2v
+) )
+
+thm ( df-istype (( T x z y w) (T x' z y' w)) ( )
+  ( <-> ( istype T ) ( E. x' ( E. y' ( /\ ( = T ( <,> ( cv x' ) ( cv y' ) ) )
+                                          ( e. ( cv y' ) ( cv x' ) ) ) ) ) )
+  (x y T z w df-istype-half
+     x' y' T z w df-istype-half
+   bitr4
+))
+
+def ( ( : A T ) ( /\ ( istype T ) ( e. A ( typeset T ) ) ) )
+thm ( df-: ( ) ( )
+  ( <-> ( : A T ) ( /\ ( istype T ) ( e. A ( typeset T ) ) ) )
+  ( (/\ (istype T) (e. A (typeset T))) pm4.2 ) )
+thm ( :eq1 ( ) ( )
+  ( -> ( = A B ) ( <-> ( : A T ) ( : B T ) ) )
+  ( A B (typeset T) eleq1 (istype T) anbi2d
+    A T df-:
+    B T df-:
+    3bitr4g
+) )
+
+# This is equal to A when A is of type T, otherwise the witness of type T
+def ( ( cast A T )
+  ( if ( e. A ( typeset T ) ) A ( witness T ) ) )
+thm ( df-cast ( ) ( )
+  ( = ( cast A T ) ( if ( e. A ( typeset T ) ) A ( witness T ) ) )
+  ( (if (e. A (typeset T)) A (witness T)) eqid ) )
+
+def ( ( var v T ) ( cast ( cv v ) T ) )
+thm ( df-var ( ) ( ) ( = ( var v T ) ( cast ( cv v ) T ) )
+  ( (cast (cv v) T) eqid ) )
+
+# A case can be made for lambda to be strict in T, i.e. equal to bottom
+# when T is not a valid type.
+def ( ( lambda x T A ) ( {<,>|} x y
+  ( /\ ( : ( cv x ) T ) ( = ( cv y ) A ) ) ) )
+
+thm (df-lambda-half ((T x y y') (A y y')) ()
+  (= ({<,>|} x y (/\ (: (cv x) T) (= (cv y) A)))
+     ({<,>|} x y' (/\ (: (cv x) T) (= (cv y') A))))
+  ( (cv y) (cv y') A eqeq1 (: (cv x) T) anbi2d x cbvopab2v
+) )
+thm (df-lambda ((T x y z) (A y z) (T x y' z) (A y')) ( )
+  ( = ( lambda x T A ) ( {<,>|} x y'
+    ( /\ ( : ( cv x ) T ) ( = ( cv y' ) A ) ) ) )
+  (x y T A z df-lambda-half
+     x y' T A z df-lambda-half
+   eqtr4
+))
+
+# An alternate def of function application that takes on the value V
+# outside the domain of the function. We'll probably make this one
+# the default, as it allows more powerful type inferencing.
+def ( ( . F A ) ( if ( /\ ( Fun F ) ( e. A ( dom F ) ) ) ( ` F A ) ( V ) ) )
+thm ( df-app ( ) ( )
+  ( = ( . F A ) ( if ( /\ ( Fun F ) ( e. A ( dom F ) ) ) ( ` F A ) ( V ) ) )
+  ( (if (/\ (Fun F) (e. A (dom F))) (` F A) (V)) eqid ) )
+
+def ( ( false ) ( {/} ) )
+thm ( df-false ( ) ( ) ( = ( false ) ( {/} ) ) ( ({/}) eqid ) )
+def ( ( true ) ( {} ( {/} ) ) )
+thm ( df-true ( ) ( ) ( = ( true ) ( {} ( {/} ) ) ) ( ({} ({/})) eqid ) )
+def ( ( bool ) ( mktype ( {,} ( false ) ( true ) ) ( false ) ) )
+thm ( df-bool ( ) ( )
+  ( = ( bool ) ( mktype ( {,} ( false ) ( true ) ) ( false ) ) )
+  ( (mktype ({,} (false) (true)) (false)) eqid ) )
+
+def ( ( notype ) ( mktype ( {/} ) ( {/} ) ) )
+thm ( df-notype ( ) ( ) ( = ( notype ) ( mktype ( {/} ) ( {/} ) ) )
+  ( (mktype ({/}) ({/})) eqid ) )
+
+def ( ( $-> T T' )
+  ( if ( /\ ( istype T ) ( istype T' ) )
+    ( mktype ( {|} f ( :--> ( cv f ) ( typeset T ) ( typeset T' ) ) )
+          ( X. ( typeset T ) ( {} ( witness T' ) ) ) )
+    ( notype ) ) )
+
+def ( ( istrue A ) ( = A ( true ) ) )
+thm ( df-istrue ( ) ( ) ( <-> ( istrue A ) ( = A ( true ) ) ) ( (= A (true)) pm4.2 ) )
+def ( ( truthterm ph ) ( if ph ( true ) ( false ) ) )
+thm ( df-truthterm ( ) ( ) ( = ( truthterm ph ) ( if ph ( true ) ( false ) ) )
+  ( (if ph (true) (false)) eqid ) )
+
+def ( ( $= T )
+  ( if ( istype T )
+    ( lambda a T ( lambda b T ( truthterm ( = ( cv a ) ( cv b ) ) ) ) )
+    ( V ) ) )
+def ( ( $==> ) ( lambda a ( bool ) ( lambda b ( bool )
+  ( truthterm ( -> ( istrue ( cv a ) ) ( istrue ( cv b ) ) ) ) ) ) )
+
+# The iota operator is much more straightforward than epsilon (Hilbert-style
+# choice).
+def ( ( $iota T ) ( lambda f ( $-> T ( bool ) )
+  ( if ( E!e. x ( typeset T ) ( istrue ( . ( cv f ) ( cv x ) ) ) )
+    ( U. ( {e.|} x ( typeset T ) ( istrue  ( . ( cv f ) ( cv x ) ) ) ) )
+    ( witness T ) ) ) )
+
+# These defs are used to concisely write sequents in a form suitable
+# for manipulation by inference.
+
+def ( ( $|- G A ) ( /\ ( /\ ( : G ( bool ) ) ( : A ( bool ) ) )
+  ( -> ( istrue G ) ( istrue A ) ) ) )
+thm ( df-$|- ( ) ( )
+  ( <-> ( $|- G A ) ( /\ ( /\ ( : G ( bool ) ) ( : A ( bool ) ) )
+    ( -> ( istrue G ) ( istrue A ) ) ) )
+  ( (/\ (/\ (: G (bool)) (: A (bool))) (-> (istrue G) (istrue A))) pm4.2
+) )
+
+# "notbottom" is the predicate we're exporting for the purpose of doing
+# type inference
+def ( ( notbottom A ) ( -. ( = A ( V ) ) ) )
+thm ( df-notbottom ( ) ( )
+  ( <-> ( notbottom A ) ( -. ( = A ( V ) ) ) )
+  ( (-. (= A (V))) pm4.2 ) )
+
+# Here, typeset(bool) is simply a handy example of a value which is not
+# :bool. Now that app is strict, we probably want to get rid of all
+# this special-case junk.
+def ( ( $, G1 G2 )
+  ( if ( /\ ( : G1 ( bool ) ) ( : G2 ( bool ) ) )
+    ( truthterm ( /\ ( istrue G1 ) ( istrue G2 ) ) )
+    ( typeset ( bool ) ) ) )
+thm ( df-$, ( ) ( )
+  ( = ( $, G1 G2 )
+    ( if ( /\ ( : G1 ( bool ) ) ( : G2 ( bool ) ) )
+      ( truthterm ( /\ ( istrue G1 ) ( istrue G2 ) ) )
+      ( typeset ( bool ) ) ) )
+  ( (if (/\ (: G1 (bool)) (: G2 (bool))) (truthterm (/\ (istrue G1) (istrue G2))) (typeset (bool))) eqid
+) )
+
+# We choose om (the simple set-theoretic construction of the naturals)
+# for our ind type, but other choices would do
+def ( ( $ind ) ( mktype ( om ) ( {/} ) ) )
+thm ( df-$ind ( ) ( )
+  ( = ( $ind ) ( mktype ( om ) ( {/} ) ) )
+  ( (mktype (om) ({/})) eqid ) )
+
+def ( ( $0 ) ( {/} ) )
+thm ( df-$0 ( ) ( ) ( = ( $0 ) ( {/} ) ) ( ({/}) eqid ) )
+
+def ( ( $suc ) ( lambda x ($ind) (suc (var x ($ind)))))
+
+# Now for our thms
+
+# Generic thms that could be moved to set.mm
+
+thm ( ifbii ( ( ph x ) ( ps x ) ( A x ) ( B x ) )
+  ( ( hyp ( <-> ph ps ) ) )
+  ( = ( if ph A B ) ( if ps A B ) )
+  ( hyp ph ps A B ifbi ax-mp ) )
+
+#thm ( ifeq1 ( ) ( )
+#  ( -> ( = A B ) ( = ( if ph A C ) ( if ph B C ) ) )
+#  (   ph A C iftrue B eqeq1d biimpd imp
+#    ph B C iftrue A B = adantr eqtrd exp
+#    ph C A iffalse ph C B iffalse eqtr3d A B = a1d pm2.61i
+#) )
+
+thm ( ifeq1i ( )
+  ( ( hyp ( = A B ) ) )
+  ( = ( if ph A C ) ( if ph B C ) )
+  ( hyp A B ph C ifeq1 ax-mp ) )
+
+#thm ( ifeq2 ( ) ( )
+#  ( -> ( = A B ) ( = ( ded ph C A ) ( ded ph C B ) ) )
+#  ( ph C A iftrue ph C B iftrue eqtr3d A B = a1d
+#      ph A C iffalse B eqeq1d biimpd imp
+#    ph B C iffalse A B = adantr eqtrd exp pm2.61i
+#) )
+
+thm ( ifeq2i ( )
+  ( ( hyp ( = A B ) ) )
+  ( = ( if ph C A ) ( if ph C B ) )
+  ( hyp A B ph C ifeq2 ax-mp ) )
+
+# similar proof as op1sta
+thm ( fstval ( ) ( ( isset.A ( e. A (V) ) ) ( isset.B ( e. B (V) ) ) )
+  ( = ( fst ( <,> A B ) ) A )
+  ( (<,> A B) df-fst
+    A B dmsnop unieqi isset.A unisn eqtr
+    eqtr
+) )
+
+thm ( fsteq ( ) ( )
+  ( -> ( = A B ) ( = ( fst A ) ( fst B ) ) )
+  ( A B sneq ({} A) ({} B) dmeq syl unieqd
+    A df-fst B df-fst 3eqtr4g
+) )
+
+thm ( fsteqi ( )
+  ( ( hyp ( = A B ) ) )
+  ( = ( fst A ) ( fst B ) )
+  ( hyp A B fsteq ax-mp ) )
+
+# This proof doesn't use the hypothesis, because our construction
+# of fst exists even if A is a proper class. However, we retain the
+# hypothesis so that the use of this theorem is robust even if we
+# were to switch to an ordered pair strong enough to hold classes.
+thm ( fstex ( ) ( ( hyp ( e. A ( V ) ) ) ) ( e. ( fst A ) ( V ) )
+  ( A df-fst A snex ({} A) (V) dmexg ax-mp uniex eqeltr ) )
+
+# similar proof as op2nda
+thm ( sndval ( ) ( ( isset.A ( e. A (V) ) ) ( isset.B ( e. B (V) ) ) )
+  ( = ( snd ( <,> A B ) ) B )
+  ( (<,> A B) df-snd
+      isset.A isset.B cnvsn dmeqi B A dmsnop eqtr
+    unieqi isset.B unisn eqtr
+    eqtr
+) )
+
+thm ( sndeq ( ) ( )
+  ( -> ( = A B ) ( = ( snd A ) ( snd B ) ) )
+  ( A B sneq ({} A) ({} B) cnveq syl (`' ({} A)) (`' ({} B)) dmeq syl unieqd
+    A df-snd B df-snd 3eqtr4g
+) )
+
+thm ( sndeqi ( )
+  ( ( hyp ( = A B ) ) )
+  ( = ( snd A ) ( snd B ) )
+  ( hyp A B sndeq ax-mp ) )
+
+# See comments for fstex
+thm ( sndex ( ) ( ( hyp ( e. A ( V ) ) ) ) ( e. ( snd A ) ( V ) )
+  ( A df-snd A snex ({} A) (V) cnvexg ax-mp (`' ({} A)) (V) dmexg ax-mp uniex eqeltr ) )
+
+# Move "at most one" quantifier in and out of substitution. Note how
+# much shorter the proof would be if sbi, sbal, sbex were inferences.
+thm ( sbmo ( ( w z x y ) ( ph y ) ) ( )
+  ( <-> ( [/] ( cv z ) w ( E* x ph ) ) ( E* x ( [/] ( cv z ) w ph ) ) )
+  ( (= (cv x) (cv y)) w ax-17 z sbf bicomi ([/] (cv z) w ph) imbi2i
+    z w ph (= (cv x) (cv y)) sbim bitr4 x albii
+    z w x (-> ph (= (cv x) (cv y))) sbal bitr4 y exbii
+    z w y (A. x (-> ph (= (cv x) (cv y)))) sbex bitr4
+    ([/] (cv z) w ph) y ax-17 x mo2
+    ph y ax-17 x mo2 z w sbbii  3bitr4 bicomi
+) )
+
+# Truth inside and outside of a substitution are equivalent.
+thm ( sbtru ( ) ( ( hyp ph ) )
+  ( [/] ( cv x ) y ph )
+  ( hyp hyp y hbth x sbf mpbir ) )
+
+thm ( sbctru ( ( A y ) ( x y ) ( ph y ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ph ) )
+  ( [/] A x ph )
+  ( hyp.1
+    hyp.2 y x sbtru
+    (cv y) A x ph dfsbcq mpbii
+    vtocle
+) )
+
+# Substitution theorems arguably missing from set.mm
+
+thm ( sbcf1 ( ( A y ) ( x y ) ( ph y ) )
+  ( ( hyp.1 ( -> ph ( A. x ph ) ) )
+    ( hyp.2 ( e. A ( V ) ) ) )
+  ( <-> ph ( [/] A x ph ) )
+  ( hyp.2
+
+    (cv y) A x ph dfsbcq
+    hyp.1 y sbf syl5bbr
+    vtocle
+) )
+
+thm ( sbcb ( ( A y ) ( x y ) ( ph y ) ( ps y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( <-> ph ps ) ) ( <-> ( [/] A x ph ) ( [/] A x ps ) ) )
+  ( hyp
+
+    (cv y) A x (<-> ph ps) dfsbcq
+    y x ph ps sbbi syl5bbr
+    (cv y) A x ph dfsbcq (cv y) A x ps dfsbcq bibi12d bitr3d
+    vtocle
+) )
+
+thm ( sbci2 ( ( A y ) ( x y ) ( ph y ) ( ps y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( -> ph ps ) ) ( -> ( [/] A x ph ) ( [/] A x ps ) ) )
+  ( hyp
+
+    (cv y) A x (-> ph ps) dfsbcq
+    y x ph ps sbim syl5bbr
+    (cv y) A x ph dfsbcq (cv y) A x ps dfsbcq imbi12d bitr3d
+    vtocle
+) )
+
+thm ( sbca ( ( A y ) ( x y ) ( ph y ) ( ps y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( /\ ph ps ) ) ( /\ ( [/] A x ph ) ( [/] A x ps ) ) )
+  ( hyp
+
+    (cv y) A x (/\ ph ps) dfsbcq
+    y x ph ps sban syl5bbr
+    (cv y) A x ph dfsbcq (cv y) A x ps dfsbcq anbi12d bitr3d
+    vtocle
+) )
+
+# "sbco" is taken
+thm ( sbcor2 ( ( A y ) ( x y ) ( ph y ) ( ps y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( \/ ph ps ) ) ( \/ ( [/] A x ph ) ( [/] A x ps ) ) )
+  ( hyp
+
+    (cv y) A x (\/ ph ps) dfsbcq
+    y x ph ps sbor syl5bbr
+    (cv y) A x ph dfsbcq (cv y) A x ps dfsbcq orbi12d bitr3d
+    vtocle
+) )
+
+thm ( sbcn2 ( ( A y ) ( x y ) ( ph y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( -. ph ) ) ( -. ( [/] A x ph ) ) )
+  ( hyp
+
+    (cv y) A x (-. ph) dfsbcq
+    y x ph sbn syl5bbr
+    (cv y) A x ph dfsbcq negbid bitr3d
+    vtocle
+) )
+
+thm ( sbcal2 ( ( x y z ) ( A y z ) ( ph z ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( A. y ph ) ) ( A. y ( [/] A x ph ) ) )
+  ( hyp
+
+    (cv z) A x (A. y ph) dfsbcq
+    z x y ph sbal syl5bbr
+    (= (cv z) A) y ax-17 (cv z) A x ph dfsbcq albid bitr3d
+    vtocle
+) )
+
+thm ( sbcex2 ( ( x y z ) ( A y z ) ( ph z ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( E. y ph ) ) ( E. y ( [/] A x ph ) ) )
+  ( hyp
+
+    (cv z) A x (E. y ph) dfsbcq
+    z x y ph sbex syl5bbr
+    (= (cv z) A) y ax-17 (cv z) A x ph dfsbcq exbid bitr3d
+    vtocle
+) )
+
+thm ( bisbc ( )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( <-> ph ps ) ) )
+  ( <-> ( [/] A x ph ) ( [/] A x ps ) )
+  ( hyp.1 hyp.2 x sbctru
+    hyp.1 x ph ps sbcb mpbi
+) )
+
+thm ( bisbcd ( )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( -> ph ( A. x ph ) ) )
+    ( hyp.3 ( -> ph ( <-> ps ch ) ) ) )
+  ( -> ph ( <-> ( [/] A x ps ) ( [/] A x ch ) ) )
+  ( hyp.1 hyp.3 x sbctru
+    hyp.1 x ph (<-> ps ch) sbci2 mpbi
+    hyp.2 hyp.1 sbcf1 bicomi
+    hyp.1 x ps ch sbcb 3imtr3
+) )
+
+thm ( hbsbc1f ( ( x y ) ( A y ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( -> ph ( A. y ph ) ) ) )
+  ( -> ( [/] A x ph ) ( A. y ( [/] A x ph ) ) )
+  ( hyp.1 hyp.2 x sbctru
+    hyp.1 x ph (A. y ph) sbci2 mpbi
+    hyp.1 x y ph sbcal2 sylib
+) )
+
+# If two wff's are equivalent and x is not free in one, it is not free
+# in the other. Useful for substituting definitions into fv hyps.
+thm ( bihb ( )
+  ( ( hyp.1 ( -> ph ( A. x ph ) ) )
+    ( hyp.2 ( <-> ph ps ) ) )
+  ( -> ps ( A. x ps ) )
+  ( hyp.1 hyp.2 hyp.2 x albii imbi12i mpbi ) )
+
+# A small theory of "not free in class"
+def ( ( Nfi x A ) ( A. y ( <-> ( e. ( cv y ) A ) ( A. x ( e. ( cv y ) A ) ) ) ) )
+thm (df-Nfi-half ((x y y') (A y y')) ( )
+  (<-> (A. y (<-> (e. (cv y) A) (A. x (e. (cv y) A ))))
+    (A. y' (<-> (e. (cv y') A) (A. x (e. (cv y') A )))))
+  ( (cv y) (cv y') A eleq1
+    (= (cv y) (cv y')) x ax-17 (cv y) (cv y') A eleq1 albid bibi12d cbvalv
+) )
+
+thm ( df-Nfi ((x y z) (x y' z) (A y z) (A y')) ( )
+  ( <-> ( Nfi x A ) ( A. y' ( <-> ( e. ( cv y' ) A ) ( A. x ( e. ( cv y' ) A ) ) ) ) )
+  (y A x z df-Nfi-half
+     y' A x z df-Nfi-half
+   bitr4
+) )
+
+thm ( dvNfi ( ( A x y ) ) ( )
+  ( Nfi x A )
+  ( (e. (cv y) A) x ax-17 19.3r y ax-gen
+    x A y df-Nfi mpbir
+) )
+
+thm ( Nfiel1 ( ( x y ) ( A y ) ) ( ( hyp ( Nfi x A ) ) )
+  ( -> ( e. ( cv y ) A ) ( A. x ( e. ( cv y ) A ) ) )
+  ( hyp x A y df-Nfi mpbi a4i biimp
+) )
+
+# A little theory of explicit substitution. Likely, this should go into
+# its own module.
+
+# A note: a similar construction is used in sbab
+
+# def ( ( [:=] x A B ) ( {|} y ( [/] A x ( e. ( cv y ) B ) ) ) )
+def ( ( [:=] x A B ) ( {|} y ( e. A ( {|} x ( e. ( cv y ) B ) ) ) ) )
+thm (df-[:=]-half ( ( x y y' ) ( A y y' ) ( B y y' ) ) ( )
+  (= ({|} y (e. A ({|} x (e. (cv y) B))))
+     ({|} y' (e. A ({|} x (e. (cv y') B)))))
+  ( (= (cv y) (cv y')) x ax-17 (cv y) (cv y') B eleq1 abbid A eleq2d cbvabv
+) )
+thm (df-[:=] ((x y z) (A y z) (B y z) (x y' z) (A y') (B y')) ( )
+  ( = ( [:=] x A B ) ( {|} y' ( e. A ( {|} x ( e. ( cv y' ) B ) ) ) ) )
+  ( y A x B z df-[:=]-half
+      y' A x B z df-[:=]-half
+    eqtr4
+) )
+
+thm ( df[:=]2 ( ( x y ) ( A y ) ( B y ) ) ( )
+  ( = ( [:=] x A B ) ( {|} y ( [/] A x ( e. ( cv y ) B ) ) ) )
+  ( x A B y df-[:=]
+    A x (e. (cv y) B) df-sbc y abbii eqtr4
+) )
+
+# inference from implicit substitution to explicit substitution
+thm ( imps2exps ( ( A y ) ( B x y ) ( C x y ) )
+  ( ( hyp.1 ( e. B ( V ) ) )
+    ( hyp.2 ( -> ( = ( cv x ) B ) ( = A C ) ) ) )
+  ( = ( [:=] x B A ) C )
+  ( x B A y df-[:=]
+    hyp.1 hyp.2 A C (cv y) eleq2 syl elab y abbii
+    y C abid2 eqtr
+    eqtr
+) )
+
+# An inference from implicit substitution to explicit substitution, with
+# "x not free in C" as a hyp rather than a dv constraint. Note that hyp.3
+# is equivalent to ( Nfi x C ) if we choose to use that def.
+thm ( imps2expsf ( ( A y ) ( B x y ) ( C y ) )
+  ( ( hyp.1 ( e. B ( V ) ) )
+    ( hyp.2 ( -> ( = ( cv x ) B ) ( = A C ) ) )
+    ( hyp.3 ( -> ( e. ( cv y ) C ) ( A. x ( e. ( cv y ) C ) ) ) ) )
+  ( = ( [:=] x B A ) C )
+  ( x B A y df-[:=]
+    hyp.3
+    hyp.1 hyp.2 A C (cv y) eleq2 syl elabf y abbii
+    y C abid2 eqtr
+    eqtr
+) )
+
+# inference from explicit substitution to implicit substitution
+thm ( exps2imps ( ( A y ) ( B x y ) ( C x y ) )
+  ( ( hyp ( = ( [:=] x B A ) C ) ) )
+  ( -> ( = ( cv x ) B ) ( = A C ) )
+  ( x B (e. (cv y) A) ceqex
+
+    hyp x B A y df-[:=] eqtr3
+    B x (e. (cv y) A) clelab y abbii eqtr
+    abeq2i
+
+    syl6bbr eqrdv
+) )
+
+thm ( expsvar ( ( x y z ) ( A y z ) ) ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A ( cv x ) ) A )
+  ( x A (cv x) y df-[:=]
+    (cv x) (cv z) (cv y) eleq2 cbvabv A eleq2i
+    hyp (cv z) A (cv y) eleq2 elab bitr y abbii
+    y A abid2 eqtr
+    eqtr
+) )
+
+# Substitution of a variable not free does not affect a term.
+thm ( expsf ( ( x y z ) ( A y z ) ( B x y z ) ) ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A B ) B )
+  ( x A B y df-[:=]
+    (e. (cv y) B) pm4.2 (= (cv x) (cv z)) a1i cbvabv A eleq2i
+    hyp (e. (cv y) B) pm4.2 (= (cv z) A) a1i elab bitr y abbii
+    y B abid2 eqtr
+    eqtr
+) )
+
+# Substitution of a variable not free does not affect a term, explicit
+# "not free in" hypothesis version.
+thm ( expsff ( ( x y z ) ( A y z ) ( B y z ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( -> ( e. ( cv y ) B ) ( A. x ( e. ( cv y ) B ) ) ) ) )
+  ( = ( [:=] x A B ) B )
+  ( x A B y df-[:=]
+    (e. (cv y) B) z ax-17
+    hyp.2
+    (e. (cv y) B) pm4.2 (= (cv x) (cv z)) a1i cbvab A eleq2i
+    hyp.1 (e. (cv y) B) pm4.2 (= (cv z) A) a1i elab bitr y abbii
+    y B abid2 eqtr
+    eqtr
+) )
+
+# An equivalence relating explicit substitution of terms with explicit
+# substitution of wff's. Note that this proof uses df-sbc, which goes
+# against the recommendations in set.mm to use a weaker defn.
+# Probably easier to prove in terms of expssb12
+thm ( expssb1 ( ( A y ) ( B y ) ( C x y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( = ( [:=] x A B ) C ) ( [/] A x ( = B C ) ) )
+  ( C ([:=] x A B) eqcom
+    x A B y df-[:=] C eqeq2i bitr3
+    C y (e. A ({|} x (e. (cv y) B))) abeq2 bitr
+    
+    (e. (cv y) C) x ax-17 hyp sbcf1
+    A x (e. (cv y) B) df-sbc bicomi bibi12i
+    hyp x (e. (cv y) C) (e. (cv y) B) sbcb bitr4 y albii bitr
+    hyp x y (<-> (e. (cv y) C) (e. (cv y) B)) sbcal2 bitr4
+    hyp C B y dfcleq C B eqcom bitr3 x bisbc bitr
+) )
+
+thm ( expssb12 ( ( A y ) ( B y ) ( C y ) ( x y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( = ( [:=] x A B ) ( [:=] x A C ) ) ( [/] A x ( = B C ) ) )
+  ( ([:=] x A B) ([:=] x A C) y dfcleq
+    x A B y df[:=]2 (cv y) eleq2i
+    y ([/] A x (e. (cv y) B)) abid bitr
+    x A C y df[:=]2 (cv y) eleq2i
+    y ([/] A x (e. (cv y) C)) abid bitr bibi12i
+    hyp x (e. (cv y) B) (e. (cv y) C) sbcb bitr4 y albii
+    hyp x y (<-> (e. (cv y) B) (e. (cv y) C)) sbcal2 bitr4
+    hyp B C y dfcleq x bisbc bitr4 bitr
+) )
+
+thm ( expssb2 ( ( C x ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( = C ( [:=] x A B ) ) ( [/] A x ( = C B ) ) )
+  ( hyp x C expsf ([:=] x A B) eqeq1i
+    hyp x C B expssb12 bitr3
+) )
+
+thm ( expssbel ( ( A y ) ( B y ) ( C y ) ( x y ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( e. ( [:=] x A B ) ( [:=] x A C ) ) ( [/] A x ( e. B C ) ) )
+  ( x A C y df[:=]2 ([:=] x A B) eleq2i
+    ([:=] x A B) y ([/] A x (e. (cv y) C)) clelab bitr
+    hyp (cv y) x B expssb2 ([/] A x (e. (cv y) C)) anbi1i
+    hyp x (= (cv y) B) (e. (cv y) C) sbca bitr4 y exbii bitr
+    hyp x y (/\ (= (cv y) B) (e. (cv y) C)) sbcex2 bitr4
+    hyp B C y df-clel x bisbc bitr4
+) )
+
+thm ( expseq1 ( ( A y ) ( B y ) ( C y ) ( x y ) ) ( )
+  ( -> ( = A B ) ( = ( [:=] x A C ) ( [:=] x B C ) ) )
+  ( (= A B) y ax-17 A B x (e. (cv y) C) dfsbcq abbid
+    x A C y df[:=]2
+    x B C y df[:=]2 3eqtr4g
+) )
+
+thm ( expseq2i ( )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( = B C ) ) )
+  ( = ( [:=] x A B ) ( [:=] x A C ) )
+  ( hyp.1 hyp.2 x sbctru
+    hyp.1 x B C expssb12 mpbir
+) )
+
+thm ( expseq2d ( ( ph x ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( -> ph ( = B C ) ) ) )
+  ( -> ph ( = ( [:=] x A B ) ( [:=] x A C ) ) )
+  ( hyp.1 hyp.2 x sbctru hyp.1 x ph (= B C) sbci2 mpbi
+    ph x ax-17 hyp.1 sbcf1
+    hyp.1 x B C expssb12 3imtr4
+) )
+
+thm ( expsex ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( e. B ( V ) ) ) )
+  ( e. ( [:=] x A B ) ( V ) )
+  ( 
+    hyp.1 hyp.2 y isseti (cv y) B eqcom y exbii mpbi x sbctru
+    hyp.1 x y (= B (cv y)) sbcex2 mpbi
+
+    hyp.1 x B (cv y) expssb1 y exbii mpbir
+    ([:=] x A B) (cv y) eqcom y exbii mpbi issetri
+) )
+
+thm ( expsex1 ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp ( e. B ( V ) ) ) )
+  ( -> ( e. A ( V ) ) ( e. ( [:=] x A B ) ( V ) ) )
+  ( A (if (e. A (V)) A ({/})) x B expseq1 (V) eleq1d
+    A (if (e. A (V)) A ({/})) (V) eleq1
+    ({/}) (if (e. A (V)) A ({/})) (V) eleq1
+    0ex elimhyp
+    hyp x expsex dedth
+) )
+
+# A thm from an older set.mm, seems to be subsumed by hbsbc now
+thm ( hbsbcl ( ( x y ) ( x z ) ( y z ) ( A y ) ( A z ) ( ph z ) )
+  ( ( hbsbcl.1 ( -> ( e. ( cv y ) A ) ( A. x ( e. ( cv y ) A ) ) ) ) )
+  ( -> ( e. A ( V ) ) ( -> ( [/] A x ph ) ( A. x ( [/] A x ph ) ) ) )
+  ( (cv z) A x ph dfsbcq (e. (cv y) (cv z)) x ax-17 hbsbcl.1 hbeq (cv z) A x ph dfsbcq albid z x ph hbs1 syl5bi sylbird (V) vtocleg ) )
+
+# If x is not free in A, it is not free in [ x := A ] B.
+thm ( hbexpsc ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp ( -> ( e. ( cv y ) A ) ( A. x ( e. ( cv y ) A ) ) ) ) )
+  ( -> ( e. A ( V ) )
+       ( -> ( e. ( cv y ) ( [:=] x A B ) ) ( A. x ( e. ( cv y ) ( [:=] x A B ) ) ) ) )
+  ( hyp (e. (cv y) B) hbsbcl
+      x A B y df[:=]2 (cv y) eleq2i
+    y ([/] A x (e. (cv y) B)) abid bitr
+      x A B y df[:=]2 (cv y) eleq2i
+    y ([/] A x (e. (cv y) B)) abid bitr x albii imbi12i
+    sylibr
+) )
+
+# Same as expsfv, but with slightly weaker existence assumptions
+thm ( expsfv2 ( ( x y z ) ( A y z ) ( B y z ) ( C y z ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( e. ( [:=] x A B ) ( V ) ) )
+    ( hyp.3 ( e. ( [:=] x A C ) ( V ) ) ) )
+  ( = ( [:=] x A ( ` B C ) ) ( ` ( [:=] x A B ) ( [:=] x A C ) ) )
+  ( hyp.3
+    hyp.2
+
+    hyp.1
+    (cv z) C (cv y) fveq2
+    (cv y) B C fveq1 sylan9eqr x sbctru
+    hyp.1 x (/\ (= (cv y) B) (= (cv z) C)) (= (` (cv y) (cv z)) (` B C)) sbci2 mpbi
+    hyp.1 x (= (cv y) B) (= (cv z) C) sbca
+    hyp.1 (cv y) x B expssb2
+    hyp.1 (cv z) x C expssb2 anbi12i bitr4 bicomi
+    hyp.1 (` (cv y) (cv z)) x (` B C) expssb2 3imtr4
+    (cv z) ([:=] x A C) (cv y) fveq2
+    (cv y) ([:=] x A B) ([:=] x A C) fveq1 sylan9eqr eqtr3d
+    ex vtocle vtocle
+) )
+
+thm ( expsfv ( ( x y z ) ( A y z ) ( B y z ) ( C y z ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( e. B ( V ) ) )
+    ( hyp.3 ( e. C ( V ) ) ) )
+  ( = ( [:=] x A ( ` B C ) ) ( ` ( [:=] x A B ) ( [:=] x A C ) ) )
+  ( hyp.1
+    hyp.1 hyp.2 x expsex
+    hyp.1 hyp.3 x expsex
+    expsfv2
+) )
+
+# Substitution moves through abstraction when the abstraction variable is
+# distinct from both the substitution variable and its replacement.
+thm ( expsab ( ( x y ) ( A y z ) ( x z ) ( ph z ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A ( {|} y ph ) ) ( {|} y ( [/] A x ph ) ) )
+  ( x A ({|} y ph) z df[:=]2
+
+    hyp z y ph hbab1 x hbsbc1f
+    ([/] A x ph) z ax-17
+
+    hyp (= (cv z) (cv y)) x ax-17
+    (cv z) (cv y) ({|} y ph) eleq1
+    y ph abid syl6bb bisbcd
+    cbvab eqtr
+) )
+
+thm ( expsopab ( ( A w y z ) ( w x y z ) ( w ph ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A ( {<,>|} y z ph ) ) ( {<,>|} y z ( [/] A x ph ) ) )
+  ( hyp y z ph w df-opab x expseq2i
+    hyp x w (E. y (E. z (/\ (= (cv w) (<,> (cv y) (cv z))) ph))) expsab eqtr
+
+    hyp x (= (cv w) (<,> (cv y) (cv z))) ph sbca
+    (= (cv w) (<,> (cv y) (cv z))) x ax-17 hyp sbcf1 ([/] A x ph) anbi1i bitr4 z exbii bicomi
+    hyp x z (/\ (= (cv w) (<,> (cv y) (cv z))) ph) sbcex2 bitr4 y exbii
+
+    hyp x y (E. z (/\ (= (cv w) (<,> (cv y) (cv z))) ph)) sbcex2 bitr4 w abbii eqtr4
+    y z ([/] A x ph) w df-opab eqtr4
+) )
+
+thm ( expsded ( ( x y z ) ( ph y z ) ( y z A ) ( y z B ) ( y z C ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A ( if ph B C ) ) ( if ( [/] A x ph ) ( [:=] x A B ) ( [:=] x A C ) ) )
+  ( hyp ph B C y df-if x expseq2i
+    x A ({|} y (\/ (/\ (e. (cv y) B) ph) (/\ (e. (cv y) C) (-. ph)))) z df[:=]2 eqtr
+    hyp x (cv z) ({|} y (\/ (/\ (e. (cv y) B) ph) (/\ (e. (cv y) C) (-. ph)))) expssbel
+    hyp x (cv z) expsf
+    hyp x y (\/ (/\ (e. (cv y) B) ph) (/\ (e. (cv y) C) (-. ph))) expsab
+      hyp x (/\ (e. (cv y) B) ph) (/\ (e. (cv y) C) (-. ph)) sbcor2
+        hyp x (e. (cv y) B) ph sbca
+          hyp x (cv y) B expssbel
+            hyp x (cv y) expsf ([:=] x A B) eleq1i
+          bitr3 ([/] A x ph) anbi1i
+        bitr
+        hyp x (e. (cv y) C) (-. ph) sbca
+          hyp x (cv y) C expssbel
+            hyp x (cv y) expsf ([:=] x A C) eleq1i
+          bitr3
+          hyp x ph sbcn2
+        anbi12i bitr
+      orbi12i bitr y abbii eqtr
+    eleq12i bitr3 z abbii eqtr
+    z ({|} y (\/ (/\ (e. (cv y) ([:=] x A B)) ([/] A x ph)) (/\ (e. (cv y) ([:=] x A C)) (-. ([/] A x ph))))) abid2 eqtr
+    ([/] A x ph) ([:=] x A B) ([:=] x A C) y df-if eqtr4
+) )
+
+# A general inference for substitution through unary operators. Typically,
+# you'd instantiate hyp1 and hyp2 with the equality theorem for the
+# operator.
+thm ( expsoper ( ( x y ) ( A y ) ( B y ) ( C x ) ( D y ) ( E y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. ( [:=] x A B ) ( V ) ) )
+    ( hyp1 ( -> ( = ( cv y ) B ) ( = C D ) ) )
+    ( hyp2 ( -> ( = ( cv y ) ( [:=] x A B ) ) ( = C E ) ) ) )
+  ( = ( [:=] x A D ) E )
+  ( hyp.B
+
+        hyp.A (cv y) x B expssb2
+        hyp.A hyp1 x sbctru
+        hyp.A x (= (cv y) B) (= C D) sbci2 mpbi sylbi
+      hyp.A C x D expssb2 sylibr
+      hyp2
+    eqtr3d vtocle
+) )
+
+thm ( expsop1 ( ( C x ) ( x y ) ( A y ) ( B y ) ( C y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. B ( V ) ) )
+    ( hyp.C ( e. C ( V ) ) ) )
+  ( = ( [:=] x A ( <,> B C ) ) ( <,> ( [:=] x A B ) C ) )
+  ( hyp.A
+    hyp.A hyp.B x expsex
+    y visset hyp.C hyp.C B opth C eqid mpbiran2 biimpr
+    y visset hyp.C hyp.C ([:=] x A B) opth C eqid mpbiran2 biimpr
+    expsoper
+) )
+
+# Deduction from implicit substitution to explicit substitution.
+thm ( imps2expsd ( ( A y ) ( B x y ) ( C x y ) ( ph x y ) )
+  ( ( hyp.1 ( e. B ( V ) ) )
+    ( hyp.2 ( -> ph ( -> ( = ( cv x ) B ) ( = A C ) ) ) ) )
+  ( -> ph ( = ( [:=] x B A ) C ) )
+  ( ph x ax-17 hyp.1 sbcf1
+    ([:=] x B A) (if ([/] B x ph) ([:=] x B A) ([:=] x B C)) C eqeq2
+
+    hyp.1
+      ph A C iftrue eqcomd (= (cv x) B) adantr
+      hyp.2 imp eqtr3d ex
+      ph A C iffalse (= (cv x) B) a1d pm2.61i
+    imps2exps
+    hyp.1 x ph A C expsded eqtr3
+
+    dedth sylbi eqcomd
+) )
+
+# A form of the law of concretion, expressed using explicit substitution
+thm ( sbcop1 ( ( x y z ) ( A z ) ( ph z ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ph ) ( e. ( <,> A ( cv y ) ) ( {<,>|} x y ph ) ) )
+  ( hyp x y ph opabid bicomi x bisbc
+    hyp x (<,> (cv x) (cv y)) ({<,>|} x y ph) expssbel bitr4
+        hyp x visset y visset x expsop1
+      hyp x expsvar ([:=] x A (cv x)) A (cv y) opeq1 ax-mp eqtr
+      hyp z x y ph hbopab1 expsff
+    eleq12i bitr
+) )
+
+
+
+# An alternate def of istype that may be handier in proofs.
+# Note something really odd - it's equivalent to T e. `' E. If we put the
+# witness first and the set second, the defn would be equivalent to T e. E.
+thm ( dfistype2 ( ( T x y ) ) ( )
+  ( <-> ( istype T ) ( e. T ( {<,>|} x y ( e. ( cv y ) ( cv x ) ) ) ) )
+  ( T x y df-istype T x y (e. (cv y) (cv x)) elopab bitr4 ) )
+
+thm ( typeex ( ( T x y ) ) ( ( hyp ( istype T ) ) )
+  ( e. T ( V ) )
+  ( hyp T x y dfistype2 mpbi elisseti ) )
+
+
+thm ( typeseteq ( ) ( ) 
+  ( -> ( = A B ) ( = ( typeset A ) ( typeset B ) ) )
+  ( A B fsteq A df-typeset B df-typeset 3eqtr4g ) )
+
+thm ( typeseteqi ( ) ( ( hyp ( = A B ) ) )
+  ( = ( typeset A ) ( typeset B ) )
+  ( hyp A B typeseteq ax-mp ) )
+
+thm ( typesetex ( ) ( ( hyp ( istype T ) ) )
+  ( e. ( typeset T ) ( V ) )
+  ( T df-typeset hyp typeex fstex eqeltr ) )
+
+thm ( typesetval1 ( )
+  ( ( isset.A ( e. A (V) ) )
+    ( isset.B ( e. B (V) ) ) )
+  ( = ( typeset ( mktype A B ) ) A )
+  ( A B df-mktype typeseteqi
+    (<,> A B) df-typeset eqtr
+    isset.A isset.B fstval eqtr    
+) )
+
+# I'd like to remove the isset hyps, which can be done using the
+# "peculiar" properties of the ordered pair construction.
+thm ( typesetval ( )
+  ( ( isset.A ( e. A (V) ) )
+    ( isset.B ( e. B (V) ) )
+    ( hyp ( istype ( mktype A B ) ) ) )
+  ( = ( typeset ( mktype A B ) ) A )
+  ( A B df-mktype typeseteqi
+    (<,> A B) df-typeset eqtr
+    isset.A isset.B fstval eqtr    
+) )
+
+thm ( witnesseq ( ) ( ) 
+  ( -> ( = A B ) ( = ( witness A ) ( witness B ) ) )
+  ( A B sndeq A df-witness B df-witness 3eqtr4g ) )
+
+thm ( witnesseqi ( ) ( ( hyp ( = A B ) ) )
+  ( = ( witness A ) ( witness B ) )
+  ( hyp A B witnesseq ax-mp ) )
+
+thm ( witnessex ( ) ( ( hyp ( istype T ) ) )
+  ( e. ( witness T ) ( V ) )
+  ( T df-witness hyp typeex sndex eqeltr ) )
+
+thm ( witnessval1 ( )
+  ( ( isset.A ( e. A (V) ) )
+    ( isset.B ( e. B (V) ) ) )
+  ( = ( witness ( mktype A B ) ) B )
+  ( A B df-mktype witnesseqi
+    (<,> A B) df-witness eqtr
+    isset.A isset.B sndval eqtr    
+) )
+
+thm ( istypeeq ( ( A x y ) ( B x y ) ) ( )
+  ( -> ( = A B ) ( <-> ( istype A ) ( istype B ) ) )
+  ( A B ({<,>|} x y (e. (cv y) (cv x))) eleq1
+    A x y dfistype2
+    B x y dfistype2
+    3bitr4g
+) )
+
+thm ( istypeeqi ( ) ( ( hyp ( = A B ) ) )
+  ( <-> ( istype A ) ( istype B ) )
+  ( hyp A B istypeeq ax-mp
+) )
+
+thm ( mktype1 ( ( T x y ) ) ( ( hyp ( istype T ) ) )
+  ( = ( mktype ( typeset T ) ( witness T ) ) T )
+  ( hyp T x y df-istype mpbi
+    T (<,> (cv x) (cv y)) fsteq
+    x visset y visset fstval syl6eq
+    T (<,> (cv x) (cv y)) sndeq
+    x visset y visset sndval syl6eq jca
+    (fst T) (cv x) (snd T) (cv y) opeq12 syl
+    (= T (<,> (cv x) (cv y))) id eqtr4d
+    (e. (cv y) (cv x)) adantr
+    x y 19.23aivv ax-mp
+) )
+# Note: missing a bunch of definitional steps here
+
+thm ( witness1 ( ( T x y ) ) ( ( hyp ( istype T ) ) )
+  ( e. ( witness T ) ( typeset T ) )
+  ( hyp T x y df-istype mpbi
+    T (<,> (cv x) (cv y)) sndeq
+    x visset y visset sndval syl6eq
+    T (<,> (cv x) (cv y)) fsteq
+    x visset y visset fstval syl6eq jca
+    (snd T) (cv y) (fst T) (cv x) eleq12 syl biimpar
+    x y 19.23aivv ax-mp
+) )
+
+thm ( witness2 ( ) ( ( hyp ( istype T ) ) )
+  ( : ( witness T ) T )
+  ( hyp hyp witness1 pm3.2i (witness T) T df-: mpbir
+) )
+
+thm ( mktypethm ( ( A x y ) ( B x y ) )
+  ( ( hyp.1 ( e. B A ) )
+    ( hyp.2 ( e. A ( V ) ) ) )
+  ( istype ( mktype A B ) )
+  ( hyp.1
+    (<,> A B) x y dfistype2
+      hyp.2
+      hyp.1 elisseti
+      (cv x) A (cv y) eleq2
+      (cv y) B A eleq1
+    opelopab bitr mpbir
+    A B df-mktype istypeeqi mpbir
+) )
+
+thm ( boolistype ( ) ( ) ( istype ( bool ) )
+  ( df-false 0ex eqeltr (true) pri1
+    (false) (true) prex
+    mktypethm
+    df-bool istypeeqi mpbir
+) )
+
+thm (indistype () () (istype ($ind))
+  (  peano1 omex mktypethm
+    df-$ind istypeeqi mpbir
+))
+
+thm ( df-arrow-half ((T f g) (T' f g)) ( )
+  (=
+    ( if ( /\ ( istype T ) ( istype T' ) )
+      ( mktype ( {|} f ( :--> ( cv f ) ( typeset T ) ( typeset T' ) ) )
+     	     ( X. ( typeset T ) ( {} ( witness T' ) ) ) )
+      ( notype ) )
+    ( if ( /\ ( istype T ) ( istype T' ) )
+      ( mktype ( {|} g ( :--> ( cv g ) ( typeset T ) ( typeset T' ) ) )
+     	     ( X. ( typeset T ) ( {} ( witness T' ) ) ) )
+      ( notype ) ) )
+ ( (cv f) (cv g) (fst T) (fst T') feq1 cbvabv (X. (typeset T) ({} (snd T'))) mktypeeq1
+   (/\ (istype T) (istype T')) (notype) ifeq1i
+) )
+thm ( df-arrow ((T f f') (T' f f') (T g f') (T' g f')) ()
+  ( = ( $-> T T' )
+    ( if ( /\ ( istype T ) ( istype T' ) )
+      ( mktype ( {|} g ( :--> ( cv g ) ( typeset T ) ( typeset T' ) ) )
+     	     ( X. ( typeset T ) ( {} ( witness T' ) ) ) )
+      ( notype ) ) )
+  (T T' f f' df-arrow-half
+     T T' g f' df-arrow-half
+   eqtr4
+) )
+
+thm ( arrow1 ( ( T g ) ( T' g ) )
+  ( ( hyp.1 ( istype T ) )
+    ( hyp.2 ( istype T' ) ) )
+  ( = ( $-> T T' )
+     ( mktype ( {|} g ( :--> ( cv g ) ( typeset T ) ( typeset T' ) ) )
+     	     ( X. ( typeset T ) ( {} ( witness T' ) ) ) ) )
+  ( T T' g df-arrow
+    hyp.1 hyp.2
+      (/\ (istype T) (istype T')) (mktype ({|} g (:--> (cv g) (typeset T) (typeset T'))) (X. (typeset T) ({} (witness T')))) (notype) iftrue mp2an eqtr
+) )
+
+thm ( notypenotatype ( ( x y ) ) ( )
+  ( -. ( istype ( notype ) ) )
+  ( ({/}) noel
+
+    df-notype istypeeqi (mktype ({/}) ({/})) x y dfistype2 bitr
+    ({/}) ({/}) df-mktype ({<,>|} x y (e. (cv y) (cv x))) eleq1i bitr
+      0ex 0ex
+      (cv x) ({/}) (cv y) eleq2
+      (cv y) ({/}) ({/}) eleq1
+    opelopab bitr mtbir
+) )
+
+# with arrowistype, below, in theorem form, the implication can be
+# strenghtened to a biconditional.
+thm ( arrow2 ( ( T g ) ( T' g ) ) ( )
+  ( -> ( istype ( $-> T T' ) ) ( /\ ( istype T ) ( istype T' ) ) )
+  ( notypenotatype
+    (/\ (istype T) (istype T'))
+      (mktype ({|} g (:--> (cv g) (typeset T) (typeset T'))) (X. (typeset T) ({} (witness T')))) (notype) iffalse
+    T T' g df-arrow syl5req
+    (notype) ($-> T T') istypeeq syl mtbii a3i
+) )
+
+thm ( arrow2i1 ( )
+  ( ( hyp ( istype ( $-> T T' ) ) ) )
+  ( istype T )
+  ( hyp T T' arrow2 ax-mp pm3.26i ) )
+
+thm ( arrow2i2 ( )
+  ( ( hyp ( istype ( $-> T T' ) ) ) )
+  ( istype T' )
+  ( hyp T T' arrow2 ax-mp pm3.27i ) )
+
+# Power set axiom, expressed with powerset in abstraction notation
+thm ( arrowistypelem1 ( ( x A ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( e. ( {|} x ( C_ ( cv x ) A ) ) ( V ) )
+  ( A x df-pw hyp pwex eqeltrr ) )  
+
+# The set of all functions from set A to set B is a set; incorporated into
+# new set.mm as mapex
+thm ( arrowistypelem2 ( ( A f ) ( B f ) )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.2 ( e. B ( V ) ) ) )
+  ( e. ( {|} f ( :--> ( cv f ) A B ) ) ( V ) )
+  ( hyp.1 hyp.2 xpex f arrowistypelem1
+    (cv f) A B fssxp 
+    f ss2abi
+    ssexi
+) )
+
+thm ( arrowistype ( ( T f ) ( T' f ) )
+  ( ( hyp.1 ( istype T ) )
+    ( hyp.2 ( istype T' ) ) )
+  ( istype ( $-> T T' ) )
+  ( hyp.2 witnessex (typeset T) fconst
+    hyp.2 witness1 (witness T') (typeset T') snssi ax-mp
+    (X. (typeset T) ({} (witness T'))) (typeset T) ({} (witness T')) (typeset T') fss
+    mp2an 
+    hyp.1 typesetex (witness T') snex xpex
+    (cv f) (X. (typeset T) ({} (witness T'))) (typeset T) (typeset T') feq1 elab mpbir
+    hyp.1 typesetex hyp.2 typesetex f arrowistypelem2 mktypethm
+    hyp.1 hyp.2 f arrow1 istypeeqi mpbir
+) )
+
+
+thm ( :eq1i ( ) ( ( hyp ( = A B ) ) )
+  ( <-> ( : A T ) ( : B T ) )
+  ( hyp (typeset T) eleq1i (istype T) anbi2i
+    A T df-:
+    B T df-:
+    3bitr4
+) )
+
+thm ( typeel ( ) ( ( hyp ( : A T ) ) )
+  ( e. A ( typeset T ) )
+  ( hyp A T df-: mpbi pm3.27i ) )
+
+thm ( typeistype ( ) ( ( hyp ( : A T ) ) )
+  ( istype T )
+  ( hyp A T df-: mpbi pm3.26i ) )
+
+thm ( castel ( ( T x y ) )
+  ( ( hyp ( istype T ) ) )
+  ( e. ( cast A T ) ( typeset T ) )
+  ( A T df-cast
+      
+    hyp witness1 A elimel
+    eqeltr
+) )
+
+thm ( casteq1 ( ) ( )
+  ( -> ( = A B ) ( = ( cast A T ) ( cast B T ) ) )
+  (
+    A B (typeset T) eleq1 (e. A (typeset T)) (e. B (typeset T)) A (witness T) ifbi syl
+    A B (e. B (typeset T)) (witness T) ifeq1 eqtrd
+    A T df-cast
+    B T df-cast 3eqtr4g
+) )
+
+thm ( casteq1i ( )
+  ( ( hyp ( = A B ) ) )
+  ( = ( cast A T ) ( cast B T ) )
+  ( hyp A B T casteq1 ax-mp ) )
+
+thm ( castt ( ) ( )
+  ( -> ( : A T ) ( = ( cast A T ) A ) )
+  ( A T df-: (istype T) (e. A (typeset T)) pm3.27 sylbi
+    (e. A (typeset T)) A (witness T) iftrue syl
+    A T df-cast syl5eq
+) )
+
+thm ( expscast ( ( T x ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( = ( [:=] x A ( cast B T ) ) ( cast ( [:=] x A B ) T ) )
+  ( hyp B T df-cast x expseq2i
+    hyp x (e. B (typeset T)) B (witness T) expsded eqtr
+
+      hyp x B (typeset T) expssbel
+      hyp x (typeset T) expsf ([:=] x A B) eleq2i bitr3
+    ([:=] x A B) ([:=] x A (witness T)) ifbii eqtr
+
+      hyp x (witness T) expsf
+    (e. ([:=] x A B) (typeset T)) ([:=] x A B) ifeq2i eqtr
+
+    ([:=] x A B) T df-cast eqtr4
+) )
+
+thm ( vareq1 () ()
+  (-> (= (cv x) (cv y)) (= (var x T) (var y T)))
+  ( (cv x) (cv y) T casteq1 x T df-var y T df-var 3eqtr4g
+))
+
+thm ( var: ( ) ( ( hyp ( istype T ) ) )
+  ( : ( var v T ) T )
+  ( hyp hyp (cv v) castel pm3.2i (cast (cv v) T) T df-: mpbir
+    v T df-var T :eq1i mpbir
+) )
+
+# Note: this should probably be used in a few places where castt is used
+# now.
+thm ( vart ( ) ( )
+  ( -> ( : ( cv x ) T ) ( = ( cv x ) ( var x T ) ) )
+  ( (cv x) T castt x T df-var syl5req
+) )
+
+thm ( sbeqfoo ( ( A x ) ( x y ) ) ( )
+  ( <-> ( [/] ( cv y ) x ( = ( cv x ) A ) ) ( = ( cv y ) A ) )
+  ( (= (cv y) A) x ax-17
+    (cv x) (cv y) A eqeq1
+    sbie
+) )
+
+thm ( truthterm:bool ( ) ( )
+  ( : ( truthterm ph ) ( bool ) )
+  ( boolistype
+
+    ph df-truthterm
+
+    df-true p0ex eqeltr (false) pri2
+    df-false 0ex eqeltr (true) pri1
+    ph keepel eqeltr
+
+    df-bool typeseteqi
+    (false) (true) prex df-false 0ex eqeltr typesetval1 eqtr
+    eleqtrr pm3.2i
+
+    (truthterm ph) (bool) df-: mpbir
+) )
+
+thm ( booltruth ( ) ( )
+  ( <-> ph ( istrue ( truthterm ph ) ) )
+  ( ph (true) (false) iftrue ph df-truthterm syl5eq
+    (truthterm ph) df-istrue sylibr
+    ph (istrue (truthterm ph)) ibib mpbi
+
+    ph (true) (false) iffalse ph df-truthterm syl5eq
+    df-false syl6eq 0nep0
+    (truthterm ph) ({/}) ({} ({/})) eqeq1
+    df-true (truthterm ph) eqeq2i syl5bb
+    (truthterm ph) df-istrue syl5bb
+    negbid mpbiri syl
+    (-. ph) (-. (istrue (truthterm ph))) ibib mpbi con4bid pm2.61i
+) )
+
+# No doubt we can simplify other thms by using this
+thm ( falsenetrue ( ) ( )
+  ( -. ( = ( false ) ( true ) ) )
+  ( 0nep0 df-false df-true eqeq12i mtbir
+) )
+
+thm ( istruetruth ( )
+  ( ( hyp ( : A ( bool ) ) ) )
+  ( = A ( truthterm ( istrue A ) ) )
+  ( hyp typeel
+
+    df-bool typeseteqi
+    (false) (true) prex df-false 0ex eqeltr typesetval1 eqtr
+    eleqtr hyp typeel elisseti (false) (true) elpr mpbi
+
+      falsenetrue A (false) (true) eqeq1 mtbiri
+      A df-istrue negbii sylibr
+      (istrue A) (true) (false) iffalse syl
+      (istrue A) df-truthterm syl5req
+      A (false) (truthterm (istrue A)) eqeq1 mpbird
+
+      A df-istrue (istrue A) (true) (false) iftrue sylbir
+      (istrue A) df-truthterm syl5req
+      A (true) (truthterm (istrue A)) eqeq1 mpbird
+
+    jaoi ax-mp
+) )
+
+thm ( istrueeq ( ) ( )
+  ( -> ( = A B ) ( <-> ( istrue A ) ( istrue B ) ) )
+  ( A B (true) eqeq1
+    A df-istrue
+    B df-istrue 3bitr4g
+) )
+
+thm ( istrueeqi ( )
+  ( ( hyp ( = A B ) ) )
+  ( <-> ( istrue A ) ( istrue B ) )
+  ( hyp A B istrueeq ax-mp 
+) )
+
+thm ( istrueeqd ( )
+  ( ( hyp ( -> ph ( = A B ) ) ) )
+  ( -> ph ( <-> ( istrue A ) ( istrue B ) ) )
+  ( hyp A B istrueeq syl
+) )
+
+thm ( truthbi ( ) ( )
+  ( <-> ( <-> ph ps ) ( = ( truthterm ph ) ( truthterm ps ) ) )
+  ( ph ps (true) (false) ifbi ph df-truthterm ps df-truthterm 3eqtr4g
+
+    (truthterm ph) (truthterm ps) istrueeq
+    ph booltruth
+    ps booltruth 3bitr4g impbi
+) )
+
+thm ( istrueeqbi ( )
+  ( ( hyp.A ( : A ( bool ) ) )
+    ( hyp.B ( : B ( bool ) ) ) )
+  ( <-> ( = A B ) ( <-> ( istrue A ) ( istrue B ) ) )
+  ( hyp.A istruetruth hyp.B istruetruth eqeq12i
+    (istrue A) (istrue B) truthbi bitr4
+) )
+
+thm ( trueistrue ( ) ( )
+  ( istrue ( true ) )
+  ( (true) eqid (true) df-istrue mpbir
+) )
+
+thm ( nfalseistrue ( ) ( )
+  ( -. ( istrue ( false ) ) )
+  ( falsenetrue (false) df-istrue mtbir
+) )
+
+thm ( true:bool ( ) ( )
+  ( : ( true ) ( bool ) )
+  ( boolistype
+    df-true p0ex eqeltr (false) pri2
+    df-bool typeseteqi
+    (false) (true) prex df-false 0ex eqeltr typesetval1 eqtr
+    eleqtrr
+    pm3.2i (true) (bool) df-: mpbir
+) )
+
+thm ( false:bool ( ) ( )
+  ( : ( false ) ( bool ) )
+  ( boolistype
+    df-false 0ex eqeltr (true) pri1
+    df-bool typeseteqi
+    (false) (true) prex df-false 0ex eqeltr typesetval1 eqtr
+    eleqtrr
+    pm3.2i (false) (bool) df-: mpbir
+) )
+
+# This theorem "cheats" a bit, because it's dependent on the particular
+# behavior of istrue for non-bool args.
+thm ( istrue:booli ( )
+  ( ( hyp ( istrue A ) ) )
+  ( : A ( bool ) )
+  ( true:bool hyp A df-istrue mpbi (bool) :eq1i mpbir
+) )
+
+# This thm adds a substitution to the def of lambda.
+thm ( dflambda2 ( ( T v x y z ) ( A x y z ) ) ( )
+  ( = ( lambda v T A )
+     ( {<,>|} x y ( /\ ( : ( cv x ) T ) ( [/] ( cv x ) v ( = ( cv y ) A ) ) ) ) )
+  ( v T A z df-lambda
+
+    (/\ (: (cv v) T) (= (cv z) A)) x ax-17
+    (/\ (: (cv v) T) (= (cv z) A)) y ax-17
+    (: (cv x) T) v ax-17 (= (cv y) A) x ax-17 v hbsb3 hban
+    (/\ (: (cv x) T) ([/] (cv x) v (= (cv y) A))) z ax-17
+
+    (cv v) (cv x) T :eq1 (= (cv z) (cv y)) adantr
+    (cv z) (cv y) A eqeq1
+    v x (= (cv y) A) sbequ12 sylan9bbr anbi12d
+    cbvopab eqtr
+) )
+
+# This could probably be simplified to use df-lambda instead of
+# dflambda2, but would probably require a variant of biopabdv which
+# is not in set.mm.
+thm ( abseq2 ( ( A x y ) ( B x y ) ( T v x y ) ( v x y ) ) ( )
+  ( -> ( A. v ( = A B ) ) ( = ( lambda v T A ) ( lambda v T B ) ) )
+  ( A B (cv y) eqeq2 v 19.20i
+    v (= (cv y) A) (= (cv y) B) x sbba4 syl (: (cv x) T) anbi2d x y opabbidv
+    v T A x y dflambda2
+    v T B x y dflambda2 3eqtr4g
+) )
+
+# The abstraction variable is not free in an abstraction.
+thm ( hbabs1 ( ( T v z ) ( A z ) ( v y ) )
+  ( )
+  ( -> ( e. ( cv y ) ( lambda v T A ) ) ( A. v ( e. ( cv y ) ( lambda v T A ) ) ) )
+  ( y v z (/\ (: (cv v) T) (= (cv z) A)) hbopab1
+    v T A z df-lambda (cv y) eleq2i
+    v T A z df-lambda (cv y) eleq2i v albii 3imtr4
+) )
+
+# Substitution through abstraction when the variables are identical.
+thm ( expsabs1 ( ( T v y ) ( A y ) ( v y ) ( B y ) )
+  ( ( hyp ( e. B ( V ) ) ) )
+  ( = ( [:=] v B ( lambda v T A ) ) ( lambda v T A ) )
+  ( hyp y v T A hbabs1 expsff
+) )
+
+# Substitution through abstraction when the variables are distinct.
+thm ( expsabs2 ( ( x y z ) ( B y y' z ) ( T x y y' z ) ( A y' z ) )
+  ( ( hyp ( e. B ( V ) ) ) )
+  ( = ( [:=] x B ( lambda y T A ) ) ( lambda y T ( [:=] x B A ) ) )
+  ( hyp y T A y' df-lambda x expseq2i
+    hyp x y y' (/\ (: (cv y) T) (= (cv y') A)) expsopab eqtr
+    (: (cv y) T) x ax-17 hyp sbcf1
+    hyp (cv y') x A expssb2 anbi12i
+    hyp x (: (cv y) T) (= (cv y') A) sbca bitr4
+    y y' opabbii eqtr4
+    y T ([:=] x B A) y' df-lambda eqtr4
+) )
+
+thm ( absex ( ( A y ) ( T v y ) )
+  ( ( hyp ( istype T ) ) )
+  ( e. ( lambda v T A ) ( V ) )
+  ( v T A y df-lambda 
+    (cv v) T df-:
+    hyp mpbiran (= (cv y) A) anbi1i v y opabbii eqtr
+
+    hyp typesetex
+    y A moeq (e. (cv v) (typeset T)) a1i funopabex
+    eqeltr
+) )
+
+thm ( exps:i ( ( T x ) )
+  ( ( hyp.1 ( e. B ( V ) ) )
+    ( hyp.2 ( : A T ) ) )
+  ( : ( [:=] x B A ) T )
+  ( hyp.2 typeistype 
+
+    hyp.1 hyp.2 typeel x sbctru
+    hyp.1 x A (typeset T) expssbel mpbir
+    hyp.1 x (typeset T) expsf  ([:=] x B A) eleq2i mpbi
+    pm3.2i ([:=] x B A) T df-: mpbir
+) )
+
+# A useful inference that a function is of arrow type. Note the duplication
+# of the calculation of ( typeset ( $-> T T' ) ) with app: . Note also
+# that hyp.3 follows fairly straightforwardly from hyp.4 through fex,
+# which might allow us to eliminate the proof of absex.
+thm ( isarrow ( ( T y ) ( T' y ) ( F y ) )
+  ( ( hyp.1 ( istype T ) )
+    ( hyp.2 ( istype T' ) )
+    ( hyp.3 ( e. F ( V ) ) )
+    ( hyp.4 ( :--> F ( typeset T ) ( typeset T' ) ) ) )
+  ( : F ( $-> T T' ) )
+  ( hyp.1 hyp.2 arrowistype
+
+    hyp.4 hyp.3 (cv y) F (typeset T) (typeset T') feq1 elab mpbir
+    hyp.1 hyp.2 y arrow1 typeseteqi
+    hyp.1 typesetex hyp.2 typesetex y arrowistypelem2
+    hyp.1 typesetex (witness T') snex xpex typesetval1 eqtr F eleq2i mpbir
+    pm3.2i
+
+    F ($-> T T') df-: mpbir
+) )
+
+thm ( abs: ( ( T x y ) ( T' x y ) ( A y ) )
+  ( ( hyp.1 ( istype T  ) )
+    ( hyp.2 ( : A T' ) ) )
+  ( : ( lambda x T A ) ( $-> T T' ) )
+  ( hyp.1
+    hyp.2 typeistype
+    hyp.1 x A absex
+
+    hyp.2 typeel (e. (cv x) (typeset T)) a1i rgen
+    x T A y df-lambda
+    (cv x) T df-:
+    hyp.1 mpbiran (= (cv y) A) anbi1i x y opabbii eqtr
+    (typeset T') fopab2 mpbi
+
+    isarrow
+) )
+
+thm ( alphaconv ( ( A y z ) ( B x z ) ( T x y z ) )
+  ( ( hyp ( -> ( = ( cv x ) ( cv y ) ) ( = A B ) ) ) )
+  ( = ( lambda x T A ) ( lambda y T B ) )
+  ( (cv x) (cv y) T :eq1
+    hyp (cv z) eqeq2d anbi12d
+    z cbvopab1v
+
+    x T A z df-lambda
+    y T B z df-lambda 3eqtr4
+) )
+
+# Arguably, we should factor out most of this logic into a 2alpha thm.
+thm ( df-$=-half ( ( T x a y b ) ) ( )
+  ( =
+    ( if ( istype T )
+      ( lambda a T ( lambda b T ( truthterm ( = ( cv a ) ( cv b ) ) ) ) )
+      ( V ) )
+    ( if ( istype T )
+      ( lambda x T ( lambda y T ( truthterm ( = ( cv x ) ( cv y ) ) ) ) )
+      ( V ) ) )
+  ( (cv a) (cv x) (cv y) eqeq1 (= (cv a) (cv y)) (= (cv x) (cv y)) truthbi sylib y 19.21aiv
+    y (truthterm (= (cv a) (cv y))) (truthterm (= (cv x) (cv y))) T abseq2 syl
+
+    (cv b) (cv y) (cv a) eqeq2 (= (cv a) (cv b)) (= (cv a) (cv y)) truthbi sylib
+    T alphaconv syl5eq T alphaconv (istype T) (V) ifeq1i
+) )
+thm ( df-$= ((T x a y b) (T x' a y' b)) ( )
+  ( = ( $= T )
+    ( if ( istype T )
+      ( lambda x T ( lambda y T ( truthterm ( = ( cv x ) ( cv y ) ) ) ) )
+      ( V ) ) )
+  (T x' y' a b df-$=-half
+     T x y a b df-$=-half
+   eqtr4
+) )
+
+thm ( dfeqi ( ( T x y ) )
+  ( ( hyp ( istype T ) ) )
+  ( = ( $= T ) ( lambda x T ( lambda y T ( truthterm ( = ( cv x ) ( cv y ) ) ) ) ) )
+  ( T x y df-$=
+    hyp (istype T) (lambda x T (lambda y T (truthterm (= (cv x) (cv y))))) (V) iftrue eqcomd ax-mp
+    eqtr4
+) )
+
+# Useful for reverse type inference
+thm ( eqistype ( ( T x y ) ) ( )
+  ( -> ( -. ( = ( $= T ) ( V ) ) ) ( istype T ) )
+  ( (istype T) (lambda x T (lambda y T (truthterm (= (cv x) (cv y))))) (V) iffalse
+    T x y df-$= syl5eq con1i
+) )
+
+thm ( df-$==>-half ( ( a b x y ) ) ( )
+  (= 
+    ( lambda a ( bool ) ( lambda b ( bool )
+      ( truthterm ( -> ( istrue ( cv a ) ) ( istrue ( cv b ) ) ) ) ) )
+    ( lambda x ( bool ) ( lambda y ( bool )
+      ( truthterm ( -> ( istrue ( cv x ) ) ( istrue ( cv y ) ) ) ) ) ) )
+  ( (cv a) (cv x) istrueeq (istrue (cv y)) imbi1d
+    (-> (istrue (cv a)) (istrue (cv y))) (-> (istrue (cv x)) (istrue (cv y))) truthbi sylib y 19.21aiv
+    y (truthterm (-> (istrue (cv a)) (istrue (cv y)))) (truthterm (-> (istrue (cv x)) (istrue (cv y)))) (bool) abseq2 syl
+
+    (cv b) (cv y) istrueeq (istrue (cv a)) imbi2d
+    (-> (istrue (cv a)) (istrue (cv b))) (-> (istrue (cv a)) (istrue (cv y))) truthbi sylib
+    (bool) alphaconv syl5eq (bool) alphaconv
+) )
+thm ( df-$==> ((a b x y) (a b x' y')) ( )
+  ( = ( $==> ) ( lambda x ( bool ) ( lambda y ( bool )
+      ( truthterm ( -> ( istrue ( cv x ) ) ( istrue ( cv y ) ) ) ) ) ) )
+  (x' y' a b df-$==>-half
+     x y a b df-$==>-half
+   eqtr4
+) )
+
+
+thm ( sequent1:bool ( )
+  ( ( hyp ( $|- G A ) ) )
+  ( : G ( bool ) )
+  ( hyp G A df-$|- mpbi pm3.26i pm3.26i
+) )
+
+thm ( sequent2:bool ( )
+  ( ( hyp ( $|- G A ) ) )
+  ( : A ( bool ) )
+  ( hyp G A df-$|- mpbi pm3.26i pm3.27i
+) )
+
+thm ( sequentimp ( )
+  ( ( hyp ( $|- G A ) ) )
+  ( -> ( istrue G ) ( istrue A ) )
+  ( hyp G A df-$|- mpbi pm3.27i
+) )
+
+thm ( commaval ( )
+  ( ( hyp.1 ( : G1 ( bool ) ) )
+    ( hyp.2 ( : G2 ( bool ) ) ) )
+  ( <-> ( istrue ( $, G1 G2 ) ) ( /\ ( istrue G1 ) ( istrue G2 ) ) )
+  ( G1 G2 df-$,
+    hyp.1 hyp.2 pm3.2i (/\ (: G1 (bool)) (: G2 (bool))) (truthterm (/\ (istrue G1) (istrue G2))) (typeset (bool)) iftrue ax-mp eqtr
+    istrueeqi (/\ (istrue G1) (istrue G2)) booltruth bitr4
+) )
+
+thm ( comma:bool ( ) ( )
+  ( <-> ( /\ ( : G1 ( bool ) ) ( : G2 ( bool ) ) ) ( : ( $, G1 G2 ) ( bool ) ) )
+  ( (/\ (istrue G1) (istrue G2)) truthterm:bool
+    (/\ (: G1 (bool)) (: G2 (bool))) (truthterm (/\ (istrue G1) (istrue G2))) (typeset (bool)) iftrue
+    G1 G2 df-$, syl5req
+    (truthterm (/\ (istrue G1) (istrue G2))) ($, G1 G2) (bool) :eq1 syl mpbii
+
+    (typeset (bool)) eirr (istype (bool)) intnan (typeset (bool)) (bool) df-: mtbir
+    (/\ (: G1 (bool)) (: G2 (bool))) (truthterm (/\ (istrue G1) (istrue G2))) (typeset (bool)) iffalse
+    G1 G2 df-$, syl5req
+    (typeset (bool)) ($, G1 G2) (bool) :eq1 syl
+    mtbii a3i impbi    
+
+) )
+
+thm ( commaval2 ( )
+  ( ( hyp ( : ( $, G1 G2 ) ( bool ) ) ) )
+  ( <-> ( istrue ( $, G1 G2 ) ) ( /\ ( istrue G1 ) ( istrue G2 ) ) )
+  ( hyp G1 G2 comma:bool mpbir pm3.26i
+    hyp G1 G2 comma:bool mpbir pm3.27i commaval
+) )
+
+# inference from comma:bool would of course be more concise; but I proved this first
+thm ( comma:booli ( )
+  ( ( hyp.1 ( : G1 ( bool ) ) )
+    ( hyp.2 ( : G2 ( bool ) ) ) )
+  ( : ( $, G1 G2 ) ( bool ) )
+  ( (/\ (istrue G1) (istrue G2)) truthterm:bool
+    G1 G2 df-$,
+    hyp.1 hyp.2 pm3.2i (/\ (: G1 (bool)) (: G2 (bool))) (truthterm (/\ (istrue G1) (istrue G2))) (typeset (bool)) iftrue ax-mp eqtr (bool) :eq1i
+    mpbir
+) )
+
+thm ( comma:bool1 ( )
+  ( ( hyp ( : ( $, G1 G2 ) ( bool ) ) ) )
+  ( : G1 ( bool ) )
+  ( hyp G1 G2 comma:bool mpbir pm3.26i
+) )
+
+thm ( comma:bool2 ( )
+  ( ( hyp ( : ( $, G1 G2 ) ( bool ) ) ) )
+  ( : G2 ( bool ) )
+  ( hyp G1 G2 comma:bool mpbir pm3.27i
+) )
+
+thm ( mksequent ( )
+  ( ( hyp.G ( : G ( bool ) ) )
+    ( hyp.A ( : A ( bool ) ) )
+    ( hyp ( -> ( istrue G ) ( istrue A ) ) ) )
+  ( $|- G A )
+  ( hyp.G hyp.A pm3.2i hyp pm3.2i
+    G A df-$|- mpbir
+) )
+
+thm ( mkanseq ( )
+ ( ( hyp.G1 ( : G1 ( bool ) ) )
+   ( hyp.G2 ( : G2 ( bool ) ) )
+   ( hyp.A ( : A ( bool ) ) )
+   ( hyp ( -> ( /\ ( istrue G1 ) ( istrue G2 ) ) ( istrue A ) ) ) )
+  ( $|- ( $, G1 G2 ) A )
+  ( hyp.G1 hyp.G2 comma:booli
+    hyp.A
+      hyp.G1 hyp.G2 commaval
+      hyp sylbi
+    mksequent
+) )
+
+thm ( mknullseq ( )
+  ( ( hyp ( istrue A ) ) )
+  ( $|- ( true ) A )
+  ( true:bool hyp istrue:booli hyp (istrue (true)) a1i mksequent ) )
+
+# Theorems about . (new version)
+
+thm ( .eq1 ( ) ( ) ( -> ( = F G ) ( = ( . F A ) ( . G A ) ) )
+  (
+      F G funeq F G dmeq A eleq2d anbi12d
+    (/\ (Fun F) (e. A (dom F))) (/\ (Fun G) (e. A (dom G))) (` F A) (V) ifbi syl
+    F G A fveq1 (` F A) (` G A) (/\ (Fun G) (e. A (dom G))) (V) ifeq1 syl eqtrd
+    F A df-app G A df-app 3eqtr4g
+) )
+
+thm ( .eq2 ( ) ( ) ( -> ( = A B ) ( = ( . C A ) ( . C B ) ) )
+  (   A B (dom C) eleq1 (Fun C) anbi2d
+    (/\ (Fun C) (e. A (dom C))) (/\ (Fun C) (e. B (dom C))) (` C A) (V) ifbi syl
+    A B C fveq2 (` C A) (` C B) (/\ (Fun C) (e. B (dom C))) (V) ifeq1 syl eqtrd
+
+    C A df-app C B df-app 3eqtr4g
+) )
+
+thm ( .eq1i ( ) ( ( hyp ( = F G ) ) ) 
+  ( = ( . F A ) ( . G A ) )
+  ( hyp F G A .eq1 ax-mp ) )
+
+thm ( .eq2i ( ) ( ( hyp ( = A B ) ) ) 
+  ( = ( . C A ) ( . C B ) )
+  ( hyp A B C .eq2 ax-mp ) )
+
+thm ( arrowi1 ( ( T x ) ( T' x ) ( F x ) )
+  ( ( hyp ( : F ( $-> T T' ) ) ) )
+  ( :--> F ( typeset T ) ( typeset T' ) )
+  (
+    hyp F ($-> T T') df-: mpbi pm3.27i
+    hyp typeistype arrow2i1 hyp typeistype arrow2i2 x arrow1 typeseteqi
+    hyp typeistype arrow2i1 typesetex hyp typeistype arrow2i2 typesetex x arrowistypelem2
+    hyp typeistype arrow2i1 typesetex (witness T') snex xpex typesetval1 eqtr F eleq2i mpbi
+    (cv x) F (typeset T) (typeset T') feq1 ({|} x (:--> (cv x) (typeset T) (typeset T'))) elabg ibi ax-mp
+) )
+
+thm ( appval ( )
+  ( ( hyp ( : F ( $-> T T' ) ) ) )
+  ( -> ( : A T ) ( = ( . F A ) ( ` F A ) ) )
+  ( A T df-: pm3.27bd
+    hyp arrowi1 F (typeset T) (typeset T') fdm ax-mp A eleq2i sylibr
+    hyp arrowi1 F (typeset T) (typeset T') ffun ax-mp jctil
+    (/\ (Fun F) (e. A (dom F))) (` F A) (V) iftrue syl
+    F A df-app syl5eq
+) )
+
+# useful for inferring the validity of functions from correct typing
+thm ( appfun ( ) ( )
+  ( -> ( e. ( . F A ) ( V ) ) ( Fun F ) )
+  (
+    nvelv (/\ (Fun F) (e. A (dom F))) (` F A) (V) iffalse
+    F A df-app syl5eq (V) eleq1d mtbiri a3i pm3.26d
+) )
+
+thm ( appfuni ( )
+  ( ( hyp  ( : ( . F A ) T ) ) )
+  ( Fun F )
+  ( hyp typeel elisseti F A appfun ax-mp
+) )
+
+thm ( appdom ( ) ( )
+  ( -> ( e. ( . F A ) ( V ) ) ( e. A ( dom F ) ) )
+  (
+    nvelv (/\ (Fun F) (e. A (dom F))) (` F A) (V) iffalse
+    F A df-app syl5eq (V) eleq1d mtbiri a3i pm3.27d
+) )
+
+# useful for doing type inference in the reverse direction
+thm ( apptype ( )
+  ( ( hyp ( : F ( $-> T T' ) ) ) )
+  ( -> ( e. ( . F A ) ( V ) ) ( : A T ) )
+  ( 
+    F A appdom
+    hyp arrowi1 F (typeset T) (typeset T') fdm ax-mp A eleq2i sylib
+    A T df-: hyp typeistype arrow2i1 mpbiran sylibr
+) )
+
+thm ( apptypei ( )
+  ( ( hyp.1 ( : F ( $-> T T' ) ) )
+    ( hyp.2 ( : ( . F A ) T' ) ) )
+  ( : A T )
+  ( hyp.2 typeel elisseti
+    hyp.1 A apptype ax-mp
+) )
+
+# The only proper-class value of a function application is V.
+thm ( appisset ( ) ( )
+  ( <-> ( e. ( . F A ) ( V ) ) ( -. ( = ( . F A ) ( V ) ) ) )
+  ( (` F A) (if (/\ (Fun F) (e. A (dom F))) (` F A) (V)) (V) eleq1
+    (` F A) (if (/\ (Fun F) (e. A (dom F))) (` F A) (V)) (V) eqeq1 negbid bibi12d
+    (V) (if (/\ (Fun F) (e. A (dom F))) (` F A) (V)) (V) eleq1
+    (V) (if (/\ (Fun F) (e. A (dom F))) (` F A) (V)) (V) eqeq1 negbid bibi12d
+    F A fvex F A fvex nvelv (` F A) (V) (V) eleq1 mtbiri mt2 2th
+    (V) eqid nvelv 2th con2bii
+    keephyp
+    F A df-app (V) eleq1i
+    F A df-app (V) eqeq1i negbii 3bitr4
+) )
+
+thm ( app: ( ( T f ) ( T' f ) ( F f ) )
+  ( ( hyp.1 ( : F ( $-> T T' ) ) )
+    ( hyp.2 ( : A T ) ) )
+  ( : ( . F A ) T' )
+  ( hyp.1 typeistype arrow2i2
+
+      hyp.1 typeel
+      hyp.2 typeistype hyp.1 typeistype arrow2i2 f arrow1 typeseteqi
+
+      hyp.2 typeistype typesetex hyp.1 typeistype arrow2i2 typesetex f arrowistypelem2
+      hyp.2 typeistype typesetex (witness T') snex xpex typesetval1 eqtr
+
+      eleqtr 
+      hyp.1 typeel elisseti
+      (cv f) F (typeset T) (typeset T') feq1 elab mpbi
+
+      hyp.2 typeel
+
+    F (typeset T) (typeset T') A  ffvrn mp2an pm3.2i
+    (` F A) T' df-: mpbir
+    hyp.2 hyp.1 A appval ax-mp T' :eq1i mpbir
+) )
+
+thm ( sbc: ( ( x T ) )
+  ( ( hyp ( e. A ( V ) ) ) )
+  ( <-> ( [/] A x ( : B T ) ) ( : ( [:=] x A B ) T ) )
+  ( hyp B T df-: x bisbc
+    hyp x (istype T) (e. B (typeset T)) sbca bitr
+    (istype T) x ax-17 hyp sbcf1
+    hyp x B (typeset T) expssbel anbi12i bitr4
+
+    hyp x (typeset T) expsf ([:=] x A B) eleq2i (istype T) anbi2i bitr
+    ([:=] x A B) T df-: bitr4
+) )
+
+# A version of beta reduction with especially general assumptions.
+thm ( betaexps4 ( ( T v ) ( T' v y ) ( B y ) ( A y ) )
+  ( ( hyp1 ( e. B ( dom ( lambda v T' A ) ) ) )
+    ( hyp2 ( Fun ( lambda v T' A ) ) )
+    ( hyp.B ( : B T' ) ) )
+  ( = ( . ( lambda v T' A ) B ) ( [:=] v B A ) )
+  ( 
+    (lambda v T' A) B df-app
+      hyp2
+      hyp1
+    (/\ (Fun (lambda v T' A)) (e. B (dom (lambda v T' A)))) (` (lambda v T' A) B) (V) iftrue mp2an
+    eqtr
+
+    (lambda v T' A) B fvex
+      hyp2
+      hyp1
+    y visset (lambda v T' A) B funopfvb mp2an
+    v T' A y df-lambda (<,> B (cv y)) eleq2i bitr
+    hyp1 elisseti v (/\ (: (cv v) T') (= (cv y) A)) y sbcop1 bitr4
+    hyp1 elisseti v (: (cv v) T') (= (cv y) A) sbca bitr
+        hyp.B
+      hyp1 elisseti v expsvar T' :eq1i mpbir
+      hyp1 elisseti v (cv v) T' sbc: mpbir
+    mpbiran
+
+    hyp1 elisseti (cv y) v A expssb2 bitr4 biimp
+
+    (` (lambda v T' A) B) (cv y) ([:=] v B A) eqeq1 mpbird eqcoms
+    vtocle eqtr
+) )
+
+# Beta reduction rule expressed using explicit substitution.
+thm ( betaexps ( ( T v ) ( T' v y ) ( A y ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) ) )
+  ( = ( . ( lambda v T' A ) B ) ( [:=] v B A ) )
+  (   hyp.2 typeistype hyp.1 v abs: hyp.2 app: typeel elisseti
+    (lambda v T' A) B appdom ax-mp
+    hyp.2 typeistype hyp.1 v abs: hyp.2 app: appfuni
+    hyp.2
+    betaexps4
+) )
+
+# This is an older proof of the same thing
+thm ( betaexps[old] ( ( T v ) ( T' v y ) ( A y ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) ) )
+  ( = ( . ( lambda v T' A ) B ) ( [:=] v B A ) )
+  ( hyp.2 hyp.2 typeistype hyp.1 v abs: B appval ax-mp
+
+    hyp.2 typeel
+    hyp.2 typeel elisseti v expsvar
+    hyp.2 typeel elisseti v (typeset T') expsf eleq12i mpbir
+    hyp.2 typeel elisseti v (cv v) (typeset T') expssbel mpbi
+
+    hyp.2 typeel elisseti
+    hyp.1 typeel elisseti
+    v (typeset T') A (V) y fvopab2 mpan2
+    v T' A y df-lambda 
+    (cv v) T' df-:
+    hyp.2 typeistype mpbiran (= (cv y) A) anbi1i v y opabbii eqtr
+
+    (cv v) fveq1i syl5eq
+    v sbctru
+    hyp.2 typeel elisseti v (e. (cv v) (typeset T')) (= (` (lambda v T' A) (cv v)) A) sbci2 mpbi
+    ax-mp
+
+    hyp.2 typeel elisseti v (` (lambda v T' A) (cv v)) A expssb12 mpbir
+
+    hyp.2 typeel elisseti hyp.2 typeistype v A absex v visset v expsfv eqtr3
+    hyp.2 typeel elisseti v expsvar ([:=] v B (lambda v T' A)) fveq2i eqtr
+    hyp.2 typeel elisseti v T' A expsabs1 B fveq1i eqtr
+    eqtr4
+) )
+
+# a helper thm: two successive applications of beta reduction
+thm ( 2betaexp
+  ( ( B x y ) ( C x y ) ( D x y ) ( T x y ) ( T' x ) ( T'' x y ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) )
+    ( hyp.3 ( : C T'' ) ) )
+  ( = ( . ( . ( lambda x T' ( lambda y T'' A ) ) B ) C ) ( [:=] y C ( [:=] x B
+A ) ) )
+  ( hyp.3 typeistype hyp.1 y abs:
+    hyp.2 x betaexps
+
+    hyp.2 typeel elisseti x y T'' A expsabs2 eqtr
+    C .eq1i
+
+    hyp.2 typeel elisseti hyp.1 x exps:i hyp.3 y betaexps eqtr
+) )
+
+thm ( 2beta
+  ( ( B x y ) ( C x y ) ( D x y ) ( T x y ) ( T' x ) ( T'' x y ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) )
+    ( hyp.3 ( : C T'' ) )
+    ( hyp.4 ( -> ( /\ ( = ( cv x ) B ) ( = ( cv y ) C ) ) ( = A D ) ) ) )
+  ( = ( . ( . ( lambda x T' ( lambda y T'' A ) ) B ) C ) D )
+  ( hyp.1 hyp.2 hyp.3 x y 2betaexp
+
+    hyp.3 typeel elisseti
+    hyp.2 typeel elisseti hyp.4 ancoms ex imps2expsd
+    imps2exps eqtr
+) )
+
+thm ( eqval ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A T ) ) ( hyp.B ( : B T ) ) )
+  ( <-> ( istrue ( . ( . ( $= T ) A ) B ) ) ( = A B ) )
+  ( hyp.A typeistype a b dfeqi A .eq1i B .eq1i
+
+    (= (cv a) (cv b)) truthterm:bool
+    hyp.A
+    hyp.B
+
+    (cv a) A (cv b) B eqeq12 (= (cv a) (cv b)) (= A B) truthbi sylib
+    2beta eqtr
+
+    (. (. ($= T) A) B) (truthterm (= A B)) istrueeq ax-mp
+    (= A B) booltruth bitr4
+) )
+
+# Some duplication with eqval may be factored out here.
+thm ( eqval:bool ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A T ) ) ( hyp.B ( : B T ) ) )
+  ( : ( . ( . ( $= T ) A ) B ) ( bool ) )
+  ( (= A B) truthterm:bool
+
+    hyp.A typeistype a b dfeqi A .eq1i B .eq1i
+
+    (= (cv a) (cv b)) truthterm:bool
+    hyp.A
+    hyp.B
+
+    (cv a) A (cv b) B eqeq12 (= (cv a) (cv b)) (= A B) truthbi sylib
+    2beta eqtr (bool) :eq1i
+    mpbir
+) )
+
+thm ( eq: ( ( T a b ) ) ( ( hyp ( istype T ) ) )
+  ( : ( $= T ) ( $-> T ( $-> T ( bool ) ) ) )
+  ( hyp
+      hyp (= (cv a) (cv b)) truthterm:bool b abs:
+    a abs:
+    hyp a b dfeqi ($-> T ($-> T (bool))) :eq1i mpbir
+) )
+
+thm ( appnotvi ( )
+  ( ( hyp ( : ( . F A ) T ) ) )
+  ( -. ( = F ( V ) ) )
+  ( nfunv hyp appfuni F (V) funeq mpbii mto
+) )
+
+# This is probably the most general form of the rule, and the others should
+# be derived in terms of this one
+thm ( appnotbottom1 ( ) ( )
+  ( -> ( notbottom ( . F A ) ) ( notbottom F ) )
+  ( (. F A) df-notbottom F A appisset bitr4
+    F A appfun sylbi
+    nfunv F (V) funeq mtbiri con2i syl
+    F df-notbottom sylibr
+) )
+
+thm ( appnotbottom2 ( ) ( )
+  ( -> ( notbottom ( . F A ) ) ( notbottom A ) )
+  ( (. F A) df-notbottom F A appisset bitr4
+    F A appdom sylbi
+    A (dom F) elisset syl nvelv A (V) (V) eleq1 mtbiri con2i syl
+    A df-notbottom sylibr
+) )
+
+# Exported as an inference rule
+thm ( appnotbottom1i ( )
+  ( ( hyp ( notbottom ( . F A ) ) ) )
+  ( notbottom F )
+  ( hyp F A appnotbottom1 ax-mp ) )
+
+thm ( appnotbottom2i ( )
+  ( ( hyp ( notbottom ( . F A ) ) ) )
+  ( notbottom A )
+  ( hyp F A appnotbottom2 ax-mp ) )
+
+# Inference rule from valid type to not-bottom.
+thm ( typenotbottomi ( )
+  ( ( hyp ( : A T ) ) )
+  ( notbottom A )
+  ( hyp typeel elisseti nvelv A (V) (V) eleq1 mtbiri con2i ax-mp
+    A df-notbottom mpbir
+) )
+
+thm ( apptypenotboti ( )
+  ( ( hyp.1 ( : F ( $-> T T' ) ) )
+    ( hyp.2 ( notbottom ( . F A ) ) ) )
+  ( : A T )
+  (     hyp.2 (. F A) df-notbottom mpbi
+      F A appisset mpbir
+    hyp.1 A apptype ax-mp
+) )
+
+thm ( eqistypei ( ( T a b ) )
+  ( ( hyp ( notbottom ( $= T ) ) ) )
+  ( istype T )
+  ( hyp ($= T) df-notbottom mpbi
+    T eqistype ax-mp
+) )
+
+thm ( eqvalistype ( ( T a b ) )
+  ( ( hyp ( : ( . ( . ( $= T ) A ) B ) ( bool ) ) ) )
+  ( istype T )
+  ( hyp typenotbottomi appnotbottom1i appnotbottom1i eqistypei
+) )
+
+thm ( eqtypei1 ( ( T a b ) )
+  ( ( hyp ( : ( . ( . ( $= T ) A ) B ) ( bool ) ) ) )
+  ( : A T )
+  ( 
+    hyp appnotvi
+
+    ($= T) A appisset
+    hyp eqvalistype eq: A apptype sylbir ax-mp
+    
+) )
+
+thm ( eqtypei2 ( ( T a b ) )
+  ( ( hyp ( : ( . ( . ( $= T ) A ) B ) ( bool ) ) ) )
+  ( : B T )
+  ( hyp eqvalistype eq: hyp eqtypei1 app: hyp apptypei
+) )
+
+# Useful for going from HOL to set-theoretic equality
+thm ( eqvali ()
+  ((hyp ($|- (true) (. (. ($= T) A) B))))
+  (= A B)
+  (trueistrue hyp sequentimp ax-mp
+   hyp sequent2:bool eqtypei1 hyp sequent2:bool eqtypei2 eqval mpbi
+))
+
+# Useful for going from set-theoretic to HOL equality
+thm ( eqvalr ()
+  ((hyp.A (: A T))
+   (hyp (= A B)))
+  ($|- (true) (. (. ($= T) A) B))
+  (hyp hyp.A hyp.A hyp T :eq1i mpbi eqval mpbir mknullseq
+))
+
+thm ( impval ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A ( bool ) ) ) ( hyp.B ( : B ( bool ) ) ) )
+  ( <-> ( istrue ( . ( . ( $==> ) A ) B ) ) ( -> ( istrue A ) ( istrue B ) ) )
+  ( a b df-$==> A .eq1i B .eq1i
+
+    (-> (istrue (cv a)) (istrue (cv b))) truthterm:bool
+    hyp.A
+    hyp.B
+
+    (cv a) A istrueeq (= (cv b) B) adantr
+    (cv b) B istrueeq (= (cv a) A) adantl imbi12d
+    (-> (istrue (cv a)) (istrue (cv b))) (-> (istrue A) (istrue B)) truthbi sylib
+    2beta eqtr
+
+    (. (. ($==>) A) B) (truthterm (-> (istrue A) (istrue B))) istrueeq ax-mp
+    (-> (istrue A) (istrue B)) booltruth bitr4
+) )
+
+# a much easier proof would use imptype and app:
+thm ( impval:bool ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A ( bool ) ) ) ( hyp.B ( : B ( bool ) ) ) )
+  ( : ( . ( . ( $==> ) A ) B ) ( bool ) )
+  ( (-> (istrue A) (istrue B)) truthterm:bool
+
+    a b df-$==> A .eq1i B .eq1i
+
+    (-> (istrue (cv a)) (istrue (cv b))) truthterm:bool
+    hyp.A
+    hyp.B
+
+    (cv a) A istrueeq (= (cv b) B) adantr
+    (cv b) B istrueeq (= (cv a) A) adantl imbi12d
+    (-> (istrue (cv a)) (istrue (cv b))) (-> (istrue A) (istrue B)) truthbi sylib
+    2beta eqtr (bool) :eq1i
+    mpbir
+) )
+
+thm ( impvala ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A ( bool ) ) )
+    ( hyp.B ( : B ( bool ) ) )
+    ( hyp ( istrue ( . ( . ( $==> ) A ) B ) ) ) )
+  ( -> ( istrue A ) ( istrue B ) )
+  ( hyp hyp.A hyp.B impval mpbi
+) )
+
+thm ( impvalb ( ( A a b ) ( B a b ) ( T a b ) )
+  ( ( hyp.A ( : A ( bool ) ) )
+    ( hyp.B ( : B ( bool ) ) )
+    ( hyp ( -> ( istrue A ) ( istrue B ) ) ) )
+  ( istrue ( . ( . ( $==> ) A ) B ) )
+  ( hyp hyp.A hyp.B impval mpbir
+) )
+
+thm ( imptype ( ( a b ) ) ( )
+  ( : ( $==> ) ( $-> ( bool ) ( $-> ( bool ) ( bool ) ) ) )
+  ( boolistype
+      boolistype (-> (istrue (cv a)) (istrue (cv b))) truthterm:bool b abs:
+    a abs:
+    a b df-$==> ($-> (bool) ($-> (bool) (bool))) :eq1i mpbir
+) )
+
+thm ( assum_twiddle ( )
+  ( ( hyp.1 ( -> ( istrue G2 ) ( istrue G1 ) ) )
+    ( hyp.2 ( : G2 ( bool ) ) )
+    ( hyp.3 ( $|- G1 A ) ) )
+  ( $|- G2 A )
+  ( hyp.2 hyp.3 sequent2:bool hyp.1 hyp.3 sequentimp syl mksequent
+) )
+
+# The core HOL inference rules
+
+thm ( REFL ( ) ( ( hyp.A ( : A T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T ) A ) A ) )
+  ( hyp.A A eqid eqvalr
+) )
+
+# Expressed in terms of explicit substitution.
+thm ( BETA_CONV_x ( ( T' x ) ( T x ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) ) )
+  ( $|- ( true ) ( . ( . ( $= T ) ( . ( lambda x T' A ) B ) ) ( [:=] x B A ) ) )
+  ( hyp.2 typeistype hyp.1 x abs: hyp.2 app:
+    hyp.1 hyp.2 x betaexps
+    eqvalr
+) )
+
+thm ( bclem_T ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( istype T )
+  ( hyp sequent2:bool typenotbottomi appnotbottom2i appnotbottom1i appnotbottom1i eqistypei
+) )
+
+thm ( bclem_T' ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( istype T' )
+  ( hyp sequent2:bool typenotbottomi appnotbottom1i appnotbottom2i appnotbottom1i appnotbottom1i eqistypei
+) )
+
+thm ( bclem_A ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( : A T )
+  ( hyp bclem_T eq:
+    hyp sequent2:bool typenotbottomi appnotbottom2i appnotbottom1i apptypenotboti
+) )
+
+thm ( bclem_B ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( : B T' )
+  ( hyp bclem_T' eq: hyp bclem_T' x var: app:
+    hyp sequent2:bool typenotbottomi appnotbottom1i appnotbottom2i apptypenotboti
+) )
+
+thm ( bclem_C ( )
+  ( ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( : C T )
+  ( hyp bclem_T eq: hyp bclem_A app:
+    hyp sequent2:bool typenotbottomi appnotbottom2i apptypenotboti
+) )
+
+thm ( bclem_x ( )
+  ( ( hyp ( : B T' ) ) )
+  ( -> ( = ( cv x ) B ) ( = ( var x T' ) B ) )
+  ( hyp (cv x) B T' :eq1 mpbiri
+    (cv x) T' castt syl x T' df-var syl5req B eqeq1d ibi
+) )
+
+# Expressed in terms of implicit substitution.
+thm ( BETA_CONV_im ( ( T' x ) ( T x ) ( B x ) ( C x ) ( G x ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) )
+    ( hyp ( $|- G ( . ( . ( $==> ) ( . ( . ( $= T' ) ( var x T' ) ) B ) )
+                          ( . ( . ( $= T ) A ) C ) ) ) ) )
+  ( $|- G ( . ( . ( $= T ) ( . ( lambda x T' A ) B ) ) C ) )
+  ( hyp sequent1:bool
+      hyp bclem_T' hyp bclem_A x abs: hyp bclem_B app:
+      hyp bclem_C
+    eqval:bool    
+
+    hyp bclem_B typeel elisseti
+      hyp sequentimp
+        hyp bclem_T' eq: hyp bclem_T' x var: app: hyp bclem_B app:
+        hyp bclem_T eq: hyp bclem_A app: hyp bclem_C app:
+      impval sylib
+        hyp bclem_T' x var: hyp bclem_B eqval
+        hyp bclem_A hyp bclem_C eqval
+      imbi12i sylib hyp bclem_B x bclem_x syl5
+    imps2expsd
+
+    hyp.1 hyp.2 x betaexps syl5eq
+
+      hyp bclem_T' hyp bclem_A x abs: hyp bclem_B app:
+      hyp bclem_C
+    eqval sylibr mksequent
+) )
+
+# A bunch of random, useful explicit substitution thms
+
+thm ( expspred ( ( x y ) ( A y ) ( B y ) ( ph x ) ( ps y ) ( ch y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. ( [:=] x A B ) ( V ) ) )
+    ( hyp1 ( -> ( = ( cv y ) B ) ( <-> ph ps ) ) )
+    ( hyp2 ( -> ( = ( cv y ) ( [:=] x A B ) ) ( <-> ph ch ) ) ) )
+  ( <-> ( [/] A x ps ) ch )
+  ( hyp.B
+
+        hyp.A (cv y) x B expssb2
+        hyp.A hyp1 x sbctru
+        hyp.A x (= (cv y) B) (<-> ph ps) sbci2 mpbi sylbi
+        hyp.A x ph ps sbcb sylib
+      ph x ax-17 hyp.A sbcf1 syl5bb
+      hyp2
+    bitr3d
+    vtocle
+) )
+
+thm ( expsfun ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. ( [:=] x A B ) ( V ) ) ) )
+  ( <-> ( [/] A x ( Fun B ) ) ( Fun ( [:=] x A B ) ) )
+  ( hyp.A
+    hyp.B
+    (cv y) B funeq
+    (cv y) ([:=] x A B) funeq
+    expspred
+) )
+
+thm ( expsdom ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. ( [:=] x A B ) ( V ) ) ) )
+  ( = ( [:=] x A ( dom B ) ) ( dom ( [:=] x A B ) ) )
+  (   hyp.A hyp.B
+      (cv y) B dmeq
+      (cv y) ([:=] x A B) dmeq
+    expsoper
+) )
+
+# This is the "calculation" form of sbca. It's a nice inference for building
+# larger substitutions from smaller ones. No mandatory hypotheses or
+# other propositional calculus steps are needed. A case can be made for
+# implementing this pattern more widely.
+thm ( sbcanc ( )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp1 ( <-> ( [/] A x ph ) ps ) )
+    ( hyp2 ( <-> ( [/] A x ch ) th ) ) )
+  ( <-> ( [/] A x ( /\ ph ch ) ) ( /\ ps th ) )
+  ( hyp.A x ph ch sbca
+    hyp1 hyp2 anbi12i bitr
+) )
+
+thm ( expsapp ( )
+  ( ( hyp.1 ( e. A ( V ) ) )
+    ( hyp.B ( e. ( [:=] x A B ) ( V ) ) )
+    ( hyp.C ( e. ( [:=] x A C ) ( V ) ) ) )
+  ( = ( [:=] x A ( . B C ) ) ( . ( [:=] x A B ) ( [:=] x A C ) ) )
+  ( hyp.1 B C df-app x expseq2i
+
+    hyp.1 x (/\ (Fun B) (e. C (dom B))) (` B C) (V) expsded eqtr
+
+    hyp.1
+      hyp.1 hyp.B expsfun
+        hyp.1 x C (dom B) expssbel
+        hyp.1 hyp.B expsdom ([:=] x A C) eleq2i
+      bitr3
+    sbcanc ([:=] x A (` B C)) ([:=] x A (V)) ifbii eqtr
+
+      hyp.1 hyp.B hyp.C expsfv2
+    (/\ (Fun ([:=] x A B)) (e. ([:=] x A C) (dom ([:=] x A B)))) ([:=] x A (V)) ifeq1i eqtr
+
+      hyp.1 x (V) expsf
+    (/\ (Fun ([:=] x A B)) (e. ([:=] x A C) (dom ([:=] x A B)))) (` ([:=] x A B) ([:=] x A C)) ifeq2i eqtr
+
+    ([:=] x A B) ([:=] x A C) df-app eqtr4
+) )
+
+# Calculation form of expsapp.
+thm ( expsappc ( )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. B ( V ) ) )
+    ( hyp.C ( e. C ( V ) ) )
+    ( hyp1 ( = ( [:=] x A B ) D ) )
+    ( hyp2 ( = ( [:=] x A C ) E ) ) )
+  ( = ( [:=] x A ( . B C ) ) ( . D E ) )
+  ( hyp.A hyp.A hyp.B x expsex hyp.A hyp.C x expsex expsapp
+    hyp1 ([:=] x A C) .eq1i eqtr
+    hyp2 D .eq2i eqtr
+) )
+
+thm ( expsistrue ( ( x y ) ( A y ) ( B y ) )
+  ( ( hyp.A ( e. A ( V ) ) )
+    ( hyp.B ( e. B ( V ) ) ) )
+  ( <-> ( [/] A x ( istrue B ) ) ( istrue ( [:=] x A B ) ) )
+  ( hyp.A
+    hyp.A hyp.B x expsex
+    (cv y) B istrueeq
+    (cv y) ([:=] x A B) istrueeq
+    expspred
+) )
+
+# Here are the basic substitution properties, expressed using (\x a).b
+# syntax.
+
+# identity function
+thm ( BETA1 ( ( T x ) )
+  ( ( hyp ( : A T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T ) ( . ( lambda x T ( var x T ) ) A ) ) A ) )
+  ( hyp typeistype hyp typeistype x var: x abs: hyp app:
+
+    hyp typeistype x var: hyp x betaexps
+
+      hyp typeel elisseti x T df-var x expseq2i
+      hyp typeel elisseti x (cv x) T expscast eqtr
+      hyp typeel elisseti x expsvar T casteq1i eqtr
+      hyp A T castt ax-mp eqtr
+    eqtr
+    eqvalr
+) )
+
+# constant function
+thm ( BETA2 ( ( T x ) ( T' x ) ( B x ) )
+  ( ( hyp.1 ( : A T ) )
+    ( hyp.2 ( : B T' ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' ) ( . ( lambda x T B ) A ) ) B ) )
+  ( hyp.1 typeistype hyp.2 x abs: hyp.1 app:
+
+    hyp.2 hyp.1 x betaexps
+
+    hyp.1 typeel elisseti x B expsf eqtr
+      
+    eqvalr
+) )
+
+thm ( betaexps2lem1 ( )
+  ( ( hyp ( : ( . A B ) T' ) ) )
+  ( e. B ( dom A ) )
+  ( hyp typeel elisseti A B appdom ax-mp
+) )
+
+thm ( betaexps2lem2 ( ( B y ) ( A y ) ( T x y ) )
+  ( ( hyp ( : ( . ( lambda x T A ) B ) T' ) ) )
+  ( : B T )
+  (
+    hyp betaexps2lem1
+    hyp betaexps2lem1 elisseti (lambda x T A) y eldm2 mpbi
+
+    x T A y df-lambda (<,> B (cv y)) eleq2i y exbii mpbi
+    hyp betaexps2lem1 elisseti x (/\ (: (cv x) T) (= (cv y) A)) y sbcop1 y exbii mpbir
+    
+    hyp betaexps2lem1 elisseti x (: (cv x) T) (= (cv y) A) sbca y exbii mpbi
+    y ([/] B x (: (cv x) T))  ([/] B x (= (cv y) A)) 19.42v mpbi
+    pm3.26i
+
+    hyp betaexps2lem1 elisseti x (cv x) T sbc: mpbi
+    hyp betaexps2lem1 elisseti x expsvar T :eq1i mpbi
+) )
+
+# A version of betaexps with a different type assumption - this time,
+# on the result of the application, rather than the inputs.
+thm ( betaexps2 ( ( T v ) ( T' v ) )
+  ( ( hyp ( : ( . ( lambda v T' A ) B ) T ) ) )
+  ( = ( . ( lambda v T' A ) B ) ( [:=] v B A ) )
+  ( hyp betaexps2lem1
+    hyp appfuni
+    hyp betaexps2lem2
+    betaexps4
+) )
+
+# A version of betaexps with yet another type assumption - this time,
+# on the result of the reduction.
+thm ( betaexps3 ( ( T x y ) ( T' x ) ( A y ) ( B y ) )
+  ( ( hyp ( : ( [:=] x B A ) T' ) )
+    ( hyp.B ( : B T ) ) )
+  ( = ( . ( lambda x T A ) B ) ( [:=] x B A ) )
+  (   hyp typeel elisseti y isseti
+
+      x T A y df-lambda
+      (lambda x T A) ({<,>|} x y (/\ (: (cv x) T) (= (cv y) A))) dmeq ax-mp
+      x y (/\ (: (cv x) T) (= (cv y) A)) dmopab eqtr B eleq2i
+      B x (E. y (/\ (: (cv x) T) (= (cv y) A))) df-sbc
+      bitr4
+      hyp.B typeel elisseti x y (/\ (: (cv x) T) (= (cv y) A)) sbcex2 bitr
+
+        hyp.B typeel elisseti x (: (cv x) T) (= (cv y) A) sbca
+          hyp.B typeel elisseti x (cv x) T sbc:
+        hyp.B typeel elisseti (cv y) x A expssb2 bicomi anbi12i
+        hyp.B hyp.B typeel elisseti x expsvar T :eq1i mpbir mpbiran bitr
+      y exbii bitr
+    mpbir
+
+      x y (/\ (: (cv x) T) (= (cv y) A)) funopab
+        y A moeq
+      (: (cv x) T) moani mpgbir
+      x T A y df-lambda (lambda x T A) ({<,>|} x y (/\ (: (cv x) T) (= (cv y) A))) funeq ax-mp
+    mpbir
+    hyp.B
+    betaexps4
+) )
+
+# A handy inference for creating simple equality sequents
+thm ( BETA3lem1 ( )
+  ( ( hyp1 ( = A B ) )
+    ( hyp2 ( : B T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T ) A ) B ) )
+  ( hyp2 hyp1 T :eq1i mpbir
+    hyp1
+    
+    eqvalr
+) )
+
+thm ( BETA3lem2 ( ( T x ) ( T' x ) ( T'' x ) )
+  ( ( hyp.1 ( $|- ( true ) ( . ( . ( $= ( $-> T T' ) )
+      ( . ( lambda x T'' F ) A ) ) G ) ) )
+    ( hyp.2 ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) ) )
+  ( = ( [:=] x A ( . F B ) ) ( . G C ) )
+  ( 
+    hyp.1 sequent2:bool eqtypei1 betaexps2lem1 elisseti
+      hyp.1 sequent2:bool eqtypei1 betaexps2
+    hyp.1 sequent2:bool eqtypei1 typeel elisseti eqeltrr
+      hyp.2 sequent2:bool eqtypei1 betaexps2
+    hyp.2 sequent2:bool eqtypei1 typeel elisseti eqeltrr
+    expsapp
+
+    hyp.1 sequent2:bool eqtypei1 betaexps2
+    hyp.1 eqvali eqtr3
+    ([:=] x A B) .eq1i eqtr
+
+    hyp.2 sequent2:bool eqtypei1 betaexps2
+    hyp.2 eqvali eqtr3
+    G .eq2i eqtr
+
+) )
+
+# application
+thm ( BETA3 ( ( T x ) ( T' x ) ( T'' x ) )
+  ( ( hyp.1 ( $|- ( true ) ( . ( . ( $= ( $-> T T' ) )
+      ( . ( lambda x T'' F ) A ) ) G ) ) )
+    ( hyp.2 ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . G C ) ) )
+  ( 
+      hyp.1 sequent2:bool eqtypei2
+      hyp.2 sequent2:bool eqtypei2
+    app:
+
+    hyp.1 hyp.2 BETA3lem2 T' :eq1i mpbir
+    hyp.1 sequent2:bool eqtypei1 betaexps2lem2
+    betaexps3
+    hyp.1 hyp.2 BETA3lem2 eqtr
+
+      hyp.1 sequent2:bool eqtypei2
+      hyp.2 sequent2:bool eqtypei2
+    app:
+    BETA3lem1
+) )
+
+thm ( BETA4lem ( ( T x y ) ( T' x y ) ( T'' x y ) ( A y ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) )
+    ( hyp.T' ( istype T' ) ) )
+  ( = ( [:=] x A ( lambda y T' B ) ) ( lambda y T' C ) )
+  (
+      hyp sequent2:bool eqtypei1 betaexps2lem2 typeel elisseti
+    x y T' B expsabs2
+
+      y ([:=] x A B) C T' abseq2
+    hyp sequent2:bool eqtypei1 betaexps2
+    hyp eqvali eqtr3 mpg
+    eqtr
+) )
+
+# abstraction
+thm ( BETA4 ( ( T x y ) ( T' x y ) ( T'' x y ) ( A y ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) )
+    ( hyp.T' ( istype T' ) ) )
+  ( $|- ( true ) ( . ( . ( $= ( $-> T' T ) )
+      ( . ( lambda x T'' ( lambda y T' B ) ) A ) ) ( lambda y T' C ) ) )
+  (
+    hyp.T' hyp sequent2:bool eqtypei2 y abs:
+    hyp hyp.T' y BETA4lem ($-> T' T) :eq1i mpbir    
+    hyp sequent2:bool eqtypei1 betaexps2lem2
+    betaexps3
+
+    hyp hyp.T' y BETA4lem eqtr
+
+    hyp.T' hyp sequent2:bool eqtypei2 y abs:
+    BETA3lem1
+) )
+
+thm (BETA5 ((T x) (T' x) (T'' x))
+  ((hyp1 (: A T))
+   (hyp2 (istype T'))
+   (hyp3 (: B T'')))
+  ($|- (true) (. (. ($= ($-> T' T''))
+    (. (lambda x T (lambda x T' B)) A))
+    (lambda x T' B)))
+  (
+   hyp1 typeistype hyp2 hyp3 x abs: x abs: hyp1 app:
+     hyp2 hyp3 x abs: hyp1 x betaexps
+       hyp1 typeel elisseti x T' B expsabs1
+     eqtr
+   eqvalr
+))
+
+thm ( ASSUME ( )
+  ( ( hyp ( : A ( bool ) ) ) )
+  ( $|- A A )
+  ( hyp hyp (istrue A) id mksequent
+) )
+
+thm ( SUBST_app ( )
+  ( ( hyp.1 ( $|- G1 ( . ( . ( $= ( $-> T T' ) ) A ) B ) ) )
+    ( hyp.2 ( $|- G2 ( . ( . ( $= T ) C ) D ) ) ) )
+  ( $|- ( $, G1 G2 ) ( . ( . ( $= T' ) ( . A C ) ) ( . B D ) ) )
+  ( hyp.1 sequent1:bool
+    hyp.2 sequent1:bool
+
+    hyp.1 sequent2:bool eqtypei1 hyp.2 sequent2:bool eqtypei1 app:
+    hyp.1 sequent2:bool eqtypei2 hyp.2 sequent2:bool eqtypei2 app: eqval:bool
+
+    hyp.1 sequentimp
+    hyp.1 sequent2:bool eqtypei1 hyp.1 sequent2:bool eqtypei2 eqval sylib
+    A B C .eq1 syl
+
+    hyp.2 sequentimp
+    hyp.2 sequent2:bool eqtypei1  hyp.2 sequent2:bool eqtypei2 eqval sylib
+    C D B .eq2 syl sylan9eq
+
+    hyp.1 sequent2:bool eqtypei1 hyp.2 sequent2:bool eqtypei1 app:
+    hyp.1 sequent2:bool eqtypei2 hyp.2 sequent2:bool eqtypei2 app: eqval sylibr mkanseq
+) )
+
+thm ( ABS ( ( G x ) ( T x ) ( T' x ) )
+  ( ( hyp.3 ( istype T' ) )
+    ( hyp.4 ( $|- G  ( . ( . ( $= T ) A ) B ) ) ) )
+  ( $|- G
+    ( . ( . ( $= ( $-> T' T ) ) ( lambda x T' A ) ) ( lambda x T' B ) ) )
+  ( hyp.4 sequent1:bool
+        hyp.3 hyp.4 sequent2:bool eqtypei1 x abs:
+        hyp.3 hyp.4 sequent2:bool eqtypei2 x abs:
+      eqval:bool
+
+      hyp.4 sequentimp
+      hyp.4 sequent2:bool eqtypei1  hyp.4 sequent2:bool eqtypei2 eqval sylib x 19.21aiv
+      x A B T' abseq2 syl
+        hyp.3 hyp.4 sequent2:bool eqtypei1 x abs:
+        hyp.3 hyp.4 sequent2:bool eqtypei2 x abs:
+      eqval sylibr
+    mksequent
+) )
+
+thm ( DISCH ( )
+  ( ( hyp ( $|- ( $, G1 A ) B ) ) )
+  ( $|- G1 ( . ( . ( $==> ) A ) B ) )
+  ( hyp sequent1:bool G1 A comma:bool mpbir pm3.26i
+
+      hyp sequent1:bool G1 A comma:bool mpbir pm3.27i
+    hyp sequent2:bool impval:bool
+
+      hyp sequent1:bool commaval2
+      hyp sequentimp sylbir ex
+
+        hyp sequent1:bool G1 A comma:bool mpbir pm3.27i
+      hyp sequent2:bool impval sylibr
+    mksequent
+) )
+
+# This form writes the union of the assumptions as an explicit term in
+# the statement proved, suitable for subsequent manipulation by inference.
+# There are, of course, other ways to do this.
+thm ( MP ( )
+  ( ( hyp.2 ( $|- G1 ( . ( . ( $==> ) A ) B ) ) )
+    ( hyp.3 ( $|- G2 A ) ) )
+  ( $|- ( $, G1 G2 ) B )
+  ( hyp.2 sequent1:bool hyp.3 sequent1:bool
+    imptype hyp.3 sequent2:bool app: hyp.2 sequent2:bool apptypei
+    hyp.2 sequentimp hyp.3 sequent2:bool
+      imptype hyp.3 sequent2:bool app: hyp.2 sequent2:bool apptypei
+    impval sylib
+    hyp.3 sequentimp syl5 imp mkanseq
+) )
+
+# A derived rule in HOL, but core here, as it's used to implement
+# SUBST.
+thm ( EQ_MP ( )
+  ( ( hyp.2 ( $|- G1 ( . ( . ( $= ( bool ) ) A ) B ) ) )
+    ( hyp.3 ( $|- G2 A ) ) )
+  ( $|- ( $, G1 G2 ) B )
+  ( hyp.2 sequent1:bool hyp.3 sequent1:bool
+    boolistype eq: hyp.3 sequent2:bool app: hyp.2 sequent2:bool apptypei
+    hyp.2 sequentimp hyp.3 sequent2:bool
+      boolistype eq: hyp.3 sequent2:bool app: hyp.2 sequent2:bool apptypei
+    eqval sylib istrueeqd biimpd
+    hyp.3 sequentimp syl5 imp mkanseq
+) )
+
+# This is a derived rule in HOL, but is a core rule here as it's used
+# to manipulate assumptions.
+
+thm ( ADD_ASSUM ( )
+  ( ( hyp.1 ( $|- G1 A ) )
+    ( hyp.2 ( : G2 ( bool ) ) ) )
+  ( $|- ( $, G1 G2 ) A )
+  ( hyp.1 sequent1:bool
+    hyp.2
+    hyp.1 sequent2:bool
+    hyp.1 sequentimp (istrue G2) adantr
+    mkanseq
+) )
+
+# One of the basic assumption manipulation rules
+thm ( ASSUM_t ( )
+ ( ( hyp ( $|- ( $, G ( true ) ) A ) ) )
+ ( $|- G A )
+ (
+   trueistrue hyp sequent1:bool commaval2 biimpr mpan2
+   hyp sequent1:bool G (true) comma:bool mpbir pm3.26i
+   hyp assum_twiddle
+) )
+
+thm ( ASSUM_rot ( )
+  ( ( hyp ( $|- ( $, ( $, G1 G2 ) G3 ) A ) ) )
+  ( $|- ( $, ( $, G2 G3 ) G1 ) A )
+  ( 
+    hyp sequent1:bool commaval2
+      hyp sequent1:bool comma:bool1 commaval2
+    (istrue G3) anbi1i bitr
+      (istrue G1) (istrue G2) (istrue G3) anass (istrue G1) (/\ (istrue G2) (istrue G3)) ancom bitr
+    bitr
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool2
+    comma:booli
+    hyp sequent1:bool comma:bool1 comma:bool1
+    comma:booli commaval2
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool2
+    comma:booli commaval2 (istrue G1) anbi1i bitr
+    bitr4 biimpr
+
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool2
+    comma:booli
+    hyp sequent1:bool comma:bool1 comma:bool1
+    comma:booli
+
+    hyp assum_twiddle
+) )
+
+thm ( ASSUM_swap ( )
+  ( ( hyp ( $|- ( $, ( $, G1 G2 ) G3 ) A ) ) )
+  ( $|- ( $, ( $, G2 G1 ) G3 ) A )
+  ( 
+      hyp sequent1:bool commaval2
+      hyp sequent1:bool comma:bool1 commaval2
+    (istrue G3) anbi1i bitr
+      (istrue G1) (istrue G2) ancom (istrue G3) anbi1i
+    bitr
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool1 comma:bool1
+    comma:booli
+    hyp sequent1:bool comma:bool2
+    comma:booli commaval2
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool1 comma:bool1
+    comma:booli commaval2 (istrue G3) anbi1i bitr
+    bitr4 biimpr
+
+      hyp sequent1:bool comma:bool1 comma:bool2
+      hyp sequent1:bool comma:bool1 comma:bool1
+    comma:booli
+    hyp sequent1:bool comma:bool2
+    comma:booli
+
+    hyp assum_twiddle
+) )
+
+thm ( ASSUM_absorb ( )
+  ( ( hyp ( $|- ( $, G1 ( $, G2 G2 ) ) A ) ) )
+  ( $|- ( $, G1 G2 ) A )
+  ( 
+      hyp sequent1:bool commaval2
+      hyp sequent1:bool comma:bool2 commaval2
+    (istrue G1) anbi2i bitr
+      (istrue G2) anidm (istrue G1) anbi2i
+    bitr
+      hyp sequent1:bool comma:bool1
+      hyp sequent1:bool comma:bool2 comma:bool1
+    comma:booli commaval2
+    bitr4 biimpr
+
+      hyp sequent1:bool comma:bool1
+      hyp sequent1:bool comma:bool2 comma:bool1
+    comma:booli
+
+    hyp assum_twiddle
+) )
+
+thm ( betanotboti_lem1 ( )
+  ( ( hyp ( notbottom ( . ( lambda x T A ) B ) ) ) )
+  ( e. B ( dom ( lambda x T A ) ) )
+  ( hyp
+    (. (lambda x T A) B) df-notbottom mpbi
+    (lambda x T A) B appisset mpbir
+    (lambda x T A) B appdom ax-mp
+) )
+
+thm ( betanotboti ( ( T x y ) ( A y ) ( B y ) )
+  ( ( hyp ( notbottom ( . ( lambda x T A ) B ) ) ) )
+  ( : B T )
+  ( hyp betanotboti_lem1
+      x T A y df-lambda
+      (lambda x T A) ({<,>|} x y (/\ (: (cv x) T) (= (cv y) A))) dmeq ax-mp
+      x y (/\ (: (cv x) T) (= (cv y) A)) dmopab eqtr B eleq2i
+    mpbi
+      B x (E. y (/\ (: (cv x) T) (= (cv y) A))) df-sbc mpbir
+    hyp betanotboti_lem1 elisseti x y (/\ (: (cv x) T) (= (cv y) A)) sbcex2 mpbi
+    hyp betanotboti_lem1 elisseti x (: (cv x) T) (= (cv y) A) sbca y exbii mpbi
+    ([/] B x (: (cv x) T)) ([/] B x (= (cv y) A)) pm3.26 y 19.23aiv ax-mp
+    hyp betanotboti_lem1 elisseti x (cv x) T sbc: mpbi
+    hyp betanotboti_lem1 elisseti x expsvar T :eq1i mpbi
+) )
+
+# Some basic defs that could be in their own module, but are convenient here.
+
+def ( ( $! T )
+  ( lambda f ( $-> T ( bool ) )
+    ( . ( . ( $= ( $-> T ( bool ) ) ) ( var f ( $-> T ( bool ) ) ) )
+        ( lambda x T ( true ) ) ) ) )
+
+thm (.eq1d ()
+  ((hyp (-> ph (= F G))))
+  (-> ph (= (. F A) (. G A)))
+  (hyp F G A .eq1 syl))
+
+thm (.eq2d ()
+  ((hyp (-> ph (= A B))))
+  (-> ph (= (. F A) (. F B)))
+  (hyp A B F .eq2 syl))
+
+thm (df-$!-half ((T f g x y)) ()
+  (= (lambda f ($-> T (bool)) (. (. ($= ($-> T (bool))) (var f ($-> T (bool))))
+                                 (lambda x T (true))))
+     (lambda g ($-> T (bool)) (. (. ($= ($-> T (bool))) (var g ($-> T (bool))))
+                                 (lambda y T (true)))))
+  (
+   f g ($-> T (bool)) vareq1
+   ($= ($-> T (bool))) .eq2d
+   (lambda x T (true)) .eq1d
+     (true) eqid (= (cv x) (cv y)) a1i T alphaconv
+     (. ($= ($-> T (bool))) (var g ($-> T (bool)))) .eq2i
+   syl6eq
+   ($-> T (bool)) alphaconv
+))
+
+thm (df-$! ((T f' x' g y) (T f x g y))
+  ((hyp (istype T )))
+  ($|- ( true ) ( . ( . ( $= ( $-> ( $-> T ( bool ) ) ( bool ) ) ) ( $! T ) )
+    ( lambda f ( $-> T ( bool ) )
+      ( . ( . ( $= ( $-> T ( bool ) ) ) ( var f ( $-> T ( bool ) ) ) )
+          ( lambda x T ( true ) ) ) ) ) )
+  (
+   hyp boolistype arrowistype
+     hyp boolistype arrowistype eq:
+       hyp boolistype arrowistype f' var:
+     app:
+       hyp true:bool x' abs:
+     app:
+   f' abs:
+
+     f' T x' g y df-$!-half
+     f T x g y df-$!-half eqtr4
+   eqvalr
+))
+
+# Relating the universal quantifiers of HOL and ZFC. The initial
+# beta-reduction of the $! application is pretty painful here - it's
+# likely that it could be redone in HOL more easily.
+thm ( forall-$! ( ( T f x ) ( T y ) ( x y ) ( A y ) )
+  ( ( hyp.T ( istype T ) )
+    ( hyp.A ( : A ( bool ) ) ) )
+  ( <-> ( istrue ( . ( $! T ) ( lambda x T A ) ) )
+        ( A. x ( -> ( e. ( cv x ) ( typeset T ) ) ( istrue A ) ) ) )
+  ( trueistrue hyp.T f x df-$! sequentimp ax-mp
+      hyp.T f x df-$! sequent2:bool eqtypei1
+      hyp.T f x df-$! sequent2:bool eqtypei2
+    eqval mpbi
+    (lambda x T A) .eq1i
+
+          hyp.T boolistype arrowistype eq:
+        hyp.T boolistype arrowistype f var: app:
+      hyp.T true:bool x abs: app:
+      hyp.T hyp.A x abs:
+    f betaexps eqtr
+
+      hyp.T x A absex
+        hyp.T boolistype arrowistype eq:
+        hyp.T boolistype arrowistype f var:
+      app: typeel elisseti
+      hyp.T true:bool x abs: typeel elisseti
+        hyp.T x A absex
+        hyp.T boolistype arrowistype eq: typeel elisseti
+        hyp.T boolistype arrowistype f var: typeel elisseti
+        hyp.T x A absex f ($= ($-> T (bool))) expsf
+          hyp.T x A absex f ($-> T (bool)) df-var f expseq2i
+          hyp.T x A absex f (cv f) ($-> T (bool)) expscast eqtr
+          hyp.T x A absex f expsvar ($-> T (bool)) casteq1i eqtr
+          hyp.T hyp.A x abs: (lambda x T A) ($-> T (bool)) castt ax-mp
+        eqtr
+      expsappc
+      hyp.T x A absex f (lambda x T (true)) expsf
+    expsappc eqtr istrueeqi
+
+    hyp.T hyp.A x abs: hyp.T true:bool x abs: eqval bitr
+
+      hyp.T hyp.A x abs: arrowi1 (lambda x T A) (typeset T) (typeset (bool)) ffn ax-mp
+      hyp.T true:bool x abs: arrowi1 (lambda x T (true)) (typeset T) (typeset (bool)) ffn ax-mp
+      (lambda x T A) (typeset T) (lambda x T (true)) (typeset T) y eqfnfv
+    mp2an (typeset T) eqid mpbiran
+
+    y (typeset T) (= (` (lambda x T A) (cv y)) (` (lambda x T (true)) (cv y))) df-ral bitr
+
+      (cv y) T df-: hyp.T mpbiran
+          y T vart (cv y) (var y T) (lambda x T A) .eq2 syl 
+        hyp.T hyp.A x abs: (cv y) appval eqtr3d
+            y T vart (cv y) (var y T) (lambda x T (true)) .eq2 syl
+          hyp.T true:bool x abs: (cv y) appval eqtr3d
+            true:bool hyp.T y var: x betaexps    
+          hyp.T y var: typeel elisseti x (true) expsf eqtr
+        syl5eqr
+      eqeq12d  (. (lambda x T A) (var y T)) df-istrue
+      hyp.A hyp.T y var: x betaexps istrueeqi bitr3
+      hyp.T y var: typeel elisseti hyp.A typeel elisseti x expsistrue bitr4 syl5bbr
+    sylbir pm5.74i y albii bitr4
+
+    bitr
+    (-> (e. (cv x) (typeset T)) (istrue A)) y ax-17 x sb8
+
+        y visset x expsvar
+        y visset x (typeset T) expsf
+      eleq12i
+      y visset x (cv x) (typeset T) expssbel
+    bitr3 ([/] (cv y) x (istrue A)) imbi1i
+
+    y visset x (e. (cv x) (typeset T)) (istrue A) sbci2 bitr4
+
+    (cv y) T df-: hyp.T mpbiran
+      y T vart (cv y) (var y T) x A expseq1 syl
+      istrueeqd
+        y visset hyp.A typeel elisseti x expsistrue
+        hyp.T y var: typeel elisseti hyp.A typeel elisseti x expsistrue
+      bibi12i sylibr
+   sylbir pm5.74i bitr3 y albii bitr bitr4
+) )
+
+# We adapt the ZFC gen rule to HOL in this proof, but it could probably
+# be done a completely different way, proved entirely in HOL.
+thm ( gen-$! ( ( T x ) )
+  ( ( hyp.T ( istype T ) )
+    ( hyp ( istrue A ) ) )
+  ( istrue ( . ( $! T ) ( lambda x T A ) ) )
+  ( hyp (e. (cv x) (typeset T)) a1i x ax-gen
+    hyp.T hyp istrue:booli x forall-$! mpbir
+) )
+
+thm ( $!-type ((T x y))
+  ((hyp (istype T)))
+  (: ($! T) ($-> ($-> T (bool)) (bool)))
+  ( hyp y x df-$! sequent2:bool eqtypei1
+))
+
+def (($F)
+  (. ($! (bool)) (lambda x (bool) (var x (bool)))))
+
+thm (df-$F ((x y) (x' y)) ()
+  ($|- (true) (. (. ($= (bool)) ($F)) (. ($! (bool)) (lambda x' (bool) (var x' (bool))))))
+  (
+   boolistype $!-type boolistype boolistype x var: x abs: app:
+     x y (bool) vareq1
+     (bool) alphaconv
+     ($! (bool)) .eq2i
+       x' y (bool) vareq1
+       (bool) alphaconv
+       ($! (bool)) .eq2i
+     eqtr4
+   eqvalr
+))
+
+thm ($F:bool () ()
+  (: ($F) (bool))
+  ( x df-$F sequent2:bool eqtypei1 ))
+
+# If we have one counterexample, then the universal quantification is
+# also false.
+thm (refute ((x A))
+  ((hyp.1 (e. A (V)))
+   (hyp.2 (-> (= (cv x) A) (-. ph))))
+  (-. (A. x ph))
+  ( hyp.1 x isseti hyp.2 x 19.22i ax-mp
+    x ph exnal mpbi
+))
+
+# the jc ... sylibr sequence should arguably be its own propcalc theorem,
+# and "eleq1a ax-mp" arguably should be as well (it frequently appears as
+# "eleq1 mpbii" in set.mm).
+thm ($F-false () ()
+  (= ($F) (false))
+  ( x df-$F eqvali
+
+    false:bool typeel elisseti
+
+      false:bool typeel (false) (typeset (bool)) (cv x) eleq1a ax-mp
+
+      nfalseistrue    
+        false:bool (cv x) (false) (bool) :eq1 mpbiri x (bool) vart syl
+        (= (cv x) (false)) id eqtr3d
+        istrueeqd
+      mtbiri
+      jc (istrue (var x (bool))) pm4.13 (e. (cv x) (typeset (bool))) imbi2i negbii sylibr
+    refute
+
+    boolistype boolistype x var: x forall-$!
+    mtbir
+    nfalseistrue 2th con4bii
+
+      boolistype $!-type boolistype boolistype x var: x abs: app:
+      false:bool
+    istrueeqbi mpbir eqtr
+))
+
+def (($~) (lambda x (bool) (. (. ($==>) (var x (bool))) ($F))))
+
+thm (df-$~ ((x' y) (x y)) ()
+  ($|- (true) (. (. ($= ($-> (bool) (bool))) ($~))
+    (lambda x (bool) (. (. ($==>) (var x (bool))) ($F)))))
+  (
+   boolistype imptype boolistype x' var: app: $F:bool app: x' abs:
+     x' y (bool) vareq1 ($==>) .eq2d ($F) .eq1d (bool) alphaconv
+       x y (bool) vareq1 ($==>) .eq2d ($F) .eq1d (bool) alphaconv
+     eqtr4
+   eqvalr
+))
+
+thm ($~: () ()
+  (: ($~) ($-> (bool) (bool)))
+  ( x df-$~ sequent2:bool eqtypei1
+))
+
+# dup'd from hol-zfc-derived
+thm ( BETA31 ( ( T'' x ) ( T x ) ( B x ) ( T' x ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= ( $-> T T' ) )
+      ( . ( lambda x T'' F ) A ) ) F' ) ) )
+    ( hyp.B ( : B T ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . F' B ) ) )
+  ( hyp
+      hyp sequent2:bool eqtypei1 typenotbottomi betanotboti
+    hyp.B x BETA2
+    BETA3
+) )
+
+thm ( BETA32 ( ( T'' x ) ( T x ) ( F x ) ( T' x ) )
+  ( ( hyp ( $|- ( true ) ( . ( . ( $= T )
+      ( . ( lambda x T'' B ) A ) ) C ) ) )
+    ( hyp.F ( : F ( $-> T T' ) ) ) )
+  ( $|- ( true ) ( . ( . ( $= T' )
+      ( . ( lambda x T'' ( . F B ) ) A ) ) ( . F C ) ) )
+  (
+      hyp sequent2:bool eqtypei1 typenotbottomi betanotboti
+    hyp.F x BETA2
+    hyp BETA3
+) )
+
+thm (not-$~lem ()
+  ((hyp (: A (bool))))
+  (<-> (istrue (. (. ($==>) A) ($F))) (-. (istrue A)))
+  ( hyp $F:bool impval
+    (istrue A) (istrue ($F)) pm4.1 bitr
+    nfalseistrue $F-false istrueeqi negbii mpbir (-. (istrue A)) a1bi bitr4
+))
+
+thm (not-$~ ()
+  ((hyp (: A (bool))))
+  (<-> (istrue (. ($~) A)) (-. (istrue A)))
+  ( x df-$~ eqvali A .eq1i
+
+    hyp x BETA1 imptype BETA32 $F:bool BETA31 eqvali
+    eqtr istrueeqi
+
+    hyp not-$~lem bitr
+))
+
+def (($\/) (lambda x (bool) (lambda y (bool)
+  (. ($! (bool)) (lambda z (bool)
+    (. (. ($==>) (. (. ($==>) (var x (bool))) (var z (bool))))
+      (. (. ($==>) (. (. ($==>) (var y (bool))) (var z (bool))))
+        (var z (bool)))))))))
+
+thm (alcases ((x ch) (x et))
+  ((hyp1 (-> ph (<-> ps ch)))
+   (hyp2 (-> th (<-> ps et)))
+   (hyp3 (E. x ph))
+   (hyp4 (E. x th)))
+   (<-> (A. x (-> (\/ ph th) ps)) (/\ ch et))
+  ( ph th ps jaob
+    hyp1 pm5.74i hyp2 pm5.74i anbi12i bitr x albii
+    x (-> ph ch) (-> th et) 19.26 bitr
+    x ph ch 19.23v hyp3 ch a1bi bitr4 
+    x th et 19.23v hyp4 et a1bi bitr4 anbi12i bitr
+))
+
+thm (.eq12d ()
+  ((hyp1 (-> ph (= F G)))
+   (hyp2 (-> ph (= A B))))
+  (-> ph (= (. F A) (. G B)))
+  (hyp1 A .eq1d hyp2 G .eq2d eqtrd))
+
+thm (abseq2i ((T v))
+  ((hyp (= A B)))
+  (= (lambda v T A) (lambda v T B))
+  (hyp v ax-gen
+     v A B T abseq2
+   ax-mp
+))
+
+thm (abseq2d ((ph v) (T v))
+  ((hyp (-> ph (= A B))))
+  (-> ph (= (lambda v T A) (lambda v T B)))
+  (hyp v 19.21aiv
+     v A B T abseq2
+   syl
+))
+
+thm (df-$\/-half ((x y z x' y' z')) ()
+  (=
+    (lambda x (bool) (lambda y (bool)
+      (. ($! (bool)) (lambda z (bool)
+        (. (. ($==>) (. (. ($==>) (var x (bool))) (var z (bool))))
+          (. (. ($==>) (. (. ($==>) (var y (bool))) (var z (bool))))
+            (var z (bool))))))))
+    (lambda x' (bool) (lambda y' (bool)
+      (. ($! (bool)) (lambda z' (bool)
+        (. (. ($==>) (. (. ($==>) (var x' (bool))) (var z' (bool))))
+          (. (. ($==>) (. (. ($==>) (var y' (bool))) (var z' (bool))))
+            (var z' (bool)))))))))
+  (
+   y y' (bool) vareq1 ($==>) .eq2d (var z' (bool)) .eq1d ($==>) .eq2d (var z' (bool)) .eq1d
+   (. ($==>) (. (. ($==>) (var x (bool))) (var z' (bool)))) .eq2d
+   z' (bool) abseq2d
+
+     z z' (bool) vareq1 (. ($==>) (var x (bool))) .eq2d ($==>) .eq2d
+       z z' (bool) vareq1 (. ($==>) (var y (bool))) .eq2d ($==>) .eq2d
+         z z' (bool) vareq1
+       .eq12d
+     .eq12d (bool) alphaconv
+
+   syl5eq
+   ($! (bool)) .eq2d (bool) alphaconv
+   x (bool) abseq2i
+
+     x x' (bool) vareq1 ($==>) .eq2d (var z' (bool)) .eq1d
+     ($==>) .eq2d
+     (. (. ($==>) (. (. ($==>) (var y' (bool))) (var z' (bool)))) (var z' (bool))) .eq1d
+     z' (bool) abseq2d
+     ($! (bool)) .eq2d
+     y' (bool) abseq2d
+     (bool) alphaconv
+
+   eqtr
+))
+
+thm (df-$\/ ((x y z x'' y'' z'') (x' y' z' x'' y'' z'')) ()
+  ($|- (true) (. (. ($= ($-> (bool) ($-> (bool) (bool)))) ($\/))
+    (lambda x (bool) (lambda y (bool)
+      (. ($! (bool)) (lambda z (bool)
+        (. (. ($==>) (. (. ($==>) (var x (bool))) (var z (bool))))
+          (. (. ($==>) (. (. ($==>) (var y (bool))) (var z (bool))))
+            (var z (bool))))))))))
+  (
+   boolistype boolistype
+       boolistype $!-type
+         boolistype
+           imptype imptype boolistype x' var: app: boolistype z' var: app: app:
+             imptype
+             imptype boolistype y' var: app: boolistype z' var: app: app:
+           boolistype z' var: app: app:
+       z' abs: app:
+   y' abs: x' abs:
+   
+     x' y' z' x'' y'' z'' df-$\/-half
+       x y z x'' y'' z'' df-$\/-half
+     eqtr4
+
+   eqvalr
+))
+
+thm ($\/: ((x y z)) ()
+  (: ($\/) ($-> (bool) ($-> (bool) (bool))))
+  ( x y z df-$\/ sequent2:bool eqtypei1
+))
+
+# The axioms of the theory bool, which make use of the defs above.
+
+thm ( IMP_ANTISYM_AX ( ) ( )
+  ( $|- ( true )
+    ( . ( $! ( bool ) ) ( lambda a ( bool )
+      ( . ( $! ( bool ) ) ( lambda b ( bool )
+        ( . ( . ( $==> ) ( . ( . ( $==> ) ( var a ( bool ) ) ) ( var b ( bool ) ) ) )
+           ( . ( . ( $==> ) ( . ( . ( $==> ) ( var b ( bool ) ) ) ( var a ( bool ) ) ) )
+             ( . ( . ( $= ( bool ) ) ( var a ( bool ) ) ) ( var b ( bool ) ) ) ) ) ) ) ) ) )
+  ( boolistype
+    boolistype
+
+    (istrue (var a (bool))) (istrue (var b (bool))) bi3
+
+      imptype boolistype a var: app: boolistype b var: app:
+        imptype boolistype b var: app: boolistype a var: app:
+        boolistype eq: boolistype a var: app: boolistype b var: app:
+      impval:bool
+    impval
+
+    boolistype a var: boolistype b var: impval
+
+      imptype boolistype b var: app: boolistype a var: app:
+      boolistype eq: boolistype a var: app: boolistype b var: app:
+    impval
+      boolistype b var: boolistype a var: impval
+      boolistype a var: boolistype b var: eqval
+    boolistype a var: boolistype b var: istrueeqbi bitr imbi12i
+    bitr imbi12i bitr
+
+    mpbir
+    b gen-$!
+    a gen-$!
+    mknullseq
+) )
+
+thm (df-$suc ((x y) (x' y)) ()
+  (= ($suc) (lambda x' ($ind) (suc (var x' ($ind)))))
+  (
+   x y ($ind) vareq1
+   (var x ($ind)) (var y ($ind)) suceq syl
+   ($ind) alphaconv
+     x' y ($ind) vareq1
+     (var x' ($ind)) (var y ($ind)) suceq syl
+     ($ind) alphaconv
+   eqtr4
+))
+
+thm (typesetind () ()
+  (= (typeset ($ind)) (om))
+  ( df-$ind typeseteqi omex 0ex typesetval1 eqtr
+))
+
+thm ($0:$ind () ()
+  (: ($0) ($ind))
+  (indistype df-$0 peano1 eqeltr typesetind eleqtrr pm3.2i ($0) ($ind) df-: mpbir
+))
+
+thm ($suc: () ()
+  (: ($suc) ($-> ($ind) ($ind)))
+  ( indistype indistype
+      indistype x var: typeel
+      typesetind eleqtr
+      (var x ($ind)) peano2 ax-mp
+    typesetind eleqtrr
+    pm3.2i (suc (var x ($ind))) ($ind) df-: mpbir x abs:
+    x df-$suc ($-> ($ind) ($ind)) :eq1i mpbir
+))
+
+thm ($suc-suc ((A x))
+  ((hyp (: A ($ind))))
+  (= (. ($suc) A) (suc A))
+  (x df-$suc A .eq1i
+     $suc: x df-$suc ($-> ($ind) ($ind)) :eq1i mpbi hyp app: betaexps2
+       hyp typeel elisseti
+         hyp (cv x) A ($ind) :eq1 mpbiri x ($ind) vart syl (= (cv x) A) id eqtr3d
+     (var x ($ind)) A suceq syl imps2exps eqtr
+   eqtr
+))
+
+thm ( nsuconto () ()
+  ($|- (true) (. ($! ($ind)) (lambda x ($ind)
+    (. ($~) (. (. ($= ($ind)) (. ($suc) (var x ($ind)))) ($0))))))
+  ( (var x ($ind)) nsuceq0
+    df-$0 (suc (var x ($ind))) eqeq2i negbii mpbir
+      indistype eq: $suc: indistype x var: app: app: $0:$ind app: not-$~
+        $suc: indistype x var: app: $0:$ind eqval
+      indistype x var: $suc-suc ($0) eqeq1i bitr negbii bitr mpbir
+    (e. (cv x) (typeset ($ind))) a1i x ax-gen
+
+    indistype
+      $~:
+      indistype eq: $suc: indistype x var: app: app: $0:$ind app:
+    app:
+    x forall-$! mpbir mknullseq
+))
+
+thm ( suc1to1 () ()
+  ($|- (true)
+    (. ($! ($ind)) (lambda x ($ind)
+      (. ($! ($ind)) (lambda y ($ind)
+        (. (. ($==>) (. (. ($= ($ind)) (. ($suc) (var x ($ind)))) (. ($suc) (var y ($ind)))))
+          (. (. ($= ($ind)) (var x ($ind))) (var y ($ind)))))))))
+  ( indistype indistype
+
+      $suc: indistype x var: app:
+    $suc: indistype y var: app: eqval
+      indistype x var: $suc-suc
+    indistype y var: $suc-suc eqeq12i bitr
+
+      indistype x var: typeel
+    typesetind eleqtr
+      indistype y var: typeel
+    typesetind eleqtr
+
+    (var x ($ind)) (var y ($ind)) peano4 mp2an bitr
+    indistype x var: indistype y var: eqval bitr4 biimp
+
+      indistype eq: $suc: indistype x var: app: app: $suc: indistype y var: app: app:
+      indistype eq: indistype x var: app: indistype y var: app:
+    impval mpbir
+
+    y gen-$! x gen-$! mknullseq
+))
+
+thm ( etacore ((T f x y) (T' f x y) (A x y))
+  ((hyp (: A ($-> T T'))))
+  (= A (lambda x T (. A (var x T))))
+  ( hyp arrowi1
+    A (typeset T) (typeset T') ffn ax-mp
+    A (typeset T) x y fnopabfv mpbi
+
+    x T (. A (var x T)) y df-lambda 
+          hyp (cv x) appval
+          x T vart (cv x) (var x T) A .eq2 syl
+        eqtr3d
+      (cv y) eqeq2d
+      pm5.32i
+        (cv x) T df-: hyp typeistype arrow2i1 mpbiran
+      (= (cv y) (` A (cv x))) anbi1i
+    bitr3 x y opabbii
+    eqtr eqtr4
+))
+
+thm ( ETA_AX ((T f x) (T' f x))
+  ((hyp (istype ($-> T T'))))
+  ($|- (true) (. ($! ($-> T T')) (lambda f ($-> T T')
+    (. (. ($= ($-> T T')) (lambda x T (. (var f ($-> T T')) (var x T))))
+                          (var f ($-> T T'))))))
+  ( hyp
+    trueistrue
+      hyp arrow2i1 hyp f var: hyp arrow2i1 x var: app: x abs:
+      hyp f var: x etacore eqcomi
+    eqvalr sequentimp ax-mp f gen-$! mknullseq
+))
+
+thm (forall-bool ((A x))
+  ((hyp (: A ($-> (bool) (bool)))))
+  (<-> (istrue (. ($! (bool)) A))
+       (/\ (istrue (. A (false))) (istrue (. A (true)))))
+  ( hyp x etacore ($! (bool)) .eq2i istrueeqi
+
+    boolistype hyp boolistype x var: app: x forall-$!
+
+          df-bool typeseteqi
+        (false) (true) prex df-false 0ex eqeltr typesetval1 eqtr (cv x) eleq2i
+      x visset (false) (true) elpr bitr
+    (istrue (. A (var x (bool)))) imbi1i x albii
+
+          false:bool (cv x) (false) (bool) :eq1 mpbiri x (bool) vart syl
+        (= (cv x) (false)) id eqtr3d
+      (var x (bool)) (false) A .eq2 syl istrueeqd
+          true:bool (cv x) (true) (bool) :eq1 mpbiri x (bool) vart syl
+        (= (cv x) (true)) id eqtr3d
+      (var x (bool)) (true) A .eq2 syl istrueeqd
+      false:bool typeel elisseti x isseti
+      true:bool typeel elisseti x isseti
+    alcases bitr bitr
+
+    bitr
+))
+
+thm (or-$\/lem ()
+  ((hyp1 (: A (bool)))
+   (hyp2 (istrue B)))
+  (istrue (. (. ($==>) A) B))
+  ( hyp2 (istrue A) a1i
+    hyp1 hyp2 istrue:booli impval mpbir
+))
+
+# We probably don't need both this one and not-$~lem; they're the same
+# modulo false/$F
+thm (or-$\/lem2 ()
+  ((hyp (: A (bool))))
+  (<-> (istrue (. (. ($==>) A) (false))) (-. (istrue A)))
+  ( hyp false:bool impval
+    (istrue A) (istrue (false)) pm4.1 bitr
+    nfalseistrue (-. (istrue A)) a1bi bitr4
+))
+
+thm (or-$\/ ((A x y z) (B x y z))
+  ((hyp1 (: A (bool)))
+   (hyp2 (: B (bool))))
+  (<-> (istrue (. (. ($\/) A) B)) (\/ (istrue A) (istrue B)))
+  ( x y z df-$\/ eqvali A .eq1i B .eq1i
+
+      hyp1 x BETA1 imptype BETA32 boolistype z var: BETA31
+      imptype BETA32
+        imptype imptype boolistype y var: app: boolistype z var: app: app:
+      boolistype z var: app: BETA31
+      boolistype z BETA4 boolistype $!-type BETA32
+    boolistype y BETA4 eqvali B .eq1i eqtr
+
+    hyp2 y BETA1 imptype BETA32 boolistype z var: BETA31
+    imptype BETA32 boolistype z var: BETA31
+    imptype imptype hyp1 app: boolistype z var: app: app: BETA32
+    boolistype z BETA4 boolistype $!-type BETA32
+    eqvali eqtr istrueeqi
+
+    boolistype imptype
+      imptype hyp1 app: boolistype z var: app: app:
+      imptype
+        imptype hyp2 app: boolistype z var: app: app:
+      boolistype z var: app:
+    app: z abs: forall-bool
+
+    false:bool z BETA1 imptype hyp1 app: BETA32 imptype BETA32
+    false:bool z BETA1 imptype hyp2 app: BETA32 imptype BETA32
+    false:bool z BETA1 BETA3 BETA3 eqvali istrueeqi
+
+      imptype hyp1 app: false:bool app:
+      imptype imptype hyp2 app: false:bool app: app: false:bool app:
+    impval
+      hyp1 or-$\/lem2
+        imptype hyp2 app: false:bool app: or-$\/lem2
+      hyp2 or-$\/lem2 con2bii bitr4
+    imbi12i bitr
+    (istrue A) (istrue B) df-or bitr4
+    bitr
+
+      imptype hyp1 app: true:bool app:
+        imptype hyp2 app: true:bool app:
+        trueistrue
+      or-$\/lem
+    or-$\/lem
+
+    true:bool z BETA1 imptype hyp1 app: BETA32 imptype BETA32
+    true:bool z BETA1 imptype hyp2 app: BETA32 imptype BETA32
+    true:bool z BETA1 BETA3 BETA3 eqvali istrueeqi
+    mpbir
+      (istrue (. (lambda z (bool) (. (. ($==>) (. (. ($==>) A) (var z (bool)))) (. (. ($==>) (. (. ($==>) B) (var z (bool)))) (var z (bool))))) (false)))
+    biantru bitr3 bitr4
+    bitr
+))
+
+thm (BOOL_CASES () ()
+  ($|- (true) (. ($! (bool)) (lambda x (bool)
+    (. (. ($\/) (. (. ($= (bool)) (var x (bool))) ($F)))
+      (. (. ($= (bool)) (var x (bool))) (true))))))
+  (
+      trueistrue false:bool $F-false eqcomi eqvalr sequentimp ax-mp
+        false:bool $F:bool eqval:bool
+        false:bool true:bool eqval:bool
+      or-$\/ biimpr orci
+    ax-mp
+
+      false:bool x BETA1 boolistype eq: BETA32 $F:bool BETA31
+    $\/: BETA32
+      false:bool x BETA1 boolistype eq: BETA32 true:bool BETA31
+    BETA3 eqvali istrueeqi
+    mpbir
+
+      trueistrue true:bool REFL sequentimp ax-mp
+        true:bool $F:bool eqval:bool
+        true:bool true:bool eqval:bool
+      or-$\/ biimpr olci
+    ax-mp
+
+      true:bool x BETA1 boolistype eq: BETA32 $F:bool BETA31
+    $\/: BETA32
+      true:bool x BETA1 boolistype eq: BETA32 true:bool BETA31
+    BETA3 eqvali istrueeqi
+    mpbir pm3.2i
+
+    boolistype
+      $\/:
+        boolistype eq: boolistype x var: app: $F:bool app: app:
+        boolistype eq: boolistype x var: app: true:bool app:
+      app:
+    x abs: forall-bool mpbir mknullseq
+))
+
+# mechanism for creating new types
+
+def ((newtype A B) (mktype ({e.|} x (dom A) (istrue (. A (cv x)))) B))
+
+thm (df-newtype ((A x y) (A x' y)) ()
+  (= (newtype A B) (mktype ({e.|} x' (dom A) (istrue (. A (cv x')))) B))
+  (
+   (cv x) (cv y) A .eq2 istrueeqd (dom A) cbvrabv B mktypeeq1
+     (cv x') (cv y) A .eq2 istrueeqd (dom A) cbvrabv B mktypeeq1
+   eqtr4
+))
+
+thm (newtypeistype ((A x) (B x))
+  ((hyp.1 (: A ($-> T (bool))))
+   (hyp.2 ($|- (true) (. A B))))
+  (istype (newtype A B))
+  ( 
+      hyp.2 sequent2:bool betaexps2lem1
+      trueistrue hyp.2 sequentimp ax-mp
+      (cv x) B A .eq2 istrueeqd (dom A) elrab
+    biimpr mp2an
+
+      hyp.1 typeel elisseti A (V) dmexg ax-mp
+    x (istrue (. A (cv x))) rabex
+    mktypethm
+
+    A B x df-newtype istypeeqi mpbir
+))
+
+def ((newtype_abs T A B) (lambda x T (if (istrue (. A (cv x))) (cv x) B)))
+
+thm (df-newtype_abs ((A x) (A x') (B x') (B x) (T x') (T x) (x y)) ()
+  (= (newtype_abs T A B) (lambda x T (if (istrue (. A (cv x))) (cv x) B)))
+  (
+   (cv x') (cv y) A .eq2 istrueeqd (cv x') B ifbid
+   (cv x') (cv y) (istrue (. A (cv y))) B ifeq1 eqtrd
+   T alphaconv
+     (cv x) (cv y) A .eq2 istrueeqd (cv x) B ifbid
+     (cv x) (cv y) (istrue (. A (cv y))) B ifeq1 eqtrd
+     T alphaconv
+   eqtr4
+))
+
+thm (newtype_abs:lem ()
+  ((hyp.1 (: A ($-> T (bool))))
+   (hyp.2 ($|- (true) (. A B)))
+   (hyp.3 ($|- (true) (. A C))))
+  (: C (newtype A B))
+  (
+   hyp.1 hyp.2 newtypeistype
+     hyp.3 sequent2:bool typeel elisseti A C appdom ax-mp
+       trueistrue hyp.3 sequentimp ax-mp
+     pm3.2i
+       (cv x) C A .eq2 istrueeqd
+       (dom A) elrab
+     mpbir
+       A B x df-newtype typeseteqi
+
+         hyp.1 typeel elisseti A (V) dmexg ax-mp
+         x (istrue (. A (cv x))) rabex
+           hyp.1 hyp.2 sequent2:bool apptypei typeel elisseti
+         typesetval1
+       eqtr
+     eleqtrr
+   pm3.2i
+     C (newtype A B) df-:
+   mpbir
+))
+
+
+thm (newtype_abs: ()
+  ((hyp.1 (: A ($-> T (bool))))
+   (hyp.2 ($|- (true) (. A B))))
+  (: (newtype_abs T A B) ($-> T (newtype A B)))
+  (
+   hyp.1 typeistype arrow2i1
+     hyp.1
+       hyp.2
+         (istrue (. A (cv x))) (cv x) B iftrue A .eq2d istrueeqd ibir
+           trueistrue hyp.2 sequentimp ax-mp
+             (istrue (. A (cv x))) (cv x) B iffalse A .eq2d istrueeqd
+           mpbiri
+         pm2.61i mknullseq
+     newtype_abs:lem
+   x abs:
+     T A B x df-newtype_abs ($-> T (newtype A B)) :eq1i
+   mpbir
+))
+
+# basic iota set theory -- move down when done
+
+# euuni, reuuni
+
+# reucl
+#thm (iota1 () () (-> (E!e. x A ph) (e. (U. ({e.|} x A ph)) A)) ())
+
+thm (cbvreu ((A x y))
+  ((hyp1 (-> ph (A. y ph)))
+   (hyp2 (-> ps (A. x ps)))
+   (hyp3 (-> (= (cv x) (cv y)) (<-> ph ps))))
+  (<-> (E!e. x A ph) (E!e. y A ps))
+  (   (e. (cv x) A) y ax-17 hyp1 hban
+      (e. (cv y) A) x ax-17 hyp2 hban
+      (cv x) (cv y) A eleq1 hyp3 anbi12d
+    cbveu
+    x A ph df-reu
+    y A ps df-reu 3bitr4
+))
+
+thm (df-iota-half ((T f x f' x')) ()
+ (=
+    (lambda f ($-> T (bool))
+      (if (E!e. x (typeset T) (istrue (. (cv f) (cv x))))
+        (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x)))))
+        (witness T)))
+    (lambda f' ($-> T (bool))
+      (if (E!e. x' (typeset T) (istrue (. (cv f') (cv x'))))
+        (U. ({e.|} x' (typeset T) (istrue (. (cv f') (cv x')))))
+        (witness T))))
+  ( (cv f) (cv f') (cv x) .eq1 istrueeqd x (typeset T) reubidv
+      (istrue (. (cv f') (cv x))) x' ax-17
+      (istrue (. (cv f') (cv x'))) x ax-17
+      (cv x) (cv x') (cv f') .eq2 istrueeqd
+    (typeset T) cbvreu syl6bb
+      (E!e. x (typeset T) (istrue (. (cv f) (cv x))))
+      (E!e. x' (typeset T) (istrue (. (cv f') (cv x'))))
+      (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x)))))
+      (witness T)
+    ifbi syl
+
+    (cv f) (cv f') (cv x) .eq1 istrueeqd x (typeset T) rabbisdv
+    (cv x) (cv x') (cv f') .eq2 istrueeqd (typeset T) cbvrabv syl6eq unieqd
+      (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x)))))
+      (U. ({e.|} x' (typeset T) (istrue (. (cv f') (cv x')))))
+      (E!e. x' (typeset T) (istrue (. (cv f') (cv x'))))
+      (witness T)
+    ifeq1 syl eqtrd
+
+    ($-> T (bool)) alphaconv
+))
+
+thm (df-iota ((T f' x' g y) (T f x g y)) ()
+ (= ( $iota T ) ( lambda f ( $-> T ( bool ) )
+  ( if ( E!e. x ( typeset T ) ( istrue ( . ( cv f ) ( cv x ) ) ) )
+    ( U. ( {e.|} x ( typeset T ) ( istrue  ( . ( cv f ) ( cv x ) ) ) ) )
+    (witness T))))
+  (
+   f' T x' g y df-iota-half   
+     f T x g y df-iota-half   
+   eqtr4
+))
+
+thm (iota: ((T f x))
+  ((hyp (istype T)))
+  (: ($iota T) ($-> ($-> T (bool)) T))
+  ( hyp boolistype arrowistype
+
+    hyp
+      x (typeset T) (istrue (. (cv f) (cv x))) reucl
+
+        (E!e. x (typeset T) (istrue (. (cv f) (cv x))))
+        (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x)))))
+        (witness T)
+      iftrue eqcomd (typeset T) eleq1d
+    mpbid
+
+      hyp witness1
+        (E!e. x (typeset T) (istrue (. (cv f) (cv x))))
+        (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x)))))
+        (witness T)
+      iffalse eqcomd (typeset T) eleq1d
+    mpbii pm2.61i
+
+        (if (E!e. x (typeset T) (istrue (. (cv f) (cv x)))) (U. ({e.|} x (typeset T) (istrue (. (cv f) (cv x))))) (witness T)) T df-: biimpr
+    mp2an f abs:
+    T f x df-iota ($-> ($-> T (bool)) T) :eq1i mpbir
+))
+
+# especially handy for doing substitutions over ded terms
+thm (ifbieq1d ()
+  ((hyp1 (-> ph (<-> ps ch)))
+   (hyp2 (-> ph (= A B))))
+  (-> ph (= (if ps A C) (if ch B C)))
+  ( hyp1 ps ch A C ifbi syl
+    hyp2 A B ch C ifeq1 syl eqtrd
+))
+
+thm ( exists-$! ((T x))
+  ( ( hyp.T ( istype T ) )
+    ( hyp.A ( : A ( bool ) ) ) )
+  (<-> (istrue (. ($~) (. ($! T) (lambda x T (. ($~) A)))))
+       (E.e. x (typeset T) (istrue A)))
+  ( hyp.T $!-type hyp.T $~: hyp.A app: x abs: app: not-$~
+    hyp.T $~: hyp.A app: x forall-$!
+      x (typeset T) (-. (istrue A)) df-ral
+    hyp.A not-$~ (e. (cv x) (typeset T)) imbi2i x albii bitr4
+    bitr4
+    negbii bitr
+
+    x (typeset T) (istrue A) dfrex2 bitr4
+))
+
+# equivalence between E* x. f(x) in set theory and ZFC notations
+thm (iota_ax_lem1 ((T x y))
+  ((hyp (istype T)))
+  (<-> (istrue (. ($! T) (lambda x T (. ($! T) (lambda y T
+          (. (. ($==>)
+            (. (var f ($-> T (bool))) (var x T)))
+            (. (. ($==>) (. (var f ($-> T (bool))) (var y T)))
+              (. (. ($= T) (var x T)) (var y T)))))))))
+    (A.e. x (typeset T) (A.e. y (typeset T)
+      (-> (istrue (. (var f ($-> T (bool))) (cv x)))
+        (-> (istrue (. (var f ($-> T (bool))) (cv y)))
+          (= (cv x) (cv y)))))))
+  (
+    hyp hyp $!-type hyp
+      hyp boolistype arrowistype f var: hyp x var: app:
+      hyp boolistype arrowistype f var: hyp y var: app:
+      hyp x var: hyp y var: eqval:bool impval:bool impval:bool
+    y abs: app: x forall-$!
+
+    (cv x) T df-: hyp mpbiran
+    (cv y) T df-: hyp mpbiran anbi12i
+
+      x T vart (cv x) (var x T) (var f ($-> T (bool))) .eq2 syl istrueeqd (: (cv y) T) adantr
+
+      y T vart (cv y) (var y T) (var f ($-> T (bool))) .eq2 syl istrueeqd (: (cv x) T) adantl
+
+      x T vart (cv y) eqeq1d y T vart (var x T) eqeq2d sylan9bb
+      hyp x var: hyp y var: eqval syl6bbr
+    imbi12d
+
+    hyp boolistype arrowistype f var: hyp y var: app:
+    hyp x var: hyp y var: eqval:bool impval
+    syl6bbr imbi12d
+
+      hyp boolistype arrowistype f var: hyp x var: app:
+      hyp boolistype arrowistype f var: hyp y var: app:
+      hyp x var: hyp y var: eqval:bool impval:bool impval
+    syl6bbr sylbir
+    ex pm5.74d y albidv
+
+    hyp
+      hyp boolistype arrowistype f var: hyp x var: app:
+      hyp boolistype arrowistype f var: hyp y var: app:
+      hyp x var: hyp y var: eqval:bool impval:bool impval:bool y
+    forall-$! syl6bbr
+    pm5.74i x albii
+
+    bitr4
+
+    x (typeset T) (A.e. y (typeset T) (-> (istrue (. (var f ($-> T (bool))) (cv x))) (-> (istrue (. (var f ($-> T (bool))) (cv y))) (= (cv x) (cv y))))) df-ral
+
+    y (typeset T) (-> (istrue (. (var f ($-> T (bool))) (cv x))) (-> (istrue (. (var f ($-> T (bool))) (cv y))) (= (cv x) (cv y)))) df-ral
+    (e. (cv x) (typeset T)) imbi2i x albii
+    bitr bitr4
+))
+
+
+# The core of the iota axiom
+thm (iota_ax_lem2 ((T g x y) (A g x y))
+  ((hyp (istype T))
+   (hyp.A (: A ($-> T (bool)))))
+  (-> (E.e. x (typeset T) (istrue (. A (cv x))))
+    (-> (A.e. x (typeset T) (A.e. y (typeset T)
+       (-> (/\ (istrue (. A (cv x)))
+               ([/] (cv y) x (istrue (. A (cv x)))))
+           (= (cv x) (cv y)))))
+       (istrue (. A (. ($iota T) A)))))
+  ( 
+    x (typeset T) (istrue (. A (cv x))) y reu2
+
+        (E!e. x (typeset T) (istrue (. A (cv x))))
+        (U. ({e.|} x (typeset T) (istrue (. A (cv x)))))
+        (witness T)
+      iftrue
+
+    T g x df-iota A .eq1i
+
+      hyp iota: T g x df-iota ($-> ($-> T (bool)) T) :eq1i mpbi
+      hyp.A app: betaexps2
+
+      hyp.A typeel elisseti
+
+        (cv g) A (cv x) .eq1 istrueeqd x (typeset T) reubidv
+        (cv g) A (cv x) .eq1 istrueeqd x (typeset T) rabbisdv unieqd
+      (witness T) ifbieq1d imps2exps eqtr
+    eqtr syl5req
+
+      hyp iota: hyp.A app: typeel
+        (cv x) (. ($iota T) A) A .eq2 istrueeqd
+      (typeset T) reuuni2
+    mpan mpbird sylbir ex
+))
+
+thm (iota_ax_lem3 ()
+  ((hyp1 (: A (bool)))
+   (hyp2 (: B (bool)))
+   (hyp3 (: C (bool)))
+   (hyp4 (-> (istrue A) (-> (istrue B) (istrue C)))))
+  (istrue (. (. ($==>) A) (. (. ($==>) B) C)))
+  ( hyp4
+    hyp1 hyp2 hyp3 impval:bool impval
+    hyp2 hyp3 impval (istrue A) imbi2i bitr mpbir
+))
+
+thm (iota_ax ((T f x y))
+  ((hyp (istype T)))
+  ($|- (true) (. ($! ($-> T (bool))) (lambda f ($-> T (bool))
+    (. ( . ($==>)
+      (. ($~) (. ($! T) (lambda x T (. ($~) (. (var f ($-> T (bool))) (var x T)))))))
+      (. (. ($==>)
+        (. ($! T) (lambda x T (. ($! T) (lambda y T
+          (. (. ($==>)
+            (. (var f ($-> T (bool))) (var x T)))
+            (. (. ($==>) (. (var f ($-> T (bool))) (var y T)))
+              (. (. ($= T) (var x T)) (var y T)))))))))
+        (. (var f ($-> T (bool))) (. ($iota T) (var f ($-> T (bool))))))))))
+  ( hyp boolistype arrowistype
+
+      $~:
+        hyp $!-type hyp
+        $~: hyp boolistype arrowistype f var: hyp x var: app: app:
+      x abs: app: app:
+
+      hyp $!-type hyp hyp $!-type hyp
+        imptype hyp boolistype arrowistype f var: hyp x var: app: app:
+        imptype hyp boolistype arrowistype f var: hyp y var: app: app:
+        hyp eq: hyp x var: app: hyp y var: app: app: app:
+      y abs: app: x abs: app:
+
+        hyp boolistype arrowistype f var:
+      hyp iota: hyp boolistype arrowistype f var: app: app:
+
+    hyp hyp boolistype arrowistype f var: x y iota_ax_lem2
+
+    hyp hyp boolistype arrowistype f var: hyp x var: app: x exists-$!
+    (cv x) T df-: hyp mpbiran x T vart sylbir
+    (cv x) (var x T) (var f ($-> T (bool))) .eq2 istrueeqd syl rexbiia
+    bitr4
+
+    hyp x y f iota_ax_lem1
+        (istrue (. (var f ($-> T (bool))) (cv x)))
+        ([/] (cv y) x (istrue (. (var f ($-> T (bool))) (cv x))))
+        (= (cv x) (cv y))
+      impexp
+        (istrue (. (var f ($-> T (bool))) (cv y))) x ax-17
+        (cv x) (cv y) (var f ($-> T (bool))) .eq2 istrueeqd sbie
+      (= (cv x) (cv y)) imbi1i (istrue (. (var f ($-> T (bool))) (cv x))) imbi2i
+    bitr y (typeset T) ralbii x (typeset T) ralbii
+    bitr4
+
+    (istrue (. (var f ($-> T (bool))) (. ($iota T) (var f ($-> T (bool)))))) imbi1i imbi12i
+    mpbir
+
+    iota_ax_lem3
+    f gen-$! mknullseq
+))
+
+# We've proved all the axioms of HOL, interpreted in ZFC set theory.
+export ( HOL hol/hol () "")

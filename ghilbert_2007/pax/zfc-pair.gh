@@ -1,0 +1,74 @@
+import (PROP pax/prop () "")
+import (SET_MM_AX zfc/set_mm_ax (PROP) "")
+import (SET_MM zfc/set_mm (PROP SET_MM_AX) "")
+import (PRED pax/pred (PROP) "$")
+import (ZFC-PAX-ADAPTER pax/zfc-pax-adapter (PROP SET_MM SET_MM_AX PRED) "")
+
+import (A pax/basetype (PROP PRED) "a.")
+import (B pax/basetype (PROP PRED) "b.")
+
+def ((axb.T) (X. (a.T) (b.T)))
+
+thm (df-axb.T () ()
+  (= (axb.T) (X. (a.T) (b.T)))
+  ((X. (a.T) (b.T)) eqid))
+
+var (set x y z)
+var (class A B A' B')
+
+thm (axb.istype () ()
+  ($istype (axb.T))
+  (
+   a.istype (a.T) df-$istype mpbi
+     b.istype (b.T) df-$istype mpbi
+   (a.T) (b.T) xpnz biimp mp2an
+   df-axb.T ({/}) eqeq1i mtbir
+   (axb.T) df-$istype mpbir
+))
+
+export (AxB pax/basetype (PROP PRED) "axb.")
+
+def ((AxB.pair A B) (<,> A B))
+
+thm (df-AxB.pair () ()
+  (= (AxB.pair A B) (<,> A B))
+  ((<,> A B) eqid))
+
+thm (AxB.pair-ty () ()
+  (-> (/\ ($: A (a.T)) ($: B (b.T))) ($: (AxB.pair A B) (axb.T)))
+  (
+   A (a.T) df-ty2
+     B (b.T) df-ty2
+   anbi12i
+   A (a.T) B (b.T) opelxpi sylbi
+   A B df-AxB.pair df-axb.T eleq12i sylibr
+   (AxB.pair A B) (axb.T) df-ty2 sylibr
+))
+
+thm (AxB.ax-pair () ()
+  (-> (/\ (/\ ($: A (a.T)) ($: B (b.T)))
+       (/\ ($: A' (a.T)) ($: B' (b.T))))
+   (<-> (/\ ($= (a.T) A A') ($= (b.T) B B'))
+    ($= (axb.T) (AxB.pair A B) (AxB.pair A' B'))))
+  (
+   A (a.T) df-ty2
+     B (b.T) df-ty2
+   anbi12i biimp
+       B' (b.T) df-ty2 biimp ($: A' (a.T)) adantl
+   anim12i
+     A (a.T) B (b.T) B' (b.T) A' opthgg
+     bicomd 3exp imp31
+   syl
+     (a.T) A A' df-$=
+       (b.T) B B' df-$=
+     anbi12i
+       (axb.T) (AxB.pair A B) (AxB.pair A' B') df-$=
+         A B df-AxB.pair
+           A' B' df-AxB.pair
+         eqeq12i
+       bitr
+     bibi12i
+   sylibr
+))
+
+export (AxB-PAIR pax/pair (PROP PRED A B AxB) "AxB.")

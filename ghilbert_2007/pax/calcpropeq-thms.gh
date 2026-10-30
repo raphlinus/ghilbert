@@ -1,0 +1,23 @@
+# Adding equality to the 'calcprop' theory.
+
+import (CALCPROP pax/calcprop () "")
+import (CALCPROP-THMS pax/calcprop-thms (CALCPROP) "")
+import (CALCPROPEQ pax/calcpropeq (CALCPROP) "")
+
+var (value a b c)
+
+thm (inf-=comm () ((hyp (= a b)))
+	(= b a)
+	(
+		a =refl
+		# (= a a)
+			hyp
+			# (= a b)
+			a leibniz-=l
+			# "at the left hand side of ="
+		mpbi
+		# (= b a)
+	)
+)
+
+export (CALCPROPEQ-THMS pax/calcpropeq-thms (CALCPROPEQ) "")

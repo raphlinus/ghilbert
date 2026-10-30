@@ -1,0 +1,83 @@
+# script to make unicode "ghmi" font from various TeX pfb's
+
+type1pref="/usr/share/texmf-tetex/fonts/type1/"
+
+inf = type1pref + "bluesky/cm/cmmi10.pfb"
+outf = "ghmi10.sfd"
+
+Open(inf)
+Select(65, 90)
+Copy()
+New()
+Reencode("unicode")
+Select(65)
+Paste()
+Save(outf)
+
+Open(inf); Select(97, 122); Copy(); Open(outf); Select(97); Paste(); Save(outf)
+
+# greek uppercase
+Open(inf); Select(0); Copy(); Open(outf); Select(0u0393); Paste(); Save(outf)
+Open(inf); Select(1); Copy(); Open(outf); Select(0u0394); Paste(); Save(outf)
+Open(inf); Select(2); Copy(); Open(outf); Select(0u0398); Paste(); Save(outf)
+Open(inf); Select(3); Copy(); Open(outf); Select(0u039b); Paste(); Save(outf)
+Open(inf); Select(4); Copy(); Open(outf); Select(0u039e); Paste(); Save(outf)
+Open(inf); Select(5); Copy(); Open(outf); Select(0u03a0); Paste(); Save(outf)
+Open(inf); Select(6); Copy(); Open(outf); Select(0u03a3); Paste(); Save(outf)
+Open(inf); Select(7); Copy(); Open(outf); Select(0u03a5); Paste(); Save(outf)
+Open(inf); Select(8); Copy(); Open(outf); Select(0u03a6); Paste(); Save(outf)
+Open(inf); Select(9); Copy(); Open(outf); Select(0u03a8); Paste(); Save(outf)
+Open(inf); Select(10); Copy(); Open(outf); Select(0u03a9); Paste(); Save(outf)
+
+# greek lowercase
+Open(inf); Select(11); Copy(); Open(outf); Select(0u03b1); Paste(); Save(outf)
+Open(inf); Select(12); Copy(); Open(outf); Select(0u03b2); Paste(); Save(outf)
+Open(inf); Select(13); Copy(); Open(outf); Select(0u03b3); Paste(); Save(outf)
+Open(inf); Select(14); Copy(); Open(outf); Select(0u03b4); Paste(); Save(outf)
+Open(inf); Select(15); Copy(); Open(outf); Select(0u03f5); Paste(); Save(outf)
+Open(inf); Select(16); Copy(); Open(outf); Select(0u03b6); Paste(); Save(outf)
+Open(inf); Select(17); Copy(); Open(outf); Select(0u03b7); Paste(); Save(outf)
+Open(inf); Select(18); Copy(); Open(outf); Select(0u03b8); Paste(); Save(outf)
+Open(inf); Select(19); Copy(); Open(outf); Select(0u03b9); Paste(); Save(outf)
+Open(inf); Select(20); Copy(); Open(outf); Select(0u03ba); Paste(); Save(outf)
+Open(inf); Select(21); Copy(); Open(outf); Select(0u03bb); Paste(); Save(outf)
+Open(inf); Select(22); Copy(); Open(outf); Select(0u03bc); Paste(); Save(outf)
+Open(inf); Select(23); Copy(); Open(outf); Select(0u03bd); Paste(); Save(outf)
+Open(inf); Select(24); Copy(); Open(outf); Select(0u03be); Paste(); Save(outf)
+Open(inf); Select(25); Copy(); Open(outf); Select(0u03c0); Paste(); Save(outf)
+Open(inf); Select(26); Copy(); Open(outf); Select(0u03c1); Paste(); Save(outf)
+Open(inf); Select(27); Copy(); Open(outf); Select(0u03c3); Paste(); Save(outf)
+Open(inf); Select(28); Copy(); Open(outf); Select(0u03c4); Paste(); Save(outf)
+Open(inf); Select(29); Copy(); Open(outf); Select(0u03c5); Paste(); Save(outf)
+Open(inf); Select(30); Copy(); Open(outf); Select(0u03d5); Paste(); Save(outf)
+Open(inf); Select(31); Copy(); Open(outf); Select(0u03c7); Paste(); Save(outf)
+Open(inf); Select(32); Copy(); Open(outf); Select(0u03c8); Paste(); Save(outf)
+Open(inf); Select(33); Copy(); Open(outf); Select(0u03c9); Paste(); Save(outf)
+Open(inf); Select(34); Copy(); Open(outf); Select(0u03b5); Paste(); Save(outf)
+Open(inf); Select(35); Copy(); Open(outf); Select(0u03d1); Paste(); Save(outf)
+Open(inf); Select(36); Copy(); Open(outf); Select(0u03d6); Paste(); Save(outf)
+Open(inf); Select(37); Copy(); Open(outf); Select(0u03f1); Paste(); Save(outf)
+Open(inf); Select(38); Copy(); Open(outf); Select(0u03c2); Paste(); Save(outf)
+Open(inf); Select(39); Copy(); Open(outf); Select(0u03c6); Paste(); Save(outf)
+
+Open(inf); Select(64); Copy(); Open(outf); Select(0u2202); Paste(); Save(outf)
+Open(inf); Select(96); Copy(); Open(outf); Select(0u2113); Paste(); Save(outf)
+
+Open(inf); Select(123); Copy(); Open(outf); Select(0u0131); Paste(); Save(outf)
+Open(inf); Select(124); Copy(); Open(outf); Select(0u0237); Paste(); Save(outf)
+
+inf = type1pref + "bluesky/symbols/msbm10.pfb"
+
+Open(inf); Select(123); Copy(); Open(outf); Select(0u03f0); Paste(); Save(outf)
+Open(inf); Select(127); Copy(); Open(outf); Select(0u03f6); Paste(); Save(outf)
+
+Select(32)
+SetWidth(260)
+
+SelectAll()
+ClearHints()
+ChangePrivateEntry("BlueValues", "[]")
+ChangePrivateEntry("OtherBlues", "[]")
+DontAutoHint()
+
+Generate("ghmi10.otf")

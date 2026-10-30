@@ -1,0 +1,539 @@
+# A construction of peano_r in ZFC
+
+import (PROP pax/prop () "")
+import (SET_MM_AX zfc/set_mm_ax (PROP) "")
+import (SET_MM zfc/set_mm (PROP SET_MM_AX) "")
+
+kindbind ( class $num )
+kindbind ( set $var )
+
+var (wff ph ps ch th ta et)
+var (set w x y z)
+var ($num A B C D F G)
+var ($var a b c d)
+
+def (($cv x) (cv x))
+thm (df-$cv () ()
+  (= ($cv x) (cv x))
+  ((cv x) eqid))
+
+def (($nfi x ph) (-> ph (A. x ph)))
+thm (df-$nfi () ()
+  (<-> ($nfi x ph) (-> ph (A. x ph)))
+  ((-> ph (A. x ph)) pm4.2))
+
+def (($A. x ph) (A. x ph))
+thm (df-$A. () ()
+  (<-> ($A. x ph) (A. x ph))
+  ((A. x ph) pm4.2))
+
+def ((castN A) (if (e. A (NN0)) A (0)))
+thm (df-castN () ()
+  (= (castN A) (if (e. A (NN0)) A (0)))
+  ((if (e. A (NN0)) A (0)) eqid))
+
+def (($= A B) (= (castN A) (castN B)))
+thm (df-$= () ()
+  (<-> ($= A B) (= (castN A) (castN B)))
+  ((= (castN A) (castN B)) pm4.2))
+
+thm ($ax-nfidv ((ph x)) ()
+  ($nfi x ph)
+  (ph x ax-17 x ph df-$nfi mpbir))
+
+thm ($ax-nfinot ()
+  ((hyp ($nfi x ph)))
+  ($nfi x (-. ph))
+  (hyp x ph df-$nfi mpbi hbne x (-. ph) df-$nfi mpbir
+))
+
+thm ($ax-nfiim ()
+  ((hyp1 ($nfi x ph))
+   (hyp2 ($nfi x ps)))
+  ($nfi x (-> ph ps))
+  (hyp1 x ph df-$nfi mpbi
+     hyp2 x ps df-$nfi mpbi
+   hbim x (-> ph ps) df-$nfi mpbir
+))
+
+thm ($gen ()
+  ((hyp ph))
+  ($A. x ph)
+  (hyp x ax-gen x ph df-$A. mpbir))
+
+thm ($ax-4 () ()
+  (-> ($A. x ph) ph)
+  (
+   x ph ax-4
+     x ph df-$A. ph imbi1i
+   mpbir
+))
+
+thm ($ax-alim () ()
+  (-> ($A. x (-> ph ps)) (-> ($A. x ph) ($A. x ps)))
+  (
+   x ph ps 19.20
+     x (-> ph ps) df-$A.
+       x ph df-$A. x ps df-$A. imbi12i
+     imbi12i
+   mpbir
+))
+
+thm ($ax-nfial ()
+  ((hyp ($nfi x ph)))
+  ($nfi x ($A. y ph))
+  (hyp x ph df-$nfi mpbi
+   y hbal
+     y ph df-$A.
+       y ph df-$A. x albii
+     imbi12i
+   mpbir
+   x ($A. y ph) df-$nfi mpbir
+))
+
+thm ($ax-nfibound () ()
+  ($nfi x ($A. x ph))
+  (x ph hba1
+     x ph df-$A.
+       x ph df-$A. x albii
+     imbi12i
+   mpbir
+   x ($A. x ph) df-$nfi mpbir
+))
+
+thm ($ax-nfibi ()
+  ((hyp1 ($nfi x ph))
+   (hyp2 (<-> ph ps)))
+  ($nfi x ps)
+  (
+   hyp1 x ph df-$nfi mpbi
+   hyp2 hyp2 x albii imbi12i mpbi
+   x ps df-$nfi mpbir
+))
+
+thm ($alnfi ()
+  ((hyp ($nfi x ph)))
+  (-> ph ($A. x ph))
+  (hyp
+     x ph df-$nfi
+     x ph df-$A. ph imbi2i bitr4
+   mpbi
+))
+
+thm (casttylem () ()
+  (e. (if (e. A (NN0)) A (0)) (NN0))
+  (
+   (e. A (NN0)) A (0) iftrue
+   (NN0) eleq1d
+   biimprd pm2.43i
+
+     0nn0
+       (e. A (NN0)) A (0) iffalse
+       (NN0) eleq1d
+       biimprd imp
+     mpan2
+   pm2.61i
+))
+
+thm (cast-ax () ()
+  (-> (e. A (NN0)) (= (castN A) A))
+  (
+   A df-castN (e. A (NN0)) a1i
+     (e. A (NN0)) A (0) iftrue
+   eqtrd
+))
+
+thm (cast-ty () ()
+  (e. (castN A) (NN0))
+  (
+   A casttylem
+     A df-castN
+     (NN0) eleq1i
+   mpbir
+))
+
+thm (eqequiv () ()
+  (-> (/\ (e. A (NN0)) (e. B (NN0)))
+    (<-> (= A B) ($= A B)))
+  (A cast-ax B cast-ax eqeqan12d
+     A B df-$=
+   syl5rbb
+))
+
+thm (eqequivi ()
+  ((hyp1 (e. A (NN0)))
+   (hyp2 (e. B (NN0))))
+  (<-> (= A B) ($= A B))
+  (hyp1 hyp2 A B eqequiv mp2an))
+
+thm (casteq () ()
+  (-> (= A B) (= (castN A) (castN B)))
+  (
+   A B (NN0) eleq1 A (0) ifbid
+     A B (e. B (NN0)) (0) ifeq1
+   eqtrd
+   A df-castN B df-castN 3eqtr4g
+))
+
+thm (eqimp () ()
+  (-> (= A B) ($= A B))
+  (A B casteq A B df-$= sylibr
+))
+
+thm (eqimpi ()
+  ((hyp (= A B)))
+  ($= A B)
+  (hyp A B eqimp ax-mp))
+
+thm (eqimpd ()
+  ((hyp (-> ph (= A B))))
+  (-> ph ($= A B))
+  (hyp A B eqimp syl))
+
+thm ($ax-eqtr () ()
+  (-> (/\ ($= A B) ($= A C)) ($= B C))
+  (
+   A B df-$=
+     A C df-$=
+   anbi12i
+   (castN A) (castN B) (castN C) eqtr2t sylbi
+   B C df-$= sylibr
+))
+
+thm ($ax-tyex ((A x)) ()
+  (-. ($A. x (-. ($= ($cv x) A))))
+  (A cast-ty
+   (castN A) (NN0) x elex ax-mp
+     x df-$cv (castN A) eqeq1i
+       A cast-ty ($cv x) (castN A) (NN0) eleq1 mpbiri ($cv x) cast-ax syl
+       (castN A) eqeq1d
+       ($cv x) A df-$= syl5bb ibir
+     sylbir
+     x 19.22i
+   ax-mp
+   x ($= ($cv x) A) df-ex mpbi
+   x (-. ($= ($cv x) A)) df-$A. negbii mpbir
+))
+
+# Establish NN0 as natural numbers.
+
+def (($0) (0))
+thm (df-$0 () () (= ($0) (0)) ((0) eqid))
+
+def (($S A) (opr (castN A) (+) (1)))
+thm (df-$S () () (= ($S A) (opr (castN A) (+) (1)))
+  ((opr (castN A) (+) (1)) eqid))
+
+def (($+ A B) (opr (castN A) (+) (castN B)))
+thm (df-$+ () () (= ($+ A B) (opr (castN A) (+) (castN B)))
+  ((opr (castN A) (+) (castN B)) eqid))
+
+def (($* A B) (opr (castN A) (x.) (castN B)))
+thm (df-$* () () (= ($* A B) (opr (castN A) (x.) (castN B)))
+  ((opr (castN A) (x.) (castN B)) eqid))
+
+thm ($addeq12 () ()
+    (-> (/\ ($= A B) ($= C D)) ($= ($+ A C) ($+ B D)))
+  (
+   A B df-$= C D df-$= anbi12i biimp
+     (castN A) (castN B) (castN C) (castN D) (+) opreq12
+   syl
+     A C df-$+ B D df-$+ eqeq12i biimpr eqimpd
+   syl
+))
+
+thm ($muleq12 () ()
+    (-> (/\ ($= A B) ($= C D)) ($= ($* A C) ($* B D)))
+  (
+   A B df-$= C D df-$= anbi12i biimp
+     (castN A) (castN B) (castN C) (castN D) (x.) opreq12
+   syl
+     A C df-$* B D df-$* eqeq12i biimpr eqimpd
+   syl
+))
+
+thm (sucty () ()
+  (e. ($S A) (NN0))
+  (
+   A df-$S
+   A cast-ty (castN A) nn0p1nnt ax-mp eqeltr
+   ($S A) elnnnn0b mpbi pm3.26i
+))
+
+thm ($pa_ax1 () () (-. ($= ($0) ($S A)))
+  (
+   A df-$S
+   A cast-ty (castN A) nn0p1nnt ax-mp eqeltr
+   nnne0 ($S A) (0) df-ne mpbi
+   ($S A) (0) eqcom mtbi
+   df-$0 ($S A) eqeq1i mtbir
+     df-$0 0nn0 eqeltr A sucty eqequivi
+   mtbi
+))
+
+thm ($pa_ax2 () ()
+  (<-> ($= A B) ($= ($S A) ($S B)))
+  (
+   A B df-$=
+   A cast-ty nn0cn B cast-ty nn0cn 1cn addcan2 bitr4
+   A df-$S B df-$S eqeq12i bitr4
+   A sucty B sucty eqequivi bitr
+))
+
+thm (addty () ()
+  (e. ($+ A B) (NN0))
+  (
+   A B df-$+ 
+     A cast-ty B cast-ty nn0addcl
+   eqeltr
+))
+
+thm ($pa_ax3 () ()
+  ($= ($+ A ($0)) A)
+  (
+   A ($0) addty ($+ A ($0)) cast-ax ax-mp
+     A ($0) df-$+
+       df-$0 ($0) (0) casteq ax-mp 0nn0 (0) cast-ax ax-mp eqtr
+       (castN A) (+) opreq2i
+       A cast-ty nn0cn addid1 eqtr
+     eqtr
+   eqtr
+   ($+ A ($0)) A df-$= mpbir
+))
+
+thm (sucequiv () ()
+  (-> (e. A (NN0)) (= (opr A (+) (1)) ($S A)))
+  (A cast-ax (+) (1) opreq1d
+   A df-$S syl5req
+))
+
+thm (sucequivi ()
+  ((hyp1 (e. A (NN0))))
+  (= (opr A (+) (1)) ($S A))
+  (hyp1 A sucequiv ax-mp))
+
+thm (addequiv () ()
+  (-> (/\ (e. A (NN0)) (e. B (NN0))) (= (opr A (+) B) ($+ A B)))
+  (
+   A cast-ax (e. B (NN0)) adantr
+     B cast-ax (e. A (NN0)) adantl
+   (+) opreq12d
+   A B df-$+ syl5req
+))
+
+thm (addequivi ()
+  ((hyp1 (e. A (NN0)))
+   (hyp2 (e. B (NN0))))
+  (= (opr A (+) B) ($+ A B))
+  (hyp1 hyp2 A B addequiv mp2an))
+
+thm ($pa_ax4 () ()
+  ($= ($+ A ($S B)) ($S ($+ A B)))
+  (
+   A ($S B) df-$+ 
+     A B df-$+ (+) (1) opreq1i
+     A B addty sucequivi eqtr3
+       A cast-ty nn0cn B cast-ty nn0cn 1cn addass
+     eqtr3
+       B sucty ($S B) cast-ax ax-mp B df-$S eqtr
+       (castN A) (+) opreq2i
+     eqtr4
+   eqtr4
+   eqimpi
+))
+
+thm (mulequiv () ()
+  (-> (/\ (e. A (NN0)) (e. B (NN0))) (= (opr A (x.) B) ($* A B)))
+  (
+   A cast-ax (e. B (NN0)) adantr
+     B cast-ax (e. A (NN0)) adantl
+   (x.) opreq12d
+   A B df-$* syl5req
+))
+
+thm (mulequivi ()
+  ((hyp1 (e. A (NN0)))
+   (hyp2 (e. B (NN0))))
+  (= (opr A (x.) B) ($* A B))
+  (hyp1 hyp2 A B mulequiv mp2an))
+
+thm ($pa_ax5 () ()
+  ($= ($* A ($0)) ($0))
+  (
+   A ($0) df-$*
+     df-$0 ($0) (0) casteq ax-mp 0nn0 (0) cast-ax ax-mp eqtr
+     (castN A) (x.) opreq2i
+   eqtr
+     A cast-ty nn0cn mul01
+   eqtr
+   df-$0 eqtr4
+   eqimpi
+))
+
+thm (multy () ()
+  (e. ($* A B) (NN0))
+  (A B df-$*
+   A cast-ty B cast-ty nn0mulcl eqeltr))
+   
+thm ($pa_ax6 () ()
+  ($= ($* A ($S B)) ($+ ($* A B) A))
+  (
+   A ($S B) df-$*
+     B sucty ($S B) cast-ax ax-mp B df-$S eqtr
+     (castN A) (x.) opreq2i
+   eqtr
+     A cast-ty nn0cn B cast-ty nn0cn 1cn adddi
+     A B df-$* eqcomi A cast-ty nn0cn mulid1 (+) opreq12i eqtr
+   eqtr
+     A B multy ($* A B) cast-ax ax-mp
+     (+) (castN A) opreq1i
+   eqtr4
+     ($* A B) A df-$+
+   eqtr4
+   eqimpi
+))
+
+thm (pa_indlem2 ((A x) (B x)) ()
+  (-> (e. A B) (<-> (e. A ({e.|} x B ph)) (A. x (-> (= (cv x) A) ph))))
+  (
+   A B x (/\ (e. (cv x) B) ph) elabsg
+   A B x (/\ (e. (cv x) B) ph) sbc6g bitrd
+     A B (cv x) eleq1a
+     (= (cv x) A) (e. (cv x) B) ph pm5.44 syl
+     x albidv
+     bitr4d
+   x B ph df-rab A eleq2i syl5bb
+))
+
+thm (eqequivn () ()
+  (-> (e. B (NN)) (<-> (= A B) ($= A B)))
+  (
+   A B eqimp (e. B (NN)) a1i
+     nnssnn0 B sseli B cast-ax syl
+     (castN A) eqeq2d
+     A B df-$= syl5bb
+     (castN A) B (NN) eleq1 biimprd com12 sylbid
+       0nnn
+         (e. A (NN0)) A (0) iffalse
+         A df-castN syl5eq (NN) eleq1d
+       mtbiri a3i
+     syl6 imp
+       nnssnn0 B sseli ($= A B) adantr
+     jca A B eqequiv syl
+     bicomd ex ibd
+   impbid
+))
+
+# It might be a bit easier to prove this from [[pa_indlem5]], in which case
+# [[eqequivn]] is probably not necessary.
+thm (pa_indlem3 ((A x)) ()
+  (-> (/\ (e. A (NN0)) (A. x (-> ($= (cv x) ($0)) ph)))
+     (<-> (A. x (-> ($= (cv x) A) ph)) (A. x (-> (= (cv x) A) ph))))
+  (
+   A elnn0
+     A (cv x) eqequivn ph imbi1d x albidv bicomd
+     (A. x (-> ($= (cv x) ($0)) ph)) a1d
+       df-$0 A eqeq2i
+         (cv x) A eqimp ph imim1i x 19.20i
+         (/\ (= A ($0)) (A. x (-> ($= (cv x) ($0)) ph))) a1i
+           A ($0) casteq (castN (cv x)) eqeq2d
+           (cv x) A df-$= (cv x) ($0) df-$= 3bitr4g
+           ph imbi1d x albidv
+           biimprd imp (A. x (-> (= (cv x) A) ph)) a1d
+        impbid ex
+      sylbir
+    jaoi
+  sylbi imp
+))
+
+thm (pa_indlem4 ((A x) (B x))
+  ((hyp1 (-> (e. C (NN0)) (= A B)))
+   (hyp2 (-> (e. C (NN0)) (e. A (NN0)))))
+  (-> (/\ (e. C (NN0)) (A. x (-> ($= (cv x) ($0)) ph)))
+    (<-> (e. A ({e.|} x (NN0) ph)) (A. x (-> ($= (cv x) B) ph))))
+  (
+   hyp2 A (NN0) x ph pa_indlem2 syl
+     hyp1 A B (cv x) eqeq2 ph imbi1d x albidv syl
+   bitrd
+   (A. x (-> ($= (cv x) ($0)) ph)) adantr
+     B x ph pa_indlem3
+     hyp2 hyp1 (NN0) eleq1d mpbid sylan
+   bitr4d
+))
+
+thm (pa_indlem5 () ()
+  (-> (A. x (-> ($= (cv x) ($0)) ph))
+     (<-> (A. x ph) (A. x (-> (e. (cv x) (NN0)) ph))))
+  (
+   (e. (cv x) (NN0)) (cv x) (0) iffalse
+   (cv x) df-castN (0) eqeq1i sylibr
+     (cv x) ($0) df-$=
+       0nn0 df-$0 (NN0) eleq1i mpbir ($0) cast-ax ax-mp df-$0 eqtr
+     (castN (cv x)) eqeq2i bitr
+   sylibr
+   ph imim1i x 19.20i
+
+     (e. (cv x) (NN0)) exmid ph a1bi
+     (e. (cv x) (NN0)) (-. (e. (cv x) (NN0))) orcom ph imbi1i bitr
+     (-. (e. (cv x) (NN0))) (e. (cv x) (NN0)) ph jaob bitr
+     x albii
+       x (-> (-. (e. (cv x) (NN0))) ph) (-> (e. (cv x) (NN0)) ph) 19.26
+     bitr baib
+   syl
+))
+
+thm (pa_indlem6 ((ps x))
+  ((hyp1 (-> (/\ ph ps) (<-> (-> (e. (cv x) A) ch) ta)))
+   (hyp2 (-> (e. (cv x) A) ph)))
+  (-> ps (-> (A. x ta) (A.e. x A ch)))
+  (
+   hyp1 ancoms ex pm5.74d
+     ph (e. (cv x) A) ch impexp
+       hyp2 ancri ch imim1i
+     sylbir
+   syl6bir
+   x 19.20dv
+   ta ph ax-1 x 19.20i syl5
+   x A ch df-ral syl6ibr
+))
+
+thm ($pa_ind ((x y) (ph y)) ()
+  (-> (/\ ($A. x (-> ($= ($cv x) ($0)) ph))
+        ($A. y (-> ($A. x (-> ($= ($cv x) ($cv y)) ph))
+                  ($A. x (-> ($= ($cv x) ($S ($cv y))) ph)))))
+    ($A. x ph))
+  (
+   x (-> ($= (cv x) ($0)) ph) hba1
+     x (-> ($= (cv x) (cv y)) ph) hba1
+       x (-> ($= (cv x) ($S (cv y))) ph) hba1
+     hbim y hbal
+   hban
+
+     0nn0
+       df-$0 eqcomi (e. (0) (NN0)) a1i
+         (e. (0) (NN0)) id
+        x ph pa_indlem4
+     mpan ibir
+       (cv y) eqid (e. (cv y) (NN0)) a1i
+         (e. (cv y) (NN0)) id
+       x ph pa_indlem4
+         (cv y) cast-ax (+) (1) opreq1d
+         (cv y) df-$S syl5eq eqcomd
+           1nn0 (cv y) (1) nn0addclt mpan2
+         x ph pa_indlem4
+       imbi12d
+         x (NN0) ph ssrab2 (cv y) sseli
+       pa_indlem6 imp
+     anim12i anabss5
+     nn0ex x ph rabex 0z y z peano5uz syl
+       z nn0zrab ({e.|} x (NN0) ph) sseq1i
+     sylibr
+     (cv x) sseld
+       x (NN0) ph rabid (e. (cv x) (NN0)) imbi2i
+     sylib imp pm3.27d ex
+   19.21ai ex
+     x ph pa_indlem5
+   sylibrd imp
+))
+
+export (PEANO peano/peano_ax (PROP) "$")

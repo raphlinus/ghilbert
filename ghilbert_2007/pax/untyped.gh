@@ -1,0 +1,123 @@
+# Some glue logic that lets you prove using untyped equality, while verifying
+# in the pax (typed) framework
+
+import (PROP pax/prop () "")
+import (PROP-FULL pax/prop-full (PROP) "")
+import (PRED pax/pred (PROP) "")
+import (PRED-THMS pax/pred-thms (PROP PRED) "")
+
+import (BASETYPE pax/basetype (PROP PRED) "")
+
+var (wff ph ps ch ta)
+var (val A B C)
+var (var x y z z')
+
+def (($= A B) (\/ (= (T) A B) (/\ (-. (: A (T))) (-. (: B (T))))))
+thm (df-$= () ()
+  (<-> ($= A B) (\/ (= (T) A B) (/\ (-. (: A (T))) (-. (: B (T))))))
+  ((\/ (= (T) A B) (/\ (-. (: A (T))) (-. (: B (T))))) pm4.2))
+
+thm (orcsr ()
+  ((orcsr1 (-> ph ps)))
+  (-> ph (\/ ps ch))
+  (orcsr1 ps ch orc syl))
+
+thm (orcsl ()
+  ((orcsl1 (-> ph ps)))
+  (-> ph (\/ ch ps))
+  (orcsl1 ch orcsr ps ch orcom sylib))
+
+thm ($=refl () ()
+  ($= A A)
+  (
+   istype A eqid
+   (/\ (-. (: A (T))) (-. (: A (T)))) orcsr
+     (-. (: A (T))) pm4.24 biimp
+     (= (T) A A) orcsl
+   pm2.61i
+   A A df-$= mpbir
+))
+
+thm (eqtybi () ()
+  (-> ($= A B) (<-> (: A (T)) (: B (T))))
+  (
+   A B df-$=
+     istype A B tyeq1
+       (-. (: A (T))) (-. (: B (T))) pm5.1 bicon4d
+     jaoi
+   sylbi
+))
+
+thm (orelbi2d ()
+  ((hyp (-> ph (-. ps))))
+  (-> ph (<-> (\/ ch ps) ch))
+  (hyp
+     ps ch orel2
+       ch ps orc (-. ps) a1i
+     impbid
+   syl
+))
+
+thm (eqequiv1 () ()
+  (-> (: A (T)) (<-> ($= A B) (= (T) A B)))
+  (
+   (: A (T)) (: B (T)) orc
+   (: A (T)) (: B (T)) oran sylib
+   (= (T) A B) orelbi2d
+     A B df-$=
+    syl5bb
+))
+
+
+thm ($leibniz-=llem () ((hyp ($= A B)))
+  (-> ($= A C) ($= B C))
+  (
+   A C eqequiv1
+     istype
+       hyp A B eqequiv1 mpbii
+     C eqeq1d
+   bitrd
+     hyp A B eqtybi ax-mp biimp
+     B C eqequiv1 syl
+   bitr4d biimpd
+
+     hyp A B eqtybi ax-mp biimpr con3i ($= A C) adantr
+       A C eqtybi negbid biimpd com12 imp
+     jca
+     (= (T) B C) orcsl
+     B C df-$= sylibr exp
+   pm2.61i
+))
+
+thm ($=com () ()
+  (<-> ($= A B) ($= B A))
+  (
+   istype A B eqcom
+     (-. (: A (T))) (-. (: B (T))) ancom
+   orbi12i
+     A B df-$=
+       B A df-$=
+   3bitr4
+))
+
+thm ($leibniz-=l () ((hyp ($= A B)))
+  (<-> ($= A C) ($= B C))
+  (
+   hyp C $leibniz-=llem
+     hyp A B $=com mpbi C $leibniz-=llem
+   impbi
+))
+
+thm ($leibniz-=r () ((hyp ($= A B)))
+  (<-> ($= C A) ($= C B))
+  (hyp C $leibniz-=l
+     A C $=com
+       B C $=com
+   3bitr3
+))
+
+kindbind (val $value)
+
+# I think that this export would work if we had a CALCPROP interface
+# (perhaps synthesized from PROP).
+# TODO: export (CALCPROPEQ pax/calcpropeq (CALCPROP) "$")

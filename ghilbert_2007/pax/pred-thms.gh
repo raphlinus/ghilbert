@@ -1,0 +1,2406 @@
+import (PROP pax/prop () "")
+import (PROP-FULL pax/prop-full (PROP) "")
+import (ASSUMP pax/assump (PROP) "")
+import (PRED pax/pred (PROP) "")
+
+var (wff ph ps ch ta)
+var (type T T')
+var (val A B C)
+var (var x y z z')
+
+# not used
+thm (alim2 ((T x))
+  ((hyp (istype T)))
+  (-> (A. x T (-> ph (-> ps ch))) (-> (A. x T ph) (-> (A. x T ps) (A. x T ch))))
+  (
+    hyp x ph (-> ps ch) alim
+    hyp x ps ch alim syl6
+))
+
+thm (19.15 ((T x))
+  ((hyp (istype T)))
+  (-> (A. x T (<-> ph ps)) (<-> (A. x T ph) (A. x T ps)))
+  (
+    hyp ph ps bi1 (: (cv x) T) a1i gen
+    hyp x (<-> ph ps) (-> ph ps) alim ax-mp
+    hyp x ph ps alim syl
+
+    hyp ph ps bi2 (: (cv x) T) a1i gen
+    hyp x (<-> ph ps) (-> ps ph) alim ax-mp 
+    hyp x ps ph alim syl impbid
+))
+
+thm (19.15i ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (A. x T (<-> ph ps))))
+  (<-> (A. x T ph) (A. x T ps))
+  (hyp2 hyp1 x ph ps 19.15 ax-mp))
+
+thm (albii ((T x))
+  ((hyp (<-> ph ps))
+   (hypT (istype T)))
+  (<-> (A. x T ph) (A. x T ps))
+  (hypT hypT hyp (: (cv x) T) a1i gen 19.15i))
+
+# should this be primary?
+thm (albii2 ((T x))
+  ((hyp (-> (: (cv x) T) (<-> ph ps)))
+   (hypT (istype T)))
+  (<-> (A. x T ph) (A. x T ps))
+  (hypT hypT hyp gen 19.15i))
+
+thm (nfii ((T x))
+  ((hyp (nfi x T ph)))
+  (<-> ph (A. x T ph))
+  (hyp x T ph df-nfi mpbi))
+
+thm (nfiir ((T x))
+  ((hyp (<-> ph (A. x T ph))))
+  (nfi x T ph)
+  (hyp x T ph df-nfi mpbir))
+
+# A useful inference for creating nfi's
+thm (nfi_fromdef ((T x))
+  ((hyp2 (<-> ph ps))
+   (hyp3 (nfi x T ps))
+   (hypT (istype T)))
+  (nfi x T ph)
+  (hyp2 hyp3 nfii hyp2 hypT x albii bitr4 bitr nfiir
+))
+
+thm (nfi_or ((T x ))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (nfi x T ps))
+   (hyp1 (istype T)))
+  (nfi x T (\/ ph ps))
+  (
+   ph ps df-or
+     hyp2 hyp1 nfi_not
+       hyp3
+     hyp1 nfi_im
+   hyp1 nfi_fromdef
+))
+
+thm (nfi_an ((T x ))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (nfi x T ps))
+   (hyp1 (istype T)))
+  (nfi x T (/\ ph ps))
+  (
+   ph ps df-an
+     hyp2
+       hyp3 hyp1 nfi_not hyp1 nfi_im hyp1 nfi_not
+   hyp1 nfi_fromdef
+))
+
+thm (nfi_bi ((T x ))
+  (
+   (hyp2 (nfi x T ph))
+   (hyp3 (nfi x T ps))
+   (hyp1 (istype T)))
+  (nfi x T (<-> ph ps))
+  (
+   ph ps bi
+     hyp2 hyp3 hyp1 nfi_im
+       hyp3 hyp2 hyp1 nfi_im
+   hyp1 nfi_an hyp1 nfi_fromdef
+))
+
+thm (nfi_ex ((T x y) (T' x y))
+ ((hyp3 (nfi x T ph))
+  (hyp1 (istype T))
+  (hyp2 (istype T')))
+  (nfi x T (E. y T' ph))
+  (
+   y T' ph df-ex
+     hyp3 hyp1 nfi_not hyp1 hyp2 y nfi_al hyp1 nfi_not
+   hyp1 nfi_fromdef
+))
+
+thm (nfi_boundex ((T x))
+  ((hyp (istype T)))
+  (nfi x T (E. x T ph))
+  (
+   x T ph df-ex
+     hyp x (-. ph) nfi_bound hyp nfi_not
+   hyp nfi_fromdef
+))
+
+thm (nfii_ex ((T x))
+  ((hyp2 (nfi x T ph))
+   (hyp1 (istype T)))
+  (<-> ph (E. x T ph))
+  (hyp2 hyp1 nfi_not nfii bicon1i bicomi
+   x T ph df-ex bitr4
+))
+
+
+thm (mpg ((T x))
+  ((mpg.1 (-> (A. x T ph) ps))
+   (mpg.2 (-> (: (cv x) T) ph))
+   (hypT (istype T)))
+  ps
+  (hypT mpg.2  gen mpg.1 ax-mp))
+thm (mpgbi ((T x))
+  ((mpgbi.1 (<-> (A. x T ph) ps))
+   (mpgbi.2 (-> (: (cv x) T) ph))
+   (hypT (istype T)))
+  ps
+  (mpgbi.1 biimp mpgbi.2 hypT mpg))
+thm (mpgbir ((T x))
+  ((mpgbir.1 (<-> ph (A. x T ps)))
+   (mpgbir.2 (-> (: (cv x) T) ps))
+   (hypT (istype T)))
+  ph
+  (mpgbir.1 biimpr mpgbir.2 hypT mpg))
+
+thm (19.20i ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) (-> ph ps))))
+  (-> (A. x T ph) (A. x T ps))
+  (hyp1 hyp2 gen hyp1 x ph ps alim ax-mp))
+
+thm (19.20ii ((T x))
+  ((hyp (-> (/\ (: (cv x) T) ph) (-> ps ch)))
+   (hypT (istype T)))
+  (-> (A. x T ph) (-> (A. x T ps) (A. x T ch)))
+  (
+   hypT hyp exp 19.20i
+   hypT x ps ch alim syl
+))
+
+thm (19.20i2 ((T x) (T y))
+  ((hyp (-> ph ps))
+   (hypT (istype T)))
+  (-> (A. x T (A. y T ph)) (A. x T (A. y T ps)))
+  (
+   hypT
+     hypT hyp (: (cv y) T) a1i 19.20i
+   (: (cv x) T) a1i 19.20i
+))
+
+thm (19.21 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph)))
+  (<-> (A. x T (-> ph ps)) (-> ph (A. x T ps)))
+  (
+   hyp1 x ph ps alim hyp2 nfii syl5ib
+     hyp2
+     hyp1 x ps nfi_bound
+   hyp1 nfi_im nfii
+     hyp1
+     hyp1 x ps spec-var com12
+     ph imim2d
+   19.20i
+
+   sylbi impbi
+))
+
+thm (19.21v ((T x) (ph x))
+  ((hyp1 (istype T)))
+  (<-> (A. x T (-> ph ps)) (-> ph (A. x T ps)))
+  (hyp1 hyp1 x ph nfi_dv ps 19.21))
+
+thm (19.21ai ((T x))
+  ((hyp1 (-> (/\ ph (: (cv x) T)) ps))
+   (hyp2 (istype T))
+   (hyp3 (nfi x T ph)))
+  (-> ph (A. x T ps))
+  ( hyp2 hyp1 ancoms exp gen
+      hyp2 x ph ps alim
+      hyp3 x T ph df-nfi mpbi (A. x T ps) imbi1i sylibr
+    ax-mp
+))
+
+thm (19.21aiv ((T x) (ph x))
+  ((hyp1 (-> (/\ ph (: (cv x) T)) ps))
+   (hypT (istype T)))
+  (-> ph (A. x T ps))
+  (hyp1 hypT hypT x ph nfi_dv 19.21ai
+))
+
+thm (19.21bi ((T x))
+  ((hyp1 (-> ph (A. x T ps)))
+   (hypT (istype T)))
+  (-> (/\ ph (: (cv x) T)) ps)
+  (hyp1 hypT x ps spec-var syl imp
+))
+
+thm (19.26 ((T x))
+  ((hyp (istype T)))
+  (<-> (A. x T (/\ ph ps)) (/\ (A. x T ph) (A. x T ps)))
+  (
+   hyp ph ps pm3.26 (: (cv x) T) a1i gen hyp x (/\ ph ps) ph alim ax-mp
+   hyp ph ps pm3.27 (: (cv x) T) a1i gen hyp x (/\ ph ps) ps alim ax-mp jca
+
+     hyp x ph spec-var com12
+     hyp x ps spec-var com12 anim12d com12 imp
+       hyp
+         hyp x ph nfi_bound hyp x ps nfi_bound hyp nfi_an
+     19.21ai
+   impbi
+))
+
+thm (margaris17.10 ((T x y) (T' x y))
+  ((hyp1 (istype T))
+   (hyp2 (istype T')))
+  (-> (A. x T (A. y T' ph)) (A. y T' (A. x T ph)))
+  (
+
+   hyp1 x (A. y T' ph) spec-var imp
+   hyp2 y ph spec-var syl exp com23 imp31
+     hyp1
+       hyp1 x (A. y T' ph) nfi_bound
+         hyp1 x (: (cv y) T') nfi_dv
+     hyp1 nfi_an
+   19.21ai
+
+     hyp2
+       hyp2 y ph nfi_bound hyp2 hyp1 x nfi_al
+   19.21ai
+))
+
+# aka 19.5
+thm (alcom ((T x y) (T' x y))
+  ((hyp1 (istype T))
+   (hyp2 (istype T')))
+  (<-> (A. x T (A. y T' ph)) (A. y T' (A. x T ph)))
+  (  hyp1 hyp2 x y ph margaris17.10
+     hyp2 hyp1 y x ph margaris17.10
+   impbi
+))
+
+thm (19.8 ((T x))
+  ((hyp (istype T)))
+  (-> (: (cv x) T) (-> ph (E. x T ph)))
+  (hyp x (-. ph) spec-var com12 con2d 
+   x T ph df-ex ph imbi2i sylibr
+))
+
+# aka 17.6
+thm (19.2 ((T x))
+  ((hyp (istype T)))
+  (-> (A. x T ph) (E. x T ph))
+  (hyp hyp x ph 19.8 gen
+   hyp x ph (E. x T ph) alim ax-mp
+   hyp x ph nfi_boundex nfii sylibr
+))
+
+thm (19.22 ((T x))
+  ((hyp (istype T)))
+  (-> (A. x T (-> ph ps)) (-> (E. x T ph) (E. x T ps)))
+  (ph ps pm4.1 hyp x albii
+   hyp x (-. ps) (-. ph) alim sylbi con3d
+   x T ph df-ex x T ps df-ex imbi12i sylibr
+))
+
+thm (19.22i ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) (-> ph ps))))
+  (-> (E. x T ph) (E. x T ps))
+  (hyp1 hyp2 gen hyp1 x ph ps 19.22 ax-mp))
+
+thm (19.22dv ((T x) (ph x))
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (-> (: (cv x) T) (-> ps ch)))))
+  (-> ph (-> (E. x T ps) (E. x T ch)))
+  (hyp2 imp hyp1 19.21aiv
+   hyp1 x ps ch 19.22 syl
+))
+
+thm (19.35 ((T x))
+  ((hyp (istype T)))
+  (<-> (E. x T (-> ph ps)) (-> (A. x T ph) (E. x T ps)))
+  (hyp x ph (-. ps) 19.26
+   ph ps annim hyp x albii
+   (A. x T ph) (A. x T (-. ps)) df-an 3bitr3
+   bicon2i
+   x T ps df-ex (A. x T ph) imbi2i
+   x T (-> ph ps) df-ex 3bitr4r
+))
+
+thm (alphalem1 ((T x y))
+  ((hyp (istype T)))
+  (-> (A. x T (A. y T (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps)))))
+      (-> (A. x T (A. y T ph)) (A. y T (A. x T ps))))
+  (
+
+
+     hyp x (A. y T ph) spec-var
+     (A. y T ph) (A. x T ps) ibib pm5.74ri biimprd syl6
+     imp (= T (cv x) (cv y)) imim2d
+
+     hyp
+     hyp x (A. y T ph) nfi_bound
+   19.21ai
+
+     hyp x
+     (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps)))
+     (-> (= T (cv x) (cv y)) (A. x T ps))
+   alim syl
+
+     hyp x
+     (= T (cv x) (cv y))
+     (A. x T ps)
+   19.22 syl6
+
+     (cv y) T x df-ty
+     hyp x ps nfi_bound hyp nfii_ex
+   imbi12i syl6ibr com23 imp
+
+     hyp
+     hyp y ph nfi_bound hyp hyp x nfi_al
+   19.21ai
+
+     hyp y
+     (A. x T (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps))))
+     (A. x T ps)
+   alim
+     hyp hyp x y (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps))) alcom
+     (A. y T (A. x T ps))
+   imbi1i sylibr syl com12
+))
+
+thm (alphalem2 ((T x y))
+  ((hyp (istype T)))
+  (-> (A. x T (A. y T (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps)))))
+      (<-> (A. x T (A. y T ph)) (A. y T (A. x T ps))))
+  (hyp x y ph ps alphalem1
+
+     hyp (cv y) (cv x) eqcom
+     (A. x T ps) (A. y T ph) bicom
+     imbi12i
+     hyp x albii hyp y albii
+   hyp hyp y x (-> (= T (cv x) (cv y)) (<-> (A. y T ph) (A. x T ps))) alcom bitr
+   hyp y x ps ph alphalem1
+   sylbir impbid
+))
+
+thm (alphat ((T x y))
+  ((hyp1 (istype T))
+   (hyp2 (nfi y T ph))
+   (hyp3 (nfi x T ps)))
+  (-> (A. x T (A. y T (-> (= T (cv x) (cv y)) (<-> ph ps))))
+      (<-> (A. x T ph) (A. y T ps)))
+  (hyp1 x y ph ps alphalem2
+
+   hyp2 nfii hyp3 nfii bibi12i (= T (cv x) (cv y)) imbi2i
+   hyp1 y albii hyp1 x albii
+
+     hyp2 nfii hyp1 x albii
+     hyp3 nfii hyp1 y albii
+   bibi12i imbi12i mpbir
+))
+
+thm (cbval ((T x y))
+  ((hyp2 (nfi y T ph))
+   (hyp3 (nfi x T ps))
+   (hyp4 (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (<-> (A. x T ph) (A. y T ps))
+  (hypT hypT hyp4 expcom gen
+   hypT hypT y (: (cv x) T) nfi_dv (-> (= T (cv x) (cv y)) (<-> ph ps)) 19.21 mpbi gen
+   hypT hyp2 hyp3 alphat ax-mp)
+)
+
+thm (cbvalv ((T x y) (ph y) (ps x))
+  ((hyp4 (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (<-> (A. x T ph) (A. y T ps))
+  (hypT y ph nfi_dv hypT x ps nfi_dv hyp4 hypT cbval)
+)
+
+thm (exbii ((T x))
+  ((hyp2 (<-> ph ps))
+   (hypT (istype T)))
+  (<-> (E. x T ph) (E. x T ps))
+  (hyp2 negbii hypT x albii negbii
+
+   x T ph df-ex
+   x T ps df-ex
+   3bitr4
+))
+
+thm (exbii2 ((T x))
+  ((hyp2 (-> (: (cv x) T) (<-> ph ps)))
+   (hypT (istype T)))
+  (<-> (E. x T ph) (E. x T ps))
+  (hyp2 negbid hypT albii2 negbii
+
+   x T ph df-ex
+   x T ps df-ex
+   3bitr4
+))
+
+thm (cbvex ((T x y))
+  ((hyp1 (nfi y T ph))
+   (hyp2 (nfi x T ps))
+   (hyp (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (<-> (E. x T ph) (E. y T ps))
+  (
+   hyp1 hypT nfi_not
+     hyp2 hypT nfi_not
+       hyp imp negbid exp
+   hypT cbval negbii
+     x T ph df-ex
+       y T ps df-ex
+   3bitr4
+))
+
+thm (cbvexv ((T x y) (ph y) (ps x))
+  ((hyp (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (<-> (E. x T ph) (E. y T ps))
+  (
+   hypT y ph nfi_dv
+     hypT x ps nfi_dv
+       hyp
+   hypT cbvex
+))
+
+
+thm (gen2 ((T x y) (T' y))
+  ((hyp (-> (/\ (: (cv x) T) (: (cv y) T')) ph))
+   (hypT (istype T))
+   (hypT' (istype T')))
+  (A. x T (A. y T' ph))
+  (
+   hypT hyp hypT' 19.21aiv gen
+))
+
+# Pure equality thms
+
+thm (eqid ((T x) (A x))
+  ((hyp1 (istype T)))
+  (-> (: A T) (= T A A))
+  (  A T x df-ty
+
+     hyp1
+       hyp1 (cv x) A eqcom
+     biimp ancri
+     hyp1 A (cv x) A ax-eqtr syl
+     (: (cv x) T) a1i 19.22i
+   sylbi
+
+   hyp1 x (= T A A) nfi_dv hyp1 nfii_ex
+   sylibr
+))
+
+thm (eqeq1 () ((hyp (istype T)))
+  (-> (= T A B) (<-> (= T A C) (= T B C)))
+  (    hyp C A B ax-eqtr ancoms exp
+       hyp C A eqcom hyp C B eqcom imbi12i
+     sylib
+   hyp A B C ax-eqtr exp
+   impbid
+))
+
+thm (eqcoms ()
+  ((hyp (-> (= T A B) ph))
+   (hypT (istype T)))
+  (-> (= T B A) ph)
+  (hypT B A eqcom hyp sylbi
+))
+
+thm (eqeq2 () ((hyp (istype T)))
+  (-> (= T A B) (<-> (= T C A) (= T C B)))
+  (  hyp A B C eqeq1
+     hyp A C eqcom hyp B C eqcom bibi12i
+   sylib
+))
+
+# deprecated in favor of albid
+thm (biald ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph))
+   (hyp3 (-> ph (<-> ps ch))))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (
+   hyp3 (: (cv x) T) adantr hyp1 hyp2 19.21ai
+   hyp1 x ps ch 19.15
+   syl
+))
+
+# deprecated in favor of albidv
+thm (bialdv ((T x) (ph x))
+  ((hyp1 (istype T))
+   (hyp3 (-> ph (<-> ps ch))))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (hyp1 hyp1 x ph nfi_dv hyp3 biald))
+
+thm (albid2 ((T x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> (/\ ph (: (cv x) T)) (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (
+   hyp3 hypT hyp2 19.21ai
+   hypT x ps ch 19.15
+   syl
+))
+
+thm (albid ((T x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (
+   hyp2 hyp3 (: (cv x) T) adantr hypT albid2
+))
+
+thm (albidv ((T x) (ph x))
+  ((hyp (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (hypT x ph nfi_dv hyp hypT albid))
+
+thm (albidv2 ((T x) (ph x))
+  ((hyp (-> (/\ ph (: (cv x) T)) (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (A. x T ps) (A. x T ch)))
+  (hypT x ph nfi_dv hyp hypT albid2))
+
+thm (exbid2 ((T x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> (/\ ph (: (cv x) T)) (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (E. x T ps) (E. x T ch)))
+  (hyp2 hyp3 negbid hypT albid2 negbid
+   x T ps df-ex
+   x T ch df-ex
+   3bitr4g
+))
+
+thm (exbid ((T x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (E. x T ps) (E. x T ch)))
+  (hyp2 hyp3 (: (cv x) T) adantr hypT exbid2
+))
+
+thm (exbidv ((T x) (ph x))
+  ((hyp (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (E. x T ps) (E. x T ch)))
+  (hypT x ph nfi_dv hyp hypT exbid))
+
+thm (tyeq1 ()
+  ((hyp (istype T)))
+  (-> (= T A B) (<-> (: A T) (: B T)))
+  (hyp A B (cv x) eqeq2 hyp x exbidv
+   A T x df-ty
+   B T x df-ty
+   3bitr4g
+   ))
+
+thm (tyeq1i ()
+  ((hyp (= T A B))
+   (hypT (istype T)))
+  (<-> (: A T) (: B T))
+  (hyp hypT A B tyeq1 ax-mp))
+
+thm (19.32 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph)))
+  (<-> (A. x T (\/ ph ps)) (\/ ph (A. x T ps)))
+  (hyp1 hyp2 hyp1 nfi_not ps 19.21
+   ph ps df-or hyp1 x albii
+   ph (A. x T ps) df-or
+   3bitr4
+))
+
+thm (19.31 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ps)))
+  (<-> (A. x T (\/ ph ps)) (\/ (A. x T ph) ps))
+  (hyp1 hyp2 ph 19.32
+   ph ps orcom hyp1 x albii
+   (A. x T ph) ps orcom
+   3bitr4
+))
+
+# aka 19.7
+thm (alnex ((T x)) ()
+  (<-> (A. x T (-. ph)) (-. (E. x T ph)))
+  (x T ph df-ex bicon2i
+))
+
+thm (19.41 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ps)))
+  (<-> (E. x T (/\ ph ps)) (/\ (E. x T ph) ps))
+  (x T (/\ ph ps) df-ex
+   hyp1 hyp2 hyp1 nfi_not (-. ph) 19.31
+   ph ps ianor hyp1 x albii
+   (E. x T ph) ps ianor
+   x T ph alnex (-. ps) orbi1i
+   bitr4 3bitr4 bicon2i bitr4
+))
+
+thm (19.41v ((T x) (ps x))
+  ((hyp1 (istype T)))
+  (<-> (E. x T (/\ ph ps)) (/\ (E. x T ph) ps))
+  (hyp1 hyp1 x ps nfi_dv ph 19.41
+))
+
+thm (19.42 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph)))
+  (<-> (E. x T (/\ ph ps)) (/\ ph (E. x T ps)))
+  (
+   ph ps ancom hyp1 x exbii
+   hyp1 hyp2 ps 19.41 bitr
+   ph (E. x T ps) ancom bitr4
+))
+
+thm (19.42v ((T x) (ph x))
+  ((hyp1 (istype T)))
+  (<-> (E. x T (/\ ph ps)) (/\ ph (E. x T ps)))
+  (hyp1 hyp1 x ph nfi_dv ps 19.42
+))
+
+thm (19.23 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ps)))
+  (<-> (A. x T (-> ph ps)) (-> (E. x T ph) ps))
+  (ph ps imor hyp1 x albii
+   hyp1 hyp2 (-. ph) 19.31 bitr
+   x T ph alnex ps orbi1i bitr
+   (E. x T ph) ps imor bitr4
+))
+
+thm (19.23ai ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ps))
+   (hyp3 (-> (: (cv x) T) (-> ph ps))))
+  (-> (E. x T ph) ps)
+  (
+   hyp1 hyp3 19.22i
+   hyp2 hyp1 nfii_ex sylibr
+))
+
+thm (19.23aiv ((T x) (ps x))
+  ((hyp1 (-> (/\ ph (: (cv x) T)) ps))
+   (hypT (istype T)))
+  (-> (E. x T ph) ps)
+  (
+   hypT hypT x ps nfi_dv hyp1 exp com12 19.23ai
+))
+
+thm (19.23ad ((T x))
+  ((hyp1 (nfi x T ph))
+   (hyp2 (nfi x T ch))
+   (hyp3 (-> (/\ ph (: (cv x) T)) (-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (-> (E. x T ps) ch))
+  (
+   hyp3 hypT hyp1 19.21ai hypT hyp2 ps 19.23 sylib
+))
+
+thm (19.23adv ((T x) (ph x) (ch x))
+  ((hyp1 (-> (/\ ph (: (cv x) T)) (-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (-> (E. x T ps) ch))
+  (
+   hypT x ph nfi_dv hypT x ch nfi_dv hyp1 hypT 19.23ad
+))
+
+thm (19.37v ((T x) (ph x))
+  ((hyp (istype T)))
+  (<-> (E. x T (-> ph ps)) (-> ph (E. x T ps)))
+  (
+   hyp x ph ps 19.35
+   hyp x ph nfi_dv nfii (E. x T ps) imbi1i
+   bitr4
+))
+
+
+# Here is where all remaining Margaris thms should go.
+
+# 19.5 in "s" variant
+thm (a7s ((T x y) (T' x y))
+  ((hyp (-> (A. x T (A. y T' ph)) ps))
+   (hypT (istype T))
+   (hypT' (istype T')))
+  (-> (A. y T' (A. x T ph)) ps)
+  (hypT hypT' x y ph alcom hyp sylbir))
+
+
+# aka 19.6
+thm (alex ((T x)) ((hyp (istype T)))
+  (<-> (A. x T ph) (-. (E. x T (-. ph))))
+  (
+   ph pm4.13 hyp x albii
+   x T (-. ph) df-ex bicon2i bitr
+))
+
+thm (19.9 ((T x))
+  ((hyp (nfi x T ph))
+   (hypT (istype T)))
+  (<-> (E. x T ph) ph)
+  (
+   hyp hypT nfi_not nfii
+   x T ph alnex bitr bicon4i bicomi
+))
+
+thm (19.12 ((T x y) (T' x  y))
+  ((hypT (istype T))
+   (hypT' (istype T')))
+  (-> (E. x T (A. y T' ph)) (A. y T' (E. x T ph)))
+  (
+   hypT' y ph nfi_bound
+   hypT' hypT x nfi_ex
+   nfii
+     hypT'
+       hypT
+         hypT' y ph spec-var
+       com12 (: (cv x) T) a1d 19.22dv
+     19.20i
+   sylbi
+))
+
+# aka 19.14
+thm (exnal ((T x))
+  ((hypT (istype T)))
+  (<-> (E. x T (-. ph)) (-. (A. x T ph)))
+  (hypT x ph alex bicon2i))
+
+thm (19.18 ((T x))
+  ((hypT (istype T)))
+  (-> (A. x T (<-> ph ps)) (<-> (E. x T ph) (E. x T ps)))
+  (
+   ph ps pm4.11 hypT x albii
+   hypT x (-. ph) (-. ps) 19.15 sylbi negbid
+   x T ph df-ex x T ps df-ex bibi12i sylibr
+))
+
+thm (19.27 ((T x))
+  ((hyp (nfi x T ps))
+   (hypT (istype T)))
+  (<-> (A. x T (/\ ph ps)) (/\ (A. x T ph) ps))
+  (
+   hypT x ph ps 19.26
+     hyp nfii
+     (A. x T ph) anbi2i
+   bitr4
+))
+
+thm (19.28 ((T x))
+  ((hyp (nfi x T ph))
+   (hypT (istype T)))
+  (<-> (A. x T (/\ ph ps)) (/\ ph (A. x T ps)))
+  (
+   hypT x ph ps 19.26
+     hyp nfii
+     (A. x T ps) anbi1i
+   bitr4
+))
+
+thm (19.29 ((T x)) ((hyp (istype T)))
+  (-> (/\ (A. x T ph) (E. x T ps)) (E. x T (/\ ph ps)))
+  (
+   hyp x ph (-. ps) alim
+     x T ps alnex
+   syl6ib
+   con3i
+     (A. x T ph) (E. x T ps) df-an
+      hyp x (-> ph (-. ps)) alex bicon2i # use con2bii in new set.mm
+   3imtr4
+     ph ps df-an hyp x exbii
+   sylibr
+))
+
+thm (19.29r ((T x))
+  ((hypT (istype T)))
+  (-> (/\ (E. x T ph) (A. x T ps)) (E. x T (/\ ph ps)))
+  (
+   hypT x ps ph 19.29
+     (E. x T ph) (A. x  T ps) ancom
+       ph ps ancom hypT x exbii
+   3imtr4
+))
+
+thm (19.40 ((T x))
+  ((hypT (istype T)))
+  (-> (E. x T (/\ ph ps)) (/\ (E. x T ph) (E. x T ps)))
+  (
+   hypT ph ps pm3.26 (: (cv x) T) a1i 19.22i
+     hypT ph ps pm3.27 (: (cv x) T) a1i 19.22i
+   jca
+))
+
+# In Norm's version, x and y need not be disjoint. The requirement comes
+# from the formulation of nfi_al, which could probably be tweaked.
+thm (aaan ((T x y))
+  ((hyp1 (nfi y T ph))
+   (hyp2 (nfi x T ps))
+   (hypT (istype T)))
+  (<-> (A. x T (A. y T (/\ ph ps))) (/\ (A. x T ph) (A. y T ps)))
+  (
+   hyp1 hypT ps 19.28
+   hypT x albii
+     hyp2 hypT hypT y nfi_al hypT ph 19.27
+   bitr
+))
+
+thm (exbidv2 ((T x) (ph x))
+  ((hyp (-> (/\ ph (: (cv x) T)) (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (E. x T ps) (E. x T ch)))
+  (
+   hyp hypT 19.21aiv
+   hypT x ps ch 19.18 syl
+))
+
+
+
+# I proved the version in which ps is also available for proving the type
+# of A, but that really shouldn't be necessary
+thm (substex_lem ((T x y) (T' x y) (ph x y) (ps y) (ch x) (A y))
+  ((hyp1 (-> (/\ (/\ ph (/\ (= T' (cv y) A) ps)) (/\ (: (cv x) T) (: (cv y) T'))) ch))
+   (hyp2 (-> (/\ ph (/\ (: (cv x) T) ps)) (: A T')))
+   (hypT (istype T))
+   (hypT' (istype T')))
+  (-> (/\ ph (E. x T ps)) (E. y T' ch))
+  (
+   hyp2
+   A T' y df-ty sylib exp impac
+
+     hypT' y (= T' (cv y) A) (/\ (: (cv x) T) ps) 19.41v sylibr 
+
+       hypT'
+     hyp1 alrl-l arrr-l arrll-l arrrl-l al-rrrr exp32 19.22dv
+   com12 syl
+   imp allar
+
+   al-ll exp hypT 19.21aiv
+     hypT hypT x (E. y T' ch) nfi_dv ps 19.23
+   sylib imp
+))
+
+# A change of existential quantifiers using implicit substitution
+thm (substex ((T x y) (T' x y) (ph x y) (ps y) (ch x) (A y))
+  ((hyp1 (-> (/\ (/\ ph (/\ (= T' (cv y) A) ps)) (/\ (: (cv x) T) (: (cv y) T'))) ch))
+   (hyp2 (-> (/\ ph (: (cv x) T)) (: A T')))
+   (hypT (istype T))
+   (hypT' (istype T')))
+  (-> (/\ ph (E. x T ps)) (E. y T' ch))
+  (hyp1 hyp2 ps adantl al-rr hypT hypT' substex_lem
+))
+
+# Substitution.
+
+thm (dfsbcq ((T x z) (A z) (B z) (ph z))
+  ((hyp (istype T)))
+  (-> (= T A B) (<-> ([:=] x T A ph) ([:=] x T B ph)))
+  (
+       hyp A B (cv z) eqeq2
+     (E. x T (/\ (= T (cv x) (cv z)) ph)) anbi1d
+   hyp z exbidv
+   hyp x A ph z df-subst
+   hyp x B ph z df-subst
+   3bitr4g
+))
+
+thm (sbcgf ((T x z) (ph z) (A z))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph)))
+  (-> (: A T) (<-> ([:=] x T A ph) ph))
+  (
+       A T z df-ty
+       hyp1 z (= T (cv z) A) ph 19.41v baibr
+     sylbi
+         hyp1 (cv z) A tyeq1
+         (cv z) T x df-ty
+       hyp1 hyp2 (= T (cv x) (cv z)) 19.41 baib sylbi
+     syl6bir com12 pm5.32d
+     hyp1 z exbidv
+   bitr4d
+   hyp1 x A ph z df-subst syl6rbbr
+))
+
+thm (sbc5 ((T x z) (A x z) (ph z))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A ph) (E. x T (/\ (= T (cv x) A) ph))))
+  (
+   A T z df-ty
+     hyp x A ph z df-subst
+       hyp (cv z) A (cv x) eqeq2 ph anbi1d
+     hyp x exbidv pm5.32i
+     hyp z exbii bitr
+     hyp z (= T (cv z) A) (E. x T (/\ (= T (cv x) A) ph)) 19.41v
+     bitr baib
+   sylbi
+))
+
+thm (hbn1 ((T x))
+  ((hyp (istype T)))
+  (nfi x T (-. (A. x T ph)))
+  (hyp x ph nfi_bound hyp nfi_not
+))
+
+thm (a5i ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (A. x T ph) (-> (: (cv x) T) ps))))
+  (-> (A. x T ph) (A. x T ps))
+  (hyp2 imp hyp1 hyp1 x ph nfi_bound 19.21ai
+))
+
+thm (tyal ((T x))
+  ((hyp (istype T)))
+  (A. x T (: (cv x) T))
+  (hyp (: (cv x) T) id gen
+))
+
+thm (tyex ((T x))
+  ((hyp (istype T)))
+  (E. x T (: (cv x) T))
+  (hyp x tyal
+   hyp x (: (cv x) T) 19.2 ax-mp
+))
+
+# Similar to ax9, but with x not free in ph.
+thm (ax9f ((T x y) (A x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ph)))
+  (-> (: A T) (-> (A. x T (-> (= T (cv x) A) (A. x T ph))) ph))
+  (A T x df-ty ph imbi1i
+   hyp1 hyp2 (= T (cv x) A) 19.23 bitr4
+   biimpr com12
+   hyp2 nfii (= T (cv x) A) imbi2i hyp1 x albii syl5ibr
+))
+
+thm (alinexa ((T x))
+  ((hyp (istype T)))
+  (<-> (A. x T (-> ph (-. ps))) (-. (E. x T (/\ ph ps))))
+  (ph ps imnan hyp x albii
+   x T (/\ ph ps) alnex
+   bitr
+))
+
+thm (exintr ((T x))
+  ((hyp (istype T)))
+  (-> (A. x T (-> ph ps)) (-> (E. x T ph) (E. x T (/\ ph ps))))
+  (  hyp
+     ph ps ancl (: (cv x) T) a1i
+   19.20i
+   hyp x ph (/\ ph ps) 19.22
+   syl
+))
+
+thm (equs4a ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (-> (A. x T (-> (= T (cv x) A) ph))
+                  (E. x T (/\ (= T (cv x) A) ph))))
+  (
+   hyp x (= T (cv x) A) ph exintr
+   A T x df-ty syl5ib com12
+))
+
+# justify one direction of ax-subst; the other is Norm's ax-11
+thm (ax-subst-half-just ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (-> (= T (cv x) A) (-> (A. x T (-> (= T (cv x) A) ph)) ph)))
+  (
+   hyp (cv x) A tyeq1
+   hyp x (-> (= T (cv x) A) ph) spec-var com12 syl6bir
+   com24 pm2.43i com3r
+))
+
+thm (vtocleg2f ((T x) (A x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> (/\ (: (cv x) T) (: A T)) (-> (= T (cv x) A) ph)))
+   (hyp1 (istype T)))
+  (-> (: A T) ph)
+  (A T x df-ty
+     hyp1
+     hyp2
+     hyp1 (cv x) A tyeq1 biimpa hyp3 com12 exp3a imp mpd expcom
+   19.23ai sylbi
+))
+
+thm (vtoclegf ((T x) (A x))
+  ((hyp2 (nfi x T ph))
+   (hyp3 (-> (: A T) (-> (= T (cv x) A) ph)))
+   (hyp1 (istype T)))
+  (-> (: A T) ph)
+  (hyp2 hyp3 (: (cv x) T) adantl hyp1 vtocleg2f
+))
+
+thm (vtocleg ((T x) (A x) (ph x))
+  ((hyp3 (-> (: A T) (-> (= T (cv x) A) ph)))
+   (hypT (istype T)))
+  (-> (: A T) ph)
+  (hypT x ph nfi_dv hyp3 (: (cv x) T) adantl hypT vtocleg2f
+))
+
+thm (vtocleg2 ((T x) (A x) (ph x))
+  ((hyp2 (-> (/\ (: (cv x) T) (: A T)) (-> (= T (cv x) A) ph)))
+   (hyp1 (istype T)))
+  (-> (: A T) ph)
+  (hyp1 x ph nfi_dv hyp2 hyp1 vtocleg2f
+))
+
+thm (ceqsal ((T x) (A x))
+  ((hyp1 (nfi x T ps))
+   (hyp2 (-> (/\ (: (cv x) T) (= T (cv x) A)) (<-> ph ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> (A. x T (-> (= T (cv x) A) ph)) ps))
+  (
+   hypT hyp2 biimpd exp a2d 19.20i
+     hypT hyp1 (= T (cv x) A) 19.23
+   sylib
+     A T x df-ty biimp
+   syl5com
+     hyp2 biimprd exp com3r imp
+     hypT hyp1 19.21ai
+     (: A T) a1i
+   impbid
+))
+
+thm (ceqsalv ((T x) (A x) (ps x))
+  ((hyp2 (-> (/\ (: (cv x) T) (= T (cv x) A)) (<-> ph ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> (A. x T (-> (= T (cv x) A) ph)) ps))
+  (hypT x ps nfi_dv hyp2 hypT ceqsal))
+
+thm (vtoclg ((T x) (A x) (ps x))
+  ((hyp1 (-> (/\ (: (cv x) T) (= T (cv x) A)) (<-> ph ps)))
+   (hyp2 (-> (: (cv x) T) ph))
+   (hypT (istype T)))
+  (-> (: A T) ps)
+  (
+   hypT hyp2 (= T (cv x) A) a1d gen
+   hyp1 hypT ceqsalv mpbii
+))
+
+thm (alexeq ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> (A. x T (-> (= T (cv x) A) ph))
+    (E. x T (/\ (= T (cv x) A) ph))))
+ (
+    hyp x (-> (= T (cv x) A) ph) nfi_bound
+    hyp x (/\ (= T (cv x) A) ph) nfi_boundex
+  hyp nfi_bi
+
+     hyp A x ph ax-subst imp
+
+     hyp A x (-. ph) ax-subst imp
+     hyp x (= T (cv x) A) ph alinexa
+     syl6bb bicon4d
+   bitr3d exp
+   hyp vtoclegf
+))
+
+thm (ceqsex ((T x) (A x))
+  ((hyp1 (nfi x T ps))
+   (hyp2 (-> (/\ (: (cv x) T) (= T (cv x) A )) (<-> ph ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> (E. x T (/\ (= T (cv x) A) ph)) ps))
+  (
+   hypT A x ph alexeq
+   hyp1 hyp2 hypT ceqsal bitr3d
+))
+
+thm (ceqsexv ((T x) (A x) (ps x))
+  ((hyp2 (-> (/\ (: (cv x) T) (= T (cv x) A)) (<-> ph ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> (E. x T (/\ (= T (cv x) A) ph)) ps))
+  (hypT x ps nfi_dv hyp2 hypT ceqsex))
+
+thm (cbv3 ((T x y))
+  ((hyp1 (nfi y T ph))
+   (hyp2 (nfi x T ps))
+   (hyp3 (-> (/\ (: (cv y) T) (= T (cv x) (cv y))) (-> ph ps)))
+   (hypT (istype T)))
+  (-> (A. x T ph) (A. y T ps))
+  (
+   hypT x ph nfi_bound hyp2 hypT nfi_im
+     hypT x ph spec-var hyp3 com12 syl6 exp4a com4l imp
+   hypT vtocleg2f com12 imp
+     hypT
+       hyp1 hypT hypT x nfi_al
+   19.21ai
+))
+
+thm (dfsubstal ((T x z) (A z))
+  ((hypT (istype T)))
+  (-> (: A T)
+    (<-> ([:=] x T A ph)
+      (A. z T (-> (= T (cv z) A) (A. x T (-> (= T (cv x) (cv z)) ph))))))
+  (
+   hypT A z (E. x T (/\ (= T (cv x) (cv z)) ph)) alexeq
+     hypT (cv z) x ph alexeq
+     (= T (cv z) A) imbi2d
+     hypT albii2
+   syl5bb
+   hypT x A ph z df-subst syl6rbbr
+))
+
+thm (sbc6 ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A ph) (A. x T (-> (= T (cv x) A) ph))))
+  (hyp A x ph sbc5
+   hyp A x ph alexeq bitr4d
+))
+
+thm (axsubstex ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (-> (= T (cv x) A) (<-> ph (E. x T (/\ (= T (cv x) A) ph)))))
+  (hyp A x ph ax-subst imp
+   hyp A x ph alexeq (= T (cv x) A) adantr bitrd exp
+))
+
+thm (sbcid ((T x z) (ph z))
+  ((hyp (istype T)))
+  (-> (: (cv x) T) (<-> ([:=] x T (cv x) ph) ph))
+  (
+
+   hyp z (= T (cv z) (cv x)) ph 19.41v
+   (cv x) T z df-ty ph anbi1i bitr4 baib
+
+         hyp (cv z) (cv x) tyeq1 biimparc
+         hyp (cv z) (cv x) eqcom biimp (: (cv x) T) adantl
+       jca
+       hyp (cv z) x ph axsubstex imp
+     syl exp pm5.32d
+   hyp z exbidv
+   bitr3d
+
+   hyp x (cv x) ph z df-subst
+   syl6rbbr
+))
+
+thm (sbceq1 ((T x))
+  ((hyp (istype T)))
+  (-> (: A T) (-> (= T (cv x) A) (<-> ph ([:=] x T A ph))))
+  (
+
+       hyp (cv x) A tyeq1 biimprd
+     hyp x ph sbcid syl6 imp 
+     hyp (cv x) A x ph dfsbcq (: A T) adantr
+   bitr3d expcom
+))
+
+thm (propcalcfoo1 ()
+  ((hyp (<-> ph (-> ps ch))))
+  (-> ps (<-> ph ch))
+  (hyp ps imbi2i ps ch pm5.4 bitr pm5.74ri
+))
+
+#thm (sb2 ((T x) (T y))
+# One direction of a simplified definition of substitution.
+#  ((hypT (istype T)))
+#  (-> (/\ (: (cv y) T) (A. x T (-> (= T (cv x) (cv y)) ph)))
+#   ([:=] x T (cv y) ph))
+#  (
+#   hypT (cv y) x ph equs4a imp
+#     hypT hypT (cv z) (cv y) (cv x) eqeq2 ph anbi1d
+#   x biexdv biimprd com12 syl (: (cv z) T) adantr
+#   hypT 19.21aiv
+#
+#     hypT (cv y) z (E. x T (/\ (= T (cv x) (cv z)) ph)) equs4a
+#     hypT x (cv y) ph z df-subst syl6ibr
+#   (A. x T (-> (= T (cv x) (cv y)) ph)) adantr mpd
+#))
+
+thm (sb6rf ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (-> (: (cv x) T) (<-> ph (A. y T (-> (= T (cv y) (cv x)) ([:=] x T (cv y) ph)))))
+  (
+   (cv x) T y  df-ty
+   ph imbi1i
+     hypT hyp (= T (cv y) (cv x)) 19.23
+   bitr4
+     hypT (cv y) x ph sbceq1
+     hypT (cv x) (cv y) eqcom syl5ibr
+     pm5.74d
+     hypT albii2
+   bitr
+   bicomi propcalcfoo1 bicomd
+))
+
+thm (sb8 ((T x y) (T y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (A. x T ph) (A. y T ([:=] x T (cv y) ph)))
+  (
+   hypT (cv y) x ph sbc6
+   hypT albii2
+
+   hypT hypT y x (-> (= T (cv x) (cv y)) ph) alcom bitr
+
+   hypT hyp (= T (cv x) (cv y)) 19.23
+   (cv x) T y df-ty hypT (cv y) (cv x) eqcom hypT y exbii bitr ph imbi1i bitr4
+   propcalcfoo1 hypT albii2 bitr2
+))
+
+thm (sb8v ((T x y) (T y) (ph y))
+  ((hyp (istype T)))
+  (<-> (A. x T ph) (A. y T ([:=] x T (cv y) ph)))
+  (
+   hyp y ph nfi_dv hyp x sb8))
+
+thm (nfi_sbc ((T x) (A x))
+  ((hyp (istype T)))
+  (nfi x T ([:=] x T A ph))
+  (
+   hyp x A ph z df-subst
+     hyp x (= T (cv z) A) nfi_dv
+       hyp x (/\ (= T (cv x) (cv z)) ph) nfi_boundex
+     hyp nfi_an hyp hyp z nfi_ex
+   hyp nfi_fromdef
+))
+
+# not used
+thm (sbcimlem ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (-> ph ps))
+    (-> ([:=] x T A ph) ([:=] x T A ps))))
+  (
+
+   hyp x A (-> ph ps) nfi_sbc
+   hyp x A ph nfi_sbc
+   hyp x A ps nfi_sbc hyp nfi_im hyp nfi_bi
+
+   hyp A x (-> ph ps) sbceq1 imp
+     hyp A x ph sbceq1 imp
+     hyp A x ps sbceq1 imp imbi12d
+   bitr3d exp
+   hyp vtoclegf
+))
+
+# not used
+thm (sbcbilem ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (<-> ph ps))
+    (<-> ([:=] x T A ph) ([:=] x T A ps))))
+  (
+
+   hyp x A (<-> ph ps) nfi_sbc
+   hyp x A ph nfi_sbc
+   hyp x A ps nfi_sbc hyp nfi_bi hyp nfi_bi
+
+   hyp A x (<-> ph ps) sbceq1 imp
+     hyp A x ph sbceq1 imp
+     hyp A x ps sbceq1 imp bibi12d
+   bitr3d exp
+   hyp vtoclegf
+))
+
+
+thm (sbcco ((T x y) (ph y) (A y))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] y T A ([:=] x T (cv y) ph)) ([:=] x T A ph)))
+  (
+     hyp y A ([:=] x T (cv y) ph) nfi_sbc
+   hyp y ([:=] x T A ph) nfi_dv hyp nfi_bi
+     hyp A y ([:=] x T (cv y) ph) sbceq1 imp
+
+     hyp (cv y) A x ph dfsbcq (: A T) adantl bitr3d exp
+   hyp vtoclegf
+))
+
+thm (sbcbilem1 ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T)
+    (<-> (E. x T (/\ (= T (cv x) A) (<-> ph ps)))
+      (<-> (E. x T (/\ (= T (cv x) A) ph)) (E. x T (/\ (= T (cv x) A) ps)))))
+  (
+     hyp x (/\ (= T (cv x) A) (<-> ph ps)) nfi_boundex
+     hyp x (/\ (= T (cv x) A) ph) nfi_boundex
+     hyp x (/\ (= T (cv x) A) ps) nfi_boundex hyp nfi_bi
+   hyp nfi_bi
+     hyp A x (<-> ph ps) axsubstex imp
+       hyp A x ph axsubstex imp
+       hyp A x ps axsubstex imp
+     bibi12d
+   bitr3d exp hyp vtoclegf
+))
+
+thm (sbcbilem2 ((T x) (A x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) (<-> ph ps))))
+  (-> (: A T) (<-> (E. x T (/\ (= T (cv x) A) ph))
+           (E. x T (/\ (= T (cv x) A) ps))))
+  (
+     hyp1 (cv x) A tyeq1
+     hyp2 (= T (cv x) A) a1i
+   sylbird com12 pm5.32d
+   hyp1 x exbidv
+))
+
+thm (sbcbi ((T x y) (A y) (ph y) (ps y))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (<-> ph ps))
+    (<-> ([:=] x T A ph) ([:=] x T A ps))))
+  (
+     hyp
+     hyp (cv y) x ph ps sbcbilem1
+   A sbcbilem2
+   
+     hyp A y
+     (E. x T (/\ (= T (cv x) (cv y)) ph))
+     (E. x T (/\ (= T (cv x) (cv y)) ps))
+   sbcbilem1
+   bitrd
+
+   hyp x A (<-> ph ps) y df-subst
+     hyp x A ph y df-subst
+     hyp x A ps y df-subst
+   bibi12i 3bitr4g
+))
+
+thm (sbcimlem1 ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T)
+    (<-> (E. x T (/\ (= T (cv x) A) (-> ph ps)))
+      (-> (E. x T (/\ (= T (cv x) A) ph)) (E. x T (/\ (= T (cv x) A) ps)))))
+  (
+     hyp x (/\ (= T (cv x) A) (-> ph ps)) nfi_boundex
+     hyp x (/\ (= T (cv x) A) ph) nfi_boundex
+     hyp x (/\ (= T (cv x) A) ps) nfi_boundex hyp nfi_im
+   hyp nfi_bi
+     hyp A x (-> ph ps) axsubstex imp
+       hyp A x ph axsubstex imp
+       hyp A x ps axsubstex imp
+     imbi12d
+   bitr3d exp hyp vtoclegf
+))
+
+thm (sbcim ((T x y) (A y) (ph y) (ps y))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (-> ph ps))
+    (-> ([:=] x T A ph) ([:=] x T A ps))))
+  (
+     hyp
+     hyp (cv y) x ph ps sbcimlem1
+   A sbcbilem2
+   
+     hyp A y
+     (E. x T (/\ (= T (cv x) (cv y)) ph))
+     (E. x T (/\ (= T (cv x) (cv y)) ps))
+   sbcimlem1
+   bitrd
+
+   hyp x A (-> ph ps) y df-subst
+     hyp x A ph y df-subst
+     hyp x A ps y df-subst
+   imbi12i 3bitr4g
+))
+
+thm (sbcnlem ((T x) (A x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> (E. x T (/\ (= T (cv x) A) (-. ph))) (-. (E. x T (/\ (= T (cv x) A) ph)))))
+  (
+   hyp x (/\ (= T (cv x) A) (-. ph)) nfi_boundex
+     hyp x (/\ (= T (cv x) A) ph) nfi_boundex hyp nfi_not
+   hyp nfi_bi
+     hyp A x (-. ph) axsubstex imp
+       hyp A x ph axsubstex imp negbid
+     bitr3d exp
+   hyp vtoclegf
+))
+
+thm (sbcn ((T x))
+  ((hyp (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (-. ph)) (-. ([:=] x T A ph))))
+  (
+    hyp
+      hyp (cv y) x ph sbcnlem
+    A sbcbilem2
+
+      hyp A y (E. x T (/\ (= T (cv x) (cv y)) ph)) sbcnlem
+   bitrd
+
+     hyp x A (-. ph) y df-subst
+       hyp x A ph y df-subst negbii
+   3bitr4g
+))
+
+thm (sbctrulem1 ((T x) (A x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) ph)))
+  (-> (: A T) (E. x T (/\ (= T (cv x) A) ph)))
+  (
+      hyp1 hyp2 gen
+      hyp1 ph (= T (cv x) A) ax-1 (: (cv x) T) a1i 19.20i
+    ax-mp
+    hyp1 A x ph equs4a
+    mpi
+))
+
+thm (sbctru ((T x y) (A y) (ph y))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) ph)))
+  (-> (: A T) ([:=] x T A ph))
+  (
+     hyp1
+     hyp1 hyp2 (cv y) sbctrulem1
+   A sbctrulem1
+   hyp1 x A ph y df-subst
+   sylibr
+))
+
+thm (bisbc ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) (<-> ph ps))))
+  (-> (: A T) (<-> ([:=] x T A ph) ([:=] x T A ps)))
+  (hyp1 hyp2 A sbctru
+   hyp1 A x ph ps sbcbi mpbid
+))
+
+# Move an antecedent in a biconditional to the outside
+thm (biantout ()
+  ((hyp (<-> (-> ph ps) ch)))
+  (-> ph (<-> ps ch))
+  (ph ps biimt hyp syl6bb
+))
+
+# Can use for sbie
+thm (mksbcf ((T x) (A x))
+  ((hyp2 (nfi x T ps))
+   (hyp3 (-> (= T (cv x) A) (<-> ph ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> ([:=] x T A ph) ps))
+  (
+     hypT A x ph sbc6
+       A T x df-ty ps imbi1i
+       hyp3 pm5.74i hypT x albii
+       hypT hyp2 (= T (cv x) A) 19.23 bitr
+     bitr4 biantout
+
+   bitr4d
+))
+
+thm (mksbc ((T x) (A x) (ps x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (= T (cv x) A) (<-> ph ps))))
+  (-> (: A T) (<-> ([:=] x T A ph) ps))
+  (hyp1 x ps nfi_dv hyp2 hyp1 mksbcf))
+
+
+# This version doesn't have type assumptions for x and y.
+thm (sbcco2 ((T x y) (ph y) (A y) (B x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (= T (cv x) (cv y)) (= T A B))))
+  (-> (: (cv y) T) (<-> ([:=] x T (cv y) ([:=] x T A ph)) ([:=] x T B ph)))
+  (
+   hyp1 x B ph nfi_sbc
+     hyp2
+   hyp1 A B x ph dfsbcq syl
+   hyp1 mksbcf
+))
+
+thm (mksbcf2 ((T x) (A x))
+  ((hyp1 (istype T))
+   (hyp2 (nfi x T ps))
+   (hyp3 (-> (/\ (: (cv x) T) (: A T)) (-> (= T (cv x) A) (<-> ph ps)))))
+  (-> (: A T) (<-> ([:=] x T A ph) ps))
+  (
+     hyp1 A x ph sbc6
+       A T x df-ty ps imbi1i biantout
+
+         hyp1
+         hyp1 (cv x) A tyeq1 biimprd com12 hyp3 exp com3l mpdd pm5.74d
+       x bialdv
+
+       hyp1 hyp2 (= T (cv x) A) 19.23 syl6bb
+     bitr4d
+   bitr4d
+))
+
+thm (mksbc2 ((T x) (A x) (ps x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (/\ (: (cv x) T) (: A T)) (-> (= T (cv x) A) (<-> ph ps)))))
+  (-> (: A T) (<-> ([:=] x T A ph) ps))
+  (hyp1 hyp1 x ps nfi_dv hyp2 mksbcf2))
+
+# Same as sbcco2, but with type assumptions for x and y in hyp2
+thm (sbcco3 ((T x y) (ph y) (A y) (B x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (= T A B)))))
+  (-> (: (cv y) T) (<-> ([:=] x T (cv y) ([:=] x T A ph)) ([:=] x T B ph)))
+  (
+   hyp1
+   hyp1 x B ph nfi_sbc
+     hyp2
+   hyp1 A B x ph dfsbcq syl6
+   mksbcf2
+))
+
+thm (sbcalg ((T x y) (T' x y) (A x))
+  ((hypT (istype T))
+   (hypT' (istype T')))
+  (-> (: A T) (<-> ([:=] y T A (A. x T' ph)) (A. x T' ([:=] y T A ph))))
+  (
+   hypT A y (A. x T' ph) z dfsubstal
+
+     hypT' x (= T (cv y) (cv z)) ph 19.21v
+     hypT y albii
+       hypT hypT' y x (-> (= T (cv y) (cv z)) ph) alcom
+     bitr3
+     (= T (cv z) A) imbi2i hypT z albii
+       hypT' x (= T (cv z) A) (A. y T (-> (= T (cv y) (cv z)) ph)) 19.21v
+       hypT z albii
+         hypT hypT' z x (-> (= T (cv z) A) (A. y T (-> (= T (cv y) (cv z)) ph))) alcom
+       bitr3
+      bitr
+
+    syl6bb
+      hypT A y ph z dfsubstal
+      hypT' x albidv
+    bitr4d
+))
+
+thm (sbcexg ((T x y) (T' x y) (A x))
+  ((hypT (istype T))
+   (hypT' (istype T')))
+  (-> (: A T) (<-> ([:=] y T A (E. x T' ph)) (E. x T' ([:=] y T A ph))))
+  (
+
+   hypT x T' ph df-ex (: (cv y) T) a1i A bisbc
+     hypT A y (A. x T' (-. ph)) sbcn
+   bitrd
+
+     hypT hypT' A y x (-. ph) sbcalg
+       hypT A y ph sbcn
+       hypT' x albidv
+     bitrd
+     negbid
+
+   bitrd
+   x T' ([:=] y T A ph) df-ex syl6bbr
+))
+
+thm (sbclbis ((T x))
+  ((hyp (-> (: A T) (<-> ([:=] x T A ph) ps)))
+   (hypT (istype T)))
+  (-> (: A T) (<-> ([:=] x T A (<-> ch ph)) (<-> ([:=] x T A ch) ps)))
+  (
+   hypT A x ch ph sbcbi
+    hyp ([:=] x T A ch) bibi2d
+   bitrd
+))
+
+thm (eqeq1d ()
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (= T A B))))
+  (-> ph (<-> (= T A C) (= T B C)))
+  (hyp2 hyp1 A B C eqeq1 syl))
+
+thm (eqeq2i ()
+  ((hyp2 (= T A B))
+   (hypT (istype T)))
+  (<-> (= T C A) (= T C B))
+  (hyp2 hypT A B C eqeq2 ax-mp))
+
+thm (eqeq2d ()
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (= T A B))))
+  (-> ph (<-> (= T C A) (= T C B)))
+  (hyp2 hyp1 A B C eqeq2 syl))
+
+thm (eqeq12d ()
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (= T A B)))
+   (hyp3 (-> ph (= T C D))))
+  (-> ph (<-> (= T A C) (= T B D)))
+  (hyp1 hyp2 C eqeq1d
+   hyp1 hyp3 B eqeq2d bitrd
+))
+
+thm (eqcomi ()
+  ((hyp1 (= T A B))
+   (hypT (istype T)))
+  (= T B A)
+  (hyp1 hypT A B eqcom mpbi))
+
+thm (eqcomd ()
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (= T A B))))
+  (-> ph (= T B A))
+  (hyp2 hyp1 A B eqcom sylib))
+
+thm (eqtr ()
+  ((hyp1 (= T A B))
+   (hyp2 (= T B C))
+   (hypT (istype T)))
+  (= T A C)
+  (hyp1 hyp2 hypT A B C ax-eqtr mp2an))
+
+thm (eqtr2 ()
+  ((hyp1 (= T A B))
+   (hyp2 (= T B C))
+   (hypT (istype T)))
+  (= T C A)
+  (hyp1 hyp2 hypT A B C ax-eqtr mp2an hypT eqcomi))
+
+thm (eqtrd ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (-> ph (= T B C)))
+   (hypT (istype T)))
+  (-> ph (= T A C))
+  (hypT A B C ax-eqtr hyp1 hyp2 sylanc))
+
+thm (eqtr3d ()
+  ((hyp1 (-> ph (= T B A)))
+   (hyp2 (-> ph (= T B C)))
+   (hypT (istype T)))
+  (-> ph (= T A C))
+  (hypT A B C ax-eqtr hypT hyp1 eqcomd hyp2 sylanc))
+
+thm (eqtr4d ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (-> ph (= T C B)))
+   (hypT (istype T)))
+  (-> ph (= T A C))
+  (hypT A B C ax-eqtr hyp1 hypT hyp2 eqcomd sylanc))
+
+thm (eqtr4 ()
+  ((hyp1 (= T A B))
+   (hyp2 (= T C B))
+   (hypT (istype T)))
+  (= T A C)
+  (hyp1 hyp2 hypT eqcomi hypT A B C ax-eqtr mp2an))
+
+thm (syl5eq ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (= T C A))
+   (hypT (istype T)))
+  (-> ph (= T C B))
+  (hyp2 ph a1i hyp1 hypT eqtrd
+))
+
+thm (syl6eq ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (= T B C))
+   (hypT (istype T)))
+  (-> ph (= T A C))
+  (hyp1 hyp2 ph a1i hypT eqtrd
+))
+
+thm (syl6eqr ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (= T C B))
+   (hypT (istype T)))
+  (-> ph (= T A C))
+  (hyp1 hyp2 hypT eqcomi hypT syl6eq
+))
+
+thm (syl6reqr ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (= T C B))
+   (hypT (istype T)))
+  (-> ph (= T C A))
+  (hypT hyp1 hyp2 hypT syl6eqr eqcomd
+))
+
+thm (3eqtr4g ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (= T C A))
+   (hyp3 (= T D B))
+   (hypT (istype T)))
+  (-> ph (= T C D))
+  (hyp1 hyp2 hypT syl5eq hyp3 hypT syl6eqr
+))
+
+thm (eqtra ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (-> ps (= T B C)))
+   (hypT (istype T)))
+  (-> (/\ ph ps) (= T A C))
+  (hyp1 hypT A B C ax-eqtr exp syl hyp2 syl5 imp
+))
+
+thm (eqtr3a ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (-> ps (= T A C)))
+   (hypT (istype T)))
+  (-> (/\ ph ps) (= T B C))
+  (hypT hyp1 eqcomd hypT B A C ax-eqtr exp syl hyp2 syl5 imp
+))
+
+thm (eqtr4a ()
+  ((hyp1 (-> ph (= T A B)))
+   (hyp2 (-> ps (= T C B)))
+   (hypT (istype T)))
+  (-> (/\ ph ps) (= T A C))
+  (hyp1 hypT A B C ax-eqtr exp syl hypT hyp2 eqcomd syl5 imp
+))
+
+# A good theorem for making substitutions when the variable and substitution
+# are not disjoint.
+thm (mksbc3 ((T x y) (A y) (ps x) (ch y) (ph y))
+  ((hyp1 (istype T))
+   (hyp2 (-> (/\ (: (cv x) T) (: (cv y) T)) (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hyp3 (-> (/\ (: (cv y) T) (: A T)) (-> (= T (cv y) A) (<-> ps ch)))))
+  (-> (: A T) (<-> ([:=] x T A ph) ch))
+  (
+   hyp1 A y x ph sbcco
+     hyp1 hyp1 hyp2 mksbc2 A bisbc
+     hyp1 hyp3 mksbc2 bitrd
+   bitr3d
+))
+
+# same as biex, but with type assumption on hyp2
+thm (biex_2 ((T x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (: (cv x) T) (<-> ph ps))))
+  (<-> (E. x T ph) (E. x T ps))
+  (hyp2 negbid hyp1 albii2 negbii
+   x T ph df-ex
+   x T ps df-ex
+   3bitr4
+))
+
+thm (a4i ((T x))
+  ((hyp (A. x T ph))
+   (hypT (istype T)))
+  (-> (: (cv x) T) ph)
+  (hyp hypT x ph spec-var ax-mp))
+
+thm (a4e ((T x) (A x) (ps x))
+  ((hyp1 (istype T))
+   (hyp2 (-> (/\ (/\ (: (cv x) T) (: A T)) (= T (cv x) A)) (<-> ph ps))))
+  (-> (/\ (: A T) ps) (E. x T ph))
+  (
+   hyp1 x ps nfi_dv hyp1 x ph nfi_boundex hyp1 nfi_im
+   hyp2 hyp1 x ph 19.8 (: A T) adantr (= T (cv x) A) adantr sylbird
+   exp hyp1 vtocleg2f imp
+))
+
+thm (a4sbclem ((T x) (A x))
+  ((hypT (istype T)))
+  (-> (/\ (: A T) (A. x T ph)) ([:=] x T A ph))
+  (
+   hypT ph (= T (cv x) A) ax-1 (: (cv x) T) a1i 19.20i
+   hypT A x ph sbc6 biimprd com12 syl com12 imp
+))
+
+thm (a4sbc ((T x))
+  ((hypT (istype T)))
+  (-> (/\ (: A T) (A. x T ph)) ([:=] x T A ph))
+  (
+   hypT A y ([:=] x T (cv y) ph) a4sbclem exp
+     hypT x ph y sb8v bicomi (: A T) a1i
+     hypT A y x ph sbcco imbi12d
+   mpbid imp
+))
+
+thm (albi ((T x))
+  ((hypT (istype T)))
+  (<-> (A. x T (<-> ph ps)) (/\ (A. x T (-> ph ps)) (A. x T (-> ps ph))))
+  (
+   ph ps bi hypT x albii hypT x (-> ph ps) (-> ps ph) 19.26 bitr
+))
+
+# A useful inference for eliminating type assumptions
+thm (elimty ((T x))
+  ((hyp1 (-> (: (cv x) T) ph))
+   (hyp2 (nfi x T ph))
+   (hypT (istype T)))
+  ph
+  (
+   hypT hyp1 gen hyp2 nfii mpbir
+))
+
+# A handy inference rule for eliminating one of two type assumptions
+# between two values assumed equal.
+thm (elimtyeq1 ()
+  ((hyp (-> (/\ (/\ (: A T) (: B T)) (= T A B)) ph))
+   (hypT (istype T)))
+  (-> (/\ (: A T) (= T A B)) ph)
+  (
+   hypT A B tyeq1 (: A T) anbi2d
+   (: A T) pm4.24 syl5bb
+   hyp exp com12 sylbid com12 imp
+))
+
+thm (elimtyeq2 ()
+  ((hyp (-> (/\ (/\ (: A T) (: B T)) (= T A B)) ph))
+   (hypT (istype T)))
+  (-> (/\ (: B T) (= T A B)) ph)
+  (
+   hypT A B tyeq1 (: B T) anbi2d
+   (: B T) pm4.24 syl6rbbr
+   hyp exp com12 ancomsd sylbid com12 imp
+))
+
+thm (ceqex ((T x) (A x))
+  ((hypT (istype T)))
+  (-> (/\ (: A T) (= T (cv x) A)) (<-> ph (E. x T (/\ (= T (cv x) A) ph))))
+  (
+   hypT (cv y) A (cv x) eqeq2
+     hypT (cv y) A (cv x) eqeq2
+     ph anbi1d
+     hypT x exbidv
+     ph bibi2d
+   imbi12d (: (cv y) T) adantl
+
+     hypT x (/\ (= T (cv x) (cv y)) ph ) 19.8 exp3a (: (cv y) T) adantr imp
+       hypT (cv y) x ph alexeq
+         hypT x (-> (= T (cv x) (cv y)) ph) spec-var
+       syl6bir com3r imp com23 imp
+     impbid hypT elimtyeq2 exp
+   hypT vtoclg imp
+))
+
+# An identity similar to set.mm dfcleq, but using equality of x rather
+# than set membership. The reverse direction is also readily provable,
+# so it could be strengthened to A:T -> (A.x(x=A <-> x=B) <-> A=B).
+thm (cleqeq ((T x) (A x) (B x))
+  ((hypT (istype T)))
+  (-> (/\ (: A T) (A. x T (<-> (= T (cv x) A) (= T (cv x) B)))) (= T A B))
+  (
+   A T x df-ty
+     hypT x (<-> (= T (cv x) A) (= T (cv x) B)) (= T (cv x) A) 19.29
+
+       (= T (cv x) A) (= T (cv x) B) bi1
+       (= T (cv x) A) (= T (cv x) B) pm2.27 com12 syl imp
+       (= T (cv x) A) anim2i al-r  alrar
+       hypT (cv x) A B eqeq1 biimpa syl
+       (: (cv x) T) adantr hypT 19.23aiv
+
+   syl exp com12 sylbi imp
+))
+
+# Some E! theorems
+
+thm (nfi_boundeu ((T x y) (T' x y))
+  ((hypT (istype T)))
+  (nfi x T (E! x T ph))
+  (
+   x T ph y df-eu
+     hypT x (<-> ph (= T (cv x) (cv y))) nfi_bound
+     hypT hypT y nfi_ex
+   hypT nfi_fromdef
+))
+
+thm (eubidv ((T x) (ph x))
+  ((hyp1 (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (<-> (E! x T ps) (E! x T ch)))
+  (
+   hyp1 (= T (cv x) (cv y)) bibi1d
+   hypT x albidv
+   hypT y exbidv
+     x T ps y df-eu
+       x T ch y df-eu
+   3bitr4g
+))
+
+thm (eubii ((T x))
+  ((hyp (<-> ph ps))
+   (hypT (istype T)))
+  (<-> (E! x T ph) (E! x T ps))
+  (hypT hyp (istype T) a1i hypT x eubidv ax-mp))
+
+thm (sbceug ((T x y) (T' x y) (A x))
+  ((hypT (istype T))
+   (hypT' (istype T')))
+  (-> (: A T) (<-> ([:=] y T A (E! x T' ph)) (E! x T' ([:=] y T A ph))))
+  (
+   hypT
+     x T' ph z df-eu
+   (: (cv y) T) a1i  A bisbc
+     hypT hypT' A y z (A. x T' (<-> ph (= T' (cv x) (cv z)))) sbcexg
+   bitrd
+     hypT hypT' A y x (<-> ph (= T' (cv x) (cv z))) sbcalg
+       hypT A y ph (= T' (cv x) (cv z)) sbcbi
+         hypT hypT y (= T' (cv x) (cv z)) nfi_dv A sbcgf
+         ([:=] y T A ph) bibi2d
+       bitrd
+       hypT' x albidv
+     bitrd
+     hypT' z exbidv
+   bitrd
+     x T' ([:=] y T A ph) z df-eu
+   syl6bbr
+))
+
+thm (euf ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E! x T ph) (E. y T (A. x T (<-> ph (= T (cv x) (cv y))))))
+  (
+   x T ph z df-eu
+     hyp
+       hypT y (= T (cv x) (cv z)) nfi_dv
+     hypT nfi_bi
+     hypT hypT x nfi_al
+       hypT z (A. x T (<-> ph (= T (cv x) (cv y)))) nfi_dv
+         hypT
+           hypT (cv z) (cv y) (cv x) eqeq2
+           ph bibi2d
+         x bialdv (/\ (: (cv z) T) (: (cv y) T)) a1i
+     hypT cbvex
+   bitr
+))
+
+thm (eumo0 ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (-> (E! x T ph) (E. y T (A. x T (-> ph (= T (cv x) (cv y))))))
+  (
+   hyp hypT x euf
+     hypT
+       hypT ph (= T (cv x) (cv y)) bi1
+       (: (cv x) T) a1i 19.20i
+     (: (cv y) T) a1i 19.22i
+   sylbi
+))
+
+thm (sb8eu ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E! x T ph) (E! y T ([:=] x T (cv y) ph)))
+  (
+   hyp hypT y (= T (cv x) (cv z)) nfi_dv hypT nfi_bi
+   hypT x sb8 (: (cv y) T) a1i
+     hyp hypT y (= T (cv x) (cv z)) nfi_dv hypT nfi_bi hypT hypT x nfi_al
+       hypT y ([:=] x T (cv y) (<-> ph (= T (cv x) (cv z)))) nfi_bound
+     hypT nfi_bi
+   hypT elimty
+     hypT x (= T (cv y) (cv z)) nfi_dv
+       hypT (cv x) (cv y) (cv z) eqeq1
+     hypT mksbcf
+     hypT ph sbclbis
+     hypT albii2
+   bitr
+   hypT z exbii
+     x T ph z df-eu
+       y T ([:=] x T (cv y) ph) z df-eu
+   3bitr4
+))
+
+thm (ancomd ()
+  ((hyp (-> ph (/\ ps ch))))
+  (-> ph (/\ ch ps))
+  (hyp ps ch ancom sylib))
+
+thm (eu1 ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E! x T ph)
+   (E. x T (/\ ph (A. y T (-> ([:=] x T (cv y) ph) (= T (cv x) (cv y)))))))
+  (
+   hypT x (cv y) ph nfi_sbc
+   hypT y euf
+     hyp hypT x sb8eu
+       hypT (cv x) (cv y) eqcom
+       ([:=] x T (cv y) ph) imbi2i
+       hypT y albii (: (cv x) T) a1i
+         hyp hypT x sb6rf
+       anbi12d 
+         ph (A. y T (-> ([:=] x T (cv y) ph) (= T (cv x) (cv y)))) ancom
+           hypT y ([:=] x T (cv y) ph) (= T (cv y) (cv x)) albi
+       3bitr4g
+       hypT exbii2
+   3bitr4
+))
+
+thm (euex ((T x))
+  ((hypT (istype T)))
+  (-> (E! x T ph) (E. x T ph))
+  (
+   hypT y ph nfi_dv hypT x eu1
+     hypT x ph (A. y T (-> ([:=] x T (cv y) ph) (= T (cv x) (cv y)))) 19.40
+   sylbi
+   pm3.26d
+))
+
+thm (mo ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E. y T (A. x T (-> ph (= T (cv x) (cv y)))))
+   (A. x T (A. y T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y))))))
+  (
+   hyp hypT y (= T (cv x) (cv z)) nfi_dv hypT nfi_im hypT hypT x nfi_al
+     hypT z (A. x T (-> ph (= T (cv x) (cv y)))) nfi_dv
+       hypT (cv z) (cv y) (cv x) eqeq2 ph imbi2d
+       hypT x albidv (/\ (: (cv z) T) (: (cv y) T)) a1i
+   hypT cbvex
+     #hyp hypT y (= T (cv x) (cv x)) nfi_dv hypT nfi_im
+     hyp hypT y (= T (cv x) (cv z)) nfi_dv hypT nfi_im
+       hypT x (cv y) ph nfi_sbc
+         hypT x (= T (cv y) (cv z)) nfi_dv
+       hypT nfi_im
+         hypT (cv y) x ph sbceq1 imp biimprd
+           hypT (cv x) (cv y) (cv z) eqeq1 biimpd
+           (: (cv y) T) adantl
+         imim12d
+     hypT cbv3
+     ancli
+       hyp hypT y (= T (cv x) (cv z)) nfi_dv hypT nfi_im
+         hypT x (cv y) ph nfi_sbc
+           hypT x (= T (cv y) (cv z)) nfi_dv
+         hypT nfi_im
+       hypT aaan
+     sylibr
+       ph (= T (cv x) (cv z)) ([:=] x T (cv y) ph) (= T (cv y) (cv z)) prth
+         hypT (cv x) (cv z) (cv y) ax-eqtr hypT (cv y) (cv z) eqcom sylan2b
+       syl6
+       hypT x y 19.20i2
+     syl
+     (: (cv z) T) adantr hypT 19.23aiv
+   sylbir
+
+     hypT
+       hypT x ([:=] x T (cv y) ph) (-> ph (= T (cv x) (cv y))) alim
+     (: (cv y) T) a1i 19.20i
+     hypT hypT a7s
+       hypT y (A. x T ([:=] x T (cv y) ph)) (A. x T (-> ph (= T (cv x) (cv y)))) 19.22
+     syl
+       hypT x (cv y) ph nfi_sbc nfii
+       hypT y exbii biimp
+     syl5com
+       ph ([:=] x T (cv y) ph) (= T (cv x) (cv y)) impexp
+       ph ([:=] x T (cv y) ph) (= T (cv x) (cv y)) bi2.04 bitr
+       hypT y albii hypT x albii
+     syl5ib
+       y T ([:=] x T (cv y) ph) alnex
+         #hyp hypT nfi_not
+         hypT x (cv y) ph nfi_sbc hypT nfi_not
+           hyp hypT nfi_not
+             hypT (cv y) (cv x) tyeq1 pm5.32ri
+               hypT (cv y) x ph sbceq1
+               hypT (cv x) (cv y) eqcom syl5ibr
+               imp biimpd con3d
+              sylbir
+         hypT cbv3
+           hypT ph (= T (cv x) (cv y)) pm2.21
+           (: (cv x) T) a1i 19.20i
+         syl (: (cv y) T) a1i
+             hypT y (A. x T (-> ph (= T (cv x) (cv y)))) 19.8
+         syld
+           hypT y (-. ([:=] x T (cv y) ph)) nfi_bound
+             hypT y (A. x T (-> ph (= T (cv x) (cv y)))) nfi_boundex
+           hypT nfi_im
+         hypT elimty
+       sylbir
+       (A. x T (A. y T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y))))) a1d
+     pm2.61i
+   impbi
+))
+
+thm (eu2 ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E! x T ph)
+   (/\ (E. x T ph) (A. x T (A. y T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y)))))))
+  (
+   hypT x ph euex
+     hyp hypT x eumo0
+     hyp hypT x mo sylib
+   jca
+     hypT x ph (A. y T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y)))) 19.29r
+       ph ([:=] x T (cv y) ph) (= T (cv x) (cv y)) impexp
+       hypT y albii
+       hypT hyp (-> ([:=] x T (cv y) ph) (= T (cv x) (cv y))) 19.21 bitr
+       ph anbi2i
+         ph (A. y T (-> ([:=] x T (cv y) ph) (= T (cv x) (cv y)))) abai
+       bitr4
+       hypT x exbii
+     sylib
+     hyp hypT x eu1 sylibr
+   impbi
+))
+
+thm (eu3 ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E! x T ph)
+   (/\ (E. x T ph) (E. y T (A. x T (-> ph (= T (cv x) (cv y)))))))
+  (
+   hyp hypT x eu2
+     hyp hypT x mo
+     (E. x T ph) anbi2i
+   bitr4
+))
+
+thm (mo2 ((T x y))
+  ((hyp (nfi y T ph))
+   (hypT (istype T)))
+  (<-> (E* x T ph) (E. y T (A. x T (-> ph (= T (cv x) (cv y))))))
+  (
+   x T ph df-mo
+     x T ph alnex #(: (cv y) T) a1i
+       hypT ph (= T (cv x) (cv y)) pm2.21 (: (cv x) T) a1i 19.20i (: (cv y) T) a1i
+         hypT y (A. x T (-> ph (= T (cv x) (cv y)))) 19.8
+       syld
+         hyp hypT nfi_not hypT hypT x nfi_al
+           hypT y (A. x T (-> ph (= T (cv x) (cv y)))) nfi_boundex
+         hypT nfi_im
+       hypT elimty
+
+         #hypT x (-> ph (= T (cv x) (cv y))) nfi_bound
+         #hypT 19.9 bicomi
+
+     sylbir
+       hyp hypT x eumo0
+     ja
+       hyp hypT x eu3 biimpr expcom
+    impbi
+   bitr
+))
+
+thm (eueq ((T x y) (A x y))
+  ((hyp (istype T)))
+  (-> (: A T) (E! x T (= T (cv x) A)))
+  (
+   A T y df-ty
+     hyp
+       hyp (cv y) A (cv x) eqeq2 bicomd (: (cv x) T) adantr
+       hyp 19.21aiv
+     (: (cv y) T) a1i 19.22i
+   sylbi
+     x T (= T (cv x) A) y df-eu
+   sylibr
+))
+
+# Theorems for iota (definite description)
+
+# iota axiom expressed in terms of substitution
+thm (iotaax2 ((T x y) (ph y))
+  ((hyp (istype T)))
+  (-> (E! x T ph) ([:=] x T (iota x T ph) ph))
+  (
+   hyp x ph y iota-ax
+     hyp x (iota x T ph) ph y df-subst
+   sylibr
+))
+
+thm (iotaty ((T x y) (ph y))
+  ((hyp (istype T)))
+  (-> (E! x T ph) (: (iota x T ph) T))
+  (
+   hyp x ph y iota-ax
+     hyp
+       (= T (cv y) (iota x T ph)) (E. x T (/\ (= T (cv x) (cv y)) ph)) pm3.26
+     (: (cv y) T) a1i 19.22i
+   syl
+     (iota x T ph) T y df-ty
+   sylibr
+))
+
+thm (iotafoo1 ((T x y) (A x y))
+  ((hyp (istype T)))
+  (-> (: A T) (= T (iota x T (= T (cv x) A)) A))
+  (
+   hyp A x eueq
+   hyp x (= T (cv x) A) iotaax2 syl
+     hyp A x eueq hyp x (= T (cv x) A) iotaty syl
+       hyp
+         hyp (cv x) (cv y) A eqeq1
+         (/\ (: (cv x) T) (: (cv y) T)) a1i
+           hyp (cv y) (iota x T (= T (cv x) A)) A eqeq1
+           (/\ (: (cv y) T) (: (iota x T (= T (cv x) A)) T)) a1i
+       mksbc3
+     syl
+   mpbid
+))
+
+# problematic (depends on iota-alphaconvt)
+thm (iota-alphaconv ((T x y))
+  ((hyp1 (nfi y T ph))
+   (hyp2 (nfi x T ps))
+   (hyp3 (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (= T (iota x T ph) (iota y T ps))
+  (
+   hypT
+     hyp3 hypT 19.21aiv
+   gen
+     
+     hypT hyp1 hyp2 iota-alphaconvt
+   ax-mp
+))
+
+# problematic (depends on iota-alphaconvt)
+thm (iota-alphaconv-v ((T x y) (ph y) (ps x))
+  ((hyp1 (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ph ps))))
+   (hypT (istype T)))
+  (= T (iota x T ph) (iota y T ps))
+  (hypT y ph nfi_dv hypT x ps nfi_dv hyp1 hypT iota-alphaconv))
+
+# problematic (depends on iota-alphaconvt)
+thm (iotaeq ((T x y) (ph y) (ps y))
+  ((hyp (istype T)))
+  (-> (A. x T (<-> ph ps)) (= T (iota x T ph) (iota x T ps)))
+  (
+   hyp
+     hyp hyp (cv y) x ph sbceq1 gen
+       hyp ph ps ([:=] x T (cv y) ph) bibi1 (= T (cv x) (cv y)) imbi2d y bialdv
+     mpbii
+   (: (cv x) T) a1i 19.20i
+     hyp
+       hyp y ps nfi_dv
+         hyp x (cv y) ph nfi_sbc
+     iota-alphaconvt
+   syl
+     hyp y ph nfi_dv
+       hyp x (cv y) ph nfi_sbc
+         hyp (cv y) x ph sbceq1 (: (cv x) T) adantl
+     hyp iota-alphaconv
+   hyp syl6reqr
+))
+
+# problematic (depends on iota-alphaconvt)
+thm (iotaeqd ((T x) (ph x))
+  ((hyp1 (-> ph (<-> ps ch)))
+   (hypT (istype T)))
+  (-> ph (= T (iota x T ps) (iota x T ch)))
+  (hyp1 (: (cv x) T) adantr hypT 19.21aiv
+     hypT x ps ch iotaeq
+   syl
+))
+
+thm (iotabaz ((T x))
+  ((hypT (istype T)))
+  (-> (/\ (E! x T ph) (: (cv x) T)) (<-> ph (= T (cv x) (iota x T ph))))
+  (
+   hypT y ph nfi_dv hypT x eu2 biimp pm3.27d
+   hypT hypT x y (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y))) alcom sylib
+     hypT x ph iotaty (iota x T ph) T y df-ty sylib
+   jca
+     hypT y (A. x T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y)))) (= T (cv y) (iota x T ph)) 19.29
+   syl
+
+     hypT x ph iotaax2
+     hypT (cv y) (iota x T ph) x ph dfsbcq biimprd com12 syl imp
+
+       hypT x (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y))) spec-var imp3a imp arrr-l exp
+     syl imp alr-l
+     hypT (cv x) (cv y) (iota x T ph) ax-eqtr exp syl imp allar
+
+     arrl-l al-ll ar-l exp
+     (: (cv y) T) adantr hypT 19.21aiv
+       hypT hypT y (= T (cv x) (iota x T ph)) nfi_dv (/\ (A. x T (-> (/\ ph ([:=] x T (cv y) ph)) (= T (cv x) (cv y)))) (= T (cv y) (iota x T ph))) 19.23
+   sylib com12 syl imp alarl
+
+   arr-l ar-l exp
+     hypT x ph iotaax2
+       hypT x ph iotaty hypT (iota x T ph) x ph sbceq1 syl
+     imp biimprd com12 syl imp alarl exp
+     (: (cv x) T) adantr
+   impbid
+))
+
+thm (Nfi_iotalem ((T x y) (ph y))
+  ((hypT (istype T)))
+  (-> (/\ (E! x T ph) (: (cv y) T))
+    (<-> ([:=] x T (cv y) ph) (= T (cv y) (iota x T ph))))
+  (
+   hypT y ph nfi_dv hypT x sb8eu
+     hypT y ([:=] x T (cv y) ph) iotabaz
+       hypT y ph nfi_dv
+         hypT x (cv y) ph nfi_sbc
+           hypT (cv y) x ph sbceq1 (: (cv x) T) adantl
+       hypT iota-alphaconv
+       hypT (cv y) eqeq2i
+     syl6bbr
+   exp sylbi imp
+))
+
+# This proves a guarded version of the Nfi axiom, using only iota-ax
+# (or, at least, it would, if supporting lemmas didn't use
+# iota-alphaconvt).
+
+thm (Nfi_iota_guarded ((T x y) (ph y))
+  ((hypT (istype T)))
+  (-> (E! x T ph) (A. y T (<-> (= T (cv y) (iota x T ph)) (A. x T (= T (cv y) (iota x T ph))))))
+  (
+   hypT x ph y Nfi_iotalem
+
+   hypT x (cv y) ph nfi_sbc nfii syl5rbbr
+
+     hypT x ph nfi_boundeu
+     hypT x (: (cv y) T) nfi_dv hypT nfi_an
+       hypT x ph y Nfi_iotalem
+     hypT albid
+   bitrd
+   hypT 19.21aiv
+))
+
+# The "if" operation
+
+thm (ifbi ()
+  ((hypT (istype T)))
+  (-> (<-> ph ps) (= T (if T ph A B) (if T ps A B)))
+  (
+   (<-> ph ps) id (= T (cv x) A) anbi2d
+     ph ps pm4.11 biimp (= T (cv x) B) anbi2d
+   orbi12d
+   hypT x iotaeqd
+     hypT ph A B x df-if
+       hypT ps A B x df-if
+   hypT 3eqtr4g
+))
+
+thm (ifeq1 ((T x) (A x) (B x) (C x) (ph x))
+  ((hyp (istype T)))
+  (-> (= T A B) (= T (if T ph A C) (if T ph B C)))
+  (
+   hyp A B (cv x) eqeq2 ph anbi1d
+   (/\ (= T (cv x) C) (-. ph)) orbi1d
+   hyp x iotaeqd
+
+     hyp ph A C x df-if
+       hyp ph B C x df-if
+   hyp 3eqtr4g
+))
+
+thm (ifeq2 ((T x) (A x) (B x) (C x) (ph x))
+  ((hyp (istype T)))
+  (-> (= T A B) (= T (if T ph C A) (if T ph C B)))
+  (
+   hyp A B (cv x) eqeq2 (-. ph) anbi1d
+   (/\ (= T (cv x) C) ph) orbi2d
+   hyp x iotaeqd
+
+     hyp ph C A x df-if
+       hyp ph C B x df-if
+   hyp 3eqtr4g
+))
+
+thm (iftrue ((T x) (A x) (B x) (ph x))
+  ((hyp (istype T)))
+  (-> (/\ ph (: A T)) (= T (if T ph A B) A))
+  (
+   ph (= T (cv x) A) (= T (cv x) B) dedlema
+   hyp x iotaeqd
+
+     hyp A x iotafoo1
+   hyp eqtr3a
+     hyp ph A B x df-if
+   hyp syl5eq
+))
+
+thm (iffalse ((T x) (A x) (B x) (ph x))
+  ((hyp (istype T)))
+  (-> (/\ (-. ph) (: B T)) (= T (if T ph A B) B))
+  (
+   ph (= T (cv x) B) (= T (cv x) A) dedlemb
+   hyp x iotaeqd
+
+     hyp B x iotafoo1
+   hyp eqtr3a
+     hyp ph A B x df-if
+   hyp syl5eq
+))
+
+# define "not free in" for values as well as predicates
+def ((Nfi x T A) (A. y T (<-> (= T (cv y) A) (A. x T (= T (cv y) A)))))
+
+export (PRED-THMS pax/pred-thms (PROP PRED) "")

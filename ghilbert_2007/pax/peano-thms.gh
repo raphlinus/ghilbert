@@ -1,0 +1,1836 @@
+import (PROP pax/prop () "")
+import (PRED pax/pred (PROP) "")
+import (PEANO pax/peano (PROP PRED) "")
+
+import (PROP-FULL pax/prop-full (PROP) "")
+import (ASSUMP pax/assump (PROP) "")
+import (PRED-THMS pax/pred-thms (PROP PRED) "")
+
+var (wff ph ps ch th ta)
+var (type T) # only used for a few thms like alpha-exd
+var (val A B C D A' B' C')
+var (var x y z x' y')
+
+thm (addeq1 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (-> (= (N.T) A B) (= (N.T) (+ A C) (+ B C))))
+  (N.istype C eqid (/\ (: A (N.T)) (: B (N.T))) adantl
+       (: C (N.T)) anidm (/\ (: A (N.T)) (: B (N.T))) anbi2i
+       A B C C addeq12
+     sylbir
+   exp3a com23 mpd
+))
+# in new set.mm, the last three steps are mpan2d
+
+thm (addeq2 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (-> (= (N.T) A B) (= (N.T) (+ C A) (+ C B))))
+  (N.istype C eqid (/\ (: A (N.T)) (: B (N.T))) adantr
+       (: C (N.T)) anidm (/\ (: A (N.T)) (: B (N.T))) anbi1i
+       C C A B addeq12
+     sylbir
+   exp3a mpd ancoms
+))
+
+thm (muleq1 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (-> (= (N.T) A B) (= (N.T) (* A C) (* B C))))
+  (N.istype C eqid (/\ (: A (N.T)) (: B (N.T))) adantl
+       (: C (N.T)) anidm (/\ (: A (N.T)) (: B (N.T))) anbi2i
+       A B C C muleq12
+     sylbir
+   exp3a com23 mpd
+))
+# in new set.mm, the last three steps are mpan2d
+
+thm (muleq2 () ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (-> (= (N.T) A B) (= (N.T) (* C A) (* C B))))
+  (N.istype C eqid (/\ (: A (N.T)) (: B (N.T))) adantr
+       (: C (N.T)) anidm (/\ (: A (N.T)) (: B (N.T))) anbi1i
+       C C A B muleq12
+     sylbir
+   exp3a mpd ancoms
+))
+
+thm (findes ((x y z) (ph y z))
+  ((hyp1 ([:=] x (N.T) (0) ph))
+   (hyp2 (-> (: (cv x) (N.T)) (-> ph ([:=] x (N.T) (S (cv x)) ph)))))
+  (-> (: (cv x) (N.T)) ph)
+  (
+    hyp1
+   0:N N.istype (0) x ph sbc6 ax-mp mpbi
+
+     N.istype
+       N.istype hyp2 (cv y) sbctru
+       N.istype (cv y) x ph ([:=] x (N.T) (S (cv x)) ph) sbcim
+     mpbid
+       N.istype (cv y) x ph sbc6
+         N.istype (cv x) (cv y) pa_ax2 biimpd ph sbcco3
+           (cv y) S:N
+           N.istype (S (cv y)) x ph sbc6
+         syl
+       bitrd
+     imbi12d
+     mpbid
+   gen
+
+   x ph y ind
+   mp2an
+
+   N.istype x ph spec-var ax-mp
+))
+
+thm (pa_ax2d ()
+  ((hyp (-> ph (/\ (: A (N.T)) (: B (N.T))))))
+  (-> ph (<-> (= (N.T) A B) (= (N.T) (S A) (S B))))
+  (hyp A B pa_ax2 syl
+))
+
+thm (pa_ax3d ()
+  ((hyp (-> ph (: A (N.T)))))
+  (-> ph (= (N.T) (+ A (0)) A))
+  (hyp A pa_ax3 syl))
+
+thm (pa_ax4d ()
+  ((hyp (-> ph (/\ (: A (N.T)) (: B (N.T))))))
+  (-> ph (= (N.T) (+ A (S B)) (S (+ A B))))
+  (hyp A B pa_ax4 syl
+))
+
+thm (pa_ax3r ((x y) (A x)) () (-> (: A (N.T))
+  (= (N.T) (+ (0) A) A))
+  (
+   0:N (0) pa_ax3 ax-mp
+   0:N
+     N.istype
+       N.istype
+       0:N (cv x) (0) (0) addeq2 exp31 pm2.43d mpi imp
+       (= (N.T) (cv x) (0)) id (: (cv x) (N.T)) adantl
+     eqeq12d exp (: (0) (N.T)) adantr mksbc2
+     # [x := 0] 0 + x = x <-> 0 + 0 = 0
+   ax-mp mpbir
+
+     0:N (0) (cv x) pa_ax4 mpan (= (N.T) (+ (0) (cv x)) (cv x)) adantr
+       0:N (0) (cv x) +:N mpan
+     (+ (0) (cv x)) (cv x) pa_ax2 exp syl pm2.43i biimpd imp
+   N.istype eqtrd
+     (cv x) S:N
+       N.istype
+         N.istype
+         0:N (cv x) (cv y) (0) addeq2 mpan2 imp
+         (= (N.T) (cv x) (cv y)) id (/\ (: (cv x) (N.T)) (: (cv y) (N.T))) adantl
+       eqeq12d exp
+         N.istype
+         0:N (cv y) (S (cv x)) (0) addeq2 mpan2 imp
+         (= (N.T) (cv y) (S (cv x))) id (/\ (: (cv y) (N.T)) (: (S (cv x)) (N.T))) adantl
+       eqeq12d exp
+     mksbc3 syl  (= (N.T) (+ (0) (cv x)) (cv x)) adantr
+     # [x := S(x)] 0 + x = x <-> 0 + S(x) = S(x)
+   mpbird exp
+   findes
+
+   (: A (N.T)) adantr (= (N.T) (cv x) A) adantr
+     N.istype
+     0:N (cv x) A (0) addeq2 mpan2 imp
+     (= (N.T) (cv x) A) id (/\ (: (cv x) (N.T)) (: A (N.T))) a1i imp
+   eqeq12d mpbid exp
+   N.istype vtocleg2
+))
+
+thm (S:Nd ()
+  ((hyp (-> ph (: A (N.T)))))
+  (-> ph (: (S A) (N.T)))
+  (hyp A S:N syl))
+
+thm (+:Nd ()
+  ((hyp (-> ph (/\ (: A (N.T)) (: B (N.T))))))
+  (-> ph (: (+ A B) (N.T)))
+  (hyp A B +:N syl))
+
+thm (*:Nd ()
+  ((hyp (-> ph (/\ (: A (N.T)) (: B (N.T))))))
+  (-> ph (: (* A B) (N.T)))
+  (hyp A B *:N syl))
+
+# [x:=0] (S(A) + x = S(A + x) <-> S(A) + 0 = S(A + 0)
+# invariant: S(A) + x = S(A + x)
+thm (pa_ax4r ((A x y) (B x)) ()
+  (-> (/\ (: A (N.T)) (: B (N.T)))
+    (= (N.T) (+ (S A) B) (S (+ A B))))
+  (
+
+       A S:N (S A) pa_ax3 syl A pa_ax3
+       0:N A (0) +:N mpan2 ancri pa_ax2d mpbid
+     N.istype eqtr4d
+
+     0:N
+     N.istype N.istype
+     0:N (cv x) (0) (S A) addeq2 mpanl2
+     A S:N sylan2 imp
+       0:N (cv x) (0) A addeq2 mpanl2
+     A (cv x) +:N 0:N A (0) +:N mpan2 anim12i anabss1 pa_ax2d ancoms sylibd imp
+     eqeq12d an1rs exp pm5.74d exp (: (0) (N.T)) adantr
+     mksbc2 ax-mp
+   mpbir
+
+     A S:N (: (cv x) (N.T)) anim1i pa_ax4d ancoms
+       A S:N (: (cv x) (N.T)) anim1i +:Nd ancoms
+     A (cv x) +:N ancoms S:Nd jca pa_ax2d biimpd imp
+   N.istype eqtra anabss5
+       A (cv x) pa_ax4 ancoms
+     (cv x) S:N (: A (N.T)) anim2i +:Nd A (cv x) +:N S:Nd jca ancoms pa_ax2d mpbid
+   N.istype eqtr4a anabss1 exp31 a2d
+
+     (cv x) S:N
+        N.istype
+          N.istype
+          (cv x) (cv y) (S A) addeq2
+          A S:N sylan2 imp
+
+            (cv x) (cv y) A addeq2
+          A (cv x) +:N A (cv y) +:N anim12i 3impdi 3coml 3expa pa_ax2d sylibd imp
+       eqeq12d an1rs exp pm5.74d exp
+          N.istype
+          (cv y) (S (cv x)) (S A) addeq2
+          A S:N sylan2 imp
+
+            (cv y) (S (cv x)) A addeq2
+          A (cv y) +:N A (S (cv x)) +:N anim12i 3impdi 3coml 3expa pa_ax2d sylibd imp
+       eqeq12d an1rs exp pm5.74d exp
+     mksbc3 syl
+   sylibrd
+   findes (: B (N.T)) adantr imp (= (N.T) (cv x) B) adantr
+
+     N.istype
+     (cv x) B (S A) addeq2 exp A S:N syl5 imp31
+
+       (cv x) B A addeq2
+
+         A (cv x) +:N
+         A B +:N
+       anim12i 3impdi 3coml 3expa pa_ax2d biimpd
+
+     syld imp
+   eqeq12d mpbid exp31 com23 N.istype vtocleg2 impcom
+))
+
+# invariant: x + B = B + x
+thm (addcom ((B x y) (A x)) () (-> (/\ (: A (N.T)) (: B (N.T)))
+  (= (N.T) (+ A B) (+ B A)))
+  (
+
+   B pa_ax3r B pa_ax3 N.istype eqtr4d
+
+   0:N N.istype
+     N.istype
+     0:N (cv x) (0) B addeq1 an1rs mpan2 imp
+     0:N (cv x) (0) B addeq2 an1rs mpan2 imp
+   eqeq12d an1rs exp pm5.74d exp
+   (: (0) (N.T)) adantr mksbc2 ax-mp
+   mpbir
+
+     (cv x) B pa_ax4r
+
+     B (cv x) pa_ax4 ancoms (= (N.T) (+ (cv x) B) (+ B (cv x))) adantr
+
+       (+ (cv x) B) (+ B (cv x)) pa_ax2
+       (cv x) B +:N B (cv x) +:N ancoms
+     sylanc biimpd imp N.istype eqtr4d
+
+   N.istype eqtr4a anabss5 exp31 a2d
+
+   (cv x) S:N
+     N.istype
+       N.istype
+       (cv x) (cv y) B addeq1 imp
+       (cv x) (cv y) B addeq2 imp
+     eqeq12d exp31 com23 imp pm5.74d exp
+       N.istype
+       (cv y) (S (cv x)) B addeq1 imp
+       (cv y) (S (cv x)) B addeq2 imp
+     eqeq12d exp31 com23 imp pm5.74d exp
+   mksbc3 syl
+   sylibrd findes (: A (N.T)) adantr imp (= (N.T) (cv x) A) adantr
+
+     N.istype
+     (cv x) A B addeq1 imp
+     (cv x) A B addeq2 imp
+   eqeq12d mpbid exp31 com23 N.istype vtocleg2 imp
+))
+
+thm (pa_ax4rd ()
+  ((hyp (-> ph (/\ (: A (N.T)) (: B (N.T))))))
+  (-> ph (= (N.T) (+ (S A) B) (S (+ A B))))
+  (hyp A B pa_ax4r syl
+))
+
+thm (addeq1d ()
+  ((hyp (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T))))))
+  (-> ph (-> (= (N.T) A B) (= (N.T) (+ A C) (+ B C))))
+  (hyp A B C addeq1 syl))
+
+thm (addeq2d ()
+  ((hyp (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T))))))
+  (-> ph (-> (= (N.T) A B) (= (N.T) (+ C A) (+ C B))))
+  (hyp A B C addeq2 syl))
+
+thm (muleq1d ()
+  ((hyp (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T))))))
+  (-> ph (-> (= (N.T) A B) (= (N.T) (* A C) (* B C))))
+  (hyp A B C muleq1 syl))
+
+thm (muleq2d ()
+  ((hyp (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T))))))
+  (-> ph (-> (= (N.T) A B) (= (N.T) (* C A) (* C B))))
+  (hyp A B C muleq2 syl))
+
+# invariant (x + B) + C = x + (B + C)
+thm (addass ((A x) (B x y) (C x y)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (= (N.T) (+ (+ A B) C) (+ A (+ B C))))
+  (
+
+     B pa_ax3r (: C (N.T)) adantr
+     0:N (: B (N.T)) jctl +:Nd ancri  (: C (N.T)) anim1i addeq1d mpd
+     B C +:N (+ B C) pa_ax3r syl
+   N.istype eqtr4d
+
+   0:N
+     N.istype
+       N.istype
+         (cv x) (0) B addeq1 (: C (N.T)) adantr
+       (cv x) B +:N (0) B +:N anim12i alrarr alr-r (: C (N.T)) anim1i addeq1d syld
+       ar-l al-rr imp
+
+       B C +:N (/\ (: (cv x) (N.T)) (: (0) (N.T))) anim2i addeq1d imp
+     eqeq12d alr-r exp pm5.74d exp
+   mksbc2 ax-mp
+   mpbir
+
+       (cv x) B pa_ax4r (: C (N.T)) adantr
+     (cv x) S:N (: B (N.T)) anim1i +:Nd (cv x) B +:N S:Nd jca (: C (N.T)) anim1i addeq1d mpd
+     (cv x) B +:N (: C (N.T)) anim1i pa_ax4rd
+   N.istype eqtrd
+       (cv x) B +:N (: C (N.T)) anim1i +:Nd
+       B C +:N (: (cv x) (N.T)) anim2i +:Nd al-ll
+     jca pa_ax2d biimpd imp
+   N.istype eqtra alarl
+     B C +:N (: (cv x) (N.T)) anim2i pa_ax4rd al-ll
+   N.istype eqtr4a allar allr-l al-lrl exp31 a2d
+
+   (cv x) S:N
+     N.istype
+       N.istype
+         (cv x) (cv y) B addeq1 (: C (N.T)) adantr
+       (cv x) B +:N (cv y) B +:N anim12i alrarr alr-r (: C (N.T)) anim1i addeq1d syld
+       ar-l al-rr imp
+
+       B C +:N (/\ (: (cv x) (N.T)) (: (cv y) (N.T))) anim2i addeq1d imp
+     eqeq12d alr-r exp pm5.74d exp
+       N.istype
+         (cv y) (S (cv x)) B addeq1 (: C (N.T)) adantr
+       (cv y) B +:N (S (cv x)) B +:N anim12i alrarr alr-r (: C (N.T)) anim1i addeq1d syld
+       ar-l al-rr imp
+
+       B C +:N (/\ (: (cv y) (N.T)) (: (S (cv x)) (N.T))) anim2i addeq1d imp
+     eqeq12d alr-r exp pm5.74d exp
+   mksbc3 syl
+
+   sylibrd
+
+   findes
+
+     N.istype
+       (cv x) A B addeq1 alr-r (: C (N.T)) adantr
+       (cv x) B +:N A B +:N anim12i alrarr (: C (N.T)) anim1i addeq1d syld
+     ar-l al-lrr all-l al-rl imp
+     B C +:N (cv x) A (+ B C) addeq1 ar-l exp syl imp31
+   eqeq12d all-r exp pm5.74d biimpa
+   syl-r alll-l arr-l alarl al-ll exp N.istype vtocleg2 imp al-ll
+))
+
+thm (pa_ax5r ((A x) (x y)) ()
+  (-> (: A (N.T)) (= (N.T) (* (0) A) (0)))
+  (
+   N.istype 0:N (cv x) A (0) muleq2 mpan2 imp (0) eqeq1d
+
+   0:N (0) pa_ax5 ax-mp
+
+   0:N
+     N.istype
+     N.istype 0:N (cv x) (0) (0) muleq2 mpan2 imp (0) eqeq1d exp
+   mksbc2 ax-mp mpbir
+
+   (cv x) S:N
+     N.istype
+     N.istype 0:N (cv x) (cv y) (0) muleq2 mpan2 imp (0) eqeq1d exp
+     N.istype 0:N (cv y) (S (cv x)) (0) muleq2 mpan2 imp (0) eqeq1d exp
+   mksbc3 syl
+
+     N.istype
+     0:N (0) (cv x) pa_ax6 mpan
+     0:N (0) (cv x) *:N pa_ax3d mpan
+   N.istype eqtrd (0) eqeq1d bitrd biimprd
+   findes
+
+   syl5bi anasss com12 anabsi5 anassrs exp
+   N.istype vtocleg2
+))
+
+
+# Some cool definitions
+
+def ((=N A B) (/\ (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B)))
+
+thm (df-=N () ()
+  (<-> (=N A B) (/\ (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B)))
+  ((/\ (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B)) pm4.2))
+
+thm (df-=Nad ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B)))
+  (hyp A B df-=N sylib))
+
+thm (df-=Nbd ()
+  ((hyp (-> ph (/\ (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B)))))
+  (-> ph (=N A B))
+  (hyp A B df-=N sylibr))
+
+thm (eqNid () ()
+  (-> (: A (N.T)) (=N A A))
+  (  (: A (N.T)) id ancli
+     N.istype A eqid
+   jca df-=Nbd
+))
+
+thm (eqNtrt () ()
+  (-> (/\ (=N A B) (=N B C)) (=N A C))
+  (
+     A B df-=N biimp pm3.26d pm3.26d
+     B C df-=N biimp pm3.26d pm3.27d
+   anim12i
+     A B df-=N biimp pm3.27d
+     B C df-=N biimp pm3.27d
+   anim12i N.istype A B C ax-eqtr syl
+   jca df-=Nbd
+))
+
+thm (eqNcomd ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (=N B A))
+  (
+   hyp df-=Nad pm3.26d pm3.27d
+     hyp df-=Nad pm3.26d pm3.26d
+   jca
+     N.istype
+       hyp df-=Nad pm3.27d
+     eqcomd
+   jca df-=Nbd
+))
+
+thm (eqNcom () ()
+  (<-> (=N A B) (=N B A))
+  ((=N A B) id eqNcomd (=N B A ) id eqNcomd impbi
+))
+
+thm (eqNcomi ()
+  ((hyp (=N A B)))
+  (=N B A)
+  (hyp A B eqNcom mpbi))
+
+thm (eqNtrd ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ph (=N B C))))
+  (-> ph (=N A C))
+  (hyp1 hyp2 jca A B C eqNtrt syl))
+
+thm (eqNtra ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ps (=N B C))))
+  (-> (/\ ph ps) (=N A C))
+  (hyp1 ps adantr hyp2 ph adantl eqNtrd))
+
+thm (eqNtr3d ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ph (=N A C))))
+  (-> ph (=N B C))
+  (hyp1 eqNcomd hyp2 eqNtrd))
+
+thm (eqNtr3a ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ps (=N A C))))
+  (-> (/\ ph ps) (=N B C))
+  (hyp1 ps adantr hyp2 ph adantl eqNtr3d))
+
+thm (eqNtr4 ()
+  ((hyp1 (=N A B))
+   (hyp2 (=N C B)))
+  (=N A C)
+  (hyp1 hyp2 eqNcomi A B C eqNtrt mp2an))
+
+thm (eqNtr4d ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ph (=N C B))))
+  (-> ph (=N A C))
+  (hyp1 hyp2 eqNcomd eqNtrd))
+
+thm (eqNtr4a ()
+  ((hyp1 (-> ph (=N A B)))
+   (hyp2 (-> ps (=N C B))))
+  (-> (/\ ph ps) (=N A C))
+  (hyp1 ps adantr hyp2 ph adantl eqNtr4d))
+
+thm (eqeqN12d ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ph (=N B B'))))
+  (-> ph (<-> (=N A B) (=N A' B')))
+  (
+
+   N.istype hyp1 df-=Nad pm3.27d hyp2 df-=Nad pm3.27d eqeq12d
+
+   hyp1 df-=Nad pm3.26d pm3.26d hyp2 df-=Nad pm3.26d pm3.26d jca
+   (/\ (: A (N.T)) (: B (N.T))) (= (N.T) A B) ibar syl
+   A B df-=N syl6bbr
+
+   hyp1 df-=Nad pm3.26d pm3.27d hyp2 df-=Nad pm3.26d pm3.27d jca
+   (/\ (: A' (N.T)) (: B' (N.T))) (= (N.T) A' B') ibar syl
+   A' B' df-=N syl6bbr
+
+   3bitr3d
+))
+
+thm (eqeqN1d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (=N A C) (=N B C)))
+  (
+   hyp (: C (N.T)) adantl C eqNid ph adantr eqeqN12d exp
+     A C df-=N biimp pm3.26d pm3.27d
+       B C df-=N biimp pm3.26d pm3.27d
+     pm5.21ni ph a1d
+   pm2.61i
+))
+
+thm (eqeqN2d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (=N C A) (=N C B)))
+  (
+   hyp C eqeqN1d
+     A C eqNcom
+       B C eqNcom
+     bibi12i
+   sylib
+))
+
+thm (eqeqN12a ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ps (=N B B'))))
+  (-> (/\ ph ps) (<-> (=N A B) (=N A' B')))
+  (hyp1 ps adantr hyp2 ph adantl eqeqN12d
+))
+
+thm (addeq1cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> (/\ ph (: C (N.T))) (=N (+ A C) (+ B C)))
+  (
+     hyp df-=Nad pm3.26d pm3.26d (: C (N.T)) anim1i +:Nd
+     hyp df-=Nad pm3.26d pm3.27d (: C (N.T)) anim1i +:Nd
+   jca
+     hyp df-=Nad pm3.26d (: C (N.T)) anim1i addeq1d
+     hyp df-=Nad pm3.27d
+   syl5 imp allar
+   jca df-=Nbd
+))
+
+thm (addeq2cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> (/\ ph (: C (N.T))) (=N (+ C A) (+ C B)))
+  (
+     hyp df-=Nad pm3.26d pm3.26d (: C (N.T)) anim2i +:Nd
+     hyp df-=Nad pm3.26d pm3.27d (: C (N.T)) anim2i +:Nd
+   jca al-r
+     hyp df-=Nad pm3.26d (: C (N.T)) anim1i addeq2d
+     hyp df-=Nad pm3.27d
+   syl5 imp allar
+   jca df-=Nbd
+))
+
+thm (addeq12cd ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ph (=N B B'))))
+  (-> ph (=N (+ A B) (+ A' B')))
+  (
+     hyp2 df-=Nad pm3.26d pm3.26d
+   hyp1 B addeq1cd mpdan
+     hyp1 df-=Nad pm3.26d pm3.27d
+   hyp2 A' addeq2cd mpdan
+   eqNtrd
+))
+
+thm (addeq12ca ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ps (=N B B'))))
+  (-> (/\ ph ps) (=N (+ A B) (+ A' B')))
+  (hyp1 ps adantr hyp2 ph adantl addeq12cd))
+
+thm (muleq1cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> (/\ ph (: C (N.T))) (=N (* A C) (* B C)))
+  (
+     hyp df-=Nad pm3.26d pm3.26d (: C (N.T)) anim1i *:Nd
+     hyp df-=Nad pm3.26d pm3.27d (: C (N.T)) anim1i *:Nd
+   jca
+     hyp df-=Nad pm3.26d (: C (N.T)) anim1i muleq1d
+     hyp df-=Nad pm3.27d
+   syl5 imp allar
+   jca df-=Nbd
+))
+
+thm (muleq2cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> (/\ ph (: C (N.T))) (=N (* C A) (* C B)))
+  (
+     hyp df-=Nad pm3.26d pm3.26d (: C (N.T)) anim2i *:Nd
+     hyp df-=Nad pm3.26d pm3.27d (: C (N.T)) anim2i *:Nd
+   jca al-r
+     hyp df-=Nad pm3.26d (: C (N.T)) anim1i muleq2d
+     hyp df-=Nad pm3.27d
+   syl5 imp allar
+   jca df-=Nbd
+))
+
+thm (muleq12cd ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ph (=N B B'))))
+  (-> ph (=N (* A B) (* A' B')))
+  (
+     hyp2 df-=Nad pm3.26d pm3.26d
+   hyp1 B muleq1cd mpdan
+     hyp1 df-=Nad pm3.26d pm3.27d
+   hyp2 A' muleq2cd mpdan
+   eqNtrd
+))
+
+thm (muleq12ca ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ps (=N B B'))))
+  (-> (/\ ph ps) (=N (* A B) (* A' B')))
+  (hyp1 ps adantr hyp2 ph adantl muleq12cd))
+
+# This theorem is misnamed; it's really an equality theorem of S, not
+# an N formulation of pa-ax2.
+thm (pa-ax2cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (=N (S A) (S B)))
+  (
+     hyp df-=Nad pm3.26d pm3.26d S:Nd
+     hyp df-=Nad pm3.26d pm3.27d S:Nd
+   jca
+     hyp df-=Nad pm3.27d
+     hyp df-=Nad pm3.26d pa_ax2d
+   mpbid
+   jca df-=Nbd
+))
+
+thm (pa-ax3cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (=N (+ A (0)) B))
+  (
+   hyp df-=Nad pm3.26d pm3.26d
+   0:N jctir +:Nd
+     hyp df-=Nad pm3.26d pm3.27d
+   jca
+     hyp df-=Nad pm3.26d pm3.26d
+     A pa_ax3 syl
+       hyp df-=Nad pm3.27d N.istype
+     eqtrd
+   jca df-=Nbd
+))
+
+thm (pa-ax5cd ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (=N (* A (0)) (0)))
+  (
+   hyp df-=Nad pm3.26d pm3.26d
+   0:N jctir *:Nd
+   0:N jctir
+     hyp df-=Nad pm3.26d pm3.26d
+     A pa_ax5 syl
+   jca df-=Nbd
+))
+
+thm (addcomcd ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ph (=N B B'))))
+  (-> ph (=N (+ A B) (+ B' A')))
+  (
+       hyp1 df-=Nad pm3.26d pm3.26d
+       hyp2 df-=Nad pm3.26d pm3.26d
+     jca +:Nd
+       hyp2 df-=Nad pm3.26d pm3.27d
+       hyp1 df-=Nad pm3.26d pm3.27d
+     jca +:Nd
+   jca
+
+     hyp1 df-=Nad pm3.27d
+     hyp2 df-=Nad pm3.27d
+   jca
+       hyp1 df-=Nad pm3.26d pm3.26d
+       hyp1 df-=Nad pm3.26d pm3.27d
+     jca
+       hyp2 df-=Nad pm3.26d pm3.26d
+       hyp2 df-=Nad pm3.26d pm3.27d
+     jca
+   jca A A' B B' addeq12 syl mpd
+
+     hyp1 df-=Nad pm3.26d pm3.27d
+     hyp2 df-=Nad pm3.26d pm3.27d
+   jca
+   A' B' addcom syl N.istype eqtrd
+   jca df-=Nbd
+))
+
+thm (pa-ax2Na ()
+   ((hyp1 (-> ph (: A (N.T))))
+    (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (<-> (=N A B) (=N (S A) (S B))))
+  (
+   hyp1 hyp2 anim12i A B pa_ax2 syl
+   hyp1 hyp2 anim12i A B df-=N baibr syl bitr3d
+   hyp1 S:Nd hyp2 S:Nd anim12i (S A) (S B) df-=N baibr syl bitr3d
+))
+
+
+thm (pa-ax4Na ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (=N (+ A (S B)) (S (+ A B))))
+  (
+   hyp1 hyp2 S:Nd anim12i +:Nd
+     hyp1 hyp2 anim12i +:Nd S:Nd
+   jca
+     hyp1 hyp2 anim12i A B pa_ax4 syl
+   jca df-=Nbd
+))
+
+thm (mksbcN ((A x) (ps x))
+  ((hyp (-> (=N (cv x) A) (<-> ph ps))))
+  (-> (: A (N.T)) (<-> ([:=] x (N.T) A ph) ps))
+  (
+   N.istype
+     (cv x) A df-=N
+   hyp sylbir exp
+   mksbc2
+))
+
+thm (mksbcN2 ((A y) (ps x) (ch y) (ph y) (x y))
+  ((hyp1 (-> (=N (cv x) (cv y)) (<-> ph ps)))
+   (hyp2 (-> (=N (cv y) A) (<-> ps ch))))
+  (-> (: A (N.T)) (<-> ([:=] x (N.T) A ph) ch))
+  (
+   N.istype
+     (cv x) (cv y) df-=N
+   hyp1 sylbir exp
+     (cv y) A df-=N
+   hyp2 sylbir exp
+   mksbc3
+))
+
+# Induction with implicit substitution, using =N for equality
+thm (findsN ((x y) (A x) (ps x) (ch x) (th x) (ta x) (ph y))
+  ((hyp1 (-> (=N (cv x) (0)) (<-> ph ps)))
+   (hyp2 (-> (=N (cv x) (cv y)) (<-> ph ch)))
+   (hyp3 (-> (=N (cv x) (S (cv y))) (<-> ph th)))
+   (hyp4 (-> (=N (cv x) A) (<-> ph ta)))
+   (hyp5 ps)
+   (hyp6 (-> (: (cv y) (N.T)) (-> ch th))))
+  (-> (: A (N.T)) ta)
+  (
+   N.istype
+     hyp5
+       0:N (=N (cv y) (cv x)) id eqNcomd hyp2 syl bicomd hyp1 mksbcN2 ax-mp
+     mpbir
+       hyp6
+         (cv y) S:N (=N (cv y) (cv x)) id eqNcomd hyp2 syl bicomd hyp3 mksbcN2 syl
+       sylibrd
+     findes
+   A sbctru   
+     (=N (cv y) (cv x)) id eqNcomd hyp2 syl bicomd hyp4 mksbcN2
+   mpbid
+))
+
+# ind hyp: B+x = C+x <-> B+C
+thm (addcan () ()
+  (-> (/\ (: A (N.T)) (/\ (: B (N.T)) (: C (N.T))))
+   (<-> (=N (+ B A) (+ C A)) (=N B C)))
+  (
+   (=N (cv x) (0)) id B addeq2cd
+     (=N (cv x) (0)) id C addeq2cd
+   eqeqN12a allarl all-l (=N B C) bibi1d exp pm5.74d
+     (=N (cv x) (cv y)) id B addeq2cd
+       (=N (cv x) (cv y)) id C addeq2cd
+     eqeqN12a allarl all-l  (=N B C) bibi1d exp pm5.74d
+       (=N (cv x) (S (cv y))) id B addeq2cd
+         (=N (cv x) (S (cv y))) id C addeq2cd
+       eqeqN12a allarl all-l (=N B C) bibi1d exp pm5.74d
+         (=N (cv x) A) id B addeq2cd
+           (=N (cv x) A) id C addeq2cd
+         eqeqN12a allarl all-l (=N B C) bibi1d exp pm5.74d
+           B eqNid pa-ax3cd
+             C eqNid pa-ax3cd
+           eqeqN12a
+             (: B (N.T)) id (: (cv y) (N.T)) id pa-ax4Na
+               (: C (N.T)) id (: (cv y) (N.T)) id pa-ax4Na
+             eqeqN12a alrarr alr-r
+               B (cv y) +:N C (cv y) +:N pa-ax2Na alrarr alr-r
+             bitr4d al-r (=N B C) bibi1d exp pm5.74d biimprd
+   findsN imp
+))
+
+
+
+#thm (pa_ax3cd ()
+#  ((hyp (-> ph (=N A B))))
+#  (-> ph (=N (+ A (0)) B))
+#  (
+#     hyp df-=Nad pm3.26d pm3.26d 0:N jctir +:Nd
+#     hyp df-=Nad pm3.26d pm3.26d
+#   jca
+#     hyp df-=Nad pm3.26d pm3.26d
+#   A pa_ax3 syl
+#   jca df-=Nbd
+#   hyp eqNtrd
+#))
+
+thm (pa-ax6cd ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ph (=N B B'))))
+  (-> ph (=N (* A (S B)) (+ (* A' B') A')))
+  (
+   hyp1 hyp2 pa-ax2cd muleq12cd
+     hyp1 df-=Nad pm3.26d pm3.27d
+     hyp2 df-=Nad pm3.26d pm3.27d S:Nd jca *:Nd
+       hyp1 df-=Nad pm3.26d pm3.27d
+       hyp2 df-=Nad pm3.26d pm3.27d jca *:Nd
+       hyp1 df-=Nad pm3.26d pm3.27d jca +:Nd
+     jca
+       hyp1 df-=Nad pm3.26d pm3.27d
+         hyp2 df-=Nad pm3.26d pm3.27d
+       jca A' B' pa_ax6 syl
+     jca df-=Nbd
+   eqNtrd
+))
+
+thm (pa-ax6ca ()
+  ((hyp1 (-> ph (=N A A')))
+   (hyp2 (-> ps (=N B B'))))
+  (-> (/\ ph ps) (=N (* A (S B)) (+ (* A' B') A')))
+  (hyp1 ps adantr hyp2 ph adantl pa-ax6cd))
+
+thm (addassNa ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T))))
+   (hyp3 (-> ch (: C (N.T)))))
+  (-> (/\ (/\ ph ps) ch) (=N (+ (+ A B) C) (+ A (+ B C))))
+  (
+   hyp1 hyp2 anim12i +:Nd hyp3 anim12i +:Nd
+     hyp1 hyp2 hyp3 anim12i +:Nd anim12i +:Nd al-ll
+   jca
+     hyp1 hyp2 anim12i hyp3 anim12i
+     A B C addass syl
+   jca df-=Nbd
+))
+
+thm (addcomNa ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (=N (+ A B) (+ B A)))
+  (
+   hyp1 hyp2 anim12i +:Nd
+     hyp2 hyp1 anim12i +:Nd al-r
+   jca
+     hyp1 hyp2 anim12i
+     A B addcom syl
+   jca df-=Nbd
+))
+
+# incorporated into body of pa_ax6r
+thm (pa_ax6r_lem () ()
+  (-> (/\ (/\ (: A (N.T)) (: (cv x) (N.T)))
+        (=N (* (S A) (cv x)) (+ (* A (cv x)) (cv x))))
+    (=N (* (S A) (S (cv x))) (+ (* A (S (cv x))) (S (cv x)))))
+  (
+   A eqNid pa-ax2cd (cv x) eqNid pa-ax6ca
+     (=N (* (S A) (cv x)) (+ (* A (cv x)) (cv x))) id
+     A eqNid pa-ax2cd addeq12ca
+   eqNtra arr-l al-rl allarl
+     A (cv x) *:N (: (cv x) (N.T)) id A S:N addassNa alr-l al-rr alar
+   eqNtra allar
+     A (cv x) *:N (* A (cv x)) eqNid syl
+       (: (cv x) (N.T)) id (: A (N.T)) id pa-ax4Na
+       (: (cv x) (N.T)) id (: A (N.T)) id addcomNa pa-ax2cd eqNtrd al-r
+       (: A (N.T)) id (: (cv x) (N.T)) id pa-ax4Na eqNtr4d
+     addeq12cd
+   eqNtra allar
+     A (cv x) *:N (: A (N.T)) id (cv x) S:N addassNa ar-l al-rr alar
+   eqNtr4a allar
+     A eqNid (cv x) eqNid pa-ax6ca
+     (cv x) eqNid pa-ax2cd addeq12ca alrar
+   eqNtr4a allar
+))
+
+# This would go a bit easier if we had a vtocleg2 for N. Alternatively,
+# sbctru and mksbcN would provide a similar proof path.
+thm (pa_ax6r ((A x y) (B x)) ()
+  (-> (/\ (: A (N.T)) (: B (N.T)))
+    (= (N.T) (* (S A) B) (+ (* A B) B)))
+  (
+   (cv x) B df-=N biimpr (: (cv x) (N.T)) anim2i arll-l alarl
+
+     A eqNid pa-ax2cd pa-ax5cd
+       A eqNid pa-ax5cd pa-ax3cd
+     eqNtr4d
+       0:N
+         (=N (cv x) (0)) id (S A) muleq2cd
+         A S:N sylan2
+           (=N (cv x) (0)) id A muleq2cd
+             (=N (cv x) (0)) id
+         addeq12ca allar
+         eqeqN12d exp pm5.74d
+       mksbcN ax-mp
+     mpbir
+
+       A eqNid pa-ax2cd (cv x) eqNid pa-ax6ca
+         (=N (* (S A) (cv x)) (+ (* A (cv x)) (cv x))) id
+         A eqNid pa-ax2cd addeq12ca
+       eqNtra arr-l al-rl allarl
+         A (cv x) *:N (: (cv x) (N.T)) id A S:N addassNa alr-l al-rr alar
+       eqNtra allar
+         A eqNid (cv x) eqNid muleq12ca
+           (: (cv x) (N.T)) id (: A (N.T)) id pa-ax4Na
+           (: (cv x) (N.T)) id (: A (N.T)) id addcomNa pa-ax2cd eqNtrd al-r
+           (: A (N.T)) id (: (cv x) (N.T)) id pa-ax4Na eqNtr4d
+         addeq12cd
+       eqNtra allar
+         A (cv x) *:N (: A (N.T)) id (cv x) S:N addassNa ar-l al-rr alar
+       eqNtr4a allar
+         A eqNid (cv x) eqNid pa-ax6ca
+         (cv x) eqNid pa-ax2cd addeq12ca alrar
+       eqNtr4a allar
+       exp31 com12 a2d
+
+         (cv x) S:N
+             (=N (cv x) (cv y)) id (S A) muleq2cd
+           A S:N sylan2
+             (=N (cv x) (cv y)) id A muleq2cd
+             (=N (cv x) (cv y)) id
+           addeq12ca allar
+         eqeqN12d exp pm5.74d
+             (=N (cv y) (S (cv x))) id (S A) muleq2cd
+           A S:N sylan2
+             (=N (cv y) (S (cv x))) id A muleq2cd
+             (=N (cv y) (S (cv x))) id
+           addeq12ca allar
+         eqeqN12d exp pm5.74d
+         mksbcN2 syl
+       sylibrd
+     findes
+     imp
+
+       A S:N (=N (cv x) B) id (S A) muleq2cd syl-r
+         (=N (cv x) B) id A muleq2cd
+         (=N (cv x) B) id addeq12ca allar
+       eqeqN12d biimpd com12
+     syl imp alrarr alr-r exp
+
+   syl al-ll exp
+   N.istype vtocleg2 imp al-r
+   df-=Nad pm3.27d
+))
+
+thm (pa-ax5Nd ()
+  ((hyp (-> ph (: A (N.T)))))
+  (-> ph (=N (* A (0)) (0)))
+  (hyp 0:N jctir *:Nd 0:N jctir hyp A pa_ax5 syl jca df-=Nbd
+))
+
+thm (pa-ax5rNd ()
+  ((hyp (-> ph (: A (N.T)))))
+  (-> ph (=N (* (0) A) (0)))
+  (hyp 0:N jctil *:Nd 0:N jctir hyp A pa_ax5r syl jca df-=Nbd
+))
+
+thm (pa-ax6Na ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (=N (* A (S B)) (+ (* A B) A)))
+  (hyp1 hyp2 S:Nd anim12i *:Nd
+     hyp1 hyp2 anim12i *:Nd hyp1 anim12i allar +:Nd
+   jca
+     hyp1 hyp2 anim12i A B pa_ax6 syl
+   jca df-=Nbd
+))
+
+thm (pa-ax6rNa ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (=N (* (S A) B) (+ (* A B) B)))
+  (hyp1 S:Nd hyp2 anim12i *:Nd
+     hyp1 hyp2 anim12i *:Nd hyp2 anim12i alrar +:Nd
+   jca
+     hyp1 hyp2 anim12i A B pa_ax6r syl
+   jca df-=Nbd
+))
+
+# Norm has a point - the use of implicit substitution does make for
+# pretty nice short proofs.
+thm (mulcom ((A x) (B x y)) ()
+  (-> (/\ (: A (N.T)) (: B (N.T)))
+    (= (N.T) (* A B) (* B A)))
+  (
+   (=N (cv x) (0)) id B muleq1cd (=N (cv x) (0)) id B muleq2cd eqeqN12d exp pm5.74d
+     (=N (cv x) (cv y)) id B muleq1cd (=N (cv x) (cv y)) id B muleq2cd eqeqN12d exp pm5.74d
+       (=N (cv x) (S (cv y))) id B muleq1cd
+         (=N (cv x) (S (cv y))) id B muleq2cd
+       eqeqN12d exp pm5.74d
+         (=N (cv x) A) id B muleq1cd (=N (cv x) A) id B muleq2cd eqeqN12d exp pm5.74d
+           (: B (N.T)) id pa-ax5rNd
+           (: B (N.T)) id pa-ax5Nd eqNtr4d
+             (: (cv y) (N.T)) id (: B (N.T)) id pa-ax6rNa
+               (=N (* (cv y) B) (* B (cv y))) id
+               B eqNid addeq12ca
+             eqNtra alrarr
+               (: B (N.T)) id (: (cv y) (N.T)) id pa-ax6Na al-r
+             eqNtr4a allar
+             exp31 a2d
+   findsN imp
+   df-=Nad pm3.27d
+))
+
+thm (add23ca ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T))))
+   (hyp3 (-> ch (: C (N.T)))))
+  (-> (/\ (/\ ph ps) ch) (=N (+ (+ A B) C) (+ (+ A C) B)))
+  (
+   hyp1 hyp2 anim12i +:Nd hyp3 addcomNa
+   hyp3 hyp1 hyp2 addassNa all-r eqNtr4d
+     hyp1 hyp3 addcomNa hyp2 B eqNid syl addeq12ca alr-r
+   eqNtr4d
+))
+
+thm (add4ca ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T))))
+   (hyp3 (-> ch (: C (N.T))))
+   (hyp4 (-> th (: D (N.T)))))
+  (-> (/\ (/\ ph ps) (/\ ch th)) (=N (+ (+ A B) (+ C D)) (+ (+ A C) (+ B D))))
+  (
+   hyp1 hyp2 hyp3 hyp4 anim12i +:Nd add23ca
+     hyp1 hyp3 hyp4 addassNa hyp2 B eqNid syl addeq12ca alll-l arr-l al-lr
+   eqNtr4d
+     hyp1 hyp3 anim12i +:Nd hyp2 hyp4 add23ca allr-l al-rl
+   eqNtr4d
+     hyp1 hyp3 anim12i +:Nd hyp2 hyp4 addassNa allr-l al-rl
+   eqNtrd
+))
+
+# invariant is x * (B + C) = x * B + x * C
+thm (nndi ((A x) (B x y) (C x y)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (= (N.T) (* A (+ B C)) (+ (* A B) (* A C))))
+  (
+   (=N (cv x) (0)) id B eqNid C eqNid addeq12ca muleq12ca
+     (=N (cv x) (0)) id B eqNid muleq12ca
+       (=N (cv x) (0)) id C eqNid muleq12ca
+     addeq12ca allarl all-l
+   eqeqN12d exp pm5.74d
+     (=N (cv x) (cv y)) id B eqNid C eqNid addeq12ca muleq12ca
+       (=N (cv x) (cv y)) id B eqNid muleq12ca
+         (=N (cv x) (cv y)) id C eqNid muleq12ca
+       addeq12ca allarl all-l
+     eqeqN12d exp pm5.74d
+       (=N (cv x) (S (cv y))) id B eqNid C eqNid addeq12ca muleq12ca
+         (=N (cv x) (S (cv y))) id B eqNid muleq12ca
+           (=N (cv x) (S (cv y))) id C eqNid muleq12ca
+         addeq12ca allarl all-l
+       eqeqN12d exp pm5.74d
+         (=N (cv x) A) id B eqNid C eqNid addeq12ca muleq12ca
+           (=N (cv x) A) id B eqNid muleq12ca
+             (=N (cv x) A) id C eqNid muleq12ca
+           addeq12ca allarl all-l
+         eqeqN12d exp pm5.74d
+           B C +:N pa-ax5rNd
+             0:N
+               (: B (N.T)) id pa-ax5rNd
+                 (: C (N.T)) id pa-ax5rNd
+               addeq12ca
+                 (0) eqNid pa-ax3cd
+             eqNtra mpan2
+           eqNtr4d
+             (: (cv y) (N.T)) id B C +:N pa-ax6rNa
+               (=N (* (cv y) (+ B C)) (+ (* (cv y) B) (* (cv y) C))) id
+               B eqNid C eqNid addeq12ca addeq12ca
+             eqNtra alrarr
+               (cv y) B *:N (cv y) C *:N (: B (N.T)) id (: C (N.T)) id add4ca
+               alll-l arlrl-l alarl al-r allalr al-r
+             eqNtra allar
+               (: (cv y) (N.T)) id (: B (N.T)) id pa-ax6rNa
+                 (: (cv y) (N.T)) id (: C (N.T)) id pa-ax6rNa
+               addeq12ca allarl all-l
+             eqNtr4a allar exp31 a2d
+   findsN imp al-ll
+   df-=Nad pm3.27d
+))
+
+thm (mulcomNa ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T)))))
+  (-> (/\ ph ps) (=N (* A B) (* B A)))
+  (
+   hyp1 hyp2 anim12i *:Nd
+     hyp2 hyp1 anim12i *:Nd al-r
+   jca
+     hyp1 hyp2 anim12i
+     A B mulcom syl
+   jca df-=Nbd
+))
+
+thm (nndiNa ()
+  ((hyp1 (-> ph (: A (N.T))))
+   (hyp2 (-> ps (: B (N.T))))
+   (hyp3 (-> ch (: C (N.T)))))
+  (-> (/\ (/\ ph ps) ch) (=N (* A (+ B C)) (+ (* A B) (* A C))))
+  (
+   hyp1 hyp2 hyp3 anim12i +:Nd anim12i *:Nd al-ll
+     hyp1 hyp2 anim12i *:Nd hyp1 hyp3 anim12i *:Nd anim12i +:Nd allarl
+   jca
+     hyp1 hyp2 anim12i hyp3 anim12i
+     A B C nndi syl
+   jca df-=Nbd
+))
+
+thm (nndirN ((A x) (B x y) (C x y)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (=N (* (+ A B) C) (+ (* A C) (* B C))))
+  (
+   A B +:N (: C (N.T)) id mulcomNa
+     (: C (N.T)) id (: A (N.T)) id (: B (N.T)) id nndiNa all-r
+   eqNtrd
+     (: C (N.T)) id (: A (N.T)) id mulcomNa
+       (: C (N.T)) id (: B (N.T)) id mulcomNa
+     addeq12ca allarl all-r
+   eqNtrd
+))
+
+thm (nndir ((A x) (B x y) (C x y)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (= (N.T) (* (+ A B) C) (+ (* A C) (* B C))))
+  (A B C nndirN df-=Nad pm3.27d))
+
+def ((<= A B) (/\ (/\ (: A (N.T)) (: B (N.T)))
+                 (E. x (N.T) (= (N.T) (+ A (cv x)) B))))
+
+# invariant (x * B) * C = x * (B * C)
+thm (mulass ((A x) (B x y) (C x y)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T))) (: C (N.T)))
+    (= (N.T) (* (* A B) C) (* A (* B C))))
+  (
+   (=N (cv x) (0)) id B muleq1cd C muleq1cd all-l
+     (=N (cv x) (0)) id B eqNid C eqNid muleq12ca muleq12ca
+   eqeqN12d exp pm5.74d
+     (=N (cv x) (cv y)) id B muleq1cd C muleq1cd all-l
+       (=N (cv x) (cv y)) id B eqNid C eqNid muleq12ca muleq12ca
+     eqeqN12d exp pm5.74d
+       (=N (cv x) (S (cv y))) id B muleq1cd C muleq1cd all-l
+         (=N (cv x) (S (cv y))) id B eqNid C eqNid muleq12ca muleq12ca
+       eqeqN12d exp pm5.74d
+         (=N (cv x) A) id B muleq1cd C muleq1cd all-l
+           (=N (cv x) A) id B eqNid C eqNid muleq12ca muleq12ca
+         eqeqN12d exp pm5.74d
+           (: B (N.T)) id pa-ax5rNd
+           C eqNid muleq12ca
+           (: C (N.T)) id pa-ax5rNd eqNtra alrar
+             B C *:N pa-ax5rNd
+           eqNtr4d
+             (: (cv y) (N.T)) id (: B (N.T)) id pa-ax6rNa
+             C muleq1cd
+               (cv y) B *:N (: B (N.T)) id anim12i (: C (N.T)) id anim12i
+               (* (cv y) B) B C nndirN syl
+               allr-l arlr-l alarl al-lr
+             eqNtrd
+               (=N (* (* (cv y) B) C) (* (cv y) (* B C))) id
+                 B eqNid C eqNid muleq12ca
+               addeq12ca
+             eqNtra alr-l arlr-l al-ll arrr-l alarl arl-l al-lll
+
+               (: (cv y) (N.T)) id B C *:N pa-ax6rNa arr-r
+             eqNtr4a allar
+             alll-l exp32 a2d
+   findsN imp al-ll
+   df-=Nad pm3.27d
+))
+
+# N forms of generic predicate calculus
+
+thm (cla4egvN ((ps x) (A x))
+  ((hyp (-> (=N (cv x) A) (<-> ph ps))))
+  (-> (: A (N.T)) (-> ps (E. x (N.T) ph)))
+  (
+   (: A (N.T)) ps pm5.5
+     (cv x) A df-=N
+       N.istype (cv x) A tyeq1 biimprd pm4.71rd pm5.32ri
+     #(: A (N.T)) (: (cv x) (N.T)) ancom (= (N.T) (cv x) A) anbi1i bitr
+     bitr4
+     hyp sylbir ancoms exp pm5.74d
+     N.istype cla4egv
+       N.istype x (: A (N.T)) ph 19.37v
+     biimp syl6 com23 pm2.43i
+   sylbird
+))
+
+
+
+thm (alpha-exd ((T x y) (ph x y) (ps y) (ch x))
+  ((hyp1 (istype T))
+   (hyp2 (-> ph (-> (/\ (: (cv x) T) (: (cv y) T))
+     (-> (= T (cv x) (cv y)) (<-> ps ch))))))
+  (-> ph (<-> (E. x T ps) (E. y T ch)))
+  (
+   hyp2 com3l imp pm5.74d exp hyp1 cbvexv
+   hyp1 x ph ps 19.37v hyp1 y ph ch 19.37v
+   3bitr3 pm5.74ri
+))
+
+thm (df-<=-just ((A x x') (B x x')) ()
+  (<-> (/\ (/\ (: A (N.T)) (: B (N.T)))
+                 (E. x' (N.T) (= (N.T) (+ A (cv x')) B)))
+       (/\ (/\ (: A (N.T)) (: B (N.T)))
+                 (E. x (N.T) (= (N.T) (+ A (cv x)) B))))
+  (N.istype
+     N.istype (cv x') (cv x) A addeq2 imp B eqeq1d exp ancoms exp
+   alpha-exd (: B (N.T)) adantr pm5.32i
+))
+
+thm (df-<= ((A x y) (A x' y) (B x y) (B x' y)) ()
+  (<-> (<= A B) (/\ (/\ (: A (N.T)) (: B (N.T)))
+                 (E. x (N.T) (= (N.T) (+ A (cv x)) B))))
+  (A B x' y df-<=-just
+   A B x y df-<=-just bitr4
+))
+
+def ((< A B) (/\ (<= A B) (-. (= (N.T) A B))))
+
+thm (df-< () ()
+  (<-> (< A B) (/\ (<= A B) (-. (= (N.T) A B))))
+  ((/\ (<= A B) (-. (= (N.T) A B))) pm4.2))
+
+thm (df<N () ()
+  (<-> (< A B) (/\ (<= A B) (-. (=N A B))))
+  (
+    A B df-<
+      A B x df-<= biimp pm3.26d
+      A B df-=N baib syl negbid pm5.32i
+   bitr4
+))
+
+thm (df<=N ((A x) (B x)) ()
+  (<-> (<= A B) (/\ (/\ (: A (N.T)) (: B (N.T)))
+                          (E. x (N.T) (=N (+ A (cv x)) B))))
+  (
+   A B x df-<=
+     A (cv x) +:N
+     (+ A (cv x)) B df-=N baib syl-l
+     alr-r N.istype exbidv2
+     pm5.32i
+   bitr4
+))
+
+thm (<=tr_lem ((A x y z) (B x y z) (C x y z)) ()
+  (-> (/\ (/\ (: A (N.T)) (: B (N.T)))
+       (/\ (E. x (N.T) (= (N.T) (+ A (cv x)) B))
+        (E. y (N.T) (= (N.T) (+ B (cv y)) C))))
+   (E. z (N.T) (= (N.T) (+ A (cv z)) C)))
+  (
+   N.istype
+   A (cv x) +:N (: B (N.T)) id anim12i (: (cv y) (N.T)) id anim12i addeq1d
+   imp alr-l arllr-l al-ll arll-l al-ll
+   A (cv x) (cv y) addass all-l
+
+   (cv x) (cv y) +:N
+   (cv z) (+ (cv x) (cv y)) A addeq2 alr-l exp syl
+   imp imp all-l arlr-l al-ll
+
+   N.istype eqtr4a alarl
+   N.istype eqtr3a allarl
+   C eqeq1d biimpd imp
+
+   ar-l arrr-l al-ll arllr-l alr-l arrrr-l al-lr al-r alrr-l arll-l al-ll al-ll #phew!
+   (: (cv x) (N.T)) (/\ (: A (N.T)) (/\ (: B (N.T)) (= (N.T) (+ A (cv x)) B))) pm3.26
+     (: (cv y) (N.T)) id
+   anim12i +:Nd
+   N.istype N.istype substex
+
+   alrrr-l arll-l al-lr exp 
+   N.istype 19.23aiv
+   com12 imp alr-l al-rr
+))   
+
+thm (<=tr () ()
+  (-> (/\ (<= A B) (<= B C)) (<= A C))
+  (
+   A B x df-<= biimp pm3.26d pm3.26d
+     B C y df-<= biimp pm3.26d pm3.27d
+   anim12i
+
+     A B x df-<= biimp
+       B C y df-<= biimp pm3.27d
+     anim12i
+     A B x y C z <=tr_lem al-ll syl
+   jca
+   A C z df-<= sylibr
+))
+
+thm (leeq1d ()
+  ((hyp (-> ph (= (N.T) A B))))
+  (-> ph (<-> (<= A C) (<= B C)))
+  (
+   hyp
+     N.istype
+       A B (cv x) addeq1 imp alr-r
+     C eqeq1d
+     N.istype exbidv2 al-r (: C (N.T)) adantr all-l exp pm5.32d
+       N.istype A B tyeq1 (: A (N.T)) anbi2d
+       (: A (N.T)) anidm syl5bbr (: C (N.T)) anbi1d
+       (E. x (N.T) (= (N.T) (+ A (cv x)) C)) anbi1d
+
+         N.istype A B tyeq1 (: B (N.T)) anbi1d
+         (: B (N.T)) anidm syl6rbb (: C (N.T)) anbi1d
+         (E. x (N.T) (= (N.T) (+ B (cv x)) C)) anbi1d
+     3bitr4d
+       A C x df-<=
+         B C x df-<=
+     3bitr4g
+   syl
+))
+
+thm (leeqN1d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (<= A C) (<= B C)))
+  (hyp A B df-=N biimp pm3.27d syl C leeq1d))
+
+thm (leeq2d ()
+  ((hyp (-> ph (= (N.T) A B))))
+  (-> ph (<-> (<= C A) (<= C B)))
+  (
+   hyp
+     N.istype A B tyeq1 (: C (N.T)) anbi2d
+       N.istype (= (N.T) A B) id (+ C (cv x)) eqeq2d
+       N.istype x exbidv
+     anbi12d
+       C A x df-<=
+         C B x df-<=
+     3bitr4g
+   syl
+))
+
+thm (leeqN2d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (<= C A) (<= C B)))
+  (hyp A B df-=N biimp pm3.27d syl C leeq2d))
+
+thm (addge01t () ()
+  (-> (/\ (: A (N.T)) (: B (N.T))) (<= A (+ A B)))
+  (
+   B (N.T) x df-ty biimp
+     N.istype
+       A B +:N N.istype (+ A B) eqid syl (: (cv x) (N.T)) adantll
+         N.istype
+           (cv x) B A addeq2
+         imp (+ A B) eqeq1d
+       biimprd exp alr-r mpid
+     all-r exp 19.22dv imp all-r exp31
+   mpd imp al-r
+     A B +:N (: A (N.T)) anim2i alarl
+     A (+ A B) x df-<= biimpr exp syl
+   mpd
+))
+
+
+thm (addge02t () ()
+  (-> (/\ (: A (N.T)) (: B (N.T))) (<= A (+ B A)))
+  (
+   A B addge01t
+   (: A (N.T)) id (: B (N.T)) id addcomNa
+   A leeqN2d mpbid
+))
+
+thm (<=id () ()
+  (-> (: A (N.T)) (<= A A))
+  (
+   0:N A (0) addge01t mpan2
+   A pa_ax3 A leeq2d mpbid
+))
+
+thm (leadd1 () ()
+  (-> (/\ (: A (N.T)) (/\ (: B (N.T)) (: C (N.T))))
+   (<-> (<= A B) (<= (+ A C) (+ B C))))
+  (
+   A (cv x) +:N
+     C (+ A (cv x)) B addcan
+   syl-rl arr-l
+     (: A (N.T)) id (: (cv x) (N.T)) id (: C (N.T)) id add23ca
+     (+ B C) eqeqN1d al-r (: B (N.T)) adantl
+   bitr3d arr-l alr-r
+   N.istype exbidv2
+     A B x df<=N baib (: C (N.T)) adantl al-rr
+       A C +:N B C +:N anim12i alrarr
+         (+ A C) (+ B C) x df<=N baib
+       syl ar-l al-rl
+   3bitr4d
+))
+
+def ((1) (S (0)))
+thm (df-1 () () (= (N.T) (1) (S (0)))
+  (0:N (0) S:N ax-mp  N.istype (S (0)) eqid ax-mp
+))
+
+thm (1:N () () (: (1) (N.T))
+  (0:N (0) S:N ax-mp df-1 N.istype tyeq1i mpbir))
+
+thm (a1suc () ()
+  (-> (: A (N.T)) (=N (S A) (+ A (1))))
+  (
+   0:N (: A (N.T)) id (: (0) (N.T)) id pa-ax4Na mpan2
+     1:N 0:N (0) S:N ax-mp df-1 (1) (S (0)) df-=N biimpr mpan2 mp2an
+     (: A (N.T)) a1i A addeq2cd alar
+   eqNcomd eqNtr3d
+     A eqNid pa-ax3cd pa-ax2cd
+   eqNtr3d eqNcomd
+))
+
+
+thm (0ne1 () ()
+  (-. (=N (0) (1)))
+  (
+   0:N (0) pa_ax1 ax-mp
+   df-1 N.istype (1) (S (0)) (0) eqeq2 ax-mp mtbir
+   (/\ (: (0) (N.T)) (: (1) (N.T))) intnan
+   (0) (1) df-=N mtbir
+))
+
+# invariant: x = 0 \/ E. z 1 + z = x
+thm (lefoo ((A z)) ()
+  (-> (: A (N.T)) (\/ (=N A (0)) (E. z (N.T) (=N (+ (1) (cv z)) A))))
+  (
+   #(=N (cv x) (0)) id 0:N (0) eqNid ax-mp (=N (cv x) (0)) a1i eqeqN12d
+   (=N (cv x) (0)) id (0) eqeqN1d
+     (=N (cv x) (0)) id (+ (1) (cv z)) eqeqN2d N.istype z exbidv
+   orbi12d
+     (=N (cv x) (cv y)) id (0) eqeqN1d
+       (=N (cv x) (cv y)) id (+ (1) (cv z)) eqeqN2d N.istype z exbidv
+     orbi12d
+       (=N (cv x) (S (cv y))) id (0) eqeqN1d
+         (=N (cv x) (S (cv y))) id (+ (1) (cv z)) eqeqN2d N.istype z exbidv
+       orbi12d
+         (=N (cv x) A) id (0) eqeqN1d
+           (=N (cv x) A) id (+ (1) (cv z)) eqeqN2d N.istype z exbidv
+         orbi12d
+           0:N (0) eqNid ax-mp (-. (E. z (N.T) (=N (+ (1) (cv z)) (0)))) a1i con1i orri
+
+(cv y) (N.T) z df-ty biimp
+(cv z) (cv y) df-=N baib al-r N.istype exbidv2 mpbird
+
+N.istype
+(cv z) (cv y) df-=N biimp pm3.26d pm3.27d
+(cv y) a1suc
+
+1:N (: (1) (N.T)) id (: (cv y) (N.T)) id addcomNa mpan
+eqNtr4d syl
+
+1:N (=N (cv z) (cv y)) id (1) addeq2cd mpan2
+eqNtr4d eqNcomd (: (cv z) (N.T)) a1i 19.22i
+syl
+(-. (=N (S (cv y)) (0))) a1d orrd
+(\/ (=N (cv y) (0)) (E. z (N.T) (=N (+ (1) (cv z)) (cv y)))) a1d
+findsN
+))
+
+thm (lefoo2 () ()
+  (-> (<= A B) (\/ (=N A B) (<= (+ A (1)) B)))
+  (
+   A B x df<=N biimp pm3.26d
+     A B x df<=N biimp
+       (cv x) y lefoo
+
+       (=N (cv x) (0)) id A addeq2cd
+       A eqNid pa-ax3cd eqNtra alrar
+       B eqeqN1d biimpa all-r exp
+
+       N.istype
+         1:N (: A (N.T)) id (: (1) (N.T)) id (: (cv y) (N.T)) id addassNa alr-l mpan
+         (=N (+ (1) (cv y)) (cv x)) id A addeq2cd ar-l eqNtra allarl
+         B eqeqN1d
+       biimprd imp alr-r exp alr-r exp 19.22dv
+       orim12d com12
+       syl exp3a imp al-r
+       N.istype 19.23adv
+       imp
+
+     (: B (N.T)) adantlr
+   syl
+   jca
+     (/\ (: A (N.T)) (: B (N.T))) (=N A B) idd
+     1:N A (1) +:N mpan2 (+ A (1)) B y df<=N biimpr syl-ll exp
+     orim12d imp
+   syl
+))
+
+thm (lefoo3 () ()
+  (-> (: A (N.T)) (<-> (<= A B) (\/ (=N A B) (<= (+ A (1)) B))))
+  (
+   A B lefoo2 (: A (N.T)) a1i
+     A <=id (=N A B) id A leeqN2d biimpa syl-r al-r exp
+       1:N A (1) addge01t mpan2
+       A (+ A (1)) B <=tr syl-l exp
+     jaod
+   impbid
+))
+
+thm (1nle0 () ()
+  (-. (<= (1) (0)))
+  (
+   N.istype
+     (cv x) pa_ax1
+       N.istype
+         df-1 1:N 0:N (0) S:N ax-mp pm3.2i (: (cv x) (N.T)) jctl addeq1d mpi
+           0:N (0) (cv x) pa_ax4r mpan
+             (cv x) pa_ax3r
+               0:N (: (cv x) (N.T)) jctl +:Nd (: (cv x) (N.T)) id jca pa_ax2d mpbid
+             N.istype eqtrd
+           N.istype eqtrd
+       (0) eqeq2d
+       N.istype (0) (+ (1) (cv x)) eqcom syl5bbr
+       mtbird
+     gen
+   x (N.T) (= (N.T) (+ (1) (cv x)) (0)) alnex mpbi
+   (1) (0) x df-<= biimp pm3.27d mto
+))
+
+thm (lenlttlem () ()
+  (-> (: A (N.T)) (-. (<= (+ A (1)) A)))
+  (
+   1nle0
+     0:N 1:N (1) (0) A leadd1 mpan mpan
+   mtbii
+     0:N (: (0) (N.T)) id (: A (N.T)) id addcomNa mpan
+       A eqNid pa-ax3cd
+     eqNtrd
+     (+ (1) A) leeqN2d
+   mtbid
+   1:N (1) A addcom mpan A leeq1d mtbid
+))
+
+thm (nnltp1let () ()
+  (-> (: A (N.T)) (<-> (< A B) (<= (+ A (1)) B)))
+  (
+   A B lefoo3
+   (-. (=N A B)) anbi1d
+   A B df<N syl5bb
+   (=N A B) (<= (+ A (1)) B) (-. (=N A B)) andir syl6bb
+     (=N A B) pm3.24 (/\ (<= (+ A (1)) B) (-. (=N A B))) biorfi
+     (/\ (<= (+ A (1)) B) (-. (=N A B))) (/\ (=N A B) (-. (=N A B))) orcom bitr
+   syl6bbr
+
+     A lenlttlem (=N A B) adantr
+       (=N A B) id (+ A (1)) leeqN2d (: A (N.T)) adantl
+     mtbid exp con2d
+     pm4.71rd
+     (-. (=N A B)) (<= (+ A (1)) B) ancom syl6bb
+   bitr4d
+))
+
+# No natural number is less than zero (contrapositive of set.mm lt0nnn0)
+thm (nn0nlt0 () ()
+  (-> (: A (N.T)) (-. (< A (0))))
+  (
+   1nle0
+     1:N (1) A addge02t mpan
+     (1) (+ A (1)) (0) <=tr syl-l
+   exp mtoi
+   A (0) nnltp1let mtbird
+))
+
+thm (lteq1d ()
+  ((hyp (-> ph (= (N.T) A B))))
+  (-> ph (<-> (< A C) (< B C)))
+  (hyp C leeq1d
+   N.istype hyp C eqeq1d negbid anbi12d
+     A C df-<
+       B C df-<
+   3bitr4g
+))
+
+thm (lteqN1d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (< A C) (< B C)))
+  (hyp A B df-=N biimp pm3.27d syl C lteq1d))
+
+thm (lteq2d ()
+  ((hyp (-> ph (= (N.T) A B))))
+  (-> ph (<-> (< C A) (< C B)))
+  (
+   hyp C leeq2d
+   N.istype hyp C eqeq2d negbid anbi12d
+     C A df-<
+       C B df-<
+   3bitr4g
+))
+
+thm (lteqN2d ()
+  ((hyp (-> ph (=N A B))))
+  (-> ph (<-> (< C A) (< C B)))
+  (hyp A B df-=N biimp pm3.27d syl C lteq2d))
+
+thm (lenltt () ()
+  (-> (/\ (: A (N.T)) (: B (N.T))) (<-> (<= A B) (-. (< B A))))
+  (
+   # substitution of x:=0
+   (=N (cv x) (0)) id B leeqN1d
+   (=N (cv x) (0)) id B lteqN2d negbid bibi12d
+   (: B (N.T)) imbi2d
+
+   # substitution of x:=y
+   (=N (cv x) (cv y)) id B leeqN1d
+   (=N (cv x) (cv y)) id B lteqN2d negbid bibi12d
+   (: B (N.T)) imbi2d
+
+   # substitution of x:=S y
+   (=N (cv x) (S (cv y))) id B leeqN1d
+   (=N (cv x) (S (cv y))) id B lteqN2d negbid bibi12d
+   (: B (N.T)) imbi2d
+
+   # substitution of x:=A
+   (=N (cv x) A) id B leeqN1d
+   (=N (cv x) A) id B lteqN2d negbid bibi12d
+   (: B (N.T)) imbi2d
+
+   # base case
+   0:N (0) B addge02t mpan
+     B eqNid pa-ax3cd
+     (0) leeqN2d
+   mpbid # 0 <= A, may be useful as its own thm
+   B nn0nlt0 jca
+   (<= (0) B) (-. (< B (0))) pm5.1 syl
+
+   # induction step
+   (cv y) B nnltp1let (cv y) B df<N syl5rbbr (: B (N.T)) adantl
+
+     B (+ (cv y) (1)) nnltp1let (: (cv y) (N.T)) adantr
+     1:N B (cv y) (1) leadd1 arr-l mpan bitr4d
+     B (cv y) lefoo3 (: (cv y) (N.T)) adantr bitrd
+     B (cv y) nnltp1let (=N B (cv y)) orbi2d (: (cv y) (N.T)) adantr bitr4d
+       B (cv y) eqNcom (< B (cv y)) orbi1i
+       (=N (cv y) B) (< B (cv y)) orcom bitr
+     syl6bb negbid
+     (< B (cv y)) (=N (cv y) B) ioran syl6bb
+   bibi12d
+
+   (<= (cv y) B) (-. (< B (cv y))) (-. (=N (cv y) B)) anbi1 syl5bir
+     (cv y) a1suc B leeqN1d (cv y) a1suc B lteqN2d negbid bibi12d
+     (: B (N.T)) adantl
+   sylibrd
+   al-r exp a2d
+
+   findsN
+   imp
+))
+
+thm (axlttri () ()
+  (-> (/\ (: A (N.T)) (: B (N.T))) (<-> (< A B) (-. (\/ (=N A B) (< B A)))))
+  (
+   A B lenltt (-. (=N A B)) anbi1d
+   A B df<N syl5bb
+     (< B A) (=N A B) ioran
+       (< B A) (=N A B) orcom negbii
+     bitr3
+   syl6bb
+))
+
+thm (letri3t () ()
+  (-> (/\ (: A (N.T)) (: B (N.T))) (<-> (=N A B) (/\ (<= A B) (<= B A))))
+  (
+   # forward
+   A <=id
+   (=N A B) id A leeqN2d biimpa syl-r
+     A <=id
+     (=N A B) id A leeqN1d biimpa syl-r
+   jca al-r exp (: B (N.T)) adantr
+
+     # backward
+     A B lefoo3 (: B (N.T)) adantr
+       A B nnltp1let (: B (N.T)) adantr
+       B A lenltt bicon2d al-r bitr3d
+     (=N A B) orbi2d bitrd
+     biimpd imp
+       (<= B A) (=N A B) imor
+       (-. (<= B A)) (=N A B) orcom bitr
+     sylibr exp imp3a
+
+   impbid
+))
+
+thm (boundedal ((ph y) (x y)) ()
+  (<-> (A. y (N.T) (A. x (N.T) (-> (< (cv x) (cv y)) ph)))
+   (A. x (N.T) ph))
+  (
+   N.istype N.istype y x (-> (< (cv x) (cv y)) ph) alcom
+
+     N.istype N.istype y ph nfi_dv (< (cv x) (cv y)) 19.23
+     (: (cv x) (N.T)) a1i
+
+       1:N (cv x) (1) +:N mpan2 (+ (cv x) (1)) <=id syl
+       (cv x) (+ (cv x) (1)) nnltp1let mpbird
+
+         1:N (cv x) (1) +:N mpan2
+           (=N (cv y) (+ (cv x) (1)))  id (cv x) lteqN2d
+           cla4egvN
+         syl
+       mpd
+
+       (E. y (N.T) (< (cv x) (cv y))) ph pm5.5 syl 
+
+     bitrd
+     N.istype albii2
+   bitr
+))
+
+def ((mod A B) (iota x (N.T) (/\ (< (cv x) B)
+   (E. y (N.T) (= (N.T) A (+ (* (cv y) B) (cv x)))))))
+
+def ((even A) (E. x (N.T) (= (N.T) (+ (cv x) (cv x)) A)))
+
+thm (df-even-half ((A x x')) () 
+  (<-> (E. x (N.T) (= (N.T) (+ (cv x) (cv x)) A))
+   (E. x' (N.T) (= (N.T) (+ (cv x') (cv x')) A)))
+  (
+   N.istype
+     (cv x) (cv x') (cv x) (cv x') addeq12 alar com12 alar imp
+   A eqeq1d
+   al-r exp
+   N.istype cbvexv
+))
+
+thm (df-even ((A y) (A x)) ()
+  (<-> (even A) (E. x (N.T) (= (N.T) (+ (cv x) (cv x)) A)))
+  (y A x' df-even-half
+     x' A x df-even-half
+   bitr
+))
+
+thm (dbl-even () ()
+  (-> (: A (N.T)) (even (+ A A))) 
+  (
+   A (N.T) x df-ty biimp
+     N.istype
+       (cv x) A (cv x) A addeq12 alar com12 alar
+       com12 exp com12
+     19.22dv
+   mpd
+   (+ A A) x df-even biimpr syl
+))
+
+thm (cbvexNv ((x y) (ph y) (ps x))
+  ((hyp (-> (=N (cv x) (cv y)) (<-> ph ps))))
+  (<-> (E. x (N.T) ph) (E. y (N.T) ps))
+  (
+   hyp
+     (cv x) (cv y) df-=N
+     (<-> ph ps) imbi1i
+   mpbi exp
+   N.istype cbvexv
+))
+
+def ((iotaN x ph) (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)))
+
+thm (iotaNty () ()
+  (: (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)) (N.T))
+  (
+   N.istype x ph iotaty
+     N.istype x ph iotaty ancli
+       N.istype (E! x (N.T) ph) (iota x (N.T) ph) (0) iftrue
+     syl
+       N.istype (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)) (iota x (N.T) ph) tyeq1
+     syl
+   mpbird
+
+     0:N
+       0:N
+         N.istype (E! x (N.T) ph) (0) (iota x (N.T) ph) iffalse
+       mpan2
+         N.istype (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)) (0) tyeq1
+       syl
+     mpbiri
+   pm2.61i
+))
+
+thm (df-iotaN () ()
+  (=N (iotaN x ph) (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)))
+  (
+   x ph iotaNty (if (N.T) (E! x (N.T) ph) (iota x (N.T) ph) (0)) eqNid ax-mp
+))
+
+thm (iotaNeqd ((T x) (ph x))
+  ((hyp (-> ph (<-> ps ch))))
+  (-> ph (=N (iotaN x ps) (iotaN x ch)))
+  (
+   x ps df-iotaN ph a1i
+     hyp N.istype x iotaeqd
+     N.istype (iota x (N.T) ps) (iota x (N.T) ch) (E! x (N.T) ps) (0) ifeq1 syl
+       hyp N.istype x eubidv
+       N.istype (E! x (N.T) ps) (E! x (N.T) ch) (iota x (N.T) ch) (0) ifbi syl
+     N.istype eqtrd
+       x ps iotaNty x ch iotaNty pm3.2i jctil
+         (if (N.T) (E! x (N.T) ps) (iota x (N.T) ps) (0))
+           (if (N.T) (E! x (N.T) ch) (iota x (N.T) ch) (0)) 
+         df-=N
+     sylibr
+   eqNtrd
+     x ch df-iotaN ph a1i
+   eqNtr4d
+))
+
+thm (iotaNeqi ((T x) (ph x))
+  ((hyp (<-> ps ch)))
+  (=N (iotaN x ps) (iotaN x ch))
+  (
+   N.istype hyp (istype (N.T)) a1i x iotaNeqd ax-mp
+))
+
+def ((mu x ph) (iotaN x (/\ ph (A. y (N.T) (-> (< (cv y) (cv x)) (-. ([:=] x (N.T) (cv y) ph)))))))
+
+thm (df-mu-half ((x y z) (ph y z)) ()
+  (=N (iotaN x (/\ ph (A. y (N.T) (-> (< (cv y) (cv x)) (-. ([:=] x (N.T) (cv y) ph))))))
+         (iotaN x (/\ ph (A. z (N.T) (-> (< (cv z) (cv x)) (-. ([:=] x (N.T) (cv z) ph)))))))
+  (
+   (cv y) (cv z) df-=N biimpr
+     (cv y) (cv z) df-=N biimp pm3.27d (cv x) lteq1d
+       (cv y) (cv z) df-=N biimp pm3.27d
+     N.istype (cv y) (cv z) x ph dfsbcq negbid syl imbi12d
+   syl exp N.istype cbvalv
+   ph anbi2i
+   x iotaNeqi
+))
+
+thm (df-mu ((x z) (x y) (ph z) (ph y)) ()
+  (=N (mu x ph) (iotaN x (/\ ph (A. y (N.T) (-> (< (cv y) (cv x)) (-. ([:=] x (N.T) (cv y) ph)))))))
+  (
+   x ph z y' df-mu-half
+     x ph y y' df-mu-half
+   eqNtr4
+))
+
+def ((divides A B) (E. x (N.T) (=N (* (cv x) A) B)))
+
+export (PEANO-THMS pax/peano-thms (PROP PRED PEANO) "")
+
