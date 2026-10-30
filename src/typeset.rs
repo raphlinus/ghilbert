@@ -35,7 +35,9 @@ impl Typeset {
 
     fn rec(&self, node: &ParseNode, parser: &Parser, buf: &mut String, prec: u32) {
         //println!("rec {:?}", node);
-        if let Info::Atom(tok) = node.info {
+        if node.info == Info::Lambda {
+            self.lambda(node, parser, buf, prec);
+        } else if let Info::Atom(tok) | Info::Var(tok) = node.info {
             let tok = parser.tok_str(tok);
             match tok {
                 "ph" => buf.push_str("\\varphi"),
@@ -56,19 +58,80 @@ impl Typeset {
                 "\\/" => self.infixl("\\vee", 30, node, parser, buf, prec),
                 "/\\" => self.infixl("\\wedge", 35, node, parser, buf, prec),
                 "-." => self.unary("\\neg", 40, node, parser, buf, prec),
+                "=" => self.infixl("=", 50, node, parser, buf, prec),
+                "e." => self.infixl("\\in", 50, node, parser, buf, prec),
+                "\\" => self.lambda(node, parser, buf, prec),
+                "A." => self.binder("\\forall ", "", &node.children[0], parser, buf, prec),
+                "E." => self.binder("\\exists ", "", &node.children[0], parser, buf, prec),
+                "wnf" => self.binder("\\Finv ", "", &node.children[0], parser, buf, prec),
+                "wmo" => self.binder("\\exists^{*} ", "", &node.children[0], parser, buf, prec),
+                "weu" => self.binder("\\exists! ", "", &node.children[0], parser, buf, prec),
+                "wsb" => {
+                    let mut pre = String::from("[");
+                    self.rec(&node.children[0], parser, &mut pre, 0);
+                    pre.push_str(" / ");
+                    self.binder(&pre, "]", &node.children[1], parser, buf, prec);
+                }
                 _ => {
-                    if !node.children.is_empty() {
-                        buf.push_str("(");
-                    }
-                    buf.push_str(tok);
-                    if !node.children.is_empty() {
+                    if node.children.is_empty() {
+                        buf.push_str(tok);
+                    } else {
+                        buf.push_str("(\\mathrm{");
+                        buf.push_str(tok);
+                        buf.push('}');
                         for child in &node.children {
-                            buf.push(' ');
+                            buf.push_str("\\ ");
                             self.rec(child, parser, buf, 9999);
                         }
                         buf.push_str(")");
                     }
                 }
+            }
+        } else {
+            println!("unexpected {:?} in typeset", node);
+        }
+    }
+
+    /// Typesets a term that binds the variable of `lambda`, with the variable
+    /// between `pre` and `post` and the body following.
+    fn binder(&self, pre: &str, post: &str, lambda: &ParseNode, parser: &Parser,
+        buf: &mut String, prec: u32)
+    {
+        let myprec = 45;
+        if let Some((var, body)) = lambda_parts(lambda, parser) {
+            if myprec < prec {
+                buf.push('(');
+            }
+            buf.push_str(pre);
+            self.rec(var, parser, buf, 0);
+            buf.push_str(post);
+            buf.push_str(" \\, ");
+            // A negation needs no parentheses, as nothing can come between it
+            // and the binder.
+            let body_prec = match body.info {
+                Info::Atom(tok) if parser.tok_str(tok) == "-." => 40,
+                _ => myprec,
+            };
+            self.rec(body, parser, buf, body_prec);
+            if myprec < prec {
+                buf.push(')');
+            }
+        } else {
+            println!("unexpected {:?} in typeset", lambda);
+        }
+    }
+
+    fn lambda(&self, node: &ParseNode, parser: &Parser, buf: &mut String, prec: u32) {
+        if let Some((var, body)) = lambda_parts(node, parser) {
+            if prec > 0 {
+                buf.push('(');
+            }
+            buf.push_str("\\lambda ");
+            self.rec(var, parser, buf, 0);
+            buf.push_str(". \\, ");
+            self.rec(body, parser, buf, 0);
+            if prec > 0 {
+                buf.push(')');
             }
         } else {
             println!("unexpected {:?} in typeset", node);
@@ -119,5 +182,21 @@ impl Typeset {
         if myprec < prec {
             buf.push(')');
         }
+    }
+}
+
+/// Splits a lambda into its bound variable and body. Lambdas from the parser are
+/// `Info::Lambda` nodes, while the ones reconstructed from proof steps are
+/// applications of a backslash atom.
+fn lambda_parts<'a>(node: &'a ParseNode, parser: &Parser) -> Option<(&'a ParseNode, &'a ParseNode)> {
+    let is_lambda = match node.info {
+        Info::Lambda => true,
+        Info::Atom(tok) => parser.tok_str(tok) == "\\",
+        _ => false,
+    };
+    if is_lambda && node.children.len() == 2 {
+        Some((&node.children[0], &node.children[1]))
+    } else {
+        None
     }
 }
