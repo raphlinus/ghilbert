@@ -209,7 +209,13 @@ impl<'a> Session<'a> {
 
     fn do_stmt(&mut self, stmt: Statement<'a>, mode: Mode) {
         match stmt {
-            Statement::Comment(s) => self.comment = Some(s),
+            Statement::Comment(s) => match parse_section(s) {
+                Some((level, title)) => {
+                    self.comment = None;
+                    self.out.write(&format!("/*# {} {} */\n", level, sanitize_comment(&title)));
+                }
+                None => self.comment = Some(s),
+            },
             Statement::StartBlock => self.blocks.push((self.hyps.len(), self.dvs.len())),
             Statement::EndBlock => {
                 let (h, d) = self.blocks.pop().unwrap();
@@ -747,6 +753,23 @@ struct Line<'a> {
     needs_result: bool,
     /// For the setvar variables of the statement applied, what they become.
     subst: Vec<(&'a str, &'a str)>,
+}
+
+/// The level of a line of a set.mm section header, if it is one of the rules
+/// that surround the title. Level 1 is the outermost.
+fn rule_level(line: &str) -> Option<usize> {
+    ["####", "#*#*", "=-=-", "-.-."].iter()
+        .position(|rule| line.trim().starts_with(rule))
+        .map(|ix| ix + 1)
+}
+
+/// Gets the level and title if a comment is a set.mm section header.
+fn parse_section(comment: &str) -> Option<(usize, String)> {
+    let mut lines = comment.lines();
+    let level = rule_level(lines.next()?)?;
+    let title: Vec<&str> = lines.take_while(|line| rule_level(line).is_none())
+        .map(str::trim).collect();
+    Some((level, title.join(" ")))
 }
 
 /// Keeps a Metamath comment from closing or nesting a Ghilbert comment.

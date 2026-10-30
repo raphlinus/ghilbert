@@ -44,6 +44,7 @@ pub struct HtmlOut<'a> {
     last_comment: Option<&'a str>,
     thm_info: HashMap<Token, ThmInfo>,
     thms: Vec<(Option<&'a str>, ParseNode)>,
+    sections: Vec<Section<'a>>,
 
     n_hyps: usize,
     step_ix: StepIx,
@@ -51,6 +52,14 @@ pub struct HtmlOut<'a> {
     // name of current thm
     cur_tok: Option<Token>,
     last_line: StepIx,
+}
+
+/// A section heading from the input, marked by a `/*# level title */` comment.
+struct Section<'a> {
+    level: usize,
+    title: &'a str,
+    /// Index into `thms` of the first theorem after the heading.
+    start: usize,
 }
 
 struct ThmSummary {
@@ -115,6 +124,7 @@ impl<'a> HtmlOut<'a> {
             last_comment: None,
             thm_info: HashMap::new(),
             thms: Vec::new(),
+            sections: Vec::new(),
 
             n_hyps: 0,
             step_ix: 0,
@@ -127,10 +137,64 @@ impl<'a> HtmlOut<'a> {
     /// Write the formatted proof to the output.
     pub fn write<W: Write>(&mut self, writer: &mut W, parser: &Parser) -> io::Result<()> {
         let thms = mem::replace(&mut self.thms, Vec::new());
+        let mut thm_toks = Vec::new();
         for (comment, ref thm) in thms {
             let thm_name_tok = thm.children[0].get_step().expect("thm name wasn't step");
+            thm_toks.push(thm_name_tok);
             let summary = self.write_thm(thm_name_tok, comment, thm, parser)?;
             self.thm_info.get_mut(&thm_name_tok).unwrap().summary = Some(summary);
+        }
+        self.write_index(writer, &thm_toks, parser)
+    }
+
+    /// Write the index page, which links to each theorem under its section.
+    fn write_index<W: Write>(&self, w: &mut W, thm_toks: &[Token], parser: &Parser)
+        -> io::Result<()>
+    {
+        // Sections with no theorems, including from the part of set.mm that
+        // wasn't translated, are left out.
+        let sections: Vec<&Section> = self.sections.iter().enumerate().filter(|&(i, section)| {
+            let end = self.sections[i + 1..].iter()
+                .find(|next| next.level <= section.level)
+                .map_or(thm_toks.len(), |next| next.start);
+            section.start < end
+        }).map(|(_, section)| section).collect();
+        write!(w, r#"<!DOCTYPE html>
+<html>
+<head>
+<title>Ghilbert theorems</title>
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700" rel="stylesheet">
+<link rel="stylesheet" href="thm.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"/>
+<body class="index">
+<h1>Ghilbert theorems</h1>
+<p>{} theorems from <a href="https://github.com/metamath/set.mm">Metamath's set.mm</a>,
+translated and checked by <a href="https://github.com/raphlinus/ghilbert">Ghilbert</a>.</p>
+<ul class="contents">
+"#, thm_toks.len())?;
+        for (i, section) in sections.iter().enumerate() {
+            if section.level <= 2 {
+                write!(w, "<li class=\"level{}\"><a href=\"#sec{}\">", section.level, i)?;
+                write_escaped(w, section.title)?;
+                writeln!(w, "</a></li>")?;
+            }
+        }
+        writeln!(w, "</ul>")?;
+        let mut sections = sections.iter().enumerate().peekable();
+        for (i, tok) in thm_toks.iter().enumerate() {
+            while sections.peek().map_or(false, |&(_, section)| section.start <= i) {
+                let (id, section) = sections.next().unwrap();
+                write!(w, "<h{0} id=\"sec{1}\">", section.level + 1, id)?;
+                write_escaped(w, section.title)?;
+                writeln!(w, "</h{}>", section.level + 1)?;
+            }
+            let name = parser.tok_str(*tok);
+            write!(w, "<div class=\"entry\"><a href=\"{}/{}.html\">{}</a><span>",
+                self.out_dir, name, name)?;
+            let short_text = &self.thm_info[tok].short_text;
+            write_escaped(w, &index_text(short_text))?;
+            writeln!(w, "</span></div>")?;
         }
         Ok(())
     }
@@ -316,7 +380,15 @@ This is the content in the right pane.
 impl<'a> ProofListener for HtmlOut<'a> {
     fn comment(&mut self, start: usize, end: usize) {
         println!("comment {} {}", start, end);
-        self.last_comment = Some(&self.text[start..end]);
+        let text = &self.text[start..end];
+        if let Some(section) = parse_section(text) {
+            self.sections.push(Section {
+                start: self.thms.len(),
+                ..section
+            });
+        } else {
+            self.last_comment = Some(text);
+        }
     }
 
     fn start_proof(&mut self, node: &ParseNode) {
@@ -406,11 +478,36 @@ impl<'a> ProofListener for HtmlOut<'a> {
 fn extract_short_string(comment: &str) -> String {
     let comment = comment.trim();
     // TODO: Maybe get more sophisticated about finding the boundary.
-    if let Some(pos) = comment.find('.') {
-        &comment[..pos]
-    } else {
-        comment
-    }.to_string()
+    let end = comment.char_indices().find(|&(pos, c)| {
+        c == '.' && comment[pos + 1..].chars().next().map_or(true, char::is_whitespace)
+            && !comment[..pos].ends_with(" p") && !comment[..pos].ends_with(" pp")
+    }).map_or(comment.len(), |(pos, _)| pos);
+    comment[..end].to_string()
+}
+
+/// Parse the text of a `/*# level title */` comment.
+fn parse_section(comment: &str) -> Option<Section> {
+    let mut parts = comment.trim().splitn(3, ' ');
+    if parts.next() != Some("#") {
+        return None;
+    }
+    let level = parts.next()?.parse().ok()?;
+    Some(Section { level, title: parts.next().unwrap_or(""), start: 0 })
+}
+
+/// Clean up the short text of a comment for display in the index.
+fn index_text(short_text: &str) -> String {
+    if short_text.starts_with("(Contributed") || short_text == "(comment missing)" {
+        return String::new();
+    }
+    short_text.split_whitespace().filter(|word| *word != "~").collect::<Vec<_>>().join(" ")
+}
+
+fn write_escaped<W: Write>(writer: &mut W, s: &str) -> io::Result<()> {
+    for c in s.chars() {
+        write_escaped_char(writer, c)?;
+    }
+    Ok(())
 }
 
 /// Write a character with HTML escaping.

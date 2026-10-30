@@ -164,7 +164,7 @@ impl<'a> Session<'a> {
 
     pub fn run<L: ProofListener>(&mut self, listener: &mut L) -> Result<(), Error> {
         loop {
-            if let Some((start, end)) = self.parser.next_comment() {
+            while let Some((start, end)) = self.parser.next_comment() {
                 listener.comment(start, end);
             }
             match self.parser.parse_cmd() {
