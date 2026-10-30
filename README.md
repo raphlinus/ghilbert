@@ -16,8 +16,8 @@ list](https://groups.google.com/forum/#!forum/ghilbert).
 
 ## Quick start
 
-This quick start translates the propositional calculus fragment
-from Metamath into Ghilbert format and checks it.
+This quick start translates the propositional and predicate calculus
+fragment from Metamath into Ghilbert format and checks it.
 
 Check out a copy of [set.mm](https://github.com/metamath/set.mm).
 
@@ -30,9 +30,26 @@ cargo run -- /tmp/out.gh
 
 This will spew a lot of diagnostics, and also generate an HTML file for
 each proof in the `gen` directory. Note that to view these files
-you probably want a simple server like `python -m SimpleHTTPServer 8000`
+you probably want a simple server like `python3 -m http.server`
 rather than using `file://` URL's, because the JavaScript interactivity
 features load further files using XMLHttpRequest.
+
+To translate and check all of set.mm instead of stopping at the end of
+predicate calculus, use `--all`. Translation takes roughly 5 minutes, and
+the check about 10 seconds. The theorem pages aren't published past
+predicate calculus, because for all of set.mm the HTML is well over a
+gigabyte.
+
+```
+git -C path/to/set.mm checkout b975dbbd636372803f3102045aa333771f25a477
+cargo build --release
+cargo build --release --manifest-path mm_xlat/Cargo.toml
+mm_xlat/target/release/mm_xlat --all mm_xlat/script path/to/set.mm/set.mm /tmp/all.gh
+target/release/ghilbert -q -k /tmp/all.gh
+```
+
+This should print `checked 48276 theorems, 0 failed`. The revision is the
+same one pinned in `.github/workflows/pages.yml`.
 
 ## License
 
