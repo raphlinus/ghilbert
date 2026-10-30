@@ -385,7 +385,7 @@ impl<'a> Session<'a> {
         let tc = concl[0];
         let pattern = concl[1..].to_vec();
         let var_tc = pattern.iter().map(|t| self.vars.get(t).cloned()).collect();
-        let ax = SyntaxAx { label, tc, pattern, var_tc };
+        let ax = SyntaxAx { tc, pattern, var_tc };
         let pvars = ax.vars();
         let has_body = pvars.iter().any(|&(_, vtc)| vtc != SETVAR);
         let vars: Vec<_> = pvars.iter().enumerate().map(|(i, &(v, vtc))| {

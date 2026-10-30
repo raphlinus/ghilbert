@@ -29,7 +29,7 @@ pub enum Token<'a> {
 }
 
 impl<'a> Scanner<'a> {
-    pub fn new(text: &'a str) -> Scanner {
+    pub fn new(text: &'a str) -> Scanner<'a> {
         Scanner { text, ix: 0 }
     }
 
@@ -99,9 +99,9 @@ impl<'a> Iterator for Scanner<'a> {
 pub enum Statement<'a> {
     Comment(&'a str),
     Axiom(&'a str, Vec<&'a str>),
-    Constant(Vec<&'a str>),
+    Constant(#[allow(dead_code)] Vec<&'a str>),
     Distinct(Vec<&'a str>),
-    Variable(Vec<&'a str>),
+    Variable(#[allow(dead_code)] Vec<&'a str>),
     Essential(&'a str, Vec<&'a str>),
     Floating(&'a str, &'a str, &'a str),  // label, const, var
     Proof(&'a str, Vec<&'a str>, Vec<&'a str>),
@@ -114,7 +114,7 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(scanner: Scanner<'a>) -> Parser {
+    pub fn new(scanner: Scanner<'a>) -> Parser<'a> {
         Parser { scanner }
     }
 

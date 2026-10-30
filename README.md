@@ -38,7 +38,7 @@ To translate and check all of set.mm instead of stopping at the end of
 predicate calculus, use `--all`. Translation takes roughly 5 minutes, and
 the check about 10 seconds. The theorem pages aren't published past
 predicate calculus, because for all of set.mm the HTML is well over a
-gigabyte.
+gigabyte. Optimizing that is future work.
 
 ```
 git -C path/to/set.mm checkout b975dbbd636372803f3102045aa333771f25a477
@@ -49,7 +49,8 @@ target/release/ghilbert -q -k /tmp/all.gh
 ```
 
 This should print `checked 48276 theorems, 0 failed`. The revision is the
-same one pinned in `.github/workflows/pages.yml`.
+same one pinned in `.github/workflows/pages.yml`. Leaving out the `-q`
+generates the output, saving to `out.html` and the `gen/` subdirectory.
 
 ## License
 

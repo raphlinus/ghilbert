@@ -74,7 +74,7 @@ fn find_end_of_comment(s: &str) -> usize {
 
 impl<'a> Lexer<'a> {
     /// Creates a new lexer for a given input string.
-    pub fn new(text: &str) -> Lexer {
+    pub fn new(text: &str) -> Lexer<'_> {
         Lexer {
             text: text,
             ix: 0,
@@ -148,7 +148,7 @@ impl<'a> Lexer<'a> {
     /// Interns a token, in other words installs it in the table if not already
     /// present.
     pub fn intern(&mut self, s: &str) -> Token {
-        let mut node = self.root.traverse(s.chars());
+        let node = self.root.traverse(s.chars());
         if let Some(token) = node.terminal {
             token
         } else {

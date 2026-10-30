@@ -46,8 +46,8 @@ pub enum Error {
     DefFreeBoundVar,
     /// The left side of a not-free-in constraint can't be a variable.
     BadNotFree,
-    ParseError(parser::Error),
-    UnifyError(unify::Error),
+    ParseError(#[allow(dead_code)] parser::Error),
+    UnifyError(#[allow(dead_code)] unify::Error),
 }
 
 impl From<parser::Error> for Error {
@@ -162,7 +162,7 @@ impl<'a> Session<'a> {
         }
     }
 
-    pub fn get_parser(&self) -> &Parser {
+    pub fn get_parser(&self) -> &Parser<'_> {
         &self.parser
     }
 
@@ -418,7 +418,6 @@ impl<'a> Session<'a> {
             recon: graph.mk_reconstruct(&vars, &bound_vars),
             var_map: &stmt.var_map,
             bound_map: &bound_map,
-            session: self,
             graph: &mut graph,
         }, &self.parser);
         Ok(())
@@ -714,7 +713,6 @@ pub struct MyInspector<'a: 'b, 'b> {
     // lookups. Alternatively, make a new mapping type that stores both.
     var_map: &'b BTreeMap<Token, usize>,
     bound_map: &'b BTreeMap<Token, usize>,
-    session: &'b Session<'a>,
     graph: &'b mut Graph<'a>,
 }
 

@@ -27,7 +27,7 @@ pub trait ProofListener {
 
     fn start_proof(&mut self, label: &ParseNode);
 
-    fn end_proof(&mut self, inspector: &mut Inspector, parser: &Parser);
+    fn end_proof(&mut self, inspector: &mut dyn Inspector, parser: &Parser);
 
     fn hyp(&mut self, hyp_name: &ParseNode, hyp: &ParseNode, parser: &Parser);
 
@@ -58,7 +58,7 @@ impl ProofListener for DebugListener {
         println!("start proof {:?}:", node);
     }
 
-    fn end_proof(&mut self, _inspector: &mut Inspector, _parser: &Parser) {
+    fn end_proof(&mut self, _inspector: &mut dyn Inspector, _parser: &Parser) {
         println!("end proof");
     }
 
@@ -93,7 +93,7 @@ pub struct NullListener;
 impl ProofListener for NullListener {
     fn comment(&mut self, _start: usize, _end: usize) {}
     fn start_proof(&mut self, _node: &ParseNode) {}
-    fn end_proof(&mut self, _inspector: &mut Inspector, _parser: &Parser) {}
+    fn end_proof(&mut self, _inspector: &mut dyn Inspector, _parser: &Parser) {}
     fn hyp(&mut self, _hyp_name: &ParseNode, _hyp: &ParseNode, _parser: &Parser) {}
     fn concl(&mut self, _concl: &ParseNode, _parser: &Parser) {}
     fn start_line(&mut self, _node: &ParseNode) {}

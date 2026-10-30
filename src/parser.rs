@@ -21,6 +21,7 @@ use lexer::{Lexer, Token};
 #[derive(Debug, Clone)]
 pub struct ParseNode {
     start: usize,
+    #[allow(dead_code)]  // source map, not used yet
     end: usize,
     pub info: Info,
     pub children: Vec<ParseNode>,
@@ -41,6 +42,7 @@ impl ParseNode {
         self.start
     }
 
+    #[allow(dead_code)]
     pub fn get_end(&self) -> usize {
         self.end
     }

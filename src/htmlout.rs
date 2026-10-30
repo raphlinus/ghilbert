@@ -436,10 +436,6 @@ This is the content in the right pane.
         write!(ctx, "</span>")
     }
 
-    fn cur_info(&self) -> &ThmInfo {
-        self.thm_info.get(&self.cur_tok.unwrap()).unwrap()
-    }
-
     fn cur_info_mut(&mut self) -> &mut ThmInfo {
         self.thm_info.get_mut(&self.cur_tok.unwrap()).unwrap()
     }
@@ -479,7 +475,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
         self.step_ix = 0;
     }
 
-    fn end_proof(&mut self, inspector: &mut Inspector, parser: &Parser) {
+    fn end_proof(&mut self, inspector: &mut dyn Inspector, parser: &Parser) {
         let mut step_typeset = HashMap::new();
         {
             for step_ix in self.n_hyps .. self.step_ix {
@@ -508,7 +504,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
     fn concl(&mut self, _concl: &ParseNode, _parser: &Parser) {
     }
 
-    fn start_line(&mut self, line: &ParseNode) {
+    fn start_line(&mut self, _line: &ParseNode) {
     }
 
     fn end_line(&mut self, line: &ParseNode) {
@@ -568,7 +564,7 @@ fn extract_short_string(comment: &str) -> String {
 }
 
 /// Parse the text of a `/*# level title */` comment.
-fn parse_section(comment: &str) -> Option<Section> {
+fn parse_section(comment: &str) -> Option<Section<'_>> {
     let mut parts = comment.trim().splitn(3, ' ');
     if parts.next() != Some("#") {
         return None;

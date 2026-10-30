@@ -25,7 +25,6 @@ pub enum Tree<'a> {
 }
 
 pub struct SyntaxAx<'a> {
-    pub label: &'a str,
     pub tc: &'a str,
     pub pattern: Vec<&'a str>,
     /// For each pattern element, its typecode if it is a variable.

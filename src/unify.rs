@@ -127,7 +127,7 @@ enum State {
 }
 
 impl<'a> Graph<'a> {
-    pub fn new(defs: &BTreeMap<Token, Definition>, backslash: Const) -> Graph {
+    pub fn new(defs: &BTreeMap<Token, Definition>, backslash: Const) -> Graph<'_> {
         Graph {
             defs,
             infos: Vec::new(),
