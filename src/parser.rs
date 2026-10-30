@@ -92,6 +92,7 @@ pub enum Info {
     Step(Token),
 }
 
+#[derive(Clone)]
 struct Predefined {
     axiom: Token,
     bound: Token,
@@ -172,6 +173,8 @@ pub struct Parser<'a> {
     predefined: Predefined,
     prefixes: BTreeMap<Token, Prefix>,
     binops: BTreeMap<Token, Binop>,
+    /// Number of arguments of each declared variable and term.
+    arity: BTreeMap<Token, usize>,
 }
 
 #[derive(Clone, Copy)]
@@ -204,7 +207,45 @@ impl<'a> Parser<'a> {
             predefined,
             prefixes: BTreeMap::new(),
             binops: BTreeMap::new(),
+            arity: BTreeMap::new(),
         }
+    }
+
+    /// Creates a parser with the declarations of this one, for parsing
+    /// fragments of a comment with `parse_fragment`.
+    pub fn fragment_parser<'b>(&self) -> Parser<'b> {
+        Parser {
+            lexer: self.lexer.with_text(""),
+            predefined: self.predefined.clone(),
+            prefixes: self.prefixes.clone(),
+            binops: self.binops.clone(),
+            arity: self.arity.clone(),
+        }
+    }
+
+    /// Parses `text` as a term, if all of it is one and it only uses declared
+    /// variables and terms, with the right number of arguments.
+    pub fn parse_fragment(&mut self, text: &'a str) -> Option<ParseNode> {
+        self.lexer.set_text(text);
+        let node = self.parse_term(None).ok()?;
+        if self.lexer.peek().is_none() && self.well_formed(&node) {
+            Some(node)
+        } else {
+            None
+        }
+    }
+
+    fn well_formed(&self, node: &ParseNode) -> bool {
+        let args_ok = match node.info {
+            Info::Atom(tok) => self.arity.get(&tok) == Some(&node.children.len()),
+            Info::Lambda => true,
+            _ => false,
+        };
+        let children = match node.info {
+            Info::Lambda => &node.children[1..],
+            _ => &node.children[..],
+        };
+        args_ok && children.iter().all(|child| self.well_formed(child))
     }
 
     fn start(&mut self) -> usize {
@@ -267,6 +308,7 @@ impl<'a> Parser<'a> {
                 if token == self.predefined.colon {
                     break;
                 } else {
+                    self.arity.insert(token, 0);
                     vars.push(self.leaf(s, Info::Var(token)));
                 }
             }
@@ -286,6 +328,7 @@ impl<'a> Parser<'a> {
                 if token == self.predefined.colon {
                     break;
                 } else {
+                    self.arity.insert(token, 0);
                     vars.push(self.leaf(s, Info::Var(token)));
                 }
             }
@@ -299,8 +342,8 @@ impl<'a> Parser<'a> {
         } else if token == self.predefined.term {
             let c_s = self.start();
             // Note: long here means that nullary terms need a space between const and :
-            let con = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
-            let con = self.leaf(c_s, Info::Const(con));
+            let con_tok = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
+            let con = self.leaf(c_s, Info::Const(con_tok));
             let a_s = self.start();
             let mut args = Vec::new();
             loop {
@@ -312,6 +355,7 @@ impl<'a> Parser<'a> {
                 let ty = self.parse_type()?;
                 args.push(ty);
             }
+            self.arity.insert(con_tok, args.len());
             let args = self.list(a_s, args);
             let k_s = self.start();
             let kind = self.next()?;
@@ -366,8 +410,8 @@ impl<'a> Parser<'a> {
 
     fn parse_def(&mut self, start: usize) -> Result<ParseNode, Error> {
         let c_s = self.start();
-        let con = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
-        let con = self.leaf(c_s, Info::Const(con));
+        let con_tok = self.lexer.next_long().ok_or(Error::UnexpectedEof)?;
+        let con = self.leaf(c_s, Info::Const(con_tok));
         let a_s = self.start();
         let mut args = Vec::new();
         let colon = self.predefined.colon;
@@ -380,6 +424,7 @@ impl<'a> Parser<'a> {
             // in session.
             args.push(arg);
         }
+        self.arity.insert(con_tok, args.len());
         let args_node = self.list(a_s, args);
         let semicolon = self.predefined.semicolon;
         let result = self.parse_term(Some(semicolon))?;

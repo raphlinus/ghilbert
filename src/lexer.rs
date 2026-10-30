@@ -18,6 +18,7 @@ use std::collections::BTreeMap;
 
 pub type Token = usize;
 
+#[derive(Clone)]
 struct Node {
     terminal: Option<Token>,
     succ: BTreeMap<char, Node>,
@@ -81,6 +82,24 @@ impl<'a> Lexer<'a> {
             tokens: Vec::new(),
             lookahead: None,
         }
+    }
+
+    /// Creates a lexer for `text` with the tokens of this one.
+    pub fn with_text<'b>(&self, text: &'b str) -> Lexer<'b> {
+        Lexer {
+            text,
+            ix: 0,
+            root: self.root.clone(),
+            tokens: self.tokens.clone(),
+            lookahead: None,
+        }
+    }
+
+    /// Starts over on `text`, keeping the tokens.
+    pub fn set_text(&mut self, text: &'a str) {
+        self.text = text;
+        self.ix = 0;
+        self.lookahead = None;
     }
 
     /// Get a comment if it's present. Return value are start and end

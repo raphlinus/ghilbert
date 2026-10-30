@@ -14,11 +14,14 @@
 
 //! Generation of HTML output for proofs.
 
-use std::collections::HashMap;
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{self, ErrorKind, Write};
 use std::mem;
 use std::path::Path;
+
+use pulldown_cmark::{self, BrokenLink, CowStr, Event, Options};
 
 use lexer::Token;
 use parser::{Info, Parser, ParseNode};
@@ -60,6 +63,13 @@ struct Section<'a> {
     title: &'a str,
     /// Index into `thms` of the first theorem after the heading.
     start: usize,
+}
+
+/// What's needed to render the Markdown of comments.
+struct Comments<'a, 'b> {
+    /// Names of theorems that have a page.
+    pages: HashSet<&'b str>,
+    parser: RefCell<Parser<'a>>,
 }
 
 struct ThmSummary {
@@ -137,11 +147,14 @@ impl<'a> HtmlOut<'a> {
     /// Write the formatted proof to the output.
     pub fn write<W: Write>(&mut self, writer: &mut W, parser: &Parser) -> io::Result<()> {
         let thms = mem::replace(&mut self.thms, Vec::new());
+        let pages: HashSet<&str> = thms.iter().map(|&(_, ref thm)|
+            parser.tok_str(thm.children[0].get_step().expect("thm name wasn't step"))).collect();
+        let mut comments = Comments { pages, parser: RefCell::new(parser.fragment_parser()) };
         let mut thm_toks = Vec::new();
         for (comment, ref thm) in thms {
             let thm_name_tok = thm.children[0].get_step().expect("thm name wasn't step");
             thm_toks.push(thm_name_tok);
-            let summary = self.write_thm(thm_name_tok, comment, thm, parser)?;
+            let summary = self.write_thm(thm_name_tok, comment, thm, parser, &mut comments)?;
             self.thm_info.get_mut(&thm_name_tok).unwrap().summary = Some(summary);
         }
         self.write_index(writer, &thm_toks, parser)
@@ -200,7 +213,8 @@ translated and checked by <a href="https://github.com/raphlinus/ghilbert">Ghilbe
     }
 
     fn write_thm(&self, thm_name_tok: Token, comment: Option<&'a str>,
-        node: &ParseNode, parser: &Parser) -> io::Result<ThmSummary>
+        node: &ParseNode, parser: &Parser, comments: &mut Comments<'a, '_>)
+        -> io::Result<ThmSummary>
     {
         let thm_name = parser.tok_str(thm_name_tok);
         let page_fn = Path::new(&self.out_dir).join(format!("{}.html", thm_name));
@@ -235,7 +249,7 @@ window.MathJax = {{
 <div class="wrapper" id="left">
 <div class="thmname"><span class="xt">Theorem</span> {}</div>
 "#, thm_name, thm_name)?;
-        self.write_comment(&mut ctx, comment.unwrap_or("(comment missing)"))?;
+        self.write_comment(&mut ctx, comment.unwrap_or("(comment missing)"), comments)?;
         let hyp_strs = self.write_hyps(&mut ctx, &node.children[1], &node.children[2])?;
         // TODO: free variable constraints
         let concl_str = self.write_concl(&mut ctx, &node.children[4], parser)?;
@@ -254,14 +268,58 @@ This is the content in the right pane.
         Ok(ThmSummary { hyp_strs, concl_str })
     }
 
-    fn write_comment<W: Write>(&self, w: &mut W, comment: &str) -> io::Result<()> {
+    /// Writes a Markdown comment. Math spans are parsed as Ghilbert terms, and
+    /// a reference like `[ax-mp]` links to the theorem page of that name.
+    fn write_comment<W: Write>(&self, w: &mut W, comment: &'a str,
+        comments: &mut Comments<'a, '_>) -> io::Result<()>
+    {
         let comment = comment.trim();
-        write!(w, "<div class=\"text\">")?;
-        for c in comment.chars() {
-            // TODO: markdown processing
-            write_escaped_char(w, c)?;
+        let pages = &comments.pages;
+        let mut link_page = |link: BrokenLink| {
+            if pages.contains(&*link.reference) {
+                Some((CowStr::from(format!("{}.html", link.reference)), CowStr::from("")))
+            } else {
+                None
+            }
+        };
+        let events = pulldown_cmark::Parser::new_with_broken_link_callback(comment,
+            Options::ENABLE_MATH, Some(&mut link_page)).into_offset_iter();
+        let events = events.map(|(event, range)| match event {
+            Event::InlineMath(_) => {
+                let text = &comment[range.start + 1..range.end - 1];
+                Event::InlineHtml(self.math(text, "\\(", "\\)", comments).into())
+            }
+            Event::DisplayMath(_) => {
+                let text = &comment[range.start + 2..range.end - 2];
+                Event::InlineHtml(self.math(text, "\\[", "\\]", comments).into())
+            }
+            event => event,
+        });
+        let mut html = String::new();
+        pulldown_cmark::html::push_html(&mut html, events);
+        writeln!(w, "<div class=\"text\">{}</div>", html)
+    }
+
+    /// Typesets a math span of a comment to HTML. A span has to be a term, or
+    /// it's reported and shown as written.
+    fn math(&self, text: &'a str, open: &str, close: &str, comments: &Comments<'a, '_>) -> String {
+        let mut parser = comments.parser.borrow_mut();
+        let mut html = Vec::new();
+        match parser.parse_fragment(text) {
+            Some(node) => {
+                let tex = self.typeset.typeset(&node, &parser);
+                let _ = write!(html, "{} ", open);
+                write_escaped(&mut html, &tex).expect("write to vec");
+                let _ = write!(html, " {}", close);
+            }
+            None => {
+                println!("math in comment isn't a term: {}", text);
+                let _ = write!(html, "<code>");
+                write_escaped(&mut html, text).expect("write to vec");
+                let _ = write!(html, "</code>");
+            }
         }
-        writeln!(w, "</div>")
+        String::from_utf8(html).expect("math html")
     }
 
     fn write_hyps<W: Write>(&self, ctx: &mut Ctx<W>, hyp_names: &ParseNode,
@@ -398,7 +456,7 @@ impl<'a> ProofListener for HtmlOut<'a> {
             self.cur_tok = Some(tok);
             self.thm_info.insert(tok, ThmInfo {
                 full_comment: text.trim().to_string(),
-                short_text: extract_short_string(text),
+                short_text: extract_short_string(&plain_text(text)),
                 defs: HashMap::new(),
                 refs: HashMap::new(),
                 step_typeset: HashMap::new(),
@@ -475,6 +533,20 @@ impl<'a> ProofListener for HtmlOut<'a> {
     }
 }
 
+/// The text of a Markdown comment, with math spans as they were written.
+fn plain_text(comment: &str) -> String {
+    let mut s = String::new();
+    for event in pulldown_cmark::Parser::new_ext(comment, Options::ENABLE_MATH) {
+        match event {
+            Event::Text(t) | Event::Code(t) | Event::InlineMath(t) | Event::DisplayMath(t) =>
+                s.push_str(&t),
+            Event::SoftBreak | Event::HardBreak | Event::End(_) => s.push(' '),
+            _ => (),
+        }
+    }
+    s
+}
+
 fn extract_short_string(comment: &str) -> String {
     let comment = comment.trim();
     // TODO: Maybe get more sophisticated about finding the boundary.
@@ -500,7 +572,7 @@ fn index_text(short_text: &str) -> String {
     if short_text.starts_with("(Contributed") || short_text == "(comment missing)" {
         return String::new();
     }
-    short_text.split_whitespace().filter(|word| *word != "~").collect::<Vec<_>>().join(" ")
+    short_text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn write_escaped<W: Write>(writer: &mut W, s: &str) -> io::Result<()> {

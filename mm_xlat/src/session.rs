@@ -20,6 +20,7 @@
 //! expression is known (for result lines where unification needs them).
 
 use std::collections::HashMap;
+use std::mem;
 use std::rc::Rc;
 
 use grammar::{Grammar, SyntaxAx, Tree};
@@ -424,6 +425,159 @@ impl<'a> Session<'a> {
         }
     }
 
+    /// Converts the markup of a Metamath comment to Markdown, with math spans
+    /// in `$`, written in Ghilbert syntax when they parse.
+    fn markdown_comment(&self, comment: &str) -> String {
+        let lines: Vec<&str> = comment.trim().lines().map(str::trim).collect();
+        let text = lines.join("\n");
+        let chars: Vec<(usize, char)> = text.char_indices().collect();
+        let at = |i: usize| chars.get(i).map(|&(_, c)| c);
+        let starts_with = |i: usize, pat: &str| chars.get(i).map_or(false, |&(p, _)| text[p..].starts_with(pat));
+        let word_end = |mut i: usize| {
+            while at(i).map_or(false, |c| !c.is_whitespace()) {
+                i += 1;
+            }
+            i
+        };
+        let slice = |i: usize, j: usize| {
+            let end = chars.get(j).map_or(text.len(), |&(p, _)| p);
+            chars.get(i).map_or("", |&(p, _)| &text[p..end])
+        };
+        let mut s = String::new();
+        let mut html = false;
+        let mut i = 0;
+        while let Some(c) = at(i) {
+            let boundary = i == 0 || at(i - 1).map_or(true, char::is_whitespace);
+            let line_start = i == 0 || at(i - 1) == Some('\n');
+            if starts_with(i, "``") {
+                s.push_str("\\`");
+                i += 2;
+            } else if c == '`' {
+                let mut j = i + 1;
+                let mut toks = Vec::new();
+                let mut tok = String::new();
+                while let Some(c) = at(j) {
+                    if c == '`' && at(j + 1) == Some('`') {
+                        tok.push('`');
+                        j += 2;
+                    } else if c == '`' {
+                        break;
+                    } else {
+                        if c.is_whitespace() {
+                            toks.push(mem::replace(&mut tok, String::new()));
+                        } else {
+                            tok.push(c);
+                        }
+                        j += 1;
+                    }
+                }
+                toks.push(tok);
+                toks.retain(|tok| !tok.is_empty());
+                s.push_str(&self.gh_math(&toks));
+                i = j + 1;
+                i = skip_space_before_punct(&chars, i);
+            } else if starts_with(i, "~~") {
+                s.push('~');
+                i += 2;
+            } else if c == '~' && boundary && at(i + 1).map_or(false, char::is_whitespace) {
+                let mut start = i + 1;
+                while at(start).map_or(false, char::is_whitespace) {
+                    start += 1;
+                }
+                let end = word_end(start);
+                let word = slice(start, end);
+                if word.starts_with("http") {
+                    s.push_str(&format!("<{}>", word.replace("~~", "~")));
+                } else {
+                    s.push_str(&format!("[{}]", word));
+                }
+                i = skip_space_before_punct(&chars, end);
+            } else if starts_with(i, "<HTML>") {
+                html = true;
+                i += 6;
+            } else if starts_with(i, "</HTML>") {
+                html = false;
+                i += 7;
+            } else if html {
+                s.push(c);
+                i += 1;
+            } else if starts_with(i, "[[") {
+                s.push_str("\\[");
+                i += 2;
+            } else if c == '[' {
+                let close = (i + 1..chars.len()).find(|&j| at(j) == Some(']') || at(j).map_or(true, char::is_whitespace));
+                let citation = at(i + 1).map_or(false, char::is_uppercase)
+                    && close.map_or(false, |j| at(j) == Some(']'));
+                s.push_str(if citation { "[" } else { "\\[" });
+                i += 1;
+            } else if c == '_' && i > 0 && at(i - 1).map_or(false, char::is_alphanumeric)
+                && at(i + 1).map_or(false, char::is_alphanumeric)
+            {
+                let mut j = i + 1;
+                while at(j).map_or(false, char::is_alphanumeric) {
+                    j += 1;
+                }
+                s.push_str(&format!("<sub>{}</sub>", slice(i + 1, j)));
+                i = j;
+            } else if "\\*$<&`".contains(c) {
+                s.push('\\');
+                s.push(c);
+                i += 1;
+            } else if line_start && "#>+-=".contains(c) {
+                s.push('\\');
+                s.push(c);
+                i += 1;
+            } else if line_start && c.is_ascii_digit() {
+                let mut j = i;
+                while at(j).map_or(false, |c| c.is_ascii_digit()) {
+                    j += 1;
+                }
+                s.push_str(slice(i, j));
+                if at(j) == Some('.') || at(j) == Some(')') {
+                    s.push('\\');
+                }
+                i = j;
+            } else {
+                s.push(c);
+                i += 1;
+            }
+        }
+        s
+    }
+
+    /// Writes the tokens of a math span in Ghilbert syntax in `$`, if they parse.
+    /// Others, such as a lone operator in prose, are written as code.
+    fn gh_math(&self, toks: &[String]) -> String {
+        let toks: Vec<&str> = toks.iter().map(String::as_str).collect();
+        let (prefix, expr) = match toks.split_first() {
+            Some((&"|-", rest)) if !rest.is_empty() => ("|- ", rest),
+            _ => ("", &toks[..]),
+        };
+        let tree = {
+            // A tree has the lifetime of the input, so the tokens come from there.
+            let expr: Vec<&'a str> = match expr.iter().map(|t| self.intern(t)).collect() {
+                Some(expr) => expr,
+                None => return code_span(&toks),
+            };
+            ["setvar", "wff", "class"].iter()
+                .filter_map(|tc| self.grammar.parse(&expr, tc, &self.vars)).next()
+        };
+        match tree {
+            Some(tree) => {
+                let mut s = format!("${}", prefix);
+                self.print_tree(&tree, &mut s);
+                s.push('$');
+                s
+            }
+            None => code_span(&toks),
+        }
+    }
+
+    /// Gets a token of the input, if it's a variable or in a syntax axiom.
+    fn intern(&self, tok: &str) -> Option<&'a str> {
+        self.vars.get_key_value(tok).map(|(&var, _)| var).or_else(|| self.grammar.token(tok))
+    }
+
     /// Writes a term with only the parentheses the Ghilbert parser needs.
     fn print_tree(&self, tree: &Rc<Tree<'a>>, s: &mut String) {
         self.print_ctx(tree, Ctx::Operand(0), s);
@@ -583,7 +737,8 @@ impl<'a> Session<'a> {
         self.free_by_stmt.insert(label, self.free_setvars.clone());
         let mut s = String::new();
         if let Some(comment) = comment {
-            s.push_str(&format!("/* {} */\n", sanitize_comment(comment)));
+            let comment = self.markdown_comment(comment);
+            s.push_str(&format!("/* {} */\n", sanitize_comment(&comment)));
         }
         let has_proof = lines.is_some() || manual.is_some();
         s.push_str(if has_proof { "theorem " } else { "axiom " });
@@ -923,6 +1078,26 @@ fn parse_section(comment: &str) -> Option<(usize, String)> {
     let title: Vec<&str> = lines.take_while(|line| rule_level(line).is_none())
         .map(str::trim).collect();
     Some((level, title.join(" ")))
+}
+
+/// Writes the tokens as a Markdown code span.
+fn code_span(toks: &[&str]) -> String {
+    let text = toks.join(" ");
+    if text.contains('`') {
+        format!("`` {} ``", text)
+    } else {
+        format!("`{}`", text)
+    }
+}
+
+/// Skips the space that separates a math span or reference from punctuation.
+fn skip_space_before_punct(chars: &[(usize, char)], i: usize) -> usize {
+    let is_punct = |c: char| ".,;:)".contains(c);
+    match (chars.get(i), chars.get(i + 1), chars.get(i + 2)) {
+        (Some(&(_, ' ')), Some(&(_, p)), Some(&(_, after))) if is_punct(p) && after.is_whitespace() => i + 1,
+        (Some(&(_, ' ')), Some(&(_, p)), None) if is_punct(p) => i + 1,
+        _ => i,
+    }
 }
 
 /// Keeps a Metamath comment from closing or nesting a Ghilbert comment.

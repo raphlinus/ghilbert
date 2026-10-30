@@ -14,7 +14,7 @@
 
 //! Parsing of Metamath expressions into trees, using the syntax axioms.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -45,6 +45,7 @@ impl<'a> SyntaxAx<'a> {
 pub struct Grammar<'a> {
     pub axioms: Vec<SyntaxAx<'a>>,
     by_tc: HashMap<&'a str, Vec<usize>>,
+    tokens: HashSet<&'a str>,
 }
 
 type Parses<'a> = Rc<Vec<(Rc<Tree<'a>>, usize)>>;
@@ -59,8 +60,14 @@ impl<'a> Grammar<'a> {
     pub fn add(&mut self, ax: SyntaxAx<'a>) -> usize {
         let ix = self.axioms.len();
         self.by_tc.entry(ax.tc).or_insert_with(Vec::new).push(ix);
+        self.tokens.extend(ax.pattern.iter().cloned());
         self.axioms.push(ax);
         ix
+    }
+
+    /// Gets the given token, if it's in a syntax axiom.
+    pub fn token(&self, tok: &str) -> Option<&'a str> {
+        self.tokens.get(tok).cloned()
     }
 
     /// Finds a constant of the given typecode.

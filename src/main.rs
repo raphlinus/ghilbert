@@ -14,6 +14,7 @@
 
 //! A command line utility for the new Ghilbert format.
 
+extern crate pulldown_cmark;
 extern crate union_find;
 extern crate serde;
 #[macro_use]
