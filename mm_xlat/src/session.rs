@@ -101,13 +101,15 @@ pub struct Session<'a> {
     /// Variables declared in the output, with their typecodes.
     declared: HashMap<&'a str, &'a str>,
     comment: Option<&'a str>,
-    /// Setvar variables of the statement being written that never bind and
-    /// have no `$d`. These are written as term variables of kind setvar (the
-    /// variable name with a prime), so they may coincide when instantiated.
+    /// Setvar variables of the statement being written that never bind. These
+    /// are written as term variables of kind setvar (the variable name with a
+    /// prime), so they may coincide when instantiated, as in set.mm.
     free_setvars: Vec<&'a str>,
     /// Statements whose setvar variables are all kept bound, because the proof
     /// needs them distinct.
     bound_form: Vec<String>,
+    /// The setvar variables written as term variables in each statement.
+    free_by_stmt: HashMap<&'a str, Vec<&'a str>>,
     /// A statement read but not yet processed (see `run_until`).
     pending: Option<Statement<'a>>,
 }
@@ -130,6 +132,7 @@ impl<'a> Session<'a> {
             comment: None,
             free_setvars: Vec::new(),
             bound_form: Vec::new(),
+            free_by_stmt: HashMap::new(),
             pending: None,
         }
     }
@@ -407,7 +410,8 @@ impl<'a> Session<'a> {
     }
 
     /// Finds the mandatory setvar variables that occur in no binding position
-    /// (in the statement or any proof step) and in no `$d`.
+    /// (in the statement or any proof step), and are not substituted for a
+    /// bound variable of a statement used in the proof.
     fn find_free_setvars(&self, label: &str, frame: &Frame<'a>, lines: Option<&[Line<'a>]>)
         -> Vec<&'a str>
     {
@@ -429,27 +433,19 @@ impl<'a> Session<'a> {
         for line in lines.unwrap_or(&[]) {
             scan(&line.expr);
         }
-        let mut free: Vec<&'a str> = frame.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
+        for line in lines.unwrap_or(&[]) {
+            if let Some(free) = self.free_by_stmt.get(line.label) {
+                for &(v, t) in &line.subst {
+                    if !free.contains(&v) && !binding.contains(&t) {
+                        binding.push(t);
+                    }
+                }
+            }
+        }
+        frame.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
             Hyp::F(tc, v) if tc == SETVAR && !binding.contains(&v) => Some(v),
             _ => None,
-        }).collect();
-        // A `$d` between a bound variable and a term variable becomes a
-        // not-free-in constraint, but two term variables can't be kept distinct,
-        // so make enough of them bound to cover every such pair (greedily).
-        loop {
-            let uncovered: Vec<_> = frame.dv.iter()
-                .filter(|&&(a, b)| free.contains(&a) && free.contains(&b))
-                .collect();
-            if uncovered.is_empty() {
-                break;
-            }
-            let degree = |v: &str| uncovered.iter().filter(|&&&(a, b)| a == v || b == v).count();
-            // On ties prefer the earliest variable (x before y, by convention).
-            let best = free.iter().cloned().enumerate()
-                .max_by_key(|&(i, v)| (degree(v), ::std::cmp::Reverse(i))).unwrap().1;
-            free.retain(|&v| v != best);
-        }
-        free
+        }).collect()
     }
 
     fn binding_vars(&self, tree: &Rc<Tree<'a>>, result: &mut Vec<&'a str>) {
@@ -464,10 +460,11 @@ impl<'a> Session<'a> {
     }
 
     /// Writes an axiom (if `lines` is None) or theorem.
-    fn write_stmt(&mut self, label: &str, frame: &Frame<'a>, comment: Option<&str>,
+    fn write_stmt(&mut self, label: &'a str, frame: &Frame<'a>, comment: Option<&str>,
         lines: Option<&[Line<'a>]>)
     {
         self.free_setvars = self.find_free_setvars(label, frame, lines);
+        self.free_by_stmt.insert(label, self.free_setvars.clone());
         let mut s = String::new();
         if let Some(comment) = comment {
             s.push_str(&format!("/* {} */\n", sanitize_comment(comment)));
@@ -484,17 +481,22 @@ impl<'a> Session<'a> {
                 }
             }
         }
-        let is_bound = |v: &str| self.vars[v] == SETVAR && !self.free_setvars.contains(&v);
-        let term_name = |v: &str| if self.free_setvars.contains(&v) {
+        // A `$d` becomes a not-free-in constraint with a setvar on the left
+        // (for two setvars, either way round means they differ).
+        let name = |v: &str| if self.free_setvars.contains(&v) {
             format!("{}'", v)
         } else {
             v.to_string()
         };
+        let is_bound = |v: &str| self.vars[v] == SETVAR && !self.free_setvars.contains(&v);
         let notfree = frame.dv.iter().filter_map(|&(a, b)| {
-            match (is_bound(a), is_bound(b)) {
-                (true, false) => Some(format!("{} F/ {}", a, term_name(b))),
-                (false, true) => Some(format!("{} F/ {}", b, term_name(a))),
-                _ => None,
+            let (sa, sb) = (self.vars[a] == SETVAR, self.vars[b] == SETVAR);
+            if (is_bound(a) && is_bound(b)) || !(sa || sb) {
+                None  // bound variables are always distinct
+            } else if sa && !is_bound(b) {
+                Some(format!("{} F/ {}", name(a), name(b)))
+            } else {
+                Some(format!("{} F/ {}", name(b), name(a)))
             }
         }).collect::<Vec<_>>();
         if !notfree.is_empty() {
@@ -583,7 +585,7 @@ impl<'a> Session<'a> {
             Hyp::E(ref e) => {
                 let step = lines.len();
                 lines.push(Line { label: hyp_label, args: Vec::new(), expr: Rc::new(e.clone()),
-                    needs_result: false });
+                    needs_result: false, subst: Vec::new() });
                 stack.push(El { expr: Rc::new(e.clone()), step: Some(step) });
             }
         }
@@ -599,10 +601,16 @@ impl<'a> Session<'a> {
             panic!("{}: unknown label {} in proof", thm, label));
         let base = stack.len() - frame.hyps.len();
         let mut subst = HashMap::new();
+        let mut setvar_subst = Vec::new();
         let mut args = Vec::new();
         for (&(_, ref hyp), el) in frame.hyps.iter().zip(&stack[base..]) {
             match *hyp {
-                Hyp::F(_, v) => { subst.insert(v, el.expr.clone()); }
+                Hyp::F(tc, v) => {
+                    if tc == SETVAR {
+                        setvar_subst.push((v, el.expr[1]));
+                    }
+                    subst.insert(v, el.expr.clone());
+                }
                 Hyp::E(_) => args.push(el.step.expect("essential hyp is not a judgment")),
             }
         }
@@ -632,7 +640,8 @@ impl<'a> Session<'a> {
             }
         }
         let step = lines.len();
-        lines.push(Line { label, args, expr: expr.clone(), needs_result: false });
+        lines.push(Line { label, args, expr: expr.clone(), needs_result: false,
+            subst: setvar_subst });
         stack.push(El { expr, step: Some(step) });
     }
 }
@@ -659,6 +668,8 @@ struct Line<'a> {
     args: Vec<usize>,
     expr: Rc<Vec<&'a str>>,
     needs_result: bool,
+    /// For the setvar variables of the statement applied, what they become.
+    subst: Vec<(&'a str, &'a str)>,
 }
 
 /// Keeps a Metamath comment from closing or nesting a Ghilbert comment.

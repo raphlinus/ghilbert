@@ -19,7 +19,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use lexer::Token;
 use parser::{self, Info, Parser, ParseNode};
 use prooflistener::{Inspector, ProofListener};
-use unify::{self, Definition, Expr, Graph, ReconstructCtx, StepIx, Stmt};
+use unify::{self, Definition, Expr, Graph, NfVar, ReconstructCtx, StepIx, Stmt};
 
 /// Errors. This will get a lot more sophisticated, with reporting on
 /// the location of the error in the file, details of the error, etc.
@@ -43,6 +43,8 @@ pub enum Error {
     DefCantBeLambda,
     /// A bound variable would occur free in the expansion of a definition.
     DefFreeBoundVar,
+    /// The left side of a not-free-in constraint can't be a variable.
+    BadNotFree,
     ParseError(parser::Error),
     UnifyError(unify::Error),
 }
@@ -472,8 +474,20 @@ impl<'a> Session<'a> {
             let tvar_ix = *var_map.get(&tvar).ok_or(Error::VarNotFound)?;
             for var_node in &constraint.children[0].children {
                 let var = get_var(var_node)?;
-                let var_ix = *bound_map.get(&var).ok_or(Error::VarNotFound)?;
-                notfree.push((var_ix, tvar_ix));
+                let nf_var = if let Some(&ix) = bound_map.get(&var) {
+                    NfVar::Bound(ix)
+                } else {
+                    // A term variable on the left must be of a kind that has
+                    // bound variables, since its instances must be variables.
+                    let ix = *var_map.get(&var).ok_or(Error::VarNotFound)?;
+                    match self.vars.get(&var) {
+                        Some(&VarType::TermVar(kind)) if self.vars.values().any(|t|
+                            if let VarType::BoundVar(k) = *t { k == kind } else { false }) => (),
+                        _ => return Err(Error::BadNotFree),
+                    }
+                    NfVar::Term(ix)
+                };
+                notfree.push((nf_var, tvar_ix));
             }
         }
         Ok(Stmt { var_map, bound_map, notfree, hyps, concl })

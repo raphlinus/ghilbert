@@ -36,14 +36,23 @@ pub enum Expr {
     },
 }
 
+/// The variable on the left of a not-free-in constraint. It is either a bound
+/// variable or a term variable, in which case any instance must be a variable
+/// (for setvar-like kinds, "x not free in y" then just means x and y differ).
+#[derive(Debug, Clone, Copy)]
+pub enum NfVar {
+    Bound(usize),
+    Term(usize),
+}
+
 #[derive(Debug)]
 pub struct Stmt {
     /// Map from variable name to index, same as arg to Expr::Var
     pub var_map: BTreeMap<Token, usize>,
     /// Map from variable name to index, same as arg to Expr::BoundVar
     pub bound_map: BTreeMap<Token, usize>,
-    /// Not-free-in constraint is pair of bound var and term var.
-    pub notfree: Vec<(usize, usize)>,
+    /// Not-free-in constraint is pair of variable and term var.
+    pub notfree: Vec<(NfVar, usize)>,
     pub hyps: Vec<Expr>,
     pub concl: Expr,
 }
@@ -105,6 +114,8 @@ pub enum Error {
     NotDistinct,
     /// A not-free-in constraint was violated.
     NotFreeIn,
+    /// The left side of a not-free-in constraint is not a variable.
+    NotVariable,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -185,9 +196,12 @@ impl<'a> Graph<'a> {
                 self.queue.push(node);
             }
         }
-        for &(bound_var, var) in &stmt.notfree {
+        for &(nf_var, var) in &stmt.notfree {
             // The variables must be assigned after unification.
-            let bound_var_ix = bound_vars[bound_var].unwrap();
+            let bound_var_ix = match nf_var {
+                NfVar::Bound(bound_var) => bound_vars[bound_var].unwrap(),
+                NfVar::Term(term_var) => vars[term_var].unwrap(),
+            };
             let var_ix = vars[var].unwrap();
             self.nfi_constraints.push((bound_var_ix, var_ix));
         }
@@ -466,7 +480,7 @@ impl<'a> Graph<'a> {
     ///
     /// The `notfree` argument is in the same form as `Stmt::notfree`.
     pub fn validate_notfree(&mut self, var_map: &[Option<usize>],
-        bound_var_map: &[Option<usize>], notfree: &[(usize, usize)])
+        bound_var_map: &[Option<usize>], notfree: &[(NfVar, usize)])
         -> Result<(), Error>
     {
         if self.nfi_constraints.is_empty() {
@@ -478,26 +492,38 @@ impl<'a> Graph<'a> {
                 term_var_set.insert(self.uf.find(var));
             }
         }
-        /// Maps node of bound var to set of term var nodes it can appear free in.
+        // Maps node of each variable of the theorem (bound or term) to the set
+        // of term var nodes it can appear free in.
         let mut free_set = BTreeMap::new();
-        for opt_bound_var in bound_var_map {
-            if let Some(bound_var) = *opt_bound_var {
-                let bfind = self.uf.find(bound_var);
-                free_set.insert(bfind, term_var_set.clone());
+        for opt_var in bound_var_map.iter().chain(var_map.iter()) {
+            if let Some(var) = *opt_var {
+                let nfind = self.uf.find(var);
+                free_set.insert(nfind, term_var_set.clone());
             }
         }
-        for &(bound_var, var) in notfree {
-            let bfind = self.uf.find(bound_var_map[bound_var].unwrap());
+        for &(nf_var, var) in notfree {
+            let lfind = match nf_var {
+                NfVar::Bound(bound_var) => self.uf.find(bound_var_map[bound_var].unwrap()),
+                NfVar::Term(term_var) => self.uf.find(var_map[term_var].unwrap()),
+            };
             let vfind = self.uf.find(var_map[var].unwrap());
-            free_set.get_mut(&bfind).unwrap().remove(&vfind);
+            free_set.get_mut(&lfind).unwrap().remove(&vfind);
+            if let NfVar::Term(_) = nf_var {
+                // Between two variables, distinctness is symmetric.
+                free_set.get_mut(&vfind).unwrap().remove(&lfind);
+            }
         }
         // We take it out to make the borrow checker happy. Alternatively we could
         // make this method `&self` and put `uf` in a `RefCell`.
         let nfi_constraints = mem::replace(&mut self.nfi_constraints, Vec::new());
         let mut result = Ok(());
-        for &(bound_var, var) in &nfi_constraints {
-            let bfind = self.uf.find(bound_var);
-            if self.is_free_in(bfind, var, free_set.get(&bfind)) {
+        for &(left, var) in &nfi_constraints {
+            let lfind = self.uf.find(left);
+            if self.infos[lfind].is_some() {
+                result = Err(Error::NotVariable);
+                break;
+            }
+            if self.is_free_in(lfind, var, &free_set, &term_var_set) {
                 result = Err(Error::NotFreeIn);
                 break;
             }
@@ -506,36 +532,74 @@ impl<'a> Graph<'a> {
         result
     }
 
-    /// Checks whether a given bound variable is free in the expression corresponding
+    /// Checks whether a given variable is free in the expression corresponding
     /// to a graph node.
     ///
-    /// The `bfind` parameter is the bound variable node, resolved with `uf.find()`.
+    /// The `lfind` parameter is the variable node, resolved with `uf.find()`. It
+    /// is a bound variable, or a term variable of the theorem being proved.
     // TODO (performance): should probably memoize the queries, otherwise this can be
     // susceptible to exponential blowup.
-    fn is_free_in(&mut self, bfind: usize, var: usize,
-        free_set: Option<&BTreeSet<usize>>)
+    fn is_free_in(&mut self, lfind: usize, var: usize,
+        free_set: &BTreeMap<usize, BTreeSet<usize>>, term_var_set: &BTreeSet<usize>)
         -> bool
     {
+        // Variables of the proof that aren't the theorem's are fresh dummies,
+        // so they are distinct from everything else.
+        let lfree = match free_set.get(&lfind) {
+            Some(lfree) => lfree,
+            None => return self.occurs_in(lfind, var),
+        };
+        let l_is_term = term_var_set.contains(&lfind);
         // Note: could take a scratch stack as an argument to improve reuse and
         // decrease allocation.
         let mut stack = vec![var];
         while let Some(var) = stack.pop() {
             let vfind = self.uf.find(var);
-            if bfind == vfind {
+            if lfind == vfind {
                 return true;
             }
             if let Some(ref info) = self.infos[vfind] {
                 if info.constructor == self.backslash {
                     let child_bound_var = self.uf.find(info.children[0]);
-                    if child_bound_var != bfind {
+                    if child_bound_var != lfind {
                         stack.push(info.children[1])
                     }
                 } else {
                     stack.extend_from_slice(&info.children);
                 }
-            } else if let Some(free_set) = free_set {
-                if free_set.contains(&vfind) {
+            } else if term_var_set.contains(&vfind) {
+                if lfree.contains(&vfind) {
                     return true;
+                }
+            } else if l_is_term {
+                // A bound variable of the theorem might be what the term
+                // variable on the left becomes, unless declared distinct.
+                if let Some(vfree) = free_set.get(&vfind) {
+                    if vfree.contains(&lfind) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// Checks whether a node occurs free in an expression, without considering
+    /// what the theorem's term variables might contain.
+    fn occurs_in(&mut self, lfind: usize, var: usize) -> bool {
+        let mut stack = vec![var];
+        while let Some(var) = stack.pop() {
+            let vfind = self.uf.find(var);
+            if lfind == vfind {
+                return true;
+            }
+            if let Some(ref info) = self.infos[vfind] {
+                if info.constructor == self.backslash {
+                    if self.uf.find(info.children[0]) != lfind {
+                        stack.push(info.children[1])
+                    }
+                } else {
+                    stack.extend_from_slice(&info.children);
                 }
             }
         }
