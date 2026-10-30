@@ -101,6 +101,7 @@ struct Predefined {
     coercion: Token,
     def: Token,
     kind: Token,
+    notation: Token,
     term: Token,
     theorem: Token,
     var: Token,
@@ -144,6 +145,7 @@ impl Predefined {
             coercion: lexer.intern("coercion"),
             def: lexer.intern("def"),
             kind: lexer.intern("kind"),
+            notation: lexer.intern("notation"),
             term: lexer.intern("term"),
             theorem: lexer.intern("theorem"),
             var: lexer.intern("var"),
@@ -183,6 +185,17 @@ pub struct Parser<'a> {
     arity: BTreeMap<Token, usize>,
     /// Terms that are silently inserted to convert between kinds.
     coercions: BTreeSet<Token>,
+    notations: BTreeMap<Token, Notation>,
+}
+
+/// How to typeset a variable or term.
+#[derive(Clone)]
+pub struct Notation {
+    pub prec: u32,
+    pub arg_prec: Vec<u32>,
+    /// TeX, where `#2` is the second argument, under any lambdas, and `#2@0` is
+    /// the variable of the outermost lambda of the second argument.
+    pub template: String,
 }
 
 #[derive(Clone, Copy)]
@@ -217,6 +230,7 @@ impl<'a> Parser<'a> {
             binops: BTreeMap::new(),
             arity: BTreeMap::new(),
             coercions: BTreeSet::new(),
+            notations: BTreeMap::new(),
         }
     }
 
@@ -230,6 +244,7 @@ impl<'a> Parser<'a> {
             binops: self.binops.clone(),
             arity: self.arity.clone(),
             coercions: self.coercions.clone(),
+            notations: self.notations.clone(),
         }
     }
 
@@ -376,6 +391,8 @@ impl<'a> Parser<'a> {
             Ok(self.node(start, Info::TermCmd, children))
         } else if token == self.predefined.coercion {
             self.parse_coercion(start)
+        } else if token == self.predefined.notation {
+            self.parse_notation(start)
         } else if token == self.predefined.def {
             self.parse_def(start)
         } else if token == self.predefined.axiom {
@@ -437,6 +454,26 @@ impl<'a> Parser<'a> {
         let children = vec![self.leaf(c_s, Info::Const(con_tok)),
             self.leaf(f_s, Info::Kind(from)), self.leaf(t_s, Info::Kind(to))];
         Ok(self.node(start, Info::CoercionCmd, children))
+    }
+
+    /// Parses `notation con prec arg_prec...: template`, where the template is
+    /// the rest of the line. It's applied right away, like `syntax`.
+    fn parse_notation(&mut self, start: usize) -> Result<ParseNode, Error> {
+        let con = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+        let prec = self.lexer.next_u32().ok_or(Error::ExpectedNum)?;
+        let mut arg_prec = Vec::new();
+        while let Some(p) = self.lexer.next_u32() {
+            arg_prec.push(p);
+        }
+        let colon = self.predefined.colon;
+        self.expect(colon)?;
+        let template = self.lexer.rest_of_line().to_string();
+        self.notations.insert(con, Notation { prec, arg_prec, template });
+        Ok(self.node(start, Info::SyntaxCmd, Vec::new()))
+    }
+
+    pub fn notation(&self, tok: Token) -> Option<&Notation> {
+        self.notations.get(&tok)
     }
 
     /// Whether the term is a coercion, which isn't shown when typesetting.

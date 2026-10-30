@@ -22,7 +22,7 @@ use std::process::exit;
 mod grammar;
 
 mod parser;
-use parser::{Scanner, Parser};
+use parser::{latexdefs, Scanner, Parser};
 
 mod proofout;
 use proofout::ProofOut;
@@ -42,7 +42,7 @@ fn run_file(scr_fn: &str, filename: &str, out_fn: &str, all: bool) -> io::Result
     let s = Scanner::new(&contents);
     let mut p = Parser::new(s);
     let out = ProofOut::new(out_fn)?;
-    let mut sess = Session::new(out);
+    let mut sess = Session::new(out, latexdefs(&contents));
     sess.run_script(&mut script, &mut p);
     Ok(())
 }

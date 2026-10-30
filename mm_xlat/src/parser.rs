@@ -14,6 +14,8 @@
 
 //! A parser for compressed Metamath format files.
 
+use std::collections::HashMap;
+
 pub struct Scanner<'a> {
     text: &'a str,
     ix: usize,
@@ -243,6 +245,51 @@ impl<'a> Iterator for Compressed<'a> {
                     panic!("unknown byte 0x{:02x} in compressed proof", c);
                 }
             }
+        }
+    }
+}
+
+/// Reads the `latexdef` entries of the `$t` comment, by symbol.
+pub fn latexdefs(text: &str) -> HashMap<String, String> {
+    let mut defs = HashMap::new();
+    for (ix, _) in text.match_indices("latexdef ") {
+        let rest = &text[ix + "latexdef ".len()..];
+        if let Some((sym, mut rest)) = quoted(rest) {
+            rest = rest.trim_start();
+            if !rest.starts_with("as") {
+                continue;
+            }
+            rest = &rest[2..];
+            let mut tex = String::new();
+            while let Some((part, after)) = quoted(rest) {
+                tex.push_str(&part);
+                rest = after.trim_start();
+                if !rest.starts_with('+') {
+                    break;
+                }
+                rest = &rest[1..];
+            }
+            if rest.starts_with(';') {
+                defs.insert(sym, tex);
+            }
+        }
+    }
+    defs
+}
+
+/// Reads a quoted string, where a doubled quote stands for itself.
+fn quoted(text: &str) -> Option<(String, &str)> {
+    let text = text.trim_start();
+    let quote = text.chars().next().filter(|&c| c == '"' || c == '\'')?;
+    let body = &text[1..];
+    let mut end = 0;
+    loop {
+        let ix = end + body[end..].find(quote)?;
+        if body[ix + 1..].starts_with(quote) {
+            end = ix + 2;
+        } else {
+            let q = quote.to_string();
+            return Some((body[..ix].replace(&q.repeat(2), &q), &body[ix + 1..]));
         }
     }
 }

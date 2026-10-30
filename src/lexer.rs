@@ -272,6 +272,15 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Scans the rest of the current line, as text rather than tokens.
+    pub fn rest_of_line(&mut self) -> &'a str {
+        self.lookahead = None;
+        let rest = &self.text[self.ix..];
+        let len = rest.find('\n').unwrap_or(rest.len());
+        self.ix += len;
+        rest[..len].trim()
+    }
+
     /// Returns the string for the given token.
     pub fn tok_str(&self, tok: Token) -> &str {
         &self.tokens[tok]

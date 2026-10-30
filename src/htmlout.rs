@@ -239,7 +239,16 @@ translated and checked by <a href="https://github.com/raphlinus/ghilbert">Ghilbe
 window.MathJax = {{
   AuthorInit: function() {{ MathJax.Hub.processSectionDelay = 0; }},
   CommonHTML: {{ linebreaks: {{ automatic: true }} }},
-  TeX: {{ MAXBUFFER: 1048576 }}
+  TeX: {{
+    MAXBUFFER: 1048576,
+    Macros: {{
+      Uplambda: "\\Lambda", updelta: "\\delta", upgamma: "\\gamma",
+      upmu: "\\mu", upomega: "\\omega", uppi: "\\pi", uppsi: "\\psi",
+      upsigma: "\\sigma", uptau: "\\tau", uptheta: "\\theta",
+      bigtimes: "\\mathop{{\\Large\\times}}", riota: "\\mathop{{\\text{{℩}}}}",
+      d: ["\\underset{{\\cdot}}{{#1}}", 1], textsc: ["\\mathrm{{#1}}", 1]
+    }}
+  }}
 }};
 </script>
 <script type="text/javascript" async

@@ -17,7 +17,7 @@
 // Currently the typesetting rules are basically hardcoded, but we want to
 // move as much as possible into syntax definitions.
 
-use parser::{Info, Parser, ParseNode};
+use parser::{Info, Notation, Parser, ParseNode};
 
 pub struct Typeset;
 
@@ -40,6 +40,11 @@ impl Typeset {
         } else if let Info::Atom(tok) | Info::Var(tok) = node.info {
             if parser.is_coercion(tok) && node.children.len() == 1 {
                 return self.rec(&node.children[0], parser, buf, prec);
+            }
+            if let Some(notation) = parser.notation(tok) {
+                if notation.arg_prec.len() == node.children.len() {
+                    return self.notation(notation, node, parser, buf, prec);
+                }
             }
             let tok = parser.tok_str(tok);
             match tok {
@@ -92,6 +97,40 @@ impl Typeset {
             }
         } else {
             println!("unexpected {:?} in typeset", node);
+        }
+    }
+
+    fn notation(&self, notation: &Notation, node: &ParseNode, parser: &Parser,
+        buf: &mut String, prec: u32)
+    {
+        if notation.prec < prec {
+            buf.push('(');
+        }
+        let mut rest = &notation.template[..];
+        while let Some(ix) = find_arg(rest) {
+            buf.push_str(&rest[..ix]);
+            rest = &rest[ix + 1..];
+            let (arg, after) = split_num(rest);
+            rest = after;
+            let mut child = &node.children[arg - 1];
+            if rest.starts_with('@') {
+                let (depth, after) = split_num(&rest[1..]);
+                rest = after;
+                for _ in 0..depth {
+                    child = lambda_parts(child, parser).expect("lambda in notation").1;
+                }
+                let var = lambda_parts(child, parser).expect("lambda in notation").0;
+                self.rec(var, parser, buf, 0);
+            } else {
+                while let Some((_, body)) = lambda_parts(child, parser) {
+                    child = body;
+                }
+                self.rec(child, parser, buf, notation.arg_prec[arg - 1]);
+            }
+        }
+        buf.push_str(rest);
+        if notation.prec < prec {
+            buf.push(')');
         }
     }
 
@@ -186,6 +225,20 @@ impl Typeset {
             buf.push(')');
         }
     }
+}
+
+/// Finds the next argument in a template, which is a `#` before a digit that
+/// isn't escaped.
+fn find_arg(s: &str) -> Option<usize> {
+    let b = s.as_bytes();
+    (0..b.len()).find(|&i| b[i] == b'#' && (i == 0 || b[i - 1] != b'\\')
+        && b.get(i + 1).map_or(false, u8::is_ascii_digit))
+}
+
+/// Splits the leading number off a string.
+fn split_num(s: &str) -> (usize, &str) {
+    let len = s.find(|c: char| !c.is_ascii_digit()).unwrap_or(s.len());
+    (s[..len].parse().unwrap_or(0), &s[len..])
 }
 
 /// Splits a lambda into its bound variable and body. Lambdas from the parser are
