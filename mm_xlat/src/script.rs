@@ -40,6 +40,8 @@ pub enum Command {
     BoundForm(Vec<String>),
     /// Write a theorem with a hand-written proof (the lines of its body).
     Prove(String, String),
+    /// Give a hand-written proof to an instance of a statement (see Session).
+    ProveInstance(String, String),
 }
 
 impl Script {
@@ -75,7 +77,7 @@ impl Iterator for Script {
                         "assume" => return Some(Command::Assume(l[1].to_string())),
                         "bound_form" => return Some(Command::BoundForm(
                             l[1..].iter().map(|s| s.to_string()).collect())),
-                        "prove" => {
+                        "prove" | "prove_instance" => {
                             let label = l[1].to_string();
                             let mut body = String::new();
                             loop {
@@ -84,7 +86,11 @@ impl Iterator for Script {
                                 if n == 0 || line.trim() == "--" { break; }
                                 body.push_str(&line);
                             }
-                            return Some(Command::Prove(label, body));
+                            return Some(if l[0] == "prove" {
+                                Command::Prove(label, body)
+                            } else {
+                                Command::ProveInstance(label, body)
+                            });
                         }
                         "replace" => {
                             self.mode = Mode::Copy;

@@ -44,6 +44,13 @@ struct Frame<'a> {
     dv: Vec<(&'a str, &'a str)>,
 }
 
+/// A proof, with what's needed to replay it outside of its block.
+struct SavedProof<'a> {
+    steps: Vec<&'a str>,
+    /// The `$f` statements active only in the enclosing blocks.
+    floats: Vec<(&'a str, &'a str, &'a str)>,
+}
+
 /// How a syntax axiom is written in Ghilbert.
 enum Notation {
     Infix(&'static str),
@@ -60,6 +67,8 @@ struct TermInfo<'a> {
     prec: (u32, u32),
     /// Variables of the pattern, with typecodes and whether each binds.
     vars: Vec<(&'a str, &'a str, bool)>,
+    /// For each variable of the pattern, whether it's in the binders' scope.
+    scoped: Vec<bool>,
 }
 
 /// Where a term is printed, for deciding on parentheses.
@@ -94,13 +103,30 @@ fn nice_notation(label: &str) -> Option<(Notation, &'static str, u32)> {
 /// class arguments, which is the same default MM0's translation uses.
 const NON_BINDING: &[(&str, usize)] = &[
     ("wsb", 0),  // [ y / x ] ph: y is free
+    ("wcdeq", 0),  // CondEq ( x = y -> ph ): nothing is bound
+    ("wcdeq", 1),
+];
+
+/// Wff and class arguments (by position among the pattern's variables) outside
+/// the scope of the binder. A setvar that occurs free in one of these also
+/// occurs free in the whole term. The default would wrongly make it not free,
+/// even though every proof in set.mm would still check.
+const UNSCOPED: &[(&str, usize)] = &[
+    ("wsbc", 0),  // [. A / x ]. ph
+    ("csb", 0),  // [_ A / x ]_ B
+    ("csu", 1),  // sum_ k e. A B: A occurs outside the scope of k in df-sum
+    ("cprod", 1),  // prod_ k e. A B
+    ("cdit", 0),  // S_ [ A -> B ] C _d x: A <_ B occurs outside the integral
+    ("cdit", 1),
 ];
 
 const SETVAR: &str = "setvar";
 
 pub struct Session<'a> {
     out: ProofOut,
-    frames: HashMap<&'a str, Frame<'a>>,
+    frames: HashMap<&'a str, Rc<Frame<'a>>>,
+    /// Proofs of the statements read so far, for writing instances of them.
+    proofs: HashMap<&'a str, Rc<SavedProof<'a>>>,
     /// Active hypotheses, in order of appearance.
     hyps: Vec<(&'a str, Hyp<'a>)>,
     /// Active variables and their typecodes (from `$f`).
@@ -123,6 +149,9 @@ pub struct Session<'a> {
     bound_form: Vec<String>,
     /// The setvar variables written as term variables in each statement.
     free_by_stmt: HashMap<&'a str, Vec<&'a str>>,
+    /// Hand-written proofs of instances that don't follow from a replayed proof
+    /// (see `instance`).
+    instance_proofs: HashMap<String, String>,
     /// A statement read but not yet processed (see `run_until`).
     pending: Option<Statement<'a>>,
     /// A hand-written proof body for the next statement written (from `prove`).
@@ -137,6 +166,7 @@ impl<'a> Session<'a> {
         Session {
             out,
             frames: HashMap::new(),
+            proofs: HashMap::new(),
             hyps: Vec::new(),
             vars: HashMap::new(),
             dvs: Vec::new(),
@@ -148,6 +178,7 @@ impl<'a> Session<'a> {
             free_setvars: Vec::new(),
             bound_form: Vec::new(),
             free_by_stmt: HashMap::new(),
+            instance_proofs: HashMap::new(),
             pending: None,
             manual_proof: None,
         }
@@ -198,6 +229,9 @@ impl<'a> Session<'a> {
                     let stmt = self.run_upto(&l, parser);
                     self.do_stmt(stmt, Mode::Assume);
                 }
+                Command::ProveInstance(l, body) => {
+                    self.instance_proofs.insert(l, body);
+                }
                 Command::Prove(l, body) => {
                     let stmt = self.run_upto(&l, parser);
                     self.manual_proof = Some(body);
@@ -219,14 +253,10 @@ impl<'a> Session<'a> {
             Statement::StartBlock => self.blocks.push((self.hyps.len(), self.dvs.len())),
             Statement::EndBlock => {
                 let (h, d) = self.blocks.pop().unwrap();
-                if self.hyps[h..].iter().any(|&(_, ref hyp)| if let Hyp::F(..) = *hyp { true } else { false }) {
-                    self.hyps.truncate(h);
-                    self.vars = self.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
-                        Hyp::F(tc, v) => Some((v, tc)),
-                        _ => None,
-                    }).collect();
-                } else {
-                    self.hyps.truncate(h);
+                let reset = self.hyps[h..].iter().any(|&(_, ref hyp)| if let Hyp::F(..) = *hyp { true } else { false });
+                self.hyps.truncate(h);
+                if reset {
+                    self.reset_vars();
                 }
                 self.dvs.truncate(d);
             }
@@ -246,7 +276,7 @@ impl<'a> Session<'a> {
                     self.comment = None;
                     self.do_syntax(label, &concl);
                 }
-                self.frames.insert(label, frame);
+                self.frames.insert(label, Rc::new(frame));
             }
             Statement::Proof(label, concl, proof) => {
                 let frame = self.make_frame(&concl);
@@ -254,17 +284,31 @@ impl<'a> Session<'a> {
                 if concl[0] == "|-" {
                     match mode {
                         Mode::Normal => {
-                            let lines = self.replay_proof(label, &frame, &proof);
+                            let lines = self.replay_proof(label, &frame, &proof, &[]);
                             self.write_stmt(label, &frame, comment, Some(&lines));
                         }
                         Mode::Assume => self.write_stmt(label, &frame, comment, None),
                         Mode::Skip => (),
                     }
                 }
-                self.frames.insert(label, frame);
+                self.frames.insert(label, Rc::new(frame));
+                let start = self.blocks.first().map_or(self.hyps.len(), |b| b.0);
+                let floats = self.hyps[start..].iter().filter_map(|&(l, ref hyp)| match *hyp {
+                    Hyp::F(tc, v) => Some((l, tc, v)),
+                    _ => None,
+                }).collect();
+                self.proofs.insert(label, Rc::new(SavedProof { steps: proof, floats }));
             }
             _ => (),
         }
+    }
+
+    /// Makes the active variables those of the active hypotheses.
+    fn reset_vars(&mut self) {
+        self.vars = self.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
+            Hyp::F(tc, v) => Some((v, tc)),
+            _ => None,
+        }).collect();
     }
 
     fn declare_var(&mut self, var: &'a str, tc: &'a str) {
@@ -275,11 +319,12 @@ impl<'a> Session<'a> {
             return;
         }
         self.declared.insert(var, tc);
+        let name = gh_var(var);
         if tc == SETVAR {
-            self.out.write(&format!("bound {}: {};\n", var, tc));
-            self.out.write(&format!("var {}': {};\n", var, tc));
+            self.out.write(&format!("bound {}: {};\n", name, tc));
+            self.out.write(&format!("var {}': {};\n", name, tc));
         } else {
-            self.out.write(&format!("var {}: {};\n", var, tc));
+            self.out.write(&format!("var {}: {};\n", name, tc));
         }
     }
 
@@ -327,13 +372,14 @@ impl<'a> Session<'a> {
             (v, vtc, binds)
         }).collect();
         self.grammar.add(ax);
+        let scoped: Vec<_> = (0..vars.len()).map(|i| !UNSCOPED.contains(&(label, i))).collect();
         let n_binding = vars.iter().filter(|v| v.2).count();
         let mut arg_types = String::new();
-        for &(_, vtc, binds) in &vars {
+        for (&(_, vtc, binds), &in_scope) in vars.iter().zip(&scoped) {
             if binds {
                 continue;
             }
-            if vtc != SETVAR && n_binding > 0 {
+            if vtc != SETVAR && n_binding > 0 && in_scope {
                 arg_types.push_str(" (");
                 for _ in 0..n_binding {
                     arg_types.push_str("setvar->");
@@ -358,7 +404,7 @@ impl<'a> Session<'a> {
             None => (Notation::Plain, label.to_string(), (0, 0)),
         };
         self.out.write(&format!("term {}{} : {};\n", name, arg_types, tc));
-        self.terms.push(TermInfo { name, notation, prec, vars });
+        self.terms.push(TermInfo { name, notation, prec, vars, scoped });
     }
 
     /// Converts a Metamath expression (starting with typecode `|-`) to Ghilbert.
@@ -408,7 +454,7 @@ impl<'a> Session<'a> {
     fn print_ctx(&self, tree: &Rc<Tree<'a>>, ctx: Ctx, s: &mut String) {
         let (ix, kids) = match **tree {
             Tree::Var(v) => {
-                s.push_str(v);
+                s.push_str(&gh_var(v));
                 if self.free_setvars.contains(&v) {
                     s.push('\'');
                 }
@@ -449,9 +495,10 @@ impl<'a> Session<'a> {
             }
             Notation::Plain => {
                 s.push_str(&info.name);
-                for (&(_, vtc, _), kid) in info.vars.iter().filter(|v| !v.2).zip(bodies) {
+                let args = info.vars.iter().zip(&info.scoped).filter(|&(v, _)| !v.2);
+                for ((&(_, vtc, _), &in_scope), kid) in args.zip(bodies) {
                     s.push(' ');
-                    if vtc == SETVAR || binders.is_empty() {
+                    if vtc == SETVAR || binders.is_empty() || !in_scope {
                         self.print_ctx(kid, Ctx::Arg, s);
                     } else {
                         for b in &binders {
@@ -549,9 +596,9 @@ impl<'a> Session<'a> {
         // A `$d` becomes a not-free-in constraint with a setvar on the left
         // (for two setvars, either way round means they differ).
         let name = |v: &str| if self.free_setvars.contains(&v) {
-            format!("{}'", v)
+            format!("{}'", gh_var(v))
         } else {
-            v.to_string()
+            gh_var(v)
         };
         let is_bound = |v: &str| self.vars[v] == SETVAR && !self.free_setvars.contains(&v);
         let notfree = frame.dv.iter().filter_map(|&(a, b)| {
@@ -612,6 +659,58 @@ impl<'a> Session<'a> {
         self.out.write(&s);
     }
 
+    /// Finds the bound setvars of a statement that a proof step makes the same
+    /// variable, which Ghilbert doesn't allow. Returns a map identifying them.
+    fn coincidences(&self, label: &str, subst: &[(&'a str, &'a str)]) -> Vec<(&'a str, &'a str)> {
+        let free = match self.free_by_stmt.get(label) {
+            Some(free) => free,
+            None => return Vec::new(),
+        };
+        let bound: Vec<_> = subst.iter().filter(|p| !free.contains(&p.0)).collect();
+        let mut map = Vec::new();
+        for (i, &&(a, t)) in bound.iter().enumerate() {
+            if let Some(&&(first, _)) = bound[..i].iter().find(|p| p.1 == t) {
+                map.push((a, first));
+            }
+        }
+        map
+    }
+
+    /// Gets the label of an instance of a statement with setvars identified,
+    /// writing the instance if it's new. Its proof is the replayed proof of the
+    /// statement, since any instance of a Metamath proof is a proof.
+    fn instance(&mut self, label: &'a str, map: Vec<(&'a str, &'a str)>) -> &'a str {
+        let mut name = label.to_string();
+        for &(a, b) in &map {
+            name.push_str(&format!(".{}={}", a, b));
+        }
+        if let Some((&name, _)) = self.frames.get_key_value(name.as_str()) {
+            return name;
+        }
+        let name: &'a str = Box::leak(name.into_boxed_str());
+        let frame = self.frames[label].clone();
+        let inst_frame = instance_frame(&frame, &map);
+        let comment = format!("Instance of {} with setvars identified.", label);
+        self.manual_proof = self.instance_proofs.remove(name);
+        match (self.manual_proof.is_some(), self.proofs.get(label).cloned()) {
+            (false, Some(proof)) => {
+                let n_hyps = self.hyps.len();
+                for &(l, tc, v) in &proof.floats {
+                    self.hyps.push((l, Hyp::F(tc, v)));
+                    self.vars.insert(v, tc);
+                }
+                let lines = self.replay_proof(name, &frame, &proof.steps, &map);
+                self.write_stmt(name, &inst_frame, Some(&comment), Some(&lines));
+                self.hyps.truncate(n_hyps);
+                self.reset_vars();
+            }
+            (false, None) => panic!("no proof of {}, an instance of an axiom", name),
+            _ => self.write_stmt(name, &inst_frame, Some(&comment), None),
+        }
+        self.frames.insert(name, Rc::new(inst_frame));
+        name
+    }
+
     /// Replaces dummy wff and class variables in a result line by a variable of
     /// the same typecode from the statement, since Ghilbert result lines can't
     /// name dummy term variables. Any instance of a proof is still a proof.
@@ -619,7 +718,7 @@ impl<'a> Session<'a> {
         let mand_var = |tc: &str| frame.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
             Hyp::F(htc, v) if htc == tc => Some(v),
             _ => None,
-        }).next();
+        }).next().or_else(|| self.grammar.constant(tc));
         let is_mand = |t: &str| frame.hyps.iter().any(|&(_, ref hyp)| match *hyp {
             Hyp::F(_, v) => v == t,
             _ => false,
@@ -631,7 +730,12 @@ impl<'a> Session<'a> {
     }
 
     /// Replays a proof, returning its judgment steps.
-    fn replay_proof(&self, label: &str, frame: &Frame<'a>, proof: &[&'a str]) -> Vec<Line<'a>> {
+    ///
+    /// The `map` argument identifies setvars of the statement, for replaying a
+    /// proof as a proof of an instance.
+    fn replay_proof(&mut self, label: &str, frame: &Frame<'a>, proof: &[&'a str], map: &VarMap<'a>)
+        -> Vec<Line<'a>>
+    {
         let mut lines = Vec::new();
         let mut stack: Vec<El<'a>> = Vec::new();
         if proof.first() == Some(&"(") {
@@ -645,43 +749,47 @@ impl<'a> Session<'a> {
                     saved.push(stack.last().unwrap().clone());
                 } else if step <= m {
                     let (hyp_label, ref hyp) = frame.hyps[step - 1];
-                    self.push_hyp(hyp_label, hyp, &mut stack, &mut lines);
+                    self.push_hyp(hyp_label, hyp, map, &mut stack, &mut lines);
                 } else if step <= m + n {
-                    self.apply_label(label, labels[step - m - 1], &mut stack, &mut lines);
+                    self.apply_label(label, labels[step - m - 1], frame, map, &mut stack, &mut lines);
                 } else {
                     stack.push(saved[step - m - n - 1].clone());
                 }
             }
         } else {
             for &step in proof {
-                self.apply_label(label, step, &mut stack, &mut lines);
+                self.apply_label(label, step, frame, map, &mut stack, &mut lines);
             }
         }
         lines
     }
 
-    fn push_hyp(&self, hyp_label: &'a str, hyp: &Hyp<'a>, stack: &mut Vec<El<'a>>,
+    fn push_hyp(&self, hyp_label: &'a str, hyp: &Hyp<'a>, map: &VarMap<'a>, stack: &mut Vec<El<'a>>,
         lines: &mut Vec<Line<'a>>)
     {
         match *hyp {
-            Hyp::F(tc, v) => stack.push(El { expr: Rc::new(vec![tc, v]), step: None }),
+            Hyp::F(tc, v) => stack.push(El { expr: Rc::new(vec![tc, apply_map(map, v)]), step: None }),
             Hyp::E(ref e) => {
                 let step = lines.len();
-                lines.push(Line { label: hyp_label, args: Vec::new(), expr: Rc::new(e.clone()),
+                let e: Rc<Vec<_>> = Rc::new(e.iter().map(|&t| apply_map(map, t)).collect());
+                lines.push(Line { label: hyp_label, args: Vec::new(), expr: e.clone(),
                     needs_result: false, subst: Vec::new() });
-                stack.push(El { expr: Rc::new(e.clone()), step: Some(step) });
+                stack.push(El { expr: e, step: Some(step) });
             }
         }
     }
 
-    fn apply_label(&self, thm: &str, label: &'a str, stack: &mut Vec<El<'a>>,
-        lines: &mut Vec<Line<'a>>)
+    fn apply_label(&mut self, thm: &str, label: &'a str, thm_frame: &Frame<'a>, map: &VarMap<'a>,
+        stack: &mut Vec<El<'a>>, lines: &mut Vec<Line<'a>>)
     {
-        if let Some(&(hyp_label, ref hyp)) = self.hyps.iter().rev().find(|h| h.0 == label) {
-            return self.push_hyp(hyp_label, hyp, stack, lines);
+        let is_label = |h: &&(&'a str, Hyp<'a>)| h.0 == label;
+        if let Some(&(hyp_label, ref hyp)) = thm_frame.hyps.iter().find(is_label)
+            .or_else(|| self.hyps.iter().rev().find(is_label))
+        {
+            return self.push_hyp(hyp_label, hyp, map, stack, lines);
         }
         let frame = self.frames.get(label).unwrap_or_else(||
-            panic!("{}: unknown label {} in proof", thm, label));
+            panic!("{}: unknown label {} in proof", thm, label)).clone();
         let base = stack.len() - frame.hyps.len();
         let mut subst = HashMap::new();
         let mut setvar_subst = Vec::new();
@@ -722,6 +830,14 @@ impl<'a> Session<'a> {
                 lines[arg].needs_result = true;
             }
         }
+        let inst_map: Vec<_> = self.coincidences(label, &setvar_subst);
+        let (label, setvar_subst) = if inst_map.is_empty() {
+            (label, setvar_subst)
+        } else {
+            let subst = setvar_subst.into_iter().filter(|p| !inst_map.iter().any(|m| m.0 == p.0))
+                .collect();
+            (self.instance(label, inst_map), subst)
+        };
         let step = lines.len();
         lines.push(Line { label, args, expr: expr.clone(), needs_result: false,
             subst: setvar_subst });
@@ -736,6 +852,25 @@ enum Mode {
     Skip,
     /// Write a theorem as an axiom, without its proof.
     Assume,
+}
+
+/// Identifies setvars of a statement: each first variable becomes the second.
+type VarMap<'a> = [(&'a str, &'a str)];
+
+fn apply_map<'a>(map: &VarMap<'a>, t: &'a str) -> &'a str {
+    map.iter().find(|m| m.0 == t).map_or(t, |m| m.1)
+}
+
+/// Makes the frame of an instance of a statement.
+fn instance_frame<'a>(frame: &Frame<'a>, map: &VarMap<'a>) -> Frame<'a> {
+    let subst = |e: &[&'a str]| e.iter().map(|&t| apply_map(map, t)).collect::<Vec<_>>();
+    let hyps = frame.hyps.iter().filter_map(|&(label, ref hyp)| match *hyp {
+        Hyp::F(_, v) if apply_map(map, v) != v => None,
+        Hyp::F(..) => Some((label, hyp.clone())),
+        Hyp::E(ref e) => Some((label, Hyp::E(subst(e)))),
+    }).collect();
+    let dv = frame.dv.iter().map(|&(a, b)| (apply_map(map, a), apply_map(map, b))).collect();
+    Frame { hyps, concl: subst(&frame.concl), dv }
 }
 
 /// An entry on the proof replay stack.
@@ -753,6 +888,11 @@ struct Line<'a> {
     needs_result: bool,
     /// For the setvar variables of the statement applied, what they become.
     subst: Vec<(&'a str, &'a str)>,
+}
+
+/// The name of a variable in Ghilbert, where parentheses end a token in `var`.
+fn gh_var(var: &str) -> String {
+    var.replace('(', "[").replace(')', "]")
 }
 
 /// The level of a line of a set.mm section header, if it is one of the rules

@@ -63,6 +63,13 @@ impl<'a> Grammar<'a> {
         ix
     }
 
+    /// Finds a constant of the given typecode.
+    pub fn constant(&self, tc: &str) -> Option<&'a str> {
+        self.by_tc.get(tc)?.iter().map(|&ix| &self.axioms[ix])
+            .find(|ax| ax.pattern.len() == 1 && ax.var_tc[0].is_none())
+            .map(|ax| ax.pattern[0])
+    }
+
     /// Parses the tokens as a complete expression of the given typecode.
     ///
     /// The `vars` argument maps variables in scope to their typecodes.
