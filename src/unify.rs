@@ -54,6 +54,10 @@ pub struct Definition {
     pub var_map: BTreeMap<Token, usize>,
     /// Map from variable name to index, same as arg to Expr::BoundVar
     pub bound_map: BTreeMap<Token, usize>,
+    /// Not-free-in constraints (bound var, term var) imposed on every
+    /// expansion. These arise when the rhs binds a variable (including a
+    /// dummy) over a term variable that is not in its scope in the lhs.
+    pub notfree: Vec<(usize, usize)>,
     pub lhs: Expr,
     pub rhs: Expr,
 }
@@ -335,6 +339,11 @@ impl<'a> Graph<'a> {
         self.infos[node] = None;
         self.unify_expr(node, &def.rhs, &mut vars, &mut bound_vars)?;
         //println!("expanding {}, vars={:?} {:?}", node, vars, self.infos[node]);
+        for &(bound_var, var) in &def.notfree {
+            let bound_var_ix = bound_vars[bound_var].unwrap();
+            let var_ix = vars[var].unwrap();
+            self.nfi_constraints.push((bound_var_ix, var_ix));
+        }
         self.distinct_bound_vars(bound_vars);
         Ok(())
     }
@@ -410,10 +419,11 @@ impl<'a> Graph<'a> {
         }
         // Ensure that the bound variables appearing in hyps, concl, and result
         // lines of theorem being proved are distinct and general.
+        let mut thm_bound_vars = BTreeSet::new();
         for opt_node in bound_var_map {
             if let Some(node) = *opt_node {
                 let nfind = self.uf.find(node);
-                if states[nfind] == State::Visited {
+                if states[nfind] == State::Visited || !thm_bound_vars.insert(nfind) {
                     return Err(Error::NotDistinct);
                 }
                 states[nfind] = State::Bound;

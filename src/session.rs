@@ -41,6 +41,8 @@ pub enum Error {
     NoRawBoundVars,
     NoTermMatching,
     DefCantBeLambda,
+    /// A bound variable would occur free in the expansion of a definition.
+    DefFreeBoundVar,
     ParseError(parser::Error),
     UnifyError(unify::Error),
 }
@@ -300,7 +302,10 @@ impl<'a> Session<'a> {
         graph.unify_expr(concl_node, &stmt.concl, &mut vars, &mut bound_vars)?;
         // Make sure all variables in hyps and concl are general, and other properties.
         graph.validate(&vars, &bound_vars)?;
-        graph.validate_notfree(&vars, &bound_vars, &stmt.notfree)?;
+        // Bound variables first named in result lines are dummies, so only the
+        // ones in the statement may occur free in its term variables.
+        let n_stmt_bound = stmt.bound_map.len();
+        graph.validate_notfree(&vars, &bound_vars[..n_stmt_bound], &stmt.notfree)?;
         listener.end_proof(&mut MyInspector {
             recon: graph.mk_reconstruct(&vars, &bound_vars),
             var_map: &stmt.var_map,
@@ -383,6 +388,8 @@ impl<'a> Session<'a> {
                 listener.result(res_line, result, &self.parser);
                 let (result_line, _kind) = self.term_to_expr(res_line, var_map,
                     bound_map, true)?;
+                // The result line may have introduced new bound variable names.
+                bound_ix_to_node.resize(bound_map.len(), None);
                 let res_node = graph.get_node(result);
                 graph.unify_expr(res_node, &result_line, var_ix_to_node, bound_ix_to_node)?;
             }
@@ -552,7 +559,14 @@ impl<'a> Session<'a> {
             Type::Base(kind) => kind,
             _ => return Err(Error::DefCantBeLambda),
         };
-        let def = Definition { index, var_map, bound_map, lhs, rhs };
+        // Free variable accounting: a term variable may contain free exactly
+        // those bound variables whose lambda encloses it in the lhs.
+        let mut deps = vec![Vec::new(); var_map.len()];
+        let backslash = self.parser.backslash();
+        lhs_deps(&lhs, backslash, &mut Vec::new(), &mut deps);
+        let mut notfree = Vec::new();
+        check_def_rhs(&rhs, backslash, &mut Vec::new(), &deps, &mut notfree)?;
+        let def = Definition { index, var_map, bound_map, notfree, lhs, rhs };
         Ok((def, (arg_types, kind)))
     }
 }
@@ -608,6 +622,61 @@ impl<'a, 'b> MyInspector<'a, 'b> {
             }
         }
     }
+}
+
+/// Records, for each term variable in a def lhs, the bound variables in scope.
+fn lhs_deps(expr: &Expr, backslash: Token, scope: &mut Vec<usize>, deps: &mut [Vec<usize>]) {
+    match *expr {
+        Expr::Var(v) => deps[v] = scope.clone(),
+        Expr::BoundVar(_) => (),
+        Expr::Term { constructor, ref children } => {
+            if let (true, Some(&Expr::BoundVar(b))) = (constructor == backslash, children.first()) {
+                scope.push(b);
+                lhs_deps(&children[1], backslash, scope, deps);
+                scope.pop();
+            } else {
+                for child in children {
+                    lhs_deps(child, backslash, scope, deps);
+                }
+            }
+        }
+    }
+}
+
+/// Checks that no bound variable can occur free in a def rhs, other than through
+/// the lhs arguments, and collects the not-free-in constraints needed to prevent
+/// capture when the rhs binds a variable over a term variable outside its scope
+/// in the lhs.
+fn check_def_rhs(expr: &Expr, backslash: Token, scope: &mut Vec<usize>, deps: &[Vec<usize>],
+    notfree: &mut Vec<(usize, usize)>) -> Result<(), Error>
+{
+    match *expr {
+        Expr::Var(v) => {
+            if deps[v].iter().any(|b| !scope.contains(b)) {
+                return Err(Error::DefFreeBoundVar);
+            }
+            for &b in scope.iter() {
+                if !deps[v].contains(&b) && !notfree.contains(&(b, v)) {
+                    notfree.push((b, v));
+                }
+            }
+        }
+        Expr::BoundVar(b) => if !scope.contains(&b) {
+            return Err(Error::DefFreeBoundVar);
+        },
+        Expr::Term { constructor, ref children } => {
+            if let (true, Some(&Expr::BoundVar(b))) = (constructor == backslash, children.first()) {
+                scope.push(b);
+                let result = check_def_rhs(&children[1], backslash, scope, deps, notfree);
+                scope.pop();
+                return result;
+            }
+            for child in children {
+                check_def_rhs(child, backslash, scope, deps, notfree)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 fn find_or_insert(map: &mut BTreeMap<Token, usize>, tok: Token) -> usize {
