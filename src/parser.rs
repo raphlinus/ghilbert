@@ -627,7 +627,6 @@ impl<'a> Parser<'a> {
                 break;
             }
         }
-        println!("{:?}", result);
         Ok(self.list(start, result))
     }
 

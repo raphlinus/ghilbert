@@ -19,6 +19,8 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::process::exit;
 
+mod grammar;
+
 mod parser;
 use parser::{Scanner, Parser};
 

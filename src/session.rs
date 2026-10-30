@@ -80,6 +80,9 @@ enum Type {
 
 pub struct Session<'a> {
     verbose: bool,
+    keep_going: bool,
+    n_theorems: usize,
+    n_failed: usize,
     parser: Parser<'a>,
     kinds: BTreeSet<KindName>,
     vars: BTreeMap<Token, VarType>,
@@ -141,6 +144,9 @@ impl<'a> Session<'a> {
     pub fn new(parser: Parser<'a>) -> Session<'a> {
         Session {
             verbose: true,
+            keep_going: false,
+            n_theorems: 0,
+            n_failed: 0,
             parser,
             kinds: BTreeSet::new(),
             vars: BTreeMap::new(),
@@ -282,10 +288,32 @@ impl<'a> Session<'a> {
             }
             return Err(Error::DuplicateStmt);
         }
-        let mut stmt = self.mk_stmt(&children[2], &children[3], &children[4])?;
+        self.n_theorems += 1;
+        let stmt = self.mk_stmt(&children[2], &children[3], &children[4]);
+        let mut stmt = match stmt {
+            Ok(stmt) => stmt,
+            Err(e) => return self.report_failure(step, e),
+        };
+        if let Err(e) = self.check_proof(node, &mut stmt, listener) {
+            // In keep-going mode the statement is still added, so that later
+            // proofs using it can be checked.
+            self.report_failure(step, e)?;
+        }
+        if self.verbose {
+            println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
+        }
+        self.stmts.insert(step, stmt);
+        Ok(())
+    }
+
+    /// Checks the proof of a theorem whose statement has already been built.
+    fn check_proof<L: ProofListener>(&self, node: &ParseNode, stmt: &mut Stmt, listener: &mut L)
+        -> Result<(), Error>
+    {
+        let children = &node.children;
         let mut graph = Graph::new(&self.defs, self.parser.backslash());
         // Note: hyps here is just 0..n_hyps, we can optimize
-        let (hyps, mut vars, mut bound_vars) = graph.add_hyps(&stmt)?;
+        let (hyps, mut vars, mut bound_vars) = graph.add_hyps(stmt)?;
         // Result lines can add new binding variables, but those won't affect the stmt.
         let mut bound_map = stmt.bound_map.clone();
         let mut steps = BTreeMap::new();
@@ -313,11 +341,31 @@ impl<'a> Session<'a> {
             session: self,
             graph: &mut graph,
         }, &self.parser);
-        if self.verbose {
-            println!("adding stmt {}: {:?}", self.parser.tok_str(step), &stmt);
-        }
-        self.stmts.insert(step, stmt);
         Ok(())
+    }
+
+    /// Reports a theorem that failed to check. Returns the error unless in
+    /// keep-going mode.
+    fn report_failure(&mut self, step: Token, e: Error) -> Result<(), Error> {
+        if !self.keep_going {
+            return Err(e);
+        }
+        println!("FAIL {}: {:?}", self.parser.tok_str(step), e);
+        self.n_failed += 1;
+        Ok(())
+    }
+
+    /// Returns the number of theorems checked and the number that failed.
+    pub fn counts(&self) -> (usize, usize) {
+        (self.n_theorems, self.n_failed)
+    }
+
+    pub fn set_verbose(&mut self, verbose: bool) {
+        self.verbose = verbose;
+    }
+
+    pub fn set_keep_going(&mut self, keep_going: bool) {
+        self.keep_going = keep_going;
     }
 
     // The `proof` argument is a list of lines.

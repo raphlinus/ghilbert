@@ -33,7 +33,7 @@ mod parser;
 use parser::Parser;
 
 mod prooflistener;
-use prooflistener::DebugListener;
+use prooflistener::{DebugListener, NullListener};
 
 mod sexp;
 use sexp::{Intern, Sexp};
@@ -51,6 +51,7 @@ fn my_main() -> ::std::io::Result<()> {
     let mut verbose = true;
     let mut sexpr = false;
     let mut debug = false;
+    let mut keep_going = false;
     for f in args {
         if f == "-q" {
             verbose = false;
@@ -60,6 +61,9 @@ fn my_main() -> ::std::io::Result<()> {
             continue;
         } else if f == "-d" {
             debug = true;
+            continue;
+        } else if f == "-k" {
+            keep_going = true;
             continue;
         }
         let mut file = File::open(f)?;
@@ -87,7 +91,17 @@ fn my_main() -> ::std::io::Result<()> {
             let lexer = Lexer::new(&contents);
             let parser = Parser::new(lexer);
             // A little code duplication here, but not so bad...
-            if debug {
+            if !verbose {
+                // Quiet mode: just check, reporting failures.
+                let mut session = Session::new(parser);
+                session.set_verbose(false);
+                session.set_keep_going(keep_going);
+                if let Err(e) = session.run(&mut NullListener) {
+                    println!("err: {:?}", e);
+                }
+                let (n_theorems, n_failed) = session.counts();
+                println!("checked {} theorems, {} failed", n_theorems, n_failed);
+            } else if debug {
                 let mut out = DebugListener;
                 let mut session = Session::new(parser);
                 if let Err(e) = session.run(&mut out) {

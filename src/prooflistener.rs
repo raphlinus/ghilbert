@@ -86,3 +86,18 @@ impl ProofListener for DebugListener {
         println!("  end line {:?}", node);
     }
 }
+
+/// A listener that ignores everything, for plain checking.
+pub struct NullListener;
+
+impl ProofListener for NullListener {
+    fn comment(&mut self, _start: usize, _end: usize) {}
+    fn start_proof(&mut self, _node: &ParseNode) {}
+    fn end_proof(&mut self, _inspector: &mut Inspector, _parser: &Parser) {}
+    fn hyp(&mut self, _hyp_name: &ParseNode, _hyp: &ParseNode, _parser: &Parser) {}
+    fn concl(&mut self, _concl: &ParseNode, _parser: &Parser) {}
+    fn start_line(&mut self, _node: &ParseNode) {}
+    fn step(&mut self, _node: &ParseNode, _step_ix: StepIx) {}
+    fn result(&mut self, _node: &ParseNode, _step_ix: StepIx, _parser: &Parser) {}
+    fn end_line(&mut self, _node: &ParseNode) {}
+}

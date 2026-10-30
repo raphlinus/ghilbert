@@ -31,7 +31,13 @@ enum Mode {
 pub enum Command {
     CopyLine(String),
     RunThrough(String),
+    /// Run up to (but not including) the labeled statement.
+    RunUntil(String),
     Skip(String),
+    /// Write a theorem as an axiom, without its proof.
+    Assume(String),
+    /// Keep all setvar variables of these statements bound (see Session).
+    BoundForm(Vec<String>),
 }
 
 impl Script {
@@ -62,7 +68,11 @@ impl Iterator for Script {
                     match l[0] {
                         "copy" => self.mode = Mode::Copy,
                         "run_through" => return Some(Command::RunThrough(l[1].to_string())),
+                        "run_until" => return Some(Command::RunUntil(l[1].to_string())),
                         "skip" => return Some(Command::Skip(l[1].to_string())),
+                        "assume" => return Some(Command::Assume(l[1].to_string())),
+                        "bound_form" => return Some(Command::BoundForm(
+                            l[1..].iter().map(|s| s.to_string()).collect())),
                         "replace" => {
                             self.mode = Mode::Copy;
                             return Some(Command::Skip(l[1].to_string()));
