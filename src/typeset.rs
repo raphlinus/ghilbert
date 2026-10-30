@@ -38,6 +38,9 @@ impl Typeset {
         if node.info == Info::Lambda {
             self.lambda(node, parser, buf, prec);
         } else if let Info::Atom(tok) | Info::Var(tok) = node.info {
+            if parser.is_coercion(tok) && node.children.len() == 1 {
+                return self.rec(&node.children[0], parser, buf, prec);
+            }
             let tok = parser.tok_str(tok);
             match tok {
                 "ph" => buf.push_str("\\varphi"),

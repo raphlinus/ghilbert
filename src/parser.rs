@@ -14,7 +14,7 @@
 
 //! Parser for new-style Ghilbert format.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use lexer::{Lexer, Token};
 
@@ -65,6 +65,8 @@ pub enum Info {
     BoundCmd,
     // children: con, [args], kind
     TermCmd,
+    // children: con, from kind, to kind
+    CoercionCmd,
     // children: con, [args], definiens
     DefCmd,
     // children: step, [hyps], notfree, result
@@ -96,6 +98,7 @@ pub enum Info {
 struct Predefined {
     axiom: Token,
     bound: Token,
+    coercion: Token,
     def: Token,
     kind: Token,
     term: Token,
@@ -114,6 +117,7 @@ struct Predefined {
     close_bracket: Token,
     open_brace: Token,
     close_brace: Token,
+    greater: Token,
     semicolon: Token,
     colon: Token,
     colon_colon: Token,
@@ -137,6 +141,7 @@ impl Predefined {
         Predefined {
             axiom: lexer.intern("axiom"),
             bound: lexer.intern("bound"),
+            coercion: lexer.intern("coercion"),
             def: lexer.intern("def"),
             kind: lexer.intern("kind"),
             term: lexer.intern("term"),
@@ -156,6 +161,7 @@ impl Predefined {
             close_bracket: lexer.intern("]"),
             open_brace: lexer.intern("{"),
             close_brace: lexer.intern("}"),
+            greater: lexer.intern(">"),
             semicolon: lexer.intern(";"),
             colon: lexer.intern(":"),
             colon_colon: lexer.intern("::"),
@@ -175,6 +181,8 @@ pub struct Parser<'a> {
     binops: BTreeMap<Token, Binop>,
     /// Number of arguments of each declared variable and term.
     arity: BTreeMap<Token, usize>,
+    /// Terms that are silently inserted to convert between kinds.
+    coercions: BTreeSet<Token>,
 }
 
 #[derive(Clone, Copy)]
@@ -208,6 +216,7 @@ impl<'a> Parser<'a> {
             prefixes: BTreeMap::new(),
             binops: BTreeMap::new(),
             arity: BTreeMap::new(),
+            coercions: BTreeSet::new(),
         }
     }
 
@@ -220,6 +229,7 @@ impl<'a> Parser<'a> {
             prefixes: self.prefixes.clone(),
             binops: self.binops.clone(),
             arity: self.arity.clone(),
+            coercions: self.coercions.clone(),
         }
     }
 
@@ -364,6 +374,8 @@ impl<'a> Parser<'a> {
             self.expect(semicolon)?;
             let children = vec![con, args, kind_node];
             Ok(self.node(start, Info::TermCmd, children))
+        } else if token == self.predefined.coercion {
+            self.parse_coercion(start)
         } else if token == self.predefined.def {
             self.parse_def(start)
         } else if token == self.predefined.axiom {
@@ -406,6 +418,30 @@ impl<'a> Parser<'a> {
         } else {
             Ok(self.leaf(start, Info::Kind(kind)))
         }
+    }
+
+    fn parse_coercion(&mut self, start: usize) -> Result<ParseNode, Error> {
+        let c_s = self.start();
+        let con_tok = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
+        let colon = self.predefined.colon;
+        self.expect(colon)?;
+        let f_s = self.start();
+        let from = self.next()?;
+        let greater = self.predefined.greater;
+        self.expect(greater)?;
+        let t_s = self.start();
+        let to = self.next()?;
+        let semicolon = self.predefined.semicolon;
+        self.expect(semicolon)?;
+        self.coercions.insert(con_tok);
+        let children = vec![self.leaf(c_s, Info::Const(con_tok)),
+            self.leaf(f_s, Info::Kind(from)), self.leaf(t_s, Info::Kind(to))];
+        Ok(self.node(start, Info::CoercionCmd, children))
+    }
+
+    /// Whether the term is a coercion, which isn't shown when typesetting.
+    pub fn is_coercion(&self, tok: Token) -> bool {
+        self.coercions.contains(&tok)
     }
 
     fn parse_def(&mut self, start: usize) -> Result<ParseNode, Error> {
@@ -737,6 +773,7 @@ impl<'a> Parser<'a> {
             Info::VarCmd => println!("var"),
             Info::BoundCmd => println!("bound"),
             Info::TermCmd => println!("term"),
+            Info::CoercionCmd => println!("coercion"),
             Info::DefCmd => println!("def"),
             Info::AxiomCmd => println!("axiom"),
             Info::TheoremCmd => println!("theorem"),

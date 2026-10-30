@@ -27,6 +27,7 @@ use unify::{self, Definition, Expr, Graph, NfVar, ReconstructCtx, StepIx, Stmt};
 pub enum Error {
     UnknownCommand,
     DuplicateKind,
+    BadCoercion,
     DuplicateVar,
     DuplicateTerm,
     DuplicateStmt,
@@ -89,6 +90,8 @@ pub struct Session<'a> {
     kinds: BTreeSet<KindName>,
     vars: BTreeMap<Token, VarType>,
     terms: BTreeMap<Token, (Vec<Type>, KindName)>,
+    /// The coercion terms, with the kinds they convert from and to.
+    coercions: Vec<(Token, KindName, KindName)>,
     stmts: BTreeMap<Token, Stmt>,
     defs: BTreeMap<Token, Definition>,
 }
@@ -151,6 +154,7 @@ impl<'a> Session<'a> {
             n_failed: 0,
             parser,
             kinds: BTreeSet::new(),
+            coercions: Vec::new(),
             vars: BTreeMap::new(),
             terms: BTreeMap::new(),
             stmts: BTreeMap::new(),
@@ -186,6 +190,7 @@ impl<'a> Session<'a> {
             Info::VarCmd => self.do_var(&cmd.children, false)?,
             Info::BoundCmd => self.do_var(&cmd.children, true)?,
             Info::TermCmd => self.do_term(&cmd.children)?,
+            Info::CoercionCmd => self.do_coercion(&cmd.children)?,
             Info::DefCmd => self.do_def(&cmd.children)?,
             Info::AxiomCmd => self.do_axiom(&cmd.children)?,
             Info::TheoremCmd => self.do_theorem(cmd, listener)?,
@@ -244,6 +249,79 @@ impl<'a> Session<'a> {
         let kind = get_kind(&children[2])?;
         self.terms.insert(con, (args, kind));
         Ok(())
+    }
+
+    /// Adds a coercion. As in MM0, the kinds and coercions have to form a forest
+    /// when taken as an undirected graph, so that there's at most one way to
+    /// convert between two kinds.
+    fn do_coercion(&mut self, children: &[ParseNode]) -> Result<(), Error> {
+        let con = get_const(&children[0])?;
+        let from = get_kind(&children[1])?;
+        let to = get_kind(&children[2])?;
+        match self.terms.get(&con) {
+            Some(&(ref args, kind)) if args[..] == [Type::Base(from)] && kind == to => (),
+            _ => return Err(Error::BadCoercion),
+        }
+        if self.connected(from, to) {
+            return Err(Error::BadCoercion);
+        }
+        self.coercions.push((con, from, to));
+        Ok(())
+    }
+
+    /// Whether coercions connect the kinds, in either direction.
+    fn connected(&self, from: KindName, to: KindName) -> bool {
+        let mut seen = vec![from];
+        let mut i = 0;
+        while i < seen.len() {
+            let kind = seen[i];
+            i += 1;
+            for &(_, a, b) in &self.coercions {
+                let other = if a == kind { b } else if b == kind { a } else { continue };
+                if !seen.contains(&other) {
+                    seen.push(other);
+                }
+            }
+        }
+        seen.contains(&to)
+    }
+
+    /// Finds the coercions that convert `from` to `to`, last one first.
+    fn coercion_path(&self, from: KindName, to: KindName) -> Option<Vec<Token>> {
+        if from == to {
+            return Some(Vec::new());
+        }
+        self.coercions.iter().filter_map(|&(con, a, b)| {
+            if b != to {
+                return None;
+            }
+            self.coercion_path(from, a).map(|mut path| {
+                path.insert(0, con);
+                path
+            })
+        }).next()
+    }
+
+    /// Converts an expression to the given type, inserting coercions, which
+    /// go inside the body of a lambda.
+    fn coerce(&self, expr: Expr, ty: &Type, expected: &Type) -> Result<Expr, Error> {
+        match (expr, ty, expected) {
+            (expr, _, _) if ty == expected => Ok(expr),
+            (expr, &Type::Base(from), &Type::Base(to)) => {
+                let path = self.coercion_path(from, to).ok_or(Error::TypeMismatch)?;
+                Ok(path.iter().rev().fold(expr, |expr, &constructor|
+                    Expr::Term { constructor, children: vec![expr] }))
+            }
+            (Expr::Term { constructor, mut children }, &Type::Arrow(a, ref res),
+                &Type::Arrow(b, ref expected_res))
+                if a == b && constructor == self.parser.backslash() =>
+            {
+                let body = children.pop().ok_or(Error::TypeMismatch)?;
+                children.push(self.coerce(body, res, expected_res)?);
+                Ok(Expr::Term { constructor, children })
+            }
+            _ => Err(Error::TypeMismatch),
+        }
     }
 
     fn do_def(&mut self, children: &[ParseNode]) -> Result<(), Error> {
@@ -554,10 +632,7 @@ impl<'a> Session<'a> {
             let mut expr_args = Vec::with_capacity(args.len());
             for (arg, child) in args.iter().zip(node.children.iter()) {
                 let (expr, ty) = self.term_to_expr(child, var_map, bound_map, is_res)?;
-                if ty != *arg {
-                    return Err(Error::TypeMismatch);
-                }
-                expr_args.push(expr);
+                expr_args.push(self.coerce(expr, &ty, arg)?);
             }
             let ty = Type::Base(kind);
             Ok((Expr::Term { constructor: atom, children: expr_args }, ty))

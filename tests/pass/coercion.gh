@@ -1,0 +1,12 @@
+/* A coercion is inserted where a kind is expected, also inside a lambda. */
+kind cls;
+term cv val: cls;
+coercion cv: val > cls;
+var A: cls;
+term eqc cls cls: wff;
+term ab (val->cls): cls;
+
+axiom eqid: eqc A A;
+theorem eqvv: eqc x x ::(eqid)
+theorem eqcv: eqc (cv x) x ::(eqid)
+theorem abcv: eqc (ab (\ x cv x)) (ab (\ x x)) ::(eqid)

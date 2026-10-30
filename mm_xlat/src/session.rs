@@ -125,6 +125,8 @@ const UNSCOPED: &[(&str, usize, usize)] = &[
 ];
 
 const SETVAR: &str = "setvar";
+/// The syntax axiom that makes a class from a setvar, which is left implicit.
+const COERCION: &str = "cv";
 
 pub struct Session<'a> {
     out: ProofOut,
@@ -410,6 +412,9 @@ impl<'a> Session<'a> {
             None => (Notation::Plain, label.to_string(), (0, 0)),
         };
         self.out.write(&format!("term {}{} : {};\n", name, arg_types, tc));
+        if label == COERCION {
+            self.out.write(&format!("coercion {}: {} > {};\n", name, SETVAR, tc));
+        }
         self.terms.push(TermInfo { name, notation, prec, vars, scope });
     }
 
@@ -622,6 +627,9 @@ impl<'a> Session<'a> {
             Tree::App(ix, ref kids) => (ix, kids),
         };
         let info = &self.terms[ix];
+        if info.name == COERCION {
+            return self.print_ctx(&kids[0], ctx, s);
+        }
         let parens = match (&info.notation, ctx) {
             (_, Ctx::Arg) => !kids.is_empty(),
             (&Notation::Plain, _) => false,
