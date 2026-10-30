@@ -238,7 +238,8 @@ translated and checked by <a href="https://github.com/raphlinus/ghilbert">Ghilbe
 <script>
 window.MathJax = {{
   AuthorInit: function() {{ MathJax.Hub.processSectionDelay = 0; }},
-  CommonHTML: {{ linebreaks: {{ automatic: true }} }}
+  CommonHTML: {{ linebreaks: {{ automatic: true }} }},
+  TeX: {{ MAXBUFFER: 1048576 }}
 }};
 </script>
 <script type="text/javascript" async
