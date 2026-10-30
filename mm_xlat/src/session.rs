@@ -56,8 +56,21 @@ enum Notation {
 struct TermInfo<'a> {
     name: String,
     notation: Notation,
+    /// Left and right binding powers, for operators (as in the Ghilbert parser).
+    prec: (u32, u32),
     /// Variables of the pattern, with typecodes and whether each binds.
     vars: Vec<(&'a str, &'a str, bool)>,
+}
+
+/// Where a term is printed, for deciding on parentheses.
+#[derive(Clone, Copy)]
+enum Ctx {
+    /// Parsed with this right binding power (an operator's right operand).
+    Operand(u32),
+    /// Left operand of an infix operator with this left binding power.
+    Left(u32),
+    /// Argument of a plain term application.
+    Arg,
 }
 
 /// Syntax axioms written with nice notation in Ghilbert.
@@ -326,19 +339,20 @@ impl<'a> Session<'a> {
                 arg_types.push_str(vtc);
             }
         }
-        let (notation, name) = match nice_notation(label) {
+        let (notation, name, prec) = match nice_notation(label) {
             Some((notation, kind, prec)) => {
                 let op = match notation {
                     Notation::Infix(op) | Notation::Prefix(op) | Notation::Binder(op) => op,
                     Notation::Plain => unreachable!(),
                 };
                 self.out.write(&format!("syntax {{\n    {} {} {};\n}}\n", kind, op, prec));
-                (notation, op.to_string())
+                let rbp = if kind == "infixr" { prec - 1 } else { prec };
+                (notation, op.to_string(), (prec, rbp))
             }
-            None => (Notation::Plain, label.to_string()),
+            None => (Notation::Plain, label.to_string(), (0, 0)),
         };
         self.out.write(&format!("term {}{} : {};\n", name, arg_types, tc));
-        self.terms.push(TermInfo { name, notation, vars });
+        self.terms.push(TermInfo { name, notation, prec, vars });
     }
 
     /// Converts a Metamath expression (starting with typecode `|-`) to Ghilbert.
@@ -353,67 +367,102 @@ impl<'a> Session<'a> {
         }
     }
 
+    /// Writes a term with only the parentheses the Ghilbert parser needs.
     fn print_tree(&self, tree: &Rc<Tree<'a>>, s: &mut String) {
+        self.print_ctx(tree, Ctx::Operand(0), s);
+    }
+
+    /// How far right a printed term extends: the lowest binding power on its
+    /// right spine (an infix operator after it binds into it if stronger).
+    fn right_bp(&self, tree: &Rc<Tree<'a>>) -> u32 {
         match **tree {
+            Tree::Var(_) => u32::MAX,
+            Tree::App(ix, ref kids) => {
+                let info = &self.terms[ix];
+                if let Notation::Plain = info.notation {
+                    return u32::MAX;
+                }
+                let last = kids.last().unwrap();
+                let last_parens = match **last {
+                    Tree::App(lix, _) => match self.terms[lix].notation {
+                        Notation::Infix(_) => self.terms[lix].prec.0 <= info.prec.1,
+                        _ => false,
+                    },
+                    _ => false,
+                };
+                if last_parens {
+                    info.prec.1
+                } else {
+                    info.prec.1.min(self.right_bp(last))
+                }
+            }
+        }
+    }
+
+    fn print_ctx(&self, tree: &Rc<Tree<'a>>, ctx: Ctx, s: &mut String) {
+        let (ix, kids) = match **tree {
             Tree::Var(v) => {
                 s.push_str(v);
                 if self.free_setvars.contains(&v) {
                     s.push('\'');
                 }
+                return;
             }
-            Tree::App(ix, ref kids) => {
-                let info = &self.terms[ix];
-                let binders: Vec<&Rc<Tree<'a>>> = info.vars.iter().zip(kids.iter())
-                    .filter(|&(v, _)| v.2).map(|(_, k)| k).collect();
-                let bodies: Vec<&Rc<Tree<'a>>> = info.vars.iter().zip(kids.iter())
-                    .filter(|&(v, _)| !v.2).map(|(_, k)| k).collect();
-                match info.notation {
-                    Notation::Infix(op) => {
-                        s.push_str("( ");
-                        self.print_tree(bodies[0], s);
-                        s.push_str(&format!(" {} ", op));
-                        self.print_tree(bodies[1], s);
-                        s.push_str(" )");
-                    }
-                    Notation::Prefix(op) => {
-                        s.push_str(&format!("( {} ", op));
-                        self.print_tree(bodies[0], s);
-                        s.push_str(" )");
-                    }
-                    Notation::Binder(op) => {
-                        s.push_str(&format!("( {} ", op));
-                        self.print_tree(binders[0], s);
-                        s.push(' ');
-                        self.print_tree(bodies[0], s);
-                        s.push_str(" )");
-                    }
-                    Notation::Plain => {
-                        if bodies.is_empty() {
-                            s.push_str(&info.name);
-                            return;
-                        }
-                        s.push_str("( ");
-                        s.push_str(&info.name);
-                        for (&(_, vtc, _), kid) in info.vars.iter().filter(|v| !v.2).zip(bodies) {
+            Tree::App(ix, ref kids) => (ix, kids),
+        };
+        let info = &self.terms[ix];
+        let parens = match (&info.notation, ctx) {
+            (_, Ctx::Arg) => !kids.is_empty(),
+            (&Notation::Plain, _) => false,
+            (&Notation::Infix(_), Ctx::Operand(r)) => info.prec.0 <= r,
+            (_, Ctx::Operand(_)) => false,
+            (_, Ctx::Left(l)) => self.right_bp(tree) < l,
+        };
+        if parens {
+            s.push_str("( ");
+        }
+        let binders: Vec<&Rc<Tree<'a>>> = info.vars.iter().zip(kids.iter())
+            .filter(|&(v, _)| v.2).map(|(_, k)| k).collect();
+        let bodies: Vec<&Rc<Tree<'a>>> = info.vars.iter().zip(kids.iter())
+            .filter(|&(v, _)| !v.2).map(|(_, k)| k).collect();
+        match info.notation {
+            Notation::Infix(op) => {
+                self.print_ctx(bodies[0], Ctx::Left(info.prec.0), s);
+                s.push_str(&format!(" {} ", op));
+                self.print_ctx(bodies[1], Ctx::Operand(info.prec.1), s);
+            }
+            Notation::Prefix(op) => {
+                s.push_str(&format!("{} ", op));
+                self.print_ctx(bodies[0], Ctx::Operand(info.prec.0), s);
+            }
+            Notation::Binder(op) => {
+                s.push_str(&format!("{} ", op));
+                self.print_ctx(binders[0], Ctx::Arg, s);
+                s.push(' ');
+                self.print_ctx(bodies[0], Ctx::Operand(info.prec.0), s);
+            }
+            Notation::Plain => {
+                s.push_str(&info.name);
+                for (&(_, vtc, _), kid) in info.vars.iter().filter(|v| !v.2).zip(bodies) {
+                    s.push(' ');
+                    if vtc == SETVAR || binders.is_empty() {
+                        self.print_ctx(kid, Ctx::Arg, s);
+                    } else {
+                        for b in &binders {
+                            s.push_str("( \\ ");
+                            self.print_ctx(b, Ctx::Arg, s);
                             s.push(' ');
-                            if vtc == SETVAR || binders.is_empty() {
-                                self.print_tree(kid, s);
-                            } else {
-                                for b in &binders {
-                                    s.push_str("( \\ ");
-                                    self.print_tree(b, s);
-                                    s.push(' ');
-                                }
-                                self.print_tree(kid, s);
-                                for _ in &binders {
-                                    s.push_str(" )");
-                                }
-                            }
                         }
-                        s.push_str(" )");
+                        self.print_ctx(kid, Ctx::Operand(0), s);
+                        for _ in &binders {
+                            s.push_str(" )");
+                        }
                     }
                 }
             }
+        }
+        if parens {
+            s.push_str(" )");
         }
     }
 
@@ -522,8 +571,21 @@ impl<'a> Session<'a> {
             None => s.push_str(&format!(":\n  {};\n\n", concl)),
             Some(lines) => {
                 s.push_str(&format!(":\n  {} ::(\n", concl));
+                // Only lines used other than by the next line (as `_`) need labels.
+                let mut used = vec![false; lines.len()];
                 for (i, line) in lines.iter().enumerate() {
-                    s.push_str(&format!("  l{}: {}", i, line.label));
+                    for &arg in &line.args {
+                        if arg + 1 != i {
+                            used[arg] = true;
+                        }
+                    }
+                }
+                for (i, line) in lines.iter().enumerate() {
+                    if used[i] {
+                        s.push_str(&format!("  l{}: {}", i, line.label));
+                    } else {
+                        s.push_str(&format!("  {}", line.label));
+                    }
                     for &arg in &line.args {
                         if arg + 1 == i {
                             s.push_str(" _");
