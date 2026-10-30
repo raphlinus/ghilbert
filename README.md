@@ -2,8 +2,13 @@
 
 Ghilbert is a formal proof checker, heavily inspired by
 [Metamath](http://us.metamath.org/). This repo contains a new
-implementation in progress, written Rust, as well as an older
-prototype, written in Python.
+implementation in progress, written Rust, as well as older versions:
+
+* `ghilbert_2014`: the Python and JavaScript implementation from
+  2010-2015, with the web app and proof content. The tag `ghilbert-2010`
+  marks its state at the end of 2010.
+* `ghilbert_2007`: a snapshot of the original Python prototype from
+  2005-2007.
 
 A few more resources are at [ghilbert.org](http://ghilbert.org/).
 There's also a fair amount of discussion on the [mailing
@@ -38,7 +43,7 @@ Note: includes the minified JavaScript version of google-diff-match-patch,
 which is (also) under Apache 2 license. For full attribution, please see:
 http://code.google.com/p/google-diff-match-patch/
 
-Proofs under `content/general` are under
+Proofs under `ghilbert_2014/content/general` are under
 [Creative Commons Share Alike 3.0](http://creativecommons.org/licenses/by-sa/3.0/).
 All other proofs are under [Creative Commons CC0 Public Domain
 Dedication](http://creativecommons.org/publicdomain/zero/1.0/).
