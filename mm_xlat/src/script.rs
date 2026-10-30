@@ -21,6 +21,8 @@ use std::path::Path;
 pub struct Script {
     i: BufReader<File>,
     mode: Mode,
+    /// Whether to ignore `stop` and carry on with the rest of the script.
+    all: bool,
 }
 
 enum Mode {
@@ -45,11 +47,12 @@ pub enum Command {
 }
 
 impl Script {
-    pub fn new<P: AsRef<Path>>(filename: P) -> Result<Script> {
+    pub fn new<P: AsRef<Path>>(filename: P, all: bool) -> Result<Script> {
         let f = File::open(filename)?;
         Ok(Script {
             i: BufReader::new(f),
             mode: Mode::Ready,
+            all,
         })
     }
 }
@@ -71,6 +74,7 @@ impl Iterator for Script {
                     }
                     match l[0] {
                         "copy" => self.mode = Mode::Copy,
+                        "stop" => if !self.all { return None; },
                         "run_through" => return Some(Command::RunThrough(l[1].to_string())),
                         "run_until" => return Some(Command::RunUntil(l[1].to_string())),
                         "skip" => return Some(Command::Skip(l[1].to_string())),

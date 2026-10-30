@@ -33,9 +33,9 @@ use script::Script;
 mod session;
 use session::Session;
 
-fn run_file(scr_fn: &str, filename: &str, out_fn: &str) -> io::Result<()> {
+fn run_file(scr_fn: &str, filename: &str, out_fn: &str, all: bool) -> io::Result<()> {
     println!("running {}", filename);
-    let mut script = Script::new(scr_fn)?;
+    let mut script = Script::new(scr_fn, all)?;
     let mut file = File::open(filename)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -49,18 +49,22 @@ fn run_file(scr_fn: &str, filename: &str, out_fn: &str) -> io::Result<()> {
 
 fn main() {
     let mut args = Vec::new();
+    let mut all = false;
     for arg in env::args().skip(1) {
-        // could process flags here
-        args.push(arg);
+        if arg == "--all" {
+            all = true;
+        } else {
+            args.push(arg);
+        }
     }
     if args.len() != 3 {
-        eprintln!("Usage: mm_xlat script set.mm out.gh");
+        eprintln!("Usage: mm_xlat [--all] script set.mm out.gh");
         exit(1);
     }
     let scr_fn = &args[0];
     let inp_fn = &args[1];
     let out_fn = &args[2];
-    if let Err(e) = run_file(scr_fn, inp_fn, out_fn) {
+    if let Err(e) = run_file(scr_fn, inp_fn, out_fn, all) {
         eprintln!("Error: {:?}", e);
         exit(1);
     }

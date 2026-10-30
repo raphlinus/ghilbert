@@ -67,8 +67,8 @@ struct TermInfo<'a> {
     prec: (u32, u32),
     /// Variables of the pattern, with typecodes and whether each binds.
     vars: Vec<(&'a str, &'a str, bool)>,
-    /// For each variable of the pattern, whether it's in the binders' scope.
-    scoped: Vec<bool>,
+    /// For each variable of the pattern, the positions of the binders over it.
+    scope: Vec<Vec<usize>>,
 }
 
 /// Where a term is printed, for deciding on parentheses.
@@ -107,17 +107,20 @@ const NON_BINDING: &[(&str, usize)] = &[
     ("wcdeq", 1),
 ];
 
-/// Wff and class arguments (by position among the pattern's variables) outside
-/// the scope of the binder. A setvar that occurs free in one of these also
-/// occurs free in the whole term. The default would wrongly make it not free,
-/// even though every proof in set.mm would still check.
-const UNSCOPED: &[(&str, usize)] = &[
-    ("wsbc", 0),  // [. A / x ]. ph
-    ("csb", 0),  // [_ A / x ]_ B
-    ("csu", 1),  // sum_ k e. A B: A occurs outside the scope of k in df-sum
-    ("cprod", 1),  // prod_ k e. A B
-    ("cdit", 0),  // S_ [ A -> B ] C _d x: A <_ B occurs outside the integral
-    ("cdit", 1),
+/// Wff and class arguments outside the scope of a binder, as positions among
+/// the pattern's variables of the argument and the binder. A setvar that occurs
+/// free in such an argument also occurs free in the whole term. The default
+/// would wrongly make it not free, even though every proof in set.mm would
+/// still check.
+const UNSCOPED: &[(&str, usize, usize)] = &[
+    ("wsbc", 0, 1),  // [. A / x ]. ph
+    ("csb", 0, 1),  // [_ A / x ]_ B
+    ("csu", 1, 0),  // sum_ k e. A B: A occurs outside the scope of k in df-sum
+    ("cprod", 1, 0),  // prod_ k e. A B
+    ("cdit", 0, 3),  // S_ [ A -> B ] C _d x: A <_ B occurs outside the integral
+    ("cdit", 1, 3),
+    ("w2reu", 1, 2),  // E! x e. A , y e. B ph: y isn't bound in E! x e. A
+    ("w2reu", 3, 0),
 ];
 
 const SETVAR: &str = "setvar";
@@ -372,16 +375,18 @@ impl<'a> Session<'a> {
             (v, vtc, binds)
         }).collect();
         self.grammar.add(ax);
-        let scoped: Vec<_> = (0..vars.len()).map(|i| !UNSCOPED.contains(&(label, i))).collect();
-        let n_binding = vars.iter().filter(|v| v.2).count();
+        let binders: Vec<_> = (0..vars.len()).filter(|&i| vars[i].2).collect();
+        let scope: Vec<Vec<_>> = (0..vars.len()).map(|i| {
+            binders.iter().cloned().filter(|&b| !UNSCOPED.contains(&(label, i, b))).collect()
+        }).collect();
         let mut arg_types = String::new();
-        for (&(_, vtc, binds), &in_scope) in vars.iter().zip(&scoped) {
+        for (&(_, vtc, binds), scope) in vars.iter().zip(&scope) {
             if binds {
                 continue;
             }
-            if vtc != SETVAR && n_binding > 0 && in_scope {
+            if vtc != SETVAR && !scope.is_empty() {
                 arg_types.push_str(" (");
-                for _ in 0..n_binding {
+                for _ in scope {
                     arg_types.push_str("setvar->");
                 }
                 arg_types.push_str(vtc);
@@ -404,7 +409,7 @@ impl<'a> Session<'a> {
             None => (Notation::Plain, label.to_string(), (0, 0)),
         };
         self.out.write(&format!("term {}{} : {};\n", name, arg_types, tc));
-        self.terms.push(TermInfo { name, notation, prec, vars, scoped });
+        self.terms.push(TermInfo { name, notation, prec, vars, scope });
     }
 
     /// Converts a Metamath expression (starting with typecode `|-`) to Ghilbert.
@@ -495,19 +500,19 @@ impl<'a> Session<'a> {
             }
             Notation::Plain => {
                 s.push_str(&info.name);
-                let args = info.vars.iter().zip(&info.scoped).filter(|&(v, _)| !v.2);
-                for ((&(_, vtc, _), &in_scope), kid) in args.zip(bodies) {
+                let args = info.vars.iter().zip(&info.scope).filter(|&(v, _)| !v.2);
+                for ((&(_, vtc, _), scope), kid) in args.zip(bodies) {
                     s.push(' ');
-                    if vtc == SETVAR || binders.is_empty() || !in_scope {
+                    if vtc == SETVAR || scope.is_empty() {
                         self.print_ctx(kid, Ctx::Arg, s);
                     } else {
-                        for b in &binders {
+                        for &b in scope {
                             s.push_str("( \\ ");
-                            self.print_ctx(b, Ctx::Arg, s);
+                            self.print_ctx(&kids[b], Ctx::Arg, s);
                             s.push(' ');
                         }
                         self.print_ctx(kid, Ctx::Operand(0), s);
-                        for _ in &binders {
+                        for _ in scope {
                             s.push_str(" )");
                         }
                     }
@@ -711,20 +716,27 @@ impl<'a> Session<'a> {
         name
     }
 
-    /// Replaces dummy wff and class variables in a result line by a variable of
-    /// the same typecode from the statement, since Ghilbert result lines can't
-    /// name dummy term variables. Any instance of a proof is still a proof.
+    /// Replaces dummy wff and class variables in a result line, since Ghilbert
+    /// result lines can't name dummy term variables. Any instance of a proof is
+    /// still a proof. A class constant is the best replacement, because it has
+    /// no free variables to break a `$d`; otherwise it's a variable of the same
+    /// typecode from the statement.
     fn subst_dummies(&self, frame: &Frame<'a>, expr: &[&'a str]) -> Vec<&'a str> {
         let mand_var = |tc: &str| frame.hyps.iter().filter_map(|&(_, ref hyp)| match *hyp {
             Hyp::F(htc, v) if htc == tc => Some(v),
             _ => None,
-        }).next().or_else(|| self.grammar.constant(tc));
+        }).next();
+        let replacement = |tc: &str| if tc == "wff" {
+            mand_var(tc).or_else(|| self.grammar.constant(tc))
+        } else {
+            self.grammar.constant(tc).or_else(|| mand_var(tc))
+        };
         let is_mand = |t: &str| frame.hyps.iter().any(|&(_, ref hyp)| match *hyp {
             Hyp::F(_, v) => v == t,
             _ => false,
         });
         expr.iter().map(|&t| match self.vars.get(t) {
-            Some(&tc) if tc != SETVAR && !is_mand(t) => mand_var(tc).unwrap_or(t),
+            Some(&tc) if tc != SETVAR && !is_mand(t) => replacement(tc).unwrap_or(t),
             _ => t,
         }).collect()
     }
@@ -890,9 +902,10 @@ struct Line<'a> {
     subst: Vec<(&'a str, &'a str)>,
 }
 
-/// The name of a variable in Ghilbert, where parentheses end a token in `var`.
+/// The name of a variable in Ghilbert, where parentheses end a token in `var`,
+/// and a trailing prime means a setvar written as a term variable.
 fn gh_var(var: &str) -> String {
-    var.replace('(', "[").replace(')', "]")
+    var.replace('(', "[").replace(')', "]").replace('\'', "''")
 }
 
 /// The level of a line of a set.mm section header, if it is one of the rules

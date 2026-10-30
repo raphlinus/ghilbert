@@ -6,7 +6,8 @@
 # Fixups must appear in set.mm order.
 #
 # This currently covers propositional and predicate calculus, stopping
-# before ZF set theory.
+# before ZF set theory at the `stop` command. The option --all of mm_xlat
+# ignores it, and translates all of set.mm.
 
 # When a proof step makes two setvars that bind the same variable, the
 # translator writes an instance of the statement it uses, named like ax-11.y=x,
@@ -17,6 +18,10 @@ prove_instance ax-11.y=x
 --
 prove_instance ax-12.y=x
   l0: ala1;
+  l1: a1i _;
+--
+prove_instance ax-c11.y=x
+  l0: id;
   l1: a1i _;
 --
 
@@ -306,3 +311,15 @@ prove axbnd
 --
 
 run_until ax-ext
+stop
+
+# Stating these needs a term with the same variable bound twice, which only an
+# instance of the definition could unfold.
+skip dfid2
+prove dfid3
+  l0: df-id;
+--
+skip bj-dfid2ALT
+skip ichid
+skip icheqid
+run_until young2d
