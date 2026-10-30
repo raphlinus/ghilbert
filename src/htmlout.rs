@@ -320,21 +320,21 @@ impl<'a> ProofListener for HtmlOut<'a> {
     }
 
     fn start_proof(&mut self, node: &ParseNode) {
-        if let Some(comment) = self.last_comment {
-            if let Some(tok) = node.children[0].get_step() {
-                self.cur_tok = Some(tok);
-                self.thm_info.insert(tok, ThmInfo {
-                    full_comment: comment.trim().to_string(),
-                    short_text: extract_short_string(&comment),
-                    defs: HashMap::new(),
-                    refs: HashMap::new(),
-                    step_typeset: HashMap::new(),
-                    underscores: HashMap::new(),
-                    summary: None,
-                });
-            }
+        let comment = self.last_comment.take();
+        if let Some(tok) = node.children[0].get_step() {
+            let text = comment.unwrap_or("(comment missing)");
+            self.cur_tok = Some(tok);
+            self.thm_info.insert(tok, ThmInfo {
+                full_comment: text.trim().to_string(),
+                short_text: extract_short_string(text),
+                defs: HashMap::new(),
+                refs: HashMap::new(),
+                step_typeset: HashMap::new(),
+                underscores: HashMap::new(),
+                summary: None,
+            });
         }
-        self.thms.push((self.last_comment.take(), node.clone()));
+        self.thms.push((comment, node.clone()));
         self.n_hyps = 0;
         self.step_ix = 0;
     }
