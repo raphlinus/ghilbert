@@ -1,0 +1,68 @@
+# Translates set.mm, generates the theorem pages and deploys them to
+# GitHub Pages. Bump SET_MM_REV by hand, since a newer set.mm can
+# change what the script in mm_xlat has to translate.
+name: Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  SET_MM_REV: b975dbbd636372803f3102045aa333771f25a477
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: metamath/set.mm
+          ref: ${{ env.SET_MM_REV }}
+          path: set.mm
+      - name: Build
+        run: |
+          cargo build --release
+          cargo build --release --manifest-path mm_xlat/Cargo.toml
+      - name: Translate and check
+        run: |
+          mkdir -p _site
+          mm_xlat/target/release/mm_xlat mm_xlat/script set.mm/set.mm out.gh > /dev/null
+          target/release/ghilbert -q -k out.gh | tee check.log
+          grep -q ' 0 failed$' check.log
+      - name: Generate pages
+        run: |
+          cd _site
+          ../target/release/ghilbert ../out.gh > /dev/null
+          rm out.html
+          cp ../thm.css ../thm.js .
+          {
+            echo '<!DOCTYPE html><meta charset="utf-8"><title>Ghilbert theorems</title>'
+            echo '<link rel="stylesheet" href="thm.css"><h1>Theorems</h1><ul>'
+            for f in gen/*.html; do
+              name=$(basename "$f" .html)
+              echo "<li><a href=\"$f\">$name</a></li>"
+            done
+            echo '</ul>'
+          } > index.html
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
