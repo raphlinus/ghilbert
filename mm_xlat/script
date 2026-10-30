@@ -37,68 +37,68 @@ prove exexw
 # A. x x = y, any two setvars are equal.
 prove aeveq
   l0: cbvaev
-    [|- ( ( A. x ( ( cv x ) = ( cv y' ) ) ) -> ( A. w ( ( cv w ) = ( cv y' ) ) ) )]
+    [|- A. x x = y' -> A. w w = y']
   l1: ax6ev
-    [|- ( E. w ( ( cv w ) = ( cv z' ) ) )]
+    [|- E. w w = z']
   l2: ax7;
   l3: aleximi _;
   l4: mpi l1 _;
   l5: ax5e;
   l6: 3syl l0 l4 _
-    [|- ( ( A. x ( ( cv x ) = ( cv y' ) ) ) -> ( ( cv y' ) = ( cv z' ) ) )]
+    [|- A. x x = y' -> y' = z']
   l7: ax6ev
-    [|- ( E. w ( ( cv w ) = ( cv t' ) ) )]
+    [|- E. w w = t']
   l8: ax7;
   l9: aleximi _;
   l10: mpi l7 _;
   l11: ax5e;
   l12: 3syl l0 l10 _
-    [|- ( ( A. x ( ( cv x ) = ( cv y' ) ) ) -> ( ( cv y' ) = ( cv t' ) ) )]
+    [|- A. x x = y' -> y' = t']
   l13: ax7;
   l14: sylc l6 l12 _;
 --
 
 prove hbaev
   l0: aev2
-    [|- ( ( A. x ( ( cv x ) = ( cv y' ) ) ) -> ( A. z ( A. w ( ( cv w ) = ( cv y' ) ) ) ) )]
+    [|- A. x x = y' -> A. z A. w w = y']
   l1: cbvaev
-    [|- ( ( A. w ( ( cv w ) = ( cv y' ) ) ) -> ( A. x ( ( cv x ) = ( cv y' ) ) ) )]
+    [|- A. w w = y' -> A. x x = y']
   l2: alimi _;
   l3: syl l0 _;
 --
 prove hbnaev
   l0: naev2
-    [|- ( ( -. ( A. x ( ( cv x ) = ( cv y' ) ) ) ) -> ( A. z ( -. ( A. w ( ( cv w ) = ( cv y' ) ) ) ) ) )]
+    [|- -. A. x x = y' -> A. z -. A. w w = y']
   l1: naev
-    [|- ( ( -. ( A. w ( ( cv w ) = ( cv y' ) ) ) ) -> ( -. ( A. x ( ( cv x ) = ( cv y' ) ) ) ) )]
+    [|- -. A. w w = y' -> -. A. x x = y']
   l2: alimi _;
   l3: syl l0 _;
 --
 prove axc16
   l0: aevlem
-    [|- ( ( A. x ( ( cv x ) = ( cv y' ) ) ) -> ( A. v ( ( cv v ) = ( cv w ) ) ) )]
+    [|- A. x x = y' -> A. v v = w]
   l1: aevlem
-    [|- ( ( A. v ( ( cv v ) = ( cv w ) ) ) -> ( A. x ( ( cv x ) = ( cv w ) ) ) )]
+    [|- A. v v = w -> A. x x = w]
   l2: syl l0 _;
   l3: ax12v;
   l4: sps _
-    [|- ( ( A. x ( ( cv x ) = ( cv w ) ) ) -> ( ph -> ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) ) )]
+    [|- A. x x = w -> ph -> A. x ( x = w -> ph )]
   l5: pm2.27;
   l6: al2imi _
-    [|- ( ( A. x ( ( cv x ) = ( cv w ) ) ) -> ( ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) -> ( A. x ph ) ) )]
+    [|- A. x x = w -> ( A. x ( x = w -> ph ) ) -> A. x ph]
   l7: syld l4 _;
   l8: syl l2 _;
 --
 prove dral1v
   l0: ax-5
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( A. x ( A. x ( ( cv x ) = ( cv y ) ) ) ) )]
+    [|- A. x x = y -> A. x A. x x = y]
   l1: dral1v.1;
   l2: albidh l0 _
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( ( A. x ph ) <-> ( A. x ps ) ) )]
+    [|- A. x x = y -> ( A. x ph <-> A. x ps )]
   l3: axc11v;
   l4: axc11rv;
   l5: impbid l3 _
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( ( A. x ps ) <-> ( A. y ps ) ) )]
+    [|- A. x x = y -> ( A. x ps <-> A. y ps )]
   l6: bitrd l2 _;
 --
 prove dral1ALT
@@ -108,16 +108,16 @@ prove dral1ALT
 prove nfald2
   l0: nfald2.1;
   l1: hbnaev
-    [|- ( ( -. ( A. x ( ( cv x ) = ( cv y ) ) ) ) -> ( A. y ( -. ( A. x ( ( cv x ) = ( cv y ) ) ) ) ) )]
+    [|- -. A. x x = y -> A. y -. A. x x = y]
   l2: nf5i _;
   l3: nfan l0 _;
   l4: nfald2.2;
   l5: nfald l3 _;
   l6: ex _;
   l7: cbvaev
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( A. w ( ( cv w ) = ( cv y ) ) ) )]
+    [|- A. x x = y -> A. w w = y]
   l8: axc16nf
-    [|- ( ( A. w ( ( cv w ) = ( cv y ) ) ) -> ( wnf ( \ x ( A. y ps ) ) ) )]
+    [|- A. w w = y -> wnf ( \ x A. y ps )]
   l9: syl l7 _;
   l10: pm2.61d2 l6 _;
 --
@@ -126,121 +126,121 @@ prove nfald2
 bound_form 2ax6elem
 prove 2ax6elem
   l0: ax6e
-    [|- ( E. z ( ( cv z ) = ( cv x ) ) )]
+    [|- E. z z = x]
   l1: hbnaev
-    [|- ( ( -. ( A. w ( ( cv w ) = ( cv z ) ) ) ) -> ( A. z ( -. ( A. w ( ( cv w ) = ( cv z ) ) ) ) ) )]
+    [|- -. A. w w = z -> A. z -. A. w w = z]
   l1a: nf5i _;
   l2: nfnae;
   l3: nfan l1a _;
   l4: nfeqf
-    [|- ( ( ( -. ( A. w ( ( cv w ) = ( cv z ) ) ) ) /\ ( -. ( A. w ( ( cv w ) = ( cv x ) ) ) ) ) -> ( wnf ( \ w ( ( cv z ) = ( cv x ) ) ) ) )]
+    [|- -. A. w w = z /\ -. A. w w = x -> wnf ( \ w z = x )]
   l5: pm3.21
-    [|- ( ( ( cv w ) = ( cv y ) ) -> ( ( ( cv z ) = ( cv x ) ) -> ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) )]
+    [|- w = y -> z = x -> z = x /\ w = y]
   l6: spimed l4 _;
   l7: eximd l3 _
-    [|- ( ( ( -. ( A. w ( ( cv w ) = ( cv z ) ) ) ) /\ ( -. ( A. w ( ( cv w ) = ( cv x ) ) ) ) ) -> ( ( E. z ( ( cv z ) = ( cv x ) ) ) -> ( E. z ( E. w ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) ) ) )]
+    [|- -. A. w w = z /\ -. A. w w = x -> E. z z = x -> E. z E. w ( z = x /\ w = y )]
   l8: mpi l0 _;
   l9: ex _
-    [|- ( ( -. ( A. w ( ( cv w ) = ( cv z ) ) ) ) -> ( ( -. ( A. w ( ( cv w ) = ( cv x ) ) ) ) -> ( E. z ( E. w ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) ) ) )]
+    [|- -. A. w w = z -> -. A. w w = x -> E. z E. w ( z = x /\ w = y )]
   l10: ax6e
-    [|- ( E. z ( ( cv z ) = ( cv y ) ) )]
+    [|- E. z z = y]
   l11: nfae;
   l12: equvini
-    [|- ( ( ( cv z ) = ( cv y ) ) -> ( E. w ( ( ( cv z ) = ( cv w ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) )]
+    [|- z = y -> E. w ( z = w /\ w = y )]
   l13: equtrr;
   l14: anim1d _;
   l15: aleximi _
-    [|- ( ( A. w ( ( cv w ) = ( cv x ) ) ) -> ( ( E. w ( ( ( cv z ) = ( cv w ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) -> ( E. w ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) ) )]
+    [|- A. w w = x -> E. w ( z = w /\ w = y ) -> E. w ( z = x /\ w = y )]
   l16: syl5 l12 _;
   l17: eximd l11 _
-    [|- ( ( A. w ( ( cv w ) = ( cv x ) ) ) -> ( ( E. z ( ( cv z ) = ( cv y ) ) ) -> ( E. z ( E. w ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) ) ) )]
+    [|- A. w w = x -> E. z z = y -> E. z E. w ( z = x /\ w = y )]
   l18: mpi l10 _
-    [|- ( ( A. w ( ( cv w ) = ( cv x ) ) ) -> ( E. z ( E. w ( ( ( cv z ) = ( cv x ) ) /\ ( ( cv w ) = ( cv y ) ) ) ) ) )]
+    [|- A. w w = x -> E. z E. w ( z = x /\ w = y )]
   l19: pm2.61d2 l9 _;
 --
 prove nfsb4t
   l0: nfv
-    [|- ( wnf ( \ z ( ( cv x ) = ( cv w ) ) ) )]
+    [|- wnf ( \ z x = w )]
   l1: a1i _
-    [|- ( ( A. x ( wnf ( \ z ph ) ) ) -> ( wnf ( \ z ( ( cv x ) = ( cv w ) ) ) ) )]
+    [|- A. x wnf ( \ z ph ) -> wnf ( \ z x = w )]
   l2: sp
-    [|- ( ( A. x ( wnf ( \ z ph ) ) ) -> ( wnf ( \ z ph ) ) )]
+    [|- A. x wnf ( \ z ph ) -> wnf ( \ z ph )]
   l3: nfimd l1 _;
   l4: nfa1
-    [|- ( wnf ( \ x ( A. x ( wnf ( \ z ph ) ) ) ) )]
+    [|- wnf ( \ x A. x wnf ( \ z ph ) )]
   l5: nfald l4 l3
-    [|- ( ( A. x ( wnf ( \ z ph ) ) ) -> ( wnf ( \ z ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) ) ) )]
+    [|- A. x wnf ( \ z ph ) -> wnf ( \ z A. x ( x = w -> ph ) )]
   l6: nfeqf
-    [|- ( ( ( -. ( A. z ( ( cv z ) = ( cv w ) ) ) ) /\ ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) ) -> ( wnf ( \ z ( ( cv w ) = ( cv y' ) ) ) ) )]
+    [|- -. A. z z = w /\ -. A. z z = y' -> wnf ( \ z w = y' )]
   l7: ex _;
   l8: com12 _
-    [|- ( ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) -> ( ( -. ( A. z ( ( cv z ) = ( cv w ) ) ) ) -> ( wnf ( \ z ( ( cv w ) = ( cv y' ) ) ) ) ) )]
+    [|- -. A. z z = y' -> -. A. z z = w -> wnf ( \ z w = y' )]
   l9: cbvaev
-    [|- ( ( A. z ( ( cv z ) = ( cv w ) ) ) -> ( A. v ( ( cv v ) = ( cv w ) ) ) )]
+    [|- A. z z = w -> A. v v = w]
   l10: axc16nf
-    [|- ( ( A. v ( ( cv v ) = ( cv w ) ) ) -> ( wnf ( \ z ( ( cv w ) = ( cv y' ) ) ) ) )]
+    [|- A. v v = w -> wnf ( \ z w = y' )]
   l11: syl l9 _;
   l12: pm2.61d2 l8 _;
   l13: adantl _
-    [|- ( ( ( A. x ( wnf ( \ z ph ) ) ) /\ ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) ) -> ( wnf ( \ z ( ( cv w ) = ( cv y' ) ) ) ) )]
+    [|- A. x wnf ( \ z ph ) /\ -. A. z z = y' -> wnf ( \ z w = y' )]
   l14: adantr l5
-    [|- ( ( ( A. x ( wnf ( \ z ph ) ) ) /\ ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) ) -> ( wnf ( \ z ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) ) ) )]
+    [|- A. x wnf ( \ z ph ) /\ -. A. z z = y' -> wnf ( \ z A. x ( x = w -> ph ) )]
   l15: nfimd l13 _;
   l16: nfv
-    [|- ( wnf ( \ w ( ( A. x ( wnf ( \ z ph ) ) ) /\ ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) ) ) )]
+    [|- wnf ( \ w A. x wnf ( \ z ph ) /\ -. A. z z = y' )]
   l17: nfald _ l15
-    [|- ( ( ( A. x ( wnf ( \ z ph ) ) ) /\ ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) ) -> ( wnf ( \ z ( A. w ( ( ( cv w ) = ( cv y' ) ) -> ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) ) ) ) ) )]
+    [|- A. x wnf ( \ z ph ) /\ -. A. z z = y' -> wnf ( \ z A. w ( w = y' -> A. x ( x = w -> ph ) ) )]
   l18: dfsb
-    [|- ( ( wsb y' ( \ x ph ) ) <-> ( A. w ( ( ( cv w ) = ( cv y' ) ) -> ( A. x ( ( ( cv x ) = ( cv w ) ) -> ph ) ) ) ) )]
+    [|- wsb y' ( \ x ph ) <-> A. w ( w = y' -> A. x ( x = w -> ph ) )]
   l19: nfbii _;
   l20: sylibr l17 _;
   l21: ex _;
 --
 prove sbidm
   l0: sbequ12
-    [|- ( ( ( cv x ) = ( cv y' ) ) -> ( ph <-> ( wsb y' ( \ x ph ) ) ) )]
+    [|- x = y' -> ( ph <-> wsb y' ( \ x ph ) )]
   l1: pm5.74i _;
   l2: sbbii _
-    [|- ( ( wsb y' ( \ x ( ( ( cv x ) = ( cv y' ) ) -> ph ) ) ) <-> ( wsb y' ( \ x ( ( ( cv x ) = ( cv y' ) ) -> ( wsb y' ( \ x ph ) ) ) ) ) )]
+    [|- wsb y' ( \ x x = y' -> ph ) <-> wsb y' ( \ x x = y' -> wsb y' ( \ x ph ) )]
   l3: sbequ8
-    [|- ( ( wsb y' ( \ x ph ) ) <-> ( wsb y' ( \ x ( ( ( cv x ) = ( cv y' ) ) -> ph ) ) ) )]
+    [|- wsb y' ( \ x ph ) <-> wsb y' ( \ x x = y' -> ph )]
   l4: sbequ8
-    [|- ( ( wsb y' ( \ x ( wsb y' ( \ x ph ) ) ) ) <-> ( wsb y' ( \ x ( ( ( cv x ) = ( cv y' ) ) -> ( wsb y' ( \ x ph ) ) ) ) ) )]
+    [|- wsb y' ( \ x wsb y' ( \ x ph ) ) <-> wsb y' ( \ x x = y' -> wsb y' ( \ x ph ) )]
   l5: 3bitr4ri l2 l3 _;
 --
 prove sbco2
   l0: sbequ12
-    [|- ( ( ( cv z ) = ( cv y' ) ) -> ( ( wsb z ( \ x ph ) ) <-> ( wsb y' ( \ z ( wsb z ( \ x ph ) ) ) ) ) )]
+    [|- z = y' -> ( wsb z ( \ x ph ) <-> wsb y' ( \ z wsb z ( \ x ph ) ) )]
   l1: sbequ
-    [|- ( ( ( cv z ) = ( cv y' ) ) -> ( ( wsb z ( \ x ph ) ) <-> ( wsb y' ( \ x ph ) ) ) )]
+    [|- z = y' -> ( wsb z ( \ x ph ) <-> wsb y' ( \ x ph ) )]
   l2: bitr3d l0 _;
   l3: sps _
-    [|- ( ( A. z ( ( cv z ) = ( cv y' ) ) ) -> ( ( wsb y' ( \ z ( wsb z ( \ x ph ) ) ) ) <-> ( wsb y' ( \ x ph ) ) ) )]
+    [|- A. z z = y' -> ( wsb y' ( \ z wsb z ( \ x ph ) ) <-> wsb y' ( \ x ph ) )]
   l4: nfa1
-    [|- ( wnf ( \ z ( A. z ( ( cv z ) = ( cv y' ) ) ) ) )]
+    [|- wnf ( \ z A. z z = y' )]
   l5: nfn _;
   l6: sbco2.1;
   l7: nfsb4 _
-    [|- ( ( -. ( A. z ( ( cv z ) = ( cv y' ) ) ) ) -> ( wnf ( \ z ( wsb y' ( \ x ph ) ) ) ) )]
+    [|- -. A. z z = y' -> wnf ( \ z wsb y' ( \ x ph ) )]
   l8: a1i l1;
   l9: sbied l5 l7 _;
   l10: pm2.61i l3 _;
 --
 prove sbco3
   l0: sbco
-    [|- ( ( wsb y ( \ x ( wsb x ( \ y ph ) ) ) ) <-> ( wsb y ( \ x ph ) ) )]
+    [|- wsb y ( \ x wsb x ( \ y ph ) ) <-> wsb y ( \ x ph )]
   l1: sbbii _
-    [|- ( ( wsb z' ( \ y ( wsb y ( \ x ( wsb x ( \ y ph ) ) ) ) ) ) <-> ( wsb z' ( \ y ( wsb y ( \ x ph ) ) ) ) )]
+    [|- wsb z' ( \ y wsb y ( \ x wsb x ( \ y ph ) ) ) <-> wsb z' ( \ y wsb y ( \ x ph ) )]
   l2: sbco2vv
-    [|- ( ( wsb z' ( \ y ( wsb y ( \ x ( wsb x ( \ y ph ) ) ) ) ) ) <-> ( wsb z' ( \ x ( wsb x ( \ y ph ) ) ) ) )]
+    [|- wsb z' ( \ y wsb y ( \ x wsb x ( \ y ph ) ) ) <-> wsb z' ( \ x wsb x ( \ y ph ) )]
   l3: bitr3i l1 _;
 --
 prove sb9
   l0: nfs1v
-    [|- ( wnf ( \ y ( wsb x ( \ y ph ) ) ) )]
+    [|- wnf ( \ y wsb x ( \ y ph ) )]
   l1: sb8 _;
   l2: sbco
-    [|- ( ( wsb y ( \ x ( wsb x ( \ y ph ) ) ) ) <-> ( wsb y ( \ x ph ) ) )]
+    [|- wsb y ( \ x wsb x ( \ y ph ) ) <-> wsb y ( \ x ph )]
   l3: albii _;
   l4: bitri l1 _;
 --
@@ -248,13 +248,13 @@ prove nfsbd
   l0: nfsbd.1;
   l1: nfsbd.2;
   l2: alrimi l0 _
-    [|- ( ph -> ( A. x ( wnf ( \ z ps ) ) ) )]
+    [|- ph -> A. x wnf ( \ z ps )]
   l3: nfsb4t;
   l4: syl l2 _;
   l5: cbvaev
-    [|- ( ( A. z ( ( cv z ) = ( cv y' ) ) ) -> ( A. w ( ( cv w ) = ( cv y' ) ) ) )]
+    [|- A. z z = y' -> A. w w = y']
   l6: axc16nf
-    [|- ( ( A. w ( ( cv w ) = ( cv y' ) ) ) -> ( wnf ( \ z ( wsb y' ( \ x ps ) ) ) ) )]
+    [|- A. w w = y' -> wnf ( \ z wsb y' ( \ x ps ) )]
   l7: syl l5 _;
   l8: pm2.61d2 l4 _;
 --
@@ -267,19 +267,19 @@ prove eujustALT
 --
 prove exists2
   l0: ax-5
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( A. x ( A. x ( ( cv x ) = ( cv y ) ) ) ) )]
+    [|- A. x x = y -> A. x A. x x = y]
   l1: ax-5
-    [|- ( ( A. x ph ) -> ( A. x ( A. x ph ) ) )]
+    [|- A. x ph -> A. x A. x ph]
   l2: axc16
-    [|- ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( ph -> ( A. x ph ) ) )]
+    [|- A. x x = y -> ph -> A. x ph]
   l3: exlimdh l0 l1 _;
   l4: com12 _
-    [|- ( ( E. x ph ) -> ( ( A. x ( ( cv x ) = ( cv y ) ) ) -> ( A. x ph ) ) )]
+    [|- E. x ph -> A. x x = y -> A. x ph]
   l5: exists1
-    [|- ( ( weu ( \ x ( ( cv x ) = ( cv x ) ) ) ) <-> ( A. x ( ( cv x ) = ( cv y ) ) ) )]
+    [|- weu ( \ x x = x ) <-> A. x x = y]
   l6: alex;
   l7: bicomi _
-    [|- ( ( -. ( E. x ( -. ph ) ) ) <-> ( A. x ph ) )]
+    [|- -. E. x -. ph <-> A. x ph]
   l8: 3imtr4g l4 l5 _;
   l9: con2d _;
   l10: imp _;
@@ -289,24 +289,24 @@ prove exists2
 bound_form axbnd
 prove axbnd
   l0: hbaev
-    [|- ( ( A. z ( ( cv z ) = ( cv x ) ) ) -> ( A. x ( A. z ( ( cv z ) = ( cv x ) ) ) ) )]
+    [|- A. z z = x -> A. x A. z z = x]
   l1: nf5i _;
   l2: hbaev
-    [|- ( ( A. z ( ( cv z ) = ( cv y ) ) ) -> ( A. x ( A. z ( ( cv z ) = ( cv y ) ) ) ) )]
+    [|- A. z z = y -> A. x A. z z = y]
   l3: nf5i _;
   l4: nfor l1 _;
   l5: 19.32 l4
-    [|- ( ( A. x ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) <-> ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. x ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) )]
+    [|- A. x ( A. z z = x \/ A. z z = y \/ A. z ( x = y -> A. z x = y ) ) <-> A. z z = x \/ A. z z = y \/ A. x A. z ( x = y -> A. z x = y )]
   l6: orass
-    [|- ( ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. x ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) <-> ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( ( A. z ( ( cv z ) = ( cv y ) ) ) \/ ( A. x ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) ) )]
+    [|- A. z z = x \/ A. z z = y \/ A. x A. z ( x = y -> A. z x = y ) <-> A. z z = x \/ ( A. z z = y \/ A. x A. z ( x = y -> A. z x = y ) )]
   l7: bitri l5 _
-    [|- ( ( A. x ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) <-> ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( ( A. z ( ( cv z ) = ( cv y ) ) ) \/ ( A. x ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) ) )]
+    [|- A. x ( A. z z = x \/ A. z z = y \/ A. z ( x = y -> A. z x = y ) ) <-> A. z z = x \/ ( A. z z = y \/ A. x A. z ( x = y -> A. z x = y ) )]
   l8: axi12
-    [|- ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( ( A. z ( ( cv z ) = ( cv y ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) )]
+    [|- A. z z = x \/ ( A. z z = y \/ A. z ( x = y -> A. z x = y ) )]
   l9: orass
-    [|- ( ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) <-> ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( ( A. z ( ( cv z ) = ( cv y ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) ) ) )]
+    [|- A. z z = x \/ A. z z = y \/ A. z ( x = y -> A. z x = y ) <-> A. z z = x \/ ( A. z z = y \/ A. z ( x = y -> A. z x = y ) )]
   l10: mpbir l8 _
-    [|- ( ( ( A. z ( ( cv z ) = ( cv x ) ) ) \/ ( A. z ( ( cv z ) = ( cv y ) ) ) ) \/ ( A. z ( ( ( cv x ) = ( cv y ) ) -> ( A. z ( ( cv x ) = ( cv y ) ) ) ) ) )]
+    [|- A. z z = x \/ A. z z = y \/ A. z ( x = y -> A. z x = y )]
   l11: mpgbi l7 _;
 --
 
