@@ -21,7 +21,7 @@ use std::io::{self, ErrorKind, Write};
 use std::mem;
 use std::path::Path;
 
-use pulldown_cmark::{self, BrokenLink, CowStr, Event, Options};
+use pulldown_cmark::{self, BrokenLink, CowStr, Event, Options, TagEnd};
 
 use lexer::Token;
 use parser::{Info, Parser, ParseNode};
@@ -542,11 +542,15 @@ impl<'a> ProofListener for HtmlOut<'a> {
 /// The text of a Markdown comment, with math spans as they were written.
 fn plain_text(comment: &str) -> String {
     let mut s = String::new();
-    for event in pulldown_cmark::Parser::new_ext(comment, Options::ENABLE_MATH) {
+    // Every reference becomes a link, so that its text is left without brackets.
+    let mut link = |_: BrokenLink| Some((CowStr::from(""), CowStr::from("")));
+    let parser = pulldown_cmark::Parser::new_with_broken_link_callback(comment,
+        Options::ENABLE_MATH, Some(&mut link));
+    for event in parser {
         match event {
             Event::Text(t) | Event::Code(t) | Event::InlineMath(t) | Event::DisplayMath(t) =>
                 s.push_str(&t),
-            Event::SoftBreak | Event::HardBreak | Event::End(_) => s.push(' '),
+            Event::SoftBreak | Event::HardBreak | Event::End(TagEnd::Paragraph) => s.push(' '),
             _ => (),
         }
     }
