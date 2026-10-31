@@ -123,7 +123,6 @@ struct Predefined {
     greater: Token,
     semicolon: Token,
     colon: Token,
-    colon_colon: Token,
     underline: Token,
     backslash: Token,
     arrow: Token,
@@ -168,7 +167,6 @@ impl Predefined {
             greater: lexer.intern(">"),
             semicolon: lexer.intern(";"),
             colon: lexer.intern(":"),
-            colon_colon: lexer.intern("::"),
             underline: lexer.intern("_"),
             backslash: lexer.intern("\\"),
             arrow: lexer.intern("->"),
@@ -566,19 +564,19 @@ impl<'a> Parser<'a> {
         }
         let hyp_names_node = self.list(h_s, hyp_names);
         let hyps_node = self.list(h_s, hyps);
-        let colon_colon = self.predefined.colon_colon;
-        let result = self.parse_term(Some(colon_colon))?;
-        self.expect(colon_colon)?;
+        let open_brace = self.predefined.open_brace;
+        let result = self.parse_term(Some(open_brace))?;
+        self.expect(open_brace)?;
 
         // the proof
-        self.expect(open)?;
-        let proof = self.parse_proof()?;
+        let close_brace = self.predefined.close_brace;
+        let proof = self.parse_proof(close_brace)?;
         let children = vec![step, hyp_names_node, hyps_node, notfree, result, proof];
         Ok(self.node(start, Info::TheoremCmd, children))
     }
 
-    // Note: at this point, the open paren of the proof has already been consumed
-    fn parse_proof(&mut self) -> Result<ParseNode, Error> {
+    // Note: at this point, the opening delimiter of the proof has already been consumed
+    fn parse_proof(&mut self, closer: Token) -> Result<ParseNode, Error> {
         let start = self.start();
         let open = self.predefined.open;
         let close = self.predefined.close;
@@ -593,7 +591,7 @@ impl<'a> Parser<'a> {
             let mut tok = self.lexer.next_medium().ok_or(Error::UnexpectedEof)?;
             let maybe_label = self.leaf(l_s, Info::Step(tok));
             //println!("tok {:?}", tok);
-            if tok == close {
+            if tok == closer {
                 break;
             }
             let mut t_s = l_s;
@@ -615,11 +613,11 @@ impl<'a> Parser<'a> {
                     break;
                 } else if tok == semicolon {
                     break;
-                } else if tok == close {
+                } else if tok == closer {
                     done = true;
                     break;
                 } else if tok == open {
-                    args.push(self.parse_proof()?);
+                    args.push(self.parse_proof(close)?);
                 } else if tok == self.predefined.underline {
                     args.push(self.leaf(t_s, Info::Dummy));
                 } else {

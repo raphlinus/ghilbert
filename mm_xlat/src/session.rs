@@ -885,14 +885,14 @@ impl<'a> Session<'a> {
         }
         let concl = self.gh_expr(label, &frame.concl);
         if let Some(body) = manual {
-            s.push_str(&format!(":\n  {} ::(\n{})\n\n", concl, body));
+            s.push_str(&format!(":\n  {} {{\n{}}}\n\n", concl, body));
             self.out.write(&s);
             return;
         }
         match lines {
             None => s.push_str(&format!(":\n  {};\n\n", concl)),
             Some(lines) => {
-                s.push_str(&format!(":\n  {} ::(\n", concl));
+                s.push_str(&format!(":\n  {} {{\n", concl));
                 // Only lines used other than by the next line (as `_`) need labels.
                 let mut used = vec![false; lines.len()];
                 for (i, line) in lines.iter().enumerate() {
@@ -922,7 +922,7 @@ impl<'a> Session<'a> {
                         s.push_str(";\n");
                     }
                 }
-                s.push_str(")\n\n");
+                s.push_str("}\n\n");
             }
         }
         self.out.write(&s);

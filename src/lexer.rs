@@ -195,7 +195,7 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
         let mut len = 0;
         for c in self.text[self.ix..].chars() {
-            if len > 0 && (c.is_whitespace() || c == ';' || c == ':' || c == '(' || c == ')') {
+            if len > 0 && (c.is_whitespace() || ";:(){}".contains(c)) {
                 break;
             }
             len += c.len_utf8();
